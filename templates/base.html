@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}한울회 A+ 학습시스템{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=SUIT:wght@400;500;700;800&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --ink: #10211b;
+            --forest: #1f6a47;
+            --forest-dark: #165234;
+            --leaf: #5cb56b;
+            --mint: #e8f5df;
+            --paper: #f7f7f1;
+            --line: #c8d8c9;
+            --card: #ffffff;
+            --accent: #f4a340;
+            --muted: #6b8a72;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 10% 10%, #f1f9e7 0%, transparent 35%),
+                radial-gradient(circle at 90% 0%, #e1f0e4 0%, transparent 40%),
+                linear-gradient(145deg, #f8faf3 0%, #eef6eb 100%);
+            font-family: "SUIT", sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .wrap {
+            width: min(1120px, 92vw);
+            margin: 0 auto;
+        }
+
+        /* ── Header ── */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            background: rgba(247, 247, 241, 0.88);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .site-header .wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            gap: 10px;
+        }
+
+        .brand {
+            font-family: "Black Han Sans", sans-serif;
+            font-size: 1.45rem;
+            letter-spacing: 0.02em;
+            color: var(--forest);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--forest), var(--leaf));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1rem;
+            font-family: "SUIT", sans-serif;
+            font-weight: 800;
+        }
+
+        .site-nav {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .site-nav a {
+            text-decoration: none;
+            color: #3a6b4c;
+            font-weight: 700;
+            font-size: 0.88rem;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .site-nav a:hover {
+            background: var(--mint);
+            color: var(--forest);
+        }
+
+        /* ── Main ── */
+        main {
+            padding: 28px 0 56px;
+            flex: 1;
+        }
+
+        /* ── Footer ── */
+        .site-footer {
+            background: var(--forest-dark);
+            color: #c5dfc8;
+            padding: 32px 0;
+            font-size: 0.85rem;
+            line-height: 1.7;
+        }
+
+        .footer-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .footer-brand {
+            font-family: "Black Han Sans", sans-serif;
+            font-size: 1.15rem;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #a5cfac;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: #fff;
+        }
+
+        /* ── Animations ── */
+        .fade-up {
+            animation: fadeUp 0.7s ease-out both;
+        }
+
+        .fade-up.delay-1 { animation-delay: 0.1s; }
+        .fade-up.delay-2 { animation-delay: 0.2s; }
+        .fade-up.delay-3 { animation-delay: 0.3s; }
+        .fade-up.delay-4 { animation-delay: 0.4s; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 720px) {
+            .site-header .wrap { padding: 10px 0; }
+            .brand { font-size: 1.15rem; }
+            .brand-icon { width: 28px; height: 28px; font-size: 0.85rem; }
+            .site-nav { gap: 4px; }
+            .site-nav a { font-size: 0.8rem; padding: 5px 8px; }
+            main { padding-top: 18px; }
+            .footer-inner { flex-direction: column; gap: 16px; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header class="site-header">
+        <div class="wrap">
+            <a class="brand" href="{% url 'main:index' %}">
+                <span class="brand-icon">A+</span>
+                한울회 학습시스템
+            </a>
+            <nav class="site-nav" aria-label="메인 내비게이션">
+                <a href="{% url 'main:index' %}#subjects">학년/과목</a>
+                <a href="{% url 'main:index' %}#exam-bank">기출문제</a>
+                <a href="{% url 'main:index' %}#study-loop">학습루프</a>
+                <a href="{% url 'main:index' %}#join">스터디참여</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="wrap">
+            <div class="footer-inner">
+                <div>
+                    <div class="footer-brand">한울회 A+ 학습시스템</div>
+                    <p>한국방송통신대학교 농학과 학습동아리 한울회 스터디 그룹</p>
+                </div>
+                <div class="footer-links">
+                    <a href="https://agri.knou.ac.kr/agri/index.do" target="_blank" rel="noopener">농학과 홈페이지</a>
+                    <a href="https://cafe.daum.net/hwhstudy" target="_blank" rel="noopener">한울회 카페</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

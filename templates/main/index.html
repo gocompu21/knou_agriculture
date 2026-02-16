@@ -1,0 +1,640 @@
+{% extends "base.html" %}
+
+{% block title %}한울회 A+ 학습시스템 | 홈{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ══════════ Hero ══════════ */
+    .hero {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 20px;
+        align-items: stretch;
+    }
+
+    .hero-left {
+        background: linear-gradient(160deg, #1a5e3e 0%, #27784f 55%, #3a9a62 100%);
+        border-radius: 24px;
+        padding: 40px 36px;
+        color: #f2f9ef;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 16px 40px rgba(20, 60, 38, 0.3);
+    }
+
+    .hero-left::before {
+        content: "";
+        position: absolute;
+        right: -50px;
+        top: -50px;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.07);
+    }
+
+    .hero-left::after {
+        content: "";
+        position: absolute;
+        left: -30px;
+        bottom: -60px;
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .hero-kicker {
+        display: inline-flex;
+        font-size: 0.78rem;
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.18);
+        padding: 7px 14px;
+        border-radius: 999px;
+        margin-bottom: 16px;
+        letter-spacing: 0.02em;
+    }
+
+    .hero h1 {
+        font-size: clamp(1.8rem, 3.8vw, 2.6rem);
+        line-height: 1.22;
+        letter-spacing: -0.01em;
+        position: relative;
+    }
+
+    .hero h1 .highlight {
+        color: #b5f0c0;
+    }
+
+    .hero-desc {
+        margin: 16px 0 0;
+        font-size: 0.98rem;
+        line-height: 1.7;
+        max-width: 40ch;
+        color: rgba(240, 255, 240, 0.88);
+    }
+
+    .hero-tags {
+        margin-top: 22px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .hero-tags span {
+        background: rgba(16, 40, 26, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 6px 12px;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+
+    .hero-right {
+        display: grid;
+        grid-template-rows: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+    .stat-card {
+        background: #fff;
+        border: 1px solid #d4e5d6;
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 8px 24px rgba(30, 70, 42, 0.08);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(30, 70, 42, 0.14);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    .stat-icon.green  { background: #e3f5e1; }
+    .stat-icon.yellow { background: #fdf4de; }
+    .stat-icon.orange { background: #fde8d8; }
+
+    .stat-card strong {
+        display: block;
+        color: var(--forest);
+        font-size: 1.6rem;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+
+    .stat-card small {
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    /* ══════════ Section Common ══════════ */
+    .section {
+        margin-top: 28px;
+        background: #fff;
+        border: 1px solid #dbe7dc;
+        border-radius: 22px;
+        padding: 28px;
+        box-shadow: 0 10px 28px rgba(33, 77, 47, 0.06);
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .section-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .section h2 {
+        font-size: 1.25rem;
+        color: var(--forest);
+    }
+
+    .section-desc {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-top: -12px;
+        margin-bottom: 18px;
+        padding-left: 46px;
+    }
+
+    /* ══════════ Subject Grid ══════════ */
+    .subject-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+    }
+
+    .subject-card {
+        border: 1px solid #d7e3d7;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fcf5 100%);
+        border-radius: 16px;
+        padding: 18px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .subject-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(30, 70, 42, 0.1);
+    }
+
+    .subject-label {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #fff;
+        padding: 3px 10px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+    }
+
+    .grade-1 .subject-label { background: #4caf7a; }
+    .grade-2 .subject-label { background: #3d9ed6; }
+    .grade-3 .subject-label { background: #e0943a; }
+    .grade-4 .subject-label { background: #c4604a; }
+
+    .subject-card h3 {
+        font-size: 1rem;
+        color: #1d5536;
+        margin-bottom: 8px;
+    }
+
+    .subject-list {
+        list-style: none;
+        font-size: 0.85rem;
+        color: #4f6555;
+        line-height: 1.7;
+    }
+
+    .subject-list li::before {
+        content: "\2022";
+        color: var(--leaf);
+        margin-right: 6px;
+        font-weight: 700;
+    }
+
+    /* ══════════ Exam Bank ══════════ */
+    .exam-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+
+    .exam-card {
+        border: 1px solid #d7e3d7;
+        background: linear-gradient(180deg, #fff 0%, #fafdf7 100%);
+        border-radius: 16px;
+        padding: 20px;
+    }
+
+    .exam-card h3 {
+        font-size: 1rem;
+        color: #1d5536;
+        margin-bottom: 8px;
+    }
+
+    .exam-card p {
+        color: #4f6555;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .year-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 12px;
+    }
+
+    .year-chip {
+        background: var(--mint);
+        color: var(--forest);
+        font-weight: 700;
+        font-size: 0.8rem;
+        padding: 5px 12px;
+        border-radius: 8px;
+        border: 1px solid #c8e4c2;
+    }
+
+    /* ══════════ Study Loop ══════════ */
+    .loop-flow {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        position: relative;
+    }
+
+    .loop-step {
+        border-radius: 16px;
+        padding: 20px 16px;
+        text-align: center;
+        position: relative;
+    }
+
+    .loop-num {
+        display: inline-flex;
+        width: 28px;
+        height: 28px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 0.82rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+
+    .loop-step h4 {
+        font-size: 0.95rem;
+        margin-bottom: 6px;
+    }
+
+    .loop-step p {
+        font-size: 0.82rem;
+        line-height: 1.5;
+        color: #4a5c4f;
+    }
+
+    .step-1 { background: #e5f5e0; }
+    .step-1 .loop-num { background: #3da06a; color: #fff; }
+    .step-2 { background: #f5f5d8; }
+    .step-2 .loop-num { background: #b5a32e; color: #fff; }
+    .step-3 { background: #fdecd8; }
+    .step-3 .loop-num { background: #d18a3a; color: #fff; }
+    .step-4 { background: #fde0d5; }
+    .step-4 .loop-num { background: #c45a42; color: #fff; }
+
+    .loop-arrow {
+        position: absolute;
+        right: -18px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.2rem;
+        color: #9db8a0;
+        font-weight: 700;
+    }
+
+    .loop-cta {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        text-decoration: none;
+        border-radius: 12px;
+        padding: 12px 22px;
+        font-weight: 800;
+        font-size: 0.9rem;
+        transition: transform 0.15s, box-shadow 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #1f6a47, #2d8a56);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(31, 106, 71, 0.3);
+    }
+
+    .btn-primary:hover {
+        box-shadow: 0 6px 20px rgba(31, 106, 71, 0.4);
+    }
+
+    .btn-outline {
+        background: #fff;
+        border: 2px solid #b4d4b8;
+        color: var(--forest);
+    }
+
+    .btn-outline:hover {
+        background: var(--mint);
+    }
+
+    /* ══════════ Join / Links ══════════ */
+    .join-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+
+    .join-card {
+        padding: 22px;
+        border-radius: 16px;
+        border: 1px dashed #adc8b0;
+        background: #f6faf4;
+        transition: background 0.2s;
+    }
+
+    .join-card:hover {
+        background: #eef5eb;
+    }
+
+    .join-card h3 {
+        font-size: 1rem;
+        color: var(--forest);
+        margin-bottom: 6px;
+    }
+
+    .join-card p {
+        font-size: 0.88rem;
+        color: #4f6555;
+        line-height: 1.6;
+        margin-bottom: 10px;
+    }
+
+    .join-card a {
+        color: var(--forest);
+        font-weight: 700;
+        font-size: 0.88rem;
+        word-break: break-all;
+    }
+
+    /* ══════════ Responsive ══════════ */
+    @media (max-width: 920px) {
+        .hero { grid-template-columns: 1fr; }
+        .subject-grid { grid-template-columns: repeat(2, 1fr); }
+        .exam-grid { grid-template-columns: 1fr; }
+        .loop-flow { grid-template-columns: repeat(2, 1fr); }
+        .loop-arrow { display: none; }
+        .join-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+        .hero-left { padding: 24px 20px; border-radius: 18px; }
+        .section { padding: 20px 16px; border-radius: 16px; }
+        .subject-grid { grid-template-columns: 1fr; }
+        .loop-flow { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+
+    <!-- ══════════ Hero ══════════ -->
+    <section class="hero">
+        <article class="hero-left fade-up">
+            <span class="hero-kicker">한국방송통신대학교 농학과 학습동아리</span>
+            <h1>
+                기출 반복 + 오답관리로<br />
+                만드는 <span class="highlight">한울회 A+</span>
+            </h1>
+            <p class="hero-desc">
+                2018~2022년 농학과 기출문제를 연도별 25문항 단위로 체계 학습하고,
+                개인 오답노트를 누적 관리하여 시험 대비 효율을 극대화하는
+                웹 기반 학습 시스템입니다.
+            </p>
+            <div class="hero-tags">
+                <span>대상 : 농학과 재학생</span>
+                <span>핵심 : 반복 풀이</span>
+                <span>핵심 : 오답 추적</span>
+            </div>
+        </article>
+
+        <aside class="hero-right">
+            <div class="stat-card fade-up delay-1">
+                <div class="stat-icon green">5</div>
+                <div>
+                    <strong>5개년</strong>
+                    <small>2018~2022 기출 아카이브</small>
+                </div>
+            </div>
+            <div class="stat-card fade-up delay-2">
+                <div class="stat-icon yellow">25</div>
+                <div>
+                    <strong>연 25문항</strong>
+                    <small>연도별 표준 문제 세트</small>
+                </div>
+            </div>
+            <div class="stat-card fade-up delay-3">
+                <div class="stat-icon orange">+</div>
+                <div>
+                    <strong>오답 누적</strong>
+                    <small>틀린 문제 자동 재학습 루프</small>
+                </div>
+            </div>
+        </aside>
+    </section>
+
+    <!-- ══════════ 학년별 교과목 ══════════ -->
+    <section id="subjects" class="section fade-up">
+        <div class="section-header">
+            <div class="section-icon" style="background:#e3f5e1;">
+                <span style="font-size:1.1rem;">4</span>
+            </div>
+            <h2>학년별 교과목 운영</h2>
+        </div>
+        <p class="section-desc">각 교과목은 학년별로 구분해서 운영합니다. 학년-과목 매핑에 따라 문제풀이 화면이 자동 분기됩니다.</p>
+
+        <div class="subject-grid">
+            <div class="subject-card grade-1">
+                <span class="subject-label">1학년</span>
+                <h3>기초 교양 과목군</h3>
+                <ul class="subject-list">
+                    <li>농학원론</li>
+                    <li>생물학개론</li>
+                    <li>원예학</li>
+                </ul>
+            </div>
+            <div class="subject-card grade-2">
+                <span class="subject-label">2학년</span>
+                <h3>전공 기초 과목군</h3>
+                <ul class="subject-list">
+                    <li>재배학원론</li>
+                    <li>토양학</li>
+                    <li>식물생리학</li>
+                </ul>
+            </div>
+            <div class="subject-card grade-3">
+                <span class="subject-label">3학년</span>
+                <h3>전공 심화 과목군</h3>
+                <ul class="subject-list">
+                    <li>작물학</li>
+                    <li>원예작물학</li>
+                    <li>식물보호학</li>
+                </ul>
+            </div>
+            <div class="subject-card grade-4">
+                <span class="subject-label">4학년</span>
+                <h3>실전 대비 과목군</h3>
+                <ul class="subject-list">
+                    <li>농업경영학</li>
+                    <li>식품가공학</li>
+                    <li>농업정책학</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════ 기출문제 은행 ══════════ -->
+    <section id="exam-bank" class="section fade-up">
+        <div class="section-header">
+            <div class="section-icon" style="background:#fdf4de;">
+                <span style="font-size:1.1rem;">Q</span>
+            </div>
+            <h2>기출문제 은행</h2>
+        </div>
+        <p class="section-desc">2018~2022년 기출문제를 과목별로 분리 저장하고, 매 세트는 25문항으로 고정합니다.</p>
+
+        <div class="exam-grid">
+            <div class="exam-card">
+                <h3>연도별 세트 구성</h3>
+                <p>각 연도 시험을 과목별로 분리 저장합니다. 한 세트는 25문항으로 고정되어 실제 시험과 동일한 분량으로 학습합니다.</p>
+                <div class="year-chips">
+                    <span class="year-chip">2018</span>
+                    <span class="year-chip">2019</span>
+                    <span class="year-chip">2020</span>
+                    <span class="year-chip">2021</span>
+                    <span class="year-chip">2022</span>
+                </div>
+            </div>
+            <div class="exam-card">
+                <h3>다양한 풀이 모드</h3>
+                <p>학습 패턴에 맞는 반복 훈련이 가능합니다.</p>
+                <ul class="subject-list" style="margin-top:10px;">
+                    <li>순차 풀이 : 연도순으로 차례대로</li>
+                    <li>랜덤 풀이 : 무작위 섞어 출제</li>
+                    <li>오답만 풀이 : 틀린 문제만 집중</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════ 학습 루프 ══════════ -->
+    <section id="study-loop" class="section fade-up">
+        <div class="section-header">
+            <div class="section-icon" style="background:#fde8d8;">
+                <span style="font-size:1.1rem;">&#8634;</span>
+            </div>
+            <h2>핵심 학습 루프</h2>
+        </div>
+        <p class="section-desc">기출 풀이 &rarr; 채점 &rarr; 오답 저장 &rarr; 오답 재풀이 순환을 반복하며 약점을 줄여갑니다.</p>
+
+        <div class="loop-flow">
+            <div class="loop-step step-1">
+                <span class="loop-num">1</span>
+                <span class="loop-arrow">&rarr;</span>
+                <h4>기출 풀이</h4>
+                <p>연도/과목을 선택하고 25문항을 풉니다.</p>
+            </div>
+            <div class="loop-step step-2">
+                <span class="loop-num">2</span>
+                <span class="loop-arrow">&rarr;</span>
+                <h4>즉시 채점</h4>
+                <p>제출 즉시 정답 비교, 점수를 확인합니다.</p>
+            </div>
+            <div class="loop-step step-3">
+                <span class="loop-num">3</span>
+                <span class="loop-arrow">&rarr;</span>
+                <h4>오답 저장</h4>
+                <p>틀린 문제가 개인 오답노트에 자동 누적됩니다.</p>
+            </div>
+            <div class="loop-step step-4">
+                <span class="loop-num">4</span>
+                <h4>재풀이 / 완료</h4>
+                <p>오답만 다시 풀어 약점을 완전히 해소합니다.</p>
+            </div>
+        </div>
+
+        <div class="loop-cta">
+            <a class="btn btn-primary" href="#">기출풀이 시작 (준비 중)</a>
+            <a class="btn btn-outline" href="#">오답노트 보기 (준비 중)</a>
+        </div>
+    </section>
+
+    <!-- ══════════ 참여 링크 ══════════ -->
+    <section id="join" class="section fade-up">
+        <div class="section-header">
+            <div class="section-icon" style="background:#e1eef8;">
+                <span style="font-size:1.1rem;">&#9733;</span>
+            </div>
+            <h2>스터디 참여</h2>
+        </div>
+
+        <div class="join-grid">
+            <div class="join-card">
+                <h3>농학과 홈페이지</h3>
+                <p>한국방송통신대학교 농학과 공식 사이트에서 학과 정보와 공지를 확인하세요.</p>
+                <a href="https://agri.knou.ac.kr/agri/index.do" target="_blank" rel="noopener">agri.knou.ac.kr &rarr;</a>
+            </div>
+            <div class="join-card">
+                <h3>한울회 스터디 그룹</h3>
+                <p>다음 카페에서 한울회 스터디 일정, 자료 공유, 질의응답에 참여하세요.</p>
+                <a href="https://cafe.daum.net/hwhstudy" target="_blank" rel="noopener">cafe.daum.net/hwhstudy &rarr;</a>
+            </div>
+        </div>
+    </section>
+
+</div>
+{% endblock %}
