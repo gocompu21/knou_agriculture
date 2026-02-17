@@ -623,7 +623,7 @@
                 <div class="welcome-icon">🌿</div>
                 <h3>{{ user.username }}님, 환영합니다!</h3>
                 <p>오늘도 A+를 향해 함께 달려요.</p>
-                <form method="post" action="{% url 'logout' %}">
+                <form method="post" action="{% url 'accounts:user_logout' %}">
                     {% csrf_token %}
                     <button type="submit" class="logout-btn">로그아웃</button>
                 </form>
@@ -635,7 +635,7 @@
                 {% if login_error %}
                 <div class="login-error">{{ login_error }}</div>
                 {% endif %}
-                <form method="post" action="{% url 'login' %}">
+                <form method="post" action="{% url 'accounts:user_login' %}">
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{% url 'main:index' %}">
                     <div class="login-field">
@@ -650,6 +650,9 @@
                     </div>
                     <button type="submit" class="login-btn">로그인</button>
                 </form>
+                <div style="margin-top:14px; text-align:center; font-size:0.82rem; color:#64748b;">
+                    아직 계정이 없으신가요? <a href="{% url 'accounts:user_signup' %}" style="color:#2d6a4f; font-weight:700; text-decoration:none;">회원가입</a>
+                </div>
             </div>
             {% endif %}
         </aside>
