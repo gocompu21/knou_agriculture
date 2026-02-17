@@ -6,6 +6,11 @@ SECRET_KEY = "django-insecure-change-this-in-production"
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://hanulstudy.kr",
+    "https://www.hanulstudy.kr",
+]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
