@@ -52,61 +52,78 @@
             position: sticky;
             top: 0;
             z-index: 20;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            background: rgba(247, 247, 241, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.92);
             border-bottom: 1px solid var(--line);
         }
 
-        .site-header .wrap {
+        .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px 0;
-            gap: 10px;
+            padding: 10px 0;
         }
 
         .brand {
             text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
-        .brand-img {
-            height: 40px;
-            width: auto;
-            object-fit: contain;
-        }
-
-        .brand-divider {
-            width: 1px;
-            height: 28px;
-            background: #a0b0c0;
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #003b71;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
+        }
+
+        .brand-icon img {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .brand-univ {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #6b8a9e;
+            letter-spacing: 0.02em;
         }
 
         .brand-title {
             font-family: "SUIT", sans-serif;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 800;
             color: #003b71;
             white-space: nowrap;
-            letter-spacing: -0.01em;
+            letter-spacing: -0.02em;
         }
 
         .site-nav {
             display: flex;
-            gap: 6px;
+            gap: 2px;
             flex-wrap: wrap;
         }
 
         .site-nav a {
             text-decoration: none;
-            color: #3a6b4c;
+            color: #4a6b5c;
             font-weight: 700;
-            font-size: 0.88rem;
-            padding: 6px 12px;
+            font-size: 0.85rem;
+            padding: 6px 14px;
             border-radius: 8px;
             transition: background 0.2s, color 0.2s;
         }
@@ -197,33 +214,40 @@
         }
 
         @media (max-width: 720px) {
-            .site-header .wrap {
-                padding: 10px 0;
-            }
-
-            .brand {
+            .header-top {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 8px 0;
                 gap: 8px;
             }
 
-            .brand-img {
+            .brand-icon {
+                width: 28px;
                 height: 28px;
+                border-radius: 6px;
             }
 
-            .brand-divider {
-                height: 20px;
+            .brand-icon img {
+                width: 18px;
+                height: 18px;
+            }
+
+            .brand-univ {
+                font-size: 0.58rem;
             }
 
             .brand-title {
-                font-size: 0.85rem;
+                font-size: 0.9rem;
             }
 
             .site-nav {
-                gap: 4px;
+                gap: 0;
             }
 
             .site-nav a {
-                font-size: 0.8rem;
-                padding: 5px 8px;
+                font-size: 0.78rem;
+                padding: 4px 10px;
+                padding-left: 0;
             }
 
             main {
@@ -242,17 +266,23 @@
 <body>
     <header class="site-header">
         <div class="wrap">
-            <a class="brand" href="{% url 'main:index' %}">
-                <img src="{% static 'images/knou_logo.png' %}" alt="한국방송통신대학교 농학과" class="brand-img">
-                <span class="brand-divider"></span>
-                <span class="brand-title">한울회 A+ 시스템</span>
-            </a>
-            <nav class="site-nav" aria-label="메인 내비게이션">
-                <a href="{% url 'main:index' %}#subjects">학년/과목</a>
-                <a href="{% url 'main:index' %}#exam-bank">기출문제</a>
-                <a href="{% url 'main:index' %}#study-loop">학습루프</a>
-                <a href="{% url 'main:index' %}#join">스터디참여</a>
-            </nav>
+            <div class="header-top">
+                <a class="brand" href="{% url 'main:index' %}">
+                    <span class="brand-icon">
+                        <img src="{% static 'images/knou_emblem.png' %}" alt="">
+                    </span>
+                    <span class="brand-text">
+                        <span class="brand-univ">한국방송통신대학교 농학과</span>
+                        <span class="brand-title">한울회 A+ 학습시스템</span>
+                    </span>
+                </a>
+                <nav class="site-nav" aria-label="메인 내비게이션">
+                    <a href="{% url 'main:index' %}#subjects">학년/과목</a>
+                    <a href="{% url 'main:index' %}#exam-bank">기출문제</a>
+                    <a href="{% url 'main:index' %}#study-loop">학습루프</a>
+                    <a href="{% url 'main:index' %}#join">스터디참여</a>
+                </nav>
+            </div>
         </div>
     </header>
 
