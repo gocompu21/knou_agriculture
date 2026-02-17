@@ -1,12 +1,15 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}한울회 A+ 학습시스템{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=SUIT:wght@400;500;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=SUIT:wght@400;500;700;800&display=swap"
+        rel="stylesheet" />
     <style>
         :root {
             --ink: #10211b;
@@ -21,7 +24,11 @@
             --muted: #6b8a72;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             color: var(--ink);
@@ -60,28 +67,32 @@
         }
 
         .brand {
-            font-family: "Black Han Sans", sans-serif;
-            font-size: 1.45rem;
-            letter-spacing: 0.02em;
-            color: var(--forest);
             text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
         }
 
-        .brand-icon {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, var(--forest), var(--leaf));
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 1rem;
+        .brand-img {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .brand-divider {
+            width: 1px;
+            height: 28px;
+            background: #a0b0c0;
+            flex-shrink: 0;
+        }
+
+        .brand-title {
             font-family: "SUIT", sans-serif;
+            font-size: 1.1rem;
             font-weight: 800;
+            color: #003b71;
+            white-space: nowrap;
+            letter-spacing: -0.01em;
         }
 
         .site-nav {
@@ -157,34 +168,84 @@
             animation: fadeUp 0.7s ease-out both;
         }
 
-        .fade-up.delay-1 { animation-delay: 0.1s; }
-        .fade-up.delay-2 { animation-delay: 0.2s; }
-        .fade-up.delay-3 { animation-delay: 0.3s; }
-        .fade-up.delay-4 { animation-delay: 0.4s; }
+        .fade-up.delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .fade-up.delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .fade-up.delay-3 {
+            animation-delay: 0.3s;
+        }
+
+        .fade-up.delay-4 {
+            animation-delay: 0.4s;
+        }
 
         @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @media (max-width: 720px) {
-            .site-header .wrap { padding: 10px 0; }
-            .brand { font-size: 1.15rem; }
-            .brand-icon { width: 28px; height: 28px; font-size: 0.85rem; }
-            .site-nav { gap: 4px; }
-            .site-nav a { font-size: 0.8rem; padding: 5px 8px; }
-            main { padding-top: 18px; }
-            .footer-inner { flex-direction: column; gap: 16px; }
+            .site-header .wrap {
+                padding: 10px 0;
+            }
+
+            .brand {
+                gap: 8px;
+            }
+
+            .brand-img {
+                height: 28px;
+            }
+
+            .brand-divider {
+                height: 20px;
+            }
+
+            .brand-title {
+                font-size: 0.85rem;
+            }
+
+            .site-nav {
+                gap: 4px;
+            }
+
+            .site-nav a {
+                font-size: 0.8rem;
+                padding: 5px 8px;
+            }
+
+            main {
+                padding-top: 18px;
+            }
+
+            .footer-inner {
+                flex-direction: column;
+                gap: 16px;
+            }
         }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
+
 <body>
     <header class="site-header">
         <div class="wrap">
             <a class="brand" href="{% url 'main:index' %}">
-                <span class="brand-icon">A+</span>
-                한울회 학습시스템
+                <img src="{% static 'images/knou_logo.png' %}" alt="한국방송통신대학교 농학과" class="brand-img">
+                <span class="brand-divider"></span>
+                <span class="brand-title">한울회 A+ 시스템</span>
             </a>
             <nav class="site-nav" aria-label="메인 내비게이션">
                 <a href="{% url 'main:index' %}#subjects">학년/과목</a>
@@ -214,4 +275,5 @@
         </div>
     </footer>
 </body>
+
 </html>
