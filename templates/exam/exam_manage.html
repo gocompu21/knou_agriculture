@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}교과목 관리{% endblock %}
+{% block title %}시험 관리{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -19,6 +19,35 @@
     .manage-header h1 {
         font-size: 1.5rem;
         color: var(--forest);
+    }
+
+    .manage-nav {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .manage-nav a {
+        text-decoration: none;
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        transition: background 0.2s;
+    }
+
+    .manage-nav .active {
+        background: var(--forest);
+        color: #fff;
+    }
+
+    .manage-nav a:not(.active) {
+        background: #e8f5df;
+        color: var(--forest);
+    }
+
+    .manage-nav a:not(.active):hover {
+        background: #d4ebc8;
     }
 
     .btn {
@@ -67,7 +96,7 @@
         background: #fee2e2;
     }
 
-    .subject-table {
+    .data-table {
         width: 100%;
         border-collapse: collapse;
         background: #fff;
@@ -76,29 +105,29 @@
         box-shadow: 0 4px 16px rgba(30, 70, 42, 0.08);
     }
 
-    .subject-table thead {
+    .data-table thead {
         background: var(--forest);
         color: #fff;
     }
 
-    .subject-table th {
+    .data-table th {
         padding: 14px 16px;
         font-size: 0.85rem;
         font-weight: 700;
         text-align: left;
     }
 
-    .subject-table td {
+    .data-table td {
         padding: 12px 16px;
         font-size: 0.88rem;
         border-bottom: 1px solid #eef3ee;
     }
 
-    .subject-table tbody tr:hover {
+    .data-table tbody tr:hover {
         background: #f8fbf6;
     }
 
-    .subject-table .actions {
+    .data-table .actions {
         display: flex;
         gap: 6px;
     }
@@ -111,12 +140,17 @@
         font-weight: 700;
     }
 
-    .badge-major {
-        background: #e3f5e1;
-        color: #2d6a4f;
+    .badge-mid {
+        background: #e0f2fe;
+        color: #0369a1;
     }
 
-    .badge-general {
+    .badge-final {
+        background: #fce7f3;
+        color: #be185d;
+    }
+
+    .badge-seasonal {
         background: #fdf4de;
         color: #92700c;
     }
@@ -129,8 +163,8 @@
     }
 
     @media (max-width: 720px) {
-        .subject-table th,
-        .subject-table td {
+        .data-table th,
+        .data-table td {
             padding: 10px 10px;
             font-size: 0.8rem;
         }
@@ -141,77 +175,42 @@
             gap: 12px;
         }
     }
-
-    .manage-nav {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 20px;
-    }
-
-    .manage-nav a {
-        text-decoration: none;
-        padding: 8px 18px;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        font-weight: 700;
-        transition: background 0.2s;
-    }
-
-    .manage-nav .active {
-        background: var(--forest);
-        color: #fff;
-    }
-
-    .manage-nav a:not(.active) {
-        background: #e8f5df;
-        color: var(--forest);
-    }
-
-    .manage-nav a:not(.active):hover {
-        background: #d4ebc8;
-    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="manage-wrap">
     <nav class="manage-nav">
-        <a href="{% url 'main:subject_manage' %}" class="active">교과목 관리</a>
-        <a href="{% url 'exam:exam_manage' %}">시험 관리</a>
+        <a href="{% url 'main:subject_manage' %}">교과목 관리</a>
+        <a href="{% url 'exam:exam_manage' %}" class="active">시험 관리</a>
     </nav>
 
     <div class="manage-header">
-        <h1>교과목 관리</h1>
-        <a href="{% url 'main:subject_create' %}" class="btn btn-primary">+ 교과목 등록</a>
+        <h1>시험 관리</h1>
+        <a href="{% url 'exam:exam_create' %}" class="btn btn-primary">+ 시험 등록</a>
     </div>
 
-    {% if subjects %}
-    <table class="subject-table">
+    {% if exams %}
+    <table class="data-table">
         <thead>
             <tr>
-                <th>학과</th>
-                <th>학년</th>
-                <th>학기</th>
-                <th>교과명</th>
-                <th>구분</th>
+                <th>출제연도</th>
+                <th>시험종류</th>
                 <th>관리</th>
             </tr>
         </thead>
         <tbody>
-            {% for s in subjects %}
+            {% for e in exams %}
             <tr>
-                <td>{{ s.department }}</td>
-                <td>{{ s.get_grade_display }}</td>
-                <td>{{ s.get_semester_display }}</td>
-                <td><strong>{{ s.name }}</strong></td>
+                <td>{{ e.year }}년</td>
                 <td>
-                    <span class="badge {% if s.category == '전공' %}badge-major{% else %}badge-general{% endif %}">
-                        {{ s.category }}
+                    <span class="badge {% if e.exam_type == '중간' %}badge-mid{% elif e.exam_type == '기말' %}badge-final{% else %}badge-seasonal{% endif %}">
+                        {{ e.get_exam_type_display }}
                     </span>
                 </td>
                 <td class="actions">
-                    <a href="{% url 'main:subject_update' s.pk %}" class="btn btn-edit">수정</a>
-                    <form method="post" action="{% url 'main:subject_delete' s.pk %}"
+                    <a href="{% url 'exam:exam_update' e.pk %}" class="btn btn-edit">수정</a>
+                    <form method="post" action="{% url 'exam:exam_delete' e.pk %}"
                         onsubmit="return confirm('정말 삭제하시겠습니까?');" style="display:inline;">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-delete">삭제</button>
@@ -222,7 +221,7 @@
         </tbody>
     </table>
     {% else %}
-    <div class="empty-msg">등록된 교과목이 없습니다. 위의 "교과목 등록" 버튼으로 추가해 주세요.</div>
+    <div class="empty-msg">등록된 시험이 없습니다. 위의 "시험 등록" 버튼으로 추가해 주세요.</div>
     {% endif %}
 </div>
 {% endblock %}

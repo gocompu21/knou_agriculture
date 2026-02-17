@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}시험 수정{% else %}시험 등록{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-wrap {
+        width: min(560px, 92vw);
+        margin: 0 auto;
+    }
+
+    .form-card {
+        background: #fff;
+        border: 1px solid #d4e5d6;
+        border-radius: 18px;
+        padding: 36px 32px;
+        box-shadow: 0 8px 24px rgba(30, 70, 42, 0.08);
+    }
+
+    .form-card h1 {
+        font-size: 1.4rem;
+        color: var(--forest);
+        margin-bottom: 28px;
+        text-align: center;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #3a5a42;
+        margin-bottom: 6px;
+    }
+
+    .form-group select,
+    .form-group input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1.5px solid #c8d8c9;
+        border-radius: 10px;
+        font-size: 0.92rem;
+        font-family: "SUIT", sans-serif;
+        background: #f8fbf6;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        outline: none;
+    }
+
+    .form-group select:focus,
+    .form-group input:focus {
+        border-color: var(--forest);
+        box-shadow: 0 0 0 3px rgba(31, 106, 71, 0.1);
+        background: #fff;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 24px;
+    }
+
+    .btn {
+        display: inline-block;
+        text-decoration: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-size: 0.92rem;
+        font-weight: 800;
+        font-family: "SUIT", sans-serif;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s;
+        border: none;
+        text-align: center;
+    }
+
+    .btn-primary {
+        flex: 1;
+        background: linear-gradient(135deg, #1f6a47, #2d8a56);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(31, 106, 71, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(31, 106, 71, 0.4);
+    }
+
+    .btn-cancel {
+        flex: 1;
+        background: #f1f5f1;
+        color: #4a6b5c;
+    }
+
+    .btn-cancel:hover {
+        background: #e4ebe4;
+    }
+
+    .error-list {
+        color: #ef4444;
+        font-size: 0.82rem;
+        margin-top: 4px;
+        list-style: none;
+        padding-left: 0;
+        background: #fef2f2;
+        padding: 6px 10px;
+        border-radius: 6px;
+        border-left: 3px solid #ef4444;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-wrap">
+    <div class="form-card">
+        <h1>{% if is_edit %}시험 수정{% else %}시험 등록{% endif %}</h1>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="id_year">출제연도</label>
+                <input type="number" name="year" id="id_year" placeholder="2024" min="2000" max="2030"
+                    value="{{ form.year.value|default:'' }}" required>
+                {% if form.year.errors %}
+                <ul class="error-list">{% for e in form.year.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_exam_type">시험종류</label>
+                <select name="exam_type" id="id_exam_type" required>
+                    <option value="">-- 선택 --</option>
+                    {% for value, label in form.fields.exam_type.choices %}
+                    <option value="{{ value }}" {% if form.exam_type.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% if form.exam_type.errors %}
+                <ul class="error-list">{% for e in form.exam_type.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'exam:exam_manage' %}" class="btn btn-cancel">취소</a>
+                <button type="submit" class="btn btn-primary">{% if is_edit %}수정 완료{% else %}등록{% endif %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
