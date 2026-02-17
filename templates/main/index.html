@@ -91,55 +91,142 @@
     }
 
     .hero-right {
-        display: grid;
-        grid-template-rows: repeat(3, 1fr);
-        gap: 12px;
-    }
-
-    .stat-card {
-        background: #fff;
-        border: 1px solid #d4e5d6;
-        border-radius: 18px;
-        padding: 20px;
-        box-shadow: 0 8px 24px rgba(30, 70, 42, 0.08);
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 28px rgba(30, 70, 42, 0.14);
-    }
-
-    .stat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.3rem;
-        flex-shrink: 0;
     }
 
-    .stat-icon.green  { background: #e3f5e1; }
-    .stat-icon.yellow { background: #fdf4de; }
-    .stat-icon.orange { background: #fde8d8; }
+    .login-card {
+        background: #fff;
+        border: 1px solid #d4e5d6;
+        border-radius: 20px;
+        padding: 32px 28px;
+        box-shadow: 0 8px 24px rgba(30, 70, 42, 0.08);
+        width: 100%;
+        max-width: 360px;
+    }
 
-    .stat-card strong {
-        display: block;
+    .login-card h3 {
+        font-size: 1.1rem;
         color: var(--forest);
-        font-size: 1.6rem;
-        line-height: 1;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
+        text-align: center;
     }
 
-    .stat-card small {
+    .login-card .login-sub {
+        font-size: 0.82rem;
         color: var(--muted);
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .login-field {
+        margin-bottom: 14px;
+    }
+
+    .login-field label {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #3a5a42;
+        margin-bottom: 5px;
+    }
+
+    .login-field input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1.5px solid #c8d8c9;
+        border-radius: 10px;
+        font-size: 0.92rem;
+        font-family: "SUIT", sans-serif;
+        background: #f8fbf6;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        outline: none;
+    }
+
+    .login-field input:focus {
+        border-color: var(--forest);
+        box-shadow: 0 0 0 3px rgba(31, 106, 71, 0.1);
+        background: #fff;
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #1f6a47, #2d8a56);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-weight: 800;
+        font-family: "SUIT", sans-serif;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s;
+        box-shadow: 0 4px 14px rgba(31, 106, 71, 0.3);
+        margin-top: 4px;
+    }
+
+    .login-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(31, 106, 71, 0.4);
+    }
+
+    .login-error {
+        background: #fef2f2;
+        color: #b91c1c;
+        font-size: 0.82rem;
         font-weight: 600;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-bottom: 14px;
+        text-align: center;
+    }
+
+    .welcome-card {
+        background: #fff;
+        border: 1px solid #d4e5d6;
+        border-radius: 20px;
+        padding: 32px 28px;
+        box-shadow: 0 8px 24px rgba(30, 70, 42, 0.08);
+        width: 100%;
+        max-width: 360px;
+        text-align: center;
+    }
+
+    .welcome-card .welcome-icon {
+        font-size: 2.4rem;
+        margin-bottom: 12px;
+    }
+
+    .welcome-card h3 {
+        font-size: 1.15rem;
+        color: var(--forest);
+        margin-bottom: 6px;
+    }
+
+    .welcome-card p {
+        font-size: 0.88rem;
+        color: var(--muted);
+        margin-bottom: 18px;
+    }
+
+    .logout-btn {
+        display: inline-block;
+        text-decoration: none;
+        padding: 8px 20px;
+        background: #fff;
+        border: 2px solid #b4d4b8;
+        color: var(--forest);
+        border-radius: 10px;
         font-size: 0.85rem;
+        font-weight: 700;
+        font-family: "SUIT", sans-serif;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .logout-btn:hover {
+        background: var(--mint);
     }
 
     /* ══════════ Section Common ══════════ */
@@ -213,10 +300,21 @@
         margin-bottom: 10px;
     }
 
-    .grade-1 .subject-label { background: #4caf7a; }
-    .grade-2 .subject-label { background: #3d9ed6; }
-    .grade-3 .subject-label { background: #e0943a; }
-    .grade-4 .subject-label { background: #c4604a; }
+    .grade-1 .subject-label {
+        background: #4caf7a;
+    }
+
+    .grade-2 .subject-label {
+        background: #3d9ed6;
+    }
+
+    .grade-3 .subject-label {
+        background: #e0943a;
+    }
+
+    .grade-4 .subject-label {
+        background: #c4604a;
+    }
 
     .subject-card h3 {
         font-size: 1rem;
@@ -319,14 +417,41 @@
         color: #4a5c4f;
     }
 
-    .step-1 { background: #e5f5e0; }
-    .step-1 .loop-num { background: #3da06a; color: #fff; }
-    .step-2 { background: #f5f5d8; }
-    .step-2 .loop-num { background: #b5a32e; color: #fff; }
-    .step-3 { background: #fdecd8; }
-    .step-3 .loop-num { background: #d18a3a; color: #fff; }
-    .step-4 { background: #fde0d5; }
-    .step-4 .loop-num { background: #c45a42; color: #fff; }
+    .step-1 {
+        background: #e5f5e0;
+    }
+
+    .step-1 .loop-num {
+        background: #3da06a;
+        color: #fff;
+    }
+
+    .step-2 {
+        background: #f5f5d8;
+    }
+
+    .step-2 .loop-num {
+        background: #b5a32e;
+        color: #fff;
+    }
+
+    .step-3 {
+        background: #fdecd8;
+    }
+
+    .step-3 .loop-num {
+        background: #d18a3a;
+        color: #fff;
+    }
+
+    .step-4 {
+        background: #fde0d5;
+    }
+
+    .step-4 .loop-num {
+        background: #c45a42;
+        color: #fff;
+    }
 
     .loop-arrow {
         position: absolute;
@@ -422,19 +547,49 @@
 
     /* ══════════ Responsive ══════════ */
     @media (max-width: 920px) {
-        .hero { grid-template-columns: 1fr; }
-        .subject-grid { grid-template-columns: repeat(2, 1fr); }
-        .exam-grid { grid-template-columns: 1fr; }
-        .loop-flow { grid-template-columns: repeat(2, 1fr); }
-        .loop-arrow { display: none; }
-        .join-grid { grid-template-columns: 1fr; }
+        .hero {
+            grid-template-columns: 1fr;
+        }
+
+        .subject-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .exam-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .loop-flow {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .loop-arrow {
+            display: none;
+        }
+
+        .join-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
     @media (max-width: 560px) {
-        .hero-left { padding: 24px 20px; border-radius: 18px; }
-        .section { padding: 20px 16px; border-radius: 16px; }
-        .subject-grid { grid-template-columns: 1fr; }
-        .loop-flow { grid-template-columns: 1fr; }
+        .hero-left {
+            padding: 24px 20px;
+            border-radius: 18px;
+        }
+
+        .section {
+            padding: 20px 16px;
+            border-radius: 16px;
+        }
+
+        .subject-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .loop-flow {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 {% endblock %}
@@ -448,42 +603,55 @@
             <span class="hero-kicker">한국방송통신대학교 농학과 학습동아리</span>
             <h1>
                 기출 반복 + 오답관리로<br />
-                만드는 <span class="highlight">한울회 A+</span>
+                장학생을 만드는 <span class="highlight">한울회 A+</span>
             </h1>
             <p class="hero-desc">
-                2018~2022년 농학과 기출문제를 연도별 25문항 단위로 체계 학습하고,
-                개인 오답노트를 누적 관리하여 시험 대비 효율을 극대화하는
+                농학과 교과목의 내용 이해를 바탕으로 체계적인 문제풀이와
+                오답노트를 활용하여 시험 대비를 도와주는
                 웹 기반 학습 시스템입니다.
             </p>
             <div class="hero-tags">
-                <span>대상 : 농학과 재학생</span>
+                <span>대상 : 한울회 회원</span>
                 <span>핵심 : 반복 풀이</span>
                 <span>핵심 : 오답 추적</span>
             </div>
         </article>
 
-        <aside class="hero-right">
-            <div class="stat-card fade-up delay-1">
-                <div class="stat-icon green">5</div>
-                <div>
-                    <strong>5개년</strong>
-                    <small>2018~2022 기출 아카이브</small>
-                </div>
+        <aside class="hero-right fade-up delay-1">
+            {% if user.is_authenticated %}
+            <div class="welcome-card">
+                <div class="welcome-icon">🌿</div>
+                <h3>{{ user.username }}님, 환영합니다!</h3>
+                <p>오늘도 A+를 향해 함께 달려요.</p>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">로그아웃</button>
+                </form>
             </div>
-            <div class="stat-card fade-up delay-2">
-                <div class="stat-icon yellow">25</div>
-                <div>
-                    <strong>연 25문항</strong>
-                    <small>연도별 표준 문제 세트</small>
-                </div>
+            {% else %}
+            <div class="login-card">
+                <h3>로그인</h3>
+                <p class="login-sub">학습을 시작하려면 로그인하세요</p>
+                {% if login_error %}
+                <div class="login-error">{{ login_error }}</div>
+                {% endif %}
+                <form method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{% url 'main:index' %}">
+                    <div class="login-field">
+                        <label for="id_username">아이디</label>
+                        <input type="text" id="id_username" name="username" placeholder="아이디를 입력하세요"
+                            autocomplete="username" required>
+                    </div>
+                    <div class="login-field">
+                        <label for="id_password">비밀번호</label>
+                        <input type="password" id="id_password" name="password" placeholder="비밀번호를 입력하세요"
+                            autocomplete="current-password" required>
+                    </div>
+                    <button type="submit" class="login-btn">로그인</button>
+                </form>
             </div>
-            <div class="stat-card fade-up delay-3">
-                <div class="stat-icon orange">+</div>
-                <div>
-                    <strong>오답 누적</strong>
-                    <small>틀린 문제 자동 재학습 루프</small>
-                </div>
-            </div>
+            {% endif %}
         </aside>
     </section>
 
@@ -638,12 +806,14 @@
             <div class="join-card">
                 <h3>농학과 홈페이지</h3>
                 <p>한국방송통신대학교 농학과 공식 사이트에서 학과 정보와 공지를 확인하세요.</p>
-                <a href="https://agri.knou.ac.kr/agri/index.do" target="_blank" rel="noopener">agri.knou.ac.kr &rarr;</a>
+                <a href="https://agri.knou.ac.kr/agri/index.do" target="_blank" rel="noopener">agri.knou.ac.kr
+                    &rarr;</a>
             </div>
             <div class="join-card">
                 <h3>한울회 스터디 그룹</h3>
                 <p>다음 카페에서 한울회 스터디 일정, 자료 공유, 질의응답에 참여하세요.</p>
-                <a href="https://cafe.daum.net/hwhstudy" target="_blank" rel="noopener">cafe.daum.net/hwhstudy &rarr;</a>
+                <a href="https://cafe.daum.net/hwhstudy" target="_blank" rel="noopener">cafe.daum.net/hwhstudy
+                    &rarr;</a>
             </div>
         </div>
     </section>

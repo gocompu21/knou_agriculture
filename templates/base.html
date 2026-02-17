@@ -69,38 +69,20 @@
             text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 14px;
         }
 
-        .brand-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: #003b71;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .brand-logo {
+            height: 28px;
+            object-fit: contain;
             flex-shrink: 0;
         }
 
-        .brand-icon img {
-            width: 22px;
+        .brand-divider {
+            width: 1px;
             height: 22px;
-            object-fit: contain;
-            filter: brightness(0) invert(1);
-        }
-
-        .brand-text {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.2;
-        }
-
-        .brand-univ {
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: #6b8a9e;
-            letter-spacing: 0.02em;
+            background: var(--line);
+            flex-shrink: 0;
         }
 
         .brand-title {
@@ -221,23 +203,12 @@
                 gap: 8px;
             }
 
-            .brand-icon {
-                width: 28px;
-                height: 28px;
-                border-radius: 6px;
-            }
-
-            .brand-icon img {
-                width: 18px;
-                height: 18px;
-            }
-
-            .brand-univ {
-                font-size: 0.58rem;
+            .brand-logo {
+                height: 22px;
             }
 
             .brand-title {
-                font-size: 0.9rem;
+                font-size: 0.85rem;
             }
 
             .site-nav {
@@ -268,13 +239,9 @@
         <div class="wrap">
             <div class="header-top">
                 <a class="brand" href="{% url 'main:index' %}">
-                    <span class="brand-icon">
-                        <img src="{% static 'images/knou_emblem.png' %}" alt="">
-                    </span>
-                    <span class="brand-text">
-                        <span class="brand-univ">한국방송통신대학교 농학과</span>
-                        <span class="brand-title">한울회 A+ 학습시스템</span>
-                    </span>
+                    <img class="brand-logo" src="{% static 'images/knou_logo.png' %}" alt="한국방송통신대학교 농학과">
+                    <span class="brand-divider"></span>
+                    <span class="brand-title">한울회 A+ 시스템</span>
                 </a>
                 <nav class="site-nav" aria-label="메인 내비게이션">
                     <a href="{% url 'main:index' %}#subjects">학년/과목</a>
