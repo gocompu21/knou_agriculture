@@ -115,6 +115,16 @@
             color: var(--forest);
         }
 
+        .site-nav .nav-admin {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .site-nav .nav-admin:hover {
+            background: #ffe0b2;
+            color: #bf360c;
+        }
+
         /* ── Main ── */
         main {
             padding: 28px 0 56px;
@@ -248,6 +258,9 @@
                     <a href="{% url 'main:index' %}#exam-bank">기출문제</a>
                     <a href="{% url 'main:index' %}#study-loop">학습루프</a>
                     <a href="{% url 'main:index' %}#join">스터디참여</a>
+                    {% if user.is_staff %}
+                    <a href="{% url 'admin:index' %}" class="nav-admin">관리</a>
+                    {% endif %}
                 </nav>
             </div>
         </div>
