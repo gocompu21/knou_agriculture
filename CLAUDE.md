@@ -25,6 +25,20 @@ This file provides guidance when working with code in this repository.
 - 초기 구조: `03_1_model` 프로젝트의 폴더 패턴(`config`, `main`, `templates`)을 참조
 - 메인 랜딩 페이지에서 시스템 목적, 학년/과목 구조, 기출 운영 방식, 학습 루프를 명확히 안내
 
+## 데이터베이스 (PostgreSQL)
+
+- DB: `knou_agriculture`
+- User: `knou_user` / Password: `knou1234`
+
+```sql
+CREATE DATABASE knou_agriculture;
+CREATE USER knou_user WITH PASSWORD 'knou1234';
+ALTER ROLE knou_user SET client_encoding TO 'utf8';
+ALTER ROLE knou_user SET default_transaction_isolation TO 'read committed';
+ALTER ROLE knou_user SET timezone TO 'Asia/Seoul';
+GRANT ALL PRIVILEGES ON DATABASE knou_agriculture TO knou_user;
+```
+
 ## 실행 명령
 
 ```bash
