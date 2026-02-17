@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}교과목 관리{% endblock %}
+
+{% block extra_css %}
+<style>
+    .manage-wrap {
+        width: min(1120px, 92vw);
+        margin: 0 auto;
+    }
+
+    .manage-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .manage-header h1 {
+        font-size: 1.5rem;
+        color: var(--forest);
+    }
+
+    .btn {
+        display: inline-block;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        font-family: "SUIT", sans-serif;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s;
+        border: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #1f6a47, #2d8a56);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(31, 106, 71, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(31, 106, 71, 0.4);
+    }
+
+    .btn-edit {
+        background: #e8f5df;
+        color: var(--forest);
+        padding: 6px 14px;
+        font-size: 0.82rem;
+    }
+
+    .btn-edit:hover {
+        background: #d4ebc8;
+    }
+
+    .btn-delete {
+        background: #fef2f2;
+        color: #b91c1c;
+        padding: 6px 14px;
+        font-size: 0.82rem;
+    }
+
+    .btn-delete:hover {
+        background: #fee2e2;
+    }
+
+    .subject-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(30, 70, 42, 0.08);
+    }
+
+    .subject-table thead {
+        background: var(--forest);
+        color: #fff;
+    }
+
+    .subject-table th {
+        padding: 14px 16px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .subject-table td {
+        padding: 12px 16px;
+        font-size: 0.88rem;
+        border-bottom: 1px solid #eef3ee;
+    }
+
+    .subject-table tbody tr:hover {
+        background: #f8fbf6;
+    }
+
+    .subject-table .actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 6px;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .badge-major {
+        background: #e3f5e1;
+        color: #2d6a4f;
+    }
+
+    .badge-general {
+        background: #fdf4de;
+        color: #92700c;
+    }
+
+    .empty-msg {
+        text-align: center;
+        padding: 48px 20px;
+        color: var(--muted);
+        font-size: 0.95rem;
+    }
+
+    @media (max-width: 720px) {
+        .subject-table th,
+        .subject-table td {
+            padding: 10px 10px;
+            font-size: 0.8rem;
+        }
+
+        .manage-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="manage-wrap">
+    <div class="manage-header">
+        <h1>교과목 관리</h1>
+        <a href="{% url 'main:subject_create' %}" class="btn btn-primary">+ 교과목 등록</a>
+    </div>
+
+    {% if subjects %}
+    <table class="subject-table">
+        <thead>
+            <tr>
+                <th>학과</th>
+                <th>학년</th>
+                <th>학기</th>
+                <th>교과명</th>
+                <th>구분</th>
+                <th>관리</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in subjects %}
+            <tr>
+                <td>{{ s.department }}</td>
+                <td>{{ s.get_grade_display }}</td>
+                <td>{{ s.get_semester_display }}</td>
+                <td><strong>{{ s.name }}</strong></td>
+                <td>
+                    <span class="badge {% if s.category == '전공' %}badge-major{% else %}badge-general{% endif %}">
+                        {{ s.category }}
+                    </span>
+                </td>
+                <td class="actions">
+                    <a href="{% url 'main:subject_update' s.pk %}" class="btn btn-edit">수정</a>
+                    <form method="post" action="{% url 'main:subject_delete' s.pk %}"
+                        onsubmit="return confirm('정말 삭제하시겠습니까?');" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-delete">삭제</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-msg">등록된 교과목이 없습니다. 위의 "교과목 등록" 버튼으로 추가해 주세요.</div>
+    {% endif %}
+</div>
+{% endblock %}
