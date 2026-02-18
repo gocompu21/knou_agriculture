@@ -254,7 +254,11 @@
                     <span class="brand-title">한울회 A+ 시스템</span>
                 </a>
                 <nav class="site-nav" aria-label="메인 내비게이션">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'main:subject_list' %}">학년/과목</a>
+                    {% else %}
                     <a href="{% url 'main:index' %}#subjects">학년/과목</a>
+                    {% endif %}
                     <a href="{% url 'main:index' %}#exam-bank">기출문제</a>
                     <a href="{% url 'main:index' %}#study-loop">학습루프</a>
                     <a href="{% url 'main:index' %}#join">스터디참여</a>
@@ -284,6 +288,7 @@
             </div>
         </div>
     </footer>
+    {% block extra_js %}{% endblock %}
 </body>
 
 </html>

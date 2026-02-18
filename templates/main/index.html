@@ -637,7 +637,7 @@
                 {% endif %}
                 <form method="post" action="{% url 'accounts:user_login' %}">
                     {% csrf_token %}
-                    <input type="hidden" name="next" value="{% url 'main:index' %}">
+                    <input type="hidden" name="next" value="{% url 'main:subject_list' %}">
                     <div class="login-field">
                         <label for="id_username">아이디</label>
                         <input type="text" id="id_username" name="username" placeholder="아이디를 입력하세요"

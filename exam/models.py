@@ -24,17 +24,29 @@ class Exam(models.Model):
 
 
 class Question(models.Model):
-    ANSWER_CHOICES = [(1, '①'), (2, '②'), (3, '③'), (4, '④')]
+    ANSWER_CHOICES = [
+        ('0', '미확인'),
+        ('1', '①'), ('2', '②'), ('3', '③'), ('4', '④'),
+        ('1,2', '①②'), ('1,3', '①③'), ('1,4', '①④'),
+        ('2,3', '②③'), ('2,4', '②④'), ('3,4', '③④'),
+        ('1,2,3', '①②③'), ('1,2,4', '①②④'),
+        ('1,3,4', '①③④'), ('2,3,4', '②③④'),
+        ('1,2,3,4', '①②③④'),
+    ]
 
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, verbose_name='과목')
     year = models.IntegerField('출제연도')
     number = models.IntegerField('문항번호')
     text = models.TextField('문제')
-    choice_1 = models.CharField('보기①', max_length=200)
-    choice_2 = models.CharField('보기②', max_length=200)
-    choice_3 = models.CharField('보기③', max_length=200)
-    choice_4 = models.CharField('보기④', max_length=200)
-    answer = models.IntegerField('정답', choices=ANSWER_CHOICES)
+    choice_1 = models.TextField('보기①')
+    choice_2 = models.TextField('보기②')
+    choice_3 = models.TextField('보기③')
+    choice_4 = models.TextField('보기④')
+    answer = models.CharField('정답', max_length=10, choices=ANSWER_CHOICES, default='0')
+    choice_1_exp = models.TextField('보기① 해설', blank=True)
+    choice_2_exp = models.TextField('보기② 해설', blank=True)
+    choice_3_exp = models.TextField('보기③ 해설', blank=True)
+    choice_4_exp = models.TextField('보기④ 해설', blank=True)
     explanation = models.TextField('정답 설명', blank=True)
 
     class Meta:
@@ -50,7 +62,7 @@ class Question(models.Model):
 class Attempt(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='사용자')
     question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name='문제')
-    selected = models.IntegerField('선택한 답', choices=Question.ANSWER_CHOICES)
+    selected = models.CharField('선택한 답', max_length=10, choices=Question.ANSWER_CHOICES, default='0')
     is_correct = models.BooleanField('정답여부')
     created_at = models.DateTimeField('풀이시각', auto_now_add=True)
 

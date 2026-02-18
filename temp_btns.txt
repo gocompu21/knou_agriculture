@@ -1,0 +1,24 @@
+<button type="submit" onclick="">
+<button type="submit" onclick="location.href='https://allaclass.tistory.com/pages/%EC%A0%84%EA%B3%BC%EB%AA%A9-%EA%B8%B0%EC%B6%9C%EB%AC%B8%EC%A0%9C'">
+<button type="submit" onclick="try {
+    window.location.href = '/search' + '/' + looseURIEncode(document.getElementsByName('search')[0].value);
+    document.getElementsByName('search')[0].value = '';
+    return false;
+} catch (e) {}">
+<tr class="allaAnswerTr">
+<td class="allaAnswerTd">
+<input class="allaAnswerRadio" type="radio" id="radio-36-1" name="question-36" value="1">
+<tr class="allaAnswerTr">
+<td class="allaAnswerTd">
+<input class="allaAnswerRadio" type="radio" id="radio-36-2" name="question-36" value="2">
+<tr class="allaAnswerTr">
+<td class="allaAnswerTd">
+<input class="allaAnswerRadio" type="radio" id="radio-36-3" name="question-36" value="3">
+<tr class="allaAnswerTr">
+<td class="allaAnswerTd">
+<input class="allaAnswerRadio" type="radio" id="radio-36-4" name="question-36" value="4">
+<tr class="allaAnswerTr">
+<td class="allaAnswerTd">
+<input class="allaAnswerRadio" type="radio" id="radio-36-5" name="question-36" value="5">
+<tr class="allaCheckTr">
+<tr class="allaAnswerTr">

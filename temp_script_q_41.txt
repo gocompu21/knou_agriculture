@@ -1,0 +1,54 @@
+
+// 애드센스 광고실행 함수선언
+let exeAds = (tableIds, srcInnerHTML) => {
+	tableIds.forEach(tableId => {
+		// 해당 ID의 테이블을 가져옵니다.
+		let table = document.querySelector(`table#${tableId}`);
+  
+		// 테이블이 존재할 경우에만 처리합니다.
+		if (table) {
+			// 광고용 div를 생성합니다.
+			let divAdTitle = document.createElement('div');
+			divAdTitle.id = `ad${tableId.slice(-2)}`; // 테이블 ID에서 숫자 부분을 추출하여 광고 div의 ID로 사용합니다.
+			divAdTitle.innerHTML = srcInnerHTML;
+			
+			// 테이블의 부모 요소를 가져옵니다.
+			let parentDiv = table.parentNode;
+			
+			// 광고 div를 부모 요소의 하위 요소로 추가합니다.
+			parentDiv.appendChild(divAdTitle);
+			
+			// 스타일을 설정합니다.
+			divAdTitle.style.marginBottom = '160px';
+			
+			// 광고를 로드합니다.
+			(adsbygoogle = window.adsbygoogle || []).push({});
+		}
+	});
+};
+
+// 테이블 ID를 배열로 저장합니다.
+const tableIds0136 = ['allaBasicTbl01', 'allaBasicTbl36', 'alla6BasicTbl01', 'alla6BasicTbl36'];
+// const tableIds1045 = ['alla6BasicTbl10', 'alla6BasicTbl45'];
+// const tableIds2055 = ['alla6BasicTbl20', 'alla6BasicTbl55'];
+// const tableIds3065 = ['alla6BasicTbl30', 'alla6BasicTbl65'];
+// 구글광고코드
+const innerHTML0136 = '<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3055418534570705" data-ad-slot="2753766557" data-ad-format="auto" data-full-width-responsive="true"></ins>';
+// const innerHTML1045 = '<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3055418534570705" data-ad-slot="3845370848" data-ad-format="auto" data-full-width-responsive="true"></ins>';
+// const innerHTML2055 = '<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3055418534570705" data-ad-slot="4476760384" data-ad-format="auto" data-full-width-responsive="true"></ins>';
+// const innerHTML3065 = '<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3055418534570705" data-ad-slot="6071045099" data-ad-format="auto" data-full-width-responsive="true"></ins>';
+// 애드센스 광고실행 함수실행
+exeAds(tableIds0136, innerHTML0136);
+// exeAds(tableIds1045, innerHTML1045);
+// exeAds(tableIds2055, innerHTML2055);
+// exeAds(tableIds3065, innerHTML3065);
+
+// 참고용
+// let alla6table65 = document.querySelector('table#alla6BasicTbl65');
+// if (alla6table65) {
+//   let divAd65 = document.createElement('div');
+//   divAd65.id = 'ad65';
+//   divAd65.innerHTML = '<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3055418534570705" data-ad-slot="6071045099" data-ad-format="auto" data-full-width-responsive="true"></ins>';
+//   alla6table65.appendChild(divAd65);
+//   (adsbygoogle = window.adsbygoogle || []).push({});
+// }

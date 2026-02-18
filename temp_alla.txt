@@ -1,0 +1,10 @@
+과제를 해결하기 위한 방안이 <span class="iub">아닌</span> 것은?
+				</td>
+			</tr>
+			<!-- 객관식 1번 -->
+			<tr class="allaAnswerTr">
+				<td class="allaAnswerTd">
+					<label for="radio-36-1">
+						<input class="allaAnswerRadio" type="radio" id="radio-36-1" name="question-36" value="1">
+						시설의 안전성, 내구성 및 기능성 향상
+	

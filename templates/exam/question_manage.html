@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+
+{% block title %}문제 관리{% endblock %}
+
+{% block extra_css %}
+<style>
+    .manage-wrap {
+        width: min(1120px, 92vw);
+        margin: 0 auto;
+    }
+
+    .manage-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .manage-header h1 {
+        font-size: 1.5rem;
+        color: var(--forest);
+    }
+
+    .manage-nav {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .manage-nav a {
+        text-decoration: none;
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        transition: background 0.2s;
+    }
+
+    .manage-nav .active {
+        background: var(--forest);
+        color: #fff;
+    }
+
+    .manage-nav a:not(.active) {
+        background: #e8f5df;
+        color: var(--forest);
+    }
+
+    .manage-nav a:not(.active):hover {
+        background: #d4ebc8;
+    }
+
+    /* 교과목 선택 */
+    .subject-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 28px;
+    }
+
+    .subject-chip {
+        display: inline-block;
+        text-decoration: none;
+        padding: 8px 18px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: #fff;
+        color: var(--forest);
+        border: 2px solid #d4ebc8;
+        transition: all 0.2s;
+    }
+
+    .subject-chip:hover {
+        background: #e8f5df;
+        border-color: var(--forest);
+    }
+
+    .subject-chip.selected {
+        background: var(--forest);
+        color: #fff;
+        border-color: var(--forest);
+    }
+
+    /* 시험 선택 */
+    .exam-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 28px;
+    }
+
+    .exam-item {
+        display: inline-block;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: #fff;
+        color: #333;
+        border: 2px solid #e5e7eb;
+        transition: all 0.2s;
+    }
+
+    .exam-item:hover {
+        border-color: var(--forest);
+        background: #f8fbf6;
+    }
+
+    .exam-item.selected {
+        background: var(--forest);
+        color: #fff;
+        border-color: var(--forest);
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 6px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        margin-left: 6px;
+    }
+
+    .badge-mid {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .badge-final {
+        background: #fce7f3;
+        color: #be185d;
+    }
+
+    .badge-seasonal {
+        background: #fdf4de;
+        color: #92700c;
+    }
+
+    .exam-item.selected .badge {
+        background: rgba(255, 255, 255, 0.25);
+        color: #fff;
+    }
+
+    /* 섹션 라벨 */
+    .section-label {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--forest);
+        margin-bottom: 10px;
+    }
+
+    /* 문제 테이블 */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(30, 70, 42, 0.08);
+    }
+
+    .data-table thead {
+        background: var(--forest);
+        color: #fff;
+    }
+
+    .data-table th {
+        padding: 14px 16px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .data-table td {
+        padding: 12px 16px;
+        font-size: 0.88rem;
+        border-bottom: 1px solid #eef3ee;
+        vertical-align: top;
+    }
+
+    .data-table tbody tr:hover {
+        background: #f8fbf6;
+    }
+
+    .q-number {
+        font-weight: 700;
+        color: var(--forest);
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .q-text {
+        line-height: 1.6;
+    }
+
+    .q-choices {
+        font-size: 0.83rem;
+        color: #555;
+        line-height: 1.7;
+    }
+
+    .q-choices .choice-item {
+        display: block;
+    }
+
+    .q-answer {
+        text-align: center;
+        font-weight: 700;
+        color: var(--forest);
+    }
+
+    .q-count {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-left: 8px;
+        font-weight: 400;
+    }
+
+    .btn-delete-sm {
+        background: none;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        color: #999;
+        cursor: pointer;
+        font-size: 0.8rem;
+        padding: 4px 8px;
+        transition: all 0.2s;
+    }
+
+    .btn-delete-sm:hover {
+        background: #fee2e2;
+        border-color: #ef4444;
+        color: #ef4444;
+    }
+
+    .empty-msg {
+        text-align: center;
+        padding: 48px 20px;
+        color: var(--muted);
+        font-size: 0.95rem;
+    }
+
+    @media (max-width: 720px) {
+        .data-table th,
+        .data-table td {
+            padding: 10px 10px;
+            font-size: 0.8rem;
+        }
+
+        .manage-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .q-choices {
+            font-size: 0.78rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="manage-wrap">
+    <nav class="manage-nav">
+        <a href="{% url 'main:subject_manage' %}">교과목 관리</a>
+        <a href="{% url 'exam:exam_manage' %}">시험 관리</a>
+        <a href="{% url 'exam:question_manage' %}" class="active">문제 관리</a>
+    </nav>
+
+    <div class="manage-header">
+        <h1>문제 관리</h1>
+    </div>
+
+    <!-- 1단계: 교과목 선택 -->
+    <div class="section-label">교과목 선택</div>
+    <div class="subject-chips">
+        {% for s in subjects %}
+        <a href="?subject={{ s.pk }}"
+           class="subject-chip {% if selected_subject.pk == s.pk %}selected{% endif %}">
+            {{ s.name }}
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if selected_subject %}
+    <!-- 2단계: 시험 선택 -->
+    <div class="section-label">
+        {{ selected_subject.name }} — 시험 선택
+    </div>
+    {% if exams %}
+    <div class="exam-list">
+        {% for e in exams %}
+        <a href="?subject={{ selected_subject.pk }}&exam={{ e.pk }}"
+           class="exam-item {% if selected_exam.pk == e.pk %}selected{% endif %}">
+            {{ e.year }}년
+            <span class="badge {% if e.exam_type == '중간' %}badge-mid{% elif e.exam_type == '기말' %}badge-final{% else %}badge-seasonal{% endif %}">
+                {{ e.get_exam_type_display }}
+            </span>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-msg">해당 교과목에 등록된 문제가 없습니다.</div>
+    {% endif %}
+    {% endif %}
+
+    {% if selected_exam and questions %}
+    <!-- 3단계: 문제 목록 -->
+    <div class="section-label">
+        {{ selected_subject.name }} · {{ selected_exam.year }}년 {{ selected_exam.get_exam_type_display }}
+        <span class="q-count">({{ questions|length }}문항)</span>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width:60px;">번호</th>
+                <th>문제</th>
+                <th style="width:280px;">보기</th>
+                <th style="width:60px;">정답</th>
+                <th style="width:50px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for q in questions %}
+            <tr>
+                <td class="q-number">{{ q.number }}</td>
+                <td class="q-text">{{ q.text }}</td>
+                <td class="q-choices">
+                    <span class="choice-item">&#9312; {{ q.choice_1 }}</span>
+                    <span class="choice-item">&#9313; {{ q.choice_2 }}</span>
+                    <span class="choice-item">&#9314; {{ q.choice_3 }}</span>
+                    <span class="choice-item">&#9315; {{ q.choice_4 }}</span>
+                </td>
+                <td class="q-answer">{{ q.get_answer_display }}</td>
+                <td style="text-align:center;">
+                    <form method="post" action="{% url 'exam:question_delete' q.pk %}"
+                          onsubmit="return confirm('{{ q.number }}번 문제를 삭제하시겠습니까?');"
+                          style="margin:0;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-delete-sm" title="삭제">&#10005;</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% elif selected_exam %}
+    <div class="empty-msg">해당 시험에 등록된 문제가 없습니다.</div>
+    {% endif %}
+</div>
+{% endblock %}

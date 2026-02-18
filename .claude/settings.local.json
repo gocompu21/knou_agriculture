@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "WebFetch(domain:tistory1.daumcdn.net)",
+      "WebFetch(domain:allaclass.tistory.com)",
+      "Bash(ls:*)",
+      "WebFetch(domain:ai.google.dev)",
+      "Bash(pip install:*)",
+      "Bash(iconv:*)",
+      "Bash(tasklist:*)"
+    ]
+  }
+}

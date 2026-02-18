@@ -1,0 +1,469 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject.name }} {{ year }}년 풀이모드</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            display: flex;
+            height: 100vh;
+            font-family: "SUIT", -apple-system, sans-serif;
+            overflow: hidden;
+            background: #f8f6e6;
+        }
+
+        /* ══════════ Left: Question Panel ══════════ */
+        .question-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 40px;
+            border-right: 1px solid #ccc;
+        }
+
+        .panel-header {
+            text-align: right;
+            font-size: 1.0em;
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        .question-item {
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .question-content {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            line-height: 1.6;
+            padding-left: 25px;
+            text-indent: -22px;
+        }
+
+        .choices .choice-item {
+            margin-bottom: 6px;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 5px;
+            font-size: 1.0em;
+            line-height: 1.5;
+            transition: background 0.15s;
+        }
+
+        .choices .choice-item:hover {
+            background-color: #f0f7f4;
+        }
+
+        .q-mark {
+            display: inline-block;
+            font-size: 1.1em;
+            margin-right: 4px;
+            position: relative;
+            top: -1px;
+            vertical-align: middle;
+        }
+
+        .choice-item.selected-text {
+            background-color: #e8f4e0;
+        }
+
+        .choice-item.selected-text .q-mark {
+            position: relative;
+        }
+
+        .choice-item.selected-text .q-mark::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-35%, -120%) scale(2.5);
+            width: 100%;
+            height: 100%;
+            background-image: url("{% static 'images/exam/check_mark_black.png' %}");
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            mix-blend-mode: multiply;
+            filter: contrast(1.5) brightness(1.1);
+            pointer-events: none;
+        }
+
+        /* ══════════ Right: OMR Panel ══════════ */
+        .omr-panel {
+            width: 200px;
+            min-width: 200px;
+            flex: 0 0 200px;
+            padding: 0;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+            border-left: 1px solid #ccc;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .omr-card {
+            width: 100%;
+            border: 2px solid #d4879c;
+            display: flex;
+            flex-direction: column;
+            font-size: 13px;
+        }
+
+        .omr-sticky {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+            border-bottom: 1px solid #d4879c;
+        }
+
+        .omr-sticky h3 {
+            text-align: center;
+            margin: 10px 0 5px 0;
+            font-size: 1.0em;
+        }
+
+        .omr-sticky .submit-area {
+            padding: 0 10px 10px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: #0056b3;
+        }
+
+        .omr-header {
+            display: flex;
+            background-color: #f3e6e9;
+            border-top: 1px solid #d4879c;
+            font-weight: bold;
+            text-align: center;
+            height: 30px;
+            line-height: 30px;
+            color: #555;
+        }
+
+        .omr-header-num {
+            width: 35px;
+            border-right: 1px solid #d4879c;
+        }
+
+        .omr-header-ans {
+            flex: 1;
+        }
+
+        .omr-row {
+            display: flex;
+            align-items: stretch;
+            height: 34px;
+            cursor: pointer;
+            background: white;
+            width: 100%;
+        }
+
+        .omr-row:nth-child(5n+1) {
+            border-bottom: 1px solid #d4879c;
+        }
+
+        .omr-row:last-child {
+            border-bottom: none;
+        }
+
+        .omr-row:hover {
+            background-color: #fff0f5;
+        }
+
+        .omr-num {
+            width: 35px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-right: 1px solid #d4879c;
+            font-weight: bold;
+            font-size: 0.9em;
+            flex-shrink: 0;
+            background-color: #f3e6e9;
+        }
+
+        .omr-bubbles {
+            flex: 1;
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            padding: 0 4px;
+        }
+
+        .omr-bubble {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid #333;
+            text-align: center;
+            line-height: 18px;
+            font-size: 12px;
+            cursor: pointer;
+            background: white;
+            color: #333;
+        }
+
+        .omr-bubble:hover {
+            background: #eee;
+        }
+
+        .omr-bubble.selected {
+            background: black;
+            color: transparent;
+            border-color: black;
+            border-radius: 53% 47% 58% 42% / 46% 56% 44% 54%;
+            transform: scale(0.9) rotate(-1deg);
+            box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="radio"] {
+            display: none;
+        }
+
+        /* ══════════ Mobile ══════════ */
+        @media (max-width: 768px) {
+            body {
+                display: block;
+                height: auto;
+                overflow: auto;
+                background: white;
+            }
+
+            .omr-panel {
+                display: none;
+            }
+
+            .question-panel {
+                width: 100%;
+                padding: 0;
+                border: none;
+                overflow: visible;
+                background: white;
+            }
+
+            .panel-header { display: none; }
+
+            .mobile-header {
+                display: flex !important;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 16px;
+                background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+                font-weight: bold;
+                color: white;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .mobile-header .info {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 0.95rem;
+            }
+
+            .mobile-header .badge {
+                background: rgba(255,255,255,0.2);
+                padding: 4px 10px;
+                border-radius: 12px;
+                font-size: 0.85rem;
+            }
+
+            .mobile-submit-btn {
+                background: #ff6b35;
+                color: white;
+                border: none;
+                padding: 6px 14px;
+                border-radius: 16px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                cursor: pointer;
+            }
+
+            .question-item {
+                padding: 16px 14px;
+                margin-bottom: 0;
+                border-bottom: 1px solid #e0e0e0;
+            }
+
+            .question-content {
+                font-size: 1rem;
+                line-height: 1.5;
+                padding-left: 1.5em;
+                text-indent: -1.5em;
+            }
+
+            .choices .choice-item {
+                padding: 8px;
+                font-size: 0.95rem;
+            }
+        }
+
+        /* Desktop: hide mobile header */
+        .mobile-header { display: none; }
+    </style>
+</head>
+
+<body>
+    <form method="post" action="{% url 'exam:exam_submit' subject.pk year %}" style="display: flex; width: 100%; height: 100%;">
+        {% csrf_token %}
+
+        <!-- Mobile Header -->
+        <div class="mobile-header">
+            <div class="info">
+                <span class="badge">{{ subject.name }}</span>
+                <span>{{ year }}년</span>
+                <span id="mobile-timer">00:00:00</span>
+            </div>
+            <button type="submit" class="mobile-submit-btn">제출하기</button>
+        </div>
+
+        <!-- Left: Questions -->
+        <div class="question-panel">
+            <div class="panel-header">{{ subject.name }} &middot; {{ year }}년 기말시험 &middot; {{ questions|length }}문항</div>
+
+            {% for q in questions %}
+            <div class="question-item" id="q-{{ q.id }}">
+                <div class="question-content">{{ q.number }}. {{ q.text }}</div>
+                <div class="choices">
+                    <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '1')">
+                        <span class="q-mark">&#9312;</span> {{ q.choice_1 }}
+                    </div>
+                    <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '2')">
+                        <span class="q-mark">&#9313;</span> {{ q.choice_2 }}
+                    </div>
+                    <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '3')">
+                        <span class="q-mark">&#9314;</span> {{ q.choice_3 }}
+                    </div>
+                    <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '4')">
+                        <span class="q-mark">&#9315;</span> {{ q.choice_4 }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Right: OMR Card -->
+        <div class="omr-panel">
+            <div class="omr-card">
+                <div class="omr-sticky">
+                    <h3>&#9201; <span id="elapsed-time">00:00:00</span></h3>
+                    <div class="submit-area">
+                        <button type="submit" class="submit-btn">제출하기</button>
+                    </div>
+                    <div class="omr-header">
+                        <div class="omr-header-num">문항</div>
+                        <div class="omr-header-ans">답 란</div>
+                    </div>
+                </div>
+
+                {% for q in questions %}
+                <div class="omr-row" id="omr-row-{{ q.id }}" onclick="scrollToQuestion('{{ q.id }}')">
+                    <div class="omr-num">{{ q.number }}</div>
+                    <div class="omr-bubbles">
+                        {% for i in "1234" %}
+                        <label class="omr-bubble val-{{ i }}" onclick="event.stopPropagation(); selectBubble(this)">
+                            {{ i }}
+                            <input type="radio" name="question_{{ q.id }}" value="{{ i }}">
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </form>
+
+    <script>
+        /* ── Timer ── */
+        const startTime = Date.now();
+
+        function updateTimer() {
+            const elapsed = Date.now() - startTime;
+            const h = String(Math.floor(elapsed / 3600000)).padStart(2, '0');
+            const m = String(Math.floor((elapsed % 3600000) / 60000)).padStart(2, '0');
+            const s = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, '0');
+            const str = h + ':' + m + ':' + s;
+            const el = document.getElementById('elapsed-time');
+            const mob = document.getElementById('mobile-timer');
+            if (el) el.textContent = str;
+            if (mob) mob.textContent = str;
+        }
+        setInterval(updateTimer, 1000);
+
+        /* ── Question click → OMR sync ── */
+        function selectAnswer(questionId, choiceVal) {
+            // Update OMR bubble
+            const omrRow = document.getElementById('omr-row-' + questionId);
+            if (omrRow) {
+                const bubble = omrRow.querySelector('.val-' + choiceVal);
+                if (bubble) selectBubble(bubble);
+                omrRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            // Highlight question choice
+            highlightQuestionChoice(questionId, choiceVal);
+        }
+
+        /* ── OMR bubble click ── */
+        function selectBubble(label) {
+            const parent = label.parentNode;
+            parent.querySelectorAll('.omr-bubble').forEach(b => b.classList.remove('selected'));
+            label.classList.add('selected');
+
+            const radio = label.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+                const name = radio.name;
+                if (name && name.startsWith('question_')) {
+                    const qId = name.split('_')[1];
+                    highlightQuestionChoice(qId, radio.value);
+                }
+            }
+        }
+
+        /* ── Highlight choice on question panel ── */
+        function highlightQuestionChoice(questionId, choiceVal) {
+            const qDiv = document.getElementById('q-' + questionId);
+            if (!qDiv) return;
+            const choices = qDiv.querySelectorAll('.choice-item');
+            choices.forEach(c => c.classList.remove('selected-text'));
+            const idx = parseInt(choiceVal) - 1;
+            if (choices[idx]) choices[idx].classList.add('selected-text');
+        }
+
+        /* ── OMR row click → scroll to question ── */
+        function scrollToQuestion(questionId) {
+            const qDiv = document.getElementById('q-' + questionId);
+            if (qDiv) {
+                qDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    </script>
+</body>
+
+</html>

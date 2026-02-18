@@ -1,0 +1,22 @@
+=== Pattern: input ===
+pos 16708: 
+				<div class="search">
+					
+						<!--
+						<input type="text" name="" value="" placeholder="검색내용을 입
+
+pos 17111: earch" class="screen_out">블로그 내 검색</label>
+						<input id="search" type="text" name="search" value="" pl
+
+pos 24459: laAnswerTd">
+					<label for="radio-36-1">
+						<input class="allaAnswerRadio" type="radio" id="radio-36
+
+pos 24724: laAnswerTd">
+					<label for="radio-36-2">
+						<input class="allaAnswerRadio" type="radio" id="radio-36
+
+pos 24978: laAnswerTd">
+					<label for="radio-36-3">
+						<input class="allaAnswerRadio" type="radio" id="radio-36
+

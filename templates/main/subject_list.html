@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}학년별 교과목 | 한울회 A+ 학습시스템{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-title {
+        margin-bottom: 28px;
+    }
+
+    .page-title h1 {
+        font-size: 1.6rem;
+        color: var(--forest);
+        margin-bottom: 6px;
+    }
+
+    .page-title p {
+        color: var(--muted);
+        font-size: 0.92rem;
+    }
+
+    /* ══════════ Subject Grid ══════════ */
+    .subject-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+
+    .subject-card {
+        border: 1px solid #d7e3d7;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fcf5 100%);
+        border-radius: 16px;
+        padding: 20px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .subject-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(30, 70, 42, 0.1);
+    }
+
+    .subject-label {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #fff;
+        padding: 3px 10px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+    }
+
+    .grade-1 .subject-label { background: #4caf7a; }
+    .grade-2 .subject-label { background: #3d9ed6; }
+    .grade-3 .subject-label { background: #e0943a; }
+    .grade-4 .subject-label { background: #c4604a; }
+
+    .subject-card h3 {
+        font-size: 1rem;
+        color: #1d5536;
+        margin-bottom: 10px;
+    }
+
+    .subject-list {
+        list-style: none;
+        font-size: 0.85rem;
+        color: #4f6555;
+        line-height: 1.8;
+    }
+
+    .subject-list li {
+        display: flex;
+        align-items: center;
+    }
+
+    .subject-list li::before {
+        content: "\2022";
+        color: var(--leaf);
+        margin-right: 6px;
+        font-weight: 700;
+    }
+
+    .subject-list li a {
+        color: #4f6555;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .subject-list li a:hover {
+        color: var(--forest);
+        text-decoration: underline;
+    }
+
+    .subject-list li small {
+        color: var(--muted);
+    }
+
+    .empty-msg {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--muted);
+        font-size: 0.95rem;
+    }
+
+    /* ══════════ Responsive ══════════ */
+    @media (max-width: 920px) {
+        .subject-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 560px) {
+        .subject-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <div class="page-title fade-up">
+        <h1>학년별 교과목</h1>
+        <p>학년-과목 매핑에 따라 문제풀이 화면이 자동 분기됩니다. 과목을 선택하여 기출문제를 풀어보세요.</p>
+    </div>
+
+    {% if grades %}
+    <div class="subject-grid">
+        {% for grade_num, info in grades.items %}
+        <div class="subject-card grade-{{ grade_num }} fade-up delay-{{ grade_num }}">
+            <span class="subject-label">{{ info.label }}</span>
+            <h3>{{ info.subtitle }}</h3>
+            <ul class="subject-list">
+                {% for subject in info.subjects %}
+                <li><a href="{% url 'main:subject_detail' subject.pk %}">{{ subject.name }} <small>({{ subject.category }})</small></a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-msg">등록된 교과목이 없습니다.</div>
+    {% endif %}
+</div>
+{% endblock %}

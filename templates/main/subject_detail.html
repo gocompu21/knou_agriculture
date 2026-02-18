@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}{{ subject.name }} | 한울회 A+ 학습시스템{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ══════════ Breadcrumb ══════════ */
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82rem;
+        color: var(--muted);
+        margin-bottom: 20px;
+    }
+
+    .breadcrumb a {
+        color: var(--forest);
+        text-decoration: none;
+        font-weight: 700;
+    }
+
+    .breadcrumb a:hover {
+        text-decoration: underline;
+    }
+
+    .breadcrumb .sep {
+        color: var(--line);
+    }
+
+    /* ══════════ Page Header ══════════ */
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 28px;
+    }
+
+    .grade-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .grade-badge.g1 { background: #4caf7a; }
+    .grade-badge.g2 { background: #3d9ed6; }
+    .grade-badge.g3 { background: #e0943a; }
+    .grade-badge.g4 { background: #c4604a; }
+
+    .page-header-text h1 {
+        font-size: 1.5rem;
+        color: var(--forest);
+        line-height: 1.3;
+    }
+
+    .page-header-text p {
+        font-size: 0.88rem;
+        color: var(--muted);
+        margin-top: 2px;
+    }
+
+    /* ══════════ Year Grid ══════════ */
+    .year-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px;
+    }
+
+    .year-card {
+        border: 1px solid #d7e3d7;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fcf5 100%);
+        border-radius: 16px;
+        padding: 22px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .year-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(30, 70, 42, 0.1);
+    }
+
+    .year-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    .year-card-header h3 {
+        font-size: 1.15rem;
+        color: #1d5536;
+    }
+
+    .q-count {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--forest);
+        background: var(--mint);
+        padding: 3px 10px;
+        border-radius: 6px;
+    }
+
+    .mode-btns {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .mode-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        font-family: "SUIT", sans-serif;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .mode-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .mode-btn .mode-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .mode-btn .mode-info {
+        flex: 1;
+    }
+
+    .mode-btn .mode-name {
+        display: block;
+        line-height: 1.3;
+    }
+
+    .mode-btn .mode-desc {
+        display: block;
+        font-size: 0.76rem;
+        font-weight: 500;
+        opacity: 0.7;
+        margin-top: 1px;
+    }
+
+    .mode-btn.study {
+        background: #e5f5e0;
+        color: #1d5536;
+        border: 1px solid #c8e4c2;
+    }
+
+    .mode-btn.study:hover {
+        box-shadow: 0 4px 14px rgba(76, 175, 122, 0.25);
+    }
+
+    .mode-btn.study .mode-icon {
+        background: #4caf7a;
+        color: #fff;
+    }
+
+    .mode-btn.solve {
+        background: #fff3e0;
+        color: #7a4a0a;
+        border: 1px solid #f0d8a8;
+    }
+
+    .mode-btn.solve:hover {
+        box-shadow: 0 4px 14px rgba(224, 148, 58, 0.25);
+    }
+
+    .mode-btn.solve .mode-icon {
+        background: #e0943a;
+        color: #fff;
+    }
+
+    .empty-msg {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--muted);
+        font-size: 0.95rem;
+    }
+
+    /* ══════════ Responsive ══════════ */
+    @media (max-width: 560px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .year-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <div class="breadcrumb fade-up">
+        <a href="{% url 'main:subject_list' %}">학년별 교과목</a>
+        <span class="sep">/</span>
+        <span>{{ subject.name }}</span>
+    </div>
+
+    <div class="page-header fade-up">
+        <span class="grade-badge g{{ subject.grade }}">{{ subject.get_grade_display }}</span>
+        <div class="page-header-text">
+            <h1>{{ subject.name }}</h1>
+            <p>{{ subject.get_grade_display }} {{ subject.get_semester_display }} &middot; {{ subject.category }}</p>
+        </div>
+    </div>
+
+    {% if year_cards %}
+    <div class="year-grid">
+        {% for card in year_cards %}
+        <div class="year-card fade-up delay-{{ forloop.counter }}">
+            <div class="year-card-header">
+                <h3>{{ card.year }}년</h3>
+                <span class="q-count">{{ card.count }}문항</span>
+            </div>
+            <div class="mode-btns">
+                <a class="mode-btn study" href="{% url 'exam:study_mode' subject.pk card.year %}">
+                    <span class="mode-icon">&#128218;</span>
+                    <span class="mode-info">
+                        <span class="mode-name">학습모드</span>
+                        <span class="mode-desc">정답을 확인하며 학습</span>
+                    </span>
+                </a>
+                <a class="mode-btn solve" href="{% url 'exam:exam_take' subject.pk card.year %}">
+                    <span class="mode-icon">&#9998;</span>
+                    <span class="mode-info">
+                        <span class="mode-name">풀이모드</span>
+                        <span class="mode-desc">시험처럼 풀고 채점</span>
+                    </span>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-msg">등록된 기출문제가 없습니다.</div>
+    {% endif %}
+</div>
+{% endblock %}

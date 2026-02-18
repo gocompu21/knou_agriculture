@@ -23,5 +23,8 @@ media/
 .DS_Store
 Thumbs.db
 
+# Data
+data/
+
 # Environment variables
 .env

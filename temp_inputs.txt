@@ -1,0 +1,24 @@
+<input type="text" name="" value="" placeholder="검색내용을 입력하세요." onkeypress="if (event.keyCode == 13) {  }">
+<input id="search" type="text" name="search" value="" placeholder="검색내용을 입력하세요." onkeypress="if (event.keyCode == 13) { try {
+    window.location.href = '/search' + '/' + looseURIEncode(document.getElementsByName('search')[0].value);
+    document.getElementsByName('search')[0].value = '';
+    return false;
+} catch (e) {} }">
+<input class="allaAnswerRadio" type="radio" id="radio-36-1" name="question-36" value="1">
+<input class="allaAnswerRadio" type="radio" id="radio-36-2" name="question-36" value="2">
+<input class="allaAnswerRadio" type="radio" id="radio-36-3" name="question-36" value="3">
+<input class="allaAnswerRadio" type="radio" id="radio-36-4" name="question-36" value="4">
+<input class="allaAnswerRadio" type="radio" id="radio-36-5" name="question-36" value="5">
+<input class="allaAnswerRadio" type="radio" id="radio-37-1" name="question-37" value="1">
+<input class="allaAnswerRadio" type="radio" id="radio-37-2" name="question-37" value="2">
+<input class="allaAnswerRadio" type="radio" id="radio-37-3" name="question-37" value="3">
+<input class="allaAnswerRadio" type="radio" id="radio-37-4" name="question-37" value="4">
+<input class="allaAnswerRadio" type="radio" id="radio-37-5" name="question-37" value="5">
+<input class="allaAnswerRadio" type="radio" id="radio-38-1" name="question-38" value="1">
+<input class="allaAnswerRadio" type="radio" id="radio-38-2" name="question-38" value="2">
+<input class="allaAnswerRadio" type="radio" id="radio-38-3" name="question-38" value="3">
+<input class="allaAnswerRadio" type="radio" id="radio-38-4" name="question-38" value="4">
+<input class="allaAnswerRadio" type="radio" id="radio-38-5" name="question-38" value="5">
+<input class="allaAnswerRadio" type="radio" id="radio-39-1" name="question-39" value="1">
+<input class="allaAnswerRadio" type="radio" id="radio-39-2" name="question-39" value="2">
+<input class="allaAnswerRadio" type="radio" id="radio-39-3" name="question-39" value="3">
