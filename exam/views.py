@@ -171,7 +171,7 @@ def exam_result(request, subject_id, year):
 @login_required
 def mock_exam_take(request, subject_id):
     subject = get_object_or_404(Subject, pk=subject_id)
-    all_questions = Question.objects.filter(subject=subject)
+    all_questions = Question.objects.filter(subject=subject, year__lt=2020)
 
     count = min(25, all_questions.count())
     if count == 0:

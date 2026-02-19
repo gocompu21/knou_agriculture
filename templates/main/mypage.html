@@ -118,6 +118,25 @@
         margin-bottom: 16px;
     }
 
+    .grade-heading {
+        font-size: 0.88rem;
+        font-weight: 800;
+        color: #fff;
+        display: inline-block;
+        padding: 3px 12px;
+        border-radius: 6px;
+        margin: 16px 0 10px;
+    }
+
+    .grade-heading:first-of-type {
+        margin-top: 0;
+    }
+
+    .grade-h1 { background: #4caf7a; }
+    .grade-h2 { background: #3d9ed6; }
+    .grade-h3 { background: #e0943a; }
+    .grade-h4 { background: #c4604a; }
+
     .add-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -189,6 +208,28 @@
         margin-bottom: 40px;
     }
 
+    /* ══════════ Add Toggle Button ══════════ */
+    .add-toggle-wrap {
+        margin-bottom: 20px;
+    }
+
+    .add-toggle-btn {
+        background: #f0f7ec;
+        border: 1px dashed #97bc62;
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #2c5f2d;
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s;
+    }
+
+    .add-toggle-btn:hover {
+        background: #e5f5e0;
+        border-color: #2c5f2d;
+    }
+
     /* ══════════ Responsive ══════════ */
     @media (max-width: 560px) {
         .fav-grid {
@@ -233,27 +274,42 @@
     </div>
     {% endif %}
 
-    <div class="add-section fade-up">
+    {% if fav_data %}
+    <div class="add-toggle-wrap fade-up">
+        <button type="button" class="add-toggle-btn" onclick="toggleAddSection()">+ 과목 추가</button>
+    </div>
+    {% endif %}
+    <div class="add-section fade-up" id="add-section"{% if fav_data %} style="display:none"{% endif %}>
         <h2>과목 추가</h2>
+        {% for grade_num, subjects in subjects_by_grade.items %}
+        <h3 class="grade-heading grade-h{{ grade_num }}">{{ grade_num }}학년</h3>
         <div class="add-grid">
-            {% for s in all_subjects %}
-            <div class="add-item" id="add-{{ s.pk }}">
-                <div>
-                    <span class="add-item-name">{{ s.name }}</span>
-                    <span class="add-item-grade">{{ s.grade }}학년</span>
-                </div>
-                <button type="button" class="add-btn{% if s.pk in favorite_ids %} added{% endif %}" onclick="toggleFav({{ s.pk }}, this)" title="관심과목 토글">
-                    {% if s.pk in favorite_ids %}✓{% else %}+{% endif %}
-                </button>
+            {% for s in subjects %}
+            <div class="add-item" id="add-{{ s.pk }}"{% if s.pk in favorite_ids %} style="display:none"{% endif %}>
+                <span class="add-item-name">{{ s.name }}</span>
+                <button type="button" class="add-btn" onclick="toggleFav({{ s.pk }}, this)" title="관심과목 추가">+</button>
             </div>
             {% endfor %}
         </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+    function toggleAddSection() {
+        var section = document.getElementById('add-section');
+        var btn = document.querySelector('.add-toggle-btn');
+        if (section.style.display === 'none') {
+            section.style.display = '';
+            btn.textContent = '− 과목 추가 닫기';
+        } else {
+            section.style.display = 'none';
+            btn.textContent = '+ 과목 추가';
+        }
+    }
+
     function toggleFav(subjectId, btn) {
         fetch('{% url "main:mypage" %}favorite/' + subjectId + '/', {
             method: 'POST',
@@ -262,16 +318,14 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.added) {
-                btn.classList.add('added');
-                btn.textContent = '✓';
-            } else {
-                btn.classList.remove('added');
-                btn.textContent = '+';
-                var favCard = document.getElementById('fav-' + subjectId);
-                if (favCard) {
-                    favCard.style.transition = 'opacity 0.3s';
-                    favCard.style.opacity = '0';
-                    setTimeout(function() { favCard.remove(); }, 300);
+                var addItem = document.getElementById('add-' + subjectId);
+                if (addItem) {
+                    addItem.style.transition = 'opacity 0.3s';
+                    addItem.style.opacity = '0';
+                    setTimeout(function() {
+                        addItem.style.display = 'none';
+                        location.reload();
+                    }, 300);
                 }
             }
         });
@@ -290,10 +344,9 @@
                 favCard.style.opacity = '0';
                 setTimeout(function() { favCard.remove(); }, 300);
             }
-            var addBtn = document.querySelector('#add-' + subjectId + ' .add-btn');
-            if (addBtn) {
-                addBtn.classList.remove('added');
-                addBtn.textContent = '+';
+            var addItem = document.getElementById('add-' + subjectId);
+            if (addItem) {
+                addItem.style.display = '';
             }
         });
     }

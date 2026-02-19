@@ -473,7 +473,7 @@
             </div>
             {% if is_wrong_retry %}
             <div class="dismiss-wrap" style="display:none; text-align:left; margin-top:10px;">
-                <button type="button" class="dismiss-btn" onclick="dismissQuestion(this, '{% url 'exam:wrong_dismiss' subject.pk q.id %}')">숙지완료</button>
+                <button type="button" class="dismiss-btn" onclick="dismissQuestion(this, '{% url 'exam:wrong_dismiss' subject.pk q.id %}')">OK! 이 문제는 됐어.</button>
             </div>
             {% endif %}
         </div>

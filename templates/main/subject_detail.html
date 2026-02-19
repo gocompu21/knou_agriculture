@@ -466,6 +466,271 @@
             justify-content: space-between;
         }
     }
+
+    /* ══════════ Latest Questions (최신기출) ══════════ */
+    .latest-add-btn {
+        background: #f0f7ec;
+        border: 1px dashed #97bc62;
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #2c5f2d;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.15s;
+    }
+
+    .latest-add-btn:hover {
+        background: #e5f5e0;
+        border-color: #2c5f2d;
+    }
+
+    .latest-form-wrap {
+        background: #f8fcf5;
+        border: 1px solid #d7e3d7;
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .latest-form-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .latest-form-row label {
+        min-width: 60px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #555;
+        padding-top: 8px;
+    }
+
+    .latest-input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-family: inherit;
+    }
+
+    .latest-input-sm {
+        flex: 0;
+        width: 100px;
+    }
+
+    .latest-textarea {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-family: inherit;
+        resize: vertical;
+    }
+
+    .latest-input:focus,
+    .latest-textarea:focus {
+        outline: none;
+        border-color: #97bc62;
+    }
+
+    .latest-submit-btn {
+        background: #2d8a4e;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 20px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .latest-submit-btn:hover { background: #236b3e; }
+
+    .latest-cancel-btn {
+        background: #eee;
+        color: #666;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 20px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .latest-cancel-btn:hover { background: #ddd; }
+
+    .latest-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .latest-card {
+        border: 1px solid #e8e8e8;
+        border-radius: 14px;
+        padding: 18px;
+        background: #fff;
+    }
+
+    .latest-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .latest-badge {
+        display: inline-block;
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #fff;
+        background: #3d9ed6;
+        padding: 3px 10px;
+        border-radius: 6px;
+    }
+
+    .latest-del-btn {
+        background: none;
+        border: 1px solid #ddd;
+        color: #888;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 3px 10px;
+        border-radius: 6px;
+        transition: color 0.15s, background 0.15s, border-color 0.15s;
+        font-family: inherit;
+    }
+
+    .latest-del-btn:hover {
+        color: #d93025;
+        background: #fee2e2;
+        border-color: #d93025;
+    }
+
+    .latest-edit-btn {
+        background: none;
+        border: 1px solid #ddd;
+        color: #888;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 3px 10px;
+        border-radius: 6px;
+        transition: color 0.15s, background 0.15s, border-color 0.15s;
+        font-family: inherit;
+    }
+
+    .latest-edit-btn:hover {
+        color: #3d9ed6;
+        background: #e3f2fd;
+        border-color: #3d9ed6;
+    }
+
+    .latest-year-edit-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        background: #f0f7ec;
+        border: 1px solid #c8e4c2;
+        border-radius: 12px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #2c5f2d;
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s;
+        flex-shrink: 0;
+        font-family: inherit;
+    }
+
+    .latest-year-edit-btn:hover {
+        background: #e5f5e0;
+        border-color: #2c5f2d;
+    }
+
+    .latest-year-section {
+        margin-top: 20px;
+        padding: 20px;
+        background: #fafcf8;
+        border: 1px solid #d7e3d7;
+        border-radius: 14px;
+    }
+
+    .latest-year-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    .latest-year-section-header h3 {
+        font-size: 1.05rem;
+        color: var(--forest);
+    }
+
+    .latest-text {
+        font-size: 0.95rem;
+        color: #333;
+        line-height: 1.7;
+        margin-bottom: 12px;
+    }
+
+    .latest-choices {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .latest-choice {
+        font-size: 0.88rem;
+        color: #555;
+        padding: 6px 12px;
+        border-radius: 8px;
+        background: #fafafa;
+        border: 1px solid #eee;
+    }
+
+    .latest-choice.correct {
+        background: #e8f5e9;
+        border-color: #a5d6a7;
+        color: #1d5536;
+        font-weight: 700;
+    }
+
+    .latest-explanation {
+        font-size: 0.85rem;
+        color: #666;
+        line-height: 1.7;
+        padding: 10px 14px;
+        background: #fafafa;
+        border-radius: 8px;
+        border-left: 3px solid #97bc62;
+    }
+
+    @media (max-width: 560px) {
+        .latest-form-row {
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .latest-form-row label {
+            padding-top: 0;
+        }
+
+        .latest-input-sm {
+            width: 100%;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -491,8 +756,12 @@
         <button class="tab-btn{% if active_tab == 'solve' %} active{% endif %}" data-tab="solve" onclick="switchTab('solve')">풀이</button>
         <button class="tab-btn{% if active_tab == 'mock' %} active{% endif %}" data-tab="mock" onclick="switchTab('mock')">모의고사</button>
         <button class="tab-btn{% if active_tab == 'wrong' %} active{% endif %}" data-tab="wrong" onclick="switchTab('wrong')">
-            점수 관리 및 오답노트
+            오답 노트
             {% if wrong_count > 0 %}<span class="tab-badge badge-wrong">{{ wrong_count }}</span>{% endif %}
+        </button>
+        <button class="tab-btn{% if active_tab == 'latest' %} active{% endif %}" data-tab="latest" onclick="switchTab('latest')">
+            최신기출
+            {% if latest_year_cards %}<span class="tab-badge" style="background:#3d9ed6;">{{ latest_year_cards|length }}</span>{% endif %}
         </button>
     </div>
 
@@ -555,16 +824,16 @@
         </div>
     </div>
 
-    <!-- Tab 4: 점수 관리 및 오답노트 -->
+    <!-- Tab 4: 오답 노트 -->
     <div class="tab-content{% if active_tab == 'wrong' %} active{% endif %}" id="tab-wrong">
         {% if wrong_count > 0 %}
         <div class="wrong-summary fade-up">
             <div class="wrong-summary-text">
-                현재 미해결 오답 <strong>{{ wrong_count }}</strong>문제
+                오답 <strong>{{ wrong_count }}</strong>문제
             </div>
             <div style="display:flex; gap:8px;">
                 <a class="wrong-summary-btn" style="background:#e5f5e0; color:#1d5536; border:1px solid #c8e4c2;" href="{% url 'exam:wrong_answers' subject.pk %}">전체 오답 보기</a>
-                <a class="wrong-summary-btn" href="{% url 'exam:wrong_answers_retry' subject.pk %}">오답 다시 풀기</a>
+                <a class="wrong-summary-btn" href="{% url 'exam:wrong_answers_retry' subject.pk %}">다시 도전</a>
             </div>
         </div>
         {% endif %}
@@ -584,7 +853,7 @@
                     <span class="session-score" style="color:{% if s.score >= 80 %}#2d8a4e{% elif s.score >= 60 %}#3d9ed6{% elif s.score >= 40 %}#e0943a{% else %}#d93025{% endif %};">{{ s.score }}점</span>
                     {% if s.wrong > 0 %}
                     <span class="session-wrong-badge">오답 {{ s.wrong }}</span>
-                    <a class="session-link" href="{% url 'exam:wrong_answers_session' subject.pk s.session_id %}">오답 보기</a>
+                    <a class="session-link" href="{% url 'exam:wrong_answers_session' subject.pk s.session_id %}">문제 보기</a>
                     {% else %}
                     <span style="font-size:0.85rem; color:#2d8a4e; font-weight:600;">전문 정답</span>
                     {% endif %}
@@ -600,13 +869,178 @@
         <div class="empty-msg">아직 풀이 기록이 없습니다.<br>풀이모드나 모의고사를 먼저 진행해보세요!</div>
         {% endif %}
 
-        {% if exam_sessions or wrong_count > 0 %}
-        <form method="post" action="{% url 'exam:session_delete_all' subject.pk %}" onsubmit="return confirm('이 과목의 모든 풀이 기록과 오답이 삭제됩니다. 계속하시겠습니까?');" style="text-align:center; margin-top:20px;">
-            {% csrf_token %}
-            <button type="submit" style="padding:8px 20px; background:transparent; color:#999; border:1px solid #ddd; border-radius:8px; font-size:0.82rem; cursor:pointer; font-family:inherit;">전체 기록 초기화</button>
-        </form>
-        {% endif %}
     </div>
+
+    <!-- Tab 5: 최신기출 -->
+    <div class="tab-content{% if active_tab == 'latest' %} active{% endif %}" id="tab-latest">
+        <!-- 연도별 카드 -->
+        {% if latest_year_cards %}
+        <div class="year-grid">
+            {% for card in latest_year_cards %}
+            <div class="year-card fade-up delay-{{ forloop.counter }}">
+                <div class="year-card-header">
+                    <h3>{{ card.year }}년</h3>
+                    <span class="q-count">{{ card.count }}문항</span>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <a class="mode-btn study" href="{% url 'exam:study_mode' subject.pk card.year %}" style="flex:1;">
+                        <span class="mode-icon">&#128218;</span>
+                        <span class="mode-info">
+                            <span class="mode-name">학습모드</span>
+                            <span class="mode-desc">정답을 확인하며 학습</span>
+                        </span>
+                    </a>
+                    <button type="button" class="latest-year-edit-btn" onclick="toggleYearQuestions({{ card.year }})">수정</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-msg" style="margin-bottom:20px;">등록된 최신기출이 없습니다.<br>아래 버튼으로 문제를 등록해보세요!</div>
+        {% endif %}
+
+        <!-- 연도별 문제 목록 (숨김) -->
+        {% regroup latest_questions by year as year_groups %}
+        {% for group in year_groups %}
+        <div class="latest-year-section" id="year-section-{{ group.grouper }}" style="display:none;">
+            <div class="latest-year-section-header">
+                <h3>{{ group.grouper }}년 문제 ({{ group.list|length }}문항)</h3>
+                <button type="button" class="latest-cancel-btn" onclick="toggleYearQuestions({{ group.grouper }})">닫기</button>
+            </div>
+            <div class="latest-list">
+                {% for q in group.list %}
+                <div class="latest-card" id="lq-card-{{ q.pk }}">
+                    <!-- 보기 모드 -->
+                    <div id="lq-view-{{ q.pk }}">
+                        <div class="latest-card-header">
+                            <span class="latest-badge">{{ q.number }}번</span>
+                            <div style="display:flex; gap:4px;">
+                                <button type="button" class="latest-edit-btn" onclick="toggleEditForm({{ q.pk }})">수정</button>
+                                <form method="post" action="{% url 'main:latest_question_delete' q.pk %}" onsubmit="return confirm('이 문제를 삭제하시겠습니까?');" style="margin:0;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="latest-del-btn">삭제</button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="latest-text">{{ q.text }}</div>
+                        <div class="latest-choices">
+                            <div class="latest-choice{% if '1' in q.answer %} correct{% endif %}">① {{ q.choice_1 }}</div>
+                            <div class="latest-choice{% if '2' in q.answer %} correct{% endif %}">② {{ q.choice_2 }}</div>
+                            <div class="latest-choice{% if '3' in q.answer %} correct{% endif %}">③ {{ q.choice_3 }}</div>
+                            <div class="latest-choice{% if '4' in q.answer %} correct{% endif %}">④ {{ q.choice_4 }}</div>
+                        </div>
+                        {% if q.explanation %}
+                        <div class="latest-explanation">{{ q.explanation }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 수정 모드 (숨김) -->
+                    <div id="lq-edit-{{ q.pk }}" style="display:none;">
+                        <form method="post" action="{% url 'main:latest_question_update' q.pk %}">
+                            {% csrf_token %}
+                            <div class="latest-form-row">
+                                <label>연도</label>
+                                <input type="number" name="year" value="{{ q.year }}" class="latest-input latest-input-sm" required>
+                            </div>
+                            <div class="latest-form-row">
+                                <label>문제</label>
+                                <textarea name="text" class="latest-textarea" rows="3" required>{{ q.text }}</textarea>
+                            </div>
+                            <div class="latest-form-row">
+                                <label>보기 ①</label>
+                                <input type="text" name="choice_1" class="latest-input" value="{{ q.choice_1 }}">
+                            </div>
+                            <div class="latest-form-row">
+                                <label>보기 ②</label>
+                                <input type="text" name="choice_2" class="latest-input" value="{{ q.choice_2 }}">
+                            </div>
+                            <div class="latest-form-row">
+                                <label>보기 ③</label>
+                                <input type="text" name="choice_3" class="latest-input" value="{{ q.choice_3 }}">
+                            </div>
+                            <div class="latest-form-row">
+                                <label>보기 ④</label>
+                                <input type="text" name="choice_4" class="latest-input" value="{{ q.choice_4 }}">
+                            </div>
+                            <div class="latest-form-row">
+                                <label>정답</label>
+                                <select name="answer" class="latest-input latest-input-sm">
+                                    <option value="1"{% if q.answer == '1' %} selected{% endif %}>①</option>
+                                    <option value="2"{% if q.answer == '2' %} selected{% endif %}>②</option>
+                                    <option value="3"{% if q.answer == '3' %} selected{% endif %}>③</option>
+                                    <option value="4"{% if q.answer == '4' %} selected{% endif %}>④</option>
+                                </select>
+                            </div>
+                            <div class="latest-form-row">
+                                <label>해설</label>
+                                <textarea name="explanation" class="latest-textarea" rows="3">{{ q.explanation }}</textarea>
+                            </div>
+                            <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:12px;">
+                                <button type="button" class="latest-cancel-btn" onclick="toggleEditForm({{ q.pk }})">취소</button>
+                                <button type="submit" class="latest-submit-btn">저장</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- 기출 추가 버튼 -->
+        <div style="margin-top:20px;">
+            <button type="button" class="latest-add-btn" onclick="toggleLatestForm()">+ 기출 추가</button>
+        </div>
+
+        <!-- 기출 추가 폼 (숨김) -->
+        <div class="latest-form-wrap" id="latest-form" style="display:none; margin-top:16px;">
+            <form method="post" action="{% url 'main:latest_question_create' subject.pk %}">
+                {% csrf_token %}
+                <div class="latest-form-row">
+                    <label>연도</label>
+                    <input type="number" name="year" value="2024" class="latest-input latest-input-sm" required>
+                </div>
+                <div class="latest-form-row">
+                    <label>문제</label>
+                    <textarea name="text" class="latest-textarea" rows="3" placeholder="문제 내용을 입력하세요" required></textarea>
+                </div>
+                <div class="latest-form-row">
+                    <label>보기 ①</label>
+                    <input type="text" name="choice_1" class="latest-input" placeholder="보기 1 (비우면 - 처리)">
+                </div>
+                <div class="latest-form-row">
+                    <label>보기 ②</label>
+                    <input type="text" name="choice_2" class="latest-input" placeholder="보기 2 (비우면 - 처리)">
+                </div>
+                <div class="latest-form-row">
+                    <label>보기 ③</label>
+                    <input type="text" name="choice_3" class="latest-input" placeholder="보기 3 (비우면 - 처리)">
+                </div>
+                <div class="latest-form-row">
+                    <label>보기 ④</label>
+                    <input type="text" name="choice_4" class="latest-input" placeholder="보기 4 (비우면 - 처리)">
+                </div>
+                <div class="latest-form-row">
+                    <label>정답</label>
+                    <select name="answer" class="latest-input latest-input-sm">
+                        <option value="1">①</option>
+                        <option value="2">②</option>
+                        <option value="3">③</option>
+                        <option value="4">④</option>
+                    </select>
+                </div>
+                <div class="latest-form-row">
+                    <label>해설</label>
+                    <textarea name="explanation" class="latest-textarea" rows="3" placeholder="해설 (선택)"></textarea>
+                </div>
+                <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:12px;">
+                    <button type="button" class="latest-cancel-btn" onclick="toggleLatestForm()">취소</button>
+                    <button type="submit" class="latest-submit-btn">등록</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
 {% endblock %}
 
@@ -622,6 +1056,41 @@
         document.getElementById('tab-' + tabName).classList.add('active');
         document.querySelector('[data-tab="' + tabName + '"]').classList.add('active');
         history.replaceState(null, '', '?tab=' + tabName);
+    }
+
+    function toggleLatestForm() {
+        var form = document.getElementById('latest-form');
+        if (form.style.display === 'none') {
+            form.style.display = '';
+        } else {
+            form.style.display = 'none';
+        }
+    }
+
+    function toggleYearQuestions(year) {
+        var section = document.getElementById('year-section-' + year);
+        document.querySelectorAll('.latest-year-section').forEach(function(el) {
+            if (el.id !== 'year-section-' + year) {
+                el.style.display = 'none';
+            }
+        });
+        if (section.style.display === 'none') {
+            section.style.display = '';
+        } else {
+            section.style.display = 'none';
+        }
+    }
+
+    function toggleEditForm(pk) {
+        var view = document.getElementById('lq-view-' + pk);
+        var edit = document.getElementById('lq-edit-' + pk);
+        if (edit.style.display === 'none') {
+            view.style.display = 'none';
+            edit.style.display = '';
+        } else {
+            view.style.display = '';
+            edit.style.display = 'none';
+        }
     }
 </script>
 {% endblock %}

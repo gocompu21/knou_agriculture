@@ -285,7 +285,7 @@
         </div>
         <div class="wrong-header-btns">
             {% if total_wrong > 0 and not is_session %}
-            <a href="{% url 'exam:wrong_answers_retry' subject.pk %}" class="header-btn retry-btn">오답 다시 풀기</a>
+            <a href="{% url 'exam:wrong_answers_retry' subject.pk %}" class="header-btn retry-btn">다시 도전</a>
             {% endif %}
             <button type="button" class="header-btn" id="toggleAllBtn" onclick="toggleAll()">전체 펼치기</button>
             <a href="{% url 'main:subject_detail' subject.pk %}?tab=wrong" class="header-btn">돌아가기</a>
@@ -318,7 +318,7 @@
                 {% if not is_session %}
                 <form method="post" action="{% url 'exam:wrong_dismiss' subject.pk r.question.id %}" style="margin:0;">
                     {% csrf_token %}
-                    <button type="submit" class="dismiss-btn">숙지완료</button>
+                    <button type="submit" class="dismiss-btn">OK! 이 문제는 됐어</button>
                 </form>
                 {% endif %}
             </div>

@@ -256,7 +256,6 @@
                 {% if user.is_authenticated %}
                 <nav class="site-nav" aria-label="메인 내비게이션">
                     <a href="{% url 'main:mypage' %}">마이페이지</a>
-                    <a href="{% url 'main:subject_list' %}">학년/과목</a>
                     {% if user.is_staff %}
                     <a href="{% url 'main:subject_manage' %}" class="nav-admin">관리</a>
                     {% endif %}

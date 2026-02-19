@@ -44,8 +44,13 @@ def mypage(request):
             "total_questions": total_questions,
         })
 
-    # 전체 과목 (관심과목 추가용)
+    # 전체 과목 (관심과목 추가용) - 학년별 분류
     all_subjects = Subject.objects.all().order_by("grade", "name")
+    subjects_by_grade = OrderedDict()
+    for grade_num in range(1, 5):
+        grade_subjects = [s for s in all_subjects if s.grade == grade_num]
+        if grade_subjects:
+            subjects_by_grade[grade_num] = grade_subjects
 
     return render(
         request,
@@ -53,7 +58,7 @@ def mypage(request):
         {
             "fav_data": fav_data,
             "favorite_ids": list(favorite_ids),
-            "all_subjects": all_subjects,
+            "subjects_by_grade": subjects_by_grade,
         },
     )
 
@@ -102,8 +107,9 @@ def subject_list(request):
 @login_required
 def subject_detail(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
+    # 학습/풀이 탭: 2020 이전만
     years = (
-        Question.objects.filter(subject=subject)
+        Question.objects.filter(subject=subject, year__lt=2020)
         .values_list("year", flat=True)
         .distinct()
         .order_by("-year")
@@ -113,7 +119,7 @@ def subject_detail(request, pk):
         count = Question.objects.filter(subject=subject, year=year).count()
         year_cards.append({"year": year, "count": count})
 
-    total_questions = Question.objects.filter(subject=subject).count()
+    total_questions = Question.objects.filter(subject=subject, year__lt=2020).count()
 
     # 오답 수: 문제별 최신 Attempt 중 틀린 것만
     latest_ids = (
@@ -163,6 +169,22 @@ def subject_detail(request, pk):
 
     active_tab = request.GET.get("tab", "study")
 
+    # 최신기출: 2020년 이후 연도별 카드
+    latest_years = (
+        Question.objects.filter(subject=subject, year__gte=2020)
+        .values_list("year", flat=True)
+        .distinct()
+        .order_by("-year")
+    )
+    latest_year_cards = []
+    for year in latest_years:
+        count = Question.objects.filter(subject=subject, year=year).count()
+        latest_year_cards.append({"year": year, "count": count})
+
+    latest_questions = Question.objects.filter(
+        subject=subject, year__gte=2020
+    ).order_by("-year", "number")
+
     return render(
         request,
         "main/subject_detail.html",
@@ -173,8 +195,72 @@ def subject_detail(request, pk):
             "wrong_count": wrong_count,
             "exam_sessions": exam_sessions,
             "active_tab": active_tab,
+            "latest_year_cards": latest_year_cards,
+            "latest_questions": latest_questions,
         },
     )
+
+
+@login_required
+@require_POST
+def latest_question_create(request, pk):
+    subject = get_object_or_404(Subject, pk=pk)
+    year = int(request.POST.get("year", 2024))
+    # 해당 과목/연도의 다음 문항번호 자동 부여
+    last_num = (
+        Question.objects.filter(subject=subject, year=year)
+        .order_by("-number")
+        .values_list("number", flat=True)
+        .first()
+    ) or 0
+    Question.objects.create(
+        subject=subject,
+        year=year,
+        number=last_num + 1,
+        text=request.POST.get("text", ""),
+        choice_1=request.POST.get("choice_1", "").strip() or "-",
+        choice_2=request.POST.get("choice_2", "").strip() or "-",
+        choice_3=request.POST.get("choice_3", "").strip() or "-",
+        choice_4=request.POST.get("choice_4", "").strip() or "-",
+        answer=request.POST.get("answer", "0"),
+        explanation=request.POST.get("explanation", ""),
+    )
+    return redirect(f"/subjects/{subject.pk}/?tab=latest")
+
+
+@login_required
+@require_POST
+def latest_question_update(request, question_pk):
+    question = get_object_or_404(Question, pk=question_pk)
+    subject = question.subject
+    new_year = int(request.POST.get("year", question.year))
+    if new_year != question.year:
+        last_num = (
+            Question.objects.filter(subject=subject, year=new_year)
+            .order_by("-number")
+            .values_list("number", flat=True)
+            .first()
+        ) or 0
+        question.year = new_year
+        question.number = last_num + 1
+    question.text = request.POST.get("text", question.text)
+    question.choice_1 = request.POST.get("choice_1", "").strip() or "-"
+    question.choice_2 = request.POST.get("choice_2", "").strip() or "-"
+    question.choice_3 = request.POST.get("choice_3", "").strip() or "-"
+    question.choice_4 = request.POST.get("choice_4", "").strip() or "-"
+    question.answer = request.POST.get("answer", question.answer)
+    question.explanation = request.POST.get("explanation", "")
+    question.save()
+    return redirect(f"/subjects/{subject.pk}/?tab=latest")
+
+
+@login_required
+@require_POST
+def latest_question_delete(request, question_pk):
+    question = get_object_or_404(Question, pk=question_pk)
+    subject = question.subject
+    question.delete()
+    return redirect(f"/subjects/{subject.pk}/?tab=latest")
 
 
 @login_required

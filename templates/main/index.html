@@ -267,7 +267,6 @@
         font-size: 0.9rem;
         margin-top: -12px;
         margin-bottom: 18px;
-        padding-left: 46px;
     }
 
     /* ══════════ Subject Grid ══════════ */
@@ -608,7 +607,7 @@
             <p class="hero-desc">
                 농학과 교과목의 내용 이해를 바탕으로 체계적인 문제풀이와
                 오답노트를 활용하여 시험 대비를 도와주는
-                웹 기반 학습 시스템입니다.
+                웹 기반 학습 시스템입니다. (회원 Only)
             </p>
             <div class="hero-tags">
                 <span>대상 : 한울회 회원</span>
@@ -637,7 +636,7 @@
                 {% endif %}
                 <form method="post" action="{% url 'accounts:user_login' %}">
                     {% csrf_token %}
-                    <input type="hidden" name="next" value="{% url 'main:subject_list' %}">
+                    <input type="hidden" name="next" value="{% url 'main:mypage' %}">
                     <div class="login-field">
                         <label for="id_username">아이디</label>
                         <input type="text" id="id_username" name="username" placeholder="아이디를 입력하세요"
@@ -661,9 +660,6 @@
     <!-- ══════════ 학년별 교과목 ══════════ -->
     <section id="subjects" class="section fade-up">
         <div class="section-header">
-            <div class="section-icon" style="background:#e3f5e1;">
-                <span style="font-size:1.1rem;">4</span>
-            </div>
             <h2>학년별 교과목 운영</h2>
         </div>
         <p class="section-desc">각 교과목은 학년별로 구분해서 운영합니다. 학년-과목 매핑에 따라 문제풀이 화면이 자동 분기됩니다.</p>
@@ -720,39 +716,6 @@
         </div>
     </section>
 
-    <!-- ══════════ 기출문제 은행 ══════════ -->
-    <section id="exam-bank" class="section fade-up">
-        <div class="section-header">
-            <div class="section-icon" style="background:#fdf4de;">
-                <span style="font-size:1.1rem;">Q</span>
-            </div>
-            <h2>기출문제 은행</h2>
-        </div>
-        <p class="section-desc">2018~2022년 기출문제를 과목별로 분리 저장하고, 매 세트는 25문항으로 고정합니다.</p>
-
-        <div class="exam-grid">
-            <div class="exam-card">
-                <h3>연도별 세트 구성</h3>
-                <p>각 연도 시험을 과목별로 분리 저장합니다. 한 세트는 25문항으로 고정되어 실제 시험과 동일한 분량으로 학습합니다.</p>
-                <div class="year-chips">
-                    <span class="year-chip">2018</span>
-                    <span class="year-chip">2019</span>
-                    <span class="year-chip">2020</span>
-                    <span class="year-chip">2021</span>
-                    <span class="year-chip">2022</span>
-                </div>
-            </div>
-            <div class="exam-card">
-                <h3>다양한 풀이 모드</h3>
-                <p>학습 패턴에 맞는 반복 훈련이 가능합니다.</p>
-                <ul class="subject-list" style="margin-top:10px;">
-                    <li>순차 풀이 : 연도순으로 차례대로</li>
-                    <li>랜덤 풀이 : 무작위 섞어 출제</li>
-                    <li>오답만 풀이 : 틀린 문제만 집중</li>
-                </ul>
-            </div>
-        </div>
-    </section>
 
     <!-- ══════════ 학습 루프 ══════════ -->
     <section id="study-loop" class="section fade-up">
@@ -762,13 +725,13 @@
             </div>
             <h2>핵심 학습 루프</h2>
         </div>
-        <p class="section-desc">기출 풀이 &rarr; 채점 &rarr; 오답 저장 &rarr; 오답 재풀이 순환을 반복하며 약점을 줄여갑니다.</p>
+        <p class="section-desc">예상(기출) 문제 풀이 &rarr; 채점 &rarr; 오답 저장 &rarr; 오답 재풀이 순환을 반복하며 약점을 줄여갑니다.</p>
 
         <div class="loop-flow">
             <div class="loop-step step-1">
                 <span class="loop-num">1</span>
                 <span class="loop-arrow">&rarr;</span>
-                <h4>기출 풀이</h4>
+                <h4>예상(기출) 문제 풀이</h4>
                 <p>연도/과목을 선택하고 25문항을 풉니다.</p>
             </div>
             <div class="loop-step step-2">
@@ -790,10 +753,6 @@
             </div>
         </div>
 
-        <div class="loop-cta">
-            <a class="btn btn-primary" href="#">기출풀이 시작 (준비 중)</a>
-            <a class="btn btn-outline" href="#">오답노트 보기 (준비 중)</a>
-        </div>
     </section>
 
     <!-- ══════════ 참여 링크 ══════════ -->
