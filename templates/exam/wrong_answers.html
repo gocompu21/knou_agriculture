@@ -313,7 +313,7 @@
                 <div class="wq-choice{% if c.is_selected %} user-selected{% endif %}{% if c.user_wrong %} user-wrong{% endif %}">
                     <span class="q-mark{% if c.is_correct %} correct-mark{% endif %}">{{ c.num }}</span> {{ c.text }}
                     {% if c.exp %}
-                    <div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">↪ <span class="exp-text-inner">{{ c.exp }}</span></div>
+                    <div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>
                     {% endif %}
                 </div>
                 {% endfor %}
