@@ -437,33 +437,149 @@
 
     /* ══════════ Responsive ══════════ */
     @media (max-width: 560px) {
+        .breadcrumb { display: none; }
+
         .page-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px;
+            flex-direction: row;
+            align-items: center;
+            gap: 14px;
+            margin: -20px -16px 20px;
+            padding: 24px 20px;
+            border-radius: 0 0 20px 20px;
+            background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 60%, #40916c 100%);
+        }
+
+        .page-header .grade-badge {
+            width: 52px;
+            height: 52px;
+            font-size: 0.88rem;
+            border-radius: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .page-header-text h1 {
+            color: #fff;
+            font-size: 1.35rem;
+        }
+
+        .page-header-text p {
+            color: rgba(255,255,255,0.75);
+            font-size: 0.82rem;
+        }
+
+        .tab-nav {
+            margin-bottom: 16px;
+            gap: 0;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .tab-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-btn {
+            padding: 10px 10px;
+            font-size: 0.8rem;
+            flex-shrink: 0;
         }
 
         .year-grid {
             grid-template-columns: 1fr;
         }
 
-        .tab-btn {
-            padding: 10px 14px;
-            font-size: 0.85rem;
-        }
-
         .mock-card {
             padding: 30px 20px;
         }
 
+        /* ── Wrong summary mobile ── */
+        .wrong-summary {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            text-align: center;
+            padding: 16px;
+        }
+
+        .wrong-summary-text {
+            font-size: 0.9rem;
+        }
+
+        .wrong-summary .btn-row {
+            justify-content: center;
+        }
+
+        /* ── Session card mobile (compact) ── */
+        .session-list {
+            gap: 6px;
+        }
+
         .session-card {
-            flex-wrap: wrap;
-            gap: 10px;
+            position: relative;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            grid-template-rows: auto auto;
+            align-items: center;
+            gap: 0 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+        }
+
+        .session-mode {
+            grid-row: 1;
+            grid-column: 1;
+            font-size: 0.68rem;
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+
+        .session-info {
+            grid-row: 1;
+            grid-column: 2;
+            min-width: 0;
+        }
+
+        .session-label {
+            font-size: 0.82rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .session-date {
+            font-size: 0.7rem;
+        }
+
+        .session-card .session-del-form {
+            grid-row: 1;
+            grid-column: 3;
         }
 
         .session-stats {
-            width: 100%;
-            justify-content: space-between;
+            grid-row: 2;
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #eee;
+        }
+
+        .session-stats .session-score {
+            font-size: 0.95rem;
+        }
+
+        .session-wrong-badge {
+            font-size: 0.72rem;
+            padding: 2px 7px;
+        }
+
+        .session-stats .session-link {
+            margin-left: auto;
+            font-size: 0.78rem;
+            padding: 4px 10px;
         }
     }
 
@@ -718,17 +834,141 @@
     }
 
     @media (max-width: 560px) {
+        /* ── Latest: year section ── */
+        .latest-year-section {
+            margin-top: 14px;
+            padding: 14px;
+            border-radius: 12px;
+        }
+
+        .latest-year-section-header {
+            margin-bottom: 12px;
+        }
+
+        .latest-year-section-header h3 {
+            font-size: 0.95rem;
+        }
+
+        /* ── Latest: question cards ── */
+        .latest-list {
+            gap: 10px;
+        }
+
+        .latest-card {
+            padding: 14px;
+            border-radius: 12px;
+        }
+
+        .latest-card-header {
+            margin-bottom: 8px;
+        }
+
+        .latest-badge {
+            font-size: 0.72rem;
+            padding: 2px 8px;
+            border-radius: 5px;
+        }
+
+        .latest-text {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .latest-choices {
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .latest-choice {
+            font-size: 0.82rem;
+            padding: 5px 10px;
+            border-radius: 6px;
+        }
+
+        .latest-explanation {
+            font-size: 0.8rem;
+            line-height: 1.6;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+
+        /* ── Latest: add button full width ── */
+        .latest-add-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 14px;
+            font-size: 0.9rem;
+            border-radius: 12px;
+        }
+
+        /* ── Latest: form ── */
+        .latest-form-wrap {
+            padding: 16px;
+            border-radius: 14px;
+            background: #f8fcf5;
+        }
+
         .latest-form-row {
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
+            margin-bottom: 14px;
         }
 
         .latest-form-row label {
             padding-top: 0;
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: #1d5536;
         }
 
         .latest-input-sm {
             width: 100%;
+        }
+
+        .latest-input,
+        .latest-textarea,
+        .latest-form-row select.latest-input {
+            width: 100%;
+            font-size: 0.9rem;
+            padding: 10px 12px;
+            border: 1.5px solid #d7e3d7;
+            border-radius: 10px;
+            background: #fff;
+            box-sizing: border-box;
+        }
+
+        .latest-input:focus,
+        .latest-textarea:focus,
+        .latest-form-row select.latest-input:focus {
+            border-color: #4caf7a;
+            box-shadow: 0 0 0 3px rgba(76,175,122,0.12);
+        }
+
+        .latest-textarea {
+            min-height: 80px;
+        }
+
+        .latest-submit-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 0.92rem;
+            border-radius: 10px;
+        }
+
+        .latest-cancel-btn {
+            width: 100%;
+            padding: 10px;
+            font-size: 0.88rem;
+            border-radius: 10px;
+        }
+
+        /* ── Latest: year card edit btn ── */
+        .latest-year-edit-btn {
+            width: 38px;
+            font-size: 0.78rem;
+            border-radius: 10px;
         }
     }
 </style>
@@ -831,7 +1071,7 @@
             <div class="wrong-summary-text">
                 오답 <strong>{{ wrong_count }}</strong>문제
             </div>
-            <div style="display:flex; gap:8px;">
+            <div class="btn-row" style="display:flex; gap:8px;">
                 <a class="wrong-summary-btn" style="background:#e5f5e0; color:#1d5536; border:1px solid #c8e4c2;" href="{% url 'exam:wrong_answers' subject.pk %}">전체 오답 보기</a>
                 <a class="wrong-summary-btn" href="{% url 'exam:wrong_answers_retry' subject.pk %}">다시 도전</a>
             </div>
@@ -858,7 +1098,7 @@
                     <span style="font-size:0.85rem; color:#2d8a4e; font-weight:600;">전문 정답</span>
                     {% endif %}
                 </div>
-                <form method="post" action="{% url 'exam:session_delete' subject.pk s.session_id %}" onsubmit="return confirm('이 시험 기록을 삭제하시겠습니까?');" style="margin:0;">
+                <form class="session-del-form" method="post" action="{% url 'exam:session_delete' subject.pk s.session_id %}" onsubmit="return confirm('이 시험 기록을 삭제하시겠습니까?');" style="margin:0;">
                     {% csrf_token %}
                     <button type="submit" class="session-del-btn" title="삭제">✕</button>
                 </form>
@@ -1054,9 +1294,19 @@
             el.classList.remove('active');
         });
         document.getElementById('tab-' + tabName).classList.add('active');
-        document.querySelector('[data-tab="' + tabName + '"]').classList.add('active');
+        var activeBtn = document.querySelector('[data-tab="' + tabName + '"]');
+        activeBtn.classList.add('active');
+        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         history.replaceState(null, '', '?tab=' + tabName);
     }
+
+    // 페이지 로드 시 활성 탭이 보이도록 스크롤
+    (function() {
+        var activeBtn = document.querySelector('.tab-btn.active');
+        if (activeBtn) {
+            activeBtn.scrollIntoView({ block: 'nearest', inline: 'center' });
+        }
+    })();
 
     function toggleLatestForm() {
         var form = document.getElementById('latest-form');
