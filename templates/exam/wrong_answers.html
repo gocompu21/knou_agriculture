@@ -94,10 +94,10 @@
         font-weight: bold;
         font-size: 1.05em;
         line-height: 1.6;
-        padding-left: 1.5em;
-        text-indent: -1.5em;
+        padding-left: 1.3em;
+        text-indent: -1.3em;
         margin-bottom: 10px;
-        padding-right: 40px;
+        padding-right: 0;
     }
 
     .wq-source {
@@ -306,7 +306,6 @@
             {% comment %}grade-x removed{% endcomment %}
             <div class="wq-content">
                 {{ r.question.number }}. {{ r.question.text }}
-                <span class="wq-source">{{ r.question.year }}년</span>
             </div>
             <div class="wq-choices">
                 {% for c in r.choices %}
