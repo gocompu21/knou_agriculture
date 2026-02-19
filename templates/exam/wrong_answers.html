@@ -118,11 +118,18 @@
     }
 
     .wq-choice {
-        padding: 4px 6px;
+        padding: 4px 6px 4px 38px;
+        position: relative;
         font-size: 0.95em;
         line-height: 1.5;
         border-radius: 4px;
         margin-bottom: 2px;
+    }
+
+    .wq-choice > .q-mark {
+        position: absolute;
+        left: 8px;
+        top: 5px;
     }
 
     .q-mark {
@@ -183,7 +190,7 @@
     .choice-exp {
         display: none;
         margin-top: 4px;
-        margin-left: 32px;
+        margin-left: 0;
         padding: 4px 0;
         font-size: 0.9em;
         color: #555;
@@ -222,7 +229,7 @@
     .wq-actions {
         display: flex;
         align-items: center;
-        justify-content: flex-end;
+        justify-content: flex-start;
         gap: 12px;
         margin-top: 8px;
     }
