@@ -232,6 +232,7 @@
         justify-content: flex-start;
         gap: 12px;
         margin-top: 8px;
+        padding-left: 18px;
     }
 
     .dismiss-btn {
@@ -302,7 +303,7 @@
     {% if results %}
         {% for r in results %}
         <div class="wrong-question" id="wq-{{ r.question.id }}">
-            {% if is_session %}<div class="grade-x"></div>{% endif %}
+            {% comment %}grade-x removed{% endcomment %}
             <div class="wq-content">
                 {{ r.question.number }}. {{ r.question.text }}
                 <span class="wq-source">{{ r.question.year }}년</span>
