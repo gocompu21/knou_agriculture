@@ -60,10 +60,18 @@ class Question(models.Model):
 
 
 class Attempt(models.Model):
+    MODE_CHOICES = [
+        ('exam', '풀이모드'),
+        ('mock', '모의고사'),
+        ('wrong_retry', '오답재풀이'),
+    ]
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='사용자')
     question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name='문제')
     selected = models.CharField('선택한 답', max_length=10, choices=Question.ANSWER_CHOICES, default='0')
     is_correct = models.BooleanField('정답여부')
+    mode = models.CharField('풀이유형', max_length=20, choices=MODE_CHOICES, default='exam')
+    session_id = models.CharField('세션ID', max_length=36, blank=True, default='')
     created_at = models.DateTimeField('풀이시각', auto_now_add=True)
 
     class Meta:

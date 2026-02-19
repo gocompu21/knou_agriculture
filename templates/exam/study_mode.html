@@ -8,7 +8,7 @@
     /* Hide global header/footer on study page */
     .site-header, .site-footer { display: none !important; }
     main { padding: 0 !important; }
-    body { background-color: #f8f6e6; }
+    body { background: #ffffff !important; }
 
     /* ══════════ Study Container ══════════ */
     .study-container {
@@ -190,6 +190,23 @@
 
     .choice-item.selected {
         background-color: transparent;
+    }
+
+    .dismiss-btn {
+        background: #2d8a4e;
+        border: none;
+        border-radius: 14px;
+        cursor: pointer;
+        color: #fff;
+        font-size: 0.82em;
+        font-weight: 600;
+        padding: 4px 14px;
+        font-family: inherit;
+        transition: background 0.15s;
+    }
+
+    .dismiss-btn:hover {
+        background: #236b3e;
     }
 
     .choice-num {
@@ -425,11 +442,14 @@
         {% for q in questions %}
         <div class="question-card" data-answer="{{ q.answer }}">
             <div class="q-header">
+                {% if not is_wrong_retry %}
                 <div style="margin-bottom: 10px;">
                     <span class="q-badge">{{ subject.name }}</span>
                 </div>
+                {% endif %}
                 <div class="q-content">
                     {{ forloop.counter }}. {{ q.text }}
+                    {% if is_wrong_retry %}<span class="q-badge" style="float:none; margin-left:8px; vertical-align:2px; font-size:0.75em;">{{ q.year }}년 {{ q.number }}번</span>{% endif %}
                 </div>
             </div>
 
@@ -451,6 +471,11 @@
                     {% if q.choice_4_exp %}<div class="choice-exp{% if '4' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_4_exp }}</span></div>{% endif %}
                 </div>
             </div>
+            {% if is_wrong_retry %}
+            <div class="dismiss-wrap" style="display:none; text-align:left; margin-top:10px;">
+                <button type="button" class="dismiss-btn" onclick="dismissQuestion(this, '{% url 'exam:wrong_dismiss' subject.pk q.id %}')">숙지완료</button>
+            </div>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
@@ -485,6 +510,10 @@
                 cn.classList.add('correct');
             }
         });
+
+        // 숙지완료 버튼 표시
+        var dismissWrap = card.querySelector('.dismiss-wrap');
+        if (dismissWrap) dismissWrap.style.display = 'block';
 
         // 스크롤 보정: 클릭한 보기가 같은 위치에 유지되도록
         var topAfter = choiceItem.getBoundingClientRect().top;
@@ -529,6 +558,27 @@
             text.textContent = '전체 펼치기';
             btn.classList.remove('active');
         }
+    }
+
+    function dismissQuestion(btn, url) {
+        var card = btn.closest('.question-card');
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+        }).then(function() {
+            card.style.transition = 'opacity 0.3s, max-height 0.3s';
+            card.style.opacity = '0';
+            card.style.overflow = 'hidden';
+            setTimeout(function() {
+                card.style.maxHeight = '0';
+                card.style.padding = '0';
+                card.style.margin = '0';
+                card.style.border = 'none';
+                setTimeout(function() { card.remove(); }, 300);
+            }, 300);
+        });
     }
 </script>
 {% endblock %}

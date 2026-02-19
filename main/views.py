@@ -3,7 +3,9 @@ from collections import OrderedDict
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import get_object_or_404, redirect, render
 
-from exam.models import Question
+from django.db.models import Count, Max, Min, Q
+
+from exam.models import Attempt, Question
 from .forms import SubjectForm
 from .models import Subject
 
@@ -51,10 +53,68 @@ def subject_detail(request, pk):
     for year in years:
         count = Question.objects.filter(subject=subject, year=year).count()
         year_cards.append({"year": year, "count": count})
+
+    total_questions = Question.objects.filter(subject=subject).count()
+
+    # 오답 수: 문제별 최신 Attempt 중 틀린 것만
+    latest_ids = (
+        Attempt.objects.filter(
+            user=request.user, question__subject=subject
+        )
+        .values("question")
+        .annotate(latest_id=Max("id"))
+        .values_list("latest_id", flat=True)
+    )
+    wrong_count = Attempt.objects.filter(
+        pk__in=latest_ids, is_correct=False
+    ).count()
+
+    # 시험 이력: session_id별 통계
+    sessions_qs = (
+        Attempt.objects.filter(
+            user=request.user, question__subject=subject
+        )
+        .exclude(session_id="")
+        .exclude(mode="wrong_retry")
+        .values("session_id", "mode")
+        .annotate(
+            total=Count("id"),
+            correct_count=Count("id", filter=Q(is_correct=True)),
+            wrong_count=Count("id", filter=Q(is_correct=False)),
+            date=Max("created_at"),
+            year=Min("question__year"),
+        )
+        .order_by("-date")
+    )
+    exam_sessions = []
+    for s in sessions_qs:
+        score = round(s["correct_count"] / s["total"] * 100) if s["total"] else 0
+        exam_sessions.append(
+            {
+                "session_id": s["session_id"],
+                "mode": s["mode"],
+                "mode_label": "모의고사" if s["mode"] == "mock" else f"{s['year']}년 풀이",
+                "total": s["total"],
+                "correct": s["correct_count"],
+                "wrong": s["wrong_count"],
+                "score": score,
+                "date": s["date"],
+            }
+        )
+
+    active_tab = request.GET.get("tab", "study")
+
     return render(
         request,
         "main/subject_detail.html",
-        {"subject": subject, "year_cards": year_cards},
+        {
+            "subject": subject,
+            "year_cards": year_cards,
+            "total_questions": total_questions,
+            "wrong_count": wrong_count,
+            "exam_sessions": exam_sessions,
+            "active_tab": active_tab,
+        },
     )
 
 

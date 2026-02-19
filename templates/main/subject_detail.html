@@ -33,7 +33,7 @@
         display: flex;
         align-items: center;
         gap: 14px;
-        margin-bottom: 28px;
+        margin-bottom: 24px;
     }
 
     .grade-badge {
@@ -64,6 +64,67 @@
         font-size: 0.88rem;
         color: var(--muted);
         margin-top: 2px;
+    }
+
+    /* ══════════ Tab Navigation ══════════ */
+    .tab-nav {
+        display: flex;
+        border-bottom: 2px solid #e0e0e0;
+        margin-bottom: 24px;
+        gap: 0;
+        overflow-x: auto;
+    }
+
+    .tab-btn {
+        padding: 12px 20px;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #888;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        font-family: "SUIT", sans-serif;
+        position: relative;
+    }
+
+    .tab-btn:hover {
+        color: var(--forest);
+    }
+
+    .tab-btn.active {
+        color: var(--forest);
+        border-bottom-color: var(--forest);
+    }
+
+    .tab-btn .tab-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        margin-left: 6px;
+        vertical-align: 1px;
+    }
+
+    .tab-btn .badge-wrong {
+        background: #fee2e2;
+        color: #d93025;
+    }
+
+    /* ══════════ Tab Content ══════════ */
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
     }
 
     /* ══════════ Year Grid ══════════ */
@@ -107,12 +168,6 @@
         border-radius: 6px;
     }
 
-    .mode-btns {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
     .mode-btn {
         display: flex;
         align-items: center;
@@ -124,6 +179,7 @@
         font-weight: 700;
         font-family: "SUIT", sans-serif;
         transition: transform 0.15s, box-shadow 0.15s;
+        width: 100%;
     }
 
     .mode-btn:hover {
@@ -141,15 +197,8 @@
         flex-shrink: 0;
     }
 
-    .mode-btn .mode-info {
-        flex: 1;
-    }
-
-    .mode-btn .mode-name {
-        display: block;
-        line-height: 1.3;
-    }
-
+    .mode-btn .mode-info { flex: 1; }
+    .mode-btn .mode-name { display: block; line-height: 1.3; }
     .mode-btn .mode-desc {
         display: block;
         font-size: 0.76rem;
@@ -163,29 +212,220 @@
         color: #1d5536;
         border: 1px solid #c8e4c2;
     }
-
-    .mode-btn.study:hover {
-        box-shadow: 0 4px 14px rgba(76, 175, 122, 0.25);
-    }
-
-    .mode-btn.study .mode-icon {
-        background: #4caf7a;
-        color: #fff;
-    }
+    .mode-btn.study:hover { box-shadow: 0 4px 14px rgba(76, 175, 122, 0.25); }
+    .mode-btn.study .mode-icon { background: #4caf7a; color: #fff; }
 
     .mode-btn.solve {
         background: #fff3e0;
         color: #7a4a0a;
         border: 1px solid #f0d8a8;
     }
+    .mode-btn.solve:hover { box-shadow: 0 4px 14px rgba(224, 148, 58, 0.25); }
+    .mode-btn.solve .mode-icon { background: #e0943a; color: #fff; }
 
-    .mode-btn.solve:hover {
-        box-shadow: 0 4px 14px rgba(224, 148, 58, 0.25);
+    /* ══════════ Mock Exam Tab ══════════ */
+    .mock-card {
+        max-width: 500px;
+        margin: 0 auto;
+        text-align: center;
+        padding: 40px 30px;
+        border: 1px solid #d7e3d7;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fcf5 100%);
+        border-radius: 16px;
     }
 
-    .mode-btn.solve .mode-icon {
-        background: #e0943a;
+    .mock-card h2 {
+        font-size: 1.3rem;
+        color: var(--forest);
+        margin-bottom: 12px;
+    }
+
+    .mock-card p {
+        color: #666;
+        font-size: 0.92rem;
+        margin-bottom: 8px;
+        line-height: 1.6;
+    }
+
+    .mock-start-btn {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 14px 40px;
+        background: var(--forest);
         color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        font-family: "SUIT", sans-serif;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .mock-start-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(30, 70, 42, 0.25);
+    }
+
+    /* ══════════ Wrong Answers Tab ══════════ */
+    .wrong-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding: 16px 20px;
+        background: #fef9f0;
+        border: 1px solid #f0d8a8;
+        border-radius: 12px;
+    }
+
+    .wrong-summary-text {
+        font-size: 0.95rem;
+        color: #555;
+    }
+
+    .wrong-summary-text strong {
+        color: #d93025;
+        font-size: 1.2rem;
+    }
+
+    .wrong-summary-btn {
+        padding: 10px 20px;
+        background: #ff6b35;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        font-family: "SUIT", sans-serif;
+        transition: transform 0.15s;
+        white-space: nowrap;
+    }
+
+    .wrong-summary-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .session-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .session-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 20px;
+        border: 1px solid #d7e3d7;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fcf5 100%);
+        border-radius: 12px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .session-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(30, 70, 42, 0.08);
+    }
+
+    .session-mode {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .session-mode.exam {
+        background: #fff3e0;
+        color: #7a4a0a;
+    }
+
+    .session-mode.mock {
+        background: #e8eaf6;
+        color: #3949ab;
+    }
+
+    .session-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .session-label {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #333;
+    }
+
+    .session-date {
+        font-size: 0.8rem;
+        color: #999;
+        margin-top: 2px;
+    }
+
+    .session-stats {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+
+    .session-score {
+        font-size: 1.1rem;
+        font-weight: 800;
+    }
+
+    .session-wrong-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: #fee2e2;
+        color: #d93025;
+    }
+
+    .session-link {
+        padding: 6px 14px;
+        background: #e5f5e0;
+        color: #1d5536;
+        border: 1px solid #c8e4c2;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: background 0.15s;
+    }
+
+    .session-link:hover {
+        background: #d4edda;
+    }
+
+    .session-del-btn {
+        padding: 6px 10px;
+        background: transparent;
+        color: #bbb;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: color 0.15s, background 0.15s;
+        font-family: inherit;
+        line-height: 1;
+    }
+
+    .session-del-btn:hover {
+        color: #d93025;
+        background: #fee2e2;
     }
 
     .empty-msg {
@@ -205,6 +445,25 @@
 
         .year-grid {
             grid-template-columns: 1fr;
+        }
+
+        .tab-btn {
+            padding: 10px 14px;
+            font-size: 0.85rem;
+        }
+
+        .mock-card {
+            padding: 30px 20px;
+        }
+
+        .session-card {
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .session-stats {
+            width: 100%;
+            justify-content: space-between;
         }
     }
 </style>
@@ -226,15 +485,27 @@
         </div>
     </div>
 
-    {% if year_cards %}
-    <div class="year-grid">
-        {% for card in year_cards %}
-        <div class="year-card fade-up delay-{{ forloop.counter }}">
-            <div class="year-card-header">
-                <h3>{{ card.year }}년</h3>
-                <span class="q-count">{{ card.count }}문항</span>
-            </div>
-            <div class="mode-btns">
+    <!-- Tab Navigation -->
+    <div class="tab-nav fade-up">
+        <button class="tab-btn{% if active_tab == 'study' %} active{% endif %}" data-tab="study" onclick="switchTab('study')">학습</button>
+        <button class="tab-btn{% if active_tab == 'solve' %} active{% endif %}" data-tab="solve" onclick="switchTab('solve')">풀이</button>
+        <button class="tab-btn{% if active_tab == 'mock' %} active{% endif %}" data-tab="mock" onclick="switchTab('mock')">모의고사</button>
+        <button class="tab-btn{% if active_tab == 'wrong' %} active{% endif %}" data-tab="wrong" onclick="switchTab('wrong')">
+            점수 관리 및 오답노트
+            {% if wrong_count > 0 %}<span class="tab-badge badge-wrong">{{ wrong_count }}</span>{% endif %}
+        </button>
+    </div>
+
+    <!-- Tab 1: 학습 -->
+    <div class="tab-content{% if active_tab == 'study' %} active{% endif %}" id="tab-study">
+        {% if year_cards %}
+        <div class="year-grid">
+            {% for card in year_cards %}
+            <div class="year-card fade-up delay-{{ forloop.counter }}">
+                <div class="year-card-header">
+                    <h3>{{ card.year }}년</h3>
+                    <span class="q-count">{{ card.count }}문항</span>
+                </div>
                 <a class="mode-btn study" href="{% url 'exam:study_mode' subject.pk card.year %}">
                     <span class="mode-icon">&#128218;</span>
                     <span class="mode-info">
@@ -242,6 +513,24 @@
                         <span class="mode-desc">정답을 확인하며 학습</span>
                     </span>
                 </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-msg">등록된 기출문제가 없습니다.</div>
+        {% endif %}
+    </div>
+
+    <!-- Tab 2: 풀이 -->
+    <div class="tab-content{% if active_tab == 'solve' %} active{% endif %}" id="tab-solve">
+        {% if year_cards %}
+        <div class="year-grid">
+            {% for card in year_cards %}
+            <div class="year-card fade-up delay-{{ forloop.counter }}">
+                <div class="year-card-header">
+                    <h3>{{ card.year }}년</h3>
+                    <span class="q-count">{{ card.count }}문항</span>
+                </div>
                 <a class="mode-btn solve" href="{% url 'exam:exam_take' subject.pk card.year %}">
                     <span class="mode-icon">&#9998;</span>
                     <span class="mode-info">
@@ -250,11 +539,89 @@
                     </span>
                 </a>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
+        {% else %}
+        <div class="empty-msg">등록된 기출문제가 없습니다.</div>
+        {% endif %}
     </div>
-    {% else %}
-    <div class="empty-msg">등록된 기출문제가 없습니다.</div>
-    {% endif %}
+
+    <!-- Tab 3: 모의고사 -->
+    <div class="tab-content{% if active_tab == 'mock' %} active{% endif %}" id="tab-mock">
+        <div class="mock-card fade-up">
+            <h2>모의고사</h2>
+            <p>{{ year_cards|length }}개 연도, 총 {{ total_questions }}문제에서<br>랜덤 25문제를 선별하여 출제합니다.</p>
+            <a class="mock-start-btn" href="{% url 'exam:mock_exam_take' subject.pk %}">모의고사 시작</a>
+        </div>
+    </div>
+
+    <!-- Tab 4: 점수 관리 및 오답노트 -->
+    <div class="tab-content{% if active_tab == 'wrong' %} active{% endif %}" id="tab-wrong">
+        {% if wrong_count > 0 %}
+        <div class="wrong-summary fade-up">
+            <div class="wrong-summary-text">
+                현재 미해결 오답 <strong>{{ wrong_count }}</strong>문제
+            </div>
+            <div style="display:flex; gap:8px;">
+                <a class="wrong-summary-btn" style="background:#e5f5e0; color:#1d5536; border:1px solid #c8e4c2;" href="{% url 'exam:wrong_answers' subject.pk %}">전체 오답 보기</a>
+                <a class="wrong-summary-btn" href="{% url 'exam:wrong_answers_retry' subject.pk %}">오답 다시 풀기</a>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if exam_sessions %}
+        <div class="session-list">
+            {% for s in exam_sessions %}
+            <div class="session-card fade-up">
+                <span class="session-mode {{ s.mode }}">
+                    {% if s.mode == 'mock' %}모의고사{% else %}풀이{% endif %}
+                </span>
+                <div class="session-info">
+                    <div class="session-label">{{ s.mode_label }}</div>
+                    <div class="session-date">{{ s.date|date:"Y.m.d H:i" }}</div>
+                </div>
+                <div class="session-stats">
+                    <span class="session-score" style="color:{% if s.score >= 80 %}#2d8a4e{% elif s.score >= 60 %}#3d9ed6{% elif s.score >= 40 %}#e0943a{% else %}#d93025{% endif %};">{{ s.score }}점</span>
+                    {% if s.wrong > 0 %}
+                    <span class="session-wrong-badge">오답 {{ s.wrong }}</span>
+                    <a class="session-link" href="{% url 'exam:wrong_answers_session' subject.pk s.session_id %}">오답 보기</a>
+                    {% else %}
+                    <span style="font-size:0.85rem; color:#2d8a4e; font-weight:600;">전문 정답</span>
+                    {% endif %}
+                </div>
+                <form method="post" action="{% url 'exam:session_delete' subject.pk s.session_id %}" onsubmit="return confirm('이 시험 기록을 삭제하시겠습니까?');" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="session-del-btn" title="삭제">✕</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-msg">아직 풀이 기록이 없습니다.<br>풀이모드나 모의고사를 먼저 진행해보세요!</div>
+        {% endif %}
+
+        {% if exam_sessions or wrong_count > 0 %}
+        <form method="post" action="{% url 'exam:session_delete_all' subject.pk %}" onsubmit="return confirm('이 과목의 모든 풀이 기록과 오답이 삭제됩니다. 계속하시겠습니까?');" style="text-align:center; margin-top:20px;">
+            {% csrf_token %}
+            <button type="submit" style="padding:8px 20px; background:transparent; color:#999; border:1px solid #ddd; border-radius:8px; font-size:0.82rem; cursor:pointer; font-family:inherit;">전체 기록 초기화</button>
+        </form>
+        {% endif %}
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(function(el) {
+            el.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-btn').forEach(function(el) {
+            el.classList.remove('active');
+        });
+        document.getElementById('tab-' + tabName).classList.add('active');
+        document.querySelector('[data-tab="' + tabName + '"]').classList.add('active');
+        history.replaceState(null, '', '?tab=' + tabName);
+    }
+</script>
 {% endblock %}

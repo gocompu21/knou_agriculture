@@ -197,7 +197,7 @@ python manage.py generate_explanations --force
 python manage.py generate_explanations --dry-run
 
 # 모델 변경
-python manage.py generate_explanations --model gemini-2.5-flash
+python manage.py generate_explanations --model gemini-3-flash-preview
 ```
 
 ### 병렬 해설 생성
@@ -212,7 +212,7 @@ python generate_all.py
 - `DELAY` 변수로 API 호출 간격 조절 (기본 1.0초)
 - 동명 과목은 `--grade`로 자동 구분
 - Windows 환경에서 CP949 인코딩 에러 방지를 위해 UTF-8 출력 설정 포함
-- 8,940문제 전체 해설 생성 완료 (gemini-2.5-flash 사용)
+- 8,940문제 전체 해설 생성 완료 (gemini-2.5-flash 사용, 현재 기본 모델: gemini-3-flash-preview)
 
 ### 저장 방식
 

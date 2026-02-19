@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block title %}{{ subject.name }} 오답노트 | 한울회 A+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .site-header, .site-footer { display: none !important; }
+    main { padding: 0 !important; }
+    body { background: #ffffff !important; }
+
+    .wrong-container {
+        max-width: 900px;
+        margin: 0 auto;
+        min-height: 100vh;
+    }
+
+    /* ══════════ Sticky Header ══════════ */
+    .wrong-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: white;
+        border-bottom: 2px solid #e0e0e0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        padding: 15px 20px;
+    }
+
+    .wrong-header-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #333;
+    }
+
+    .wrong-header-title small {
+        font-weight: 500;
+        color: #888;
+        font-size: 0.85em;
+    }
+
+    .wrong-header-btns {
+        display: flex;
+        gap: 8px;
+    }
+
+    .header-btn {
+        padding: 8px 14px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        background: #fdfdfd;
+        font-size: 0.85em;
+        font-weight: 600;
+        color: #555;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        font-family: "SUIT", sans-serif;
+    }
+
+    .header-btn:hover {
+        background-color: #f0f7f4;
+        border-color: #97bc62;
+        color: #2c5f2d;
+    }
+
+    .header-btn.retry-btn {
+        background: #ff6b35;
+        color: white;
+        border-color: #ff6b35;
+    }
+
+    .header-btn.retry-btn:hover {
+        background: #e55a2b;
+    }
+
+    /* ══════════ Question Item ══════════ */
+    .wrong-question {
+        padding: 20px;
+        border-bottom: 1px solid #f0f0f0;
+        position: relative;
+    }
+
+    .wrong-question:last-child {
+        border-bottom: none;
+    }
+
+    .wq-content {
+        font-weight: bold;
+        font-size: 1.05em;
+        line-height: 1.6;
+        padding-left: 1.5em;
+        text-indent: -1.5em;
+        margin-bottom: 10px;
+        padding-right: 40px;
+    }
+
+    .wq-source {
+        display: inline-block;
+        font-size: 0.75em;
+        font-weight: 500;
+        color: #888;
+        background: #f0f0f0;
+        padding: 1px 6px;
+        border-radius: 4px;
+        margin-left: 12px;
+        vertical-align: 2px;
+        text-indent: 0;
+    }
+
+    .wq-choices {
+        padding-left: 10px;
+    }
+
+    .wq-choice {
+        padding: 4px 6px;
+        font-size: 0.95em;
+        line-height: 1.5;
+        border-radius: 4px;
+        margin-bottom: 2px;
+    }
+
+    .q-mark {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 1.5px solid #333;
+        font-size: 0.75em;
+        font-weight: 600;
+        margin-right: 6px;
+        vertical-align: 1px;
+        background: #fff;
+        color: #333;
+        position: relative;
+    }
+
+    /* 정답 표시: 빨간 동그라미 */
+    .q-mark.correct-mark::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 26px;
+        height: 26px;
+        border: 3px solid #d93025;
+        border-radius: 50% 45% 55% 40% / 50% 55% 45% 50%;
+        transform: translate(-50%, -50%) rotate(-5deg);
+        pointer-events: none;
+    }
+
+    /* 사용자가 선택한 답 */
+    .wq-choice.user-selected .q-mark {
+        background: #333;
+        color: #fff;
+    }
+
+    .wq-choice.user-wrong {
+        background: transparent;
+    }
+
+    /* X 마크 */
+    .grade-x {
+        position: absolute;
+        top: 18px;
+        right: 16px;
+        width: 32px;
+        height: 32px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 50'%3E%3Cpath d='M 14 14 Q 25 22 36 36 M 36 14 Q 25 28 14 36' stroke='rgba(255,0,0,0.6)' stroke-width='3' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-size: contain;
+        pointer-events: none;
+    }
+
+    /* 해설 */
+    .choice-exp {
+        display: none;
+        margin-top: 4px;
+        margin-left: 32px;
+        padding: 4px 0;
+        font-size: 0.9em;
+        color: #555;
+        line-height: 1.6;
+    }
+
+    .wrong-question.exp-open .choice-exp {
+        display: block;
+    }
+
+    .choice-exp.correct-choice-exp {
+        color: #111;
+        font-weight: 500;
+    }
+
+    .choice-exp.correct-choice-exp .exp-text-inner {
+        background: linear-gradient(to top, #fff176 40%, transparent 40%);
+    }
+
+    .exp-toggle {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #888;
+        font-size: 0.85em;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 0;
+        font-family: inherit;
+    }
+
+    .exp-toggle:hover { color: #555; }
+
+    .wq-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .dismiss-btn {
+        background: #2d8a4e;
+        border: none;
+        border-radius: 14px;
+        cursor: pointer;
+        color: #fff;
+        font-size: 0.82em;
+        font-weight: 600;
+        padding: 4px 14px;
+        font-family: inherit;
+        transition: background 0.15s;
+    }
+
+    .dismiss-btn:hover {
+        background: #236b3e;
+    }
+
+    .empty-msg {
+        text-align: center;
+        padding: 80px 20px;
+        color: #888;
+        font-size: 0.95rem;
+    }
+
+    /* ══════════ Responsive ══════════ */
+    @media (max-width: 560px) {
+        .wrong-header {
+            padding: 10px 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .wrong-question {
+            padding: 16px 12px;
+        }
+
+        .wq-content {
+            font-size: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrong-container">
+    <div class="wrong-header">
+        <div class="wrong-header-title">
+            {{ subject.name }}
+            <small>
+                {% if is_session %}
+                    {% if mode == 'mock' %}모의고사{% else %}풀이{% endif %} 오답 &middot; {{ total_wrong }}문제
+                {% else %}
+                    전체 오답노트 &middot; {{ total_wrong }}문제
+                {% endif %}
+            </small>
+        </div>
+        <div class="wrong-header-btns">
+            {% if total_wrong > 0 and not is_session %}
+            <a href="{% url 'exam:wrong_answers_retry' subject.pk %}" class="header-btn retry-btn">오답 다시 풀기</a>
+            {% endif %}
+            <button type="button" class="header-btn" id="toggleAllBtn" onclick="toggleAll()">전체 펼치기</button>
+            <a href="{% url 'main:subject_detail' subject.pk %}?tab=wrong" class="header-btn">돌아가기</a>
+        </div>
+    </div>
+
+    {% if results %}
+        {% for r in results %}
+        <div class="wrong-question" id="wq-{{ r.question.id }}">
+            {% if is_session %}<div class="grade-x"></div>{% endif %}
+            <div class="wq-content">
+                {{ r.question.number }}. {{ r.question.text }}
+                <span class="wq-source">{{ r.question.year }}년</span>
+            </div>
+            <div class="wq-choices">
+                {% for c in r.choices %}
+                <div class="wq-choice{% if c.is_selected %} user-selected{% endif %}{% if c.user_wrong %} user-wrong{% endif %}">
+                    <span class="q-mark{% if c.is_correct %} correct-mark{% endif %}">{{ c.num }}</span> {{ c.text }}
+                    {% if c.exp %}
+                    <div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">↪ <span class="exp-text-inner">{{ c.exp }}</span></div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="wq-actions">
+                <button type="button" class="exp-toggle" onclick="toggleExp(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 9L12 16L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    해설보기
+                </button>
+                {% if not is_session %}
+                <form method="post" action="{% url 'exam:wrong_dismiss' subject.pk r.question.id %}" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="dismiss-btn">숙지완료</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-msg">틀린 문제가 없습니다!</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    var allOpen = false;
+
+    function toggleExp(btn) {
+        var item = btn.closest('.wrong-question');
+        item.classList.toggle('exp-open');
+        btn.querySelector('svg').style.transform = item.classList.contains('exp-open') ? 'rotate(180deg)' : '';
+    }
+
+    function toggleAll() {
+        allOpen = !allOpen;
+        document.querySelectorAll('.wrong-question').forEach(function(el) {
+            if (allOpen) {
+                el.classList.add('exp-open');
+            } else {
+                el.classList.remove('exp-open');
+            }
+            var svg = el.querySelector('.exp-toggle svg');
+            if (svg) svg.style.transform = allOpen ? 'rotate(180deg)' : '';
+        });
+        document.getElementById('toggleAllBtn').textContent = allOpen ? '전체 접기' : '전체 펼치기';
+    }
+</script>
+{% endblock %}
