@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}마이페이지 | 한울회 A+ 학습시스템{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-title {
+        margin-bottom: 28px;
+    }
+
+    .page-title h1 {
+        font-size: 1.6rem;
+        color: var(--forest);
+        margin-bottom: 6px;
+    }
+
+    .page-title p {
+        color: var(--muted);
+        font-size: 0.92rem;
+    }
+
+    /* ══════════ Favorite Grid ══════════ */
+    .fav-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+        margin-bottom: 40px;
+    }
+
+    .fav-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px;
+        border: 1px solid #d7e3d7;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fcf5 100%);
+        border-radius: 16px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        text-decoration: none;
+        color: inherit;
+        position: relative;
+    }
+
+    .fav-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(30, 70, 42, 0.1);
+    }
+
+    .fav-grade {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .fav-grade.g1 { background: #4caf7a; }
+    .fav-grade.g2 { background: #3d9ed6; }
+    .fav-grade.g3 { background: #e0943a; }
+    .fav-grade.g4 { background: #c4604a; }
+
+    .fav-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .fav-name {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1d5536;
+        margin-bottom: 4px;
+    }
+
+    .fav-meta {
+        font-size: 0.82rem;
+        color: #999;
+    }
+
+    .fav-meta .wrong-badge {
+        color: #d93025;
+        font-weight: 700;
+    }
+
+    .fav-remove {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: none;
+        border: none;
+        color: #ccc;
+        font-size: 1.1rem;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: color 0.15s, background 0.15s;
+        font-family: inherit;
+        line-height: 1;
+    }
+
+    .fav-remove:hover {
+        color: #d93025;
+        background: #fee2e2;
+    }
+
+    /* ══════════ Add Section ══════════ */
+    .add-section {
+        margin-top: 10px;
+    }
+
+    .add-section h2 {
+        font-size: 1.1rem;
+        color: var(--forest);
+        margin-bottom: 16px;
+    }
+
+    .add-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 10px;
+    }
+
+    .add-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        border: 1px solid #e8e8e8;
+        border-radius: 10px;
+        background: #fafafa;
+        font-size: 0.88rem;
+        transition: border-color 0.15s;
+    }
+
+    .add-item:hover {
+        border-color: #97bc62;
+    }
+
+    .add-item-name {
+        color: #333;
+        font-weight: 600;
+    }
+
+    .add-item-grade {
+        font-size: 0.75rem;
+        color: #999;
+        margin-left: 4px;
+    }
+
+    .add-btn {
+        background: none;
+        border: 1px solid #ddd;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        font-size: 1.1rem;
+        color: #aaa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+        flex-shrink: 0;
+    }
+
+    .add-btn:hover {
+        background: #e5f5e0;
+        border-color: #97bc62;
+        color: #2c5f2d;
+    }
+
+    .add-btn.added {
+        background: #2d8a4e;
+        border-color: #2d8a4e;
+        color: #fff;
+    }
+
+    .empty-msg {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--muted);
+        font-size: 0.95rem;
+        border: 2px dashed #e0e0e0;
+        border-radius: 16px;
+        margin-bottom: 40px;
+    }
+
+    /* ══════════ Responsive ══════════ */
+    @media (max-width: 560px) {
+        .fav-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .add-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <div class="page-title fade-up">
+        <h1>{{ user.first_name|default:user.username }}님의 학습공간</h1>
+        <p>관심과목을 등록하고 체계적으로 학습하세요.</p>
+    </div>
+
+    {% if fav_data %}
+    <div class="fav-grid">
+        {% for item in fav_data %}
+        <a href="{% url 'main:subject_detail' item.subject.pk %}" class="fav-card fade-up" id="fav-{{ item.subject.pk }}">
+            <div class="fav-grade g{{ item.subject.grade }}">{{ item.subject.grade }}학년</div>
+            <div class="fav-info">
+                <div class="fav-name">{{ item.subject.name }}</div>
+                <div class="fav-meta">
+                    {{ item.total_questions }}문제
+                    {% if item.wrong_count > 0 %}
+                    &middot; <span class="wrong-badge">오답 {{ item.wrong_count }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <button type="button" class="fav-remove" onclick="event.preventDefault(); removeFav({{ item.subject.pk }});" title="관심과목 해제">✕</button>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-msg fade-up">
+        아직 등록한 관심과목이 없습니다.<br>아래에서 과목을 추가해보세요!
+    </div>
+    {% endif %}
+
+    <div class="add-section fade-up">
+        <h2>과목 추가</h2>
+        <div class="add-grid">
+            {% for s in all_subjects %}
+            <div class="add-item" id="add-{{ s.pk }}">
+                <div>
+                    <span class="add-item-name">{{ s.name }}</span>
+                    <span class="add-item-grade">{{ s.grade }}학년</span>
+                </div>
+                <button type="button" class="add-btn{% if s.pk in favorite_ids %} added{% endif %}" onclick="toggleFav({{ s.pk }}, this)" title="관심과목 토글">
+                    {% if s.pk in favorite_ids %}✓{% else %}+{% endif %}
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleFav(subjectId, btn) {
+        fetch('{% url "main:mypage" %}favorite/' + subjectId + '/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.added) {
+                btn.classList.add('added');
+                btn.textContent = '✓';
+            } else {
+                btn.classList.remove('added');
+                btn.textContent = '+';
+                var favCard = document.getElementById('fav-' + subjectId);
+                if (favCard) {
+                    favCard.style.transition = 'opacity 0.3s';
+                    favCard.style.opacity = '0';
+                    setTimeout(function() { favCard.remove(); }, 300);
+                }
+            }
+        });
+    }
+
+    function removeFav(subjectId) {
+        fetch('{% url "main:mypage" %}favorite/' + subjectId + '/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var favCard = document.getElementById('fav-' + subjectId);
+            if (favCard) {
+                favCard.style.transition = 'opacity 0.3s';
+                favCard.style.opacity = '0';
+                setTimeout(function() { favCard.remove(); }, 300);
+            }
+            var addBtn = document.querySelector('#add-' + subjectId + ' .add-btn');
+            if (addBtn) {
+                addBtn.classList.remove('added');
+                addBtn.textContent = '+';
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -94,6 +94,21 @@
         color: var(--muted);
     }
 
+    .fav-toggle {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        padding: 0 4px;
+        margin-left: auto;
+        color: #ccc;
+        transition: color 0.15s;
+        flex-shrink: 0;
+    }
+
+    .fav-toggle:hover { color: #e0943a; }
+    .fav-toggle.active { color: #e0943a; }
+
     .empty-msg {
         text-align: center;
         padding: 60px 20px;
@@ -131,7 +146,10 @@
             <h3>{{ info.subtitle }}</h3>
             <ul class="subject-list">
                 {% for subject in info.subjects %}
-                <li><a href="{% url 'main:subject_detail' subject.pk %}">{{ subject.name }} <small>({{ subject.category }})</small></a></li>
+                <li>
+                    <a href="{% url 'main:subject_detail' subject.pk %}">{{ subject.name }} <small>({{ subject.category }})</small></a>
+                    <button type="button" class="fav-toggle{% if subject.pk in favorite_ids %} active{% endif %}" onclick="toggleFav({{ subject.pk }}, this)" title="관심과목">&#9733;</button>
+                </li>
                 {% endfor %}
             </ul>
         </div>
@@ -141,4 +159,19 @@
     <div class="empty-msg">등록된 교과목이 없습니다.</div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleFav(subjectId, btn) {
+        fetch('/mypage/favorite/' + subjectId + '/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            btn.classList.toggle('active', data.added);
+        });
+    }
+</script>
 {% endblock %}

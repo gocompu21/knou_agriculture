@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -19,3 +20,18 @@ class Subject(models.Model):
 
     def __str__(self):
         return f"[{self.get_grade_display()} {self.get_semester_display()}] {self.name} ({self.category})"
+
+
+class FavoriteSubject(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='사용자')
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, verbose_name='과목')
+    created_at = models.DateTimeField('등록일시', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '관심과목'
+        verbose_name_plural = '관심과목'
+        unique_together = ['user', 'subject']
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.subject.name}"

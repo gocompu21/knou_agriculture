@@ -1,13 +1,15 @@
 from collections import OrderedDict
 
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from django.db.models import Count, Max, Min, Q
 
 from exam.models import Attempt, Question
 from .forms import SubjectForm
-from .models import Subject
+from .models import FavoriteSubject, Subject
 
 
 def staff_required(user):
@@ -16,6 +18,60 @@ def staff_required(user):
 
 def index(request):
     return render(request, "main/index.html")
+
+
+@login_required
+def mypage(request):
+    favorite_ids = FavoriteSubject.objects.filter(user=request.user).values_list(
+        "subject_id", flat=True
+    )
+    favorites = Subject.objects.filter(pk__in=favorite_ids)
+
+    # 각 관심과목의 오답 수 계산
+    fav_data = []
+    for subj in favorites:
+        latest_ids = (
+            Attempt.objects.filter(user=request.user, question__subject=subj)
+            .values("question")
+            .annotate(latest_id=Max("id"))
+            .values_list("latest_id", flat=True)
+        )
+        wrong_count = Attempt.objects.filter(pk__in=latest_ids, is_correct=False).count()
+        total_questions = Question.objects.filter(subject=subj).count()
+        fav_data.append({
+            "subject": subj,
+            "wrong_count": wrong_count,
+            "total_questions": total_questions,
+        })
+
+    # 전체 과목 (관심과목 추가용)
+    all_subjects = Subject.objects.all().order_by("grade", "name")
+
+    return render(
+        request,
+        "main/mypage.html",
+        {
+            "fav_data": fav_data,
+            "favorite_ids": list(favorite_ids),
+            "all_subjects": all_subjects,
+        },
+    )
+
+
+@login_required
+@require_POST
+def favorite_toggle(request, subject_id):
+    subject = get_object_or_404(Subject, pk=subject_id)
+    fav, created = FavoriteSubject.objects.get_or_create(
+        user=request.user, subject=subject
+    )
+    if not created:
+        fav.delete()
+        added = False
+    else:
+        added = True
+
+    return JsonResponse({"added": added})
 
 
 @login_required
@@ -37,7 +93,10 @@ def subject_list(request):
                 "subtitle": subtitle,
                 "subjects": grade_subjects,
             }
-    return render(request, "main/subject_list.html", {"grades": grades})
+    favorite_ids = list(
+        FavoriteSubject.objects.filter(user=request.user).values_list("subject_id", flat=True)
+    )
+    return render(request, "main/subject_list.html", {"grades": grades, "favorite_ids": favorite_ids})
 
 
 @login_required

@@ -6,6 +6,8 @@ app_name = "main"
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("mypage/", views.mypage, name="mypage"),
+    path("mypage/favorite/<int:subject_id>/", views.favorite_toggle, name="favorite_toggle"),
     path("subjects/", views.subject_list, name="subject_list"),
     path("subjects/<int:pk>/", views.subject_detail, name="subject_detail"),
     path("manage/subjects/", views.subject_manage, name="subject_manage"),
