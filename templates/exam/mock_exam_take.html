@@ -247,6 +247,13 @@
             display: none;
         }
 
+        /* ══════════ Form layout ══════════ */
+        .exam-form {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
         /* ══════════ Mobile ══════════ */
         @media (max-width: 768px) {
             body {
@@ -254,6 +261,12 @@
                 height: auto;
                 overflow: auto;
                 background: white;
+            }
+
+            .exam-form {
+                display: block;
+                width: auto;
+                height: auto;
             }
 
             .omr-panel {
@@ -333,7 +346,7 @@
 </head>
 
 <body>
-    <form method="post" action="{% if is_wrong_retry %}{% url 'exam:wrong_answers_submit' subject.pk %}{% else %}{% url 'exam:mock_exam_submit' subject.pk %}{% endif %}" style="display: flex; width: 100%; height: 100%;">
+    <form method="post" action="{% if is_wrong_retry %}{% url 'exam:wrong_answers_submit' subject.pk %}{% else %}{% url 'exam:mock_exam_submit' subject.pk %}{% endif %}" class="exam-form">
         {% csrf_token %}
         <input type="hidden" name="session_id" value="{{ session_id }}">
 

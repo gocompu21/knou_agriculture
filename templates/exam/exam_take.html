@@ -234,6 +234,13 @@
             display: none;
         }
 
+        /* ══════════ Form layout ══════════ */
+        .exam-form {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
         /* ══════════ Mobile ══════════ */
         @media (max-width: 768px) {
             body {
@@ -241,6 +248,12 @@
                 height: auto;
                 overflow: auto;
                 background: white;
+            }
+
+            .exam-form {
+                display: block;
+                width: auto;
+                height: auto;
             }
 
             .omr-panel {
@@ -320,7 +333,7 @@
 </head>
 
 <body>
-    <form method="post" action="{% url 'exam:exam_submit' subject.pk year %}" style="display: flex; width: 100%; height: 100%;">
+    <form method="post" action="{% url 'exam:exam_submit' subject.pk year %}" class="exam-form">
         {% csrf_token %}
 
         <!-- Mobile Header -->
