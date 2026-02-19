@@ -1,0 +1,16 @@
+{
+  "name": "한울회 A+ 학습시스템",
+  "short_name": "한울회 A+",
+  "description": "한국방송통신대학교 농학과 기출문제 학습시스템",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1f6a47",
+  "icons": [
+    {
+      "src": "/static/images/knou_favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
