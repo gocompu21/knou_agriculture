@@ -321,7 +321,7 @@ def latest_question_clone(request, pk):
         choice_3_exp=source.choice_3_exp,
         choice_4_exp=source.choice_4_exp,
     )
-    return redirect(f"/subjects/{subject.pk}/?tab=latest&last_year={target_year}")
+    return redirect(f"/subjects/{subject.pk}/?tab=latest&last_year={target_year}&sub=existing")
 
 
 @login_required

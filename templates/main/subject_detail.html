@@ -1428,6 +1428,8 @@
         if (yearInput) yearInput.value = defaultYear;
         var cloneYear = document.getElementById('clone-target-year');
         if (cloneYear) cloneYear.value = defaultYear;
+        var sub = params.get('sub');
+        if (sub) switchRegTab(sub);
     })();
 
     /* ── 등록 서브탭 전환 ── */
