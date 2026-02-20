@@ -683,6 +683,79 @@
 
     .latest-cancel-btn:hover { background: #ddd; }
 
+    /* ── Registration Sub-tabs ── */
+    .reg-subtab-btns {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid #e0e0e0;
+        margin-bottom: 16px;
+    }
+
+    .reg-subtab-btn {
+        flex: 1;
+        padding: 10px 0;
+        border: none;
+        background: none;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #999;
+        cursor: pointer;
+        font-family: inherit;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        transition: color 0.2s;
+    }
+
+    .reg-subtab-btn.active {
+        color: #2d8a4e;
+        border-bottom-color: #2d8a4e;
+    }
+
+    .reg-subtab-content {
+        display: none;
+    }
+
+    .reg-subtab-content.active {
+        display: block;
+    }
+
+    .clone-preview-box {
+        background: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 16px;
+        margin-top: 12px;
+    }
+
+    .clone-preview-text {
+        font-weight: 700;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 10px;
+    }
+
+    .clone-preview-choices {
+        font-size: 0.9rem;
+        line-height: 1.8;
+        color: #333;
+    }
+
+    .clone-preview-choices .preview-choice {
+        padding: 2px 0;
+    }
+
+    .clone-preview-choices .preview-choice.correct {
+        color: #2d8a4e;
+        font-weight: 600;
+    }
+
+    .clone-preview-answer {
+        margin-top: 10px;
+        font-size: 0.85rem;
+        color: #d93025;
+        font-weight: 600;
+    }
+
     .latest-list {
         display: flex;
         flex-direction: column;
@@ -1136,7 +1209,7 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="empty-msg" style="margin-bottom:20px;">등록된 최신기출이 없습니다.<br>아래 버튼으로 문제를 등록해보세요!</div>
+        <div class="empty-msg" style="margin-bottom:20px;">등록된 최신기출이 없습니다.<br>아래에서 문제를 등록해보세요!</div>
         {% endif %}
 
         <!-- 연도별 문제 목록 (숨김) -->
@@ -1150,7 +1223,6 @@
             <div class="latest-list">
                 {% for q in group.list %}
                 <div class="latest-card" id="lq-card-{{ q.pk }}">
-                    <!-- 보기 모드 -->
                     <div id="lq-view-{{ q.pk }}">
                         <div class="latest-card-header">
                             <span class="latest-badge">{{ q.number }}번</span>
@@ -1173,8 +1245,6 @@
                         <div class="latest-explanation">{{ q.explanation }}</div>
                         {% endif %}
                     </div>
-
-                    <!-- 수정 모드 (숨김) -->
                     <div id="lq-edit-{{ q.pk }}" style="display:none;">
                         <form method="post" action="{% url 'main:latest_question_update' q.pk %}">
                             {% csrf_token %}
@@ -1227,51 +1297,98 @@
         </div>
         {% endfor %}
 
-        <!-- 기출 추가 폼 -->
-        <div class="latest-form-wrap" id="latest-form" style="margin-top:20px;">
-            <form method="post" action="{% url 'main:latest_question_create' subject.pk %}">
-                {% csrf_token %}
-                <div class="latest-form-row">
-                    <label>연도</label>
-                    <input type="number" name="year" id="latest-year-input" class="latest-input latest-input-sm" required>
+        <!-- ══════════ 등록 서브탭 ══════════ -->
+        <div class="reg-subtabs" style="margin-top:20px;">
+            <div class="reg-subtab-btns">
+                <button type="button" class="reg-subtab-btn active" data-reg="new" onclick="switchRegTab('new')">신규 등록</button>
+                <button type="button" class="reg-subtab-btn" data-reg="existing" onclick="switchRegTab('existing')">기존 기출 출제</button>
+            </div>
+
+            <!-- 신규 등록 -->
+            <div class="reg-subtab-content active" id="reg-new">
+                <div class="latest-form-wrap">
+                    <form method="post" action="{% url 'main:latest_question_create' subject.pk %}">
+                        {% csrf_token %}
+                        <div class="latest-form-row">
+                            <label>연도</label>
+                            <input type="number" name="year" id="latest-year-input" class="latest-input latest-input-sm" required>
+                        </div>
+                        <div class="latest-form-row">
+                            <label>문제</label>
+                            <textarea name="text" class="latest-textarea" rows="3" placeholder="문제 내용을 입력하세요" required></textarea>
+                        </div>
+                        <div class="latest-form-row">
+                            <label>보기 ①</label>
+                            <input type="text" name="choice_1" class="latest-input" placeholder="보기 1 (비우면 - 처리)">
+                        </div>
+                        <div class="latest-form-row">
+                            <label>보기 ②</label>
+                            <input type="text" name="choice_2" class="latest-input" placeholder="보기 2 (비우면 - 처리)">
+                        </div>
+                        <div class="latest-form-row">
+                            <label>보기 ③</label>
+                            <input type="text" name="choice_3" class="latest-input" placeholder="보기 3 (비우면 - 처리)">
+                        </div>
+                        <div class="latest-form-row">
+                            <label>보기 ④</label>
+                            <input type="text" name="choice_4" class="latest-input" placeholder="보기 4 (비우면 - 처리)">
+                        </div>
+                        <div class="latest-form-row">
+                            <label>정답</label>
+                            <select name="answer" class="latest-input latest-input-sm">
+                                <option value="1">①</option>
+                                <option value="2">②</option>
+                                <option value="3">③</option>
+                                <option value="4">④</option>
+                            </select>
+                        </div>
+                        <div class="latest-form-row">
+                            <label>해설</label>
+                            <textarea name="explanation" class="latest-textarea" rows="3" placeholder="해설 (선택)"></textarea>
+                        </div>
+                        <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:12px;">
+                            <button type="submit" class="latest-submit-btn">등록</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="latest-form-row">
-                    <label>문제</label>
-                    <textarea name="text" class="latest-textarea" rows="3" placeholder="문제 내용을 입력하세요" required></textarea>
+            </div>
+
+            <!-- 기존 기출 출제 -->
+            <div class="reg-subtab-content" id="reg-existing">
+                <div class="latest-form-wrap">
+                    <form method="post" action="{% url 'main:latest_question_clone' subject.pk %}" id="clone-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="source_id" id="clone-source-id">
+                        <div class="latest-form-row">
+                            <label>등록연도</label>
+                            <input type="number" name="target_year" id="clone-target-year" class="latest-input latest-input-sm" required>
+                        </div>
+                        <div class="latest-form-row">
+                            <label>출제연도</label>
+                            <select id="clone-year-select" class="latest-input latest-input-sm" onchange="loadQuestionList()">
+                                <option value="">선택</option>
+                            </select>
+                        </div>
+                        <div class="latest-form-row">
+                            <label>문항</label>
+                            <select id="clone-question-select" class="latest-input" onchange="showQuestionPreview()">
+                                <option value="">출제연도를 먼저 선택하세요</option>
+                            </select>
+                        </div>
+                        <!-- 문제 미리보기 -->
+                        <div id="clone-preview" style="display:none;">
+                            <div class="clone-preview-box">
+                                <div class="clone-preview-text" id="clone-preview-text"></div>
+                                <div class="clone-preview-choices" id="clone-preview-choices"></div>
+                                <div class="clone-preview-answer" id="clone-preview-answer"></div>
+                            </div>
+                            <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:12px;">
+                                <button type="submit" class="latest-submit-btn">이 문제 등록</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-                <div class="latest-form-row">
-                    <label>보기 ①</label>
-                    <input type="text" name="choice_1" class="latest-input" placeholder="보기 1 (비우면 - 처리)">
-                </div>
-                <div class="latest-form-row">
-                    <label>보기 ②</label>
-                    <input type="text" name="choice_2" class="latest-input" placeholder="보기 2 (비우면 - 처리)">
-                </div>
-                <div class="latest-form-row">
-                    <label>보기 ③</label>
-                    <input type="text" name="choice_3" class="latest-input" placeholder="보기 3 (비우면 - 처리)">
-                </div>
-                <div class="latest-form-row">
-                    <label>보기 ④</label>
-                    <input type="text" name="choice_4" class="latest-input" placeholder="보기 4 (비우면 - 처리)">
-                </div>
-                <div class="latest-form-row">
-                    <label>정답</label>
-                    <select name="answer" class="latest-input latest-input-sm">
-                        <option value="1">①</option>
-                        <option value="2">②</option>
-                        <option value="3">③</option>
-                        <option value="4">④</option>
-                    </select>
-                </div>
-                <div class="latest-form-row">
-                    <label>해설</label>
-                    <textarea name="explanation" class="latest-textarea" rows="3" placeholder="해설 (선택)"></textarea>
-                </div>
-                <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:12px;">
-                    <button type="submit" class="latest-submit-btn">등록</button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -1306,11 +1423,91 @@
     (function() {
         var params = new URLSearchParams(window.location.search);
         var lastYear = params.get('last_year');
+        var defaultYear = lastYear || new Date().getFullYear();
         var yearInput = document.getElementById('latest-year-input');
-        if (yearInput) {
-            yearInput.value = lastYear || new Date().getFullYear();
-        }
+        if (yearInput) yearInput.value = defaultYear;
+        var cloneYear = document.getElementById('clone-target-year');
+        if (cloneYear) cloneYear.value = defaultYear;
     })();
+
+    /* ── 등록 서브탭 전환 ── */
+    function switchRegTab(tab) {
+        document.querySelectorAll('.reg-subtab-btn').forEach(function(b) { b.classList.remove('active'); });
+        document.querySelectorAll('.reg-subtab-content').forEach(function(c) { c.classList.remove('active'); });
+        document.querySelector('[data-reg="' + tab + '"]').classList.add('active');
+        document.getElementById('reg-' + tab).classList.add('active');
+        if (tab === 'existing') loadExistingYears();
+    }
+
+    /* ── 기존 기출: 연도 목록 로드 ── */
+    var _questionsCache = {};
+    var subjectPk = {{ subject.pk }};
+
+    function loadExistingYears() {
+        var sel = document.getElementById('clone-year-select');
+        if (sel.options.length > 1) return;
+        fetch('/subjects/' + subjectPk + '/api/years/')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                data.years.forEach(function(y) {
+                    var opt = document.createElement('option');
+                    opt.value = y;
+                    opt.textContent = y + '년';
+                    sel.appendChild(opt);
+                });
+            });
+    }
+
+    /* ── 기존 기출: 문항 목록 로드 ── */
+    function loadQuestionList() {
+        var year = document.getElementById('clone-year-select').value;
+        var qSel = document.getElementById('clone-question-select');
+        document.getElementById('clone-preview').style.display = 'none';
+        qSel.innerHTML = '<option value="">불러오는 중...</option>';
+        if (!year) {
+            qSel.innerHTML = '<option value="">출제연도를 먼저 선택하세요</option>';
+            return;
+        }
+        fetch('/subjects/' + subjectPk + '/api/questions/' + year + '/')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                _questionsCache = {};
+                qSel.innerHTML = '<option value="">문항을 선택하세요</option>';
+                data.questions.forEach(function(q) {
+                    _questionsCache[q.id] = q;
+                    var opt = document.createElement('option');
+                    opt.value = q.id;
+                    opt.textContent = q.number + '번 - ' + q.text.substring(0, 40) + (q.text.length > 40 ? '...' : '');
+                    qSel.appendChild(opt);
+                });
+            });
+    }
+
+    /* ── 기존 기출: 미리보기 ── */
+    function showQuestionPreview() {
+        var qId = document.getElementById('clone-question-select').value;
+        var preview = document.getElementById('clone-preview');
+        if (!qId || !_questionsCache[qId]) {
+            preview.style.display = 'none';
+            return;
+        }
+        var q = _questionsCache[qId];
+        document.getElementById('clone-source-id').value = q.id;
+        document.getElementById('clone-preview-text').textContent = q.number + '. ' + q.text;
+        var answerNums = q.answer.split(',');
+        var choicesHtml = '';
+        var labels = ['①', '②', '③', '④'];
+        var fields = ['choice_1', 'choice_2', 'choice_3', 'choice_4'];
+        for (var i = 0; i < 4; i++) {
+            var isCorrect = answerNums.indexOf(String(i + 1)) >= 0;
+            choicesHtml += '<div class="preview-choice' + (isCorrect ? ' correct' : '') + '">' +
+                labels[i] + ' ' + q[fields[i]] + '</div>';
+        }
+        document.getElementById('clone-preview-choices').innerHTML = choicesHtml;
+        var answerLabels = answerNums.map(function(n) { return labels[parseInt(n) - 1] || n; });
+        document.getElementById('clone-preview-answer').textContent = '정답: ' + answerLabels.join(', ');
+        preview.style.display = '';
+    }
 
     function toggleYearQuestions(year) {
         var section = document.getElementById('year-section-' + year);

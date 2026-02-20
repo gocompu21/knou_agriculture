@@ -264,6 +264,67 @@ def latest_question_delete(request, question_pk):
 
 
 @login_required
+def api_existing_years(request, pk):
+    """해당 과목의 기존 기출 연도 목록 (2020 미만)"""
+    subject = get_object_or_404(Subject, pk=pk)
+    years = list(
+        Question.objects.filter(subject=subject, year__lt=2020)
+        .values_list("year", flat=True)
+        .distinct()
+        .order_by("-year")
+    )
+    return JsonResponse({"years": years})
+
+
+@login_required
+def api_existing_questions(request, pk, year):
+    """해당 과목/연도의 기출 문제 목록"""
+    subject = get_object_or_404(Subject, pk=pk)
+    questions = (
+        Question.objects.filter(subject=subject, year=year)
+        .order_by("number")
+        .values("id", "number", "text", "choice_1", "choice_2", "choice_3", "choice_4", "answer", "explanation",
+                "choice_1_exp", "choice_2_exp", "choice_3_exp", "choice_4_exp")
+    )
+    return JsonResponse({"questions": list(questions)})
+
+
+@login_required
+@require_POST
+def latest_question_clone(request, pk):
+    """기존 기출 문제를 최신기출로 복사 등록"""
+    subject = get_object_or_404(Subject, pk=pk)
+    source_id = int(request.POST.get("source_id", 0))
+    target_year = int(request.POST.get("target_year", 2025))
+    source = get_object_or_404(Question, pk=source_id)
+
+    last_num = (
+        Question.objects.filter(subject=subject, year=target_year)
+        .order_by("-number")
+        .values_list("number", flat=True)
+        .first()
+    ) or 0
+
+    Question.objects.create(
+        subject=subject,
+        year=target_year,
+        number=last_num + 1,
+        text=source.text,
+        choice_1=source.choice_1,
+        choice_2=source.choice_2,
+        choice_3=source.choice_3,
+        choice_4=source.choice_4,
+        answer=source.answer,
+        explanation=source.explanation,
+        choice_1_exp=source.choice_1_exp,
+        choice_2_exp=source.choice_2_exp,
+        choice_3_exp=source.choice_3_exp,
+        choice_4_exp=source.choice_4_exp,
+    )
+    return redirect(f"/subjects/{subject.pk}/?tab=latest&last_year={target_year}")
+
+
+@login_required
 @user_passes_test(staff_required)
 def subject_manage(request):
     subjects = Subject.objects.all()
