@@ -1301,7 +1301,7 @@
                             <span class="latest-badge">{{ q.number }}번</span>
                             <div style="display:flex; gap:4px;">
                                 <button type="button" class="latest-edit-btn" onclick="toggleEditForm({{ q.pk }})">수정</button>
-                                <form method="post" action="{% url 'main:latest_question_delete' q.pk %}" onsubmit="return confirm('이 문제를 삭제하시겠습니까?');" style="margin:0;">
+                                <form method="post" action="{% url 'main:latest_question_delete' q.pk %}" onsubmit="return confirmAndSaveScroll('이 문제를 삭제하시겠습니까?');" style="margin:0;">
                                     {% csrf_token %}
                                     <button type="submit" class="latest-del-btn">삭제</button>
                                 </form>
@@ -1544,6 +1544,11 @@
             var section = document.getElementById('year-section-' + openYear);
             if (section) section.style.display = '';
         }
+        var savedScroll = sessionStorage.getItem('latestScrollY');
+        if (savedScroll && openYear) {
+            sessionStorage.removeItem('latestScrollY');
+            window.scrollTo(0, parseInt(savedScroll));
+        }
     })();
 
     /* ── 등록 서브탭 전환 ── */
@@ -1715,6 +1720,14 @@
         document.getElementById('search-source-id').value = questionId;
         document.getElementById('search-clone-year').value = targetYear;
         document.getElementById('search-clone-form').submit();
+    }
+
+    function confirmAndSaveScroll(msg) {
+        if (confirm(msg)) {
+            sessionStorage.setItem('latestScrollY', window.scrollY);
+            return true;
+        }
+        return false;
     }
 
     function toggleEditForm(pk) {
