@@ -242,7 +242,153 @@
         font-size: 0.95rem;
     }
 
+    /* AI 문제 등록 */
+    .ai-register-section {
+        margin-top: 32px;
+        padding: 24px;
+        background: #f8fcf5;
+        border: 1px solid #d7e3d7;
+        border-radius: 14px;
+    }
+
+    .ai-register-section h2 {
+        font-size: 1.1rem;
+        color: var(--forest);
+        margin-bottom: 16px;
+    }
+
+    .ai-form-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .ai-form-row label {
+        min-width: 70px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #555;
+        padding-top: 8px;
+    }
+
+    .ai-input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-family: inherit;
+    }
+
+    .ai-input-sm { flex: 0; width: 100px; }
+
+    .ai-textarea {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-family: inherit;
+        resize: vertical;
+    }
+
+    .ai-input:focus, .ai-textarea:focus {
+        outline: none;
+        border-color: #97bc62;
+    }
+
+    .ai-submit-btn {
+        background: #2d8a4e;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 20px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .ai-submit-btn:hover { background: #236b3e; }
+
+    .ai-result-card {
+        border: 1px solid #e8e8e8;
+        border-radius: 14px;
+        padding: 18px;
+        margin-bottom: 12px;
+        background: #fff;
+        transition: box-shadow 0.2s;
+    }
+
+    .ai-result-card:hover {
+        box-shadow: 0 4px 12px rgba(30,70,42,0.08);
+    }
+
+    .ai-result-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .ai-num-badge {
+        display: inline-block;
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #fff;
+        background: #e0943a;
+        padding: 3px 10px;
+        border-radius: 6px;
+    }
+
+    .ai-register-btn {
+        background: #2d8a4e;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 6px 16px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .ai-register-btn:hover { background: #236b3e; }
+
+    .ai-q-text {
+        font-size: 0.92rem;
+        line-height: 1.6;
+        margin-bottom: 8px;
+    }
+
+    .ai-choice {
+        font-size: 0.85rem;
+        color: #555;
+        padding: 2px 0;
+    }
+
+    .ai-choice.correct {
+        color: #2d8a4e;
+        font-weight: 700;
+    }
+
+    .ai-answer {
+        font-size: 0.82rem;
+        color: #888;
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px solid #f0f0f0;
+    }
+
     @media (max-width: 720px) {
+        .ai-form-row {
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .ai-input-sm { width: 100%; }
+    }
         .data-table th,
         .data-table td {
             padding: 10px 10px;
@@ -268,6 +414,7 @@
         <a href="{% url 'main:subject_manage' %}">교과목 관리</a>
         <a href="{% url 'exam:exam_manage' %}">시험 관리</a>
         <a href="{% url 'exam:question_manage' %}" class="active">문제 관리</a>
+        <a href="{% url 'main:member_manage' %}">회원 관리</a>
     </nav>
 
     <div class="manage-header">
@@ -350,5 +497,185 @@
     {% elif selected_exam %}
     <div class="empty-msg">해당 시험에 등록된 문제가 없습니다.</div>
     {% endif %}
+
+    {% if selected_subject %}
+    <!-- AI 문제 등록 -->
+    <div class="ai-register-section">
+        <h2>AI 문제 등록 — {{ selected_subject.name }}</h2>
+        <div class="ai-form-row">
+            <label>등록연도</label>
+            <input type="number" id="ai-target-year" class="ai-input ai-input-sm" value="{{ current_year }}" required>
+        </div>
+        <div class="ai-form-row">
+            <label>텍스트</label>
+            <textarea id="ai-raw-text" class="ai-textarea" rows="10"
+                      placeholder="게시글에서 복사한 문제 텍스트를 붙여넣으세요.&#10;&#10;지원 형식 예시:&#10;1. 문제 텍스트&#10;① 보기1  ② 보기2  ③ 보기3  ④ 보기4&#10;정답: 2"></textarea>
+        </div>
+        <div class="ai-form-row">
+            <label>이미지</label>
+            <div style="flex:1;">
+                <input type="file" id="ai-image" accept="image/*" multiple
+                       style="font-size:0.88rem; font-family:inherit;"
+                       onchange="previewImages()">
+                <div id="ai-image-preview" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;"></div>
+                <p style="font-size:0.78rem; color:#999; margin-top:4px;">스크린샷이나 사진을 첨부하면 AI가 이미지에서 문제를 추출합니다.</p>
+            </div>
+        </div>
+        <div style="display:flex; gap:6px; justify-content:flex-end; margin-bottom:16px;">
+            <button type="button" class="ai-submit-btn" onclick="doParse()">AI 분석</button>
+        </div>
+        <div id="ai-results" style="display:none;">
+            <div id="ai-results-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <span id="ai-results-count" style="font-size:0.88rem; color:#666;"></span>
+                <button type="button" class="ai-register-btn" id="ai-bulk-btn" onclick="bulkRegister()" style="display:none;">전체 등록</button>
+            </div>
+            <div id="ai-results-list"></div>
+        </div>
+    </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var subjectPk = {{ selected_subject.pk|default:"0" }};
+var _parsedQuestions = [];
+
+function previewImages() {
+    var input = document.getElementById('ai-image');
+    var preview = document.getElementById('ai-image-preview');
+    preview.innerHTML = '';
+    if (!input.files.length) return;
+    Array.from(input.files).forEach(function(file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.cssText = 'max-width:120px; max-height:120px; border-radius:8px; border:1px solid #ddd; object-fit:cover;';
+            preview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function doParse() {
+    var rawText = document.getElementById('ai-raw-text').value.trim();
+    var imageInput = document.getElementById('ai-image');
+    var hasImages = imageInput.files && imageInput.files.length > 0;
+    var resultsDiv = document.getElementById('ai-results');
+    var countSpan = document.getElementById('ai-results-count');
+    var listDiv = document.getElementById('ai-results-list');
+    var bulkBtn = document.getElementById('ai-bulk-btn');
+    if (!rawText && !hasImages) { alert('텍스트를 입력하거나 이미지를 첨부하세요.'); return; }
+    countSpan.textContent = 'AI 분석 중... (잠시 기다려주세요)';
+    resultsDiv.style.display = '';
+    listDiv.innerHTML = '';
+    bulkBtn.style.display = 'none';
+
+    var formData = new FormData();
+    formData.append('text', rawText);
+    if (hasImages) {
+        Array.from(imageInput.files).forEach(function(f) {
+            formData.append('image', f);
+        });
+    }
+
+    fetch('/subjects/' + subjectPk + '/api/parse/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        body: formData
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.error) { countSpan.textContent = data.error; return; }
+        _parsedQuestions = data.questions;
+        countSpan.textContent = data.count + '개 문제 인식';
+        bulkBtn.style.display = '';
+        renderParsedResults(data.questions);
+    })
+    .catch(function() { countSpan.textContent = '분석 중 오류가 발생했습니다.'; });
+}
+
+function renderParsedResults(questions) {
+    var listDiv = document.getElementById('ai-results-list');
+    listDiv.innerHTML = '';
+    var labels = ['\u2460','\u2461','\u2462','\u2463'];
+    var fields = ['choice_1','choice_2','choice_3','choice_4'];
+    questions.forEach(function(q, idx) {
+        var answerNums = q.answer ? q.answer.split(',') : [];
+        var card = document.createElement('div');
+        card.className = 'ai-result-card';
+        var header = document.createElement('div');
+        header.className = 'ai-result-header';
+        header.innerHTML = '<span class="ai-num-badge">' + q.number + '번</span>' +
+            '<button type="button" class="ai-register-btn" onclick="registerParsed(' + idx + ', this)">등록</button>';
+        card.appendChild(header);
+        var textDiv = document.createElement('div');
+        textDiv.className = 'ai-q-text';
+        textDiv.textContent = q.text;
+        card.appendChild(textDiv);
+        for (var i = 0; i < 4; i++) {
+            if (q[fields[i]] && q[fields[i]] !== '-') {
+                var isCorrect = answerNums.indexOf(String(i+1)) >= 0;
+                var ch = document.createElement('div');
+                ch.className = 'ai-choice' + (isCorrect ? ' correct' : '');
+                ch.textContent = labels[i] + ' ' + q[fields[i]];
+                card.appendChild(ch);
+            }
+        }
+        var ansDiv = document.createElement('div');
+        ansDiv.className = 'ai-answer';
+        if (q.answer && q.answer !== '0') {
+            var al = answerNums.map(function(n) { return labels[parseInt(n)-1] || n; });
+            ansDiv.textContent = '정답: ' + al.join(', ');
+        } else {
+            ansDiv.textContent = '정답: 미확인';
+            ansDiv.style.color = '#c0392b';
+        }
+        card.appendChild(ansDiv);
+        listDiv.appendChild(card);
+    });
+}
+
+function registerParsed(idx, btn) {
+    var targetYear = document.getElementById('ai-target-year').value;
+    if (!targetYear) { alert('등록연도를 입력하세요.'); return; }
+    var q = _parsedQuestions[idx];
+    fetch('/subjects/' + subjectPk + '/api/bulk-create/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+        body: JSON.stringify({ year: parseInt(targetYear), questions: [q] })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.ok) {
+            btn.textContent = '완료';
+            btn.disabled = true;
+            btn.style.background = '#999';
+        } else {
+            alert(data.error || '등록 실패');
+        }
+    });
+}
+
+function bulkRegister() {
+    var targetYear = document.getElementById('ai-target-year').value;
+    if (!targetYear) { alert('등록연도를 입력하세요.'); return; }
+    if (!confirm(_parsedQuestions.length + '개 문제를 ' + targetYear + '년으로 전체 등록하시겠습니까?')) return;
+    fetch('/subjects/' + subjectPk + '/api/bulk-create/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+        body: JSON.stringify({ year: parseInt(targetYear), questions: _parsedQuestions })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.ok) {
+            alert(data.created + '개 문제가 등록되었습니다.');
+            window.location.reload();
+        } else {
+            alert(data.error || '등록 실패');
+        }
+    });
+}
+</script>
 {% endblock %}

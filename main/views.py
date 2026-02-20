@@ -5,11 +5,22 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+import json
+import logging
+import re
+
+from django.conf import settings
 from django.db.models import Count, Max, Min, Q
+
+from django.contrib.auth.models import User
+from google import genai
+from pydantic import BaseModel, Field
 
 from exam.models import Attempt, Question
 from .forms import SubjectForm
 from .models import FavoriteSubject, Subject
+
+logger = logging.getLogger(__name__)
 
 
 def staff_required(user):
@@ -312,6 +323,146 @@ def api_search_questions(request, pk):
     return JsonResponse({"questions": questions, "keyword": keyword})
 
 
+class ParsedQuestion(BaseModel):
+    number: int = Field(description="문제 번호")
+    text: str = Field(description="문제 본문")
+    choice_1: str = Field(description="보기 ①")
+    choice_2: str = Field(description="보기 ②")
+    choice_3: str = Field(description="보기 ③")
+    choice_4: str = Field(description="보기 ④")
+    answer: str = Field(description="정답 번호 (예: '1', '2', '1,3', 미확인이면 '0')")
+
+
+class ParsedQuestionList(BaseModel):
+    questions: list[ParsedQuestion] = Field(description="파싱된 문제 목록")
+
+
+PARSE_PROMPT = """너는 대학교 기출문제 텍스트를 분석하는 파서이다.
+
+사용자가 붙여넣은 텍스트에서 객관식 문제를 추출하라.
+
+## 규칙
+
+1. number: 문제 번호 (1부터 순서대로)
+2. text: 문제 본문. 보기 번호(①②③④)나 정답 표시는 포함하지 말 것
+3. choice_1~4: 4지선다 보기. 보기 기호(①②③④, 1.2.3.4., 가나다라) 제거 후 내용만
+4. answer: 정답 번호를 문자열로. 단일 정답이면 "1"~"4", 복수 정답이면 "1,3" 형태. 정답을 알 수 없으면 "0"
+5. 보기가 없는 문항은 choice에 "-" 입력
+6. 보기 없이 답이 바로 제시된 문제는 그 답을 choice_1에 넣고 choice_2~4는 "-", answer는 "1"로 처리. 예시:
+   - "1.곤충의 번성에 기여한 주요특징-무변태" → text: "곤충의 번성에 기여한 주요특징", choice_1: "무변태"
+   - "2.토양수분의 종류 - 중력수, 모관수, 흡습수" → text: "토양수분의 종류", choice_1: "중력수, 모관수, 흡습수"
+   - "답: 토양수분" 형태도 동일하게 처리
+7. 문제 본문에 <보기>나 표, 조건문 등이 포함된 경우 text에 그대로 포함
+7. 정답이 텍스트 하단에 별도 정답표로 제공된 경우에도 각 문제의 answer에 매핑
+
+## 입력 텍스트
+
+{text}"""
+
+PARSE_PROMPT_IMAGE = """너는 대학교 기출문제 이미지를 분석하는 파서이다.
+
+첨부된 이미지에서 객관식 문제를 추출하라.
+
+## 규칙
+
+1. number: 문제 번호 (1부터 순서대로)
+2. text: 문제 본문. 보기 번호(①②③④)나 정답 표시는 포함하지 말 것
+3. choice_1~4: 4지선다 보기. 보기 기호(①②③④, 1.2.3.4., 가나다라) 제거 후 내용만
+4. answer: 정답 번호를 문자열로. 단일 정답이면 "1"~"4", 복수 정답이면 "1,3" 형태. 정답을 알 수 없으면 "0"
+5. 보기가 없는 문항은 choice에 "-" 입력
+6. 보기 없이 답이 바로 제시된 문제는 그 답을 choice_1에 넣고 choice_2~4는 "-", answer는 "1"로 처리
+7. 문제 본문에 <보기>나 표, 조건문 등이 포함된 경우 text에 그대로 포함
+8. 정답이 이미지 하단에 별도 정답표로 제공된 경우에도 각 문제의 answer에 매핑
+9. 이미지의 텍스트를 정확히 읽어서 오탈자 없이 추출할 것"""
+
+
+@login_required
+@require_POST
+def api_parse_text(request, pk):
+    """붙여넣은 텍스트 또는 이미지를 Gemini API로 파싱하여 문제 목록 반환"""
+    raw_text = request.POST.get("text", "").strip()
+    image_files = request.FILES.getlist("image")
+
+    if not raw_text and not image_files:
+        return JsonResponse({"questions": [], "error": "텍스트를 입력하거나 이미지를 첨부하세요."})
+
+    api_key = settings.GEMINI_API_KEY
+    if not api_key:
+        return JsonResponse({"questions": [], "error": "GEMINI_API_KEY가 설정되지 않았습니다."})
+
+    try:
+        client = genai.Client(api_key=api_key)
+
+        if image_files:
+            contents = []
+            for img in image_files:
+                contents.append(genai.types.Part.from_bytes(
+                    data=img.read(),
+                    mime_type=img.content_type or "image/png",
+                ))
+            if raw_text:
+                contents.append(PARSE_PROMPT.replace("{text}", raw_text))
+            else:
+                contents.append(PARSE_PROMPT_IMAGE)
+        else:
+            contents = PARSE_PROMPT.replace("{text}", raw_text)
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=contents,
+            config={
+                "response_mime_type": "application/json",
+                "response_schema": ParsedQuestionList,
+            },
+        )
+        result = ParsedQuestionList.model_validate_json(response.text)
+        questions = [q.model_dump() for q in result.questions]
+    except Exception as e:
+        logger.exception("Gemini API 파싱 오류")
+        return JsonResponse({"questions": [], "error": f"AI 분석 중 오류: {str(e)}"})
+
+    if not questions:
+        return JsonResponse({"questions": [], "error": "문제를 인식하지 못했습니다. 형식을 확인하세요."})
+    return JsonResponse({"questions": questions, "count": len(questions)})
+
+
+@login_required
+@require_POST
+def api_bulk_create(request, pk):
+    """파싱된 문제를 일괄 등록"""
+    subject = get_object_or_404(Subject, pk=pk)
+    data = json.loads(request.body)
+    target_year = int(data.get("year", 2025))
+    items = data.get("questions", [])
+    if not items:
+        return JsonResponse({"error": "등록할 문제가 없습니다."}, status=400)
+
+    last_num = (
+        Question.objects.filter(subject=subject, year=target_year)
+        .order_by("-number")
+        .values_list("number", flat=True)
+        .first()
+    ) or 0
+
+    created = 0
+    for item in items:
+        last_num += 1
+        Question.objects.create(
+            subject=subject,
+            year=target_year,
+            number=last_num,
+            text=item.get("text", ""),
+            choice_1=item.get("choice_1", "-"),
+            choice_2=item.get("choice_2", "-"),
+            choice_3=item.get("choice_3", "-"),
+            choice_4=item.get("choice_4", "-"),
+            answer=item.get("answer", "0"),
+        )
+        created += 1
+
+    return JsonResponse({"ok": True, "created": created, "year": target_year})
+
+
 @login_required
 @require_POST
 def latest_question_clone(request, pk):
@@ -390,3 +541,26 @@ def subject_delete(request, pk):
         subject.delete()
         return redirect("main:subject_manage")
     return redirect("main:subject_manage")
+
+
+@login_required
+@user_passes_test(staff_required)
+def member_manage(request):
+    members = User.objects.all().order_by("-date_joined")
+    return render(request, "main/member_manage.html", {"members": members})
+
+
+@login_required
+@user_passes_test(staff_required)
+@require_POST
+def member_toggle(request, pk):
+    target_user = get_object_or_404(User, pk=pk)
+    field = request.POST.get("field", "")
+    if field not in ("is_staff", "is_active"):
+        return JsonResponse({"error": "invalid field"}, status=400)
+    if target_user == request.user:
+        return JsonResponse({"error": "자기 자신의 권한은 변경할 수 없습니다."}, status=400)
+    new_val = not getattr(target_user, field)
+    setattr(target_user, field, new_val)
+    target_user.save(update_fields=[field])
+    return JsonResponse({"ok": True, "field": field, "value": new_val})

@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}회원 관리{% endblock %}
+
+{% block extra_css %}
+<style>
+    .manage-wrap {
+        width: min(1120px, 92vw);
+        margin: 0 auto;
+    }
+
+    .manage-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .manage-header h1 {
+        font-size: 1.5rem;
+        color: var(--forest);
+    }
+
+    .member-count {
+        font-size: 0.9rem;
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .member-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(30, 70, 42, 0.08);
+    }
+
+    .member-table thead {
+        background: var(--forest);
+        color: #fff;
+    }
+
+    .member-table th {
+        padding: 14px 16px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .member-table td {
+        padding: 12px 16px;
+        font-size: 0.88rem;
+        border-bottom: 1px solid #eef3ee;
+    }
+
+    .member-table tbody tr:hover {
+        background: #f8fbf6;
+    }
+
+    .toggle-btn {
+        display: inline-block;
+        padding: 4px 14px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.15s;
+    }
+
+    .toggle-btn.on {
+        background: #e3f5e1;
+        color: #2d6a4f;
+    }
+
+    .toggle-btn.on:hover {
+        background: #d4ebc8;
+    }
+
+    .toggle-btn.off {
+        background: #fef2f2;
+        color: #b91c1c;
+    }
+
+    .toggle-btn.off:hover {
+        background: #fee2e2;
+    }
+
+    .toggle-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .manage-nav {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .manage-nav a {
+        text-decoration: none;
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        transition: background 0.2s;
+    }
+
+    .manage-nav .active {
+        background: var(--forest);
+        color: #fff;
+    }
+
+    .manage-nav a:not(.active) {
+        background: #e8f5df;
+        color: var(--forest);
+    }
+
+    .manage-nav a:not(.active):hover {
+        background: #d4ebc8;
+    }
+
+    @media (max-width: 720px) {
+        .member-table th,
+        .member-table td {
+            padding: 10px 8px;
+            font-size: 0.78rem;
+        }
+
+        .manage-nav {
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .manage-nav a {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
+        .manage-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .td-email { display: none; }
+        .th-email { display: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="manage-wrap">
+    <nav class="manage-nav">
+        <a href="{% url 'main:subject_manage' %}">교과목 관리</a>
+        <a href="{% url 'exam:exam_manage' %}">시험 관리</a>
+        <a href="{% url 'exam:question_manage' %}">문제 관리</a>
+        <a href="{% url 'main:member_manage' %}" class="active">회원 관리</a>
+    </nav>
+
+    <div class="manage-header">
+        <h1>회원 관리</h1>
+        <span class="member-count">총 {{ members|length }}명</span>
+    </div>
+
+    <table class="member-table">
+        <thead>
+            <tr>
+                <th>이름</th>
+                <th>아이디</th>
+                <th class="th-email">이메일</th>
+                <th>가입일</th>
+                <th>스태프</th>
+                <th>활성</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in members %}
+            <tr>
+                <td>{{ m.first_name|default:"-" }}</td>
+                <td><strong>{{ m.username }}</strong></td>
+                <td class="td-email">{{ m.email|default:"-" }}</td>
+                <td>{{ m.date_joined|date:"Y.m.d" }}</td>
+                <td>
+                    <button type="button"
+                            class="toggle-btn {% if m.is_staff %}on{% else %}off{% endif %}"
+                            data-pk="{{ m.pk }}" data-field="is_staff"
+                            onclick="toggleMember(this)"
+                            {% if m.pk == request.user.pk %}disabled title="자기 자신은 변경 불가"{% endif %}>
+                        {% if m.is_staff %}ON{% else %}OFF{% endif %}
+                    </button>
+                </td>
+                <td>
+                    <button type="button"
+                            class="toggle-btn {% if m.is_active %}on{% else %}off{% endif %}"
+                            data-pk="{{ m.pk }}" data-field="is_active"
+                            onclick="toggleMember(this)"
+                            {% if m.pk == request.user.pk %}disabled title="자기 자신은 변경 불가"{% endif %}>
+                        {% if m.is_active %}ON{% else %}OFF{% endif %}
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleMember(btn) {
+    var pk = btn.dataset.pk;
+    var field = btn.dataset.field;
+    var label = field === 'is_staff' ? '스태프 권한' : '활성 상태';
+    var current = btn.classList.contains('on');
+    var action = current ? '해제' : '부여';
+    if (!confirm(label + '을(를) ' + action + '하시겠습니까?')) return;
+
+    fetch('/manage/members/' + pk + '/toggle/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: 'field=' + field
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.error) { alert(data.error); return; }
+        if (data.value) {
+            btn.classList.remove('off');
+            btn.classList.add('on');
+            btn.textContent = 'ON';
+        } else {
+            btn.classList.remove('on');
+            btn.classList.add('off');
+            btn.textContent = 'OFF';
+        }
+    })
+    .catch(function() { alert('오류가 발생했습니다.'); });
+}
+</script>
+{% endblock %}

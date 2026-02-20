@@ -563,6 +563,7 @@ def question_manage(request):
             subject=selected_subject, year=selected_exam.year
         ).order_by("number")
 
+    from datetime import date
     return render(
         request,
         "exam/question_manage.html",
@@ -572,6 +573,7 @@ def question_manage(request):
             "exams": exams,
             "selected_exam": selected_exam,
             "questions": questions,
+            "current_year": date.today().year,
         },
     )
 
