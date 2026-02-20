@@ -239,10 +239,109 @@ python generate_all.py
 ## 페이지 구성
 
 - `templates/main/index.html`: 한울회 A+ 학습시스템 홈페이지
-- `templates/base.html`: 공통 레이아웃
+- `templates/base.html`: 공통 레이아웃 (favicon, PWA manifest, apple-touch-icon 포함)
+- `templates/main/subject_detail.html`: 과목 상세 (탭: 학습/풀이/모의고사/오답/시험이력/최신기출)
 - `templates/exam/study_mode.html`: 학습모드 (기출 풀이 + 채점)
-- `main/views.py`, `main/urls.py`: 홈 라우팅
+- `templates/exam/exam_take.html`: 풀이모드 (OMR 카드 포함)
+- `templates/exam/mock_exam_take.html`: 모의고사 (랜덤 25문제)
+- `templates/exam/wrong_answers.html`: 오답노트 (세션별/전체)
+- `templates/exam/exam_result.html`: 채점 결과
+- `main/views.py`, `main/urls.py`: 홈 라우팅, 최신기출 CRUD, API
 - `exam/views.py`, `exam/urls.py`: 시험/문제 관련 뷰
+
+## PWA / 홈 화면 바로가기
+
+- `static/manifest.json`: 웹 앱 매니페스트 (홈 화면 추가 시 앱 아이콘/이름 설정)
+- `static/images/knou_favicon.png`: 파비콘 및 홈 화면 아이콘
+- `base.html`에 favicon, apple-touch-icon, manifest, theme-color 메타태그 설정 완료
+- 모바일 브라우저에서 "홈 화면에 추가" → "한울회 A+" 이름의 바로가기 생성
+
+## 최신기출 탭 (subject_detail.html)
+
+과목 상세 페이지의 "최신기출" 탭 (year >= 2020)에서 문제를 등록하고 관리한다.
+
+### 서브탭 구조
+
+- **신규 등록** (기본): 직접 문제/보기/정답/해설을 입력하여 등록
+- **기존 기출 출제**: 기존 기출 DB(2013~2019)에서 문제를 선택하여 최신기출로 복사 등록
+  - 출제연도 선택 → 문항 선택 → 미리보기 → 등록
+
+### 관련 뷰/API
+
+| URL | 뷰 | 설명 |
+|-----|-----|------|
+| `subjects/<pk>/latest/create/` | `latest_question_create` | 신규 문제 등록 (POST) |
+| `subjects/<pk>/latest/clone/` | `latest_question_clone` | 기존 문제 복사 등록 (POST) |
+| `subjects/<pk>/api/years/` | `api_existing_years` | 해당 과목의 기존 기출 연도 목록 (JSON) |
+| `subjects/<pk>/api/questions/<year>/` | `api_existing_questions` | 해당 연도 문항 목록 (JSON) |
+
+### 동작 규칙
+
+- 연도 기본값: 현재 연도 (`new Date().getFullYear()`)
+- 등록 후 연도 유지: 리다이렉트 시 `last_year` 파라미터로 이전 연도 전달
+- 기존 기출 출제 등록 후 서브탭 유지: `sub=existing` 파라미터로 서브탭 상태 복원
+- 입력란은 항상 표시 (토글 없음)
+
+## 최신기출 데이터 EC2 배포
+
+로컬에서 추출한 최신기출을 EC2에 배포하는 방법:
+
+```bash
+# 1. 로컬: JSON 추출 (pk 없이 natural key 기반)
+python -c "
+import os, django, json, sys
+os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings'
+django.setup()
+sys.stdout.reconfigure(encoding='utf-8')
+from exam.models import Question
+qs = Question.objects.filter(subject__name='식물의학', year__in=[2024, 2025])
+data = []
+for q in qs:
+    data.append({
+        'subject_name': q.subject.name, 'year': q.year, 'number': q.number,
+        'text': q.text, 'choice_1': q.choice_1, 'choice_2': q.choice_2,
+        'choice_3': q.choice_3, 'choice_4': q.choice_4, 'answer': q.answer,
+        'explanation': q.explanation, 'choice_1_exp': q.choice_1_exp,
+        'choice_2_exp': q.choice_2_exp, 'choice_3_exp': q.choice_3_exp,
+        'choice_4_exp': q.choice_4_exp,
+    })
+with open('식물의학_latest.json', 'w', encoding='utf-8') as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+"
+
+# 2. git push 후 EC2에서:
+git pull
+python load_latest.py 식물의학_latest.json
+```
+
+- `load_latest.py`: `update_or_create` 기반 import 스크립트 (중복 pk 충돌 없음)
+- `loaddata`는 pk 충돌 시 실패하므로 `load_latest.py` 사용 권장
+- `(subject, year, number)` 기준: 있으면 업데이트, 없으면 신규 생성
+
+## 모바일 UI 최적화
+
+### 풀이모드/모의고사 (exam_take.html, mock_exam_take.html)
+
+- `<form>` 태그에 `class="exam-form"` 사용 (inline style 금지)
+- 데스크톱: `display: flex` (좌: 문제, 우: OMR)
+- 모바일 (768px 이하): `display: block`, OMR 숨김, 모바일 헤더 표시
+
+### 과목 상세 (subject_detail.html)
+
+- 헤더: 다크그린 그래디언트 hero 스타일, 흰색 텍스트
+- 탭 네비게이션: 가로 스크롤, 스크롤바 숨김, 활성 탭 자동 스크롤
+- 오답 요약: 세로 레이아웃, 중앙 정렬
+- 세션 카드: CSS Grid 2행 컴팩트 레이아웃
+- 최신기출: 풀 너비 입력란, 녹색 포커스 스타일
+
+### 오답노트 (wrong_answers.html)
+
+- 문제 텍스트: hanging indent (`padding-left: 1.3em`, `text-indent: -1.3em`)
+- 보기: 절대 위치 q-mark (`position: absolute; left: 8px`) + `padding-left: 38px`
+- 해설: `→` 화살표, 정답 해설 노란 하이라이트
+- grade-x 마크 제거됨 (주석 처리)
+- 연도 배지(`wq-source`) 제거됨
+- 해설보기 버튼 좌측 정렬 (`padding-left: 18px`)
 
 ## 주요 파일 구조
 
@@ -250,17 +349,23 @@ python generate_all.py
 knou_agriculture/
 ├── config/             # Django 설정
 ├── main/               # 메인 앱 (Subject 모델, 홈)
+│   ├── views.py        # subject_detail, 최신기출 CRUD, API 뷰
+│   └── urls.py         # URL 라우팅
 ├── exam/               # 시험 앱
 │   ├── models.py       # Exam, Question, Attempt 모델
-│   ├── views.py        # 학습모드, 관리 뷰
+│   ├── views.py        # 학습모드, 오답노트, 관리 뷰
 │   └── management/commands/
 │       ├── import_questions.py       # 엑셀 → DB import
 │       └── generate_explanations.py  # Gemini 해설 생성
 ├── accounts/           # 회원 관리 앱
 ├── templates/          # HTML 템플릿
+├── static/
+│   ├── images/         # 로고, 파비콘
+│   └── manifest.json   # PWA 매니페스트
 ├── scrape_exam.py      # 개별 과목 스크래핑
 ├── scrape_all.py       # 전체 과목 일괄 스크래핑
 ├── generate_all.py     # 전체 과목 병렬 해설 생성
+├── load_latest.py      # 최신기출 JSON → DB import (update_or_create)
 └── data/               # 엑셀 파일 (gitignore)
 ```
 

@@ -1419,6 +1419,10 @@
         }
     })();
 
+    /* ── 과목 PK (API 호출용) ── */
+    var subjectPk = {{ subject.pk }};
+    var _questionsCache = {};
+
     /* 연도 초기화: last_year 파라미터 > 현재 연도 */
     (function() {
         var params = new URLSearchParams(window.location.search);
@@ -1442,9 +1446,6 @@
     }
 
     /* ── 기존 기출: 연도 목록 로드 ── */
-    var _questionsCache = {};
-    var subjectPk = {{ subject.pk }};
-
     function loadExistingYears() {
         var sel = document.getElementById('clone-year-select');
         if (sel.options.length > 1) return;
