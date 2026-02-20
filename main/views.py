@@ -225,7 +225,7 @@ def latest_question_create(request, pk):
         answer=request.POST.get("answer", "0"),
         explanation=request.POST.get("explanation", ""),
     )
-    return redirect(f"/subjects/{subject.pk}/?tab=latest")
+    return redirect(f"/subjects/{subject.pk}/?tab=latest&last_year={year}")
 
 
 @login_required

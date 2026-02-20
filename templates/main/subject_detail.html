@@ -1227,18 +1227,13 @@
         </div>
         {% endfor %}
 
-        <!-- 기출 추가 버튼 -->
-        <div style="margin-top:20px;">
-            <button type="button" class="latest-add-btn" onclick="toggleLatestForm()">+ 기출 추가</button>
-        </div>
-
-        <!-- 기출 추가 폼 (숨김) -->
-        <div class="latest-form-wrap" id="latest-form" style="display:none; margin-top:16px;">
+        <!-- 기출 추가 폼 -->
+        <div class="latest-form-wrap" id="latest-form" style="margin-top:20px;">
             <form method="post" action="{% url 'main:latest_question_create' subject.pk %}">
                 {% csrf_token %}
                 <div class="latest-form-row">
                     <label>연도</label>
-                    <input type="number" name="year" value="2025" class="latest-input latest-input-sm" required>
+                    <input type="number" name="year" id="latest-year-input" class="latest-input latest-input-sm" required>
                 </div>
                 <div class="latest-form-row">
                     <label>문제</label>
@@ -1274,7 +1269,6 @@
                     <textarea name="explanation" class="latest-textarea" rows="3" placeholder="해설 (선택)"></textarea>
                 </div>
                 <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:12px;">
-                    <button type="button" class="latest-cancel-btn" onclick="toggleLatestForm()">취소</button>
                     <button type="submit" class="latest-submit-btn">등록</button>
                 </div>
             </form>
@@ -1308,14 +1302,15 @@
         }
     })();
 
-    function toggleLatestForm() {
-        var form = document.getElementById('latest-form');
-        if (form.style.display === 'none') {
-            form.style.display = '';
-        } else {
-            form.style.display = 'none';
+    /* 연도 초기화: last_year 파라미터 > 현재 연도 */
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var lastYear = params.get('last_year');
+        var yearInput = document.getElementById('latest-year-input');
+        if (yearInput) {
+            yearInput.value = lastYear || new Date().getFullYear();
         }
-    }
+    })();
 
     function toggleYearQuestions(year) {
         var section = document.getElementById('year-section-' + year);
