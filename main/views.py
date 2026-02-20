@@ -251,7 +251,7 @@ def latest_question_update(request, question_pk):
     question.answer = request.POST.get("answer", question.answer)
     question.explanation = request.POST.get("explanation", "")
     question.save()
-    return redirect(f"/subjects/{subject.pk}/?tab=latest")
+    return redirect(f"/subjects/{subject.pk}/?tab=latest&open_year={question.year}")
 
 
 @login_required
@@ -259,8 +259,9 @@ def latest_question_update(request, question_pk):
 def latest_question_delete(request, question_pk):
     question = get_object_or_404(Question, pk=question_pk)
     subject = question.subject
+    year = question.year
     question.delete()
-    return redirect(f"/subjects/{subject.pk}/?tab=latest")
+    return redirect(f"/subjects/{subject.pk}/?tab=latest&open_year={year}")
 
 
 @login_required

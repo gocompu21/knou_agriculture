@@ -1539,6 +1539,11 @@
         if (searchYear) searchYear.value = defaultYear;
         var sub = params.get('sub');
         if (sub) switchRegTab(sub);
+        var openYear = params.get('open_year');
+        if (openYear) {
+            var section = document.getElementById('year-section-' + openYear);
+            if (section) section.style.display = '';
+        }
     })();
 
     /* ── 등록 서브탭 전환 ── */
