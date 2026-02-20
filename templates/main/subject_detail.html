@@ -719,6 +719,79 @@
         display: block;
     }
 
+    /* ── Search Results ── */
+    .search-result-card {
+        border: 1px solid #e8e8e8;
+        border-radius: 14px;
+        padding: 18px;
+        margin-bottom: 12px;
+        background: #fff;
+        transition: box-shadow 0.2s;
+    }
+    .search-result-card:hover {
+        box-shadow: 0 4px 12px rgba(30,70,42,0.08);
+    }
+    .search-result-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+    .search-year-badge {
+        display: inline-block;
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #fff;
+        background: #e0943a;
+        padding: 3px 10px;
+        border-radius: 6px;
+    }
+    .search-register-btn {
+        background: #2d8a4e;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 6px 16px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+    }
+    .search-register-btn:hover { background: #236b3e; }
+    mark.search-highlight {
+        background: #fff3b0;
+        color: inherit;
+        padding: 0 2px;
+        border-radius: 3px;
+    }
+    .search-q-text {
+        font-size: 0.92rem;
+        line-height: 1.6;
+        margin-bottom: 8px;
+    }
+    .search-choice {
+        font-size: 0.85rem;
+        color: #555;
+        padding: 2px 0;
+    }
+    .search-choice.correct {
+        color: #2d8a4e;
+        font-weight: 700;
+    }
+    .search-answer {
+        font-size: 0.82rem;
+        color: #888;
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px solid #f0f0f0;
+    }
+    .search-no-results {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+        font-size: 0.92rem;
+    }
+
     .clone-preview-box {
         background: #f9f9f9;
         border: 1px solid #e0e0e0;
@@ -1302,6 +1375,7 @@
             <div class="reg-subtab-btns">
                 <button type="button" class="reg-subtab-btn active" data-reg="new" onclick="switchRegTab('new')">신규 등록</button>
                 <button type="button" class="reg-subtab-btn" data-reg="existing" onclick="switchRegTab('existing')">기존 기출 출제</button>
+                <button type="button" class="reg-subtab-btn" data-reg="search" onclick="switchRegTab('search')">검색 등록</button>
             </div>
 
             <!-- 신규 등록 -->
@@ -1389,6 +1463,35 @@
                     </form>
                 </div>
             </div>
+
+            <!-- 검색 등록 -->
+            <div class="reg-subtab-content" id="reg-search">
+                <div class="latest-form-wrap">
+                    <div class="latest-form-row">
+                        <label>등록연도</label>
+                        <input type="number" id="search-target-year" class="latest-input latest-input-sm" required>
+                    </div>
+                    <div class="latest-form-row">
+                        <label>검색어</label>
+                        <input type="text" id="search-keyword" class="latest-input"
+                               placeholder="문제 또는 보기 내 키워드 (2글자 이상)"
+                               onkeydown="if(event.key==='Enter'){event.preventDefault(); doSearch();}">
+                    </div>
+                    <div style="display:flex; gap:6px; justify-content:flex-end; margin-bottom:16px;">
+                        <button type="button" class="latest-submit-btn" onclick="doSearch()">검색</button>
+                    </div>
+                    <div id="search-results" style="display:none;">
+                        <div id="search-results-header" style="font-size:0.88rem; color:#666; margin-bottom:12px;"></div>
+                        <div id="search-results-list"></div>
+                    </div>
+                    <form method="post" action="{% url 'main:latest_question_clone' subject.pk %}" id="search-clone-form" style="display:none;">
+                        {% csrf_token %}
+                        <input type="hidden" name="source_id" id="search-source-id">
+                        <input type="hidden" name="target_year" id="search-clone-year">
+                        <input type="hidden" name="sub" value="search">
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1432,6 +1535,8 @@
         if (yearInput) yearInput.value = defaultYear;
         var cloneYear = document.getElementById('clone-target-year');
         if (cloneYear) cloneYear.value = defaultYear;
+        var searchYear = document.getElementById('search-target-year');
+        if (searchYear) searchYear.value = defaultYear;
         var sub = params.get('sub');
         if (sub) switchRegTab(sub);
     })();
@@ -1524,6 +1629,87 @@
         } else {
             section.style.display = 'none';
         }
+    }
+
+    /* ── 검색 등록: 검색 실행 ── */
+    function doSearch() {
+        var keyword = document.getElementById('search-keyword').value.trim();
+        var resultsDiv = document.getElementById('search-results');
+        var headerDiv = document.getElementById('search-results-header');
+        var listDiv = document.getElementById('search-results-list');
+        if (keyword.length < 2) { alert('2글자 이상 입력하세요.'); return; }
+        headerDiv.textContent = '검색 중...';
+        resultsDiv.style.display = '';
+        listDiv.innerHTML = '';
+        fetch('/subjects/' + subjectPk + '/api/search/?q=' + encodeURIComponent(keyword))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.error) { headerDiv.textContent = data.error; return; }
+                if (data.questions.length === 0) {
+                    headerDiv.textContent = '';
+                    listDiv.innerHTML = '<div class="search-no-results">검색 결과가 없습니다.</div>';
+                    return;
+                }
+                headerDiv.textContent = '검색 결과: ' + data.questions.length + '건' +
+                    (data.questions.length >= 50 ? ' (최대 50건 표시)' : '');
+                renderSearchResults(data.questions, data.keyword);
+            })
+            .catch(function() { headerDiv.textContent = '검색 중 오류가 발생했습니다.'; });
+    }
+
+    function renderSearchResults(questions, keyword) {
+        var listDiv = document.getElementById('search-results-list');
+        listDiv.innerHTML = '';
+        var labels = ['\u2460','\u2461','\u2462','\u2463'];
+        var fields = ['choice_1','choice_2','choice_3','choice_4'];
+        questions.forEach(function(q) {
+            var answerNums = q.answer.split(',');
+            var card = document.createElement('div');
+            card.className = 'search-result-card';
+            // header
+            var header = document.createElement('div');
+            header.className = 'search-result-header';
+            header.innerHTML = '<span class="search-year-badge">' + q.year + '년 ' + q.number + '번</span>' +
+                '<button type="button" class="search-register-btn" onclick="registerFromSearch(' + q.id + ')">등록</button>';
+            card.appendChild(header);
+            // text
+            var textDiv = document.createElement('div');
+            textDiv.className = 'search-q-text';
+            textDiv.innerHTML = highlightKeyword(q.text, keyword);
+            card.appendChild(textDiv);
+            // choices
+            for (var i = 0; i < 4; i++) {
+                if (q[fields[i]] && q[fields[i]] !== '-') {
+                    var isCorrect = answerNums.indexOf(String(i+1)) >= 0;
+                    var ch = document.createElement('div');
+                    ch.className = 'search-choice' + (isCorrect ? ' correct' : '');
+                    ch.innerHTML = labels[i] + ' ' + highlightKeyword(q[fields[i]], keyword);
+                    card.appendChild(ch);
+                }
+            }
+            // answer
+            var ansDiv = document.createElement('div');
+            ansDiv.className = 'search-answer';
+            var ansLabels = answerNums.map(function(n) { return labels[parseInt(n)-1] || n; });
+            ansDiv.textContent = '정답: ' + ansLabels.join(', ');
+            card.appendChild(ansDiv);
+            listDiv.appendChild(card);
+        });
+    }
+
+    function highlightKeyword(text, keyword) {
+        if (!keyword || !text) return text || '';
+        var escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return text.replace(new RegExp('(' + escaped + ')', 'gi'), '<mark class="search-highlight">$1</mark>');
+    }
+
+    function registerFromSearch(questionId) {
+        var targetYear = document.getElementById('search-target-year').value;
+        if (!targetYear) { alert('등록연도를 입력하세요.'); return; }
+        if (!confirm('이 문제를 ' + targetYear + '년으로 등록하시겠습니까?')) return;
+        document.getElementById('search-source-id').value = questionId;
+        document.getElementById('search-clone-year').value = targetYear;
+        document.getElementById('search-clone-form').submit();
     }
 
     function toggleEditForm(pk) {

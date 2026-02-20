@@ -14,6 +14,7 @@ urlpatterns = [
     path("subjects/<int:pk>/latest/clone/", views.latest_question_clone, name="latest_question_clone"),
     path("subjects/<int:pk>/api/years/", views.api_existing_years, name="api_existing_years"),
     path("subjects/<int:pk>/api/questions/<int:year>/", views.api_existing_questions, name="api_existing_questions"),
+    path("subjects/<int:pk>/api/search/", views.api_search_questions, name="api_search_questions"),
     path("subjects/latest/<int:question_pk>/update/", views.latest_question_update, name="latest_question_update"),
     path("subjects/latest/<int:question_pk>/delete/", views.latest_question_delete, name="latest_question_delete"),
     path("manage/subjects/", views.subject_manage, name="subject_manage"),

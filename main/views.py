@@ -290,6 +290,28 @@ def api_existing_questions(request, pk, year):
 
 
 @login_required
+def api_search_questions(request, pk):
+    """해당 과목의 전체 문제에서 키워드 검색"""
+    subject = get_object_or_404(Subject, pk=pk)
+    keyword = request.GET.get("q", "").strip()
+    if not keyword or len(keyword) < 2:
+        return JsonResponse({"questions": [], "error": "2글자 이상 입력하세요."})
+    questions = list(
+        Question.objects.filter(subject=subject)
+        .filter(
+            Q(text__icontains=keyword)
+            | Q(choice_1__icontains=keyword)
+            | Q(choice_2__icontains=keyword)
+            | Q(choice_3__icontains=keyword)
+            | Q(choice_4__icontains=keyword)
+        )
+        .order_by("-year", "number")
+        .values("id", "year", "number", "text", "choice_1", "choice_2", "choice_3", "choice_4", "answer")[:50]
+    )
+    return JsonResponse({"questions": questions, "keyword": keyword})
+
+
+@login_required
 @require_POST
 def latest_question_clone(request, pk):
     """기존 기출 문제를 최신기출로 복사 등록"""
@@ -321,7 +343,8 @@ def latest_question_clone(request, pk):
         choice_3_exp=source.choice_3_exp,
         choice_4_exp=source.choice_4_exp,
     )
-    return redirect(f"/subjects/{subject.pk}/?tab=latest&last_year={target_year}&sub=existing")
+    sub = request.POST.get("sub", "existing")
+    return redirect(f"/subjects/{subject.pk}/?tab=latest&last_year={target_year}&sub={sub}")
 
 
 @login_required
