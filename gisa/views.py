@@ -299,42 +299,7 @@ def certification_detail(request, cert_id):
             pk__in=latest_ids, is_correct=False
         ).count()
 
-    if active_tab == "history" and request.user.is_authenticated:
-        session_ids = (
-            GisaAttempt.objects.filter(
-                user=request.user,
-                question__exam__certification=cert,
-            )
-            .exclude(session_id="")
-            .values_list("session_id", flat=True)
-            .distinct()
-        )
-        for sid in session_ids:
-            s_attempts = GisaAttempt.objects.filter(
-                user=request.user, session_id=sid
-            )
-            if not s_attempts.exists():
-                continue
-            first = s_attempts.order_by("created_at").first()
-            total = s_attempts.count()
-            correct = s_attempts.filter(is_correct=True).count()
-            wrong = total - correct
-            score = round(correct / total * 100) if total else 0
-            mode = first.mode
-            mode_labels = {"exam": "풀이", "mock": "모의고사", "wrong_retry": "오답재풀이"}
-            exam_sessions.append(
-                {
-                    "session_id": sid,
-                    "mode": mode,
-                    "mode_label": mode_labels.get(mode, mode),
-                    "total": total,
-                    "correct": correct,
-                    "wrong": wrong,
-                    "score": score,
-                    "date": first.created_at,
-                }
-            )
-        exam_sessions.sort(key=lambda s: s["date"], reverse=True)
+    # history 탭은 API로 무한 스크롤 로딩 (certification_detail에서 직접 로드하지 않음)
 
     # 교재 데이터 — 교재 탭일 때만 장 제목 전달 (섹션은 AJAX로 로드)
     textbook_chapters = []
@@ -893,6 +858,64 @@ def session_delete_all(request, cert_id):
     return redirect(
         f"{reverse('gisa:certification_detail', args=[cert_id])}?tab=wrong"
     )
+
+
+## ══════════ 시험이력 API (무한 스크롤) ══════════ ##
+
+
+@login_required
+def history_api(request, cert_id):
+    """시험이력 세션 목록을 페이지네이션하여 JSON 반환"""
+    cert = get_object_or_404(Certification, pk=cert_id)
+    page = int(request.GET.get("page", 1))
+    per_page = 20
+
+    session_rows = (
+        GisaAttempt.objects.filter(
+            user=request.user,
+            question__exam__certification=cert,
+        )
+        .exclude(session_id="")
+        .values("session_id")
+        .annotate(
+            total=Count("id"),
+            correct=Count("id", filter=Q(is_correct=True)),
+            date=Min("created_at"),
+        )
+        .order_by("-date")
+    )
+    total_count = session_rows.count()
+    start = (page - 1) * per_page
+    rows = list(session_rows[start : start + per_page])
+
+    mode_labels = {"exam": "기출고사", "mock": "모의고사", "wrong_retry": "오답재풀이"}
+    results = []
+    for row in rows:
+        sid = row["session_id"]
+        first = GisaAttempt.objects.filter(user=request.user, session_id=sid).order_by("created_at").first()
+        total = row["total"]
+        correct = row["correct"]
+        wrong = total - correct
+        score = round(correct / total * 100) if total else 0
+        mode = first.mode if first else "exam"
+        results.append({
+            "session_id": sid,
+            "mode": mode,
+            "mode_label": mode_labels.get(mode, mode),
+            "total": total,
+            "correct": correct,
+            "wrong": wrong,
+            "score": score,
+            "date": row["date"].strftime("%Y-%m-%d %H:%M"),
+            "wrong_url": reverse("gisa:wrong_answers_session", args=[cert_id, sid]) if wrong > 0 else "",
+            "delete_url": reverse("gisa:session_delete", args=[cert_id, sid]),
+        })
+
+    return JsonResponse({
+        "sessions": results,
+        "has_next": (start + per_page) < total_count,
+        "total": total_count,
+    })
 
 
 ## ══════════ 교재 학습 ══════════ ##
