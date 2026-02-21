@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}기사시험 자격증 목록 | 한울회 A+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-hero {
+        background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+        color: #fff;
+        padding: 48px 0 36px;
+        margin: -28px 0 32px;
+    }
+    .page-hero h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 6px; }
+    .page-hero p { opacity: 0.85; font-size: 0.95rem; }
+
+    .cert-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    .cert-card {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 24px;
+        transition: box-shadow 0.2s, transform 0.15s;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    .cert-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    .cert-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1a237e;
+        margin-bottom: 6px;
+    }
+    .cert-category {
+        display: inline-block;
+        background: #e8eaf6;
+        color: #3949ab;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    .cert-stats {
+        display: flex;
+        gap: 16px;
+        font-size: 0.85rem;
+        color: #666;
+    }
+    .cert-stats strong { color: #333; }
+    .cert-desc {
+        margin-top: 10px;
+        font-size: 0.88rem;
+        color: #777;
+        line-height: 1.5;
+    }
+    .empty-msg {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+        font-size: 1.05rem;
+    }
+    @media (max-width: 480px) {
+        .page-hero { padding: 32px 0 24px; }
+        .page-hero h1 { font-size: 1.4rem; }
+        .cert-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    <div class="wrap">
+        <h1>기사시험 기출문제</h1>
+        <p>국가기술자격 기출문제 학습 시스템</p>
+    </div>
+</div>
+
+<div class="wrap">
+    {% if certifications %}
+    <div class="cert-grid">
+        {% for cert in certifications %}
+        <a href="{% url 'gisa:certification_detail' cert.pk %}" class="cert-card fade-up delay-{{ forloop.counter0 }}">
+            <span class="cert-category">{{ cert.category }}</span>
+            <div class="cert-name">{{ cert.name }}</div>
+            <div class="cert-stats">
+                <span>시험 <strong>{{ cert.exam_count }}회</strong></span>
+                <span>문제 <strong>{{ cert.question_count }}개</strong></span>
+            </div>
+            {% if cert.description %}
+            <div class="cert-desc">{{ cert.description|truncatewords:20 }}</div>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-msg">등록된 자격증이 없습니다.</div>
+    {% endif %}
+</div>
+{% endblock %}

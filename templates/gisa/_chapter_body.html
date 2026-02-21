@@ -1,0 +1,66 @@
+{% for sec in ch.sections %}
+<div class="section-item" id="{{ sec.id }}">
+    <div class="section-header" onclick="toggleSection(this)">
+        <span>{{ sec.title }}
+            {% if sec.total_questions %}<span class="q-count-badge">{{ sec.total_questions }}문제</span>{% endif %}
+        </span>
+        <span class="section-chevron">&#9654;</span>
+    </div>
+    <div class="section-body">
+        {% if sec.content_html %}<div class="content-box">{{ sec.content_html|safe }}</div>{% endif %}
+
+        {% for sub in sec.subsections %}
+        <div class="subsection-title">{{ sub.title }}</div>
+        {% if sub.content_html %}<div class="content-box">{{ sub.content_html|safe }}</div>{% endif %}
+        {% if sub.questions %}
+        <div class="q-box">
+            <form method="get" action="{% url 'gisa:textbook_study' cert.pk %}" style="display:inline">
+                {% for qref in sub.questions %}
+                <input type="hidden" name="ref" value="{{ qref }}">
+                {% endfor %}
+                <input type="hidden" name="title" value="{{ sub.title }}">
+                <button type="submit" class="q-study-btn">이 항의 문제 학습하기 ({{ sub.questions|length }})</button>
+            </form>
+            <div class="q-refs">
+                {% for qref in sub.questions %}
+                <a class="q-ref-badge" href="{% url 'gisa:textbook_study' cert.pk %}?ref={{ qref }}&title={{ sub.title|urlencode }}">{{ qref }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+
+        {% if sec.questions and not sec.subsections %}
+        <div class="q-box">
+            <form method="get" action="{% url 'gisa:textbook_study' cert.pk %}" style="display:inline">
+                {% for qref in sec.questions %}
+                <input type="hidden" name="ref" value="{{ qref }}">
+                {% endfor %}
+                <input type="hidden" name="title" value="{{ sec.title }}">
+                <button type="submit" class="q-study-btn">이 절의 문제 학습하기 ({{ sec.questions|length }})</button>
+            </form>
+            <div class="q-refs">
+                {% for qref in sec.questions %}
+                <a class="q-ref-badge" href="{% url 'gisa:textbook_study' cert.pk %}?ref={{ qref }}&title={{ sec.title|urlencode }}">{{ qref }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% elif sec.subsections|length > 1 and sec.all_questions %}
+        <div class="q-box all-box">
+            <form method="get" action="{% url 'gisa:textbook_study' cert.pk %}" style="display:inline">
+                {% for qref in sec.all_questions %}
+                <input type="hidden" name="ref" value="{{ qref }}">
+                {% endfor %}
+                <input type="hidden" name="title" value="{{ sec.title }}">
+                <button type="submit" class="q-study-btn all">이 절의 전체 문제 학습하기 ({{ sec.total_questions }})</button>
+            </form>
+            <div class="q-refs">
+                {% for qref in sec.all_questions %}
+                <a class="q-ref-badge" href="{% url 'gisa:textbook_study' cert.pk %}?ref={{ qref }}&title={{ sec.title|urlencode }}">{{ qref }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}

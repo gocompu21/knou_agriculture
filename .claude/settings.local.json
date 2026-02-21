@@ -8,7 +8,10 @@
       "WebFetch(domain:ai.google.dev)",
       "Bash(pip install:*)",
       "Bash(iconv:*)",
-      "Bash(tasklist:*)"
+      "Bash(tasklist:*)",
+      "WebFetch(domain:www.whois.com)",
+      "WebFetch(domain:who.is)",
+      "Bash(start chrome:*)"
     ]
   }
 }

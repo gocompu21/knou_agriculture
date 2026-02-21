@@ -777,6 +777,24 @@
                 <a href="https://cafe.daum.net/hwhstudy" target="_blank" rel="noopener">cafe.daum.net/hwhstudy
                     &rarr;</a>
             </div>
+            <div class="join-card">
+                <h3>식물보호기사반</h3>
+                <p>식물보호기사 필기시험 기출문제 학습, 모의고사, 오답노트를 제공합니다.</p>
+                {% if user.is_authenticated %}
+                <a href="{% url 'gisa:certification_list' %}">기사반 입장 &rarr;</a>
+                {% else %}
+                <a href="{% url 'accounts:user_login' %}?next={% url 'gisa:certification_list' %}">로그인 후 이용 &rarr;</a>
+                {% endif %}
+            </div>
+            <div class="join-card">
+                <h3>나무의사반</h3>
+                <p>나무의사 시험 대비 학습시스템으로 체계적인 시험 준비를 지원합니다.</p>
+                {% if user.is_authenticated %}
+                <a href="https://studynamu.com" target="_blank" rel="noopener">studynamu.com &rarr;</a>
+                {% else %}
+                <a href="{% url 'accounts:user_login' %}?next=/">로그인 후 이용 &rarr;</a>
+                {% endif %}
+            </div>
         </div>
     </section>
 

@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "main",
     "exam",
     "accounts",
+    "gisa",
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}오답노트 - {{ cert.name }} | 기사시험{% endblock %}
+
+{% block extra_css %}
+<style>
+    .site-header, .site-footer { display: none !important; }
+    main { padding: 0 !important; }
+    body { background: #fff !important; }
+
+    .wrong-container { max-width: 900px; margin: 0 auto; min-height: 100vh; }
+
+    .wrong-header {
+        background: linear-gradient(135deg, #b71c1c, #c62828);
+        color: #fff; padding: 24px; position: sticky; top: 0; z-index: 100;
+    }
+    .wrong-header h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
+    .wrong-header .wrong-count { font-size: 0.9rem; opacity: 0.85; }
+    .wrong-header-nav { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .wh-btn {
+        padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;
+        text-decoration: none; transition: background 0.15s;
+    }
+    .wh-btn-back { background: rgba(255,255,255,0.2); color: #fff; }
+    .wh-btn-back:hover { background: rgba(255,255,255,0.3); }
+    .wh-btn-retry { background: #fff; color: #c62828; }
+    .wh-btn-retry:hover { background: #ffcdd2; }
+
+    .wrong-list { padding: 0 20px 40px; }
+
+    .w-card {
+        border: 1px solid #e0e0e0; border-left: 4px solid #ef5350;
+        border-radius: 8px; padding: 20px; margin-top: 16px; background: #fff;
+    }
+    .w-subject-tag {
+        display: inline-block; background: #e8eaf6; color: #3949ab;
+        padding: 2px 8px; border-radius: 10px; font-size: 0.72rem;
+        font-weight: 600; margin-bottom: 8px;
+    }
+    .w-text {
+        font-weight: 700; font-size: 1.02em; line-height: 1.5;
+        margin-bottom: 12px; padding-left: 1.3em; text-indent: -1.3em;
+    }
+
+    .w-choice { padding: 5px 10px; border-radius: 6px; margin-bottom: 3px; font-size: 0.9em; position: relative; padding-left: 38px; }
+    .w-choice .q-mark { position: absolute; left: 8px; }
+    .w-choice.user-wrong { background: #ffebee; text-decoration: line-through; }
+    .w-choice.is-answer { color: #2e7d32; font-weight: 600; }
+    .w-choice .exp-inline {
+        display: block; margin-top: 2px; font-size: 0.88em; color: #555;
+        font-weight: 400; text-decoration: none; padding-left: 0;
+    }
+    .w-choice .exp-inline.correct-highlight { color: #111; background: linear-gradient(to top, #fff176 40%, transparent 40%); display: inline; }
+
+    .w-explanation {
+        margin-top: 10px; padding: 10px 14px; background: #fffde7;
+        border-radius: 6px; font-size: 0.88em; line-height: 1.6;
+    }
+
+    .w-toggle-btn {
+        background: none; border: none; cursor: pointer; color: #888;
+        font-size: 0.82em; font-weight: 600; padding: 4px 0; margin-top: 6px;
+        font-family: inherit; padding-left: 18px;
+    }
+    .w-toggle-btn:hover { color: #333; }
+
+    .w-detail { display: none; }
+    .w-card.detail-open .w-detail { display: block; }
+
+    .w-dismiss {
+        display: inline-block; padding: 4px 14px; background: #3949ab; color: #fff;
+        border: none; border-radius: 14px; font-size: 0.8em; font-weight: 600;
+        cursor: pointer; font-family: inherit; margin-left: 10px;
+    }
+    .w-dismiss:hover { background: #283593; }
+
+    .empty-msg { text-align: center; padding: 60px 20px; color: #999; }
+
+    @media (max-width: 480px) {
+        .wrong-header { padding: 16px; }
+        .wrong-list { padding: 0 10px 40px; }
+        .w-card { padding: 14px 10px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrong-container">
+    <div class="wrong-header">
+        <h2>{{ cert.name }} 오답노트</h2>
+        <div class="wrong-count">
+            {% if is_session %}세션 오답 {{ total_wrong }}개 (전체 {{ total_in_session }}문제 중)
+            {% else %}누적 오답 {{ total_wrong }}개{% endif %}
+        </div>
+        <div class="wrong-header-nav">
+            <a href="{% url 'gisa:certification_detail' cert.pk %}?tab=wrong" class="wh-btn wh-btn-back">← 돌아가기</a>
+            {% if total_wrong > 0 and not is_session %}
+            <a href="{% url 'gisa:wrong_answers_retry' cert.pk %}" class="wh-btn wh-btn-retry">오답 재풀이</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="wrong-list">
+        {% if results %}
+            {% for r in results %}
+            <div class="w-card" id="wcard-{{ r.question.id }}">
+                <span class="w-subject-tag">{{ r.question.subject.name }}</span>
+                <div class="w-text">{{ r.question.number }}. {{ r.question.text }}</div>
+
+                {% for c in r.choices %}
+                <div class="w-choice {% if c.user_wrong %}user-wrong{% elif c.is_correct %}is-answer{% endif %}">
+                    <span class="q-mark">&#{{ c.num|add:9311 }};</span> {{ c.text }}
+                </div>
+                {% endfor %}
+
+                <button class="w-toggle-btn" onclick="toggleDetail(this)">▼ 해설보기</button>
+                <button class="w-dismiss" onclick="dismissWrong(this, '{% url 'gisa:wrong_dismiss' cert.pk r.question.id %}', 'wcard-{{ r.question.id }}')">숙지완료</button>
+
+                <div class="w-detail">
+                    {% for c in r.choices %}
+                        {% if c.exp %}
+                        <div class="w-choice {% if c.is_correct %}is-answer{% endif %}" style="background:none; border:none;">
+                            <span class="q-mark">&#{{ c.num|add:9311 }};</span>
+                            {% if c.is_correct %}<span class="exp-inline correct-highlight">↪ {{ c.exp }}</span>
+                            {% else %}<span class="exp-inline">↪ {{ c.exp }}</span>{% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                    {% if r.question.explanation %}
+                    <div class="w-explanation">{{ r.question.explanation }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-msg">오답이 없습니다!</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleDetail(btn) {
+    var card = btn.closest('.w-card');
+    card.classList.toggle('detail-open');
+    btn.textContent = card.classList.contains('detail-open') ? '▲ 해설접기' : '▼ 해설보기';
+}
+function dismissWrong(btn, url, cardId) {
+    fetch(url, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(function(r) { return r.json(); })
+    .then(function() {
+        var card = document.getElementById(cardId);
+        card.style.transition = 'opacity 0.3s';
+        card.style.opacity = '0';
+        setTimeout(function() { card.remove(); }, 300);
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{% if is_textbook_study %}{{ section_title }}{% elif is_wrong_retry %}오답 재풀이{% else %}{{ subject.name }} 학습모드{% endif %} | 기사시험
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .site-header, .site-footer { display: none !important; }
+    main { padding: 0 !important; }
+    body { background: #ffffff !important; }
+
+    .study-container { display: flex; flex-direction: column; min-height: 100vh; max-width: 1200px; margin: 0 auto; }
+
+    .tabs-header {
+        display: flex; flex-wrap: nowrap; background: white; border-bottom: 2px solid #e0e0e0;
+        position: sticky; top: 0; z-index: 100; padding: 15px 20px; gap: 10px; align-items: center;
+    }
+    .header-title { flex: 1; font-size: 1rem; font-weight: 700; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .header-title small { font-weight: 500; color: #888; font-size: 0.85em; }
+    .header-btn {
+        flex: 0 0 auto; padding: 8px 12px; border: 1px solid #ddd; border-radius: 20px;
+        background: #fdfdfd; font-size: 0.85em; font-weight: 600; color: #555; cursor: pointer;
+        transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-decoration: none;
+    }
+    .header-btn:hover { background-color: #e8eaf6; border-color: #5c6bc0; color: #1a237e; }
+    .header-btn.expand-btn { background-color: #fff3cd; color: #856404; }
+    .header-btn.expand-btn.active { background-color: #d4edda; color: #155724; }
+    .header-btn.back-btn { background-color: #f7f7f7; color: #555; }
+
+    .content-area { flex: 1; padding: 20px 0; }
+
+    .question-card {
+        background: white; border: 1px solid #ccc; border-radius: 8px;
+        padding: 30px; margin-bottom: 30px; box-shadow: 2px 2px 5px rgba(0,0,0,0.05);
+    }
+    .q-badge { float: right; background: #e8eaf6; padding: 5px 10px; border-radius: 15px; font-size: 0.9em; color: #3949ab; margin-bottom: 10px; }
+    .q-content { font-size: 1.2em; line-height: 1.6; margin-bottom: 20px; font-weight: bold; padding-left: 1.2em; text-indent: -1.2em; clear: both; }
+
+    .q-choices { padding-left: 20px; margin-bottom: 20px; }
+    .choice-item { margin-bottom: 8px; font-size: 1.05em; padding: 5px; border-radius: 5px; cursor: pointer; transition: background 0.15s; }
+    .choice-item:hover { background-color: #e8eaf6; }
+    .choice-item.selected { background-color: transparent; }
+
+    /* Check mark on selected choice */
+    .choice-item.selected .choice-num::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-35%, -115%) scale(2.5);
+        width: 100%;
+        height: 100%;
+        background-image: url("{% static 'images/exam/check_mark_black.png' %}");
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        mix-blend-mode: multiply;
+        filter: contrast(1.5) brightness(1.1);
+        pointer-events: none;
+    }
+
+    .choice-exp {
+        display: none; margin-top: 4px; margin-left: 1.55em; padding: 6px 0 6px 1.4em;
+        text-indent: -1.4em; font-size: 0.95em; font-weight: 400; color: #555; line-height: 1.6;
+    }
+    .choice-exp.correct-exp { font-weight: 400; color: #111; }
+    .choice-exp.correct-exp .exp-text-inner { background: linear-gradient(to top, #fff176 40%, transparent 40%); }
+    .choice-exp.correct-exp .exp-arrow { color: #d93025; }
+    .question-card.exp-open .choice-exp { display: block; }
+
+    .choice-num {
+        display: inline-block; margin-right: 5px; font-size: 1.1em;
+        background: transparent; position: relative; vertical-align: 0em;
+    }
+    .choice-num.correct::before {
+        content: ""; position: absolute; top: 50%; left: 50%;
+        width: 26px; height: 26px; border: 3px solid #d93025;
+        border-radius: 50% 45% 55% 40% / 50% 55% 45% 50%;
+        transform: translate(-50%, -50%) rotate(-5deg); pointer-events: none;
+    }
+
+    .dismiss-btn {
+        background: #3949ab; border: none; border-radius: 14px; cursor: pointer;
+        color: #fff; font-size: 0.82em; font-weight: 600; padding: 4px 14px;
+        font-family: inherit; transition: background 0.15s;
+    }
+    .dismiss-btn:hover { background: #283593; }
+
+    @media (max-width: 480px) {
+        .tabs-header { padding: 10px; gap: 8px; }
+        .header-title { font-size: 0.9rem; }
+        .header-btn span { display: none; }
+        .content-area { padding: 0; }
+        .question-card { border-radius: 0; border-left: none; border-right: none; padding: 20px 12px; margin-bottom: 8px; }
+        .q-content { font-size: 1rem; line-height: 1.5; margin-bottom: 5px; }
+        .q-choices { padding-left: 10px; margin-bottom: 10px; }
+        .choice-item { font-size: 1rem; padding: 4px 6px; margin-bottom: 2px; display: flex; align-items: first baseline; flex-wrap: wrap; }
+        .q-badge { display: none; }
+        .choice-exp { margin-left: 0; }
+        .choice-num.correct::before { width: 20px; height: 20px; border-width: 2px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="study-container">
+    <div class="tabs-header">
+        <div class="header-title">
+            {% if is_textbook_study %}
+                {{ section_title }} <small>{{ questions|length }}문항</small>
+            {% elif is_wrong_retry %}
+                오답 재풀이 <small>{{ questions|length }}문항</small>
+            {% else %}
+                {{ subject.name }} <small>{{ exam }} &middot; {{ questions|length }}문항</small>
+            {% endif %}
+        </div>
+        <button class="header-btn expand-btn" id="expand-all-btn" onclick="toggleAllExplanations()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M19 9L12 16L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span id="expand-all-text">전체 펼치기</span>
+        </button>
+        <a href="{% if is_textbook_study %}{% url 'gisa:certification_detail' cert.pk %}?tab=textbook{% else %}{% url 'gisa:certification_detail' cert.pk %}{% endif %}" class="header-btn back-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="margin-right:3px;">
+                <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>{% if is_textbook_study %}교재로{% else %}자격증으로{% endif %}</span>
+        </a>
+    </div>
+
+    <div class="content-area">
+        {% for q in questions %}
+        <div class="question-card" data-answer="{{ q.answer }}">
+            <div class="q-header">
+                {% if not is_wrong_retry and not is_textbook_study %}
+                <div style="margin-bottom: 10px;">
+                    <span class="q-badge">{{ q.subject.name }}</span>
+                </div>
+                {% endif %}
+                <div class="q-content">
+                    {{ forloop.counter }}. {{ q.text }}
+                    {% if is_wrong_retry or is_textbook_study %}<span class="q-badge" style="float:none; margin-left:8px; vertical-align:2px; font-size:0.75em;">{{ q.exam.year }}년 {{ q.number }}번</span>{% endif %}
+                </div>
+            </div>
+            <div class="q-choices" data-question-id="{{ q.id }}" data-answer="{{ q.answer }}">
+                <div class="choice-item" onclick="selectChoice(this, 1)">
+                    <span class="choice-num" data-choice="1">&#9312;</span> {{ q.choice_1 }}
+                    {% if q.choice_1_exp %}<div class="choice-exp{% if '1' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_1_exp }}</span></div>{% endif %}
+                </div>
+                <div class="choice-item" onclick="selectChoice(this, 2)">
+                    <span class="choice-num" data-choice="2">&#9313;</span> {{ q.choice_2 }}
+                    {% if q.choice_2_exp %}<div class="choice-exp{% if '2' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_2_exp }}</span></div>{% endif %}
+                </div>
+                <div class="choice-item" onclick="selectChoice(this, 3)">
+                    <span class="choice-num" data-choice="3">&#9314;</span> {{ q.choice_3 }}
+                    {% if q.choice_3_exp %}<div class="choice-exp{% if '3' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_3_exp }}</span></div>{% endif %}
+                </div>
+                <div class="choice-item" onclick="selectChoice(this, 4)">
+                    <span class="choice-num" data-choice="4">&#9315;</span> {{ q.choice_4 }}
+                    {% if q.choice_4_exp %}<div class="choice-exp{% if '4' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_4_exp }}</span></div>{% endif %}
+                </div>
+            </div>
+            {% if is_wrong_retry %}
+            <div class="dismiss-wrap" style="display:none; text-align:left; margin-top:10px;">
+                <button type="button" class="dismiss-btn" onclick="dismissQuestion(this, '{% url 'gisa:wrong_dismiss' cert.pk q.id %}')">OK! 이 문제는 됐어.</button>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectChoice(choiceItem, choiceNum) {
+    var parent = choiceItem.closest('.q-choices');
+    var card = choiceItem.closest('.question-card');
+    var rect = choiceItem.getBoundingClientRect();
+    var topBefore = rect.top;
+
+    parent.querySelectorAll('.choice-item').forEach(function(c) { c.classList.remove('selected'); });
+    choiceItem.classList.add('selected');
+    card.classList.add('exp-open');
+
+    var answerStr = parent.getAttribute('data-answer');
+    var correctAnswers = answerStr.split(',').map(function(s) { return s.trim(); });
+    parent.querySelectorAll('.choice-num').forEach(function(cn) {
+        cn.classList.remove('correct');
+        if (correctAnswers.indexOf(cn.getAttribute('data-choice')) !== -1) cn.classList.add('correct');
+    });
+
+    var dismissWrap = card.querySelector('.dismiss-wrap');
+    if (dismissWrap) dismissWrap.style.display = 'block';
+
+    var topAfter = choiceItem.getBoundingClientRect().top;
+    if (topAfter - topBefore !== 0) window.scrollBy(0, topAfter - topBefore);
+}
+
+var allExpanded = false;
+function toggleAllExplanations() {
+    var text = document.getElementById('expand-all-text');
+    var btn = document.getElementById('expand-all-btn');
+    allExpanded = !allExpanded;
+    document.querySelectorAll('.question-card').forEach(function(card) {
+        if (allExpanded) card.classList.add('exp-open'); else card.classList.remove('exp-open');
+    });
+    document.querySelectorAll('.q-choices').forEach(function(qc) {
+        var ans = qc.getAttribute('data-answer').split(',').map(function(s){return s.trim();});
+        qc.querySelectorAll('.choice-num').forEach(function(cn) {
+            if (allExpanded && ans.indexOf(cn.getAttribute('data-choice')) !== -1) cn.classList.add('correct');
+            else cn.classList.remove('correct');
+        });
+    });
+    text.textContent = allExpanded ? '전체 접기' : '전체 펼치기';
+    if (allExpanded) btn.classList.add('active'); else btn.classList.remove('active');
+}
+
+function dismissQuestion(btn, url) {
+    var card = btn.closest('.question-card');
+    fetch(url, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } }).then(function() {
+        card.style.transition = 'opacity 0.3s, max-height 0.3s';
+        card.style.opacity = '0';
+        card.style.overflow = 'hidden';
+        setTimeout(function() { card.style.maxHeight = '0'; card.style.padding = '0'; card.style.margin = '0'; card.style.border = 'none'; setTimeout(function() { card.remove(); }, 300); }, 300);
+    });
+}
+</script>
+{% endblock %}
