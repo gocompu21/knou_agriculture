@@ -354,7 +354,7 @@
         <div class="subject-pills">
             {% for sname in textbook_subjects %}
             <a href="?tab=textbook&subject={{ sname }}"
-               class="subject-pill{% if sname == textbook_subject %} active{% elif sname != '식물병리학' and sname != '농림해충학' and sname != '재배학원론' and sname != '농약학' %} disabled{% endif %}">
+               class="subject-pill{% if sname == textbook_subject %} active{% endif %}">
                 {{ sname }}
             </a>
             {% endfor %}
