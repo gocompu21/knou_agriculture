@@ -4,82 +4,286 @@
 
 {% block extra_css %}
 <style>
-    .site-header, .site-footer { display: none !important; }
-    main { padding: 0 !important; }
-    body { background: #fff !important; }
+    .site-header,
+    .site-footer {
+        display: none !important;
+    }
 
-    .wrong-container { max-width: 900px; margin: 0 auto; min-height: 100vh; }
+    main {
+        padding: 0 !important;
+    }
 
+    body {
+        background: #ffffff !important;
+    }
+
+    .wrong-container {
+        max-width: 900px;
+        margin: 0 auto;
+        min-height: 100vh;
+    }
+
+    /* ══════════ Sticky Header ══════════ */
     .wrong-header {
-        background: linear-gradient(135deg, #b71c1c, #c62828);
-        color: #fff; padding: 24px; position: sticky; top: 0; z-index: 100;
-    }
-    .wrong-header h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
-    .wrong-header .wrong-count { font-size: 0.9rem; opacity: 0.85; }
-    .wrong-header-nav { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-    .wh-btn {
-        padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;
-        text-decoration: none; transition: background 0.15s;
-    }
-    .wh-btn-back { background: rgba(255,255,255,0.2); color: #fff; }
-    .wh-btn-back:hover { background: rgba(255,255,255,0.3); }
-    .wh-btn-retry { background: #fff; color: #c62828; }
-    .wh-btn-retry:hover { background: #ffcdd2; }
-
-    .wrong-list { padding: 0 20px 40px; }
-
-    .w-card {
-        border: 1px solid #e0e0e0; border-left: 4px solid #ef5350;
-        border-radius: 8px; padding: 20px; margin-top: 16px; background: #fff;
-    }
-    .w-subject-tag {
-        display: inline-block; background: #e8eaf6; color: #3949ab;
-        padding: 2px 8px; border-radius: 10px; font-size: 0.72rem;
-        font-weight: 600; margin-bottom: 8px;
-    }
-    .w-text {
-        font-weight: 700; font-size: 1.02em; line-height: 1.5;
-        margin-bottom: 12px; padding-left: 1.3em; text-indent: -1.3em;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: white;
+        border-bottom: 2px solid #e0e0e0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        padding: 15px 20px;
     }
 
-    .w-choice { padding: 5px 10px; border-radius: 6px; margin-bottom: 3px; font-size: 0.9em; position: relative; padding-left: 38px; }
-    .w-choice .q-mark { position: absolute; left: 8px; }
-    .w-choice.user-wrong { background: #ffebee; text-decoration: line-through; }
-    .w-choice.is-answer { color: #2e7d32; font-weight: 600; }
-    .w-choice .exp-inline {
-        display: block; margin-top: 2px; font-size: 0.88em; color: #555;
-        font-weight: 400; text-decoration: none; padding-left: 0;
-    }
-    .w-choice .exp-inline.correct-highlight { color: #111; background: linear-gradient(to top, #fff176 40%, transparent 40%); display: inline; }
-
-    .w-explanation {
-        margin-top: 10px; padding: 10px 14px; background: #fffde7;
-        border-radius: 6px; font-size: 0.88em; line-height: 1.6;
+    .wrong-header-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #333;
     }
 
-    .w-toggle-btn {
-        background: none; border: none; cursor: pointer; color: #888;
-        font-size: 0.82em; font-weight: 600; padding: 4px 0; margin-top: 6px;
-        font-family: inherit; padding-left: 18px;
+    .wrong-header-title small {
+        font-weight: 500;
+        color: #888;
+        font-size: 0.85em;
     }
-    .w-toggle-btn:hover { color: #333; }
 
-    .w-detail { display: none; }
-    .w-card.detail-open .w-detail { display: block; }
-
-    .w-dismiss {
-        display: inline-block; padding: 4px 14px; background: #3949ab; color: #fff;
-        border: none; border-radius: 14px; font-size: 0.8em; font-weight: 600;
-        cursor: pointer; font-family: inherit; margin-left: 10px;
+    .wrong-header-btns {
+        display: flex;
+        gap: 8px;
     }
-    .w-dismiss:hover { background: #283593; }
 
-    .empty-msg { text-align: center; padding: 60px 20px; color: #999; }
+    .header-btn {
+        padding: 8px 14px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        background: #fdfdfd;
+        font-size: 0.85em;
+        font-weight: 600;
+        color: #555;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        font-family: inherit;
+    }
 
-    @media (max-width: 480px) {
-        .wrong-header { padding: 16px; }
-        .wrong-list { padding: 0 10px 40px; }
-        .w-card { padding: 14px 10px; }
+    .header-btn:hover {
+        background-color: #f0f7f4;
+        border-color: #97bc62;
+        color: #2c5f2d;
+    }
+
+    .header-btn.retry-btn {
+        background: #ff6b35;
+        color: white;
+        border-color: #ff6b35;
+    }
+
+    .header-btn.retry-btn:hover {
+        background: #e55a2b;
+    }
+
+    /* ══════════ Question Item ══════════ */
+    .wrong-question {
+        padding: 20px;
+        border-bottom: 1px solid #f0f0f0;
+        position: relative;
+        transition: opacity 0.3s;
+    }
+
+    .wrong-question:last-child {
+        border-bottom: none;
+    }
+
+    .wq-content {
+        font-weight: bold;
+        font-size: 1.05em;
+        line-height: 1.6;
+        padding-left: 1.3em;
+        text-indent: -1.3em;
+        margin-bottom: 10px;
+        padding-right: 0;
+    }
+
+    .wq-source {
+        display: block;
+        text-align: right;
+        font-size: 0.8em;
+        font-weight: 500;
+        color: #888;
+        margin-top: 4px;
+        text-indent: 0;
+    }
+
+    .wq-choices {
+        padding-left: 10px;
+    }
+
+    .wq-choice {
+        padding: 4px 6px 4px 38px;
+        position: relative;
+        font-size: 0.95em;
+        line-height: 1.5;
+        border-radius: 4px;
+        margin-bottom: 2px;
+    }
+
+    .wq-choice>.q-mark {
+        position: absolute;
+        left: 8px;
+        top: 5px;
+    }
+
+    .q-mark {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 1.5px solid #333;
+        font-size: 0.75em;
+        font-weight: 600;
+        margin-right: 6px;
+        vertical-align: 1px;
+        background: #fff;
+        color: #333;
+        position: relative;
+    }
+
+    /* 정답 표시: 빨간 동그라미 */
+    .q-mark.correct-mark::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 26px;
+        height: 26px;
+        border: 3px solid #d93025;
+        border-radius: 50% 45% 55% 40% / 50% 55% 45% 50%;
+        transform: translate(-50%, -50%) rotate(-5deg);
+        pointer-events: none;
+    }
+
+    /* 사용자가 선택한 답 */
+    .wq-choice.user-selected .q-mark {
+        background: #333;
+        color: #fff;
+    }
+
+    .wq-choice.user-wrong {
+        background: transparent;
+    }
+
+    /* 해설 */
+    .choice-exp {
+        display: none;
+        margin-top: 4px;
+        margin-left: 0;
+        padding: 4px 0;
+        font-size: 0.9em;
+        color: #555;
+        line-height: 1.6;
+    }
+
+    .wrong-question.exp-open .choice-exp {
+        display: block;
+    }
+
+    .choice-exp.correct-choice-exp {
+        color: #111;
+        font-weight: 500;
+    }
+
+    .choice-exp.correct-choice-exp .exp-text-inner {
+        background: linear-gradient(to top, #fff176 40%, transparent 40%);
+    }
+
+    .global-exp {
+        display: none;
+        margin-top: 10px;
+        padding: 10px 14px;
+        background: #fffde7;
+        border-radius: 6px;
+        font-size: 0.88em;
+        line-height: 1.6;
+    }
+
+    .wrong-question.exp-open .global-exp {
+        display: block;
+    }
+
+    .exp-toggle {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #888;
+        font-size: 0.85em;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 0;
+        font-family: inherit;
+    }
+
+    .exp-toggle:hover {
+        color: #555;
+    }
+
+    .wq-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .dismiss-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #888;
+        font-size: 0.85em;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 0;
+        font-family: inherit;
+    }
+
+    .dismiss-btn:hover {
+        color: #555;
+    }
+
+    .empty-msg {
+        text-align: center;
+        padding: 80px 20px;
+        color: #888;
+        font-size: 0.95rem;
+    }
+
+    /* ══════════ Responsive ══════════ */
+    @media (max-width: 560px) {
+        .wrong-header {
+            padding: 10px 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .wrong-question {
+            padding: 16px 12px;
+        }
+
+        .wq-content {
+            font-size: 1rem;
+        }
     }
 </style>
 {% endblock %}
@@ -87,74 +291,108 @@
 {% block content %}
 <div class="wrong-container">
     <div class="wrong-header">
-        <h2>{{ cert.name }} 오답노트</h2>
-        <div class="wrong-count">
-            {% if is_session %}세션 오답 {{ total_wrong }}개 (전체 {{ total_in_session }}문제 중)
-            {% else %}누적 오답 {{ total_wrong }}개{% endif %}
+        <div class="wrong-header-title">
+            {{ cert.name }}
+            <small>
+                {% if is_session %}
+                {% if mode == 'mock' %}모의고사{% else %}풀이{% endif %} 오답 &middot; {{ total_wrong }}개 (전체 {{
+                total_in_session }}중)
+                {% else %}
+                전체 오답노트 &middot; {{ total_wrong }}문제
+                {% endif %}
+            </small>
         </div>
-        <div class="wrong-header-nav">
-            <a href="{% url 'gisa:certification_detail' cert.pk %}?tab=wrong" class="wh-btn wh-btn-back">← 돌아가기</a>
+        <div class="wrong-header-btns">
             {% if total_wrong > 0 and not is_session %}
-            <a href="{% url 'gisa:wrong_answers_retry' cert.pk %}" class="wh-btn wh-btn-retry">오답 재풀이</a>
+            <a href="{% url 'gisa:wrong_answers_retry' cert.pk %}" class="header-btn retry-btn">다시 도전</a>
+            {% endif %}
+            <button type="button" class="header-btn" id="toggleAllBtn" onclick="toggleAll()">전체 펼치기</button>
+            <a href="{% url 'gisa:certification_detail' cert.pk %}?tab=wrong" class="header-btn">돌아가기</a>
+        </div>
+    </div>
+
+    {% if results %}
+    {% for r in results %}
+    <div class="wrong-question" id="wq-{{ r.question.id }}">
+        <div class="wq-content">
+            {{ forloop.counter }}. {{ r.question.text }}
+            <span class="wq-source">{{ r.question.subject.name }} {{ r.question.exam.year }}년 {{ r.question.exam.round
+                }}회 {{ r.question.number }}번</span>
+        </div>
+        <div class="wq-choices">
+            {% for c in r.choices %}
+            <div
+                class="wq-choice{% if c.is_selected %} user-selected{% endif %}{% if c.user_wrong %} user-wrong{% endif %}">
+                <span class="q-mark{% if c.is_correct %} correct-mark{% endif %}">{{ c.num }}</span> {{ c.text }}
+                {% if c.exp %}
+                <div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span
+                        class="exp-text-inner">{{ c.exp }}</span></div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% if r.question.explanation %}
+        <div class="global-exp">{{ r.question.explanation }}</div>
+        {% endif %}
+        <div class="wq-actions">
+            <button type="button" class="exp-toggle" onclick="toggleExp(this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M19 9L12 16L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                해설보기
+            </button>
+            {% if not is_session %}
+            <button type="button" class="dismiss-btn"
+                onclick="dismissWrong(this, '{% url 'gisa:wrong_dismiss' cert.pk r.question.id %}', 'wq-{{ r.question.id }}')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                노트 제외
+            </button>
             {% endif %}
         </div>
     </div>
-
-    <div class="wrong-list">
-        {% if results %}
-            {% for r in results %}
-            <div class="w-card" id="wcard-{{ r.question.id }}">
-                <span class="w-subject-tag">{{ r.question.subject.name }}</span>
-                <div class="w-text">{{ r.question.number }}. {{ r.question.text }}</div>
-
-                {% for c in r.choices %}
-                <div class="w-choice {% if c.user_wrong %}user-wrong{% elif c.is_correct %}is-answer{% endif %}">
-                    <span class="q-mark">&#{{ c.num|add:9311 }};</span> {{ c.text }}
-                </div>
-                {% endfor %}
-
-                <button class="w-toggle-btn" onclick="toggleDetail(this)">▼ 해설보기</button>
-                <button class="w-dismiss" onclick="dismissWrong(this, '{% url 'gisa:wrong_dismiss' cert.pk r.question.id %}', 'wcard-{{ r.question.id }}')">숙지완료</button>
-
-                <div class="w-detail">
-                    {% for c in r.choices %}
-                        {% if c.exp %}
-                        <div class="w-choice {% if c.is_correct %}is-answer{% endif %}" style="background:none; border:none;">
-                            <span class="q-mark">&#{{ c.num|add:9311 }};</span>
-                            {% if c.is_correct %}<span class="exp-inline correct-highlight">↪ {{ c.exp }}</span>
-                            {% else %}<span class="exp-inline">↪ {{ c.exp }}</span>{% endif %}
-                        </div>
-                        {% endif %}
-                    {% endfor %}
-                    {% if r.question.explanation %}
-                    <div class="w-explanation">{{ r.question.explanation }}</div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty-msg">오답이 없습니다!</div>
-        {% endif %}
-    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-msg">틀린 문제가 없습니다!</div>
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function toggleDetail(btn) {
-    var card = btn.closest('.w-card');
-    card.classList.toggle('detail-open');
-    btn.textContent = card.classList.contains('detail-open') ? '▲ 해설접기' : '▼ 해설보기';
-}
-function dismissWrong(btn, url, cardId) {
-    fetch(url, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' } })
-    .then(function(r) { return r.json(); })
-    .then(function() {
-        var card = document.getElementById(cardId);
-        card.style.transition = 'opacity 0.3s';
-        card.style.opacity = '0';
-        setTimeout(function() { card.remove(); }, 300);
-    });
-}
+    var allOpen = false;
+
+    function toggleExp(btn) {
+        var item = btn.closest('.wrong-question');
+        item.classList.toggle('exp-open');
+        btn.querySelector('svg').style.transform = item.classList.contains('exp-open') ? 'rotate(180deg)' : '';
+    }
+
+    function toggleAll() {
+        allOpen = !allOpen;
+        document.querySelectorAll('.wrong-question').forEach(function (el) {
+            if (allOpen) {
+                el.classList.add('exp-open');
+            } else {
+                el.classList.remove('exp-open');
+            }
+            var svg = el.querySelector('.exp-toggle svg');
+            if (svg) svg.style.transform = allOpen ? 'rotate(180deg)' : '';
+        });
+        document.getElementById('toggleAllBtn').textContent = allOpen ? '전체 접기' : '전체 펼치기';
+    }
+
+    function dismissWrong(btn, url, cardId) {
+        fetch(url, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.json(); })
+            .then(function () {
+                var card = document.getElementById(cardId);
+                card.style.opacity = '0';
+                setTimeout(function () { card.remove(); }, 300);
+            });
+    }
 </script>
 {% endblock %}

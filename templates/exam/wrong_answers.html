@@ -4,9 +4,18 @@
 
 {% block extra_css %}
 <style>
-    .site-header, .site-footer { display: none !important; }
-    main { padding: 0 !important; }
-    body { background: #ffffff !important; }
+    .site-header,
+    .site-footer {
+        display: none !important;
+    }
+
+    main {
+        padding: 0 !important;
+    }
+
+    body {
+        background: #ffffff !important;
+    }
 
     .wrong-container {
         max-width: 900px;
@@ -101,15 +110,12 @@
     }
 
     .wq-source {
-        display: inline-block;
-        font-size: 0.75em;
+        display: block;
+        text-align: right;
+        font-size: 0.8em;
         font-weight: 500;
         color: #888;
-        background: #f0f0f0;
-        padding: 1px 6px;
-        border-radius: 4px;
-        margin-left: 12px;
-        vertical-align: 2px;
+        margin-top: 4px;
         text-indent: 0;
     }
 
@@ -126,7 +132,7 @@
         margin-bottom: 2px;
     }
 
-    .wq-choice > .q-mark {
+    .wq-choice>.q-mark {
         position: absolute;
         left: 8px;
         top: 5px;
@@ -224,32 +230,34 @@
         font-family: inherit;
     }
 
-    .exp-toggle:hover { color: #555; }
+    .exp-toggle:hover {
+        color: #555;
+    }
 
     .wq-actions {
         display: flex;
         align-items: center;
-        justify-content: flex-start;
+        justify-content: flex-end;
         gap: 12px;
         margin-top: 8px;
-        padding-left: 18px;
     }
 
     .dismiss-btn {
-        background: #2d8a4e;
+        background: none;
         border: none;
-        border-radius: 14px;
         cursor: pointer;
-        color: #fff;
-        font-size: 0.82em;
+        color: #888;
+        font-size: 0.85em;
         font-weight: 600;
-        padding: 4px 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 0;
         font-family: inherit;
-        transition: background 0.15s;
     }
 
     .dismiss-btn:hover {
-        background: #236b3e;
+        color: #555;
     }
 
     .empty-msg {
@@ -285,9 +293,9 @@
             {{ subject.name }}
             <small>
                 {% if is_session %}
-                    {% if mode == 'mock' %}모의고사{% else %}풀이{% endif %} 오답 &middot; {{ total_wrong }}문제
+                {% if mode == 'mock' %}모의고사{% else %}풀이{% endif %} 오답 &middot; {{ total_wrong }}문제
                 {% else %}
-                    전체 오답노트 &middot; {{ total_wrong }}문제
+                전체 오답노트 &middot; {{ total_wrong }}문제
                 {% endif %}
             </small>
         </div>
@@ -301,38 +309,51 @@
     </div>
 
     {% if results %}
-        {% for r in results %}
-        <div class="wrong-question" id="wq-{{ r.question.id }}">
-            {% comment %}grade-x removed{% endcomment %}
-            <div class="wq-content">
-                {{ r.question.number }}. {{ r.question.text }}
-            </div>
-            <div class="wq-choices">
-                {% for c in r.choices %}
-                <div class="wq-choice{% if c.is_selected %} user-selected{% endif %}{% if c.user_wrong %} user-wrong{% endif %}">
-                    <span class="q-mark{% if c.is_correct %} correct-mark{% endif %}">{{ c.num }}</span> {{ c.text }}
-                    {% if c.exp %}
-                    <div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-            <div class="wq-actions">
-                <button type="button" class="exp-toggle" onclick="toggleExp(this)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 9L12 16L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    해설보기
-                </button>
-                {% if not is_session %}
-                <form method="post" action="{% url 'exam:wrong_dismiss' subject.pk r.question.id %}" style="margin:0;">
-                    {% csrf_token %}
-                    <button type="submit" class="dismiss-btn">OK! 이 문제는 됐어</button>
-                </form>
+    {% for r in results %}
+    <div class="wrong-question" id="wq-{{ r.question.id }}">
+        {% comment %}grade-x removed{% endcomment %}
+        <div class="wq-content">
+            {{ forloop.counter }}. {{ r.question.text }}
+            <span class="wq-source">{{ r.question.exam.year }}년 {{ r.question.exam.exam_type }} {{ r.question.number
+                }}번</span>
+        </div>
+        <div class="wq-choices">
+            {% for c in r.choices %}
+            <div
+                class="wq-choice{% if c.is_selected %} user-selected{% endif %}{% if c.user_wrong %} user-wrong{% endif %}">
+                <span class="q-mark{% if c.is_correct %} correct-mark{% endif %}">{{ c.num }}</span> {{ c.text }}
+                {% if c.exp %}
+                <div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span
+                        class="exp-text-inner">{{ c.exp }}</span></div>
                 {% endif %}
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
+        <div class="wq-actions">
+            <button type="button" class="exp-toggle" onclick="toggleExp(this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M19 9L12 16L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                해설보기
+            </button>
+            {% if not is_session %}
+            <form method="post" action="{% url 'exam:wrong_dismiss' subject.pk r.question.id %}" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="dismiss-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    노트 제외
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
     {% else %}
-        <div class="empty-msg">틀린 문제가 없습니다!</div>
+    <div class="empty-msg">틀린 문제가 없습니다!</div>
     {% endif %}
 </div>
 {% endblock %}
@@ -349,7 +370,7 @@
 
     function toggleAll() {
         allOpen = !allOpen;
-        document.querySelectorAll('.wrong-question').forEach(function(el) {
+        document.querySelectorAll('.wrong-question').forEach(function (el) {
             if (allOpen) {
                 el.classList.add('exp-open');
             } else {

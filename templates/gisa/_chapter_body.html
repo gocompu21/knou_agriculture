@@ -23,7 +23,7 @@
             </form>
             <div class="q-refs">
                 {% for qref in sub.questions %}
-                <a class="q-ref-badge" href="{% url 'gisa:textbook_study' cert.pk %}?ref={{ qref }}&title={{ sub.title|urlencode }}">{{ qref }}</a>
+                <span class="q-ref-badge">{{ qref }}</span>
                 {% endfor %}
             </div>
         </div>
@@ -41,7 +41,7 @@
             </form>
             <div class="q-refs">
                 {% for qref in sec.questions %}
-                <a class="q-ref-badge" href="{% url 'gisa:textbook_study' cert.pk %}?ref={{ qref }}&title={{ sec.title|urlencode }}">{{ qref }}</a>
+                <span class="q-ref-badge">{{ qref }}</span>
                 {% endfor %}
             </div>
         </div>
@@ -56,7 +56,7 @@
             </form>
             <div class="q-refs">
                 {% for qref in sec.all_questions %}
-                <a class="q-ref-badge" href="{% url 'gisa:textbook_study' cert.pk %}?ref={{ qref }}&title={{ sec.title|urlencode }}">{{ qref }}</a>
+                <span class="q-ref-badge">{{ qref }}</span>
                 {% endfor %}
             </div>
         </div>

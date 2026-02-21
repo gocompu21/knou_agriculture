@@ -339,8 +339,8 @@
     <!-- Tab Navigation -->
     <div class="tab-nav">
         <button class="tab-btn{% if active_tab == 'textbook' %} active{% endif %}" onclick="switchTab('textbook')">교재</button>
-        <button class="tab-btn{% if active_tab == 'study' %} active{% endif %}" onclick="switchTab('study')">학습</button>
-        <button class="tab-btn{% if active_tab == 'solve' %} active{% endif %}" onclick="switchTab('solve')">풀이</button>
+        <button class="tab-btn{% if active_tab == 'study' %} active{% endif %}" onclick="switchTab('study')">기출학습</button>
+        <button class="tab-btn{% if active_tab == 'solve' %} active{% endif %}" onclick="switchTab('solve')">기출고사</button>
         <button class="tab-btn{% if active_tab == 'mock' %} active{% endif %}" onclick="switchTab('mock')">모의고사</button>
         <button class="tab-btn{% if active_tab == 'wrong' %} active{% endif %}" onclick="switchTab('wrong')">
             오답노트{% if wrong_count %}<span class="tab-badge">{{ wrong_count }}</span>{% endif %}
@@ -354,7 +354,7 @@
         <div class="subject-pills">
             {% for sname in textbook_subjects %}
             <a href="?tab=textbook&subject={{ sname }}"
-               class="subject-pill{% if sname == textbook_subject %} active{% elif sname != '식물병리학' and sname != '농림해충학' and sname != '재배학원론' %} disabled{% endif %}">
+               class="subject-pill{% if sname == textbook_subject %} active{% elif sname != '식물병리학' and sname != '농림해충학' and sname != '재배학원론' and sname != '농약학' %} disabled{% endif %}">
                 {{ sname }}
             </a>
             {% endfor %}
@@ -482,11 +482,7 @@
 {% block extra_js %}
 <script>
 function switchTab(tabName) {
-    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-    document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
-    event.target.classList.add('active');
-    document.getElementById('tab-' + tabName).classList.add('active');
-    history.replaceState(null, '', '?tab=' + tabName);
+    window.location.href = '?tab=' + tabName;
 }
 
 function toggleChapter(el) {

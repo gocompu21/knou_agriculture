@@ -270,15 +270,22 @@ def certification_detail(request, cert_id):
     exams = GisaExam.objects.filter(certification=cert)
     subjects = GisaSubject.objects.filter(certification=cert)
 
-    # 회차별 카드 데이터
-    exam_cards = []
-    for exam in exams:
-        q_count = GisaQuestion.objects.filter(exam=exam).count()
-        exam_cards.append({"exam": exam, "count": q_count})
+    active_tab = request.GET.get("tab", "textbook")
+    total_questions = GisaQuestion.objects.filter(exam__certification=cert).count()
 
-    # 오답 수 계산
+    # 교재 탭이 아닐 때만 시험/세션 데이터 로드 (switchTab은 페이지 리로드)
+    exam_cards = []
     wrong_count = 0
-    if request.user.is_authenticated:
+    exam_sessions = []
+
+    # 탭별 필요한 데이터만 로드 (switchTab은 페이지 리로드)
+    if active_tab in ("study", "solve"):
+        exam_cards = [
+            {"exam": e, "count": e.q_count}
+            for e in exams.annotate(q_count=Count("gisaquestion")).order_by("-year", "-round")
+        ]
+
+    if active_tab == "wrong" and request.user.is_authenticated:
         latest_ids = (
             GisaAttempt.objects.filter(
                 user=request.user,
@@ -292,9 +299,7 @@ def certification_detail(request, cert_id):
             pk__in=latest_ids, is_correct=False
         ).count()
 
-    # 세션 이력
-    exam_sessions = []
-    if request.user.is_authenticated:
+    if active_tab == "history" and request.user.is_authenticated:
         session_ids = (
             GisaAttempt.objects.filter(
                 user=request.user,
@@ -330,9 +335,6 @@ def certification_detail(request, cert_id):
                 }
             )
         exam_sessions.sort(key=lambda s: s["date"], reverse=True)
-
-    active_tab = request.GET.get("tab", "textbook")
-    total_questions = GisaQuestion.objects.filter(exam__certification=cert).count()
 
     # 교재 데이터 — 교재 탭일 때만 장 제목 전달 (섹션은 AJAX로 로드)
     textbook_chapters = []
