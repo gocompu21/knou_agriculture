@@ -418,7 +418,7 @@ python manage.py generate_gisa_explanations --dry-run
 
 ### certification_detail 탭 구조
 
-탭 순서: **교재** → 학습 → 풀이 → 모의고사 → 오답노트 → 시험이력
+탭 순서: **교재** → 기출학습 → 기출고사 → 모의고사 → 오답노트 → 시험이력
 
 - 기본 활성 탭: `textbook` (교재)
 - URL 파라미터: `?tab=textbook`, `?tab=study`, `?tab=exam`, `?tab=mock`, `?tab=wrong`, `?tab=history`
@@ -429,11 +429,12 @@ python manage.py generate_gisa_explanations --dry-run
 
 **데이터 소스**: `data/{과목명}_핵심정리.md`
 
-**현재 완성된 교재**:
-- 식물병리학 (14장 + 부록, 660문제 100% 커버리지)
+**현재 완성된 교재** (5과목 전체 완성):
+- 식물병리학 (14장 + 부록, 660문제 100% 커버리지, 교재형 서술 스타일)
 - 농림해충학 (13장 + 부록 8개 표, 660문제 100% 커버리지, 3689줄)
 - 재배학원론 (12장 + 부록, 660문제 100% 커버리지, 4263줄)
 - 농약학 (10장 + 부록, 660문제 100% 커버리지, 3308줄)
+- 잡초방제학 (10장 + 부록, 680문제 100% 커버리지, 2067줄)
 
 **마크다운 파서** (`gisa/views.py` → `parse_study_guide()`):
 - `## 제N장.` → 장(chapter)
@@ -442,6 +443,7 @@ python manage.py generate_gisa_explanations --dry-run
 - `**관련 문제**: (YYYY-R-N)` → 관련 기출문제 참조
 - 문제 참조 형식: `YYYY-R-N` (연도-회차-문항번호)
 - bullet(`-`) → `<li>`, 마크다운 테이블 → `<table class='tb-summary'>`
+- 일반 텍스트(paragraph) → `<p>` (서술형 교재 스타일 지원)
 - 볼드(`**...**`) → `<strong>`, 이탤릭(`*...*`) → `<em>`
 
 **UI 구성**:
@@ -453,7 +455,7 @@ python manage.py generate_gisa_explanations --dry-run
   │   관련문제: (2011-1-5) (2012-2-2) ...                   ← 배지, 클릭→학습모드
 ```
 
-- 과목 버튼: pill 스타일, 선택 시 `#1b4332` 배경 (현재 식물병리학·농림해충학 활성, 나머지 "준비 중")
+- 과목 버튼: pill 스타일, 선택 시 `#1b4332` 배경, 5과목 전체 활성화
 - URL: `?tab=textbook&subject=식물병리학`
 - 관련문제 배지 클릭 → `textbook_study` 뷰로 이동 (GET/POST로 `ref` 파라미터 전달)
 - `textbook_study` 뷰: `YYYY-R-N` refs를 `(exam__year, exam__round, number)` 조건으로 DB 조회
@@ -572,7 +574,7 @@ knou_agriculture/
 - 핵심정리 마크다운의 문제 참조 형식: `YYYY-R-N` (연도-회차-문항번호), 예: `2011-1-5`
 - `parse_study_guide()`는 파일 I/O를 포함하므로 `certification_detail` 뷰에서 `tab=textbook`일 때만 호출
 - 교재 과목 전환 시 `data/{과목명}_핵심정리.md` 파일이 없으면 빈 목록 표시
-- 현재 식물병리학·농림해충학·재배학원론·농약학 핵심정리 완성 (각 660문제 100%), 나머지 1과목(잡초방제학)은 "준비 중"
+- 5과목 전체 핵심정리 완성: 식물병리학·농림해충학·재배학원론·농약학·잡초방제학 (각 660/680문제 100%)
 - 핵심정리 생성 작업 패턴: DB에서 문제 JSON 추출 → 장 단위 병렬 에이전트로 초안 생성 → 통합 → 커버리지 검증 → 누락 보완 → 100% 달성 → UI pill 활성화
 
 ## 최신기출 데이터 관리 및 카페 크롤링 연동
@@ -589,3 +591,75 @@ knou_agriculture/
 - 텍스트 덩어리인 '보기'를 `choice_1 ~ choice_4` 필드로 분할
 - 추출된 '답' 문자열은 정답 유추의 불확실성을 고려하여 `explanation`(해설) 필드에 먼저 보존 (`answer`는 '0'으로 초기화)
 - 2020년 이후 전체 최신기출은 2,500+ 문항 확보 중, 과목·연도별 현황 통계(엑셀) 추출 파이프라인 구축됨
+
+## 교재형 서술 스타일 전환
+
+### 개요
+
+핵심정리 마크다운의 콘텐츠 형식을 **나열형 불렛** → **교재형 서술문**으로 전환하는 작업.
+
+### 변환 규칙
+
+1. `**핵심 정리**` 라벨 제거
+2. 불렛 나열 → 자연스러운 문장으로 서술. 교재를 읽듯 흐름이 이어져야 함
+3. 불렛(`- `)은 열거가 필요한 곳(분류 항목, 비교 리스트)에서만 사용
+4. 내용이 충분한 절에는 `#### N.M.K 소제목`으로 하위 구조화
+5. 핵심 용어는 `**볼드**`로 강조 유지
+6. 기존 내용 100% 포함 + 자연스러운 흐름을 위해 부연 설명 추가 가능
+7. `**관련 문제**: (YYYY-R-N), ...` 줄은 절대 변경 금지
+8. 마크다운 테이블, 키워드 요약 테이블은 그대로 유지
+
+### 전환 현황
+
+| 과목 | 상태 | 비고 |
+|------|------|------|
+| 식물병리학 | 완료 | 2,460줄, 684개 문제 참조 100% 보존 |
+| 농림해충학 | 미전환 | 나열형 |
+| 재배학원론 | 미전환 | 나열형 |
+| 농약학 | 미전환 | 나열형 |
+| 잡초방제학 | 미전환 | 나열형 |
+
+### 파서 지원
+
+`parse_study_guide()`에 단락(paragraph) 텍스트 지원 추가 완료:
+- `- `로 시작하지 않는 일반 텍스트 줄 → `<p>` 태그로 변환
+- 연속된 텍스트 줄은 하나의 `<p>`로 결합
+- `.content-box p` CSS: `font-size: 0.88rem`, `line-height: 1.75`, `text-align: justify`, `color: #333`
+- `.content-box p strong` CSS: `color: #1b4332` (진한 녹색 강조)
+
+## 기사시험 기출고사 페이지 (exam_take.html)
+
+`templates/gisa/exam_take.html`은 독립 HTML (base.html 미상속)로 구성.
+
+- mock_exam_take.html과 동일한 구조: OMR 버블 마킹, 타이머, 과목 구분선
+- 색상: 남색 계열(`#1a237e`, `#7986cb`) — 모의고사(주황/녹색)와 구분
+- `selectAnswer()`, `selectBubble()`, `highlightQuestionChoice()` JS 함수
+
+## 시험이력 탭 (API 기반 무한 스크롤)
+
+### history_api 뷰
+
+- URL: `/gisa/<cert_id>/api/history/`
+- 세션별 집계 쿼리 + 과목별 점수 산정
+- 페이지네이션: `?page=N` (기본 20건)
+
+### 과목별 점수 산정
+
+- 기출고사/모의고사: 과목별 100점 (정답수/20 × 100)
+- 평균 점수 표시
+- 합격 조건: 평균 60점 이상 **AND** 모든 과목 40점 이상
+- 색상: 60점 이상 녹색, 40~59점 노랑, 40점 미만 회색
+
+### UI
+
+- 무한 스크롤: 내부 컨테이너(`max-height:60vh; overflow-y:auto`)의 scroll 이벤트 감지
+- 삭제: 쓰레기통 SVG 아이콘 (배경 없음)
+- 일시: 상대 시간 표시 (`timeAgo()` 함수 — 분/시간/일/개월/년 전)
+- 모의고사 배지: 녹색 톤, 기출고사 배지: 남색 톤
+- 전체 기록 삭제 버튼: 하단 배치
+
+## django.contrib.humanize
+
+`INSTALLED_APPS`에 `django.contrib.humanize` 추가.
+
+- `certification_list.html`, `certification_detail.html`에서 `{% load humanize %}` + `{{ count|intcomma }}`로 천자리 콤마 표시

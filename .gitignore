@@ -25,6 +25,7 @@ Thumbs.db
 
 # Data
 data/
+!data/*.md
 
 # Environment variables
 .env

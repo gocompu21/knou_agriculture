@@ -4,7 +4,7 @@ import uuid
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Max, Q
+from django.db.models import Count, Max, Min, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -56,9 +56,10 @@ def parse_study_guide(filepath):
         body = re.sub(r"\*\*관련 기출문제\*\*.*", "", body, flags=re.DOTALL).strip()
         # 마크다운 볼드/이탤릭을 HTML로 변환
         body = re.sub(r"\*\*핵심 정리\*\*", "", body)
-        # bullet + table을 HTML로
+        # bullet + table + paragraph를 HTML로
         html_lines = []
         table_rows = []
+        para_lines = []
 
         def _flush_table():
             nonlocal table_rows
@@ -73,13 +74,25 @@ def parse_study_guide(filepath):
             html_lines.append("</table>")
             table_rows = []
 
+        def _flush_para():
+            nonlocal para_lines
+            if not para_lines:
+                return
+            text = " ".join(para_lines)
+            text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
+            text = re.sub(r"\*(.+?)\*", r"<em>\1</em>", text)
+            html_lines.append(f"<p>{text}</p>")
+            para_lines = []
+
         for line in body.split("\n"):
             line = line.strip()
             if not line:
                 _flush_table()
+                _flush_para()
                 continue
             # 마크다운 테이블 행
             if line.startswith("|"):
+                _flush_para()
                 # 구분선(|---|---|) 건너뜀
                 if re.match(r"^\|[\s\-:|]+\|$", line):
                     continue
@@ -90,6 +103,7 @@ def parse_study_guide(filepath):
                 continue
             _flush_table()
             if line.startswith("- "):
+                _flush_para()
                 line_content = line[2:]
                 # 볼드 변환
                 line_content = re.sub(
@@ -99,14 +113,18 @@ def parse_study_guide(filepath):
                 line_content = re.sub(r"\*(.+?)\*", r"<em>\1</em>", line_content)
                 html_lines.append(f"<li>{line_content}</li>")
             elif line.startswith("  - "):
+                _flush_para()
                 line_content = line[4:]
                 line_content = re.sub(
                     r"\*\*(.+?)\*\*", r"<strong>\1</strong>", line_content
                 )
                 line_content = re.sub(r"\*(.+?)\*", r"<em>\1</em>", line_content)
                 html_lines.append(f"<li class='sub-item'>{line_content}</li>")
+            else:
+                para_lines.append(line)
 
         _flush_table()
+        _flush_para()
         # bullet이 있으면 <ul>로 감싸고, table만 있으면 그대로
         has_li = any("<li>" in h or "<li " in h for h in html_lines)
         has_table = any("<table" in h for h in html_lines)
@@ -892,12 +910,38 @@ def history_api(request, cert_id):
     results = []
     for row in rows:
         sid = row["session_id"]
-        first = GisaAttempt.objects.filter(user=request.user, session_id=sid).order_by("created_at").first()
+        s_attempts = GisaAttempt.objects.filter(user=request.user, session_id=sid).select_related("question__subject")
+        first = s_attempts.order_by("created_at").first()
         total = row["total"]
         correct = row["correct"]
         wrong = total - correct
-        score = round(correct / total * 100) if total else 0
         mode = first.mode if first else "exam"
+
+        # 과목별 점수 산정 (기출고사/모의고사)
+        subjects_data = []
+        if mode in ("exam", "mock"):
+            subj_stats = (
+                s_attempts.values("question__subject__name")
+                .annotate(
+                    s_total=Count("id"),
+                    s_correct=Count("id", filter=Q(is_correct=True)),
+                )
+                .order_by("question__subject__order")
+            )
+            for ss in subj_stats:
+                s_score = round(ss["s_correct"] / ss["s_total"] * 100) if ss["s_total"] else 0
+                subjects_data.append({
+                    "name": ss["question__subject__name"],
+                    "correct": ss["s_correct"],
+                    "total": ss["s_total"],
+                    "score": s_score,
+                })
+            avg_score = round(sum(s["score"] for s in subjects_data) / len(subjects_data)) if subjects_data else 0
+            passed = avg_score >= 60 and all(s["score"] >= 40 for s in subjects_data)
+        else:
+            avg_score = round(correct / total * 100) if total else 0
+            passed = False
+
         results.append({
             "session_id": sid,
             "mode": mode,
@@ -905,7 +949,9 @@ def history_api(request, cert_id):
             "total": total,
             "correct": correct,
             "wrong": wrong,
-            "score": score,
+            "score": avg_score,
+            "passed": passed,
+            "subjects": subjects_data,
             "date": row["date"].strftime("%Y-%m-%d %H:%M"),
             "wrong_url": reverse("gisa:wrong_answers_session", args=[cert_id, sid]) if wrong > 0 else "",
             "delete_url": reverse("gisa:session_delete", args=[cert_id, sid]),

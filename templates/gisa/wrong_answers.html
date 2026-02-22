@@ -37,15 +37,16 @@
     }
 
     .wrong-header-title {
-        font-size: 1rem;
+        font-size: 1.05em;
         font-weight: 700;
+        line-height: 1.6;
         color: #333;
     }
 
     .wrong-header-title small {
         font-weight: 500;
         color: #888;
-        font-size: 0.85em;
+        font-size: 1em;
     }
 
     .wrong-header-btns {
@@ -91,13 +92,8 @@
     /* ══════════ Question Item ══════════ */
     .wrong-question {
         padding: 20px;
-        border-bottom: 1px solid #f0f0f0;
         position: relative;
         transition: opacity 0.3s;
-    }
-
-    .wrong-question:last-child {
-        border-bottom: none;
     }
 
     .wq-content {
@@ -295,8 +291,7 @@
             {{ cert.name }}
             <small>
                 {% if is_session %}
-                {% if mode == 'mock' %}모의고사{% else %}풀이{% endif %} 오답 &middot; {{ total_wrong }}개 (전체 {{
-                total_in_session }}중)
+                {% if mode == 'mock' %}모의고사{% else %}풀이{% endif %} 오답 &middot; {{ total_wrong }}개 (전체 {{ total_in_session }}중)
                 {% else %}
                 전체 오답노트 &middot; {{ total_wrong }}문제
                 {% endif %}
@@ -307,7 +302,7 @@
             <a href="{% url 'gisa:wrong_answers_retry' cert.pk %}" class="header-btn retry-btn">다시 도전</a>
             {% endif %}
             <button type="button" class="header-btn" id="toggleAllBtn" onclick="toggleAll()">전체 펼치기</button>
-            <a href="{% url 'gisa:certification_detail' cert.pk %}?tab=wrong" class="header-btn">돌아가기</a>
+            <a href="{% url 'gisa:certification_detail' cert.pk %}?tab=history" class="header-btn">돌아가기</a>
         </div>
     </div>
 
@@ -316,8 +311,7 @@
     <div class="wrong-question" id="wq-{{ r.question.id }}">
         <div class="wq-content">
             {{ forloop.counter }}. {{ r.question.text }}
-            <span class="wq-source">{{ r.question.subject.name }} {{ r.question.exam.year }}년 {{ r.question.exam.round
-                }}회 {{ r.question.number }}번</span>
+            <span class="wq-source">{{ r.question.subject.name }} {{ r.question.exam.year }}년 {{ r.question.exam.round }}회</span>
         </div>
         <div class="wq-choices">
             {% for c in r.choices %}
@@ -331,9 +325,6 @@
             </div>
             {% endfor %}
         </div>
-        {% if r.question.explanation %}
-        <div class="global-exp">{{ r.question.explanation }}</div>
-        {% endif %}
         <div class="wq-actions">
             <button type="button" class="exp-toggle" onclick="toggleExp(this)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">

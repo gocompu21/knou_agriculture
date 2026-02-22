@@ -28,6 +28,8 @@ urlpatterns = [
     # 교재 학습
     path("<int:cert_id>/textbook/study/", views.textbook_study, name="textbook_study"),
     path("<int:cert_id>/textbook/chapter/", views.textbook_chapter_api, name="textbook_chapter_api"),
+    # 시험이력 API
+    path("<int:cert_id>/api/history/", views.history_api, name="history_api"),
     # 세션 관리
     path("<int:cert_id>/session/<str:session_id>/delete/", views.session_delete, name="session_delete"),
     path("<int:cert_id>/session/delete-all/", views.session_delete_all, name="session_delete_all"),

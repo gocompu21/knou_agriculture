@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block title %}기사시험 자격증 목록 | 한울회 A+{% endblock %}
 
@@ -79,7 +80,7 @@
 <div class="page-hero">
     <div class="wrap">
         <h1>기사시험 기출문제</h1>
-        <p>국가기술자격 기출문제 학습 시스템</p>
+        <p>국가기술자격 학습 시스템</p>
     </div>
 </div>
 
@@ -92,7 +93,7 @@
             <div class="cert-name">{{ cert.name }}</div>
             <div class="cert-stats">
                 <span>시험 <strong>{{ cert.exam_count }}회</strong></span>
-                <span>문제 <strong>{{ cert.question_count }}개</strong></span>
+                <span>문제 <strong>{{ cert.question_count|intcomma }}개</strong></span>
             </div>
             {% if cert.description %}
             <div class="cert-desc">{{ cert.description|truncatewords:20 }}</div>

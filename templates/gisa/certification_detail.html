@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block title %}{{ cert.name }} | 기사시험{% endblock %}
 
@@ -94,10 +95,10 @@
     .btn-solve:hover { background: #bbdefb; }
     .btn-mock { background: #fff3e0; color: #e65100; }
     .btn-mock:hover { background: #ffe0b2; }
-    .btn-wrong { background: #fce4ec; color: #c62828; }
-    .btn-wrong:hover { background: #f8bbd0; }
-    .btn-danger { background: #ffebee; color: #c62828; }
-    .btn-danger:hover { background: #ef9a9a; }
+    .btn-wrong { background: #fff3e0; color: #e65100; }
+    .btn-wrong:hover { background: #ffe0b2; }
+    .btn-danger { background: none; border: none; color: #999; cursor: pointer; padding: 6px; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+    .btn-danger:hover { color: #555; background: #f0f0f0; }
 
     /* Subject List in Study Tab */
     .subject-list {
@@ -114,27 +115,21 @@
     .subject-link:hover { background: #e8eaf6; }
 
     /* Session Cards */
-    .session-list { display: flex; flex-direction: column; gap: 12px; }
+    .session-list { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
     .session-card {
         background: #fff;
         border: 1px solid #e0e0e0;
         border-radius: 10px;
         padding: 16px 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
     }
-    .session-info { flex: 1; min-width: 200px; }
     .session-mode {
         display: inline-block;
         padding: 2px 8px; border-radius: 10px;
         font-size: 0.75rem; font-weight: 600;
     }
     .mode-exam { background: #e3f2fd; color: #1565c0; }
-    .mode-mock { background: #fff3e0; color: #e65100; }
-    .mode-wrong_retry { background: #fce4ec; color: #c62828; }
+    .mode-mock { background: #e8f5e9; color: #2e7d32; }
+    .mode-wrong_retry { background: #f3e5f5; color: #7b1fa2; }
     .session-score { font-size: 1.1rem; font-weight: 700; }
     .session-date { font-size: 0.8rem; color: #999; }
     .session-actions { display: flex; gap: 8px; align-items: center; }
@@ -218,6 +213,12 @@
     .content-box ul li.sub-item::before {
         content: "–"; left: 14px; color: #999;
     }
+    .content-box p {
+        font-size: 0.88rem; line-height: 1.75; color: #333;
+        margin: 0 0 10px; text-align: justify;
+    }
+    .content-box p:last-child { margin-bottom: 0; }
+    .content-box p strong { color: #1b4332; }
     .section-body ul {
         list-style: none; padding: 0; margin: 0 0 10px;
     }
@@ -325,11 +326,10 @@
 {% block content %}
 <div class="detail-hero">
     <div class="wrap">
-        <h1>{{ cert.name }}</h1>
-        <div class="hero-sub">{{ cert.get_category_display }}</div>
+        <h1>{{ cert.name }} <span style="font-size:0.6em; font-weight:400; opacity:0.8;">{{ cert.get_category_display }}</span></h1>
         <div class="hero-stats">
             <span>시험 <strong>{{ exams.count }}회</strong></span>
-            <span>총 <strong>{{ total_questions }}문제</strong></span>
+            <span>총 <strong>{{ total_questions|intcomma }}문제</strong></span>
             {% if wrong_count %}<span>오답 <strong style="color:#ffcdd2">{{ wrong_count }}개</strong></span>{% endif %}
         </div>
     </div>
@@ -444,37 +444,17 @@
 
     <!-- ══════════ 시험이력 탭 ══════════ -->
     <div id="tab-history" class="tab-content{% if active_tab == 'history' %} active{% endif %}">
-        {% if exam_sessions %}
-        <div class="session-list">
-            {% for s in exam_sessions %}
-            <div class="session-card">
-                <div class="session-info">
-                    <span class="session-mode mode-{{ s.mode }}">{{ s.mode_label }}</span>
-                    <span class="session-score" style="{% if s.score >= 60 %}color:#2e7d32{% else %}color:#c62828{% endif %}">{{ s.score }}점</span>
-                    <span style="font-size:0.85rem; color:#666;">({{ s.correct }}/{{ s.total }})</span>
-                    <div class="session-date">{{ s.date|date:"Y-m-d H:i" }}</div>
-                </div>
-                <div class="session-actions">
-                    {% if s.wrong > 0 %}
-                    <a href="{% url 'gisa:wrong_answers_session' cert.pk s.session_id %}" class="btn-sm btn-wrong">오답 {{ s.wrong }}개</a>
-                    {% endif %}
-                    <form method="post" action="{% url 'gisa:session_delete' cert.pk s.session_id %}" style="display:inline" onsubmit="return confirm('이 세션 기록을 삭제할까요?')">
-                        {% csrf_token %}
-                        <button class="btn-sm btn-danger" type="submit">삭제</button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
+        <div id="history-scroll" style="max-height:60vh; overflow-y:auto; border:1px solid #e0e0e0; border-radius:8px;">
+            <div class="session-list" id="history-list"></div>
+            <div id="history-loading" style="text-align:center; padding:20px; color:#888; display:none;">로딩 중...</div>
         </div>
-        <div style="margin-top:20px; text-align:right;">
+        <div id="history-empty" class="empty-tab" style="display:none;">풀이 기록이 없습니다.</div>
+        <div id="history-footer" style="margin-top:12px; text-align:right; display:none;">
             <form method="post" action="{% url 'gisa:session_delete_all' cert.pk %}" onsubmit="return confirm('모든 풀이 기록을 삭제할까요? 이 작업은 되돌릴 수 없습니다.')">
                 {% csrf_token %}
-                <button class="btn-sm btn-danger" type="submit">전체 기록 삭제</button>
+                <button type="submit" style="background:none; border:1px solid #ccc; color:#666; padding:6px 14px; border-radius:6px; font-size:0.82rem; cursor:pointer; font-family:inherit;">전체 기록 삭제</button>
             </form>
         </div>
-        {% else %}
-        <div class="empty-tab">풀이 기록이 없습니다.</div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}
@@ -513,5 +493,121 @@ document.querySelectorAll('.q-ref-badge').forEach(function(badge) {
     var year = badge.textContent.trim().split('-')[0];
     if (year) badge.classList.add('y' + year);
 });
+
+/* ── 상대 시간 표시 ── */
+function timeAgo(dateStr) {
+    var d = new Date(dateStr.replace(' ', 'T'));
+    var now = new Date();
+    var diff = Math.floor((now - d) / 1000);
+    if (diff < 60) return '방금 전';
+    var mins = Math.floor(diff / 60);
+    if (mins < 60) return mins + '분 전';
+    var hours = Math.floor(mins / 60);
+    if (hours < 24) return hours + '시간 전';
+    var days = Math.floor(hours / 24);
+    if (days < 30) return days + '일 전';
+    var months = Math.floor(days / 30);
+    if (months < 12) return months + '개월 전';
+    return Math.floor(months / 12) + '년 전';
+}
+
+/* ── 시험이력 무한 스크롤 ── */
+var historyPage = 1;
+var historyLoading = false;
+var historyHasNext = true;
+var historyLoaded = false;
+var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : '';
+
+function loadHistory() {
+    if (historyLoading || !historyHasNext) return;
+    historyLoading = true;
+    document.getElementById('history-loading').style.display = 'block';
+    fetch('{% url "gisa:history_api" cert.pk %}?page=' + historyPage)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var list = document.getElementById('history-list');
+            data.sessions.forEach(function(s) {
+                var card = document.createElement('div');
+                card.className = 'session-card';
+                card.id = 'session-' + s.session_id;
+                var ago = timeAgo(s.date);
+                var trashIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
+                var wrongBtn = s.wrong > 0 ? '<a href="' + s.wrong_url + '" class="btn-sm btn-wrong">오답 ' + s.wrong + '개</a>' : '';
+
+                /* 상단: 모드 배지 + 평균점수 + 합격여부 + 날짜 + 액션 */
+                var passLabel = '';
+                if (s.mode === 'exam' || s.mode === 'mock') {
+                    passLabel = s.passed
+                        ? '<span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:0.78rem;font-weight:600;background:#e8f5e9;color:#2e7d32;">합격</span>'
+                        : '<span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:0.78rem;font-weight:600;background:#f5f5f5;color:#888;">불합격</span>';
+                }
+                var scoreColor = (s.mode === 'exam' || s.mode === 'mock')
+                    ? (s.passed ? 'color:#2e7d32' : 'color:#888')
+                    : (s.score >= 60 ? 'color:#2e7d32' : 'color:#888');
+
+                var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+                    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+                    '<span class="session-mode mode-' + s.mode + '">' + s.mode_label + '</span>' +
+                    '<span style="font-size:1.15rem;font-weight:700;' + scoreColor + '">평균 ' + s.score + '점</span>' +
+                    passLabel +
+                    '</div>' +
+                    '<div style="display:flex;align-items:center;gap:8px;">' + wrongBtn +
+                    '<form method="post" action="' + s.delete_url + '" style="display:inline" onsubmit="return confirm(\'이 세션 기록을 삭제할까요?\');">' +
+                    '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '">' +
+                    '<button class="btn-danger" type="submit" title="삭제">' + trashIcon + '</button></form></div></div>';
+
+                /* 과목별 점수 바 (기출고사/모의고사만) */
+                if (s.subjects && s.subjects.length > 0) {
+                    html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">';
+                    s.subjects.forEach(function(sub) {
+                        var barColor = sub.score >= 60 ? '#2e7d32' : (sub.score >= 40 ? '#f9a825' : '#999');
+                        var bgColor = sub.score >= 60 ? '#e8f5e9' : (sub.score >= 40 ? '#fff8e1' : '#f5f5f5');
+                        html += '<div style="flex:1;min-width:100px;background:' + bgColor + ';border-radius:6px;padding:6px 10px;text-align:center;">' +
+                            '<div style="font-size:0.72rem;color:#666;margin-bottom:2px;">' + sub.name + '</div>' +
+                            '<div style="font-size:0.95rem;font-weight:700;color:' + barColor + ';">' + sub.score + '점</div>' +
+                            '<div style="font-size:0.7rem;color:#aaa;">' + sub.correct + '/' + sub.total + '</div></div>';
+                    });
+                    html += '</div>';
+                }
+
+                /* 날짜 */
+                html += '<div style="font-size:0.78rem;color:#aaa;">' + s.date + ' (' + ago + ')</div>';
+
+                card.innerHTML = html;
+                list.appendChild(card);
+            });
+            historyHasNext = data.has_next;
+            historyPage++;
+            document.getElementById('history-loading').style.display = 'none';
+            if (data.total > 0) {
+                document.getElementById('history-footer').style.display = 'block';
+                document.getElementById('history-empty').style.display = 'none';
+            } else if (data.total === 0 && historyPage === 2) {
+                document.getElementById('history-empty').style.display = 'block';
+            }
+            historyLoading = false;
+        });
+}
+
+/* 스크롤 감지 — history-scroll 컨테이너 내부 */
+var historyScrollEl = document.getElementById('history-scroll');
+if (historyScrollEl) {
+    historyScrollEl.addEventListener('scroll', function() {
+        if (!historyLoaded) return;
+        if (this.scrollTop + this.clientHeight >= this.scrollHeight - 100) loadHistory();
+    });
+}
+
+/* 탭 전환 시 첫 로드 */
+var origSwitchTab = switchTab;
+switchTab = function(tabName) {
+    origSwitchTab(tabName);
+};
+
+/* 시험이력 탭 활성 시 자동 로드 */
+if ('{{ active_tab }}' === 'history') {
+    historyLoaded = true;
+    loadHistory();
+}
 </script>
 {% endblock %}
