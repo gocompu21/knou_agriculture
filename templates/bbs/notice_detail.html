@@ -60,10 +60,17 @@
     }
     .detail-meta-item { display: flex; align-items: center; gap: 4px; }
     .detail-meta svg { width: 14px; height: 14px; fill: #a0b8a4; }
+    .detail-top-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        min-height: 28px;
+    }
     .detail-actions {
         display: flex;
         gap: 6px;
-        margin-top: 12px;
+        margin-left: auto;
     }
     .btn-edit {
         padding: 6px 16px;
@@ -257,8 +264,7 @@
         .detail-title { font-size: 1.05rem; margin-bottom: 10px; }
         .detail-meta { gap: 10px; font-size: 0.72rem; }
         .detail-meta svg { width: 12px; height: 12px; }
-        .detail-actions { margin-top: 10px; }
-        .btn-edit, .btn-del { padding: 5px 14px; font-size: 0.72rem; }
+        .btn-edit, .btn-del { padding: 4px 12px; font-size: 0.7rem; }
 
         .detail-content {
             padding: 18px 20px;
@@ -302,22 +308,24 @@
 
     <div class="detail-card">
         <div class="detail-header">
-            {% if notice.is_pinned %}<div class="detail-pinned">📌 상단고정</div>{% endif %}
+            <div class="detail-top-row">
+                {% if notice.is_pinned %}<div class="detail-pinned">📌 상단고정</div>{% endif %}
+                {% if can_edit %}
+                <div class="detail-actions">
+                    <a href="{% url 'bbs:notice_update' notice.pk %}" class="btn-edit">수정</a>
+                    <form method="post" action="{% url 'bbs:notice_delete' notice.pk %}" style="margin:0;" onsubmit="return confirm('삭제하시겠습니까?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-del">삭제</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
             <h1 class="detail-title">{{ notice.title }}</h1>
             <div class="detail-meta">
                 <span class="detail-meta-item"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>{{ notice.author.first_name|default:notice.author.username }}</span>
                 <span class="detail-meta-item"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>{{ notice.created_at|date:"Y-m-d H:i" }}</span>
                 <span class="detail-meta-item"><svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>{{ notice.view_count }}</span>
             </div>
-            {% if can_edit %}
-            <div class="detail-actions">
-                <a href="{% url 'bbs:notice_update' notice.pk %}" class="btn-edit">수정</a>
-                <form method="post" action="{% url 'bbs:notice_delete' notice.pk %}" style="margin:0;" onsubmit="return confirm('삭제하시겠습니까?');">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-del">삭제</button>
-                </form>
-            </div>
-            {% endif %}
         </div>
 
         <div class="detail-content">{{ notice.content|safe }}</div>
