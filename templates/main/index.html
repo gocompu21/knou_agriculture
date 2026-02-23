@@ -652,6 +652,9 @@
                 <div style="margin-top:14px; text-align:center; font-size:0.82rem; color:#64748b;">
                     아직 계정이 없으신가요? <a href="{% url 'accounts:user_signup' %}" style="color:#2d6a4f; font-weight:700; text-decoration:none;">회원가입</a>
                 </div>
+                <div style="margin-top:6px; text-align:center; font-size:0.78rem;">
+                    <a href="{% url 'accounts:password_reset' %}" style="color:#94a3b8; text-decoration:none;">비밀번호를 잊으셨나요?</a>
+                </div>
             </div>
             {% endif %}
         </aside>
