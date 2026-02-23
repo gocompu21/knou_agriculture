@@ -326,11 +326,6 @@
         {% for q in questions %}
         <div class="question-card" data-answer="{{ q.answer }}">
             <div class="q-header">
-                {% if not is_wrong_retry and not is_textbook_study %}
-                <div style="margin-bottom: 10px;">
-                    <span class="q-badge">{{ q.subject.name }}</span>
-                </div>
-                {% endif %}
                 <div class="q-content">
                     {{ forloop.counter }}. {{ q.text }}
                     {% if is_wrong_retry or is_textbook_study %}<span class="q-badge"
