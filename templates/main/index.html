@@ -747,33 +747,8 @@
         </article>
 
         <aside class="hero-right fade-up delay-1">
-            {% if user.is_authenticated %}
-            <div class="notice-card">
-                <div class="notice-card-header">
-                    <h3>공지사항</h3>
-                    <a href="{% url 'bbs:notice_list' %}" class="notice-card-more">전체보기 →</a>
-                </div>
-                <div class="notice-card-body">
-                {% if latest_notices %}
-                <ul class="notice-card-list">
-                    {% for notice in latest_notices %}
-                    <li><a href="{% url 'bbs:notice_detail' notice.pk %}" class="notice-card-item{% if notice.is_pinned %} nc-is-pinned{% endif %}">
-                        <span class="nc-dot">{% if notice.is_pinned %}📌{% endif %}</span>
-                        <div class="nc-content">
-                            <span class="nc-title">{{ notice.title }}{% if notice.comments.count %}<span class="nc-cmt">[{{ notice.comments.count }}]</span>{% endif %}</span>
-                            <div class="nc-meta">{{ notice.author.first_name|default:notice.author.username }} · 조회 {{ notice.view_count }}</div>
-                        </div>
-                        <span class="nc-date">{{ notice.created_at|date:"m/d" }}</span>
-                    </a></li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <div class="notice-card-empty">등록된 공지가 없습니다.</div>
-                {% endif %}
-                </div>
-            </div>
-            {% else %}
-            <div class="login-card">
+            {% if not user.is_authenticated %}
+            <div class="login-card" id="login-card" style="{% if not login_error %}display:none;{% endif %}">
                 <h3>로그인</h3>
                 <p class="login-sub">학습을 시작하려면 로그인하세요</p>
                 {% if login_error %}
@@ -802,6 +777,30 @@
                 </div>
             </div>
             {% endif %}
+            <div class="notice-card" id="notice-card"{% if login_error %} style="display:none;"{% endif %}>
+                <div class="notice-card-header">
+                    <h3>공지사항</h3>
+                    <a href="{% url 'bbs:notice_list' %}" class="notice-card-more">전체보기 →</a>
+                </div>
+                <div class="notice-card-body">
+                {% if latest_notices %}
+                <ul class="notice-card-list">
+                    {% for notice in latest_notices %}
+                    <li><a {% if user.is_authenticated %}href="{% url 'bbs:notice_detail' notice.pk %}"{% else %}href="#" onclick="alert('로그인이 필요합니다.'); return false;"{% endif %} class="notice-card-item{% if notice.is_pinned %} nc-is-pinned{% endif %}">
+                        <span class="nc-dot">{% if notice.is_pinned %}📌{% endif %}</span>
+                        <div class="nc-content">
+                            <span class="nc-title">{{ notice.title }}{% if notice.comments.count %}<span class="nc-cmt">[{{ notice.comments.count }}]</span>{% endif %}</span>
+                            <div class="nc-meta">{{ notice.author.first_name|default:notice.author.username }} · 조회 {{ notice.view_count }}</div>
+                        </div>
+                        <span class="nc-date">{{ notice.created_at|date:"m/d" }}</span>
+                    </a></li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="notice-card-empty">등록된 공지가 없습니다.</div>
+                {% endif %}
+                </div>
+            </div>
         </aside>
     </section>
 

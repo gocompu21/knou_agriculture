@@ -319,6 +319,10 @@
                     {% endif %}
                     <a href="{% url 'accounts:user_logout' %}">로그아웃</a>
                 </nav>
+                {% else %}
+                <nav class="site-nav" aria-label="메인 내비게이션">
+                    <a href="{% url 'accounts:user_login' %}" id="nav-login-btn" onclick="if(document.getElementById('login-card')){event.preventDefault();var lc=document.getElementById('login-card'),nc=document.getElementById('notice-card');if(lc.style.display==='none'){lc.style.display='';nc.style.display='none';document.getElementById('id_username').focus();}else{lc.style.display='none';nc.style.display='';}}">로그인</a>
+                </nav>
                 {% endif %}
             </div>
         </div>

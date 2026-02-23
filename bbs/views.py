@@ -11,13 +11,11 @@ from django.views.decorators.http import require_POST
 from .models import Comment, Notice
 
 
-@login_required
 def notice_list(request):
     pinned = Notice.objects.filter(is_pinned=True)
     return render(request, "bbs/notice_list.html", {"pinned": pinned})
 
 
-@login_required
 def notice_api(request):
     page = int(request.GET.get("page", 1))
     per_page = 15

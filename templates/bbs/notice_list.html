@@ -180,14 +180,14 @@
                 <h1>공지사항</h1>
                 <p>한울회 소식과 공지를 확인하세요</p>
             </div>
-            <a href="{% url 'bbs:notice_create' %}" class="btn-write">+ 글쓰기</a>
+            {% if user.is_authenticated %}<a href="{% url 'bbs:notice_create' %}" class="btn-write">+ 글쓰기</a>{% endif %}
         </div>
     </div>
 
     {% if pinned %}
     <div class="pinned-section fade-up delay-1">
         {% for n in pinned %}
-        <a href="{% url 'bbs:notice_detail' n.pk %}" class="pinned-card">
+        <a href="{% if user.is_authenticated %}{% url 'bbs:notice_detail' n.pk %}{% else %}#{% endif %}" class="pinned-card{% if not user.is_authenticated %} need-login{% endif %}"{% if not user.is_authenticated %} onclick="alert('로그인이 필요합니다.'); return false;"{% endif %}>
             <span class="pinned-badge">📌 고정</span>
             <span class="pinned-title">{{ n.title }}{% if n.comments.count %}<span class="pinned-comment">[{{ n.comments.count }}]</span>{% endif %}</span>
             <span class="pinned-date">{{ n.created_at|date:"m/d" }}</span>
@@ -212,6 +212,7 @@
 {% block extra_js %}
 <script>
 var noticePage = 1, noticeLoading = false, noticeHasNext = true, firstLoad = true;
+var isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
 
 function loadNotices() {
     if (noticeLoading || !noticeHasNext) return;
@@ -224,8 +225,11 @@ function loadNotices() {
             var list = document.getElementById('notice-cards');
             data.notices.forEach(function(n) {
                 var a = document.createElement('a');
-                a.href = '/bbs/' + n.id + '/';
+                a.href = isAuthenticated ? '/bbs/' + n.id + '/' : '#';
                 a.className = 'notice-row';
+                if (!isAuthenticated) {
+                    a.onclick = function(e) { e.preventDefault(); alert('로그인이 필요합니다.'); };
+                }
                 var cmt = n.comment_count ? '<span class="notice-comment-cnt">[' + n.comment_count + ']</span>' : '';
                 a.innerHTML = '<div class="notice-body">'
                     + '<span class="notice-title-text">' + n.title + '</span>'
