@@ -23,6 +23,18 @@
 
     /* TinyMCE 컨테이너 둥근 모서리 */
     .tox-tinymce { border-radius: 8px !important; border-color: #ddd !important; }
+
+    /* ── 모바일 ── */
+    @media (max-width: 560px) {
+        .form-wrap { padding: 14px 10px; }
+        .form-wrap h1 { font-size: 1.05rem; margin-bottom: 14px; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { font-size: 0.82rem; margin-bottom: 4px; }
+        .form-group input[type="text"] { padding: 10px 12px; font-size: 0.88rem; }
+        .pin-check label { font-size: 0.82rem; }
+        .form-actions { gap: 8px; }
+        .btn-submit, .btn-cancel { padding: 10px 20px; font-size: 0.88rem; border-radius: 8px; }
+    }
 </style>
 {% endblock %}
 

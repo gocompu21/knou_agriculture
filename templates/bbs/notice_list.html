@@ -147,12 +147,27 @@
 
     /* 반응형 */
     @media (max-width: 560px) {
-        .bbs-hero { padding: 20px 18px 18px; border-radius: 12px; }
-        .bbs-hero h1 { font-size: 1.2rem; }
-        .btn-write { padding: 8px 16px; font-size: 0.82rem; }
-        .notice-row { padding: 13px 14px; }
-        .notice-title-text { font-size: 0.88rem; }
+        .bbs-wrap { padding: 0 8px; }
+        .bbs-hero { padding: 18px 16px 16px; border-radius: 12px; margin-bottom: 14px; }
+        .bbs-hero::before { width: 80px; height: 80px; top: -20px; right: -20px; }
+        .bbs-hero h1 { font-size: 1.1rem; }
+        .bbs-hero p { font-size: 0.75rem; }
+        .btn-write { padding: 7px 14px; font-size: 0.78rem; border-radius: 8px; }
+
+        .pinned-card { padding: 10px 12px; gap: 8px; border-radius: 10px; margin-bottom: 6px; }
+        .pinned-badge { font-size: 0.65rem; padding: 2px 6px; }
+        .pinned-title { font-size: 0.82rem; }
+        .pinned-date { font-size: 0.7rem; }
+
+        .notice-list-area { border-radius: 12px; }
+        .notice-row { padding: 11px 12px; }
+        .notice-title-text { font-size: 0.84rem; }
+        .notice-sub { font-size: 0.7rem; gap: 4px; }
+        .notice-comment-cnt { font-size: 0.72rem; }
         .notice-view-badge { display: none; }
+
+        .scroll-inner { max-height: 55vh; }
+        .empty-msg { padding: 40px 16px; font-size: 0.85rem; }
     }
 </style>
 {% endblock %}
