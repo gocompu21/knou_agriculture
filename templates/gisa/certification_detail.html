@@ -538,7 +538,7 @@
         {% if textbook_chapters %}
         <!-- 아코디언 목차 (장 제목만 렌더링, 섹션은 AJAX 로드) -->
         {% for ch in textbook_chapters %}
-        <div class="chapter-item" id="{{ ch.id }}" data-ch-idx="{{ forloop.counter0 }}">
+        <div class="chapter-item open" id="{{ ch.id }}" data-ch-idx="{{ forloop.counter0 }}">
             <div class="chapter-header" onclick="toggleChapter(this)">
                 <span>{{ ch.title }}</span>
                 <span class="chapter-chevron">&#9654;</span>
@@ -546,6 +546,9 @@
             <div class="chapter-body"></div>
         </div>
         {% endfor %}
+        <div style="text-align:right;margin-top:12px;">
+            <button type="button" id="toggle-all-textbook" onclick="toggleAllTextbook()" style="background:none;border:1px solid #ccc;border-radius:4px;padding:3px 10px;font-size:0.78rem;color:#555;cursor:pointer;">전체 펼치기</button>
+        </div>
         {% else %}
         <div class="empty-tab">{{ textbook_subject }} 쪽집게 노트가 준비 중입니다.</div>
         {% endif %}
@@ -678,7 +681,8 @@ function toggleChapter(el) {
     var item = el.parentElement;
     item.classList.toggle('open');
     var body = item.querySelector('.chapter-body');
-    if (body.dataset.loaded) return;
+    if (body.dataset.loaded || body.dataset.loading) return;
+    body.dataset.loading = '1';
     var chIdx = item.dataset.chIdx;
     var subject = '{{ textbook_subject }}';
     body.innerHTML = '<div style="padding:16px;color:#888;text-align:center;">로딩 중...</div>';
@@ -709,6 +713,35 @@ function formatBadges(container) {
 function toggleSection(el) {
     el.parentElement.classList.toggle('open');
 }
+
+var _textbookExpanded = false;
+function toggleAllTextbook() {
+    _textbookExpanded = !_textbookExpanded;
+    var btn = document.getElementById('toggle-all-textbook');
+    btn.textContent = _textbookExpanded ? '전체 접기' : '전체 펼치기';
+    document.querySelectorAll('#tab-textbook .chapter-item').forEach(function(item) {
+        item.classList.add('open');
+        item.querySelectorAll('.section-item').forEach(function(sec) {
+            if (_textbookExpanded) sec.classList.add('open'); else sec.classList.remove('open');
+        });
+    });
+}
+
+/* 페이지 로드 시 모든 장 콘텐츠 자동 AJAX 로드 (절 제목까지 표시) */
+function autoLoadAllChapters() {
+    var subject = '{{ textbook_subject }}';
+    document.querySelectorAll('#tab-textbook .chapter-item').forEach(function(item) {
+        var body = item.querySelector('.chapter-body');
+        if (body.dataset.loaded || body.dataset.loading) return;
+        body.dataset.loading = '1';
+        var chIdx = item.dataset.chIdx;
+        body.innerHTML = '<div style="padding:16px;color:#888;text-align:center;">로딩 중...</div>';
+        fetch('{% url "gisa:textbook_chapter_api" cert.pk %}?subject=' + encodeURIComponent(subject) + '&ch=' + chIdx)
+            .then(function(r) { return r.json(); })
+            .then(function(data) { body.innerHTML = data.html; body.dataset.loaded = '1'; formatBadges(body); });
+    });
+}
+if ('{{ active_tab }}' === 'textbook') { autoLoadAllChapters(); }
 
 // 스티키 헤더 높이만큼 오프셋 스크롤
 function scrollToWithOffset(el, offset) {
@@ -743,6 +776,7 @@ function scrollToWithOffset(el, offset) {
         return;
     }
     var subject = params.get('subject') || '{{ textbook_subject }}';
+    body.dataset.loading = '1';
     body.innerHTML = '<div style="padding:16px;color:#888;text-align:center;">로딩 중...</div>';
     fetch('{% url "gisa:textbook_chapter_api" cert.pk %}?subject=' + encodeURIComponent(subject) + '&ch=' + openCh)
         .then(function(r) { return r.json(); })

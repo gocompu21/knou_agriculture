@@ -1303,11 +1303,8 @@
     <!-- Tab 0: 쪽집게 노트 -->
     <div class="tab-content{% if active_tab == 'notes' %} active{% endif %}" id="tab-notes">
         {% if note_chapters %}
-        <div style="text-align:right;margin-bottom:8px;">
-            <button type="button" id="toggle-all-notes" onclick="toggleAllNotes()" style="background:none;border:1px solid #ccc;border-radius:4px;padding:3px 10px;font-size:0.78rem;color:#555;cursor:pointer;">전체 펼치기</button>
-        </div>
         {% for ch in note_chapters %}
-        <div class="chapter-item" id="{{ ch.id }}" data-ch-idx="{{ forloop.counter0 }}">
+        <div class="chapter-item open" id="{{ ch.id }}" data-ch-idx="{{ forloop.counter0 }}">
             <div class="chapter-header" onclick="this.parentElement.classList.toggle('open')">
                 <span>{{ ch.title }}</span>
                 <span class="chapter-chevron">&#9654;</span>
@@ -1357,6 +1354,9 @@
             </div>
         </div>
         {% endfor %}
+        <div style="text-align:right;margin-top:12px;">
+            <button type="button" id="toggle-all-notes" onclick="toggleAllNotes()" style="background:none;border:1px solid #ccc;border-radius:4px;padding:3px 10px;font-size:0.78rem;color:#555;cursor:pointer;">전체 펼치기</button>
+        </div>
         {% else %}
         <div class="empty-msg">등록된 쪽집게 노트가 없습니다.</div>
         {% endif %}
@@ -1780,13 +1780,13 @@
     }
     formatBadges(document);
 
-    // 전체 펼치기/접기 토글
+    // 전체 펼치기/접기 토글 (절 내용까지 펼침 / 절 내용만 접음, 장은 항상 open)
     var _notesExpanded = false;
     window.toggleAllNotes = function() {
         _notesExpanded = !_notesExpanded;
         var btn = document.getElementById('toggle-all-notes');
         document.querySelectorAll('#tab-notes .chapter-item').forEach(function(ch) {
-            if (_notesExpanded) ch.classList.add('open'); else ch.classList.remove('open');
+            ch.classList.add('open');
             ch.querySelectorAll('.section-item').forEach(function(sec) {
                 if (_notesExpanded) sec.classList.add('open'); else sec.classList.remove('open');
             });
