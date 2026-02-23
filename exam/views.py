@@ -66,10 +66,11 @@ def study_mode(request, subject_id, year):
     ).order_by("number")
     if not questions.exists():
         return redirect("main:subject_detail", pk=subject_id)
+    from_tab = request.GET.get("from", "study")
     return render(
         request,
         "exam/study_mode.html",
-        {"subject": subject, "year": year, "questions": questions},
+        {"subject": subject, "year": year, "questions": questions, "from_tab": from_tab},
     )
 
 

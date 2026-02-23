@@ -1492,9 +1492,7 @@
                     <div class="session-date">{{ s.date|date:"Y.m.d H:i" }}</div>
                 </div>
                 <div class="session-stats">
-                    <span class="session-score"
-                        style="color:{% if s.score >= 80 %}#2d8a4e{% elif s.score >= 60 %}#3d9ed6{% elif s.score >= 40 %}#e0943a{% else %}#d93025{% endif %};">{{
-                        s.score }}점</span>
+                    <span class="session-score" style="color:{% if s.score >= 80 %}#2d8a4e{% elif s.score >= 60 %}#3d9ed6{% elif s.score >= 40 %}#e0943a{% else %}#d93025{% endif %};">{{ s.score }}점</span>
                     {% if s.wrong > 0 %}
                     <span class="session-wrong-badge">오답 {{ s.wrong }}</span>
                     <a class="session-link" href="{% url 'exam:wrong_answers_session' subject.pk s.session_id %}">문제
@@ -1530,7 +1528,7 @@
                     <span class="q-count">{{ card.count }}문항</span>
                 </div>
                 <div style="display:flex; gap:8px;">
-                    <a class="mode-btn study" href="{% url 'exam:study_mode' subject.pk card.year %}" style="flex:1;">
+                    <a class="mode-btn study" href="{% url 'exam:study_mode' subject.pk card.year %}?from=latest" style="flex:1;">
                         <span class="mode-icon">&#128218;</span>
                         <span class="mode-info">
                             <span class="mode-name">학습모드</span>
