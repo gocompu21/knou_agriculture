@@ -118,6 +118,30 @@
         .question-content .q-number {
             flex-shrink: 0;
             margin-right: 0.3em;
+            position: relative;
+            line-height: 1.6;
+        }
+        .q-number.q-correct { }
+        .q-number.q-correct::after {
+            content: '';
+            position: absolute;
+            top: 0.8em; left: 50%;
+            transform: translate(-50%, -50%) rotate(-5deg);
+            width: 1.5em; height: 1.4em;
+            border: 2.5px solid #1565c0;
+            border-radius: 50% 45% 55% 48% / 55% 50% 45% 52%;
+            pointer-events: none;
+        }
+        .q-number.q-wrong { }
+        .q-number.q-wrong::after {
+            content: '✕';
+            position: absolute;
+            top: 0.55em; left: 30%;
+            transform: translate(-50%, -50%);
+            font-size: 1.6em;
+            color: #c62828;
+            font-weight: bold;
+            pointer-events: none;
         }
 
         .question-content.wrong-text {
@@ -162,11 +186,15 @@
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
         }
 
+        .choices {
+            padding-left: 10px;
+        }
+
         .choices .choice-item {
-            margin-bottom: 6px;
+            margin-bottom: 2px;
             padding: 6px 8px;
             border-radius: 5px;
-            font-size: 1.0em;
+            font-size: 0.95em;
             line-height: 1.5;
             display: flex;
             align-items: flex-start;
@@ -208,6 +236,8 @@
         }
 
         .choice-item.user-wrong { background: transparent; }
+        .q-mark.wrong-mark { background: #333; color: #fff; border-color: #333; }
+        .q-mark.wrong-q-correct { background: #d93025; color: #fff; border-color: #d93025; }
         .choice-item.user-correct { background: transparent; }
 
         /* ══════════ Grade Mark ══════════ */
@@ -260,7 +290,7 @@
         .choice-exp {
             display: none;
             margin-top: 4px;
-            margin-left: 32px;
+            margin-left: 0;
             padding: 4px 0;
             font-size: 0.9em;
             color: #555;
@@ -460,38 +490,50 @@
                 position: sticky;
                 top: 0;
                 z-index: 100;
-                background: linear-gradient(135deg, #bf360c 0%, #e65100 100%);
-                color: white;
-                padding: 14px 16px;
-                text-align: center;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                background: #1a237e;
+                padding: 10px 14px;
             }
-
-            .mobile-header .score-display {
-                font-size: 1.8rem;
-                font-weight: 700;
+            .mh-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
             }
-
-            .mobile-header .score-sub {
-                font-size: 0.9rem;
-                opacity: 0.95;
-                margin-top: 4px;
+            .mh-score {
+                display: flex;
+                align-items: baseline;
+                gap: 2px;
             }
-
-            .mobile-actions {
-                display: flex !important;
-                gap: 8px;
-                margin-top: 10px;
+            .mh-score-num {
+                font-size: 1.5rem;
+                font-weight: 800;
+                color: #fff;
             }
-
-            .mobile-actions a {
-                flex: 1;
-                padding: 8px;
-                border-radius: 20px;
-                text-decoration: none;
-                font-size: 0.8rem;
+            .mh-score-unit {
+                font-size: 0.85rem;
                 font-weight: 600;
-                text-align: center;
+                color: #fff;
+            }
+            .mh-score-detail {
+                font-size: 0.75rem;
+                color: rgba(255, 255, 255, 0.7);
+                margin-left: 6px;
+            }
+            .mh-actions {
+                display: flex;
+                gap: 6px;
+            }
+            .mh-btn {
+                padding: 5px 10px;
+                border-radius: 14px;
+                text-decoration: none;
+                font-size: 0.72rem;
+                font-weight: 600;
+                background: rgba(255, 255, 255, 0.15);
+                color: #fff;
+            }
+            .mh-btn-sub {
+                background: rgba(255, 255, 255, 0.15);
+                color: #fff;
             }
 
             .subject-divider {
@@ -507,12 +549,12 @@
             .question-content {
                 font-size: 1rem;
                 line-height: 1.5;
-                padding-right: 45px;
+                padding-right: 0;
             }
 
             .choices .choice-item {
                 display: flex;
-                align-items: center;
+                align-items: flex-start;
                 padding: 8px;
                 font-size: 0.95rem;
             }
@@ -537,7 +579,7 @@
     <!-- Top Header (desktop) -->
     <div class="exam-top-header">
         <div class="th-left">
-            <a href="{% url 'gisa:certification_detail' cert.pk %}?tab=solve" class="th-back">
+            <a href="{% url 'gisa:certification_detail' cert.pk %}?tab={% if is_mock %}mock{% elif is_wrong_retry %}wrong{% else %}solve{% endif %}" class="th-back">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
@@ -558,14 +600,13 @@
 
     <!-- Mobile Header -->
     <div class="mobile-header">
-        <div class="score-display">{{ score }}점</div>
-        <div class="score-sub">{{ total }}문제 중 {{ correct }}문제 정답</div>
-        <div class="mobile-actions">
-            {% if is_mock %}
-            <a href="{% url 'gisa:mock_exam_take' cert.pk %}" style="background:rgba(255,255,255,0.2); color:white;">새 모의고사</a>
-            {% endif %}
-            <a href="{% url 'gisa:certification_detail' cert.pk %}?tab=wrong" style="background:rgba(255,255,255,0.2); color:white;">오답노트</a>
-            <a href="{% url 'gisa:certification_detail' cert.pk %}" style="background:rgba(255,255,255,0.15); color:rgba(255,255,255,0.9);">자격증으로</a>
+        <div class="mh-row">
+            <div class="mh-score"><span class="mh-score-num">{{ score }}</span><span class="mh-score-unit">점</span> <span class="mh-score-detail">{{ correct }}/{{ total }}</span></div>
+            <div class="mh-actions">
+                {% if is_mock %}<a href="{% url 'gisa:mock_exam_take' cert.pk %}" class="mh-btn">새 모의고사</a>{% endif %}
+                <a href="{% url 'gisa:certification_detail' cert.pk %}?tab=wrong" class="mh-btn">오답노트</a>
+                <a href="{% url 'gisa:certification_detail' cert.pk %}?tab={% if is_mock %}mock{% elif is_wrong_retry %}wrong{% else %}solve{% endif %}" class="mh-btn mh-btn-sub">돌아가기</a>
+            </div>
         </div>
     </div>
 
@@ -581,20 +622,16 @@
             </div>
             {% endifchanged %}
             <div class="question-item" id="q-{{ r.question.id }}">
-                {% if not is_wrong_retry %}
-                <div class="grade-mark {% if r.is_correct %}grade-circle{% elif r.skipped %}{% else %}grade-x{% endif %}"></div>
-                {% endif %}
-
-                <div class="question-content {% if not r.is_correct and not r.skipped %}wrong-text{% endif %}">
-                    <span class="q-number">{{ forloop.counter }}.</span>
+                <div class="question-content {% if not r.is_correct %}wrong-text{% endif %}">
+                    <span class="q-number{% if not is_wrong_retry %} {% if r.is_correct %}q-correct{% else %}q-wrong{% endif %}{% endif %}">{{ forloop.counter }}.</span>
                     <span>{{ r.question.text }}</span>
                 </div>
 
                 <div class="choices">
                     {% for c in r.choices %}
                     <div class="choice-item{% if c.is_selected %} user-selected{% endif %}{% if c.user_correct %} user-correct{% elif c.user_wrong %} user-wrong{% endif %}">
-                        <span class="q-mark{% if c.is_correct %} correct-mark{% endif %}">{{ c.num }}</span>
-                        <div class="choice-text">{{ c.text }}{% if c.is_selected %}<span class="my-pick">← 내 답</span>{% endif %}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
+                        <span class="q-mark{% if c.is_correct %} correct-mark{% if not r.is_correct %} wrong-q-correct{% endif %}{% endif %}{% if c.user_wrong %} wrong-mark{% endif %}">{{ c.num }}</span>
+                        <div class="choice-text">{{ c.text }}{% if c.is_selected and not r.is_correct %}<span class="my-pick">← 내 답</span>{% endif %}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
                     </div>
                     {% endfor %}
                 </div>
@@ -642,7 +679,7 @@
                         {{ forloop.counter }}
                         {% if r.is_correct %}
                         <div class="grade-mark grade-circle"></div>
-                        {% elif not r.skipped %}
+                        {% else %}
                         <div class="grade-mark grade-x"></div>
                         {% endif %}
                     </div>

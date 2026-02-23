@@ -170,14 +170,17 @@
     }
 
     /* 사용자가 선택한 답 */
-    .wq-choice.user-selected .q-mark {
+    .wq-choice.user-selected .q-mark.wrong-mark {
         background: #333;
         color: #fff;
+        border-color: #333;
     }
 
     .wq-choice.user-wrong {
         background: transparent;
     }
+    .q-mark.wrong-mark { background: #333; color: #fff; border-color: #333; }
+    .q-mark.wrong-q-correct { background: #d93025; color: #fff; border-color: #d93025; }
 
     /* X 마크 */
     .grade-x {
@@ -320,7 +323,7 @@
             {% for c in r.choices %}
             <div
                 class="wq-choice{% if c.is_selected %} user-selected{% endif %}{% if c.user_wrong %} user-wrong{% endif %}">
-                <span class="q-mark{% if c.is_correct %} correct-mark{% endif %}">{{ c.num }}</span> {{ c.text }}
+                <span class="q-mark{% if c.is_correct %} correct-mark wrong-q-correct{% endif %}{% if c.user_wrong %} wrong-mark{% endif %}">{{ c.num }}</span> {{ c.text }}
                 {% if c.exp %}
                 <div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span
                         class="exp-text-inner">{{ c.exp }}</span></div>

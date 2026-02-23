@@ -408,12 +408,19 @@
     #tab-wrong .q-mark.correct-mark {
         background: #333; color: #fff; border-color: #333;
     }
-    .wq-choice.user-selected .q-mark { background: #fff; color: #333; }
+    #tab-wrong .q-mark.correct-mark.wrong-q-correct {
+        background: #d93025; color: #fff; border-color: #d93025;
+    }
+    #tab-wrong .wq-choice.user-selected .q-mark.wrong-mark {
+        background: #333; color: #fff; border-color: #333;
+    }
     .wq-choice.user-selected .my-pick {
         display: inline-block; font-size: 0.72em; font-weight: 700;
         color: #d93025; margin-left: 6px; vertical-align: 1px;
     }
     .wq-choice.user-wrong { background: transparent; }
+    .q-mark.wrong-mark { background: #333; color: #fff; border-color: #333; }
+    .q-mark.wrong-q-correct { background: #d93025; color: #fff; border-color: #d93025; }
     .choice-exp {
         display: none; margin-top: 4px; padding: 4px 0;
         font-size: 0.9em; color: #555; line-height: 1.6;
@@ -618,13 +625,13 @@
         <div class="wrong-question" id="wq-{{ r.question.id }}" data-subject="{{ r.question.subject.name }}">
             <div class="wq-content">
                 <span class="wq-num">{{ forloop.counter }}.</span> {{ r.question.text }}
-                <span class="wq-source">{{ r.question.subject.name }} {{ r.question.exam.year }}년 {{ r.question.exam.round }}회</span>
+                <span class="wq-source">{{ r.question.exam.year }}년 {{ r.question.exam.round }}회</span>
             </div>
             <div class="wq-choices">
                 {% for c in r.choices %}
                 <div class="wq-choice{% if c.is_selected %} user-selected{% endif %}{% if c.user_wrong %} user-wrong{% endif %}">
-                    <span class="q-mark{% if c.is_correct %} correct-mark{% endif %}">{{ c.num }}</span>
-                    <div class="wq-choice-text">{{ c.text }}{% if c.is_selected %}<span class="my-pick">← 내 답</span>{% endif %}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
+                    <span class="q-mark{% if c.is_correct %} correct-mark wrong-q-correct{% endif %}{% if c.user_wrong %} wrong-mark{% endif %}">{{ c.num }}</span>
+                    <div class="wq-choice-text">{{ c.text }}{% if c.is_selected and not r.is_correct %}<span class="my-pick">← 내 답</span>{% endif %}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
                 </div>
                 {% endfor %}
             </div>

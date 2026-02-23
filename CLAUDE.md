@@ -242,7 +242,7 @@ python generate_all.py
 - `templates/main/index.html`: 한울회 A+ 학습시스템 홈페이지
 - `templates/base.html`: 공통 레이아웃 (favicon, PWA manifest, apple-touch-icon 포함)
 - `templates/main/subject_detail.html`: 과목 상세 (탭: 쪽집게노트/기출학습/기출풀기/모의고사/오답/시험이력/최신기출)
-- `templates/exam/study_mode.html`: 학습모드 (기출 풀이 + 채점)
+- `templates/exam/study_mode.html`: 학습모드 (기출 풀이 + 채점, `from_tab` 파라미터로 기출학습/최신기출 구분)
 - `templates/exam/exam_take.html`: 풀이모드 (OMR 카드 포함)
 - `templates/exam/mock_exam_take.html`: 모의고사 (랜덤 25문제)
 - `templates/exam/wrong_answers.html`: 오답노트 (세션별/전체)
@@ -266,13 +266,6 @@ python generate_all.py
 - `static/images/knou_favicon.png`: 파비콘 및 홈 화면 아이콘
 - `base.html`에 favicon, apple-touch-icon, manifest, theme-color 메타태그 설정 완료
 - 모바일 브라우저에서 "홈 화면에 추가" → "한울회 A+" 이름의 바로가기 생성
-
-## 헤더 네비게이션
-
-- 상단 헤더 `site-nav`에 "식물보호(산업)기사" 링크 → `/gisa/` (자격증 목록 페이지)
-- "학과목" 링크 → 마이페이지
-- 스태프 전용 "관리" 링크
-- 로그아웃 링크
 
 ## 최신기출 탭 (subject_detail.html)
 
@@ -687,17 +680,45 @@ knou_agriculture/
 
 ## 정답/오답 표시 UI 규칙
 
-전 페이지에서 통일된 표시 방식을 따른다.
+전 페이지에서 통일된 표시 방식을 따른다. gisa/exam 앱 모두 동일한 규칙 적용.
 
-### 기사시험 (gisa 앱)
+### 채점 결과 O/X 마크 (exam_result)
+
+문제번호에 직접 O/X를 표시한다 (별도 `grade-mark` div가 아닌 `::after` 가상요소 방식).
+
+| 요소 | 스타일 | 설명 |
+|------|--------|------|
+| 정답 O | `.q-number.q-correct::after` — 파란 손그림 동그라미 (`border: 2.5px solid #1565c0`, 비대칭 border-radius) | 문제번호 위에 표시 |
+| 오답 X | `.q-number.q-wrong::after` — 빨간 볼드 ✕ (`color: #c62828`, `font-size: 1.6em`) | 문제번호 위에 표시 |
+| 미응답 | 오답과 동일하게 X 표시 (skipped도 틀린 문제로 처리) | |
+
+- O 마크 위치: `top: 0.8em; left: 50%` (line-height 1.6의 중앙)
+- X 마크 위치: `top: 0.55em; left: 30%` (시각적 보정)
+- 오답 재풀이(`is_wrong_retry`)에서는 O/X 마크 미표시
+- gisa/exam_result.html, exam/exam_result.html 모두 동일 적용
+
+### 선지 원번호 표시 (5곳 통일)
+
+| 상황 | 스타일 | CSS 클래스 |
+|------|--------|-----------|
+| 정답 문제 - 정답 선지 | 검은색 반전 | `.correct-mark` (`background: #333; color: #fff`) |
+| 오답 문제 - 내가 선택한 선지 | 검은색 반전 | `.wrong-mark` (`background: #333; color: #fff`) |
+| 오답 문제 - 정답 선지 | 빨간색 반전 | `.wrong-q-correct` (`background: #d93025; color: #fff`) |
+
+적용 페이지 (5곳):
+- `gisa/exam_result.html` — 오답 문제에만 조건부 적용 (`{% if not r.is_correct %} wrong-q-correct{% endif %}`)
+- `gisa/wrong_answers.html` — 전체 문제가 오답이므로 무조건 적용
+- `gisa/certification_detail.html` (오답 탭) — 전체 문제가 오답이므로 무조건 적용
+- `exam/exam_result.html` — 오답 문제에만 조건부 적용
+- `exam/wrong_answers.html` — 전체 문제가 오답이므로 무조건 적용
+
+### 기타 표시 요소
 
 | 요소 | 스타일 | 적용 페이지 |
 |------|--------|------------|
 | 정답 표시 | 빨간 동그라미 (`.choice-num.correct::before`, `border: 3px solid #d93025`) | study_mode |
-| 정답 표시 | 원번호 반전 (`.correct-mark`, `background: #333; color: #fff`) | wrong tab, wrong_answers, exam_result |
 | 선택한 답 | 원번호 반전 (`.choice-num.picked`, `background: #333; color: #fff`) | study_mode |
 | 선택한 답 | `← 내 답` 빨간 라벨 (`.my-pick`, `color: #d93025`) | wrong tab, wrong_answers, exam_result |
-| 오답 문제 | 빨간색 표기 안 함 (`color: inherit`) | exam_result |
 | 노트 제외 | "노트 X" 형태 (텍스트 먼저, X 아이콘 뒤) | wrong tab |
 
 ### 문제 간 간격
@@ -725,6 +746,51 @@ knou_agriculture/
 - 일시: 상대 시간 표시 (`timeAgo()` 함수 — 분/시간/일/개월/년 전)
 - 모의고사 배지: 녹색 톤, 기출고사 배지: 남색 톤
 - 전체 기록 삭제 버튼: 하단 배치
+
+## 채점 결과 모바일 헤더 (exam_result)
+
+gisa/exam_result.html, exam/exam_result.html 모두 동일한 컴팩트 모바일 헤더 적용.
+
+### 레이아웃
+
+- 흰색 배경, 1행 flex 레이아웃 (`position: sticky; top: 0`)
+- 좌측: 점수 (`1.5rem` 볼드) + "점" 단위 + 정답수/총문제수
+- 우측: 액션 버튼 (pill 스타일, `border-radius: 14px`)
+
+### 색상
+
+- gisa: 남색 톤 (`#1a237e`) — 점수, 버튼 배경
+- exam: 다크그린 톤 (`#1b4332`) — 점수, 버튼 배경
+- 돌아가기 버튼: 회색 (`#eee` 배경, `#555` 텍스트)
+
+### 돌아가기 링크 분기
+
+모드에 따라 적절한 탭으로 복귀:
+- 기출고사 → `?tab=solve` (gisa) / `?tab=study` (exam)
+- 모의고사 → `?tab=mock`
+- 오답 재풀이 → `?tab=wrong`
+
+### HTML 구조
+
+```html
+<div class="mobile-header">
+    <div class="mh-row">
+        <div class="mh-score">...</div>
+        <div class="mh-actions">
+            <a class="mh-btn">...</a>
+            <a class="mh-btn mh-btn-sub">돌아가기</a>
+        </div>
+    </div>
+</div>
+```
+
+## 헤더 네비게이션 (base.html)
+
+- "농학과 과목" 링크 → 마이페이지
+- "식물보호(산업)기사" 링크 → `/gisa/`
+- "나무의사" 링크 → `http://www.studynamu.com` (외부, `target="_blank"`)
+- 스태프 전용 "관리" 링크
+- 로그아웃 링크
 
 ## django.contrib.humanize
 
