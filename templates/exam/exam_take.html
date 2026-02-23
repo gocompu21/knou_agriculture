@@ -54,6 +54,17 @@
             font-size: 1.0em;
             line-height: 1.5;
             transition: background 0.15s;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .choices .choice-item > .q-mark {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .choice-text-wrap {
+            flex: 1;
         }
 
         .choices .choice-item:hover {
@@ -355,16 +366,16 @@
                 <div class="question-content">{{ q.number }}. {{ q.text }}</div>
                 <div class="choices">
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '1')">
-                        <span class="q-mark">1</span> {{ q.choice_1 }}
+                        <span class="q-mark">1</span><div class="choice-text-wrap">{{ q.choice_1 }}</div>
                     </div>
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '2')">
-                        <span class="q-mark">2</span> {{ q.choice_2 }}
+                        <span class="q-mark">2</span><div class="choice-text-wrap">{{ q.choice_2 }}</div>
                     </div>
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '3')">
-                        <span class="q-mark">3</span> {{ q.choice_3 }}
+                        <span class="q-mark">3</span><div class="choice-text-wrap">{{ q.choice_3 }}</div>
                     </div>
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '4')">
-                        <span class="q-mark">4</span> {{ q.choice_4 }}
+                        <span class="q-mark">4</span><div class="choice-text-wrap">{{ q.choice_4 }}</div>
                     </div>
                 </div>
             </div>

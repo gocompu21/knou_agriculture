@@ -140,43 +140,64 @@
 
         /* ── Footer ── */
         .site-footer {
-            background: var(--forest-dark);
-            color: #c5dfc8;
-            padding: 32px 0;
-            font-size: 0.85rem;
-            line-height: 1.7;
+            background: #1b2e23;
+            color: rgba(255,255,255,0.5);
+            padding: 20px 0;
+            font-size: 0.78rem;
+            line-height: 1.6;
         }
 
         .footer-inner {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            gap: 24px;
-            flex-wrap: wrap;
-        }
-
-        .footer-brand {
-            font-family: "Black Han Sans", sans-serif;
-            font-size: 1.15rem;
-            color: #fff;
-            margin-bottom: 6px;
-        }
-
-        .footer-links {
-            display: flex;
+            align-items: center;
             gap: 16px;
             flex-wrap: wrap;
         }
 
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .footer-brand {
+            font-family: "SUIT", sans-serif;
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: rgba(255,255,255,0.85);
+        }
+
+        .footer-sep {
+            width: 1px;
+            height: 14px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .footer-desc {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 6px;
+        }
+
         .footer-links a {
-            color: #a5cfac;
+            color: rgba(255,255,255,0.45);
             text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
+            font-weight: 600;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 4px;
+            transition: color 0.2s, border-color 0.2s;
         }
 
         .footer-links a:hover {
-            color: #fff;
+            color: rgba(255,255,255,0.8);
+            border-color: rgba(255,255,255,0.3);
         }
 
         /* ── Animations ── */
@@ -244,7 +265,16 @@
 
             .footer-inner {
                 flex-direction: column;
-                gap: 16px;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .footer-left {
+                gap: 8px;
+            }
+
+            .footer-desc {
+                display: none;
             }
         }
     </style>
@@ -282,12 +312,13 @@
     <footer class="site-footer">
         <div class="wrap">
             <div class="footer-inner">
-                <div>
-                    <div class="footer-brand">한울회 A+ 학습시스템</div>
-                    <p>한국방송통신대학교 농학과 학습동아리 한울회 스터디 그룹</p>
+                <div class="footer-left">
+                    <span class="footer-brand">한울회 A+</span>
+                    <span class="footer-sep"></span>
+                    <span class="footer-desc">한국방송통신대학교 농학과 학습동아리</span>
                 </div>
                 <div class="footer-links">
-                    <a href="https://agri.knou.ac.kr/agri/index.do" target="_blank" rel="noopener">농학과 홈페이지</a>
+                    <a href="https://agri.knou.ac.kr/agri/index.do" target="_blank" rel="noopener">농학과</a>
                     <a href="https://cafe.daum.net/hwhstudy" target="_blank" rel="noopener">한울회 카페</a>
                 </div>
             </div>

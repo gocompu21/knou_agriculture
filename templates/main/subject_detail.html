@@ -439,71 +439,64 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 20px;
-        padding: 16px 20px;
-        background: #fef9f0;
-        border: 1px solid #f0d8a8;
-        border-radius: 12px;
+        margin-bottom: 12px;
+        padding: 10px 16px;
+        background: #f4f8f4;
+        border-bottom: 2px solid #1b4332;
+        border-radius: 0;
     }
 
     .wrong-summary-text {
-        font-size: 0.95rem;
-        color: #555;
+        font-size: 0.9rem;
+        color: #333;
     }
 
     .wrong-summary-text strong {
         color: #d93025;
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
 
     .wrong-summary-btn {
-        padding: 10px 20px;
-        background: #ff6b35;
+        padding: 6px 14px;
+        background: #1b4332;
         color: #fff;
         border: none;
-        border-radius: 10px;
-        font-size: 0.9rem;
-        font-weight: 700;
+        border-radius: 6px;
+        font-size: 0.82rem;
+        font-weight: 600;
         cursor: pointer;
         text-decoration: none;
         font-family: "SUIT", sans-serif;
-        transition: transform 0.15s;
         white-space: nowrap;
-    }
-
-    .wrong-summary-btn:hover {
-        transform: translateY(-1px);
     }
 
     .session-list {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 0;
     }
 
     .session-card {
         display: flex;
         align-items: center;
-        gap: 16px;
-        padding: 16px 20px;
-        border: 1px solid #d7e3d7;
-        background: linear-gradient(180deg, #ffffff 0%, #f8fcf5 100%);
-        border-radius: 12px;
-        transition: transform 0.2s, box-shadow 0.2s;
+        gap: 10px;
+        padding: 8px 16px;
+        border-bottom: 1px solid #eee;
+        background: #fff;
+        border-radius: 0;
     }
 
     .session-card:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(30, 70, 42, 0.08);
+        background: #f8faf8;
     }
 
     .session-mode {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 0.78rem;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.72rem;
         font-weight: 700;
         white-space: nowrap;
         flex-shrink: 0;
@@ -525,51 +518,50 @@
     }
 
     .session-label {
-        font-weight: 700;
-        font-size: 0.95rem;
+        font-weight: 600;
+        font-size: 0.85rem;
         color: #333;
     }
 
     .session-date {
-        font-size: 0.8rem;
+        font-size: 0.72rem;
         color: #999;
-        margin-top: 2px;
+        margin-top: 1px;
     }
 
     .session-stats {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
         flex-shrink: 0;
     }
 
     .session-score {
-        font-size: 1.1rem;
+        font-size: 0.95rem;
         font-weight: 800;
     }
 
     .session-wrong-badge {
         display: inline-flex;
         align-items: center;
-        padding: 3px 10px;
-        border-radius: 6px;
-        font-size: 0.8rem;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
         font-weight: 700;
         background: #fee2e2;
         color: #d93025;
     }
 
     .session-link {
-        padding: 6px 14px;
+        padding: 4px 10px;
         background: #e5f5e0;
         color: #1d5536;
-        border: 1px solid #c8e4c2;
-        border-radius: 8px;
-        font-size: 0.82rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.78rem;
         font-weight: 600;
         text-decoration: none;
         white-space: nowrap;
-        transition: background 0.15s;
     }
 
     .session-link:hover {
@@ -577,21 +569,19 @@
     }
 
     .session-del-btn {
-        padding: 6px 10px;
+        padding: 4px 8px;
         background: transparent;
-        color: #bbb;
+        color: #ccc;
         border: none;
-        border-radius: 8px;
-        font-size: 0.85rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
         cursor: pointer;
-        transition: color 0.15s, background 0.15s;
         font-family: inherit;
         line-height: 1;
     }
 
     .session-del-btn:hover {
         color: #d93025;
-        background: #fee2e2;
     }
 
     .empty-msg {
@@ -663,91 +653,57 @@
 
         /* ── Wrong summary mobile ── */
         .wrong-summary {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 12px;
-            text-align: center;
-            padding: 16px;
+            flex-direction: row;
+            padding: 8px 12px;
         }
 
         .wrong-summary-text {
-            font-size: 0.9rem;
+            font-size: 0.82rem;
         }
 
-        .wrong-summary .btn-row {
-            justify-content: center;
+        .wrong-summary-btn {
+            padding: 5px 10px;
+            font-size: 0.78rem;
         }
 
         /* ── Session card mobile (compact) ── */
-        .session-list {
-            gap: 6px;
-        }
-
         .session-card {
-            position: relative;
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            grid-template-rows: auto auto;
-            align-items: center;
-            gap: 0 10px;
-            padding: 10px 12px;
-            border-radius: 10px;
+            padding: 6px 12px;
+            gap: 8px;
         }
 
         .session-mode {
-            grid-row: 1;
-            grid-column: 1;
-            font-size: 0.68rem;
-            padding: 1px 6px;
-            border-radius: 4px;
-        }
-
-        .session-info {
-            grid-row: 1;
-            grid-column: 2;
-            min-width: 0;
+            font-size: 0.65rem;
+            padding: 1px 5px;
         }
 
         .session-label {
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .session-date {
-            font-size: 0.7rem;
-        }
-
-        .session-card .session-del-form {
-            grid-row: 1;
-            grid-column: 3;
+            font-size: 0.65rem;
         }
 
         .session-stats {
-            grid-row: 2;
-            grid-column: 1 / -1;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 6px;
-            padding-top: 6px;
-            border-top: 1px solid #eee;
+            gap: 6px;
         }
 
         .session-stats .session-score {
-            font-size: 0.95rem;
+            font-size: 0.85rem;
         }
 
         .session-wrong-badge {
-            font-size: 0.72rem;
-            padding: 2px 7px;
+            font-size: 0.68rem;
+            padding: 1px 6px;
         }
 
-        .session-stats .session-link {
-            margin-left: auto;
-            font-size: 0.78rem;
-            padding: 4px 10px;
+        .session-link {
+            font-size: 0.72rem;
+            padding: 3px 8px;
         }
     }
 
@@ -1468,13 +1424,10 @@
     <!-- Tab 4: 오답 노트 -->
     <div class="tab-content{% if active_tab == 'wrong' %} active{% endif %}" id="tab-wrong">
         {% if wrong_count > 0 %}
-        <div class="wrong-summary fade-up">
-            <div class="wrong-summary-text">
-                오답 <strong>{{ wrong_count }}</strong>문제
-            </div>
-            <div class="btn-row" style="display:flex; gap:8px;">
-                <a class="wrong-summary-btn" style="background:#e5f5e0; color:#1d5536; border:1px solid #c8e4c2;"
-                    href="{% url 'exam:wrong_answers' subject.pk %}">전체 오답 보기</a>
+        <div class="wrong-summary">
+            <div class="wrong-summary-text">오답 <strong>{{ wrong_count }}</strong>문제</div>
+            <div style="display:flex; gap:6px;">
+                <a class="wrong-summary-btn" style="background:#e5f5e0; color:#1d5536;" href="{% url 'exam:wrong_answers' subject.pk %}">전체 보기</a>
                 <a class="wrong-summary-btn" href="{% url 'exam:wrong_answers_retry' subject.pk %}">다시 도전</a>
             </div>
         </div>
@@ -1483,10 +1436,8 @@
         {% if exam_sessions %}
         <div class="session-list">
             {% for s in exam_sessions %}
-            <div class="session-card fade-up">
-                <span class="session-mode {{ s.mode }}">
-                    {% if s.mode == 'mock' %}모의고사{% else %}풀이{% endif %}
-                </span>
+            <div class="session-card">
+                <span class="session-mode {{ s.mode }}">{% if s.mode == 'mock' %}모의{% else %}풀이{% endif %}</span>
                 <div class="session-info">
                     <div class="session-label">{{ s.mode_label }}</div>
                     <div class="session-date">{{ s.date|date:"Y.m.d H:i" }}</div>
@@ -1494,16 +1445,13 @@
                 <div class="session-stats">
                     <span class="session-score" style="color:{% if s.score >= 80 %}#2d8a4e{% elif s.score >= 60 %}#3d9ed6{% elif s.score >= 40 %}#e0943a{% else %}#d93025{% endif %};">{{ s.score }}점</span>
                     {% if s.wrong > 0 %}
-                    <span class="session-wrong-badge">오답 {{ s.wrong }}</span>
-                    <a class="session-link" href="{% url 'exam:wrong_answers_session' subject.pk s.session_id %}">문제
-                        보기</a>
+                    <span class="session-wrong-badge">{{ s.wrong }}오답</span>
+                    <a class="session-link" href="{% url 'exam:wrong_answers_session' subject.pk s.session_id %}">보기</a>
                     {% else %}
-                    <span style="font-size:0.85rem; color:#2d8a4e; font-weight:600;">전문 정답</span>
+                    <span style="font-size:0.78rem; color:#2d8a4e; font-weight:600;">전문정답</span>
                     {% endif %}
                 </div>
-                <form class="session-del-form" method="post"
-                    action="{% url 'exam:session_delete' subject.pk s.session_id %}"
-                    onsubmit="return confirm('이 시험 기록을 삭제하시겠습니까?');" style="margin:0;">
+                <form class="session-del-form" method="post" action="{% url 'exam:session_delete' subject.pk s.session_id %}" onsubmit="return confirm('이 시험 기록을 삭제하시겠습니까?');" style="margin:0;">
                     {% csrf_token %}
                     <button type="submit" class="session-del-btn" title="삭제">✕</button>
                 </form>
@@ -1799,20 +1747,23 @@
         if (activeBtn) {
             activeBtn.scrollIntoView({ block: 'nearest', inline: 'center' });
         }
-        // ?note=N&sec=X.Y 파라미터로 해당 노트 아코디언 펼침 + 절 위치 스크롤
+        // ?sec=X.Y 파라미터로 해당 노트 아코디언 펼침 + 절 위치 스크롤
         var params = new URLSearchParams(window.location.search);
-        var noteOrder = params.get('note');
         var secId = params.get('sec');
-        if (noteOrder) {
-            var noteEl = document.getElementById('note-' + noteOrder);
-            if (noteEl) {
-                noteEl.classList.add('open');
-                setTimeout(function() {
-                    var target = secId ? document.getElementById('sec-' + secId) : noteEl;
-                    var el = target || noteEl;
-                    var y = el.getBoundingClientRect().top + window.pageYOffset - 90;
-                    window.scrollTo({top: y, behavior: 'smooth'});
-                }, 150);
+        if (secId) {
+            var sections = document.querySelectorAll('.section-item');
+            for (var i = 0; i < sections.length; i++) {
+                var hdr = sections[i].querySelector('.section-header span');
+                if (hdr && hdr.textContent.trim().match(new RegExp('^' + secId.replace('.', '\\.') + '\\b'))) {
+                    var ch = sections[i].closest('.chapter-item');
+                    if (ch) ch.classList.add('open');
+                    sections[i].classList.add('open');
+                    setTimeout(function(el) {
+                        var y = el.getBoundingClientRect().top + window.pageYOffset - 90;
+                        window.scrollTo({top: y, behavior: 'smooth'});
+                    }.bind(null, sections[i]), 150);
+                    break;
+                }
             }
         }
     })();

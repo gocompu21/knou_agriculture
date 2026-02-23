@@ -205,18 +205,11 @@
         flex-shrink: 0;
     }
 
-    /* 정답: 빨간 동그라미 */
-    .choice-num.correct::before {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 26px;
-        height: 26px;
-        border: 3px solid #d93025;
-        border-radius: 50% 45% 55% 40% / 50% 55% 45% 50%;
-        transform: translate(-50%, -50%) rotate(-5deg);
-        pointer-events: none;
+    /* 정답: 빨간색 반전 */
+    .choice-num.correct {
+        background: #d93025;
+        color: #fff;
+        border-color: #d93025;
     }
 
     .dismiss-btn {
@@ -296,11 +289,6 @@
             margin-left: 0;
         }
 
-        .choice-num.correct::before {
-            width: 20px;
-            height: 20px;
-            border-width: 2px;
-        }
     }
 </style>
 {% endblock %}
@@ -394,9 +382,11 @@
 
         var answerStr = parent.getAttribute('data-answer');
         var correctAnswers = answerStr.split(',').map(function (s) { return s.trim(); });
+        var selectedChoice = String(choiceNum);
+        var isCorrect = correctAnswers.indexOf(selectedChoice) !== -1;
         parent.querySelectorAll('.choice-num').forEach(function (cn) {
             cn.classList.remove('correct');
-            if (correctAnswers.indexOf(cn.getAttribute('data-choice')) !== -1) cn.classList.add('correct');
+            if (!isCorrect && correctAnswers.indexOf(cn.getAttribute('data-choice')) !== -1) cn.classList.add('correct');
         });
 
         var dismissWrap = card.querySelector('.dismiss-wrap');
@@ -416,8 +406,11 @@
         });
         document.querySelectorAll('.q-choices').forEach(function (qc) {
             var ans = qc.getAttribute('data-answer').split(',').map(function (s) { return s.trim(); });
+            var selectedItem = qc.querySelector('.choice-item.selected .choice-num');
+            var selectedChoice = selectedItem ? selectedItem.getAttribute('data-choice') : null;
+            var isCorrect = selectedChoice && ans.indexOf(selectedChoice) !== -1;
             qc.querySelectorAll('.choice-num').forEach(function (cn) {
-                if (allExpanded && ans.indexOf(cn.getAttribute('data-choice')) !== -1) cn.classList.add('correct');
+                if (allExpanded && !isCorrect && ans.indexOf(cn.getAttribute('data-choice')) !== -1) cn.classList.add('correct');
                 else cn.classList.remove('correct');
             });
         });

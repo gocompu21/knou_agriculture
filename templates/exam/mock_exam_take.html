@@ -26,10 +26,28 @@
         }
 
         .panel-header {
-            text-align: right;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             font-size: 1.0em;
             margin-bottom: 20px;
             color: #555;
+        }
+
+        .panel-submit-btn {
+            padding: 8px 20px;
+            background: #1b4332;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: "SUIT", -apple-system, sans-serif;
+        }
+
+        .panel-submit-btn:hover {
+            background: #143728;
         }
 
         .question-item {
@@ -42,8 +60,8 @@
             margin-bottom: 10px;
             font-size: 1.1em;
             line-height: 1.6;
-            padding-left: 25px;
-            text-indent: -22px;
+            padding-left: 1.3em;
+            text-indent: -1.3em;
         }
 
         .q-source {
@@ -67,6 +85,17 @@
             font-size: 1.0em;
             line-height: 1.5;
             transition: background 0.15s;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .choices .choice-item > .q-mark {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .choice-text-wrap {
+            flex: 1;
         }
 
         .choices .choice-item:hover {
@@ -330,8 +359,8 @@
             .question-content {
                 font-size: 1rem;
                 line-height: 1.5;
-                padding-left: 1.5em;
-                text-indent: -1.5em;
+                padding-left: 1.3em;
+                text-indent: -1.3em;
             }
 
             .choices .choice-item {
@@ -368,20 +397,19 @@
             <div class="question-item" id="q-{{ q.id }}">
                 <div class="question-content">
                     {{ forloop.counter }}. {{ q.text }}
-                    <span class="q-source">{{ q.year }}년 {{ q.number }}번</span>
                 </div>
                 <div class="choices">
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '1')">
-                        <span class="q-mark">1</span> {{ q.choice_1 }}
+                        <span class="q-mark">1</span><div class="choice-text-wrap">{{ q.choice_1 }}</div>
                     </div>
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '2')">
-                        <span class="q-mark">2</span> {{ q.choice_2 }}
+                        <span class="q-mark">2</span><div class="choice-text-wrap">{{ q.choice_2 }}</div>
                     </div>
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '3')">
-                        <span class="q-mark">3</span> {{ q.choice_3 }}
+                        <span class="q-mark">3</span><div class="choice-text-wrap">{{ q.choice_3 }}</div>
                     </div>
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '4')">
-                        <span class="q-mark">4</span> {{ q.choice_4 }}
+                        <span class="q-mark">4</span><div class="choice-text-wrap">{{ q.choice_4 }}</div>
                     </div>
                 </div>
             </div>

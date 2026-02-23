@@ -56,7 +56,7 @@
         .q-number.q-correct::after {
             content: '';
             position: absolute;
-            top: 0.8em; left: 50%;
+            top: 0.8em; left: 35%;
             transform: translate(-50%, -50%) rotate(-5deg);
             width: 1.5em; height: 1.4em;
             border: 2.5px solid #1565c0;
@@ -70,9 +70,13 @@
             top: 0.55em; left: 30%;
             transform: translate(-50%, -50%);
             font-size: 1.6em;
-            color: #c62828;
+            color: rgba(198, 40, 40, 0.7);
             font-weight: bold;
             pointer-events: none;
+            z-index: 0;
+        }
+        .q-number.q-wrong {
+            z-index: 1;
         }
 
         .question-content.wrong-text {
@@ -85,6 +89,8 @@
             border-radius: 5px;
             font-size: 1.0em;
             line-height: 1.5;
+            display: flex;
+            align-items: flex-start;
         }
 
         .q-mark {
@@ -98,10 +104,15 @@
             font-size: 0.75em;
             font-weight: 600;
             margin-right: 6px;
-            vertical-align: 1px;
             background: #fff;
             color: #333;
             position: relative;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .choice-text-wrap {
+            flex: 1;
         }
 
         /* Selected answer (user's choice) - filled circle */
@@ -110,19 +121,6 @@
             color: #fff;
         }
 
-        /* Correct answer - red wavy circle around number */
-        .q-mark.correct-mark::before {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 26px;
-            height: 26px;
-            border: 3px solid #d93025;
-            border-radius: 50% 45% 55% 40% / 50% 55% 45% 50%;
-            transform: translate(-50%, -50%) rotate(-5deg);
-            pointer-events: none;
-        }
 
         /* Wrong selection highlight */
         .choice-item.user-wrong {
@@ -226,7 +224,7 @@
         .choice-exp {
             display: none;
             margin-top: 4px;
-            margin-left: 32px;
+            margin-left: 0;
             padding: 4px 0;
             font-size: 0.9em;
             color: #555;
@@ -443,9 +441,8 @@
                 position: sticky;
                 top: 0;
                 z-index: 100;
-                background: #fff;
-                border-bottom: 1px solid #e0e0e0;
-                padding: 8px 12px;
+                background: #1b4332;
+                padding: 10px 14px;
             }
             .mh-row {
                 display: flex;
@@ -460,16 +457,16 @@
             .mh-score-num {
                 font-size: 1.5rem;
                 font-weight: 800;
-                color: #1b4332;
+                color: #fff;
             }
             .mh-score-unit {
                 font-size: 0.85rem;
                 font-weight: 600;
-                color: #1b4332;
+                color: #fff;
             }
             .mh-score-detail {
                 font-size: 0.75rem;
-                color: #888;
+                color: rgba(255, 255, 255, 0.7);
                 margin-left: 6px;
             }
             .mh-actions {
@@ -482,12 +479,12 @@
                 text-decoration: none;
                 font-size: 0.72rem;
                 font-weight: 600;
-                background: #1b4332;
+                background: rgba(255, 255, 255, 0.15);
                 color: #fff;
             }
             .mh-btn-sub {
-                background: #eee;
-                color: #555;
+                background: rgba(255, 255, 255, 0.15);
+                color: #fff;
             }
 
             .question-item {
@@ -525,7 +522,7 @@
             <div class="mh-score"><span class="mh-score-num">{{ score }}</span><span class="mh-score-unit">점</span> <span class="mh-score-detail">{{ correct }}/{{ total }}</span></div>
             <div class="mh-actions">
                 {% if is_mock %}<a href="{% url 'exam:mock_exam_take' subject.pk %}" class="mh-btn">새 모의고사</a>{% elif is_wrong_retry %}<a href="{% url 'exam:wrong_answers_retry' subject.pk %}" class="mh-btn">다시 풀기</a>{% else %}<a href="{% url 'exam:study_mode' subject.pk year %}" class="mh-btn">학습모드</a>{% endif %}
-                <a href="{% url 'main:subject_detail' subject.pk %}?tab={% if is_mock %}mock{% elif is_wrong_retry %}wrong{% else %}study{% endif %}" class="mh-btn mh-btn-sub">돌아가기</a>
+                <a href="{% url 'main:subject_detail' subject.pk %}?tab={% if is_mock %}mock{% elif is_wrong_retry %}wrong{% else %}solve{% endif %}" class="mh-btn mh-btn-sub">돌아가기</a>
             </div>
         </div>
     </div>
@@ -545,10 +542,7 @@
                 <div class="choices">
                     {% for c in r.choices %}
                     <div class="choice-item{% if c.is_selected %} user-selected{% endif %}{% if c.user_correct %} user-correct{% elif c.user_wrong %} user-wrong{% endif %}">
-                        <span class="q-mark{% if c.is_correct %} correct-mark{% if not r.is_correct %} wrong-q-correct{% endif %}{% endif %}{% if c.user_wrong %} wrong-mark{% endif %}">{{ c.num }}</span> {{ c.text }}
-                        {% if c.exp %}
-                        <div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">↪ <span class="exp-text-inner">{{ c.exp }}</span></div>
-                        {% endif %}
+                        <span class="q-mark{% if c.is_correct %} correct-mark{% if not r.is_correct %} wrong-q-correct{% endif %}{% endif %}{% if c.user_wrong %} wrong-mark{% endif %}">{{ c.num }}</span><div class="choice-text-wrap">{{ c.text }}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">↪ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
                     </div>
                     {% endfor %}
                 </div>
