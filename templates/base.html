@@ -52,6 +52,7 @@
         .wrap {
             width: min(1120px, 92vw);
             margin: 0 auto;
+            overflow-x: hidden;
         }
 
         /* ── Header ── */
@@ -238,7 +239,7 @@
                 flex-direction: column;
                 align-items: flex-start;
                 padding: 8px 0;
-                gap: 8px;
+                gap: 6px;
             }
 
             .brand-logo {
@@ -251,16 +252,28 @@
 
             .site-nav {
                 gap: 0;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                width: 100%;
             }
 
+            .site-nav::-webkit-scrollbar { display: none; }
+
             .site-nav a {
-                font-size: 0.78rem;
-                padding: 4px 10px;
-                padding-left: 0;
+                font-size: 0.75rem;
+                padding: 4px 8px;
+                white-space: nowrap;
+                flex-shrink: 0;
             }
 
             main {
-                padding-top: 18px;
+                padding-top: 14px;
+                padding-bottom: 36px;
+            }
+
+            .wrap {
+                width: min(1120px, 94vw);
             }
 
             .footer-inner {
@@ -275,6 +288,10 @@
 
             .footer-desc {
                 display: none;
+            }
+
+            .site-footer {
+                padding: 14px 0;
             }
         }
     </style>
