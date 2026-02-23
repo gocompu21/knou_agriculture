@@ -9,90 +9,6 @@
         margin: 0 auto;
     }
 
-    .manage-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-    }
-
-    .manage-header h1 {
-        font-size: 1.5rem;
-        color: var(--forest);
-    }
-
-    .member-count {
-        font-size: 0.9rem;
-        color: var(--muted);
-        font-weight: 600;
-    }
-
-    .member-table {
-        width: 100%;
-        border-collapse: collapse;
-        background: #fff;
-        border-radius: 14px;
-        overflow: hidden;
-        box-shadow: 0 4px 16px rgba(30, 70, 42, 0.08);
-    }
-
-    .member-table thead {
-        background: var(--forest);
-        color: #fff;
-    }
-
-    .member-table th {
-        padding: 14px 16px;
-        font-size: 0.85rem;
-        font-weight: 700;
-        text-align: left;
-    }
-
-    .member-table td {
-        padding: 12px 16px;
-        font-size: 0.88rem;
-        border-bottom: 1px solid #eef3ee;
-    }
-
-    .member-table tbody tr:hover {
-        background: #f8fbf6;
-    }
-
-    .toggle-btn {
-        display: inline-block;
-        padding: 4px 14px;
-        border-radius: 6px;
-        font-size: 0.8rem;
-        font-weight: 700;
-        border: none;
-        cursor: pointer;
-        font-family: inherit;
-        transition: background 0.15s;
-    }
-
-    .toggle-btn.on {
-        background: #e3f5e1;
-        color: #2d6a4f;
-    }
-
-    .toggle-btn.on:hover {
-        background: #d4ebc8;
-    }
-
-    .toggle-btn.off {
-        background: #fef2f2;
-        color: #b91c1c;
-    }
-
-    .toggle-btn.off:hover {
-        background: #fee2e2;
-    }
-
-    .toggle-btn:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-    }
-
     .manage-nav {
         display: flex;
         gap: 8px;
@@ -122,31 +38,217 @@
         background: #d4ebc8;
     }
 
+    .manage-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .manage-header h1 {
+        font-size: 1.4rem;
+        color: var(--forest);
+        margin: 0;
+    }
+
+    .member-count {
+        font-size: 0.85rem;
+        color: #888;
+        font-weight: 600;
+    }
+
+    /* ── 데스크톱 테이블 ── */
+    .member-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: #fff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(30, 70, 42, 0.07);
+    }
+
+    .member-table thead { background: #f6faf3; }
+
+    .member-table th {
+        padding: 12px 14px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-align: left;
+        color: #6b8a72;
+        border-bottom: 2px solid #e0ece0;
+        white-space: nowrap;
+    }
+
+    .member-table td {
+        padding: 11px 14px;
+        font-size: 0.85rem;
+        border-bottom: 1px solid #f2f5f2;
+        color: #333;
+    }
+
+    .member-table tbody tr:hover { background: #fafdf8; }
+    .member-table tbody tr:last-child td { border-bottom: none; }
+
+    .td-name { font-weight: 600; color: #1b4332; }
+    .td-id { color: #555; font-size: 0.82rem; }
+    .td-email { color: #888; font-size: 0.8rem; }
+    .td-date { color: #888; font-size: 0.8rem; white-space: nowrap; }
+
+    .td-login {
+        text-align: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+    .td-login .num { color: var(--forest); }
+    .td-login .num.zero { color: #ccc; }
+
+    .td-time {
+        font-size: 0.82rem;
+        color: #555;
+        white-space: nowrap;
+    }
+    .td-time .dash { color: #ccc; }
+
+    .toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 24px;
+        border-radius: 12px;
+        font-size: 0;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.2s;
+        position: relative;
+    }
+
+    .toggle-btn::after {
+        content: '';
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        transition: transform 0.2s;
+    }
+
+    .toggle-btn.on {
+        background: #2d8a56;
+    }
+
+    .toggle-btn.on::after {
+        transform: translateX(9px);
+    }
+
+    .toggle-btn.off {
+        background: #d0d0d0;
+    }
+
+    .toggle-btn.off::after {
+        transform: translateX(-9px);
+    }
+
+    .toggle-btn:hover.on { background: #247a4a; }
+    .toggle-btn:hover.off { background: #bbb; }
+
+    .toggle-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .td-toggle { text-align: center; }
+
+    /* ── 모바일 카드 ── */
+    .member-cards { display: none; }
+
     @media (max-width: 720px) {
-        .member-table th,
-        .member-table td {
-            padding: 10px 8px;
+        .manage-wrap { width: 100%; padding: 0 10px; box-sizing: border-box; }
+
+        .manage-nav { flex-wrap: wrap; gap: 6px; }
+        .manage-nav a { padding: 6px 12px; font-size: 0.8rem; }
+
+        .manage-header { margin-bottom: 14px; }
+        .manage-header h1 { font-size: 1.15rem; }
+
+        .member-table { display: none; }
+        .member-cards { display: block; }
+
+        .m-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 6px rgba(30,70,42,0.06);
+            border: 1px solid #eef3ee;
+        }
+
+        .m-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .m-card-name {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #1b4332;
+        }
+
+        .m-card-name small {
+            font-weight: 500;
             font-size: 0.78rem;
+            color: #888;
+            margin-left: 6px;
         }
 
-        .manage-nav {
-            flex-wrap: wrap;
-            gap: 6px;
+        .m-card-toggles {
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
 
-        .manage-nav a {
-            padding: 6px 12px;
-            font-size: 0.8rem;
+        .m-card-toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.7rem;
+            color: #888;
+            font-weight: 600;
         }
 
-        .manage-header {
-            flex-direction: column;
-            align-items: flex-start;
+        .m-card-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
             gap: 8px;
         }
 
-        .td-email { display: none; }
-        .th-email { display: none; }
+        .m-stat {
+            text-align: center;
+            padding: 6px 4px;
+            background: #f8faf6;
+            border-radius: 8px;
+        }
+
+        .m-stat-label {
+            font-size: 0.65rem;
+            color: #999;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .m-stat-value {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .m-stat-value.green { color: var(--forest); }
+        .m-stat-value.muted { color: #ccc; }
     }
 </style>
 {% endblock %}
@@ -162,16 +264,19 @@
 
     <div class="manage-header">
         <h1>회원 관리</h1>
-        <span class="member-count">총 {{ members|length }}명</span>
+        <span class="member-count">{{ members|length }}명</span>
     </div>
 
+    <!-- 데스크톱 테이블 -->
     <table class="member-table">
         <thead>
             <tr>
                 <th>이름</th>
                 <th>아이디</th>
-                <th class="th-email">이메일</th>
-                <th>가입일시</th>
+                <th>이메일</th>
+                <th>가입일</th>
+                <th>로그인</th>
+                <th>사용시간</th>
                 <th>스태프</th>
                 <th>활성</th>
             </tr>
@@ -179,32 +284,81 @@
         <tbody>
             {% for m in members %}
             <tr>
-                <td>{{ m.first_name|default:"-" }}</td>
-                <td><strong>{{ m.username }}</strong></td>
+                <td class="td-name">{{ m.first_name|default:"-" }}</td>
+                <td class="td-id">{{ m.username }}</td>
                 <td class="td-email">{{ m.email|default:"-" }}</td>
-                <td>{{ m.date_joined|date:"Y.m.d H:i" }}</td>
-                <td>
+                <td class="td-date">{{ m.date_joined|date:"Y.m.d" }}</td>
+                <td class="td-login"><span class="num {% if m.login_count == 0 %}zero{% endif %}">{{ m.login_count }}</span></td>
+                <td class="td-time">{% if m.usage_display == "-" %}<span class="dash">-</span>{% else %}{{ m.usage_display }}{% endif %}</td>
+                <td class="td-toggle">
                     <button type="button"
                             class="toggle-btn {% if m.is_staff %}on{% else %}off{% endif %}"
                             data-pk="{{ m.pk }}" data-field="is_staff"
                             onclick="toggleMember(this)"
                             {% if m.pk == request.user.pk %}disabled title="자기 자신은 변경 불가"{% endif %}>
-                        {% if m.is_staff %}ON{% else %}OFF{% endif %}
                     </button>
                 </td>
-                <td>
+                <td class="td-toggle">
                     <button type="button"
                             class="toggle-btn {% if m.is_active %}on{% else %}off{% endif %}"
                             data-pk="{{ m.pk }}" data-field="is_active"
                             onclick="toggleMember(this)"
                             {% if m.pk == request.user.pk %}disabled title="자기 자신은 변경 불가"{% endif %}>
-                        {% if m.is_active %}ON{% else %}OFF{% endif %}
                     </button>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- 모바일 카드 -->
+    <div class="member-cards">
+        {% for m in members %}
+        <div class="m-card">
+            <div class="m-card-top">
+                <div class="m-card-name">{{ m.first_name|default:m.username }}<small>{{ m.username }}</small></div>
+                <div class="m-card-toggles">
+                    <div class="m-card-toggle-label">
+                        스태프
+                        <button type="button"
+                                class="toggle-btn {% if m.is_staff %}on{% else %}off{% endif %}"
+                                data-pk="{{ m.pk }}" data-field="is_staff"
+                                onclick="toggleMember(this)"
+                                {% if m.pk == request.user.pk %}disabled{% endif %}>
+                        </button>
+                    </div>
+                    <div class="m-card-toggle-label">
+                        활성
+                        <button type="button"
+                                class="toggle-btn {% if m.is_active %}on{% else %}off{% endif %}"
+                                data-pk="{{ m.pk }}" data-field="is_active"
+                                onclick="toggleMember(this)"
+                                {% if m.pk == request.user.pk %}disabled{% endif %}>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="m-card-stats">
+                <div class="m-stat">
+                    <div class="m-stat-label">가입일</div>
+                    <div class="m-stat-value">{{ m.date_joined|date:"y.m.d" }}</div>
+                </div>
+                <div class="m-stat">
+                    <div class="m-stat-label">로그인</div>
+                    <div class="m-stat-value {% if m.login_count > 0 %}green{% else %}muted{% endif %}">{{ m.login_count }}회</div>
+                </div>
+                <div class="m-stat">
+                    <div class="m-stat-label">사용시간</div>
+                    <div class="m-stat-value {% if m.usage_display != '-' %}green{% else %}muted{% endif %}">{{ m.usage_display }}</div>
+                </div>
+                <div class="m-stat">
+                    <div class="m-stat-label">최근접속</div>
+                    <div class="m-stat-value {% if m.last_login %}{% else %}muted{% endif %}">{% if m.last_login %}{{ m.last_login|date:"m/d" }}{% else %}-{% endif %}</div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}
 
@@ -229,15 +383,16 @@ function toggleMember(btn) {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.error) { alert(data.error); return; }
-        if (data.value) {
-            btn.classList.remove('off');
-            btn.classList.add('on');
-            btn.textContent = 'ON';
-        } else {
-            btn.classList.remove('on');
-            btn.classList.add('off');
-            btn.textContent = 'OFF';
-        }
+        // 같은 pk + field의 모든 토글 버튼 동기화 (테이블 + 카드)
+        document.querySelectorAll('.toggle-btn[data-pk="'+pk+'"][data-field="'+field+'"]').forEach(function(b) {
+            if (data.value) {
+                b.classList.remove('off');
+                b.classList.add('on');
+            } else {
+                b.classList.remove('on');
+                b.classList.add('off');
+            }
+        });
     })
     .catch(function() { alert('오류가 발생했습니다.'); });
 }

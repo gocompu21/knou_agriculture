@@ -11,13 +11,16 @@ import markdown
 import re
 
 from django.conf import settings
-from django.db.models import Count, Max, Min, Q
+from django.db.models import Count, F, Max, Min, Q, Sum
+from django.db.models.functions import TruncDate
 
 from django.contrib.auth.models import User
 from google import genai
 from pydantic import BaseModel, Field
 
+from accounts.models import LoginLog
 from exam.models import Attempt, Question, StudyNote
+from gisa.models import GisaAttempt
 from .forms import SubjectForm
 from .models import FavoriteSubject, Subject
 
@@ -837,7 +840,56 @@ def subject_delete(request, pk):
 @login_required
 @user_passes_test(staff_required)
 def member_manage(request):
-    members = User.objects.all().order_by("-date_joined")
+    members = (
+        User.objects.annotate(login_count=Count("login_logs"))
+        .all()
+        .order_by("-date_joined")
+    )
+
+    # 사용시간: 세션별 (첫 풀이 ~ 마지막 풀이) 합산
+    from django.db.models import ExpressionWrapper, DurationField
+    from datetime import timedelta
+
+    usage_map = {}
+    for m in members:
+        total = timedelta()
+        # exam 앱 세션
+        exam_sessions = (
+            Attempt.objects.filter(user=m)
+            .exclude(session_id="")
+            .values("session_id")
+            .annotate(start=Min("created_at"), end=Max("created_at"))
+        )
+        for s in exam_sessions:
+            dur = s["end"] - s["start"]
+            total += dur if dur > timedelta() else timedelta(minutes=1)
+
+        # gisa 앱 세션
+        gisa_sessions = (
+            GisaAttempt.objects.filter(user=m)
+            .exclude(session_id="")
+            .values("session_id")
+            .annotate(start=Min("created_at"), end=Max("created_at"))
+        )
+        for s in gisa_sessions:
+            dur = s["end"] - s["start"]
+            total += dur if dur > timedelta() else timedelta(minutes=1)
+
+        usage_map[m.pk] = total
+
+    for m in members:
+        td = usage_map.get(m.pk, timedelta())
+        total_sec = int(td.total_seconds())
+        if total_sec < 60:
+            m.usage_display = "-"
+        else:
+            hours, rem = divmod(total_sec, 3600)
+            minutes = rem // 60
+            if hours > 0:
+                m.usage_display = f"{hours}시간 {minutes}분"
+            else:
+                m.usage_display = f"{minutes}분"
+
     return render(request, "main/member_manage.html", {"members": members})
 
 
