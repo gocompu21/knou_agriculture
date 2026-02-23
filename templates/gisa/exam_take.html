@@ -34,6 +34,8 @@
             color: #fff;
             flex-shrink: 0;
             z-index: 200;
+            position: sticky;
+            top: 0;
         }
 
         .exam-top-header .th-left {
@@ -410,9 +412,15 @@
                 background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
                 font-weight: bold;
                 color: white;
-                position: sticky;
+                position: fixed;
                 top: 0;
+                left: 0;
+                right: 0;
                 z-index: 100;
+            }
+
+            .question-panel {
+                padding-top: 48px;
             }
 
             .mobile-header .info {

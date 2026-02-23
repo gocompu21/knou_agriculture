@@ -158,15 +158,16 @@
 
     /* ══════════ 쪽집게 노트 탭 ══════════ */
     .subject-pills {
-        display: flex; gap: 8px; flex-wrap: wrap;
+        display: flex; gap: 6px; flex-wrap: nowrap;
         margin-bottom: 20px; padding: 4px 0;
     }
     .subject-pill {
-        padding: 8px 18px; border-radius: 20px;
+        flex: 1; text-align: center;
+        padding: 8px 4px; border-radius: 20px;
         font-size: 0.88rem; font-weight: 600;
         border: 1.5px solid #ccc; background: #fff; color: #555;
         cursor: pointer; transition: all 0.2s; text-decoration: none;
-        font-family: inherit;
+        font-family: inherit; white-space: nowrap;
     }
     .subject-pill:hover { border-color: #1b4332; color: #1b4332; }
     .subject-pill.active {
@@ -175,6 +176,8 @@
     .subject-pill.disabled {
         opacity: 0.4; cursor: default; pointer-events: none;
     }
+    .short-name { display: none; }
+    .btn-icon { display: none; }
 
     .chapter-item {
         border: 1px solid #e0e0e0; border-radius: 10px;
@@ -358,20 +361,22 @@
         background: #fff; border-radius: 10px; padding: 24px 20px;
     }
     .wrong-filter-bar {
-        display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+        display: flex; gap: 6px; flex-wrap: nowrap; margin-bottom: 16px;
     }
     .wrong-filter-pill {
-        padding: 6px 14px; border-radius: 20px;
+        flex: 1; text-align: center;
+        padding: 6px 4px; border-radius: 20px;
         font-size: 0.85rem; font-weight: 600;
         border: 1.5px solid #ddd; background: #fff; color: #666;
         cursor: pointer; transition: all 0.2s; font-family: inherit;
+        white-space: nowrap;
     }
     .wrong-filter-pill:hover { border-color: #1a237e; color: #1a237e; }
     .wrong-filter-pill.active {
         background: #1a237e; color: #fff; border-color: #1a237e;
     }
     .wf-count {
-        font-size: 0.78em; opacity: 0.7; margin-left: 2px;
+        font-size: 0.65em; vertical-align: super; opacity: 0.7; margin-left: 1px;
     }
     .wrong-filter-pill.active .wf-count { opacity: 0.85; }
     .wrong-question {
@@ -433,9 +438,13 @@
         .detail-hero { padding: 24px 0 20px; }
         .detail-hero h1 { font-size: 1.2rem; }
         .exam-grid { grid-template-columns: 1fr; }
-        .session-card { flex-direction: column; align-items: flex-start; }
         .subject-pills { gap: 6px; }
-        .subject-pill { padding: 6px 14px; font-size: 0.82rem; }
+        .subject-pills { gap: 4px; }
+        .subject-pill { padding: 6px 2px; font-size: 0.75rem; }
+        .subject-pill .full-name { display: none; }
+        .subject-pill .short-name { display: inline; }
+        .wrong-filter-pill .full-name { display: none; }
+        .wrong-filter-pill .short-name { display: inline; }
         .chapter-header { padding: 12px 14px; font-size: 0.9rem; }
         .section-header { padding: 10px 14px 10px 24px; font-size: 0.85rem; }
         .section-body { padding: 0 14px 12px 24px; }
@@ -443,6 +452,41 @@
             background: none; border: none;
             border-radius: 0; padding: 0; margin: 0;
         }
+        /* ── 오답노트 모바일 컴팩트 ── */
+        .wrong-filter-bar { gap: 4px; }
+        .wrong-filter-pill { padding: 6px 2px; font-size: 0.75rem; }
+        .wrong-count-label { display: none; }
+        .wrong-action-bar { justify-content: flex-end !important; }
+        .btn-label { display: none; }
+        .btn-icon { display: inline; font-size: 0.75rem; }
+        .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
+        /* ── 시험이력 모바일 컴팩트 ── */
+        #tab-history { padding: 8px 4px; }
+        #history-scroll { max-height: none !important; overflow: visible !important; border: none !important; }
+        .session-list { gap: 8px; padding: 0; }
+        .session-card {
+            padding: 10px 12px;
+            border-radius: 8px;
+            box-shadow: none;
+            border: 1px solid #e8e8e8;
+        }
+        .sc-top { margin-bottom: 6px; }
+        .sc-info { gap: 6px; }
+        .session-mode { padding: 2px 7px; font-size: 0.72rem; border-radius: 8px; }
+        .sc-score { font-size: 1rem; }
+        .sc-pass { padding: 2px 8px; font-size: 0.72rem; }
+        .sc-subjects { gap: 4px; margin-bottom: 6px; }
+        .sc-subj {
+            min-width: 0; flex: 1;
+            padding: 4px 2px; border-radius: 6px;
+        }
+        .sc-subj-name { font-size: 0.68rem; margin-bottom: 1px; }
+        .sc-subj-score { font-size: 0.85rem; }
+        .sc-subj-detail { font-size: 0.68rem; }
+        .sc-date { font-size: 0.72rem; }
+        .sc-actions .btn-sm { padding: 3px 8px; font-size: 0.72rem; }
+        .sc-actions .btn-danger { padding: 4px; }
+        .sc-actions .btn-danger svg { width: 13px; height: 13px; }
     }
 </style>
 {% endblock %}
@@ -479,7 +523,7 @@
             {% for sname in textbook_subjects %}
             <a href="?tab=textbook&subject={{ sname }}"
                class="subject-pill{% if sname == textbook_subject %} active{% endif %}">
-                {{ sname }}
+                <span class="full-name">{{ sname }}</span><span class="short-name">{{ sname }}</span>
             </a>
             {% endfor %}
         </div>
@@ -560,14 +604,14 @@
         <div class="wrong-filter-bar">
             <button class="wrong-filter-pill active" onclick="filterWrong(this, '')">전체 <span class="wf-count">{{ wrong_count }}</span></button>
             {% for s in subjects %}
-            <button class="wrong-filter-pill" onclick="filterWrong(this, '{{ s.name }}')">{{ s.name }} <span class="wf-count" id="wf-cnt-{{ s.pk }}"></span></button>
+            <button class="wrong-filter-pill" onclick="filterWrong(this, '{{ s.name }}')"><span class="full-name">{{ s.name }}</span><span class="short-name">{{ s.name }}</span> <span class="wf-count" id="wf-cnt-{{ s.pk }}"></span></button>
             {% endfor %}
         </div>
-        <div style="margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-            <span style="font-size:0.95rem; font-weight:600; color:#333;" id="wrongCountLabel">전체 오답 {{ wrong_count }}문제</span>
+        <div class="wrong-action-bar" style="margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+            <span class="wrong-count-label" style="font-size:0.95rem; font-weight:600; color:#333;" id="wrongCountLabel">전체 오답 {{ wrong_count }}문제</span>
             <div style="display:flex; gap:8px;">
-                <a href="{% url 'gisa:wrong_answers_retry' cert.pk %}" class="btn-sm btn-solve" id="wrongRetryLink">오답 재풀이</a>
-                <button type="button" class="btn-sm" id="wrongToggleAllBtn" onclick="wrongToggleAll()" style="cursor:pointer; border:1px solid #ddd;">전체 펼치기</button>
+                <a href="{% url 'gisa:wrong_answers_retry' cert.pk %}" class="btn-sm btn-solve" id="wrongRetryLink"><span class="btn-label">오답 재풀이</span><span class="btn-icon" title="오답 재풀이">&#x21BB; 재풀이</span></a>
+                <button type="button" class="btn-sm" id="wrongToggleAllBtn" onclick="wrongToggleAll()" style="cursor:pointer; border:1px solid #ddd;"><span class="btn-label">전체 펼치기</span><span class="btn-icon" title="전체 펼치기">&#x25BC; 펼치기</span></button>
             </div>
         </div>
         {% for r in wrong_results %}
@@ -664,6 +708,15 @@ function scrollToWithOffset(el, offset) {
     var y = el.getBoundingClientRect().top + window.pageYOffset - (offset || 90);
     window.scrollTo({top: y, behavior: 'smooth'});
 }
+
+// 모바일 약칭 매핑
+(function() {
+    var map = {'식물병리학':'병리','농림해충학':'해충','재배학원론':'재배학','농약학':'농약','잡초방제학':'잡초방제'};
+    document.querySelectorAll('.short-name').forEach(function(el) {
+        var t = el.textContent.trim();
+        if (map[t]) el.textContent = map[t];
+    });
+})();
 
 // ?open_ch=N&open_sec=ID 파라미터로 해당 장 펼침 → AJAX 로드 → 절 스크롤
 (function() {
