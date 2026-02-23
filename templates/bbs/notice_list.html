@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% block title %}공지사항 | 한울회 A+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bbs-wrap { max-width: 800px; margin: 0 auto; padding: 0 16px; }
+
+    /* 헤더 */
+    .bbs-hero {
+        background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 50%, #40916c 100%);
+        border-radius: 16px;
+        padding: 28px 28px 24px;
+        margin-bottom: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+    .bbs-hero::before {
+        content: '';
+        position: absolute;
+        top: -30px; right: -30px;
+        width: 120px; height: 120px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 50%;
+    }
+    .bbs-hero-top { display: flex; align-items: center; justify-content: space-between; }
+    .bbs-hero h1 { font-size: 1.4rem; color: #fff; font-weight: 800; margin: 0; }
+    .bbs-hero p { color: rgba(255,255,255,0.65); font-size: 0.82rem; margin-top: 4px; }
+    .btn-write {
+        padding: 9px 20px;
+        background: rgba(255,255,255,0.18);
+        color: #fff;
+        border: 1.5px solid rgba(255,255,255,0.35);
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s;
+        white-space: nowrap;
+        backdrop-filter: blur(4px);
+    }
+    .btn-write:hover { background: rgba(255,255,255,0.28); border-color: rgba(255,255,255,0.5); transform: translateY(-1px); }
+
+    /* 상단고정 섹션 */
+    .pinned-section { margin-bottom: 8px; }
+    .pinned-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        background: linear-gradient(180deg, #f0f9f0 0%, #e8f5e3 100%);
+        border: 1px solid #c8e6c9;
+        border-radius: 12px;
+        text-decoration: none;
+        color: #1b4332;
+        margin-bottom: 8px;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .pinned-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(45,138,86,0.12); }
+    .pinned-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        background: #2d8a56;
+        color: #fff;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        flex-shrink: 0;
+        letter-spacing: 0.02em;
+    }
+    .pinned-title { flex: 1; font-size: 0.92rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pinned-comment { color: #2d8a56; font-size: 0.78rem; font-weight: 700; margin-left: 4px; }
+    .pinned-date { font-size: 0.75rem; color: #8aab8a; white-space: nowrap; flex-shrink: 0; }
+
+    /* 일반 게시글 리스트 */
+    .notice-list-area {
+        background: var(--card, #fff);
+        border: 1px solid #dbe7dc;
+        border-radius: 14px;
+        overflow: hidden;
+    }
+    .notice-row {
+        display: flex;
+        align-items: center;
+        padding: 15px 18px;
+        border-bottom: 1px solid #f0f0f0;
+        text-decoration: none;
+        color: var(--ink, #10211b);
+        transition: background 0.12s;
+    }
+    .notice-row:last-child { border-bottom: none; }
+    .notice-row:hover { background: #f8fbf6; }
+    .notice-body { flex: 1; min-width: 0; }
+    .notice-title-text {
+        font-size: 0.93rem;
+        font-weight: 600;
+        color: #333;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: block;
+    }
+    .notice-row:hover .notice-title-text { color: var(--forest, #1f6a47); }
+    .notice-sub {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 3px;
+        font-size: 0.75rem;
+        color: #aaa;
+    }
+    .notice-sub .dot { color: #ddd; }
+    .notice-comment-cnt {
+        color: #2d8a56;
+        font-size: 0.78rem;
+        font-weight: 700;
+        flex-shrink: 0;
+        margin-left: 8px;
+    }
+    .notice-view-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 2px 8px;
+        background: #f5f5f5;
+        border-radius: 10px;
+        font-size: 0.72rem;
+        color: #999;
+        flex-shrink: 0;
+        margin-left: 10px;
+    }
+
+    /* 스크롤 & 로딩 */
+    .scroll-inner { max-height: 65vh; overflow-y: auto; }
+    .scroll-inner::-webkit-scrollbar { width: 4px; }
+    .scroll-inner::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 4px; }
+    .scroll-inner::-webkit-scrollbar-track { background: transparent; }
+    #notice-loading { text-align: center; padding: 18px; color: #bbb; font-size: 0.82rem; display: none; }
+    .empty-msg {
+        text-align: center;
+        padding: 60px 20px;
+        color: #aaa;
+        font-size: 0.92rem;
+    }
+    .empty-msg .empty-icon { font-size: 2rem; margin-bottom: 8px; opacity: 0.4; }
+
+    /* 반응형 */
+    @media (max-width: 560px) {
+        .bbs-hero { padding: 20px 18px 18px; border-radius: 12px; }
+        .bbs-hero h1 { font-size: 1.2rem; }
+        .btn-write { padding: 8px 16px; font-size: 0.82rem; }
+        .notice-row { padding: 13px 14px; }
+        .notice-title-text { font-size: 0.88rem; }
+        .notice-view-badge { display: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bbs-wrap">
+    <div class="bbs-hero fade-up">
+        <div class="bbs-hero-top">
+            <div>
+                <h1>공지사항</h1>
+                <p>한울회 소식과 공지를 확인하세요</p>
+            </div>
+            <a href="{% url 'bbs:notice_create' %}" class="btn-write">+ 글쓰기</a>
+        </div>
+    </div>
+
+    {% if pinned %}
+    <div class="pinned-section fade-up delay-1">
+        {% for n in pinned %}
+        <a href="{% url 'bbs:notice_detail' n.pk %}" class="pinned-card">
+            <span class="pinned-badge">📌 고정</span>
+            <span class="pinned-title">{{ n.title }}{% if n.comments.count %}<span class="pinned-comment">[{{ n.comments.count }}]</span>{% endif %}</span>
+            <span class="pinned-date">{{ n.created_at|date:"m/d" }}</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="notice-list-area fade-up delay-2">
+        <div class="scroll-inner" id="scroll-inner">
+            <div id="notice-cards"></div>
+            <div id="notice-loading">불러오는 중...</div>
+            <div id="notice-empty" class="empty-msg" style="display:none;">
+                <div class="empty-icon">📋</div>
+                등록된 게시글이 없습니다.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var noticePage = 1, noticeLoading = false, noticeHasNext = true, firstLoad = true;
+
+function loadNotices() {
+    if (noticeLoading || !noticeHasNext) return;
+    noticeLoading = true;
+    document.getElementById('notice-loading').style.display = 'block';
+
+    fetch('{% url "bbs:notice_api" %}?page=' + noticePage)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var list = document.getElementById('notice-cards');
+            data.notices.forEach(function(n) {
+                var a = document.createElement('a');
+                a.href = '/bbs/' + n.id + '/';
+                a.className = 'notice-row';
+                var cmt = n.comment_count ? '<span class="notice-comment-cnt">[' + n.comment_count + ']</span>' : '';
+                a.innerHTML = '<div class="notice-body">'
+                    + '<span class="notice-title-text">' + n.title + '</span>'
+                    + '<div class="notice-sub"><span>' + n.author + '</span><span class="dot">&middot;</span><span>' + n.created_at + '</span></div>'
+                    + '</div>'
+                    + cmt
+                    + '<span class="notice-view-badge">조회 ' + n.view_count + '</span>';
+                list.appendChild(a);
+            });
+            noticeHasNext = data.has_next;
+            noticePage++;
+            noticeLoading = false;
+            document.getElementById('notice-loading').style.display = 'none';
+
+            if (firstLoad && data.notices.length === 0 && !document.querySelector('.pinned-section')) {
+                document.getElementById('notice-empty').style.display = 'block';
+            }
+            firstLoad = false;
+        });
+}
+
+var scroller = document.getElementById('scroll-inner');
+scroller.addEventListener('scroll', function() {
+    if (scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 100) {
+        loadNotices();
+    }
+});
+
+loadNotices();
+</script>
+{% endblock %}

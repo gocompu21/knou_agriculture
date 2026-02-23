@@ -2,7 +2,8 @@ import random
 import string
 
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.shortcuts import redirect, render
@@ -44,11 +45,11 @@ def user_logout(request):
 
 def password_reset_request(request):
     if request.method == "POST":
-        name = request.POST.get("name")
+        username = request.POST.get("username")
         email = request.POST.get("email")
 
         try:
-            user = User.objects.get(first_name=name, email=email)
+            user = User.objects.get(username=username, email=email)
 
             length = 8
             chars = string.ascii_letters + string.digits
@@ -81,5 +82,30 @@ def password_reset_request(request):
 
         except User.DoesNotExist:
             messages.error(request, "일치하는 회원 정보를 찾을 수 없습니다.")
+        except User.MultipleObjectsReturned:
+            messages.error(request, "동일한 정보의 회원이 여러 명 존재합니다. 관리자에게 문의해 주세요.")
 
     return render(request, "accounts/password_reset.html")
+
+
+@login_required
+def password_change(request):
+    if request.method == "POST":
+        current_password = request.POST.get("current_password")
+        new_password = request.POST.get("new_password")
+        confirm_password = request.POST.get("confirm_password")
+
+        if not request.user.check_password(current_password):
+            messages.error(request, "현재 비밀번호가 올바르지 않습니다.")
+        elif new_password != confirm_password:
+            messages.error(request, "새 비밀번호가 일치하지 않습니다.")
+        elif len(new_password) < 8:
+            messages.error(request, "비밀번호는 8자 이상이어야 합니다.")
+        else:
+            request.user.set_password(new_password)
+            request.user.save()
+            update_session_auth_hash(request, request.user)
+            messages.success(request, "비밀번호가 변경되었습니다.")
+            return redirect("main:mypage")
+
+    return render(request, "accounts/password_change.html")

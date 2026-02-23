@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == 'create' %}글쓰기{% else %}글수정{% endif %} | 공지사항{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-wrap { max-width: 860px; margin: 0 auto; padding: 20px 16px; }
+    .form-wrap h1 { font-size: 1.3rem; color: #1b4332; margin: 0 0 20px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; margin-bottom: 6px; font-weight: 700; font-size: 0.88rem; color: #4a5568; }
+    .form-group input[type="text"] {
+        width: 100%; padding: 12px 14px; border: 1.5px solid #ddd; border-radius: 8px;
+        font-size: 0.95rem; box-sizing: border-box; background: #fafafa; transition: border-color 0.2s;
+    }
+    .form-group input:focus { outline: none; border-color: #2d8a56; background: #fff; }
+    .pin-check { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
+    .pin-check input { width: 18px; height: 18px; accent-color: #2d8a56; }
+    .pin-check label { font-size: 0.88rem; color: #555; cursor: pointer; }
+    .form-actions { display: flex; gap: 10px; }
+    .btn-submit { padding: 12px 28px; background: linear-gradient(135deg, #1f6a47, #2d8a56); color: #fff; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: transform 0.15s; }
+    .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(31,106,71,0.3); }
+    .btn-cancel { padding: 12px 28px; background: #f1f5f9; color: #555; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; text-decoration: none; cursor: pointer; }
+    .btn-cancel:hover { background: #e2e8f0; }
+
+    /* TinyMCE 컨테이너 둥근 모서리 */
+    .tox-tinymce { border-radius: 8px !important; border-color: #ddd !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-wrap">
+    <h1>{% if mode == 'create' %}글쓰기{% else %}글수정{% endif %}</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="title">제목</label>
+            <input type="text" id="title" name="title" value="{% if notice %}{{ notice.title }}{% endif %}" placeholder="제목을 입력하세요" required>
+        </div>
+
+        <div class="form-group">
+            <label>내용</label>
+            <textarea id="content" name="content">{% if notice %}{{ notice.content }}{% endif %}</textarea>
+        </div>
+
+        {% if user.is_staff %}
+        <div class="pin-check">
+            <input type="checkbox" id="is_pinned" name="is_pinned"{% if notice and notice.is_pinned %} checked{% endif %}>
+            <label for="is_pinned">📌 상단고정 (스태프 전용)</label>
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">{% if mode == 'create' %}등록{% else %}수정{% endif %}</button>
+            <a href="{% if notice %}{% url 'bbs:notice_detail' notice.pk %}{% else %}{% url 'bbs:notice_list' %}{% endif %}" class="btn-cancel">취소</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js"></script>
+<script>
+tinymce.init({
+    selector: '#content',
+    height: 400,
+    menubar: false,
+    plugins: 'lists link image table code fullscreen media',
+    toolbar: 'styles | bold underline forecolor | bullist numlist | alignleft aligncenter | table link image media | fullscreen code',
+    placeholder: '내용을 입력하세요',
+    content_style: 'body { font-family: "SUIT", sans-serif; font-size: 15px; line-height: 1.7; }',
+    branding: true,
+    promotion: false,
+    images_upload_handler: function(blobInfo) {
+        return new Promise(function(resolve, reject) {
+            var formData = new FormData();
+            formData.append('file', blobInfo.blob(), blobInfo.filename());
+
+            fetch('{% url "bbs:image_upload" %}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                body: formData
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.url) resolve(data.url);
+                else reject('업로드 실패');
+            })
+            .catch(function() { reject('업로드 실패'); });
+        });
+    }
+});
+</script>
+{% endblock %}

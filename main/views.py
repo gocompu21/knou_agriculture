@@ -238,7 +238,10 @@ def staff_required(user):
 
 
 def index(request):
-    return render(request, "main/index.html")
+    from bbs.models import Notice
+
+    latest_notices = Notice.objects.all()[:5]
+    return render(request, "main/index.html", {"latest_notices": latest_notices})
 
 
 @login_required

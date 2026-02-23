@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}{{ notice.title }} | 공지사항{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-wrap { max-width: 800px; margin: 0 auto; padding: 20px 16px; }
+
+    /* 헤더 */
+    .detail-header { margin-bottom: 20px; border-bottom: 2px solid #1b4332; padding-bottom: 16px; }
+    .detail-title { font-size: 1.3rem; font-weight: 800; color: #1b4332; margin: 0 0 10px; }
+    .detail-info { display: flex; align-items: center; gap: 12px; font-size: 0.82rem; color: #888; }
+    .detail-actions { margin-top: 10px; display: flex; gap: 8px; }
+    .detail-actions a, .detail-actions button { padding: 5px 14px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; cursor: pointer; border: 1px solid #ccc; background: #fff; color: #555; transition: all 0.15s; }
+    .detail-actions a:hover, .detail-actions button:hover { background: #f5f5f5; }
+    .detail-actions .btn-del { color: #d93025; border-color: #d93025; }
+
+    /* 본문 */
+    .detail-content { padding: 24px 0; line-height: 1.8; font-size: 0.95rem; word-break: break-word; min-height: 100px; }
+    .detail-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 8px 0; }
+    .detail-content table { border-collapse: collapse; margin: 8px 0; }
+    .detail-content table td, .detail-content table th { border: 1px solid #ddd; padding: 6px 10px; }
+
+    /* 댓글 */
+    .comment-section { border-top: 1px solid #e0e0e0; padding-top: 20px; }
+    .comment-section h3 { font-size: 1rem; color: #1b4332; margin: 0 0 14px; }
+    .comment-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+    .comment-body { flex: 1; }
+    .comment-author { font-weight: 700; font-size: 0.85rem; color: #333; }
+    .comment-text { font-size: 0.9rem; margin: 4px 0; line-height: 1.5; }
+    .comment-date { font-size: 0.75rem; color: #aaa; }
+    .comment-del { background: none; border: none; color: #ccc; cursor: pointer; font-size: 0.8rem; padding: 4px 8px; }
+    .comment-del:hover { color: #d93025; }
+
+    .comment-form { display: flex; gap: 8px; margin-top: 14px; }
+    .comment-form textarea { flex: 1; padding: 10px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 0.88rem; resize: none; min-height: 44px; }
+    .comment-form textarea:focus { outline: none; border-color: #2d8a56; }
+    .comment-form button { padding: 10px 20px; background: #1f6a47; color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+
+    /* 하단 게시글 */
+    .nearby-section { border-top: 2px solid #e0e0e0; margin-top: 24px; padding-top: 16px; }
+    .nearby-section h3 { font-size: 0.95rem; color: #555; margin: 0 0 10px; }
+    .nearby-row { display: flex; align-items: center; padding: 9px 0; border-bottom: 1px solid #f0f0f0; text-decoration: none; color: #333; font-size: 0.88rem; }
+    .nearby-row:hover { color: #1f6a47; }
+    .nearby-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nearby-date { font-size: 0.78rem; color: #aaa; margin-left: 12px; white-space: nowrap; }
+
+    .back-link { display: inline-block; margin-top: 16px; font-size: 0.88rem; color: #1f6a47; text-decoration: none; font-weight: 600; }
+    .back-link:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-wrap">
+    <div class="detail-header">
+        {% if notice.is_pinned %}<span style="color:#2d8a56; font-size:0.82rem; font-weight:700;">📌 상단고정</span>{% endif %}
+        <h1 class="detail-title">{{ notice.title }}</h1>
+        <div class="detail-info">
+            <span>{{ notice.author.first_name|default:notice.author.username }}</span>
+            <span>{{ notice.created_at|date:"Y-m-d H:i" }}</span>
+            <span>조회 {{ notice.view_count }}</span>
+        </div>
+        {% if can_edit %}
+        <div class="detail-actions">
+            <a href="{% url 'bbs:notice_update' notice.pk %}">수정</a>
+            <form method="post" action="{% url 'bbs:notice_delete' notice.pk %}" style="margin:0;" onsubmit="return confirm('삭제하시겠습니까?');">
+                {% csrf_token %}
+                <button type="submit" class="btn-del">삭제</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="detail-content">{{ notice.content|safe }}</div>
+
+    <!-- 댓글 -->
+    <div class="comment-section">
+        <h3>댓글 {{ comments|length }}개</h3>
+        {% for c in comments %}
+        <div class="comment-item">
+            <div class="comment-body">
+                <span class="comment-author">{{ c.author.first_name|default:c.author.username }}</span>
+                <div class="comment-text">{{ c.content }}</div>
+                <span class="comment-date">{{ c.created_at|date:"Y-m-d H:i" }}</span>
+            </div>
+            {% if user == c.author or user.is_staff %}
+            <form method="post" action="{% url 'bbs:comment_delete' c.pk %}" onsubmit="return confirm('댓글을 삭제하시겠습니까?');">
+                {% csrf_token %}
+                <button type="submit" class="comment-del">삭제</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <form method="post" action="{% url 'bbs:comment_create' notice.pk %}" class="comment-form">
+            {% csrf_token %}
+            <textarea name="content" placeholder="댓글을 입력하세요" required></textarea>
+            <button type="submit">등록</button>
+        </form>
+    </div>
+
+    <!-- 하단 게시글 -->
+    {% if nearby %}
+    <div class="nearby-section">
+        <h3>다른 게시글</h3>
+        {% for n in nearby %}
+        <a href="{% url 'bbs:notice_detail' n.pk %}" class="nearby-row">
+            {% if n.is_pinned %}<span style="color:#2d8a56; margin-right:6px; font-size:0.8rem;">📌</span>{% endif %}
+            <span class="nearby-title">{{ n.title }}</span>
+            <span class="nearby-date">{{ n.created_at|date:"m/d" }}</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <a href="{% url 'bbs:notice_list' %}" class="back-link">← 목록으로</a>
+</div>
+{% endblock %}

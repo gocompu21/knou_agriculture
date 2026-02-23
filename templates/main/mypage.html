@@ -245,9 +245,10 @@
 
 {% block content %}
 <div class="wrap">
-    <div class="page-title fade-up">
+    <div class="page-title fade-up" style="position:relative;">
         <h1>{{ user.first_name|default:user.username }}님의 학습공간</h1>
-        <p>관심과목을 등록하고 체계적으로 학습하세요.</p>
+        <p>이번학기 수강과목을 등록하고 체계적으로 학습하세요.</p>
+        <a href="{% url 'accounts:password_change' %}" style="position:absolute; top:0; right:0; padding:6px 14px; font-size:0.78rem; color:#4a5568; background:#f1f5f9; border-radius:20px; text-decoration:none; transition:all 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">🔒 비밀번호 변경</a>
     </div>
 
     {% if fav_data %}
