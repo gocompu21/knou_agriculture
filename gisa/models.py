@@ -93,6 +93,22 @@ class GisaQuestion(models.Model):
         return f"[{self.exam} {self.subject.name}] {self.number}번"
 
 
+class GisaTextbook(models.Model):
+    """기사시험 교재(핵심정리) 마크다운 콘텐츠 - 과목별 1건"""
+    certification = models.ForeignKey(Certification, on_delete=models.CASCADE, verbose_name='자격증')
+    subject = models.ForeignKey(GisaSubject, on_delete=models.CASCADE, verbose_name='과목')
+    content = models.TextField('마크다운 내용')
+    updated_at = models.DateTimeField('수정일', auto_now=True)
+
+    class Meta:
+        verbose_name = '교재'
+        verbose_name_plural = '교재'
+        unique_together = ['certification', 'subject']
+
+    def __str__(self):
+        return f"[{self.certification.name}] {self.subject.name} 핵심정리"
+
+
 class GisaAttempt(models.Model):
     MODE_CHOICES = [
         ('exam', '풀이모드'),

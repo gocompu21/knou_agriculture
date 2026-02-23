@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Certification, GisaExam, GisaSubject, GisaQuestion, GisaAttempt
+from .models import Certification, GisaExam, GisaSubject, GisaQuestion, GisaAttempt, GisaTextbook
 
 
 @admin.register(Certification)
@@ -47,6 +47,16 @@ class GisaQuestionAdmin(admin.ModelAdmin):
     @admin.display(description='문제')
     def text_short(self, obj):
         return obj.text[:50] + '...' if len(obj.text) > 50 else obj.text
+
+
+@admin.register(GisaTextbook)
+class GisaTextbookAdmin(admin.ModelAdmin):
+    list_display = ('certification', 'subject', 'content_length', 'updated_at')
+    list_filter = ('certification',)
+
+    @admin.display(description='분량')
+    def content_length(self, obj):
+        return f"{len(obj.content):,} chars"
 
 
 @admin.register(GisaAttempt)

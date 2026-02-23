@@ -7,6 +7,7 @@ from django.views.decorators.http import require_POST
 
 import json
 import logging
+import markdown
 import re
 
 from django.conf import settings
@@ -16,11 +17,220 @@ from django.contrib.auth.models import User
 from google import genai
 from pydantic import BaseModel, Field
 
-from exam.models import Attempt, Question
+from exam.models import Attempt, Question, StudyNote
 from .forms import SubjectForm
 from .models import FavoriteSubject, Subject
 
 logger = logging.getLogger(__name__)
+
+
+_note_chapters_cache = {}
+
+
+def parse_note_chapters(content, subject_pk, cache_version=None):
+    """StudyNote 마크다운을 장/절/항 구조로 파싱 (기사시험 parse_study_guide 동일 구조).
+    ref 형식: YYYY-기말-N → hidden input에는 YYYY-N으로 변환하여 전달.
+    """
+    cache_key = f"note_{subject_pk}"
+    if cache_version is not None:
+        cached = _note_chapters_cache.get(cache_key)
+        if cached and cached[0] == cache_version:
+            return cached[1]
+
+    chapters = []
+    current_chapter = None
+    current_section = None
+    current_subsection = None
+    content_lines = []
+
+    def _flush_content():
+        nonlocal content_lines
+        if not content_lines:
+            return
+        text = "\n".join(content_lines).strip()
+        if not text:
+            content_lines = []
+            return
+
+        # 관련 문제 추출: YYYY-기말-N 또는 YYYY-N 형식
+        raw_refs = re.findall(r"(\d{4})-(?:기말|중간|계절)-(\d+)", text)
+        questions = [f"{y}-{n}" for y, n in raw_refs]
+        if not questions:
+            questions = re.findall(r"(?<!\w)(\d{4}-\d+)(?!\w)", text)
+
+        # 관련 문제 줄 제거
+        body = re.sub(r"\*\*관련 문제\*\*:.*", "", text, flags=re.DOTALL).strip()
+        body = re.sub(r"\*\*관련 기출문제\*\*.*", "", body, flags=re.DOTALL).strip()
+        body = re.sub(r"\*\*핵심 정리\*\*", "", body)
+
+        html_lines = []
+        table_rows = []
+        para_lines = []
+
+        def _flush_table():
+            nonlocal table_rows
+            if not table_rows:
+                return
+            html_lines.append("<table class='tb-summary'>")
+            for idx, row in enumerate(table_rows):
+                tag = "th" if idx == 0 else "td"
+                cells = [c.strip() for c in row.strip("|").split("|")]
+                cells_html = "".join(f"<{tag}>{c}</{tag}>" for c in cells)
+                html_lines.append(f"<tr>{cells_html}</tr>")
+            html_lines.append("</table>")
+            table_rows = []
+
+        def _flush_para():
+            nonlocal para_lines
+            if not para_lines:
+                return
+            joined = " ".join(para_lines)
+            joined = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", joined)
+            joined = re.sub(r"\*(.+?)\*", r"<em>\1</em>", joined)
+            html_lines.append(f"<p>{joined}</p>")
+            para_lines = []
+
+        for line in body.split("\n"):
+            line = line.strip()
+            if not line:
+                _flush_table()
+                _flush_para()
+                continue
+            if line.startswith("|"):
+                _flush_para()
+                if re.match(r"^\|[\s\-:|]+\|$", line):
+                    continue
+                line = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", line)
+                line = re.sub(r"\*(.+?)\*", r"<em>\1</em>", line)
+                table_rows.append(line)
+                continue
+            _flush_table()
+            circled = re.match(r"^([①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳])\s*(.*)", line)
+            if circled:
+                _flush_para()
+                num, lc = circled.group(1), circled.group(2)
+                lc = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", lc)
+                lc = re.sub(r"\*(.+?)\*", r"<em>\1</em>", lc)
+                html_lines.append(f"<div class='num-item'><span class='num-marker'>{num}</span>{lc}</div>")
+            elif line.startswith("→ ") or line.startswith("  → "):
+                _flush_para()
+                lc = line.lstrip().lstrip("→").strip()
+                lc = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", lc)
+                lc = re.sub(r"\*(.+?)\*", r"<em>\1</em>", lc)
+                html_lines.append(f"<div class='num-item num-sub'>→ {lc}</div>")
+            elif line.startswith("- "):
+                _flush_para()
+                lc = line[2:]
+                lc = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", lc)
+                lc = re.sub(r"\*(.+?)\*", r"<em>\1</em>", lc)
+                html_lines.append(f"<li>{lc}</li>")
+            elif line.startswith("  - "):
+                _flush_para()
+                lc = line[4:]
+                lc = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", lc)
+                lc = re.sub(r"\*(.+?)\*", r"<em>\1</em>", lc)
+                html_lines.append(f"<li class='sub-item'>{lc}</li>")
+            else:
+                para_lines.append(line)
+
+        _flush_table()
+        _flush_para()
+
+        has_li = any("<li>" in h or "<li " in h for h in html_lines)
+        has_table = any("<table" in h for h in html_lines)
+        if has_li and not has_table:
+            content_html = "<ul>" + "".join(html_lines) + "</ul>"
+        elif has_li and has_table:
+            parts = []
+            li_buf = []
+            for h in html_lines:
+                if h.startswith("<li"):
+                    li_buf.append(h)
+                else:
+                    if li_buf:
+                        parts.append("<ul>" + "".join(li_buf) + "</ul>")
+                        li_buf = []
+                    parts.append(h)
+            if li_buf:
+                parts.append("<ul>" + "".join(li_buf) + "</ul>")
+            content_html = "".join(parts)
+        else:
+            content_html = "".join(html_lines)
+
+        target = current_subsection or current_section
+        if target:
+            target["content_html"] = content_html
+            target["questions"] = questions
+        content_lines = []
+
+    for line in content.split("\n"):
+        m = re.match(r"^## (제\d+장\..+|부록.+)", line)
+        if m:
+            _flush_content()
+            current_chapter = {
+                "id": f"ch{len(chapters)+1}",
+                "title": m.group(1).strip(),
+                "sections": [],
+            }
+            chapters.append(current_chapter)
+            current_section = None
+            current_subsection = None
+            continue
+
+        m = re.match(r"^### (.+)", line)
+        if m and current_chapter is not None:
+            _flush_content()
+            sec_title = m.group(1).strip()
+            current_section = {
+                "id": f"{current_chapter['id']}-s{len(current_chapter['sections'])+1}",
+                "title": sec_title,
+                "content_html": "",
+                "questions": [],
+                "subsections": [],
+            }
+            current_chapter["sections"].append(current_section)
+            current_subsection = None
+            continue
+
+        m = re.match(r"^#### (.+)", line)
+        if m and current_section is not None:
+            _flush_content()
+            sub_title = m.group(1).strip()
+            current_subsection = {
+                "id": f"{current_section['id']}-sub{len(current_section['subsections'])+1}",
+                "title": sub_title,
+                "content_html": "",
+                "questions": [],
+            }
+            current_section["subsections"].append(current_subsection)
+            continue
+
+        if line.startswith("# ") or line.startswith("---") or line.startswith("> "):
+            continue
+        content_lines.append(line)
+
+    _flush_content()
+
+    # total_questions 계산
+    for ch in chapters:
+        for sec in ch["sections"]:
+            seen = set()
+            unique_q = []
+            for q in sec["questions"]:
+                if q not in seen:
+                    seen.add(q)
+                    unique_q.append(q)
+            for sub in sec["subsections"]:
+                for q in sub["questions"]:
+                    if q not in seen:
+                        seen.add(q)
+                        unique_q.append(q)
+            sec["total_questions"] = len(unique_q)
+            sec["all_questions"] = unique_q
+
+    if cache_version is not None:
+        _note_chapters_cache[cache_key] = (cache_version, chapters)
+    return chapters
 
 
 def staff_required(user):
@@ -178,7 +388,24 @@ def subject_detail(request, pk):
             }
         )
 
-    active_tab = request.GET.get("tab", "study")
+    active_tab = request.GET.get("tab", "notes")
+
+    # 정리노트 (구조화된 장/절/항 파싱)
+    notes_qs = StudyNote.objects.filter(subject=subject).order_by("order")
+    study_notes_count = notes_qs.count()
+    note_chapters = []
+    if active_tab == "notes" and study_notes_count:
+        # 모든 노트의 content를 합쳐서 파싱 (장별 개별 레코드일 수 있음)
+        combined = "\n\n".join(n.content for n in notes_qs if n.content)
+        if combined.strip():
+            latest_updated = max(
+                (n.updated_at for n in notes_qs if hasattr(n, 'updated_at') and n.updated_at),
+                default=None,
+            )
+            note_chapters = parse_note_chapters(
+                combined, subject.pk,
+                cache_version=str(latest_updated) if latest_updated else None,
+            )
 
     # 최신기출: 2020년 이후 연도별 카드
     latest_years = (
@@ -206,6 +433,8 @@ def subject_detail(request, pk):
             "wrong_count": wrong_count,
             "exam_sessions": exam_sessions,
             "active_tab": active_tab,
+            "note_chapters": note_chapters,
+            "study_notes_count": study_notes_count,
             "latest_year_cards": latest_year_cards,
             "latest_questions": latest_questions,
         },
@@ -497,6 +726,65 @@ def latest_question_clone(request, pk):
     )
     sub = request.POST.get("sub", "existing")
     return redirect(f"/subjects/{subject.pk}/?tab=latest&last_year={target_year}&sub={sub}")
+
+
+@login_required
+def notes_study(request, pk):
+    """쪽집게 노트 관련 문제 학습모드"""
+    subject = get_object_or_404(Subject, pk=pk)
+    refs = request.GET.getlist("ref")
+    if not refs:
+        return redirect("main:subject_detail", pk=pk)
+
+    q_filters = Q()
+    for ref in refs:
+        parts = ref.split("-")
+        if len(parts) == 2:
+            year, number = int(parts[0]), int(parts[1])
+            q_filters |= Q(subject=subject, year=year, number=number)
+        elif len(parts) == 3:
+            # YYYY-기말-N 형식
+            year, number = int(parts[0]), int(parts[2])
+            q_filters |= Q(subject=subject, year=year, number=number)
+
+    questions = list(
+        Question.objects.filter(q_filters).order_by("year", "number")
+    )
+
+    # 관련 절 제목 및 절 번호 찾기
+    section_title = ""
+    section_id = ""
+    note_order = None
+    ref_set = set(refs)
+    for note in StudyNote.objects.filter(subject=subject).order_by("order"):
+        lines = note.content.split('\n')
+        current_section = ""
+        current_sec_num = ""
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith('### ') and not stripped.startswith('### 핵심'):
+                current_section = stripped[4:]
+                sec_m = re.match(r'(\d+\.\d+)', current_section)
+                current_sec_num = sec_m.group(1) if sec_m else ""
+            if '**관련 문제**' in stripped:
+                found_refs = set(re.findall(r'\((\d{4}-\d+)\)', stripped))
+                if found_refs & ref_set:
+                    section_title = current_section
+                    section_id = current_sec_num
+                    note_order = note.order
+                    break
+        if section_title:
+            break
+
+    return render(request, "exam/study_mode.html", {
+        "subject": subject,
+        "questions": questions,
+        "year": "쪽집게 노트",
+        "is_notes_study": True,
+        "section_title": section_title,
+        "section_id": section_id,
+        "note_order": note_order,
+    })
 
 
 @login_required

@@ -49,10 +49,21 @@
         flex-shrink: 0;
     }
 
-    .grade-badge.g1 { background: #4caf7a; }
-    .grade-badge.g2 { background: #3d9ed6; }
-    .grade-badge.g3 { background: #e0943a; }
-    .grade-badge.g4 { background: #c4604a; }
+    .grade-badge.g1 {
+        background: #4caf7a;
+    }
+
+    .grade-badge.g2 {
+        background: #3d9ed6;
+    }
+
+    .grade-badge.g3 {
+        background: #e0943a;
+    }
+
+    .grade-badge.g4 {
+        background: #c4604a;
+    }
 
     .page-header-text h1 {
         font-size: 1.5rem;
@@ -127,6 +138,140 @@
         display: block;
     }
 
+    /* ══════════ 쪽집게 노트 (Chapter/Section 구조) ══════════ */
+    .chapter-item {
+        border: 1px solid #e0e0e0; border-radius: 10px;
+        margin-bottom: 10px; overflow: hidden;
+    }
+    .chapter-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 14px 18px; cursor: pointer;
+        background: #f8f9fa; border-left: 4px solid #2d6a4f;
+        font-weight: 700; font-size: 0.95rem; color: #1b4332;
+        transition: background 0.15s;
+    }
+    .chapter-header:hover { background: #e8f5e9; }
+    .chapter-chevron {
+        font-size: 0.8rem; transition: transform 0.2s; color: #888;
+    }
+    .chapter-item.open .chapter-chevron { transform: rotate(90deg); }
+    .chapter-body { display: none; }
+    .chapter-item.open .chapter-body { display: block; }
+
+    .section-item { border-top: 1px solid #f0f0f0; }
+    .section-header {
+        padding: 12px 18px 12px 32px; cursor: pointer;
+        font-weight: 600; font-size: 0.9rem; color: #333;
+        display: flex; align-items: center; justify-content: space-between;
+        transition: background 0.1s;
+    }
+    .section-header:hover { background: #f5f5f5; }
+    .section-chevron {
+        font-size: 0.7rem; transition: transform 0.2s; color: #aaa;
+    }
+    .section-item.open .section-chevron { transform: rotate(90deg); }
+    .section-body { display: none; padding: 0 18px 14px 32px; }
+    .section-item.open .section-body { display: block; }
+
+    .content-box {
+        background: #f9fbf9; border: 1px solid #dce8dc;
+        border-radius: 8px; padding: 12px 16px; margin: 8px 0;
+    }
+    .content-box ul { list-style: none; padding: 0; margin: 0; }
+    .content-box ul li {
+        padding: 3px 0; font-size: 0.88rem; line-height: 1.6;
+        color: #333; position: relative; padding-left: 14px;
+    }
+    .content-box ul li::before {
+        content: "•"; position: absolute; left: 0; color: #2d6a4f; font-weight: bold;
+    }
+    .content-box ul li.sub-item {
+        padding-left: 28px; color: #555; font-size: 0.85rem;
+    }
+    .content-box ul li.sub-item::before { content: "–"; left: 14px; color: #999; }
+    .content-box p {
+        font-size: 0.88rem; line-height: 1.75; color: #333;
+        margin: 0 0 10px; text-align: justify;
+    }
+    .content-box p:last-child { margin-bottom: 0; }
+    .content-box p strong { color: #1b4332; }
+    .content-box .num-item {
+        font-size: 0.88rem; line-height: 1.75; color: #333;
+        padding-left: 2em; text-indent: -1.4em; margin: 0 0 8px 8px;
+    }
+    .content-box .num-item:last-child { margin-bottom: 0; }
+    .content-box .num-item .num-marker { color: #2d6a4f; font-weight: 700; margin-right: 0.3em; }
+    .content-box .num-item strong { color: #1b4332; }
+    .content-box .num-sub {
+        padding-left: 3.2em; text-indent: 0; font-size: 0.85rem; color: #555; margin-bottom: 4px;
+    }
+
+    .subsection-title {
+        font-weight: 600; font-size: 0.88rem; color: #2d6a4f;
+        padding: 8px 0 4px; margin-top: 6px; border-bottom: 1px dashed #e0e0e0;
+    }
+    .tb-summary {
+        width: 100%; border-collapse: collapse; margin: 6px 0 10px; font-size: 0.85rem;
+    }
+    .tb-summary th {
+        background: #e8f5e9; color: #1b4332; font-weight: 700;
+        padding: 6px 10px; border: 1px solid #c8e6c9; text-align: left;
+    }
+    .tb-summary td { padding: 5px 10px; border: 1px solid #e0e0e0; color: #333; }
+    .tb-summary tr:nth-child(even) td { background: #fafafa; }
+
+    .q-box {
+        margin-top: 10px; padding: 8px 14px;
+        background: #f8faf8; border: 1px solid #d0d8d0; border-radius: 8px;
+        display: flex; align-items: flex-end; flex-wrap: wrap; gap: 6px;
+    }
+    .q-box .q-refs { border-top: none; margin-top: 0; padding-top: 0; }
+    .q-box.all-box { background: #f0f4ff; border-color: #c5cae9; }
+    .q-refs {
+        display: flex; flex-wrap: wrap; gap: 4px; align-items: flex-end;
+    }
+    .q-ref-badge {
+        display: inline-block; padding: 0px 3px;
+        background: #e8f5e9; color: #2d6a4f;
+        border-radius: 2px; font-size: 0.58rem; font-weight: 500;
+        line-height: 1.4; cursor: pointer; transition: background 0.15s;
+    }
+    .q-ref-badge:hover { opacity: 0.8; }
+    .q-ref-badge.y2013 { background: #3f51b5; color: #fff; }
+    .q-ref-badge.y2014 { background: #2196f3; color: #fff; }
+    .q-ref-badge.y2015 { background: #009688; color: #fff; }
+    .q-ref-badge.y2016 { background: #4caf50; color: #fff; }
+    .q-ref-badge.y2017 { background: #8bc34a; color: #333; }
+    .q-ref-badge.y2018 { background: #ffc107; color: #333; }
+    .q-ref-badge.y2019 { background: #ff9800; color: #fff; }
+    .q-ref-badge.y2020 { background: #ff5722; color: #fff; }
+    .q-ref-badge.y2021 { background: #795548; color: #fff; }
+    .q-ref-badge.y2022 { background: #607d8b; color: #fff; }
+    .q-ref-badge.y2023 { background: #e91e63; color: #fff; }
+    .q-ref-badge.y2024 { background: #9c27b0; color: #fff; }
+    .q-ref-badge.y2025 { background: #d32f2f; color: #fff; }
+    .q-study-btn {
+        display: inline-block; padding: 3px 9px;
+        background: #2d6a4f; color: #fff; border: none;
+        border-radius: 4px; font-size: 0.72rem; font-weight: 600;
+        cursor: pointer; font-family: inherit; transition: background 0.2s;
+    }
+    .q-study-btn:hover { background: #1b4332; }
+    .q-study-btn.all { background: #3949ab; }
+    .q-study-btn.all:hover { background: #1a237e; }
+    .q-count-badge {
+        font-size: 0.75rem; color: #888; font-weight: 400; margin-left: 8px;
+    }
+
+    @media (max-width: 480px) {
+        .chapter-header { padding: 12px 14px; font-size: 0.9rem; }
+        .section-header { padding: 10px 14px 10px 24px; font-size: 0.85rem; }
+        .section-body { padding: 0 14px 12px 24px; }
+        .content-box {
+            background: none; border: none; border-radius: 0; padding: 0; margin: 0;
+        }
+    }
+
     /* ══════════ Year Grid ══════════ */
     .year-grid {
         display: grid;
@@ -197,8 +342,15 @@
         flex-shrink: 0;
     }
 
-    .mode-btn .mode-info { flex: 1; }
-    .mode-btn .mode-name { display: block; line-height: 1.3; }
+    .mode-btn .mode-info {
+        flex: 1;
+    }
+
+    .mode-btn .mode-name {
+        display: block;
+        line-height: 1.3;
+    }
+
     .mode-btn .mode-desc {
         display: block;
         font-size: 0.76rem;
@@ -212,16 +364,30 @@
         color: #1d5536;
         border: 1px solid #c8e4c2;
     }
-    .mode-btn.study:hover { box-shadow: 0 4px 14px rgba(76, 175, 122, 0.25); }
-    .mode-btn.study .mode-icon { background: #4caf7a; color: #fff; }
+
+    .mode-btn.study:hover {
+        box-shadow: 0 4px 14px rgba(76, 175, 122, 0.25);
+    }
+
+    .mode-btn.study .mode-icon {
+        background: #4caf7a;
+        color: #fff;
+    }
 
     .mode-btn.solve {
         background: #fff3e0;
         color: #7a4a0a;
         border: 1px solid #f0d8a8;
     }
-    .mode-btn.solve:hover { box-shadow: 0 4px 14px rgba(224, 148, 58, 0.25); }
-    .mode-btn.solve .mode-icon { background: #e0943a; color: #fff; }
+
+    .mode-btn.solve:hover {
+        box-shadow: 0 4px 14px rgba(224, 148, 58, 0.25);
+    }
+
+    .mode-btn.solve .mode-icon {
+        background: #e0943a;
+        color: #fff;
+    }
 
     /* ══════════ Mock Exam Tab ══════════ */
     .mock-card {
@@ -437,7 +603,9 @@
 
     /* ══════════ Responsive ══════════ */
     @media (max-width: 560px) {
-        .breadcrumb { display: none; }
+        .breadcrumb {
+            display: none;
+        }
 
         .page-header {
             flex-direction: row;
@@ -454,7 +622,7 @@
             height: 52px;
             font-size: 0.88rem;
             border-radius: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
         .page-header-text h1 {
@@ -463,7 +631,7 @@
         }
 
         .page-header-text p {
-            color: rgba(255,255,255,0.75);
+            color: rgba(255, 255, 255, 0.75);
             font-size: 0.82rem;
         }
 
@@ -667,7 +835,9 @@
         font-family: inherit;
     }
 
-    .latest-submit-btn:hover { background: #236b3e; }
+    .latest-submit-btn:hover {
+        background: #236b3e;
+    }
 
     .latest-cancel-btn {
         background: #eee;
@@ -681,7 +851,9 @@
         font-family: inherit;
     }
 
-    .latest-cancel-btn:hover { background: #ddd; }
+    .latest-cancel-btn:hover {
+        background: #ddd;
+    }
 
     /* ── Registration Sub-tabs ── */
     .reg-subtab-btns {
@@ -728,15 +900,18 @@
         background: #fff;
         transition: box-shadow 0.2s;
     }
+
     .search-result-card:hover {
-        box-shadow: 0 4px 12px rgba(30,70,42,0.08);
+        box-shadow: 0 4px 12px rgba(30, 70, 42, 0.08);
     }
+
     .search-result-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
         margin-bottom: 10px;
     }
+
     .search-year-badge {
         display: inline-block;
         font-size: 0.78rem;
@@ -746,6 +921,7 @@
         padding: 3px 10px;
         border-radius: 6px;
     }
+
     .search-register-btn {
         background: #2d8a4e;
         color: #fff;
@@ -757,27 +933,35 @@
         cursor: pointer;
         font-family: inherit;
     }
-    .search-register-btn:hover { background: #236b3e; }
+
+    .search-register-btn:hover {
+        background: #236b3e;
+    }
+
     mark.search-highlight {
         background: #fff3b0;
         color: inherit;
         padding: 0 2px;
         border-radius: 3px;
     }
+
     .search-q-text {
         font-size: 0.92rem;
         line-height: 1.6;
         margin-bottom: 8px;
     }
+
     .search-choice {
         font-size: 0.85rem;
         color: #555;
         padding: 2px 0;
     }
+
     .search-choice.correct {
         color: #2d8a4e;
         font-weight: 700;
     }
+
     .search-answer {
         font-size: 0.82rem;
         color: #888;
@@ -785,6 +969,7 @@
         padding-top: 6px;
         border-top: 1px solid #f0f0f0;
     }
+
     .search-no-results {
         text-align: center;
         padding: 40px 20px;
@@ -980,6 +1165,7 @@
     }
 
     @media (max-width: 560px) {
+
         /* ── Latest: year section ── */
         .latest-year-section {
             margin-top: 14px;
@@ -1089,7 +1275,7 @@
         .latest-textarea:focus,
         .latest-form-row select.latest-input:focus {
             border-color: #4caf7a;
-            box-shadow: 0 0 0 3px rgba(76,175,122,0.12);
+            box-shadow: 0 0 0 3px rgba(76, 175, 122, 0.12);
         }
 
         .latest-textarea {
@@ -1138,17 +1324,86 @@
 
     <!-- Tab Navigation -->
     <div class="tab-nav fade-up">
-        <button class="tab-btn{% if active_tab == 'study' %} active{% endif %}" data-tab="study" onclick="switchTab('study')">학습</button>
-        <button class="tab-btn{% if active_tab == 'solve' %} active{% endif %}" data-tab="solve" onclick="switchTab('solve')">풀이</button>
-        <button class="tab-btn{% if active_tab == 'mock' %} active{% endif %}" data-tab="mock" onclick="switchTab('mock')">모의고사</button>
-        <button class="tab-btn{% if active_tab == 'wrong' %} active{% endif %}" data-tab="wrong" onclick="switchTab('wrong')">
+        <button class="tab-btn{% if active_tab == 'notes' %} active{% endif %}" data-tab="notes"
+            onclick="switchTab('notes')">쪽집게 노트{% if study_notes_count %}<sup style="font-size:0.7em;color:#2d6a4f;font-weight:700;margin-left:2px;">{{ study_notes_count }}</sup>{% endif %}</button>
+        <button class="tab-btn{% if active_tab == 'study' %} active{% endif %}" data-tab="study"
+            onclick="switchTab('study')">기출학습</button>
+        <button class="tab-btn{% if active_tab == 'solve' %} active{% endif %}" data-tab="solve"
+            onclick="switchTab('solve')">기출풀기</button>
+        <button class="tab-btn{% if active_tab == 'mock' %} active{% endif %}" data-tab="mock"
+            onclick="switchTab('mock')">모의고사</button>
+        <button class="tab-btn{% if active_tab == 'wrong' %} active{% endif %}" data-tab="wrong"
+            onclick="switchTab('wrong')">
             오답 노트
             {% if wrong_count > 0 %}<span class="tab-badge badge-wrong">{{ wrong_count }}</span>{% endif %}
         </button>
-        <button class="tab-btn{% if active_tab == 'latest' %} active{% endif %}" data-tab="latest" onclick="switchTab('latest')">
+        <button class="tab-btn{% if active_tab == 'latest' %} active{% endif %}" data-tab="latest"
+            onclick="switchTab('latest')">
             최신기출
             {% if latest_year_cards %}<span class="tab-badge" style="background:#3d9ed6;">{{ latest_year_cards|length }}</span>{% endif %}
         </button>
+    </div>
+
+    <!-- Tab 0: 쪽집게 노트 -->
+    <div class="tab-content{% if active_tab == 'notes' %} active{% endif %}" id="tab-notes">
+        {% if note_chapters %}
+        <div style="text-align:right;margin-bottom:8px;">
+            <button type="button" id="toggle-all-notes" onclick="toggleAllNotes()" style="background:none;border:1px solid #ccc;border-radius:4px;padding:3px 10px;font-size:0.78rem;color:#555;cursor:pointer;">전체 펼치기</button>
+        </div>
+        {% for ch in note_chapters %}
+        <div class="chapter-item" id="{{ ch.id }}" data-ch-idx="{{ forloop.counter0 }}">
+            <div class="chapter-header" onclick="this.parentElement.classList.toggle('open')">
+                <span>{{ ch.title }}</span>
+                <span class="chapter-chevron">&#9654;</span>
+            </div>
+            <div class="chapter-body">
+                {% for sec in ch.sections %}
+                <div class="section-item" id="{{ sec.id }}">
+                    <div class="section-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>{{ sec.title }}{% if sec.total_questions %}<span class="q-count-badge">{{ sec.total_questions }}문제</span>{% endif %}</span>
+                        <span class="section-chevron">&#9654;</span>
+                    </div>
+                    <div class="section-body">
+                        {% if sec.content_html %}<div class="content-box">{{ sec.content_html|safe }}</div>{% endif %}
+                        {% for sub in sec.subsections %}
+                        <div class="subsection-title">{{ sub.title }}</div>
+                        {% if sub.content_html %}<div class="content-box">{{ sub.content_html|safe }}</div>{% endif %}
+                        {% if sub.questions %}
+                        <div class="q-box">
+                            <form method="get" action="{% url 'main:notes_study' subject.pk %}" style="display:inline">
+                                {% for qref in sub.questions %}<input type="hidden" name="ref" value="{{ qref }}">{% endfor %}
+                                <button type="submit" class="q-study-btn">관련 문제 학습 ({{ sub.questions|length }})</button>
+                            </form>
+                            <div class="q-refs">{% for qref in sub.questions %}<span class="q-ref-badge">{{ qref }}</span> {% endfor %}</div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                        {% if sec.questions and not sec.subsections %}
+                        <div class="q-box">
+                            <form method="get" action="{% url 'main:notes_study' subject.pk %}" style="display:inline">
+                                {% for qref in sec.questions %}<input type="hidden" name="ref" value="{{ qref }}">{% endfor %}
+                                <button type="submit" class="q-study-btn">관련 문제 학습 ({{ sec.questions|length }})</button>
+                            </form>
+                            <div class="q-refs">{% for qref in sec.questions %}<span class="q-ref-badge">{{ qref }}</span> {% endfor %}</div>
+                        </div>
+                        {% elif sec.subsections|length > 1 and sec.all_questions %}
+                        <div class="q-box all-box">
+                            <form method="get" action="{% url 'main:notes_study' subject.pk %}" style="display:inline">
+                                {% for qref in sec.all_questions %}<input type="hidden" name="ref" value="{{ qref }}">{% endfor %}
+                                <button type="submit" class="q-study-btn all">이 절의 전체 문제 학습 ({{ sec.total_questions }})</button>
+                            </form>
+                            <div class="q-refs">{% for qref in sec.all_questions %}<span class="q-ref-badge">{{ qref }}</span> {% endfor %}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-msg">등록된 쪽집게 노트가 없습니다.</div>
+        {% endif %}
     </div>
 
     <!-- Tab 1: 학습 -->
@@ -1218,7 +1473,8 @@
                 오답 <strong>{{ wrong_count }}</strong>문제
             </div>
             <div class="btn-row" style="display:flex; gap:8px;">
-                <a class="wrong-summary-btn" style="background:#e5f5e0; color:#1d5536; border:1px solid #c8e4c2;" href="{% url 'exam:wrong_answers' subject.pk %}">전체 오답 보기</a>
+                <a class="wrong-summary-btn" style="background:#e5f5e0; color:#1d5536; border:1px solid #c8e4c2;"
+                    href="{% url 'exam:wrong_answers' subject.pk %}">전체 오답 보기</a>
                 <a class="wrong-summary-btn" href="{% url 'exam:wrong_answers_retry' subject.pk %}">다시 도전</a>
             </div>
         </div>
@@ -1236,15 +1492,20 @@
                     <div class="session-date">{{ s.date|date:"Y.m.d H:i" }}</div>
                 </div>
                 <div class="session-stats">
-                    <span class="session-score" style="color:{% if s.score >= 80 %}#2d8a4e{% elif s.score >= 60 %}#3d9ed6{% elif s.score >= 40 %}#e0943a{% else %}#d93025{% endif %};">{{ s.score }}점</span>
+                    <span class="session-score"
+                        style="color:{% if s.score >= 80 %}#2d8a4e{% elif s.score >= 60 %}#3d9ed6{% elif s.score >= 40 %}#e0943a{% else %}#d93025{% endif %};">{{
+                        s.score }}점</span>
                     {% if s.wrong > 0 %}
                     <span class="session-wrong-badge">오답 {{ s.wrong }}</span>
-                    <a class="session-link" href="{% url 'exam:wrong_answers_session' subject.pk s.session_id %}">문제 보기</a>
+                    <a class="session-link" href="{% url 'exam:wrong_answers_session' subject.pk s.session_id %}">문제
+                        보기</a>
                     {% else %}
                     <span style="font-size:0.85rem; color:#2d8a4e; font-weight:600;">전문 정답</span>
                     {% endif %}
                 </div>
-                <form class="session-del-form" method="post" action="{% url 'exam:session_delete' subject.pk s.session_id %}" onsubmit="return confirm('이 시험 기록을 삭제하시겠습니까?');" style="margin:0;">
+                <form class="session-del-form" method="post"
+                    action="{% url 'exam:session_delete' subject.pk s.session_id %}"
+                    onsubmit="return confirm('이 시험 기록을 삭제하시겠습니까?');" style="margin:0;">
                     {% csrf_token %}
                     <button type="submit" class="session-del-btn" title="삭제">✕</button>
                 </form>
@@ -1276,7 +1537,8 @@
                             <span class="mode-desc">정답을 확인하며 학습</span>
                         </span>
                     </a>
-                    <button type="button" class="latest-year-edit-btn" onclick="toggleYearQuestions({{ card.year }})">수정</button>
+                    <button type="button" class="latest-year-edit-btn"
+                        onclick="toggleYearQuestions({{ card.year }})">수정</button>
                 </div>
             </div>
             {% endfor %}
@@ -1291,7 +1553,8 @@
         <div class="latest-year-section" id="year-section-{{ group.grouper }}" style="display:none;">
             <div class="latest-year-section-header">
                 <h3>{{ group.grouper }}년 문제 ({{ group.list|length }}문항)</h3>
-                <button type="button" class="latest-cancel-btn" onclick="toggleYearQuestions({{ group.grouper }})">닫기</button>
+                <button type="button" class="latest-cancel-btn"
+                    onclick="toggleYearQuestions({{ group.grouper }})">닫기</button>
             </div>
             <div class="latest-list">
                 {% for q in group.list %}
@@ -1300,8 +1563,10 @@
                         <div class="latest-card-header">
                             <span class="latest-badge">{{ q.number }}번</span>
                             <div style="display:flex; gap:4px;">
-                                <button type="button" class="latest-edit-btn" onclick="toggleEditForm({{ q.pk }})">수정</button>
-                                <form method="post" action="{% url 'main:latest_question_delete' q.pk %}" onsubmit="return confirmAndSaveScroll('이 문제를 삭제하시겠습니까?');" style="margin:0;">
+                                <button type="button" class="latest-edit-btn"
+                                    onclick="toggleEditForm({{ q.pk }})">수정</button>
+                                <form method="post" action="{% url 'main:latest_question_delete' q.pk %}"
+                                    onsubmit="return confirmAndSaveScroll('이 문제를 삭제하시겠습니까?');" style="margin:0;">
                                     {% csrf_token %}
                                     <button type="submit" class="latest-del-btn">삭제</button>
                                 </form>
@@ -1309,10 +1574,14 @@
                         </div>
                         <div class="latest-text">{{ q.text }}</div>
                         <div class="latest-choices">
-                            <div class="latest-choice{% if '1' in q.answer %} correct{% endif %}">① {{ q.choice_1 }}</div>
-                            <div class="latest-choice{% if '2' in q.answer %} correct{% endif %}">② {{ q.choice_2 }}</div>
-                            <div class="latest-choice{% if '3' in q.answer %} correct{% endif %}">③ {{ q.choice_3 }}</div>
-                            <div class="latest-choice{% if '4' in q.answer %} correct{% endif %}">④ {{ q.choice_4 }}</div>
+                            <div class="latest-choice{% if '1' in q.answer %} correct{% endif %}">① {{ q.choice_1 }}
+                            </div>
+                            <div class="latest-choice{% if '2' in q.answer %} correct{% endif %}">② {{ q.choice_2 }}
+                            </div>
+                            <div class="latest-choice{% if '3' in q.answer %} correct{% endif %}">③ {{ q.choice_3 }}
+                            </div>
+                            <div class="latest-choice{% if '4' in q.answer %} correct{% endif %}">④ {{ q.choice_4 }}
+                            </div>
                         </div>
                         {% if q.explanation %}
                         <div class="latest-explanation">{{ q.explanation }}</div>
@@ -1323,7 +1592,8 @@
                             {% csrf_token %}
                             <div class="latest-form-row">
                                 <label>연도</label>
-                                <input type="number" name="year" value="{{ q.year }}" class="latest-input latest-input-sm" required>
+                                <input type="number" name="year" value="{{ q.year }}"
+                                    class="latest-input latest-input-sm" required>
                             </div>
                             <div class="latest-form-row">
                                 <label>문제</label>
@@ -1348,18 +1618,20 @@
                             <div class="latest-form-row">
                                 <label>정답</label>
                                 <select name="answer" class="latest-input latest-input-sm">
-                                    <option value="1"{% if q.answer == '1' %} selected{% endif %}>①</option>
-                                    <option value="2"{% if q.answer == '2' %} selected{% endif %}>②</option>
-                                    <option value="3"{% if q.answer == '3' %} selected{% endif %}>③</option>
-                                    <option value="4"{% if q.answer == '4' %} selected{% endif %}>④</option>
+                                    <option value="1" {% if q.answer == '1' %}selected{% endif %}>①</option>
+                                    <option value="2" {% if q.answer == '2' %}selected{% endif %}>②</option>
+                                    <option value="3" {% if q.answer == '3' %}selected{% endif %}>③</option>
+                                    <option value="4" {% if q.answer == '4' %}selected{% endif %}>④</option>
                                 </select>
                             </div>
                             <div class="latest-form-row">
                                 <label>해설</label>
-                                <textarea name="explanation" class="latest-textarea" rows="3">{{ q.explanation }}</textarea>
+                                <textarea name="explanation" class="latest-textarea"
+                                    rows="3">{{ q.explanation }}</textarea>
                             </div>
                             <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:12px;">
-                                <button type="button" class="latest-cancel-btn" onclick="toggleEditForm({{ q.pk }})">취소</button>
+                                <button type="button" class="latest-cancel-btn"
+                                    onclick="toggleEditForm({{ q.pk }})">취소</button>
                                 <button type="submit" class="latest-submit-btn">저장</button>
                             </div>
                         </form>
@@ -1373,9 +1645,10 @@
         <!-- ══════════ 등록 서브탭 ══════════ -->
         <div class="reg-subtabs" style="margin-top:20px;">
             <div class="reg-subtab-btns">
-                <button type="button" class="reg-subtab-btn active" data-reg="new" onclick="switchRegTab('new')">신규 등록</button>
-                <button type="button" class="reg-subtab-btn" data-reg="existing" onclick="switchRegTab('existing')">기존 기출 출제</button>
-                <button type="button" class="reg-subtab-btn" data-reg="search" onclick="switchRegTab('search')">검색 등록</button>
+                <button type="button" class="reg-subtab-btn active" data-reg="new" onclick="switchRegTab('new')">신규
+                    등록</button>
+                <button type="button" class="reg-subtab-btn" data-reg="existing" onclick="switchRegTab('existing')">반복 기출 연결</button>
+                <button type="button" class="reg-subtab-btn" data-reg="search" onclick="switchRegTab('search')">기출 검색 등록</button>
             </div>
 
             <!-- 신규 등록 -->
@@ -1385,11 +1658,13 @@
                         {% csrf_token %}
                         <div class="latest-form-row">
                             <label>연도</label>
-                            <input type="number" name="year" id="latest-year-input" class="latest-input latest-input-sm" required>
+                            <input type="number" name="year" id="latest-year-input" class="latest-input latest-input-sm"
+                                required>
                         </div>
                         <div class="latest-form-row">
                             <label>문제</label>
-                            <textarea name="text" class="latest-textarea" rows="3" placeholder="문제 내용을 입력하세요" required></textarea>
+                            <textarea name="text" class="latest-textarea" rows="3" placeholder="문제 내용을 입력하세요"
+                                required></textarea>
                         </div>
                         <div class="latest-form-row">
                             <label>보기 ①</label>
@@ -1418,7 +1693,8 @@
                         </div>
                         <div class="latest-form-row">
                             <label>해설</label>
-                            <textarea name="explanation" class="latest-textarea" rows="3" placeholder="해설 (선택)"></textarea>
+                            <textarea name="explanation" class="latest-textarea" rows="3"
+                                placeholder="해설 (선택)"></textarea>
                         </div>
                         <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:12px;">
                             <button type="submit" class="latest-submit-btn">등록</button>
@@ -1435,11 +1711,13 @@
                         <input type="hidden" name="source_id" id="clone-source-id">
                         <div class="latest-form-row">
                             <label>등록연도</label>
-                            <input type="number" name="target_year" id="clone-target-year" class="latest-input latest-input-sm" required>
+                            <input type="number" name="target_year" id="clone-target-year"
+                                class="latest-input latest-input-sm" required>
                         </div>
                         <div class="latest-form-row">
                             <label>출제연도</label>
-                            <select id="clone-year-select" class="latest-input latest-input-sm" onchange="loadQuestionList()">
+                            <select id="clone-year-select" class="latest-input latest-input-sm"
+                                onchange="loadQuestionList()">
                                 <option value="">선택</option>
                             </select>
                         </div>
@@ -1474,17 +1752,19 @@
                     <div class="latest-form-row">
                         <label>검색어</label>
                         <input type="text" id="search-keyword" class="latest-input"
-                               placeholder="문제 또는 보기 내 키워드 (2글자 이상)"
-                               onkeydown="if(event.key==='Enter'){event.preventDefault(); doSearch();}">
+                            placeholder="문제 또는 보기 내 키워드 (2글자 이상)"
+                            onkeydown="if(event.key==='Enter'){event.preventDefault(); doSearch();}">
                     </div>
                     <div style="display:flex; gap:6px; justify-content:flex-end; margin-bottom:16px;">
                         <button type="button" class="latest-submit-btn" onclick="doSearch()">검색</button>
                     </div>
                     <div id="search-results" style="display:none;">
-                        <div id="search-results-header" style="font-size:0.88rem; color:#666; margin-bottom:12px;"></div>
+                        <div id="search-results-header" style="font-size:0.88rem; color:#666; margin-bottom:12px;">
+                        </div>
                         <div id="search-results-list"></div>
                     </div>
-                    <form method="post" action="{% url 'main:latest_question_clone' subject.pk %}" id="search-clone-form" style="display:none;">
+                    <form method="post" action="{% url 'main:latest_question_clone' subject.pk %}"
+                        id="search-clone-form" style="display:none;">
                         {% csrf_token %}
                         <input type="hidden" name="source_id" id="search-source-id">
                         <input type="hidden" name="target_year" id="search-clone-year">
@@ -1502,10 +1782,10 @@
 {% block extra_js %}
 <script>
     function switchTab(tabName) {
-        document.querySelectorAll('.tab-content').forEach(function(el) {
+        document.querySelectorAll('.tab-content').forEach(function (el) {
             el.classList.remove('active');
         });
-        document.querySelectorAll('.tab-btn').forEach(function(el) {
+        document.querySelectorAll('.tab-btn').forEach(function (el) {
             el.classList.remove('active');
         });
         document.getElementById('tab-' + tabName).classList.add('active');
@@ -1516,19 +1796,61 @@
     }
 
     // 페이지 로드 시 활성 탭이 보이도록 스크롤
-    (function() {
+    (function () {
         var activeBtn = document.querySelector('.tab-btn.active');
         if (activeBtn) {
             activeBtn.scrollIntoView({ block: 'nearest', inline: 'center' });
         }
+        // ?note=N&sec=X.Y 파라미터로 해당 노트 아코디언 펼침 + 절 위치 스크롤
+        var params = new URLSearchParams(window.location.search);
+        var noteOrder = params.get('note');
+        var secId = params.get('sec');
+        if (noteOrder) {
+            var noteEl = document.getElementById('note-' + noteOrder);
+            if (noteEl) {
+                noteEl.classList.add('open');
+                setTimeout(function() {
+                    var target = secId ? document.getElementById('sec-' + secId) : noteEl;
+                    var el = target || noteEl;
+                    var y = el.getBoundingClientRect().top + window.pageYOffset - 90;
+                    window.scrollTo({top: y, behavior: 'smooth'});
+                }, 150);
+            }
+        }
     })();
+
+    // 배지 포맷: 년도 색상 자동 부여
+    function formatBadges(container) {
+        container.querySelectorAll('.q-refs').forEach(function(box) {
+            box.querySelectorAll('.q-ref-badge').forEach(function(badge) {
+                var yr = badge.textContent.trim().split('-')[0];
+                badge.classList.add('y' + yr);
+                badge.textContent = yr;
+            });
+        });
+    }
+    formatBadges(document);
+
+    // 전체 펼치기/접기 토글
+    var _notesExpanded = false;
+    window.toggleAllNotes = function() {
+        _notesExpanded = !_notesExpanded;
+        var btn = document.getElementById('toggle-all-notes');
+        document.querySelectorAll('#tab-notes .chapter-item').forEach(function(ch) {
+            if (_notesExpanded) ch.classList.add('open'); else ch.classList.remove('open');
+            ch.querySelectorAll('.section-item').forEach(function(sec) {
+                if (_notesExpanded) sec.classList.add('open'); else sec.classList.remove('open');
+            });
+        });
+        btn.textContent = _notesExpanded ? '전체 접기' : '전체 펼치기';
+    };
 
     /* ── 과목 PK (API 호출용) ── */
     var subjectPk = {{ subject.pk }};
     var _questionsCache = {};
 
     /* 연도 초기화: last_year 파라미터 > 현재 연도 */
-    (function() {
+    (function () {
         var params = new URLSearchParams(window.location.search);
         var lastYear = params.get('last_year');
         var defaultYear = lastYear || new Date().getFullYear();
@@ -1554,8 +1876,8 @@
 
     /* ── 등록 서브탭 전환 ── */
     function switchRegTab(tab) {
-        document.querySelectorAll('.reg-subtab-btn').forEach(function(b) { b.classList.remove('active'); });
-        document.querySelectorAll('.reg-subtab-content').forEach(function(c) { c.classList.remove('active'); });
+        document.querySelectorAll('.reg-subtab-btn').forEach(function (b) { b.classList.remove('active'); });
+        document.querySelectorAll('.reg-subtab-content').forEach(function (c) { c.classList.remove('active'); });
         document.querySelector('[data-reg="' + tab + '"]').classList.add('active');
         document.getElementById('reg-' + tab).classList.add('active');
         if (tab === 'existing') loadExistingYears();
@@ -1566,9 +1888,9 @@
         var sel = document.getElementById('clone-year-select');
         if (sel.options.length > 1) return;
         fetch('/subjects/' + subjectPk + '/api/years/')
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                data.years.forEach(function(y) {
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                data.years.forEach(function (y) {
                     var opt = document.createElement('option');
                     opt.value = y;
                     opt.textContent = y + '년';
@@ -1588,11 +1910,11 @@
             return;
         }
         fetch('/subjects/' + subjectPk + '/api/questions/' + year + '/')
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
                 _questionsCache = {};
                 qSel.innerHTML = '<option value="">문항을 선택하세요</option>';
-                data.questions.forEach(function(q) {
+                data.questions.forEach(function (q) {
                     _questionsCache[q.id] = q;
                     var opt = document.createElement('option');
                     opt.value = q.id;
@@ -1623,14 +1945,14 @@
                 labels[i] + ' ' + q[fields[i]] + '</div>';
         }
         document.getElementById('clone-preview-choices').innerHTML = choicesHtml;
-        var answerLabels = answerNums.map(function(n) { return labels[parseInt(n) - 1] || n; });
+        var answerLabels = answerNums.map(function (n) { return labels[parseInt(n) - 1] || n; });
         document.getElementById('clone-preview-answer').textContent = '정답: ' + answerLabels.join(', ');
         preview.style.display = '';
     }
 
     function toggleYearQuestions(year) {
         var section = document.getElementById('year-section-' + year);
-        document.querySelectorAll('.latest-year-section').forEach(function(el) {
+        document.querySelectorAll('.latest-year-section').forEach(function (el) {
             if (el.id !== 'year-section-' + year) {
                 el.style.display = 'none';
             }
@@ -1653,8 +1975,8 @@
         resultsDiv.style.display = '';
         listDiv.innerHTML = '';
         fetch('/subjects/' + subjectPk + '/api/search/?q=' + encodeURIComponent(keyword))
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
                 if (data.error) { headerDiv.textContent = data.error; return; }
                 if (data.questions.length === 0) {
                     headerDiv.textContent = '';
@@ -1665,15 +1987,15 @@
                     (data.questions.length >= 50 ? ' (최대 50건 표시)' : '');
                 renderSearchResults(data.questions, data.keyword);
             })
-            .catch(function() { headerDiv.textContent = '검색 중 오류가 발생했습니다.'; });
+            .catch(function () { headerDiv.textContent = '검색 중 오류가 발생했습니다.'; });
     }
 
     function renderSearchResults(questions, keyword) {
         var listDiv = document.getElementById('search-results-list');
         listDiv.innerHTML = '';
-        var labels = ['\u2460','\u2461','\u2462','\u2463'];
-        var fields = ['choice_1','choice_2','choice_3','choice_4'];
-        questions.forEach(function(q) {
+        var labels = ['\u2460', '\u2461', '\u2462', '\u2463'];
+        var fields = ['choice_1', 'choice_2', 'choice_3', 'choice_4'];
+        questions.forEach(function (q) {
             var answerNums = q.answer.split(',');
             var card = document.createElement('div');
             card.className = 'search-result-card';
@@ -1691,7 +2013,7 @@
             // choices
             for (var i = 0; i < 4; i++) {
                 if (q[fields[i]] && q[fields[i]] !== '-') {
-                    var isCorrect = answerNums.indexOf(String(i+1)) >= 0;
+                    var isCorrect = answerNums.indexOf(String(i + 1)) >= 0;
                     var ch = document.createElement('div');
                     ch.className = 'search-choice' + (isCorrect ? ' correct' : '');
                     ch.innerHTML = labels[i] + ' ' + highlightKeyword(q[fields[i]], keyword);
@@ -1701,7 +2023,7 @@
             // answer
             var ansDiv = document.createElement('div');
             ansDiv.className = 'search-answer';
-            var ansLabels = answerNums.map(function(n) { return labels[parseInt(n)-1] || n; });
+            var ansLabels = answerNums.map(function (n) { return labels[parseInt(n) - 1] || n; });
             ansDiv.textContent = '정답: ' + ansLabels.join(', ');
             card.appendChild(ansDiv);
             listDiv.appendChild(card);

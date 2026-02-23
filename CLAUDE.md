@@ -241,7 +241,7 @@ python generate_all.py
 ### 메인/시험 앱 (방송대 기출)
 - `templates/main/index.html`: 한울회 A+ 학습시스템 홈페이지
 - `templates/base.html`: 공통 레이아웃 (favicon, PWA manifest, apple-touch-icon 포함)
-- `templates/main/subject_detail.html`: 과목 상세 (탭: 학습/풀이/모의고사/오답/시험이력/최신기출)
+- `templates/main/subject_detail.html`: 과목 상세 (탭: 쪽집게노트/기출학습/기출풀기/모의고사/오답/시험이력/최신기출)
 - `templates/exam/study_mode.html`: 학습모드 (기출 풀이 + 채점)
 - `templates/exam/exam_take.html`: 풀이모드 (OMR 카드 포함)
 - `templates/exam/mock_exam_take.html`: 모의고사 (랜덤 25문제)
@@ -252,7 +252,7 @@ python generate_all.py
 
 ### 기사시험 앱 (자격증 기출)
 - `templates/gisa/certification_list.html`: 자격증 목록
-- `templates/gisa/certification_detail.html`: 자격증 상세 (탭: 교재/학습/풀이/모의고사/오답/시험이력)
+- `templates/gisa/certification_detail.html`: 자격증 상세 (탭: 쪽집게노트/기출학습/기출고사/모의고사/오답노트/시험이력)
 - `templates/gisa/study_mode.html`: 학습모드 (교재 학습 겸용)
 - `templates/gisa/exam_take.html`: 풀이모드 (OMR 카드 포함)
 - `templates/gisa/mock_exam_take.html`: 모의고사 (과목별 20문제)
@@ -266,6 +266,13 @@ python generate_all.py
 - `static/images/knou_favicon.png`: 파비콘 및 홈 화면 아이콘
 - `base.html`에 favicon, apple-touch-icon, manifest, theme-color 메타태그 설정 완료
 - 모바일 브라우저에서 "홈 화면에 추가" → "한울회 A+" 이름의 바로가기 생성
+
+## 헤더 네비게이션
+
+- 상단 헤더 `site-nav`에 "식물보호(산업)기사" 링크 → `/gisa/` (자격증 목록 페이지)
+- "학과목" 링크 → 마이페이지
+- 스태프 전용 "관리" 링크
+- 로그아웃 링크
 
 ## 최신기출 탭 (subject_detail.html)
 
@@ -348,11 +355,11 @@ python load_latest.py 식물의학_latest.json
 ### 오답노트 (wrong_answers.html)
 
 - 문제 텍스트: hanging indent (`padding-left: 1.3em`, `text-indent: -1.3em`)
-- 보기: 절대 위치 q-mark (`position: absolute; left: 8px`) + `padding-left: 38px`
+- 보기: flex 레이아웃 (`.wq-choice` flex + `.wq-choice-text` wrapper)
+- 정답: 원번호 반전 (`.q-mark.correct-mark`, `background: #333; color: #fff`)
+- 선택한 답: `← 내 답` 빨간 라벨 (`.my-pick`)
 - 해설: `→` 화살표, 정답 해설 노란 하이라이트
-- grade-x 마크 제거됨 (주석 처리)
-- 연도 배지(`wq-source`) 제거됨
-- 해설보기 버튼 좌측 정렬 (`padding-left: 18px`)
+- 문제 간 간격 최소화 (`padding: 4px 20px 0`)
 
 ## 기사시험 앱 (gisa)
 
@@ -360,9 +367,17 @@ python load_latest.py 식물의학_latest.json
 
 ### 대상 자격증
 
-- **식물보호기사** (현재 유일 등록)
+- **식물보호기사** (pk=1, category='기사')
 - 데이터: 2011~2022년 필기 기출문제, 총 660문제 (33개 회차 × 20문항)
 - 과목: 식물병리학, 농림해충학, 재배학원론, 농약학, 잡초방제학 (5과목)
+
+- **식물보호산업기사** (pk=2, category='산업기사')
+- 데이터: 2002~2020년 필기 기출문제, 총 2,880문제 (36개 회차 × 80문항)
+- 과목: 식물병리학(pk=6), 해충학(pk=7), 농약학(pk=8), 잡초방제학(pk=9) (4과목)
+- 문제 번호: 1~80 통번호 (과목1: 1~20, 과목2: 21~40, 과목3: 41~60, 과목4: 61~80)
+- 데이터 원본: comcbt.com에서 다운로드한 PDF (`data/comcbt/식물보호산업기사YYYY-R.pdf`)
+- PDF 파싱: LLM 에이전트 6배치 병렬로 직접 읽어서 파싱 (파싱 스크립트 없음)
+- AI 해설: 2,880문제 전체 Gemini 해설 생성 완료 (gemini-2.5-flash)
 
 ### 모델 구조 (gisa/models.py)
 
@@ -372,6 +387,7 @@ python load_latest.py 식물의학_latest.json
 | `GisaExam` | 시험회차 | certification(FK), year, round, exam_type(필기/실기) |
 | `GisaSubject` | 과목 | certification(FK), name, order |
 | `GisaQuestion` | 기출문제 | exam(FK), subject(FK), number, text, choice_1~4, answer, explanation, choice_X_exp |
+| `GisaTextbook` | 쪽집게 노트 | certification(FK), subject(FK), content(마크다운), updated_at |
 | `GisaAttempt` | 풀이기록 | user(FK), question(FK), selected, is_correct, mode(exam/mock/wrong_retry), session_id |
 
 - `GisaQuestion.answer`: CharField — `'1'`~`'4'` 단일 정답, `'0'` 미확인
@@ -400,9 +416,22 @@ python manage.py generate_gisa_explanations --year 2011 --force
 python manage.py generate_gisa_explanations --dry-run
 ```
 
-- 660문제 전체 해설 생성 완료
+- 식물보호기사 660문제 전체 해설 생성 완료
+- 식물보호산업기사 2,880문제 전체 해설 생성 완료
 - Pydantic 모델(`QuestionExplanation`)로 구조화 응답
 - 정답 선지의 `choice_X_exp`에 정답설명 저장
+
+### 산업기사 병렬 해설 생성
+
+```bash
+# 식물보호산업기사 전체 (36회차 × 4과목 = 144단위, 100개 병렬)
+python generate_sanup_explanations.py
+```
+
+- `generate_sanup_explanations.py`: 회차×과목 단위 subprocess로 `generate_gisa_explanations`를 병렬 실행
+- `WORKERS=100`, `DELAY=0.3`, `MODEL=gemini-2.5-flash`
+- `--cert 식물보호산업기사`로 자격증명 필터링
+- 주의: 100개 동시 실행 시 PostgreSQL 커넥션 풀 한도 초과로 일부 실패 가능 (재실행으로 해결)
 
 ### 페이지 구성
 
@@ -418,23 +447,23 @@ python manage.py generate_gisa_explanations --dry-run
 
 ### certification_detail 탭 구조
 
-탭 순서: **교재** → 기출학습 → 기출고사 → 모의고사 → 오답노트 → 시험이력
+탭 순서: **쪽집게 노트** → 기출학습 → 기출고사 → 모의고사 → 오답노트 → 시험이력
 
-- 기본 활성 탭: `textbook` (교재)
+- 기본 활성 탭: `textbook` (쪽집게 노트)
 - URL 파라미터: `?tab=textbook`, `?tab=study`, `?tab=exam`, `?tab=mock`, `?tab=wrong`, `?tab=history`
 
-### 교재 탭 (textbook)
+### 쪽집게 노트 탭 (textbook)
 
-핵심정리 마크다운 파일을 파싱하여 아코디언 UI로 표시하고, 관련 기출문제를 학습할 수 있다.
+핵심정리 마크다운을 DB(`GisaTextbook`)에서 로드하여 아코디언 UI로 표시하고, 관련 기출문제를 학습할 수 있다.
 
-**데이터 소스**: `data/{과목명}_핵심정리.md`
+**데이터 소스**: `GisaTextbook` 모델 (DB 저장, 과목별 1건)
 
-**현재 완성된 교재** (5과목 전체 완성):
-- 식물병리학 (14장 + 부록, 660문제 100% 커버리지, 교재형 서술 스타일)
-- 농림해충학 (13장 + 부록 8개 표, 660문제 100% 커버리지, 3689줄)
-- 재배학원론 (12장 + 부록, 660문제 100% 커버리지, 4263줄)
-- 농약학 (10장 + 부록, 660문제 100% 커버리지, 3308줄)
-- 잡초방제학 (10장 + 부록, 680문제 100% 커버리지, 2067줄)
+**현재 완성된 교재** (5과목 전체 완성, 교재형 서술 스타일):
+- 식물병리학 (14장 + 부록, 660문제 100% 커버리지)
+- 농림해충학 (13장 + 부록 8개 표, 660문제 100% 커버리지, 3430줄)
+- 재배학원론 (12장 + 부록, 660문제 100% 커버리지, 3735줄)
+- 농약학 (10장 + 부록, 660문제 100% 커버리지, 3334줄)
+- 잡초방제학 (10장 + 부록, 680문제 100% 커버리지, 2200줄)
 
 **마크다운 파서** (`gisa/views.py` → `parse_study_guide()`):
 - `## 제N장.` → 장(chapter)
@@ -445,6 +474,7 @@ python manage.py generate_gisa_explanations --dry-run
 - bullet(`-`) → `<li>`, 마크다운 테이블 → `<table class='tb-summary'>`
 - 일반 텍스트(paragraph) → `<p>` (서술형 교재 스타일 지원)
 - 볼드(`**...**`) → `<strong>`, 이탤릭(`*...*`) → `<em>`
+- 소제목 형식: `[ **소제목** ]` — `#####` 대신 볼드+대괄호 형태로 시각적 구분 (파서가 `#####`를 별도 계층으로 처리하지 않으므로)
 
 **UI 구성**:
 ```
@@ -495,13 +525,14 @@ python manage.py generate_gisa_explanations --dry-run
 - 부록: 곤충목별 해충 일람, 매개충-병해 대조, 월동태, 변태유형, 세대수, 천적, 비래해충, 외래해충 표
 - 660/660 문제 커버리지 100% (2011~2022년 전 회차)
 - 식물병리학과 동일한 마크다운 형식 (`## 제N장.` → `### N.M` → `#### N.M.K`)
+- 소제목: `[ **소제목** ]` 형태 (볼드+대괄호, `#####` 사용 안 함)
 - 생성 과정: 장 단위 병렬 에이전트(4배치) → 통합 → 커버리지 보완(3배치) → 100% 달성
 
 ### 주요 파일 구조 (gisa 앱)
 
 ```
 gisa/
-├── models.py           # Certification, GisaExam, GisaSubject, GisaQuestion, GisaAttempt
+├── models.py           # Certification, GisaExam, GisaSubject, GisaQuestion, GisaTextbook, GisaAttempt
 ├── views.py            # parse_study_guide(), certification_list/detail, study/exam/mock/wrong 뷰
 ├── urls.py             # app_name='gisa', 13개 URL 패턴
 ├── admin.py            # 5개 모델 Admin 등록
@@ -539,7 +570,7 @@ knou_agriculture/
 │       ├── import_questions.py       # 엑셀 → DB import
 │       └── generate_explanations.py  # Gemini 해설 생성
 ├── gisa/               # 기사시험 앱
-│   ├── models.py       # Certification, GisaExam, GisaSubject, GisaQuestion, GisaAttempt
+│   ├── models.py       # Certification, GisaExam, GisaSubject, GisaQuestion, GisaTextbook, GisaAttempt
 │   ├── views.py        # parse_study_guide(), 학습/풀이/모의/오답/교재 뷰
 │   └── management/commands/
 │       ├── import_gisa_questions.py       # 텍스트 → DB import
@@ -551,9 +582,11 @@ knou_agriculture/
 │   └── manifest.json   # PWA 매니페스트
 ├── scrape_exam.py      # 개별 과목 스크래핑
 ├── scrape_all.py       # 전체 과목 일괄 스크래핑
-├── generate_all.py     # 전체 과목 병렬 해설 생성
+├── generate_all.py     # 전체 과목 병렬 해설 생성 (방송대)
+├── generate_sanup_explanations.py  # 식물보호산업기사 병렬 해설 생성
 ├── load_latest.py      # 최신기출 JSON → DB import (update_or_create)
 └── data/               # 엑셀 파일 + 핵심정리 마크다운 (gitignore)
+    └── comcbt/         # 식물보호산업기사 PDF/HWP (36회차, comcbt.com 원본)
 ```
 
 ## 알려진 주의사항
@@ -572,8 +605,10 @@ knou_agriculture/
 - 기출문제 텍스트 파일은 `kisa_exam/` 디렉토리에 위치 (프로젝트 형제 폴더, `../kisa_exam/`)
 - `GisaQuestion.answer`는 단일 정답만 (`'1'`~`'4'`), 복수 정답 없음
 - 핵심정리 마크다운의 문제 참조 형식: `YYYY-R-N` (연도-회차-문항번호), 예: `2011-1-5`
-- `parse_study_guide()`는 파일 I/O를 포함하므로 `certification_detail` 뷰에서 `tab=textbook`일 때만 호출
-- 교재 과목 전환 시 `data/{과목명}_핵심정리.md` 파일이 없으면 빈 목록 표시
+- `parse_study_guide()`는 `certification_detail` 뷰에서 `tab=textbook`일 때만 호출
+- 쪽집게 노트 데이터는 `GisaTextbook` 모델(DB)에서 로드 (파일 기반에서 DB 기반으로 전환 완료)
+- `parse_study_guide()`는 파일 경로 또는 콘텐츠 문자열 모두 지원 (하위 호환)
+- 과목 전환 시 DB에 해당 과목의 `GisaTextbook` 레코드가 없으면 빈 목록 표시
 - 5과목 전체 핵심정리 완성: 식물병리학·농림해충학·재배학원론·농약학·잡초방제학 (각 660/680문제 100%)
 - 핵심정리 생성 작업 패턴: DB에서 문제 JSON 추출 → 장 단위 병렬 에이전트로 초안 생성 → 통합 → 커버리지 검증 → 누락 보완 → 100% 달성 → UI pill 활성화
 
@@ -650,6 +685,39 @@ knou_agriculture/
 - 합격 조건: 평균 60점 이상 **AND** 모든 과목 40점 이상
 - 색상: 60점 이상 녹색, 40~59점 노랑, 40점 미만 회색
 
+## 정답/오답 표시 UI 규칙
+
+전 페이지에서 통일된 표시 방식을 따른다.
+
+### 기사시험 (gisa 앱)
+
+| 요소 | 스타일 | 적용 페이지 |
+|------|--------|------------|
+| 정답 표시 | 빨간 동그라미 (`.choice-num.correct::before`, `border: 3px solid #d93025`) | study_mode |
+| 정답 표시 | 원번호 반전 (`.correct-mark`, `background: #333; color: #fff`) | wrong tab, wrong_answers, exam_result |
+| 선택한 답 | 원번호 반전 (`.choice-num.picked`, `background: #333; color: #fff`) | study_mode |
+| 선택한 답 | `← 내 답` 빨간 라벨 (`.my-pick`, `color: #d93025`) | wrong tab, wrong_answers, exam_result |
+| 오답 문제 | 빨간색 표기 안 함 (`color: inherit`) | exam_result |
+| 노트 제외 | "노트 X" 형태 (텍스트 먼저, X 아이콘 뒤) | wrong tab |
+
+### 문제 간 간격
+
+- **study_mode (gisa)**: 카드 박스 없음 (`border: none; box-shadow: none`), 간격 최소화 (`padding: 4px 20px 0`)
+- **wrong_answers (gisa)**: 간격 최소화 (`padding: 4px 20px 0`)
+- **wrong tab (certification_detail)**: 인라인 오답 표시, 과목별 필터링 (전체/5과목)
+
+### 오답노트 탭 (certification_detail ?tab=wrong)
+
+- 오답 내용이 탭 내에 인라인으로 표시됨 (별도 페이지 아님)
+- 과목 필터: 전체/식물병리학/농림해충학/재배학원론/농약학/잡초방제학 pill 버튼
+- "다시 도전" 버튼: 선택된 과목 필터를 `?subject=` 파라미터로 전달
+- 오답 재풀이 헤더: `{과목명} 오답 재풀이 {N}문항` 형식
+
+### 방송대 기출 (exam 앱)
+
+- study_mode: 체크마크 이미지(`check_mark_black.png`) + 빨간 동그라미(정답) 방식 유지
+- 원번호: Unicode ①②③④ (`&#9312;`~`&#9315;`) 사용
+
 ### UI
 
 - 무한 스크롤: 내부 컨테이너(`max-height:60vh; overflow-y:auto`)의 scroll 이벤트 감지
@@ -663,3 +731,78 @@ knou_agriculture/
 `INSTALLED_APPS`에 `django.contrib.humanize` 추가.
 
 - `certification_list.html`, `certification_detail.html`에서 `{% load humanize %}` + `{{ count|intcomma }}`로 천자리 콤마 표시
+
+## 쪽집게 노트 (방송대 기출 - exam 앱)
+
+과목별 챕터 단위 학습 정리 노트. `subject_detail.html`의 "쪽집게 노트" 탭에서 아코디언 UI로 표시.
+
+### StudyNote 모델 (exam/models.py)
+
+| 필드 | 설명 |
+|------|------|
+| `subject` | FK → Subject |
+| `title` | 장 제목 (예: "제1장. 세포의 구조와 기능") |
+| `content` | 마크다운 내용 |
+| `order` | 장 순서 (1~15) |
+| `created_at` | 생성일 |
+| `updated_at` | 수정일 |
+
+- unique_together: `(subject, order)`
+- 총 341개 노트 (30개 과목)
+
+### 완성 현황 (30개 과목)
+
+| 학년 | 과목 | 챕터수 |
+|------|------|--------|
+| 1학년 | 글쓰기(12), 농학원론(12), 생물과학(13), 생활과건강(10), 세계의역사(10), 숲과삶(12), 원예학(12), 재배학원론(11), 컴퓨터의이해(12) | 9과목 |
+| 2학년 | 농업생물화학(12), 농업유전학(12), 동서양고전의이해(12), 재배식물생리학(13), 한국사의이해(9) | 5과목 |
+| 3학년 | 글쓰기(8), 농축산환경학(8), 생물통계학(12), 생활원예(14), 식물의학(12), 식용작물학1(12), 원예작물학1(12), 자원식물학(12), 재배식물육종학(12), 토양학(11), 해충방제학(6), 환경친화형농업(12) | 12과목 |
+| 4학년 | 생활과건강(12), 시설원예학(12), 식용작물학2(12), 원예작물학2(12) | 4과목 |
+
+### 미완성 과목
+
+| 학년 | 과목 |
+|------|------|
+| 1학년 | 심리학에게묻다, 인간과과학, 인간과교육, 축산학 |
+| 2학년 | 생활속의경제, 세상읽기와논술, 철학의이해, 취미와예술 |
+| 3학년 | 동물사료학, 세상읽기와논술, 인간과교육, 푸드마케팅 |
+| 4학년 | 농업경영학, 농축산식품이용학, 식물분류학, 푸드마케팅 |
+
+### 노트 생성 방식
+
+1. DB에서 과목 문제를 JSON으로 추출 (`_PREFIX_questions.json`)
+2. AI 에이전트로 챕터 분류 (`_PREFIX_chapters.json`)
+3. 장별 병렬 에이전트로 노트 생성 (`_PREFIX_note_chN.md`)
+4. DB에 `update_or_create`로 import
+
+### 마크다운 형식
+
+```markdown
+## 제N장. {title}
+### N.M 절제목
+#### N.M.K 항제목
+교재형 서술문...
+**관련 문제**: (YYYY-N), (YYYY-N)
+### 핵심 키워드 요약
+| 키워드 | 핵심 포인트 |
+```
+
+- 교재형 서술문 스타일 (불렛은 열거 시에만 사용)
+- 핵심 용어 `**볼드**` 처리
+- 각 절 끝에 `**관련 문제**: (YYYY-N)` 형식 (연도-문항번호)
+- 각 장 끝에 `### 핵심 키워드 요약` 테이블
+
+### PREFIX_MAP (파일 prefix → 과목 매핑)
+
+```python
+PREFIX_MAP = {
+    'abc': ('농업생물화학', 2), 'ag': ('농업유전학', 2), 'ai': ('농학원론', 1),
+    'bs': ('생물과학', 1), 'cb': ('재배식물육종학', 3), 'cp': ('컴퓨터의이해', 1),
+    'dg': ('동서양고전의이해', 2), 'ef': ('환경친화형농업', 3), 'fl': ('숲과삶', 1),
+    'gw1': ('글쓰기', 1), 'gw3': ('글쓰기', 3), 'hc1': ('원예작물학1', 3),
+    'hc2': ('원예작물학2', 4), 'ho': ('원예학', 1), 'hp': ('해충방제학', 3),
+    'kh': ('한국사의이해', 2), 'nc': ('농축산환경학', 3), 'sc1': ('식용작물학1', 3),
+    'sc2': ('식용작물학2', 4), 'sg1': ('생활과건강', 1), 'sg4': ('생활과건강', 4),
+    'sw': ('시설원예학', 4), 'wh': ('세계의역사', 1),
+}
+```

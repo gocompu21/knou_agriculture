@@ -81,3 +81,20 @@ class Attempt(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.question} ({'O' if self.is_correct else 'X'})"
+
+
+class StudyNote(models.Model):
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, verbose_name='과목', related_name='study_notes')
+    title = models.CharField('제목', max_length=200)
+    content = models.TextField('내용')
+    order = models.PositiveIntegerField('순서', default=0)
+    created_at = models.DateTimeField('작성일', auto_now_add=True)
+    updated_at = models.DateTimeField('수정일', auto_now=True)
+
+    class Meta:
+        verbose_name = '정리노트'
+        verbose_name_plural = '정리노트'
+        ordering = ['order', 'created_at']
+
+    def __str__(self):
+        return f"{self.subject.name} - {self.title}"

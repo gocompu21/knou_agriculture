@@ -11,6 +11,7 @@
 
         body {
             display: flex;
+            flex-direction: column;
             height: 100vh;
             font-family: "SUIT", -apple-system, sans-serif;
             overflow: hidden;
@@ -21,15 +22,77 @@
         .question-panel {
             flex: 1;
             overflow-y: auto;
-            padding: 20px 40px;
+            padding: 8px 40px 20px;
             border-right: 1px solid #ccc;
         }
 
+        .exam-top-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            height: 52px;
+            min-height: 52px;
+            background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+            color: #fff;
+            flex-shrink: 0;
+            z-index: 200;
+        }
+
+        .exam-top-header .th-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .exam-top-header .th-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: background 0.15s;
+        }
+
+        .exam-top-header .th-back:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .exam-top-header .th-title {
+            font-size: 1rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .exam-top-header .th-cert-badge {
+            display: inline-block;
+            background: #fff;
+            color: #000;
+            border: 1.5px solid #000;
+            border-radius: 4px;
+            padding: 2px 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            line-height: 1.4;
+            white-space: nowrap;
+        }
+
+        .exam-top-header .th-title small {
+            font-weight: 400;
+            font-size: 0.82em;
+            opacity: 0.8;
+            margin-left: 6px;
+        }
+
         .panel-header {
-            text-align: right;
-            font-size: 1.0em;
-            margin-bottom: 20px;
-            color: #555;
+            display: none;
         }
 
         .question-item {
@@ -66,19 +129,25 @@
         .subject-divider {
             margin: 56px 0 32px;
             padding: 14px 20px;
-            background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
-            border-radius: 8px;
-            color: #fff;
+            background: none;
             text-align: center;
         }
 
-        .subject-divider:first-child {
+        .panel-header + .subject-divider {
             margin-top: 0;
         }
 
         .subject-divider .subject-name {
-            font-size: 1.3em;
+            display: inline-block;
+            font-size: 1.1em;
             font-weight: 700;
+            letter-spacing: 0.06em;
+            background: #fff;
+            color: #1a1a1a;
+            border: 1.5px solid #333;
+            border-radius: 20px;
+            padding: 7px 22px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
         }
 
         .choices .choice-item {
@@ -272,12 +341,14 @@
         /* ══════════ Form layout ══════════ */
         .exam-form {
             display: flex;
+            flex: 1;
+            overflow: hidden;
             width: 100%;
-            height: 100%;
         }
 
         /* ══════════ Mobile ══════════ */
         @media (max-width: 768px) {
+            .exam-top-header { display: none; }
             body {
                 display: block;
                 height: auto;
@@ -382,6 +453,22 @@
 </head>
 
 <body>
+    <!-- Top Header (desktop) -->
+    <div class="exam-top-header">
+        <div class="th-left">
+            <a href="{% url 'gisa:certification_detail' cert.pk %}?tab=mock" class="th-back">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                돌아가기
+            </a>
+            <span class="th-title">
+                <span class="th-cert-badge">{{ cert.name }}</span>
+                <small>모의고사 &middot; {{ questions|length }}문항</small>
+            </span>
+        </div>
+    </div>
+
     <form method="post" action="{% url 'gisa:mock_exam_submit' cert.pk %}" class="exam-form">
         {% csrf_token %}
         <input type="hidden" name="session_id" value="{{ session_id }}">

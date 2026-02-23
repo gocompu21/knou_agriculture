@@ -30,9 +30,10 @@ class QuestionExplanation(BaseModel):
 def build_prompt(question):
     answer_circle = CIRCLE_NUMBERS.get(question.answer, '?')
     cert = question.exam.certification
+    cert_full = cert.name if cert.category in cert.name else f"{cert.name}{cert.category}"
     return (
-        f"당신은 {cert.name}{cert.category} 시험 전문가이다.\n"
-        f"다음은 {cert.name}{cert.category} {question.subject.name} 기출문제이다.\n\n"
+        f"당신은 {cert_full} 시험 전문가이다.\n"
+        f"다음은 {cert_full} {question.subject.name} 기출문제이다.\n\n"
         f"{question.number}. {question.text}\n"
         f"① {question.choice_1}\n"
         f"② {question.choice_2}\n"

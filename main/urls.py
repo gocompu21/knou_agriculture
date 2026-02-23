@@ -10,6 +10,7 @@ urlpatterns = [
     path("mypage/favorite/<int:subject_id>/", views.favorite_toggle, name="favorite_toggle"),
     path("subjects/", views.subject_list, name="subject_list"),
     path("subjects/<int:pk>/", views.subject_detail, name="subject_detail"),
+    path("subjects/<int:pk>/notes/study/", views.notes_study, name="notes_study"),
     path("subjects/<int:pk>/latest/create/", views.latest_question_create, name="latest_question_create"),
     path("subjects/<int:pk>/latest/clone/", views.latest_question_clone, name="latest_question_clone"),
     path("subjects/<int:pk>/api/years/", views.api_existing_years, name="api_existing_years"),

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Exam, Question, Attempt
+from .models import Exam, Question, Attempt, StudyNote
 
 
 @admin.register(Exam)
@@ -40,3 +40,11 @@ class AttemptAdmin(admin.ModelAdmin):
     list_display = ('user', 'question', 'selected', 'is_correct', 'created_at')
     list_filter = ('is_correct', 'created_at')
     list_per_page = 25
+
+
+@admin.register(StudyNote)
+class StudyNoteAdmin(admin.ModelAdmin):
+    list_display = ('subject', 'title', 'order', 'updated_at')
+    list_filter = ('subject',)
+    list_editable = ('order',)
+    search_fields = ('title', 'content')

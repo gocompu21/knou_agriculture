@@ -1,0 +1,259 @@
+{
+  "chapter": 6,
+  "title": "핵산 (DNA, RNA)과 유전정보",
+  "questions": [
+    {
+      "year": 2013,
+      "number": 17,
+      "text": "tRNA가 mRNA의 유전암호에 따라 해당하는 아미노산을 운반하여 ribosome에서 polypeptide를 정확하게 합성할 수 있도록 하는 구조는 무엇인가?",
+      "choice_1": "tRNA의 안티코돈",
+      "choice_2": "촉진 유전자",
+      "choice_3": "프리브노 상자",
+      "choice_4": "mRNA₃'말단의 poly A",
+      "answer": "1",
+      "explanation": "tRNA는 한쪽 끝에 특정 아미노산을 부착하고 다른 쪽 끝에는 mRNA의 코돈과 상보적으로 결합하는 3개의 뉴클레오타이드 서열인 안티코돈(anticodon)을 가지고 있습니다. 이 안티코돈이 mRNA의 유전암호(코돈)와 정확히 짝을 이루어 상보적으로 결합함으로써, 해당 코돈에 맞는 아미노산을 리보솜으로 운반하여 폴리펩타이드 합성이 정확하게 이루어지도록 합니다."
+    },
+    {
+      "year": 2013,
+      "number": 32,
+      "text": "원핵생물에서 단백질이 합성될 때 mRNA의 개시코돈인 AUG는 mRNA 중간에 존재하는 AUG코돈과는 달리 methionine이 아닌 N-formylmethione을 지시하는 이유와 관련이 있는 것은?",
+      "choice_1": "촉진 인자",
+      "choice_2": "억제 인자",
+      "choice_3": "샤인-달가르노 배열",
+      "choice_4": "promoter와 RNA중합효소의 친화성",
+      "answer": "3",
+      "explanation": "원핵생물에서 단백질 합성이 개시될 때 mRNA의 개시코돈인 AUG는 일반적인 내부 AUG 코돈과 달리 N-formylmethionine을 지시합니다. 이는 mRNA에 존재하는 '샤인-달가르노(Shine-Dalgarno) 배열' 때문입니다. 샤인-달가르노 배열은 개시코돈(AUG)의 상류(upstream)에 위치하는 퓨린이 풍부한 염기서열로, 리보솜의 작은 단위체(30S 소단위체)에 있는 16S rRNA의 상보적인 피리미딘 풍부 서열과 염기쌍을 형성합니다. 이 상호작용은 리보솜이 mRNA의 올바른 개시코돈에 정확하게 결합하도록 유도하며, 이때 특이적으로 N-formylmethionine을 운반하는 개시 tRNA가 해당 개시코돈에 결합하게 됩니다. 반면 mRNA 중간에 있는 AUG 코돈은 샤인-달가르노 배열이 존재하지 않아 일반적인 methionine을 지시합니다."
+    },
+    {
+      "year": 2013,
+      "number": 33,
+      "text": "작물이나 가축과 같은 진핵생물의 유전자를 분리할 때 mRNA의 구조에 근거하여 역전사를 하는 것이 편리한 이유는 무엇인가?",
+      "choice_1": "mRNA에는 DNA의 exon 부위 정보만이 존재한다.",
+      "choice_2": "mRNA에는 DNA의 intron 부위 정보만이 존재한다.",
+      "choice_3": "한 개의 mRNA에 해당생물체의 모든 유전정보가 존재한다.",
+      "choice_4": "mRNA를 직접 대장균에 전이하여 cloning할 수 있다.",
+      "answer": "1",
+      "explanation": "작물이나 가축과 같은 진핵생물의 유전자는 인트론(intron)과 엑손(exon)으로 구성되어 있습니다. 전사 후 성숙한 mRNA는 인트론이 제거되고 엑손만 남게 됩니다. mRNA를 주형으로 역전사효소를 이용하여 DNA를 합성하면 인트론이 제거된 유전자(cDNA)를 얻을 수 있으므로, 대장균과 같은 원핵생물에서 단백질을 발현시킬 때 매우 유리합니다. 원핵생물은 인트론을 제거하는 기작이 없기 때문입니다."
+    },
+    {
+      "year": 2014,
+      "number": 15,
+      "text": "DNA에 존재하는 유전정보를 설명하는 내용으로 가장 적합한 것은?",
+      "choice_1": "DNA의 deoxyribonucleotide의 순서이다.",
+      "choice_2": "DNA의 ribonucleotide의 순서이다.",
+      "choice_3": "DNA에 결합되어 있는 히스톤 단백질의 종류이다.",
+      "choice_4": "DNA에 결합되어 있는 비히스톤 단백질의 종류이다.",
+      "answer": "1",
+      "explanation": "DNA에 존재하는 유전정보는 DNA를 구성하는 데옥시리보뉴클레오타이드(deoxyribonucleotide)의 특정 염기 서열에 암호화되어 있습니다. 이 염기 서열이 단백질의 아미노산 서열을 결정하는 유전 코드의 역할을 합니다."
+    },
+    {
+      "year": 2014,
+      "number": 32,
+      "text": "진핵생물체의 유전자구조가 원핵생물과 다른 점은?",
+      "choice_1": "intron 만 존재한다.",
+      "choice_2": "exon 만 존재한다.",
+      "choice_3": "intron과 exon이 존재한다.",
+      "choice_4": "개시코돈의 종류가 여러 개이다.",
+      "answer": "3",
+      "explanation": "진핵생물체의 유전자 구조는 원핵생물과 달리 단백질 코딩 서열인 엑손(exon)과 비코딩 서열인 인트론(intron)으로 구성되어 있습니다. 전사(transcription) 후 생성된 1차 RNA 전사체에서 인트론은 스플라이싱(splicing) 과정을 통해 제거되고, 엑손들만이 연결되어 최종 mRNA를 형성합니다. 이러한 인트론-엑손 구조는 진핵생물의 유전자 발현 조절과 단백질 다양성(대체 스플라이싱)에 중요한 역할을 합니다."
+    },
+    {
+      "year": 2014,
+      "number": 33,
+      "text": "원핵생물에서 polypeptide가 합성될 때 유전암호 “AUG”가 metionine 혹은 formylmethionine의 암호로의 인식을 결정하는 것은 무엇인가?",
+      "choice_1": "샤인-달가르로 배열의 DNA상 위치",
+      "choice_2": "샤인-달가르로 배열의 존재여부",
+      "choice_3": "promoter의 종류",
+      "choice_4": "polypeptide 분자량",
+      "answer": "1",
+      "explanation": "원핵생물에서 번역 개시 시 AUG가 개시코돈으로 인식되는 것은 mRNA 상의 샤인-달가르노(Shine-Dalgarno) 서열의 위치에 의해 결정됩니다. 샤인-달가르노 서열은 개시코돈 AUG로부터 약 5-10 뉴클레오타이드 상류에 존재하며, 리보솜의 16S rRNA와 상보적으로 결합하여 리보솜을 정확한 번역 개시 위치에 정렬시킵니다. 이 정렬을 통해 리보솜은 샤인-달가르노 서열 다음에 오는 AUG를 첫 번째 코돈으로 인식하고, fMet-tRNAfMet이 해당 위치에 결합하여 단백질 합성을 시작하게 됩니다. 따라서 샤인-달가르노 서열의 존재뿐만 아니라 AUG에 대한 상대적인 위치가 AUG의 개시코돈 인식을 결정하는 중요한 요소입니다."
+    },
+    {
+      "year": 2015,
+      "number": 30,
+      "text": "원핵생물 단백질의 첫 번째 아미노산이 methionine이 아니고 N-formylmethionine인 원인에 해당되는 것은?",
+      "choice_1": "개시코돈의 변이",
+      "choice_2": "특이성 인자",
+      "choice_3": "자율복제배열",
+      "choice_4": "샤인-달가르노 배열",
+      "answer": "4",
+      "explanation": "원핵생물 단백질 합성 시 첫 번째 아미노산이 N-formylmethionine인 것은 샤인-달가르노(Shine-Dalgarno) 배열 때문입니다. 샤인-달가르노 배열은 원핵생물 mRNA의 번역 개시 코돈(AUG) 상류에 위치하는 퓨린이 풍부한 서열(AGGAGG)로, 16S 리보솜 RNA의 3' 말단 서열과 상보적으로 결합합니다. 이 결합을 통해 리보솜이 mRNA의 올바른 개시 코돈 위치에 정확히 자리 잡게 되고, 결과적으로 N-formylmethionine을 운반하는 개시 tRNA가 해당 AUG 코돈에 결합하여 단백질 합성을 시작하게 됩니다. N-formylmethionine은 원핵생물에서 개시 tRNA에 의해 운반되는 특이한 아미노산입니다."
+    },
+    {
+      "year": 2015,
+      "number": 31,
+      "text": "진핵생물의 유전자를 분리할 때 mRNA를 이용하는 것이 편리한 점은 무엇인가?",
+      "choice_1": "mRNA는 직접 게놈 도서관으로 이용할 수 있다.",
+      "choice_2": "mRNA를 PCR 주형으로 유전자를 간단하게 분리할 수 있다.",
+      "choice_3": "mRNA는 DNA 엑손의 상보적인 염기인 ribonucleotide로 구성되어 있다.",
+      "choice_4": "mRNA는 DNA의 인트론 부위의 상보적인 염기인 ribonucleotide로 구성되어 있다.",
+      "answer": "3",
+      "explanation": "진핵생물의 유전자는 인트론과 엑손으로 구성되어 있으나, mRNA는 전사 후 스플라이싱 과정을 통해 인트론이 제거되고 엑손 부분만 남은 형태입니다. 따라서 mRNA를 주형으로 사용하면 단백질 코딩 서열(엑손)만을 포함하는 cDNA를 합성할 수 있어 유전자 분리 및 클로닝에 매우 편리합니다. 보기 ③은 mRNA가 DNA 엑손의 상보적인 염기로 구성되어 있음을 말하며, 이는 인트론이 제거된 순수한 코딩 서열을 제공한다는 의미로 해석될 수 있습니다."
+    },
+    {
+      "year": 2016,
+      "number": 12,
+      "text": "DNA에 존재하는 유전정보를 설명하는 내용으로 가장 적합한 것은?",
+      "choice_1": "DNA의 deoxyribonucleotide의 순서이다.",
+      "choice_2": "DNA의 ribonucleotide의 순서이다.",
+      "choice_3": "DNA에 결합되어 있는 히스톤 단백질의 종류이다.",
+      "choice_4": "DNA에 결합되어 있는 비히스톤 단백질의 종류이다.",
+      "answer": "1",
+      "explanation": "DNA에 존재하는 유전정보는 DNA를 구성하는 뉴클레오타이드 중 디옥시리보뉴클레오타이드(A, T, G, C)의 특정 배열 순서로 저장됩니다. 이 순서가 유전자 정보를 암호화하여 단백질 합성 및 기타 생체 기능을 조절하는 데 사용됩니다."
+    },
+    {
+      "year": 2016,
+      "number": 33,
+      "text": "DNA에 존재하는 유전자 중 엑손에 해당되는 것은?",
+      "choice_1": "원핵세포의 유전자 발현을 조절한다.",
+      "choice_2": "원핵세포의 RNA에 해당하는 DNA 구조이다.",
+      "choice_3": "진핵세포의 아미노산 혹은 RNA의 구조에 관한 유전정보이다.",
+      "choice_4": "진핵세포의 단백질 구조로 발현되지 않는 DNA의 부위이다.",
+      "answer": "3",
+      "explanation": "엑손(exon)은 진핵세포 유전자의 코딩 서열을 말하며, 최종 mRNA에 남아 단백질로 번역되거나 기능성 RNA 분자를 구성하는 유전 정보입니다. 따라서 아미노산 서열(단백질의 구조)이나 RNA 자체의 구조를 결정하는 정보를 포함하고 있습니다. 보기 ③은 이러한 엑손의 특징을 정확히 설명하고 있습니다."
+    },
+    {
+      "year": 2017,
+      "number": 16,
+      "text": "mRNA가 DNA의 유전정보를 전사할 수 있는 근거는 무엇인가?",
+      "choice_1": "유전자마다 특별한 mRNA 합성효소의 존재",
+      "choice_2": "deoxyribonucleotide와 ribonucleotide의 상보적 염기 결합",
+      "choice_3": "tRNA의 아미노산 운반 능력",
+      "choice_4": "rRNA의 분자구조",
+      "answer": "2",
+      "explanation": "DNA의 이중 나선이 풀리면, 그중 한 가닥을 주형으로 하여 상보적인 염기 결합 규칙에 따라 mRNA가 합성됩니다. 즉, DNA의 A는 mRNA의 U와, DNA의 T는 mRNA의 A와, DNA의 G는 mRNA의 C와, DNA의 C는 mRNA의 G와 결합하면서 유전 정보가 DNA에서 RNA로 전사됩니다. 이러한 상보적 염기 결합 원리가 mRNA가 DNA의 유전 정보를 전사할 수 있는 근본적인 근거입니다."
+    },
+    {
+      "year": 2017,
+      "number": 32,
+      "text": "원핵생물 단백질의 첫 번째 아미노산이 methionine이 아니고 N-formylmethionine인 원인에 해당되는 것은?",
+      "choice_1": "개시코돈의 변이",
+      "choice_2": "특이성 인자",
+      "choice_3": "자율복제배열",
+      "choice_4": "샤인-달가르노 배열",
+      "answer": "4",
+      "explanation": "원핵생물에서 단백질 합성 개시는 샤인-달가르노(Shine-Dalgarno) 배열에 의해 조절됩니다. 이 배열은 mRNA의 시작 코돈(AUG) 상류에 위치하며, 리보솜의 16S rRNA와 상보적으로 결합하여 리보솜을 정확한 위치에 고정시킵니다. 이 위치 지정 메커니즘은 첫 번째 AUG 코돈이 N-폼일메티오닌(N-formylmethionine, fMet)을 운반하는 개시 tRNA(tRNAfMet)와 결합하도록 유도하여 단백질 합성의 첫 아미노산이 N-폼일메티오닌이 되도록 합니다."
+    },
+    {
+      "year": 2018,
+      "number": 15,
+      "text": "생물체의 특성인 구조적 보존과 대사과정의 유지와 같은 유전적 연속성은 무엇에 의해 이루어지는가?",
+      "choice_1": "DNA",
+      "choice_2": "mRNA",
+      "choice_3": "rRNA",
+      "choice_4": "tRNA",
+      "answer": "1",
+      "explanation": "DNA(Deoxyribonucleic Acid)는 모든 생명체의 유전 정보를 담고 있는 핵심 분자입니다. 생명체의 구조적 보존은 세포를 구성하고 기능을 수행하는 단백질을 만드는 설계도가 DNA에 저장되어 있기 때문이며, 대사과정의 유지는 이 단백질(효소 포함)이 DNA에 암호화된 유전 정보에 따라 합성되기 때문입니다. DNA 복제 과정을 통해 유전 정보가 정확하게 다음 세대로 전달되어 유전적 연속성을 확보합니다."
+    },
+    {
+      "year": 2018,
+      "number": 32,
+      "text": "다음의 염기 중에서 RNA에는 있지만, DNA에는 없는 것은?",
+      "choice_1": "티민 (thymine)",
+      "choice_2": "구아닌 (guanine)",
+      "choice_3": "우라실 (uracil)",
+      "choice_4": "시토신 (cytosine)",
+      "answer": "3",
+      "explanation": "RNA는 유라실(uracil)을 포함하는 반면, DNA는 티민(thymine)을 포함합니다. 즉, 유라실은 RNA에만 존재하는 염기이며, DNA에서는 티민이 그 역할을 대신합니다. 나머지 구아닌과 시토신은 DNA와 RNA 모두에 존재하는 염기입니다."
+    },
+    {
+      "year": 2018,
+      "number": 33,
+      "text": "다음 중 유전자의 개념을 가장 정확하게 설명한 것은?",
+      "choice_1": "세포분열과정에서 염색체가 결집하여 형성하는 숫자가 다른 정도이다.",
+      "choice_2": "세포분열과정에서 염색체가 결집하여 형성하는 모양의 다양성이다.",
+      "choice_3": "DNA의 유전정보가 발현되어 생산된 단백질과 RNA이다.",
+      "choice_4": "DNA상의 1개의 단백질 혹은 RNA 정보에 해당하는deoxyribonucleotide들의 결합 순서이다.",
+      "answer": "4",
+      "explanation": "유전자는 유전 정보를 담고 있는 DNA의 특정 부분입니다. 이 DNA 서열은 단백질이나 기능성 RNA를 합성하는 데 필요한 정보를 제공합니다. 따라서 'DNA상의 1개의 단백질 혹은 RNA 정보에 해당하는 deoxyribonucleotide들의 결합 순서'라는 설명이 유전자의 개념을 가장 정확하게 나타냅니다. 유전자는 단순히 세포 내 물질이 아니라, 생명 현상을 조절하고 유전 형질을 결정하는 근원적인 정보 단위입니다."
+    },
+    {
+      "year": 2019,
+      "number": 13,
+      "text": "mRNA가 DNA의 유전정보를 전사할 수 있는 근거는 무엇인가?",
+      "choice_1": "유전자마다 특별한 mRNA 합성효소의 존재",
+      "choice_2": "deoxyribonucleotide와 ribonucleotide의 상보적 염기 결합",
+      "choice_3": "tRNA의 아미노산 운반 능력",
+      "choice_4": "rRNA의 분자구조",
+      "answer": "2",
+      "explanation": "mRNA가 DNA의 유전정보를 전사할 수 있는 근본적인 원리는 DNA의 염기 서열에 상보적으로 결합하는 ribonucleotide를 이용하여 mRNA를 합성하는 상보적 염기 결합 능력에 있습니다. DNA의 A는 mRNA의 U, DNA의 T는 mRNA의 A, DNA의 G는 mRNA의 C, DNA의 C는 mRNA의 G와 상보적으로 결합하여 유전정보를 정확하게 복사합니다."
+    },
+    {
+      "year": 2019,
+      "number": 28,
+      "text": "원핵생물 단백질의 첫 번째 아미노산이 methionine이 아니고 N-formylmethionine인 원인에 해당되는 것은?",
+      "choice_1": "개시코돈의 변이",
+      "choice_2": "특이성 인자",
+      "choice_3": "자율복제배열",
+      "choice_4": "샤인-달가르노 배열",
+      "answer": "4",
+      "explanation": "원핵생물의 단백질 합성 개시 과정에서 mRNA는 5' 말단에 특별한 캡 구조가 없어, 시작 코돈(AUG) 이전에 '샤인-달가르노 배열(Shine-Dalgarno sequence)'이라는 특정 염기 서열을 가지고 있습니다. 이 샤인-달가르노 배열은 리보솜의 작은 단위체에 있는 16S rRNA와 상보적으로 결합하여 리보솜이 mRNA의 올바른 위치, 즉 시작 코돈(AUG)에 정확하게 결합하도록 돕습니다. 이 정확한 위치 지정을 통해 개시 tRNA는 N-formylmethionine(fMet)을 가지고 시작 코돈에 결합하게 됩니다. 따라서 샤인-달가르노 배열이 원핵생물에서 N-formylmethionine이 첫 번째 아미노산으로 사용되는 중요한 원인입니다."
+    },
+    {
+      "year": 2025,
+      "number": 2,
+      "text": "RNA를 tRNA로 운반하는 것과 관련된 아미노산",
+      "choice_1": "-",
+      "choice_2": "-",
+      "choice_3": "-",
+      "choice_4": "-",
+      "answer": "0",
+      "explanation": "아미노산"
+    },
+    {
+      "year": 2025,
+      "number": 6,
+      "text": "뉴클레오티드의 구성성분은 무엇인가?",
+      "choice_1": "-",
+      "choice_2": "-",
+      "choice_3": "-",
+      "choice_4": "-",
+      "answer": "0",
+      "explanation": "리보오스, 오인산, 염기, 인산"
+    },
+    {
+      "year": 2025,
+      "number": 7,
+      "text": "퓨린 계열 염기는 무엇인가?",
+      "choice_1": "-",
+      "choice_2": "-",
+      "choice_3": "-",
+      "choice_4": "-",
+      "answer": "0",
+      "explanation": "아데닌(A), 구아닌(G)"
+    },
+    {
+      "year": 2025,
+      "number": 15,
+      "text": "RNA를 tRNA로 운반하는 것과 관련된 아미노산",
+      "choice_1": "-",
+      "choice_2": "-",
+      "choice_3": "-",
+      "choice_4": "-",
+      "answer": "0",
+      "explanation": "아미노산"
+    },
+    {
+      "year": 2025,
+      "number": 19,
+      "text": "뉴클레오티드의 구성성분은 무엇인가?",
+      "choice_1": "-",
+      "choice_2": "-",
+      "choice_3": "-",
+      "choice_4": "-",
+      "answer": "0",
+      "explanation": "리보오스, 오인산, 염기, 인산"
+    },
+    {
+      "year": 2025,
+      "number": 20,
+      "text": "퓨린 계열 염기는 무엇인가?",
+      "choice_1": "-",
+      "choice_2": "-",
+      "choice_3": "-",
+      "choice_4": "-",
+      "answer": "0",
+      "explanation": "아데닌(A), 구아닌(G)"
+    }
+  ]
+}

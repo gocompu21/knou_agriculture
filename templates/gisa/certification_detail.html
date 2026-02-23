@@ -115,28 +115,48 @@
     .subject-link:hover { background: #e8eaf6; }
 
     /* Session Cards */
-    .session-list { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
+    #tab-history { background: #fff; border-radius: 10px; padding: 24px 20px; }
+    .session-list { display: flex; flex-direction: column; gap: 14px; padding: 12px; }
     .session-card {
         background: #fff;
-        border: 1px solid #e0e0e0;
+        border: 1px solid #d0d0d0;
         border-radius: 10px;
-        padding: 16px 20px;
+        padding: 18px 20px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
     .session-mode {
         display: inline-block;
-        padding: 2px 8px; border-radius: 10px;
-        font-size: 0.75rem; font-weight: 600;
+        padding: 3px 10px; border-radius: 10px;
+        font-size: 0.82rem; font-weight: 700;
     }
     .mode-exam { background: #e3f2fd; color: #1565c0; }
     .mode-mock { background: #e8f5e9; color: #2e7d32; }
     .mode-wrong_retry { background: #f3e5f5; color: #7b1fa2; }
-    .session-score { font-size: 1.1rem; font-weight: 700; }
-    .session-date { font-size: 0.8rem; color: #999; }
-    .session-actions { display: flex; gap: 8px; align-items: center; }
+    .sc-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .sc-info { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .sc-score { font-size: 1.25rem; font-weight: 800; }
+    .sc-pass {
+        display: inline-block; padding: 3px 12px; border-radius: 10px;
+        font-size: 0.82rem; font-weight: 700;
+    }
+    .sc-pass.pass { background: #e8f5e9; color: #1b5e20; }
+    .sc-pass.fail { background: #fafafa; color: #666; }
+    .sc-actions { display: flex; align-items: center; gap: 8px; }
+    .sc-subjects {
+        display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;
+    }
+    .sc-subj {
+        flex: 1; min-width: 100px; border-radius: 8px;
+        padding: 8px 10px; text-align: center;
+    }
+    .sc-subj-name { font-size: 0.8rem; color: #444; margin-bottom: 3px; font-weight: 500; }
+    .sc-subj-score { font-size: 1.05rem; font-weight: 800; }
+    .sc-subj-detail { font-size: 0.78rem; color: #777; margin-top: 1px; }
+    .sc-date { font-size: 0.82rem; color: #777; }
 
     .empty-tab { text-align: center; padding: 40px 20px; color: #999; }
 
-    /* ══════════ 교재 탭 ══════════ */
+    /* ══════════ 쪽집게 노트 탭 ══════════ */
     .subject-pills {
         display: flex; gap: 8px; flex-wrap: wrap;
         margin-bottom: 20px; padding: 4px 0;
@@ -219,6 +239,33 @@
     }
     .content-box p:last-child { margin-bottom: 0; }
     .content-box p strong { color: #1b4332; }
+    .content-box .num-item {
+        font-size: 0.88rem; line-height: 1.75; color: #333;
+        padding-left: 2em; text-indent: -1.4em;
+        margin: 0 0 8px; margin-left: 8px;
+    }
+    .content-box .num-item:last-child { margin-bottom: 0; }
+    .content-box .num-item .num-marker {
+        color: #2d6a4f; font-weight: 700; margin-right: 0.3em;
+    }
+    .content-box .num-item strong { color: #1b4332; }
+    .content-box .num-sub {
+        padding-left: 3.2em; text-indent: 0;
+        font-size: 0.85rem; color: #555; margin-bottom: 4px;
+    }
+    .section-body .num-item {
+        font-size: 0.88rem; line-height: 1.75; color: #333;
+        padding-left: 2em; text-indent: -1.4em;
+        margin: 0 0 8px; margin-left: 8px;
+    }
+    .section-body .num-item .num-marker {
+        color: #2d6a4f; font-weight: 700; margin-right: 0.3em;
+    }
+    .section-body .num-item strong { color: #1b4332; }
+    .section-body .num-sub {
+        padding-left: 3.2em; text-indent: 0;
+        font-size: 0.85rem; color: #555; margin-bottom: 4px;
+    }
     .section-body ul {
         list-style: none; padding: 0; margin: 0 0 10px;
     }
@@ -260,9 +307,10 @@
         border-top: 1px solid #f0f0f0;
     }
     .q-ref-badge {
-        display: inline-block; padding: 2px 8px;
+        display: inline-block; padding: 0px 3px;
         background: #e8f5e9; color: #2d6a4f;
-        border-radius: 4px; font-size: 0.75rem; font-weight: 500;
+        border-radius: 2px; font-size: 0.58rem; font-weight: 500;
+        line-height: 1.4;
         cursor: pointer; text-decoration: none;
         transition: background 0.15s;
     }
@@ -305,6 +353,82 @@
         margin-left: 8px;
     }
 
+    /* ══════════ 오답노트 인라인 ══════════ */
+    #tab-wrong {
+        background: #fff; border-radius: 10px; padding: 24px 20px;
+    }
+    .wrong-filter-bar {
+        display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+    }
+    .wrong-filter-pill {
+        padding: 6px 14px; border-radius: 20px;
+        font-size: 0.85rem; font-weight: 600;
+        border: 1.5px solid #ddd; background: #fff; color: #666;
+        cursor: pointer; transition: all 0.2s; font-family: inherit;
+    }
+    .wrong-filter-pill:hover { border-color: #1a237e; color: #1a237e; }
+    .wrong-filter-pill.active {
+        background: #1a237e; color: #fff; border-color: #1a237e;
+    }
+    .wf-count {
+        font-size: 0.78em; opacity: 0.7; margin-left: 2px;
+    }
+    .wrong-filter-pill.active .wf-count { opacity: 0.85; }
+    .wrong-question {
+        padding: 20px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .wq-content {
+        font-weight: bold; font-size: 1.05em; line-height: 1.6;
+        padding-left: 1.3em; text-indent: -1.3em; margin-bottom: 10px;
+    }
+    .wq-source {
+        display: block; text-align: right; font-size: 0.8em;
+        font-weight: 500; color: #888; margin-top: 4px; text-indent: 0;
+    }
+    .wq-choices { padding-left: 10px; }
+    .wq-choice {
+        padding: 6px 8px; font-size: 0.95em; line-height: 1.5;
+        border-radius: 5px; margin-bottom: 2px;
+        display: flex; align-items: flex-start;
+    }
+    .wq-choice > .q-mark { flex-shrink: 0; margin-top: 2px; }
+    .wq-choice-text { flex: 1; }
+    #tab-wrong .q-mark {
+        display: inline-flex; justify-content: center; align-items: center;
+        width: 20px; height: 20px; border-radius: 50%;
+        border: 1.5px solid #333; font-size: 0.75em; font-weight: 600;
+        margin-right: 6px; background: #fff; color: #333;
+        position: relative;
+    }
+    #tab-wrong .q-mark.correct-mark {
+        background: #333; color: #fff; border-color: #333;
+    }
+    .wq-choice.user-selected .q-mark { background: #fff; color: #333; }
+    .wq-choice.user-selected .my-pick {
+        display: inline-block; font-size: 0.72em; font-weight: 700;
+        color: #d93025; margin-left: 6px; vertical-align: 1px;
+    }
+    .wq-choice.user-wrong { background: transparent; }
+    .choice-exp {
+        display: none; margin-top: 4px; padding: 4px 0;
+        font-size: 0.9em; color: #555; line-height: 1.6;
+    }
+    .wrong-question.exp-open .choice-exp { display: block; }
+    .choice-exp.correct-choice-exp { color: #111; font-weight: 500; }
+    .choice-exp.correct-choice-exp .exp-text-inner {
+        background: linear-gradient(to top, #fff176 40%, transparent 40%);
+    }
+    .wq-actions {
+        display: flex; align-items: center; justify-content: flex-end;
+        gap: 12px; margin-top: 8px;
+    }
+    .exp-toggle, .dismiss-btn {
+        background: none; border: none; cursor: pointer; color: #888;
+        font-size: 0.85em; font-weight: 600; display: inline-flex;
+        align-items: center; gap: 4px; padding: 4px 0; font-family: inherit;
+    }
+    .exp-toggle:hover, .dismiss-btn:hover { color: #555; }
+
     @media (max-width: 480px) {
         .detail-hero { padding: 24px 0 20px; }
         .detail-hero h1 { font-size: 1.2rem; }
@@ -338,7 +462,7 @@
 <div class="wrap">
     <!-- Tab Navigation -->
     <div class="tab-nav">
-        <button class="tab-btn{% if active_tab == 'textbook' %} active{% endif %}" onclick="switchTab('textbook')">교재</button>
+        <button class="tab-btn{% if active_tab == 'textbook' %} active{% endif %}" onclick="switchTab('textbook')">쪽집게 노트</button>
         <button class="tab-btn{% if active_tab == 'study' %} active{% endif %}" onclick="switchTab('study')">기출학습</button>
         <button class="tab-btn{% if active_tab == 'solve' %} active{% endif %}" onclick="switchTab('solve')">기출고사</button>
         <button class="tab-btn{% if active_tab == 'mock' %} active{% endif %}" onclick="switchTab('mock')">모의고사</button>
@@ -348,7 +472,7 @@
         <button class="tab-btn{% if active_tab == 'history' %} active{% endif %}" onclick="switchTab('history')">시험이력</button>
     </div>
 
-    <!-- ══════════ 교재 탭 ══════════ -->
+    <!-- ══════════ 쪽집게 노트 탭 ══════════ -->
     <div id="tab-textbook" class="tab-content{% if active_tab == 'textbook' %} active{% endif %}">
         <!-- 과목 선택 버튼 -->
         <div class="subject-pills">
@@ -372,7 +496,7 @@
         </div>
         {% endfor %}
         {% else %}
-        <div class="empty-tab">{{ textbook_subject }} 교재가 준비 중입니다.</div>
+        <div class="empty-tab">{{ textbook_subject }} 쪽집게 노트가 준비 중입니다.</div>
         {% endif %}
     </div>
 
@@ -433,10 +557,44 @@
     <!-- ══════════ 오답노트 탭 ══════════ -->
     <div id="tab-wrong" class="tab-content{% if active_tab == 'wrong' %} active{% endif %}">
         {% if wrong_count > 0 %}
-        <div style="margin-bottom:20px; display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="{% url 'gisa:wrong_answers' cert.pk %}" class="btn-sm btn-wrong">오답 {{ wrong_count }}개 보기</a>
-            <a href="{% url 'gisa:wrong_answers_retry' cert.pk %}" class="btn-sm btn-solve">오답 재풀이</a>
+        <div class="wrong-filter-bar">
+            <button class="wrong-filter-pill active" onclick="filterWrong(this, '')">전체 <span class="wf-count">{{ wrong_count }}</span></button>
+            {% for s in subjects %}
+            <button class="wrong-filter-pill" onclick="filterWrong(this, '{{ s.name }}')">{{ s.name }} <span class="wf-count" id="wf-cnt-{{ s.pk }}"></span></button>
+            {% endfor %}
         </div>
+        <div style="margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+            <span style="font-size:0.95rem; font-weight:600; color:#333;" id="wrongCountLabel">전체 오답 {{ wrong_count }}문제</span>
+            <div style="display:flex; gap:8px;">
+                <a href="{% url 'gisa:wrong_answers_retry' cert.pk %}" class="btn-sm btn-solve" id="wrongRetryLink">오답 재풀이</a>
+                <button type="button" class="btn-sm" id="wrongToggleAllBtn" onclick="wrongToggleAll()" style="cursor:pointer; border:1px solid #ddd;">전체 펼치기</button>
+            </div>
+        </div>
+        {% for r in wrong_results %}
+        <div class="wrong-question" id="wq-{{ r.question.id }}" data-subject="{{ r.question.subject.name }}">
+            <div class="wq-content">
+                <span class="wq-num">{{ forloop.counter }}.</span> {{ r.question.text }}
+                <span class="wq-source">{{ r.question.subject.name }} {{ r.question.exam.year }}년 {{ r.question.exam.round }}회</span>
+            </div>
+            <div class="wq-choices">
+                {% for c in r.choices %}
+                <div class="wq-choice{% if c.is_selected %} user-selected{% endif %}{% if c.user_wrong %} user-wrong{% endif %}">
+                    <span class="q-mark{% if c.is_correct %} correct-mark{% endif %}">{{ c.num }}</span>
+                    <div class="wq-choice-text">{{ c.text }}{% if c.is_selected %}<span class="my-pick">← 내 답</span>{% endif %}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="wq-actions">
+                <button type="button" class="exp-toggle" onclick="wrongToggleExp(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 9L12 16L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    해설보기
+                </button>
+                <button type="button" class="dismiss-btn" onclick="dismissWrong(this, '{% url 'gisa:wrong_dismiss' cert.pk r.question.id %}', 'wq-{{ r.question.id }}')">
+                    노트 <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
         {% else %}
         <div class="empty-tab">오답이 없습니다. 문제를 풀어보세요!</div>
         {% endif %}
@@ -478,21 +636,68 @@ function toggleChapter(el) {
         .then(function(data) {
             body.innerHTML = data.html;
             body.dataset.loaded = '1';
-            body.querySelectorAll('.q-ref-badge').forEach(function(badge) {
-                var year = badge.textContent.trim().split('-')[0];
-                if (year) badge.classList.add('y' + year);
-            });
+            formatBadges(body);
         });
+}
+
+function formatBadges(container) {
+    container.querySelectorAll('.q-refs').forEach(function(box) {
+        var seen = {};
+        box.querySelectorAll('.q-ref-badge').forEach(function(badge) {
+            var parts = badge.textContent.trim().split('-');
+            var yr = parts[0], rd = parts[1];
+            var key = yr + '-' + rd;
+            badge.classList.add('y' + yr);
+            if (seen[key]) { badge.style.display = 'none'; return; }
+            seen[key] = true;
+            badge.textContent = key;
+        });
+    });
 }
 
 function toggleSection(el) {
     el.parentElement.classList.toggle('open');
 }
 
-document.querySelectorAll('.q-ref-badge').forEach(function(badge) {
-    var year = badge.textContent.trim().split('-')[0];
-    if (year) badge.classList.add('y' + year);
-});
+// 스티키 헤더 높이만큼 오프셋 스크롤
+function scrollToWithOffset(el, offset) {
+    var y = el.getBoundingClientRect().top + window.pageYOffset - (offset || 90);
+    window.scrollTo({top: y, behavior: 'smooth'});
+}
+
+// ?open_ch=N&open_sec=ID 파라미터로 해당 장 펼침 → AJAX 로드 → 절 스크롤
+(function() {
+    var params = new URLSearchParams(window.location.search);
+    var openCh = params.get('open_ch');
+    var openSec = params.get('open_sec');
+    if (openCh === null) return;
+    var item = document.querySelector('.chapter-item[data-ch-idx="' + openCh + '"]');
+    if (!item) return;
+    item.classList.add('open');
+    var body = item.querySelector('.chapter-body');
+    if (body.dataset.loaded) {
+        if (openSec) {
+            var secEl = document.getElementById(openSec);
+            if (secEl) { secEl.classList.add('open'); setTimeout(function() { scrollToWithOffset(secEl); }, 100); }
+        } else { setTimeout(function() { scrollToWithOffset(item); }, 100); }
+        return;
+    }
+    var subject = params.get('subject') || '{{ textbook_subject }}';
+    body.innerHTML = '<div style="padding:16px;color:#888;text-align:center;">로딩 중...</div>';
+    fetch('{% url "gisa:textbook_chapter_api" cert.pk %}?subject=' + encodeURIComponent(subject) + '&ch=' + openCh)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            body.innerHTML = data.html;
+            body.dataset.loaded = '1';
+            formatBadges(body);
+            if (openSec) {
+                var secEl = document.getElementById(openSec);
+                if (secEl) { secEl.classList.add('open'); setTimeout(function() { scrollToWithOffset(secEl); }, 150); }
+            } else { setTimeout(function() { scrollToWithOffset(item); }, 150); }
+        });
+})();
+
+formatBadges(document);
 
 /* ── 상대 시간 표시 ── */
 function timeAgo(dateStr) {
@@ -534,44 +739,44 @@ function loadHistory() {
                 var trashIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
                 var wrongBtn = s.wrong > 0 ? '<a href="' + s.wrong_url + '" class="btn-sm btn-wrong">오답 ' + s.wrong + '개</a>' : '';
 
-                /* 상단: 모드 배지 + 평균점수 + 합격여부 + 날짜 + 액션 */
+                /* 상단: 모드 배지 + 평균점수 + 합격여부 + 액션 */
                 var passLabel = '';
                 if (s.mode === 'exam' || s.mode === 'mock') {
                     passLabel = s.passed
-                        ? '<span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:0.78rem;font-weight:600;background:#e8f5e9;color:#2e7d32;">합격</span>'
-                        : '<span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:0.78rem;font-weight:600;background:#f5f5f5;color:#888;">불합격</span>';
+                        ? '<span class="sc-pass pass">합격</span>'
+                        : '<span class="sc-pass fail">불합격</span>';
                 }
                 var scoreColor = (s.mode === 'exam' || s.mode === 'mock')
-                    ? (s.passed ? 'color:#2e7d32' : 'color:#888')
-                    : (s.score >= 60 ? 'color:#2e7d32' : 'color:#888');
+                    ? (s.passed ? 'color:#1b5e20' : 'color:#666')
+                    : (s.score >= 60 ? 'color:#1b5e20' : 'color:#666');
 
-                var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
-                    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+                var html = '<div class="sc-top">' +
+                    '<div class="sc-info">' +
                     '<span class="session-mode mode-' + s.mode + '">' + s.mode_label + '</span>' +
-                    '<span style="font-size:1.15rem;font-weight:700;' + scoreColor + '">평균 ' + s.score + '점</span>' +
+                    '<span class="sc-score" style="' + scoreColor + '">평균 ' + s.score + '점</span>' +
                     passLabel +
                     '</div>' +
-                    '<div style="display:flex;align-items:center;gap:8px;">' + wrongBtn +
+                    '<div class="sc-actions">' + wrongBtn +
                     '<form method="post" action="' + s.delete_url + '" style="display:inline" onsubmit="return confirm(\'이 세션 기록을 삭제할까요?\');">' +
                     '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '">' +
                     '<button class="btn-danger" type="submit" title="삭제">' + trashIcon + '</button></form></div></div>';
 
-                /* 과목별 점수 바 (기출고사/모의고사만) */
+                /* 과목별 점수 바 */
                 if (s.subjects && s.subjects.length > 0) {
-                    html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">';
+                    html += '<div class="sc-subjects">';
                     s.subjects.forEach(function(sub) {
-                        var barColor = sub.score >= 60 ? '#2e7d32' : (sub.score >= 40 ? '#f9a825' : '#999');
-                        var bgColor = sub.score >= 60 ? '#e8f5e9' : (sub.score >= 40 ? '#fff8e1' : '#f5f5f5');
-                        html += '<div style="flex:1;min-width:100px;background:' + bgColor + ';border-radius:6px;padding:6px 10px;text-align:center;">' +
-                            '<div style="font-size:0.72rem;color:#666;margin-bottom:2px;">' + sub.name + '</div>' +
-                            '<div style="font-size:0.95rem;font-weight:700;color:' + barColor + ';">' + sub.score + '점</div>' +
-                            '<div style="font-size:0.7rem;color:#aaa;">' + sub.correct + '/' + sub.total + '</div></div>';
+                        var scoreColor2 = sub.score >= 60 ? '#1b5e20' : (sub.score >= 40 ? '#e65100' : '#c62828');
+                        var bgColor = sub.score >= 60 ? '#e8f5e9' : (sub.score >= 40 ? '#fff8e1' : '#fce4ec');
+                        html += '<div class="sc-subj" style="background:' + bgColor + ';">' +
+                            '<div class="sc-subj-name">' + sub.name + '</div>' +
+                            '<div class="sc-subj-score" style="color:' + scoreColor2 + ';">' + sub.score + '점</div>' +
+                            '<div class="sc-subj-detail">' + sub.correct + '/' + sub.total + '</div></div>';
                     });
                     html += '</div>';
                 }
 
                 /* 날짜 */
-                html += '<div style="font-size:0.78rem;color:#aaa;">' + s.date + ' (' + ago + ')</div>';
+                html += '<div class="sc-date">' + s.date + ' (' + ago + ')</div>';
 
                 card.innerHTML = html;
                 list.appendChild(card);
@@ -583,6 +788,7 @@ function loadHistory() {
                 document.getElementById('history-footer').style.display = 'block';
                 document.getElementById('history-empty').style.display = 'none';
             } else if (data.total === 0 && historyPage === 2) {
+                document.getElementById('history-scroll').style.display = 'none';
                 document.getElementById('history-empty').style.display = 'block';
             }
             historyLoading = false;
@@ -608,6 +814,78 @@ switchTab = function(tabName) {
 if ('{{ active_tab }}' === 'history') {
     historyLoaded = true;
     loadHistory();
+}
+
+/* ── 오답노트 인라인 ── */
+/* 과목별 카운트 초기화 */
+(function() {
+    var counts = {};
+    document.querySelectorAll('#tab-wrong .wrong-question').forEach(function(el) {
+        var subj = el.dataset.subject;
+        counts[subj] = (counts[subj] || 0) + 1;
+    });
+    document.querySelectorAll('.wrong-filter-pill').forEach(function(pill) {
+        var cntEl = pill.querySelector('.wf-count');
+        if (!cntEl) return;
+        // 과목별 pill의 id에서 카운트 매칭은 텍스트로
+        var subjName = pill.textContent.trim().replace(/\d+$/, '').trim();
+        if (counts[subjName] !== undefined) {
+            cntEl.textContent = counts[subjName];
+        }
+    });
+})();
+
+var wrongCurrentFilter = '';
+function filterWrong(pill, subject) {
+    wrongCurrentFilter = subject;
+    document.querySelectorAll('.wrong-filter-pill').forEach(function(p) { p.classList.remove('active'); });
+    pill.classList.add('active');
+    var visible = 0;
+    var counter = 0;
+    document.querySelectorAll('#tab-wrong .wrong-question').forEach(function(el) {
+        if (!subject || el.dataset.subject === subject) {
+            el.style.display = '';
+            counter++;
+            el.querySelector('.wq-num').textContent = counter + '.';
+            visible++;
+        } else {
+            el.style.display = 'none';
+        }
+    });
+    var label = document.getElementById('wrongCountLabel');
+    if (label) label.textContent = (subject || '전체') + ' 오답 ' + visible + '문제';
+    var retryLink = document.getElementById('wrongRetryLink');
+    if (retryLink) {
+        var base = '{% url "gisa:wrong_answers_retry" cert.pk %}';
+        retryLink.href = subject ? base + '?subject=' + encodeURIComponent(subject) : base;
+    }
+}
+
+var wrongAllOpen = false;
+function wrongToggleExp(btn) {
+    var item = btn.closest('.wrong-question');
+    item.classList.toggle('exp-open');
+    btn.querySelector('svg').style.transform = item.classList.contains('exp-open') ? 'rotate(180deg)' : '';
+}
+function wrongToggleAll() {
+    wrongAllOpen = !wrongAllOpen;
+    document.querySelectorAll('#tab-wrong .wrong-question').forEach(function(el) {
+        if (el.style.display === 'none') return;
+        if (wrongAllOpen) el.classList.add('exp-open'); else el.classList.remove('exp-open');
+        var svg = el.querySelector('.exp-toggle svg');
+        if (svg) svg.style.transform = wrongAllOpen ? 'rotate(180deg)' : '';
+    });
+    document.getElementById('wrongToggleAllBtn').textContent = wrongAllOpen ? '전체 접기' : '전체 펼치기';
+}
+function dismissWrong(btn, url, cardId) {
+    fetch(url, { method: 'POST', headers: { 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(r) { return r.json(); })
+        .then(function() {
+            var card = document.getElementById(cardId);
+            card.style.opacity = '0';
+            card.style.transition = 'opacity 0.3s';
+            setTimeout(function() { card.remove(); }, 300);
+        });
 }
 </script>
 {% endblock %}

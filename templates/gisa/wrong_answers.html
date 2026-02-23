@@ -91,7 +91,7 @@
 
     /* ══════════ Question Item ══════════ */
     .wrong-question {
-        padding: 20px;
+        padding: 4px 20px 0;
         position: relative;
         transition: opacity 0.3s;
     }
@@ -121,19 +121,21 @@
     }
 
     .wq-choice {
-        padding: 4px 6px 4px 38px;
-        position: relative;
+        padding: 6px 8px;
         font-size: 0.95em;
         line-height: 1.5;
-        border-radius: 4px;
+        border-radius: 5px;
         margin-bottom: 2px;
+        display: flex;
+        align-items: flex-start;
     }
 
-    .wq-choice>.q-mark {
-        position: absolute;
-        left: 8px;
-        top: 5px;
+    .wq-choice > .q-mark {
+        flex-shrink: 0;
+        margin-top: 2px;
     }
+
+    .wq-choice-text { flex: 1; }
 
     .q-mark {
         display: inline-flex;
@@ -152,24 +154,25 @@
         position: relative;
     }
 
-    /* 정답 표시: 빨간 동그라미 */
-    .q-mark.correct-mark::before {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 26px;
-        height: 26px;
-        border: 3px solid #d93025;
-        border-radius: 50% 45% 55% 40% / 50% 55% 45% 50%;
-        transform: translate(-50%, -50%) rotate(-5deg);
-        pointer-events: none;
+    /* 정답 표시: 원번호 반전 */
+    .q-mark.correct-mark {
+        background: #333;
+        color: #fff;
+        border-color: #333;
     }
 
     /* 사용자가 선택한 답 */
     .wq-choice.user-selected .q-mark {
-        background: #333;
-        color: #fff;
+        background: #fff;
+        color: #333;
+    }
+
+    .wq-choice.user-selected .my-pick {
+        display: inline-block;
+        font-size: 0.72em;
+        font-weight: 700;
+        color: #d93025;
+        margin-left: 6px;
     }
 
     .wq-choice.user-wrong {
@@ -274,7 +277,7 @@
         }
 
         .wrong-question {
-            padding: 16px 12px;
+            padding: 4px 12px 0;
         }
 
         .wq-content {
@@ -315,13 +318,9 @@
         </div>
         <div class="wq-choices">
             {% for c in r.choices %}
-            <div
-                class="wq-choice{% if c.is_selected %} user-selected{% endif %}{% if c.user_wrong %} user-wrong{% endif %}">
-                <span class="q-mark{% if c.is_correct %} correct-mark{% endif %}">{{ c.num }}</span> {{ c.text }}
-                {% if c.exp %}
-                <div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span
-                        class="exp-text-inner">{{ c.exp }}</span></div>
-                {% endif %}
+            <div class="wq-choice{% if c.is_selected %} user-selected{% endif %}{% if c.user_wrong %} user-wrong{% endif %}">
+                <span class="q-mark{% if c.is_correct %} correct-mark{% endif %}">{{ c.num }}</span>
+                <div class="wq-choice-text">{{ c.text }}{% if c.is_selected %}<span class="my-pick">← 내 답</span>{% endif %}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
             </div>
             {% endfor %}
         </div>

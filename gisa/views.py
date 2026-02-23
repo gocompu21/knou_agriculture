@@ -11,27 +11,38 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from .models import Certification, GisaAttempt, GisaExam, GisaQuestion, GisaSubject
+from .models import Certification, GisaAttempt, GisaExam, GisaQuestion, GisaSubject, GisaTextbook
 
 
 ## ══════════ 교재 마크다운 파서 ══════════ ##
 
-# 파싱 결과 캐시: {filepath: (mtime, parsed_data)}
+# 파싱 결과 캐시: {cache_key: (version, parsed_data)}
 _study_guide_cache = {}
 
 
-def parse_study_guide(filepath):
-    """마크다운 핵심정리 파일을 파싱하여 구조화된 데이터 반환 (mtime 기반 캐시)"""
-    if not os.path.exists(filepath):
-        return []
-
-    mtime = os.path.getmtime(filepath)
-    cached = _study_guide_cache.get(filepath)
-    if cached and cached[0] == mtime:
-        return cached[1]
-
-    with open(filepath, "r", encoding="utf-8") as f:
-        content = f.read()
+def parse_study_guide(filepath_or_content, cache_key=None, cache_version=None):
+    """마크다운 핵심정리를 파싱하여 구조화된 데이터 반환.
+    filepath_or_content: 파일 경로 또는 마크다운 문자열.
+    cache_key/cache_version: DB 기반 캐시용 (key=subject_id, version=updated_at).
+    """
+    # 파일 경로인 경우 (하위 호환)
+    if os.path.exists(filepath_or_content):
+        mtime = os.path.getmtime(filepath_or_content)
+        cached = _study_guide_cache.get(filepath_or_content)
+        if cached and cached[0] == mtime:
+            return cached[1]
+        with open(filepath_or_content, "r", encoding="utf-8") as f:
+            content = f.read()
+        effective_key = filepath_or_content
+        effective_version = mtime
+    else:
+        content = filepath_or_content
+        effective_key = cache_key or id(content)
+        effective_version = cache_version
+        if effective_version is not None:
+            cached = _study_guide_cache.get(effective_key)
+            if cached and cached[0] == effective_version:
+                return cached[1]
 
     chapters = []
     current_chapter = None
@@ -102,7 +113,26 @@ def parse_study_guide(filepath):
                 table_rows.append(line)
                 continue
             _flush_table()
-            if line.startswith("- "):
+            # 원번호(①~⑳) 항목 감지
+            circled_match = re.match(r"^([①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳])\s*(.*)", line)
+            if circled_match:
+                _flush_para()
+                num = circled_match.group(1)
+                line_content = circled_match.group(2)
+                line_content = re.sub(
+                    r"\*\*(.+?)\*\*", r"<strong>\1</strong>", line_content
+                )
+                line_content = re.sub(r"\*(.+?)\*", r"<em>\1</em>", line_content)
+                html_lines.append(f"<div class='num-item'><span class='num-marker'>{num}</span>{line_content}</div>")
+            elif line.startswith("→ ") or line.startswith("  → "):
+                _flush_para()
+                line_content = line.lstrip().lstrip("→").strip()
+                line_content = re.sub(
+                    r"\*\*(.+?)\*\*", r"<strong>\1</strong>", line_content
+                )
+                line_content = re.sub(r"\*(.+?)\*", r"<em>\1</em>", line_content)
+                html_lines.append(f"<div class='num-item num-sub'>→ {line_content}</div>")
+            elif line.startswith("- "):
                 _flush_para()
                 line_content = line[2:]
                 # 볼드 변환
@@ -223,7 +253,7 @@ def parse_study_guide(filepath):
             sec["total_questions"] = len(unique_q)
             sec["all_questions"] = unique_q
 
-    _study_guide_cache[filepath] = (mtime, chapters)
+    _study_guide_cache[effective_key] = (effective_version, chapters)
     return chapters
 
 
@@ -303,6 +333,7 @@ def certification_detail(request, cert_id):
             for e in exams.annotate(q_count=Count("gisaquestion")).order_by("-year", "-round")
         ]
 
+    wrong_results = []
     if active_tab == "wrong" and request.user.is_authenticated:
         latest_ids = (
             GisaAttempt.objects.filter(
@@ -313,9 +344,13 @@ def certification_detail(request, cert_id):
             .annotate(latest_id=Max("id"))
             .values_list("latest_id", flat=True)
         )
-        wrong_count = GisaAttempt.objects.filter(
-            pk__in=latest_ids, is_correct=False
-        ).count()
+        wrong_attempts = (
+            GisaAttempt.objects.filter(pk__in=latest_ids, is_correct=False)
+            .select_related("question", "question__subject", "question__exam")
+            .order_by("question__subject__order", "question__number")
+        )
+        wrong_results = build_results(wrong_attempts)
+        wrong_count = len(wrong_results)
 
     # history 탭은 API로 무한 스크롤 로딩 (certification_detail에서 직접 로드하지 않음)
 
@@ -324,11 +359,15 @@ def certification_detail(request, cert_id):
     textbook_subject = request.GET.get("subject", "식물병리학")
     textbook_subjects = list(subjects.values_list("name", flat=True))
     if active_tab == "textbook":
-        guide_path = os.path.join(
-            settings.BASE_DIR, "data", f"{textbook_subject}_핵심정리.md"
-        )
-        if os.path.exists(guide_path):
-            full = parse_study_guide(guide_path)  # mtime 캐시 히트
+        textbook = GisaTextbook.objects.filter(
+            certification=cert, subject__name=textbook_subject
+        ).first()
+        if textbook:
+            full = parse_study_guide(
+                textbook.content,
+                cache_key=f"gisa_tb_{textbook.pk}",
+                cache_version=textbook.updated_at,
+            )
             textbook_chapters = [
                 {"id": ch["id"], "title": ch["title"]} for ch in full
             ]
@@ -342,6 +381,7 @@ def certification_detail(request, cert_id):
             "subjects": subjects,
             "exam_cards": exam_cards,
             "wrong_count": wrong_count,
+            "wrong_results": wrong_results,
             "exam_sessions": exam_sessions,
             "active_tab": active_tab,
             "total_questions": total_questions,
@@ -362,10 +402,16 @@ def textbook_chapter_api(request, cert_id):
     subject = request.GET.get("subject", "식물병리학")
     ch_idx = int(request.GET.get("ch", 0))
 
-    guide_path = os.path.join(
-        settings.BASE_DIR, "data", f"{subject}_핵심정리.md"
+    textbook = GisaTextbook.objects.filter(
+        certification=cert, subject__name=subject
+    ).first()
+    if not textbook:
+        return JsonResponse({"html": ""})
+    chapters = parse_study_guide(
+        textbook.content,
+        cache_key=f"gisa_tb_{textbook.pk}",
+        cache_version=textbook.updated_at,
     )
-    chapters = parse_study_guide(guide_path)  # mtime 캐시 히트
 
     if ch_idx < 0 or ch_idx >= len(chapters):
         return JsonResponse({"html": ""})
@@ -493,10 +539,9 @@ def exam_result(request, cert_id, exam_id):
 
     total = attempts.count()
     correct = attempts.filter(is_correct=True).count()
-    score = round(correct / total * 100) if total else 0
     results = build_results(attempts)
 
-    # 과목별 점수 계산
+    # 과목별 점수 계산 (history_api와 동일 로직)
     subject_scores = {}
     for a in attempts:
         subj_name = a.question.subject.name
@@ -509,6 +554,14 @@ def exam_result(request, cert_id, exam_id):
     for v in subject_scores.values():
         v["score"] = round(v["correct"] / v["total"] * 100) if v["total"] else 0
 
+    # 과목별 평균 점수 (history_api와 동일)
+    if subject_scores:
+        score = round(sum(v["score"] for v in subject_scores.values()) / len(subject_scores))
+        passed = score >= 60 and all(v["score"] >= 40 for v in subject_scores.values())
+    else:
+        score = 0
+        passed = False
+
     return render(
         request,
         "gisa/exam_result.html",
@@ -519,6 +572,7 @@ def exam_result(request, cert_id, exam_id):
             "total": total,
             "correct": correct,
             "score": score,
+            "passed": passed,
             "subject_scores": subject_scores,
         },
     )
@@ -622,8 +676,26 @@ def mock_exam_result(request, cert_id, session_id):
 
     total = attempts.count()
     correct = attempts.filter(is_correct=True).count()
-    score = round(correct / total * 100) if total else 0
     results = build_results(attempts)
+
+    # 과목별 평균 점수 (history_api와 동일)
+    subject_scores = {}
+    for a in attempts:
+        subj_name = a.question.subject.name
+        if subj_name not in subject_scores:
+            subject_scores[subj_name] = {"total": 0, "correct": 0}
+        subject_scores[subj_name]["total"] += 1
+        if a.is_correct:
+            subject_scores[subj_name]["correct"] += 1
+    for v in subject_scores.values():
+        v["score"] = round(v["correct"] / v["total"] * 100) if v["total"] else 0
+
+    if subject_scores:
+        score = round(sum(v["score"] for v in subject_scores.values()) / len(subject_scores))
+        passed = score >= 60 and all(v["score"] >= 40 for v in subject_scores.values())
+    else:
+        score = 0
+        passed = False
 
     return render(
         request,
@@ -635,6 +707,8 @@ def mock_exam_result(request, cert_id, session_id):
             "total": total,
             "correct": correct,
             "score": score,
+            "passed": passed,
+            "subject_scores": subject_scores,
             "is_mock": True,
             "session_id": session_id,
         },
@@ -730,11 +804,11 @@ def wrong_answers_retry(request, cert_id):
     cert = get_object_or_404(Certification, pk=cert_id)
     wrong_qids = _get_wrong_question_ids(request.user, cert)
 
-    questions = list(
-        GisaQuestion.objects.filter(pk__in=wrong_qids)
-        .select_related("subject", "exam")
-        .order_by("subject__order", "number")
-    )
+    qs = GisaQuestion.objects.filter(pk__in=wrong_qids).select_related("subject", "exam")
+    subject_filter = request.GET.get("subject", "")
+    if subject_filter:
+        qs = qs.filter(subject__name=subject_filter)
+    questions = list(qs.order_by("subject__order", "number"))
 
     if not questions:
         return redirect("gisa:certification_detail", cert_id=cert_id)
@@ -751,6 +825,7 @@ def wrong_answers_retry(request, cert_id):
             "subject": None,
             "questions": questions,
             "is_wrong_retry": True,
+            "wrong_subject_filter": subject_filter,
             "session_id": session_id,
         },
     )
@@ -826,6 +901,7 @@ def wrong_answers_result(request, cert_id, session_id):
             "total": total,
             "correct": correct,
             "score": score,
+            "passed": False,
             "is_wrong_retry": True,
         },
     )
@@ -1002,6 +1078,36 @@ def textbook_study(request, cert_id):
 
     section_title = request.GET.get("title", request.POST.get("title", "교재 학습"))
 
+    # 교재 과목/장/절 정보 추출 (뒤로가기 시 해당 위치로 이동)
+    textbook_subject = ""
+    chapter_idx = ""
+    section_id = ""
+    if questions:
+        subj_name = questions[0].subject.name if questions[0].subject else ""
+        textbook_subject = subj_name
+        tb = GisaTextbook.objects.filter(certification=cert, subject__name=subj_name).first()
+        if tb:
+            chapters = parse_study_guide(
+                tb.content,
+                cache_key=f"gisa_tb_{tb.pk}",
+                cache_version=tb.updated_at,
+            )
+            for ci, ch in enumerate(chapters):
+                for sec in ch.get("sections", []):
+                    if sec["title"] == section_title:
+                        chapter_idx = str(ci)
+                        section_id = sec["id"]
+                        break
+                    for sub in sec.get("subsections", []):
+                        if sub["title"] == section_title:
+                            chapter_idx = str(ci)
+                            section_id = sec["id"]
+                            break
+                    if section_id:
+                        break
+                if section_id:
+                    break
+
     return render(
         request,
         "gisa/study_mode.html",
@@ -1012,5 +1118,8 @@ def textbook_study(request, cert_id):
             "questions": questions,
             "is_textbook_study": True,
             "section_title": section_title,
+            "textbook_subject": textbook_subject,
+            "chapter_idx": chapter_idx,
+            "section_id": section_id,
         },
     )

@@ -1,0 +1,50 @@
+{
+  "chapter": 10,
+  "title": "비타민과 조효소",
+  "questions": [
+    {
+      "year": 2016,
+      "number": 13,
+      "text": "지용성 비타민과 관련한 내용으로 옳은 것은 무엇인가?",
+      "choice_1": "체내에 축적되지 않기 때문에 매일 섭취해야 한다.",
+      "choice_2": "isoprene단위로 구성되어 있다.",
+      "choice_3": "비타민 B복합체와 비타민 C는 지용성 비타민이다.",
+      "choice_4": "구조적 공통점은 없으나 생리적 기능은 공통점이 있다.",
+      "answer": "2",
+      "explanation": "지용성 비타민(A, D, E, K)은 isoprene 단위를 기본 골격으로 하는 isoprenoid 또는 terpenoid 계열 화합물입니다. 따라서 isoprene 단위로 구성되어 있다는 설명은 옳습니다."
+    },
+    {
+      "year": 2017,
+      "number": 20,
+      "text": "효소의 구성물질 중에서 조효소에 해당하는 것은 무엇인가?",
+      "choice_1": "단백질 부위",
+      "choice_2": "비단백질성 유기물 부위",
+      "choice_3": "무기물 부위",
+      "choice_4": "금속원소 부위",
+      "answer": "2",
+      "explanation": "효소의 구성물질 중 조효소(coenzyme)는 효소의 활성을 돕는 비단백질성 유기물 부위를 말합니다. 이는 아포효소(단백질 부위)와 결합하여 완전한 기능을 하는 효소(전효소)를 구성합니다."
+    },
+    {
+      "year": 2025,
+      "number": 10,
+      "text": "지용성 비타민에 대한 설명 중 틀린 것은?",
+      "choice_1": "-",
+      "choice_2": "-",
+      "choice_3": "-",
+      "choice_4": "-",
+      "answer": "0",
+      "explanation": ""
+    },
+    {
+      "year": 2025,
+      "number": 23,
+      "text": "지용성 비타민에 대한 설명 중 틀린 것은?",
+      "choice_1": "-",
+      "choice_2": "-",
+      "choice_3": "-",
+      "choice_4": "-",
+      "answer": "0",
+      "explanation": ""
+    }
+  ]
+}
