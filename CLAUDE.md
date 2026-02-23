@@ -692,8 +692,9 @@ knou_agriculture/
 | 오답 X | `.q-number.q-wrong::after` — 빨간 볼드 ✕ (`color: #c62828`, `font-size: 1.6em`) | 문제번호 위에 표시 |
 | 미응답 | 오답과 동일하게 X 표시 (skipped도 틀린 문제로 처리) | |
 
-- O 마크 위치: `top: 0.8em; left: 50%` (line-height 1.6의 중앙)
+- O 마크 위치: `top: 0.8em; left: 35%` (line-height 1.6의 중앙)
 - X 마크 위치: `top: 0.55em; left: 30%` (시각적 보정)
+- X 마크가 문제번호를 가리지 않도록 z-index 레이어링: `::after { z-index: 0 }`, `.q-number.q-wrong { z-index: 1 }`, X 색상 반투명 `rgba(198, 40, 40, 0.7)`
 - 오답 재풀이(`is_wrong_retry`)에서는 O/X 마크 미표시
 - gisa/exam_result.html, exam/exam_result.html 모두 동일 적용
 
@@ -872,3 +873,66 @@ PREFIX_MAP = {
     'sw': ('시설원예학', 4), 'wh': ('세계의역사', 1),
 }
 ```
+
+## 채점 결과 보기 flex 레이아웃 (exam_result)
+
+`exam/exam_result.html`의 보기(choice-item)가 줄바꿈 시 텍스트 시작 위치가 정렬되도록 flex 레이아웃 적용.
+
+- `.choice-item { display: flex; align-items: flex-start; }`
+- `.choice-text-wrap { flex: 1; }` — 보기 텍스트 + 해설을 감싸는 래퍼
+- `.q-mark { flex-shrink: 0; margin-top: 2px; }` — 원번호 고정 너비
+- `.choice-exp { margin-left: 0; }` — 해설 왼쪽 여백 제거 (flex 내부이므로)
+- HTML: `<div class="choice-text-wrap">{{ c.text }}{% if c.exp %}...{% endif %}</div>`
+
+## 오답노트 빨간 동그라미 제거 (wrong_answers)
+
+`exam/wrong_answers.html`에서 정답 선지의 빨간 동그라미(`.q-mark.correct-mark::before`) CSS 규칙 제거.
+- 정답 표시는 원번호 반전(`.correct-mark`)만으로 충분하므로 중복 표시 제거
+
+## 학습모드 "노트 X" 버튼 (study_mode)
+
+오답 재풀이(`is_wrong_retry`) 시 표시되는 "노트 X" 제외 버튼 관련.
+
+- 위치: `.q-choices` 내부, 4번째 보기 다음 (선지 해설 마지막)
+- CSS: `.dismiss-line { display: none; text-align: right; margin-top: 2px; }` (JS로 표시 제어)
+- JS: 채점 후 `card.querySelector('.dismiss-line').style.display = 'block'`으로 표시
+- HTML: `{% if is_wrong_retry %}<div class="dismiss-line"><button class="dismiss-btn">노트 <svg>X</svg></button></div>{% endif %}`
+
+## 쪽집게 노트 아코디언 기본 동작
+
+방송대(subject_detail.html)와 기사시험(certification_detail.html) 모두 동일한 2단계 아코디언 동작.
+
+### 기본 상태
+
+- 장(chapter): 기본 열림 (`open` 클래스 적용)
+- 절(section): 제목만 표시 (내용은 접힘)
+- subject_detail: 서버 렌더링이므로 HTML에 `open` 클래스 직접 적용
+- certification_detail: AJAX 로드 방식이므로 페이지 로드 시 `autoLoadAllChapters()`로 모든 장 콘텐츠 자동 로드
+
+### "전체 펼치기" 버튼
+
+- 위치: 아코디언 목록 하단 (`text-align: right`)
+- 동작: `.section-item`의 `open` 클래스를 토글 (장은 항상 열린 상태 유지)
+- 버튼 텍스트: "전체 펼치기" ↔ "전체 접기" 토글
+- subject_detail: `toggleAllNotes()` 함수, `_notesExpanded` 상태 변수
+- certification_detail: `toggleAllTextbook()` 함수, `_textbookExpanded` 상태 변수
+
+### AJAX 중복 로드 방지 (certification_detail)
+
+- `body.dataset.loading` 가드: AJAX 요청 시작 시 `loading='1'` 설정
+- `body.dataset.loaded` 체크: 로드 완료 후 `loaded='1'` 설정
+- `toggleChapter()`, `autoLoadAllChapters()`, `open_ch` IIFE 모두 `loaded || loading` 체크
+
+### 쪽집게 노트 "내용으로" 스크롤 (subject_detail)
+
+노트 학습 모드에서 "내용으로" 버튼 클릭 시 쪽집게 노트 탭의 해당 절로 스크롤.
+- 절 탐색: DOM 요소의 텍스트 내용으로 매칭 (ID 기반이 아닌 title text 기반)
+- `section-item` 순회하며 `section-header span` 텍스트가 장 제목에 포함되는지 검사
+- 매칭된 절의 부모 `chapter-item`을 열고 해당 `section-item`으로 스크롤
+
+## EC2 배포
+
+- 서버: `ubuntu@hanulstudy.kr`
+- SSH 키: `C:\AWS\knou_key2.pem`
+- 접속: `ssh -o ServerAliveInterval=60 -i "C:\AWS\knou_key2.pem" ubuntu@hanulstudy.kr`
+- 가상환경 자동 활성화: `~/.bashrc`에 `source $HOME/venv/bin/activate` 추가

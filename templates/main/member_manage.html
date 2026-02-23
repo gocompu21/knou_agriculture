@@ -171,7 +171,7 @@
                 <th>이름</th>
                 <th>아이디</th>
                 <th class="th-email">이메일</th>
-                <th>가입일</th>
+                <th>가입일시</th>
                 <th>스태프</th>
                 <th>활성</th>
             </tr>
@@ -182,7 +182,7 @@
                 <td>{{ m.first_name|default:"-" }}</td>
                 <td><strong>{{ m.username }}</strong></td>
                 <td class="td-email">{{ m.email|default:"-" }}</td>
-                <td>{{ m.date_joined|date:"Y.m.d" }}</td>
+                <td>{{ m.date_joined|date:"Y.m.d H:i" }}</td>
                 <td>
                     <button type="button"
                             class="toggle-btn {% if m.is_staff %}on{% else %}off{% endif %}"
