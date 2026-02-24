@@ -941,20 +941,34 @@ def member_manage(request):
 @login_required
 @user_passes_test(staff_required)
 def restore_stats(request):
-    """복원통계: 최신기출 등록자별 과목/문항수/등록일"""
+    """복원통계 페이지"""
+    restore_total = (
+        Question.objects.filter(year__gte=2020).count()
+        + GisaQuestion.objects.filter(exam__exam_type="최신").count()
+    )
+    return render(request, "main/restore_stats.html", {
+        "restore_total": restore_total,
+    })
+
+
+@login_required
+@user_passes_test(staff_required)
+def restore_stats_api(request):
+    """복원통계 API: 페이지네이션된 JSON 반환"""
+    page = int(request.GET.get("page", 1))
+    per_page = 20
+
     exam_stats = (
         Question.objects.filter(year__gte=2020)
         .annotate(reg_date=TruncDate("created_at"))
         .values("created_by_name", "subject__name", "reg_date")
         .annotate(cnt=Count("pk"))
-        .order_by("-reg_date")
     )
     gisa_stats = (
         GisaQuestion.objects.filter(exam__exam_type="최신")
         .annotate(reg_date=TruncDate("created_at"))
         .values("created_by_name", "subject__name", "exam__certification__name", "reg_date")
         .annotate(cnt=Count("pk"))
-        .order_by("-reg_date")
     )
 
     # 과목별 전체 문항수
@@ -973,10 +987,10 @@ def restore_stats(request):
         key = f"[{cert_name}{'' if '기사' in cert_name else '기사'}] {row['subject__name']}"
         gisa_totals[key] = row["cnt"]
 
-    restore_rows = []
+    rows = []
     for row in exam_stats:
         subj = row["subject__name"]
-        restore_rows.append({
+        rows.append({
             "name": row["created_by_name"] or "미확인",
             "subject": subj,
             "count": row["cnt"],
@@ -986,19 +1000,31 @@ def restore_stats(request):
     for row in gisa_stats:
         cert_name = row["exam__certification__name"]
         subj = f"[{cert_name}{'' if '기사' in cert_name else '기사'}] {row['subject__name']}"
-        restore_rows.append({
+        rows.append({
             "name": row["created_by_name"] or "미확인",
             "subject": subj,
             "count": row["cnt"],
             "total": gisa_totals.get(subj, row["cnt"]),
             "reg_date": row["reg_date"],
         })
-    restore_rows.sort(key=lambda x: (x["reg_date"] or date.min,), reverse=True)
-    restore_total = sum(r["count"] for r in restore_rows)
+    rows.sort(key=lambda x: (x["reg_date"] or date.min,), reverse=True)
 
-    return render(request, "main/restore_stats.html", {
-        "restore_rows": restore_rows,
-        "restore_total": restore_total,
+    start = (page - 1) * per_page
+    end = start + per_page
+    page_rows = rows[start:end]
+
+    return JsonResponse({
+        "rows": [
+            {
+                "name": r["name"],
+                "subject": r["subject"],
+                "count": r["count"],
+                "total": r["total"],
+                "reg_date": r["reg_date"].strftime("%Y.%m.%d") if r["reg_date"] else "-",
+            }
+            for r in page_rows
+        ],
+        "has_next": end < len(rows),
     })
 
 

@@ -87,13 +87,18 @@
     .td-count { font-weight: 700; color: #333; text-align: right; }
     .td-date { color: #888; font-size: 0.8rem; white-space: nowrap; }
 
-    .restore-summary {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 10px;
-        font-size: 0.85rem;
+    .restore-empty {
         color: #888;
-        font-weight: 600;
+        text-align: center;
+        padding: 40px 0;
+    }
+
+    .restore-loading {
+        text-align: center;
+        padding: 16px 0;
+        color: #aaa;
+        font-size: 0.82rem;
+        display: none;
     }
 
     /* 모바일 */
@@ -125,7 +130,7 @@
         .r-card-name { font-size: 0.9rem; font-weight: 700; color: #1b4332; }
         .r-card-subj { font-size: 0.78rem; color: #888; margin-top: 2px; }
         .r-card-right { text-align: right; }
-        .r-card-count { font-size: 0.9rem; font-weight: 700; color: var(--forest); }
+        .r-card-count { font-size: 0.9rem; font-weight: 700; color: #333; }
         .r-card-date { font-size: 0.72rem; color: #aaa; margin-top: 2px; }
     }
 </style>
@@ -146,7 +151,6 @@
         <span style="font-size:0.85rem; color:#888; font-weight:600;">총 {{ restore_total }}문항</span>
     </div>
 
-    {% if restore_rows %}
     <!-- 데스크톱 테이블 -->
     <table class="restore-table">
         <thead>
@@ -157,35 +161,87 @@
                 <th>이름</th>
             </tr>
         </thead>
-        <tbody>
-            {% for r in restore_rows %}
-            <tr>
-                <td class="td-date">{% if r.reg_date %}{{ r.reg_date|date:"Y.m.d" }}{% else %}-{% endif %}</td>
-                <td>{{ r.subject }}</td>
-                <td class="td-count"><span style="color:#1565c0;">{{ r.count }}</span> / {{ r.total }}</td>
-                <td class="td-name">{{ r.name }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
+        <tbody id="restore-tbody"></tbody>
     </table>
 
     <!-- 모바일 카드 -->
-    <div class="restore-cards">
-        {% for r in restore_rows %}
-        <div class="r-card">
-            <div class="r-card-left">
-                <div class="r-card-date">{% if r.reg_date %}{{ r.reg_date|date:"Y.m.d" }}{% else %}-{% endif %}</div>
-                <div class="r-card-subj">{{ r.subject }}</div>
-            </div>
-            <div class="r-card-right">
-                <div class="r-card-count"><span style="color:#1565c0;">{{ r.count }}</span>/{{ r.total }}문항</div>
-                <div class="r-card-name">{{ r.name }}</div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <p style="color:#888; text-align:center; padding:40px 0;">등록된 복원 데이터가 없습니다.</p>
-    {% endif %}
+    <div class="restore-cards" id="restore-cards"></div>
+
+    <div class="restore-loading" id="restore-loading">불러오는 중...</div>
+    <p class="restore-empty" id="restore-empty" style="display:none;">등록된 복원 데이터가 없습니다.</p>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var page = 1;
+    var loading = false;
+    var done = false;
+    var tbody = document.getElementById('restore-tbody');
+    var cards = document.getElementById('restore-cards');
+    var loadingEl = document.getElementById('restore-loading');
+    var emptyEl = document.getElementById('restore-empty');
+
+    function loadMore() {
+        if (loading || done) return;
+        loading = true;
+        loadingEl.style.display = 'block';
+
+        fetch('{% url "main:restore_stats_api" %}?page=' + page)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (page === 1 && data.rows.length === 0) {
+                emptyEl.style.display = 'block';
+                document.querySelector('.restore-table').style.display = 'none';
+            }
+            data.rows.forEach(function(r) {
+                // 데스크톱 행
+                var tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td class="td-date">' + r.reg_date + '</td>' +
+                    '<td>' + r.subject + '</td>' +
+                    '<td class="td-count"><span style="color:#1565c0;">' + r.count + '</span> / ' + r.total + '</td>' +
+                    '<td class="td-name">' + r.name + '</td>';
+                tbody.appendChild(tr);
+
+                // 모바일 카드
+                var card = document.createElement('div');
+                card.className = 'r-card';
+                card.innerHTML =
+                    '<div class="r-card-left">' +
+                        '<div class="r-card-date">' + r.reg_date + '</div>' +
+                        '<div class="r-card-subj">' + r.subject + '</div>' +
+                    '</div>' +
+                    '<div class="r-card-right">' +
+                        '<div class="r-card-count"><span style="color:#1565c0;">' + r.count + '</span>/' + r.total + '문항</div>' +
+                        '<div class="r-card-name">' + r.name + '</div>' +
+                    '</div>';
+                cards.appendChild(card);
+            });
+
+            if (!data.has_next) done = true;
+            page++;
+            loading = false;
+            loadingEl.style.display = 'none';
+        })
+        .catch(function() {
+            loading = false;
+            loadingEl.style.display = 'none';
+        });
+    }
+
+    // 초기 로드
+    loadMore();
+
+    // 스크롤 감지
+    window.addEventListener('scroll', function() {
+        if (done || loading) return;
+        var scrollBottom = window.innerHeight + window.scrollY;
+        if (scrollBottom >= document.body.offsetHeight - 200) {
+            loadMore();
+        }
+    });
+})();
+</script>
 {% endblock %}
