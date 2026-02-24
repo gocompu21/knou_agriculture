@@ -64,7 +64,6 @@ def import_latest(json_file):
             year=item["year"],
             round=item["round"],
             exam_type="최신",
-            defaults={"subject": subject},
         )
         _, created = GisaQuestion.objects.update_or_create(
             exam=exam,
