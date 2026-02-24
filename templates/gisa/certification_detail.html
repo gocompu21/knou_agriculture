@@ -441,6 +441,50 @@
     }
     .exp-toggle:hover, .dismiss-btn:hover { color: #555; }
 
+    /* ══════════ Latest Questions (최신기출) ══════════ */
+    .latest-form-wrap { background: #f5f7ff; border: 1px solid #d0d5e8; border-radius: 14px; padding: 20px; margin-bottom: 20px; }
+    .latest-form-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+    .latest-form-row label { min-width: 60px; font-size: 0.88rem; font-weight: 700; color: #555; padding-top: 8px; }
+    .latest-input { flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; font-family: inherit; }
+    .latest-input-sm { flex: 0; width: 100px; }
+    .latest-textarea { flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; font-family: inherit; resize: vertical; }
+    .latest-input:focus, .latest-textarea:focus { outline: none; border-color: #3949ab; }
+    .latest-submit-btn { background: #3949ab; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .latest-submit-btn:hover { background: #1a237e; }
+    .latest-cancel-btn { background: #eee; color: #666; border: none; border-radius: 8px; padding: 8px 20px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .latest-cancel-btn:hover { background: #ddd; }
+    .latest-list { display: flex; flex-direction: column; gap: 14px; }
+    .latest-card { border: 1px solid #e8e8e8; border-radius: 14px; padding: 18px; background: #fff; }
+    .latest-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .latest-badge { display: inline-block; font-size: 0.78rem; font-weight: 800; color: #fff; background: #3949ab; padding: 3px 10px; border-radius: 6px; }
+    .latest-del-btn { background: none; border: 1px solid #ddd; color: #888; font-size: 0.78rem; font-weight: 700; cursor: pointer; padding: 3px 10px; border-radius: 6px; transition: color 0.15s, background 0.15s, border-color 0.15s; font-family: inherit; }
+    .latest-del-btn:hover { color: #d93025; background: #fee2e2; border-color: #d93025; }
+    .latest-edit-btn { background: none; border: 1px solid #ddd; color: #888; font-size: 0.78rem; font-weight: 700; cursor: pointer; padding: 3px 10px; border-radius: 6px; transition: color 0.15s, background 0.15s, border-color 0.15s; font-family: inherit; }
+    .latest-edit-btn:hover { color: #3949ab; background: #e8eaf6; border-color: #3949ab; }
+    .latest-text { font-size: 0.95rem; color: #333; line-height: 1.7; margin-bottom: 12px; }
+    .latest-choices { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+    .latest-choice { font-size: 0.88rem; color: #555; padding: 6px 12px; border-radius: 8px; background: #fafafa; border: 1px solid #eee; }
+    .latest-choice.correct { background: #e8eaf6; border-color: #9fa8da; color: #1a237e; font-weight: 700; }
+    .latest-explanation { font-size: 0.85rem; color: #666; line-height: 1.7; padding: 10px 14px; background: #fafafa; border-radius: 8px; border-left: 3px solid #7986cb; }
+    .latest-year-section { margin-top: 20px; padding: 20px; background: #f5f7ff; border: 1px solid #d0d5e8; border-radius: 14px; }
+    .latest-year-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .latest-year-section-header h3 { font-size: 1.05rem; color: #1a237e; }
+    .latest-reg-tab { padding: 8px 16px; border: 1.5px solid #d0d5e8; border-radius: 8px; background: #fff; color: #666; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .latest-reg-tab:hover { border-color: #3949ab; color: #3949ab; }
+    .latest-reg-tab.active { background: #3949ab; color: #fff; border-color: #3949ab; }
+    .latest-reg-content { display: none; }
+    .latest-reg-content.active { display: block; }
+    .search-result-card { border: 1px solid #e8e8e8; border-radius: 12px; padding: 14px; background: #fff; margin-bottom: 10px; }
+    .search-result-card .sr-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .search-result-card .sr-meta { font-size: 0.8rem; color: #888; font-weight: 600; }
+    .search-result-card .sr-text { font-size: 0.92rem; color: #333; line-height: 1.6; margin-bottom: 8px; }
+    .search-result-card .sr-choices { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
+    .search-result-card .sr-choice { font-size: 0.85rem; color: #555; padding: 4px 10px; border-radius: 6px; background: #fafafa; border: 1px solid #eee; }
+    .search-result-card .sr-choice.correct { background: #e8eaf6; border-color: #9fa8da; color: #1a237e; font-weight: 700; }
+    .sr-register-btn { background: #3949ab; color: #fff; border: none; border-radius: 6px; padding: 5px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .sr-register-btn:hover { background: #1a237e; }
+    mark { background: #fff176; padding: 0 2px; border-radius: 2px; }
+
     @media (max-width: 480px) {
         .detail-hero { padding: 24px 0 20px; }
         .detail-hero h1 { font-size: 1.2rem; }
@@ -494,6 +538,28 @@
         .sc-actions .btn-sm { padding: 3px 8px; font-size: 0.72rem; }
         .sc-actions .btn-danger { padding: 4px; }
         .sc-actions .btn-danger svg { width: 13px; height: 13px; }
+        /* ── Latest mobile ── */
+        .latest-year-section { margin-top: 14px; padding: 14px; border-radius: 12px; }
+        .latest-list { gap: 10px; }
+        .latest-card { padding: 14px; border-radius: 12px; }
+        .latest-badge { font-size: 0.72rem; padding: 2px 8px; }
+        .latest-text { font-size: 0.9rem; line-height: 1.6; margin-bottom: 10px; }
+        .latest-choices { gap: 4px; margin-bottom: 8px; }
+        .latest-choice { font-size: 0.82rem; padding: 5px 10px; border-radius: 6px; }
+        .latest-explanation { font-size: 0.8rem; line-height: 1.6; padding: 8px 12px; border-radius: 6px; }
+        .latest-form-wrap { padding: 16px; border-radius: 14px; }
+        .latest-form-row { flex-direction: column; gap: 6px; margin-bottom: 14px; }
+        .latest-form-row label { padding-top: 0; font-size: 0.82rem; font-weight: 800; color: #1a237e; }
+        .latest-input-sm { width: 100%; }
+        .latest-input, .latest-textarea, .latest-form-row select.latest-input { width: 100%; font-size: 0.9rem; padding: 10px 12px; border: 1.5px solid #d0d5e8; border-radius: 10px; background: #fff; box-sizing: border-box; }
+        .latest-input:focus, .latest-textarea:focus, .latest-form-row select.latest-input:focus { border-color: #3949ab; box-shadow: 0 0 0 3px rgba(57, 73, 171, 0.12); }
+        .latest-textarea { min-height: 80px; }
+        .latest-submit-btn { width: 100%; padding: 12px; font-size: 0.92rem; border-radius: 10px; }
+        .latest-cancel-btn { width: 100%; padding: 10px; font-size: 0.88rem; border-radius: 10px; }
+        .latest-reg-tab { padding: 6px 10px; font-size: 0.78rem; }
+        .search-result-card { padding: 12px; border-radius: 10px; }
+        .search-result-card .sr-text { font-size: 0.88rem; }
+        .search-result-card .sr-choice { font-size: 0.82rem; padding: 3px 8px; }
     }
 </style>
 {% endblock %}
@@ -521,6 +587,7 @@
             오답노트{% if wrong_count %}<span class="tab-badge">{{ wrong_count }}</span>{% endif %}
         </button>
         <button class="tab-btn{% if active_tab == 'history' %} active{% endif %}" onclick="switchTab('history')">시험이력</button>
+        <button class="tab-btn{% if active_tab == 'latest' %} active{% endif %}" onclick="switchTab('latest')">최신기출{% if latest_year_cards %}<span class="tab-badge" style="background:#3949ab;">{{ latest_year_cards|length }}</span>{% endif %}</button>
     </div>
 
     <!-- ══════════ 쪽집게 노트 탭 ══════════ -->
@@ -666,6 +733,185 @@
                 {% csrf_token %}
                 <button type="submit" style="background:none; border:1px solid #ccc; color:#666; padding:6px 14px; border-radius:6px; font-size:0.82rem; cursor:pointer; font-family:inherit;">전체 기록 삭제</button>
             </form>
+        </div>
+    </div>
+
+    <!-- ══════════ 최신기출 탭 ══════════ -->
+    <div id="tab-latest" class="tab-content{% if active_tab == 'latest' %} active{% endif %}">
+        {% if latest_year_cards %}
+        <div class="exam-grid">
+            {% for card in latest_year_cards %}
+            <div class="exam-card">
+                <div class="exam-card-title">{{ card.year }}년 {{ card.round }}차</div>
+                <div class="exam-card-info">총 {{ card.count }}문항</div>
+                <div class="subject-list">
+                    {% for sc in card.subjects %}
+                    <a href="javascript:void(0)" class="subject-link" onclick="toggleYearQuestions('{{ card.year }}-{{ card.round }}', {{ sc.pk }})">
+                        {{ sc.name }} <span style="color:#888; font-weight:400;">({{ sc.count }})</span>
+                    </a>
+                    {% endfor %}
+                </div>
+                <div class="exam-card-actions" style="margin-top:10px;">
+                    <a href="{% url 'gisa:gisa_latest_study' cert.pk card.year card.round %}" class="btn-sm btn-study">학습모드</a>
+                    <button type="button" class="btn-sm" style="border:1px solid #ddd; background:#f5f5f5; color:#666;" onclick="toggleYearQuestions('{{ card.year }}-{{ card.round }}', 0)">전체 수정</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-tab" style="margin-bottom:20px;">등록된 최신기출이 없습니다.<br>아래에서 문제를 등록해보세요!</div>
+        {% endif %}
+
+        {% regroup latest_questions by exam as exam_groups %}
+        {% for group in exam_groups %}
+        <div class="latest-year-section" id="year-section-{{ group.grouper.year }}-{{ group.grouper.round }}" style="display:none;">
+            <div class="latest-year-section-header">
+                <h3>{{ group.grouper.year }}년 {{ group.grouper.round }}차 문제 (<span class="lys-count">{{ group.list|length }}</span>문항)</h3>
+                <button type="button" class="latest-cancel-btn" onclick="toggleYearQuestions('{{ group.grouper.year }}-{{ group.grouper.round }}', 0)">닫기</button>
+            </div>
+            <div class="latest-subject-filter" style="display:flex; gap:4px; margin-bottom:12px; flex-wrap:wrap;">
+                <button type="button" class="wrong-filter-pill active" onclick="filterLatestSubject(this, '{{ group.grouper.year }}-{{ group.grouper.round }}', 0)">전체</button>
+                {% for s in subjects %}<button type="button" class="wrong-filter-pill" onclick="filterLatestSubject(this, '{{ group.grouper.year }}-{{ group.grouper.round }}', {{ s.pk }})">{{ s.name }}</button>{% endfor %}
+            </div>
+            <div class="latest-list">
+                {% for q in group.list %}
+                <div class="latest-card" id="lq-card-{{ q.pk }}" data-subject-id="{{ q.subject.pk }}">
+                    <div id="lq-view-{{ q.pk }}">
+                        <div class="latest-card-header">
+                            <span class="latest-badge">{{ q.number }}번</span>
+                            <span style="font-size:0.78rem; color:#666; font-weight:600;">{{ q.subject.name }}</span>
+                            <div style="display:flex; gap:4px;">
+                                <button type="button" class="latest-edit-btn" onclick="toggleEditForm({{ q.pk }})">수정</button>
+                                <form method="post" action="{% url 'gisa:gisa_latest_delete' cert.pk q.pk %}" onsubmit="return confirm('이 문제를 삭제하시겠습니까?');" style="margin:0;">{% csrf_token %}<button type="submit" class="latest-del-btn">삭제</button></form>
+                            </div>
+                        </div>
+                        <div class="latest-text">{{ q.text }}</div>
+                        <div class="latest-choices">
+                            <div class="latest-choice{% if '1' in q.answer %} correct{% endif %}">① {{ q.choice_1 }}</div>
+                            <div class="latest-choice{% if '2' in q.answer %} correct{% endif %}">② {{ q.choice_2 }}</div>
+                            <div class="latest-choice{% if '3' in q.answer %} correct{% endif %}">③ {{ q.choice_3 }}</div>
+                            <div class="latest-choice{% if '4' in q.answer %} correct{% endif %}">④ {{ q.choice_4 }}</div>
+                        </div>
+                        {% if q.explanation %}<div class="latest-explanation">{{ q.explanation }}</div>{% endif %}
+                    </div>
+                    <div id="lq-edit-{{ q.pk }}" style="display:none;">
+                        <form method="post" action="{% url 'gisa:gisa_latest_update' cert.pk q.pk %}">
+                            {% csrf_token %}
+                            <div class="latest-form-row"><label>연도</label><input type="number" name="year" value="{{ q.exam.year }}" class="latest-input latest-input-sm" required></div>
+                            <div class="latest-form-row"><label>회차</label><select name="round" class="latest-input latest-input-sm"><option value="1"{% if q.exam.round == 1 %} selected{% endif %}>1차</option><option value="2"{% if q.exam.round == 2 %} selected{% endif %}>2차</option><option value="3"{% if q.exam.round == 3 %} selected{% endif %}>3차</option><option value="4"{% if q.exam.round == 4 %} selected{% endif %}>4차</option></select></div>
+                            <div class="latest-form-row"><label>과목</label><select name="subject" class="latest-input">{% for s in subjects %}<option value="{{ s.pk }}"{% if s.pk == q.subject.pk %} selected{% endif %}>{{ s.name }}</option>{% endfor %}</select></div>
+                            <div class="latest-form-row"><label>문제</label><textarea name="text" class="latest-textarea" rows="3" required>{{ q.text }}</textarea></div>
+                            <div class="latest-form-row"><label>보기 ①</label><input type="text" name="choice_1" class="latest-input" value="{{ q.choice_1 }}"></div>
+                            <div class="latest-form-row"><label>보기 ②</label><input type="text" name="choice_2" class="latest-input" value="{{ q.choice_2 }}"></div>
+                            <div class="latest-form-row"><label>보기 ③</label><input type="text" name="choice_3" class="latest-input" value="{{ q.choice_3 }}"></div>
+                            <div class="latest-form-row"><label>보기 ④</label><input type="text" name="choice_4" class="latest-input" value="{{ q.choice_4 }}"></div>
+                            <div class="latest-form-row"><label>정답</label><select name="answer" class="latest-input latest-input-sm"><option value="1"{% if q.answer == '1' %} selected{% endif %}>①</option><option value="2"{% if q.answer == '2' %} selected{% endif %}>②</option><option value="3"{% if q.answer == '3' %} selected{% endif %}>③</option><option value="4"{% if q.answer == '4' %} selected{% endif %}>④</option></select></div>
+                            <div class="latest-form-row"><label>해설</label><textarea name="explanation" class="latest-textarea" rows="3">{{ q.explanation }}</textarea></div>
+                            <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:12px;">
+                                <button type="button" class="latest-cancel-btn" onclick="toggleEditForm({{ q.pk }})">취소</button>
+                                <button type="submit" class="latest-submit-btn">저장</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- 서브탭 -->
+        <div class="latest-reg-tabs" style="margin-top:20px;">
+            <div style="display:flex; gap:4px; margin-bottom:14px;">
+                <button type="button" class="latest-reg-tab active" onclick="switchRegTab('new')">신규 등록</button>
+                <button type="button" class="latest-reg-tab" onclick="switchRegTab('existing')">기존 기출 출제</button>
+                <button type="button" class="latest-reg-tab" onclick="switchRegTab('search')">기출 검색 등록</button>
+            </div>
+
+            <!-- 서브탭 1: 신규 등록 -->
+            <div class="latest-reg-content active" id="reg-new">
+                <div class="latest-form-wrap">
+                    <form method="post" action="{% url 'gisa:gisa_latest_create' cert.pk %}">
+                        {% csrf_token %}
+                        <div class="latest-form-row"><label>연도</label><input type="number" name="year" id="latest-year-input" class="latest-input latest-input-sm" required></div>
+                        <div class="latest-form-row"><label>회차</label><select name="round" id="latest-round-input" class="latest-input latest-input-sm"><option value="1">1차</option><option value="2">2차</option><option value="3">3차</option><option value="4">4차</option></select></div>
+                        <div class="latest-form-row"><label>과목</label><select name="subject" class="latest-input">{% for s in subjects %}<option value="{{ s.pk }}">{{ s.name }}</option>{% endfor %}</select></div>
+                        <div class="latest-form-row"><label>문제</label><textarea name="text" class="latest-textarea" rows="3" placeholder="문제 내용을 입력하세요" required></textarea></div>
+                        <div class="latest-form-row"><label>보기 ①</label><input type="text" name="choice_1" class="latest-input" placeholder="보기 1 (비우면 - 처리)"></div>
+                        <div class="latest-form-row"><label>보기 ②</label><input type="text" name="choice_2" class="latest-input" placeholder="보기 2 (비우면 - 처리)"></div>
+                        <div class="latest-form-row"><label>보기 ③</label><input type="text" name="choice_3" class="latest-input" placeholder="보기 3 (비우면 - 처리)"></div>
+                        <div class="latest-form-row"><label>보기 ④</label><input type="text" name="choice_4" class="latest-input" placeholder="보기 4 (비우면 - 처리)"></div>
+                        <div class="latest-form-row"><label>정답</label><select name="answer" class="latest-input latest-input-sm"><option value="1">①</option><option value="2">②</option><option value="3">③</option><option value="4">④</option></select></div>
+                        <div class="latest-form-row"><label>해설</label><textarea name="explanation" class="latest-textarea" rows="3" placeholder="해설 (선택)"></textarea></div>
+                        <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:12px;">
+                            <button type="submit" class="latest-submit-btn">등록</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 서브탭 2: 기존 기출 출제 -->
+            <div class="latest-reg-content" id="reg-existing">
+                <div class="latest-form-wrap">
+                    <form method="post" action="{% url 'gisa:gisa_latest_clone' cert.pk %}" id="clone-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="sub" value="existing">
+                        <input type="hidden" name="source_id" id="clone-source-id" value="">
+                        <div class="latest-form-row">
+                            <label>등록연도</label>
+                            <input type="number" name="target_year" id="clone-target-year" class="latest-input latest-input-sm" required>
+                        </div>
+                        <div class="latest-form-row">
+                            <label>등록회차</label>
+                            <select name="target_round" id="clone-target-round" class="latest-input latest-input-sm"><option value="1">1차</option><option value="2">2차</option><option value="3">3차</option><option value="4">4차</option></select>
+                        </div>
+                        <div class="latest-form-row">
+                            <label>시험선택</label>
+                            <select id="clone-exam-select" class="latest-input" onchange="loadCloneQuestions()">
+                                <option value="">-- 시험을 선택하세요 --</option>
+                            </select>
+                        </div>
+                        <div class="latest-form-row">
+                            <label>문항선택</label>
+                            <select id="clone-question-select" class="latest-input" onchange="showClonePreview()">
+                                <option value="">-- 문항을 선택하세요 --</option>
+                            </select>
+                        </div>
+                        <div id="clone-preview" style="display:none; margin-top:12px;"></div>
+                        <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:12px;">
+                            <button type="submit" class="latest-submit-btn" id="clone-submit-btn" disabled>등록</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 서브탭 3: 기출 검색 등록 -->
+            <div class="latest-reg-content" id="reg-search">
+                <div class="latest-form-wrap">
+                    <div class="latest-form-row">
+                        <label>등록연도</label>
+                        <input type="number" id="search-target-year" class="latest-input latest-input-sm">
+                    </div>
+                    <div class="latest-form-row">
+                        <label>등록회차</label>
+                        <select id="search-target-round" class="latest-input latest-input-sm"><option value="1">1차</option><option value="2">2차</option><option value="3">3차</option><option value="4">4차</option></select>
+                    </div>
+                    <div class="latest-form-row">
+                        <label>검색어</label>
+                        <div style="display:flex; gap:8px; flex:1;">
+                            <input type="text" id="search-keyword" class="latest-input" placeholder="2글자 이상 입력" onkeydown="if(event.key==='Enter'){event.preventDefault();doGisaSearch();}">
+                            <button type="button" class="latest-submit-btn" onclick="doGisaSearch()">검색</button>
+                        </div>
+                    </div>
+                    <div id="search-results" style="margin-top:14px;"></div>
+                    <form method="post" action="{% url 'gisa:gisa_latest_clone' cert.pk %}" id="search-clone-form" style="display:none;">
+                        {% csrf_token %}
+                        <input type="hidden" name="sub" value="search">
+                        <input type="hidden" name="source_id" id="search-source-id" value="">
+                        <input type="hidden" name="target_year" id="search-clone-year" value="">
+                        <input type="hidden" name="target_round" id="search-clone-round" value="">
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -981,5 +1227,232 @@ function dismissWrong(btn, url, cardId) {
             setTimeout(function() { card.remove(); }, 300);
         });
 }
+
+/* ── 최신기출 ── */
+function toggleYearQuestions(key, subjectId) {
+    var section = document.getElementById('year-section-' + key);
+    document.querySelectorAll('.latest-year-section').forEach(function(el) {
+        if (el.id !== 'year-section-' + key) el.style.display = 'none';
+    });
+    if (section) {
+        section.style.display = section.style.display === 'none' ? '' : 'none';
+        if (section.style.display !== 'none' && subjectId) {
+            filterLatestSubjectById(section, subjectId);
+        }
+    }
+}
+function filterLatestSubject(pill, key, subjectId) {
+    var section = document.getElementById('year-section-' + key);
+    if (!section) return;
+    section.querySelectorAll('.latest-subject-filter .wrong-filter-pill').forEach(function(p) { p.classList.remove('active'); });
+    pill.classList.add('active');
+    filterLatestSubjectById(section, subjectId);
+}
+function filterLatestSubjectById(section, subjectId) {
+    var count = 0;
+    section.querySelectorAll('.latest-card').forEach(function(card) {
+        if (!subjectId || String(card.dataset.subjectId) === String(subjectId)) {
+            card.style.display = '';
+            count++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    var countEl = section.querySelector('.lys-count');
+    if (countEl) countEl.textContent = count;
+    /* 필터 pill 활성 상태 업데이트 */
+    section.querySelectorAll('.latest-subject-filter .wrong-filter-pill').forEach(function(p) {
+        p.classList.remove('active');
+    });
+    section.querySelectorAll('.latest-subject-filter .wrong-filter-pill').forEach(function(p) {
+        var onclick = p.getAttribute('onclick') || '';
+        var match = onclick.match(/filterLatestSubject\(this,\s*'[^']+',\s*(\d+)\)/);
+        if (match && String(match[1]) === String(subjectId)) p.classList.add('active');
+        if (!subjectId && onclick.indexOf(', 0)') !== -1) p.classList.add('active');
+    });
+}
+function toggleEditForm(pk) {
+    var view = document.getElementById('lq-view-' + pk);
+    var edit = document.getElementById('lq-edit-' + pk);
+    if (edit.style.display === 'none') { view.style.display = 'none'; edit.style.display = ''; }
+    else { view.style.display = ''; edit.style.display = 'none'; }
+}
+
+/* 서브탭 전환 */
+function switchRegTab(tab) {
+    document.querySelectorAll('.latest-reg-tab').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.latest-reg-content').forEach(function(c) { c.classList.remove('active'); });
+    event.target.classList.add('active');
+    document.getElementById('reg-' + tab).classList.add('active');
+    if (tab === 'existing') loadExistingExams();
+}
+
+/* 기존 기출 출제: 시험 목록 로드 */
+var _examsLoaded = false;
+function loadExistingExams() {
+    if (_examsLoaded) return;
+    _examsLoaded = true;
+    fetch('{% url "gisa:api_gisa_existing_exams" cert.pk %}')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var sel = document.getElementById('clone-exam-select');
+            data.exams.forEach(function(e) {
+                var opt = document.createElement('option');
+                opt.value = e.id;
+                opt.textContent = e.label;
+                sel.appendChild(opt);
+            });
+        });
+}
+
+/* 기존 기출 출제: 문항 목록 로드 */
+var _questionsCache = {};
+function loadCloneQuestions() {
+    var examId = document.getElementById('clone-exam-select').value;
+    var qSel = document.getElementById('clone-question-select');
+    qSel.innerHTML = '<option value="">-- 문항을 선택하세요 --</option>';
+    document.getElementById('clone-preview').style.display = 'none';
+    document.getElementById('clone-source-id').value = '';
+    document.getElementById('clone-submit-btn').disabled = true;
+    if (!examId) return;
+
+    if (_questionsCache[examId]) {
+        populateQuestionSelect(_questionsCache[examId]);
+        return;
+    }
+    fetch('{% url "gisa:api_gisa_exam_questions" cert.pk 0 %}'.replace('/0/', '/' + examId + '/'))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            _questionsCache[examId] = data.questions;
+            populateQuestionSelect(data.questions);
+        });
+}
+function populateQuestionSelect(questions) {
+    var sel = document.getElementById('clone-question-select');
+    questions.forEach(function(q) {
+        var opt = document.createElement('option');
+        opt.value = q.id;
+        opt.textContent = q.number + '번 [' + q.subject + '] ' + q.text.substring(0, 40) + (q.text.length > 40 ? '...' : '');
+        sel.appendChild(opt);
+    });
+}
+
+/* 기존 기출 출제: 미리보기 */
+function showClonePreview() {
+    var qId = document.getElementById('clone-question-select').value;
+    var preview = document.getElementById('clone-preview');
+    if (!qId) { preview.style.display = 'none'; document.getElementById('clone-submit-btn').disabled = true; return; }
+    var examId = document.getElementById('clone-exam-select').value;
+    var questions = _questionsCache[examId];
+    var q = questions.find(function(x) { return String(x.id) === qId; });
+    if (!q) return;
+
+    var ansLabels = {'1':'①','2':'②','3':'③','4':'④'};
+    var html = '<div class="latest-card" style="margin:0;">' +
+        '<div class="latest-text">' + q.text + '</div>' +
+        '<div class="latest-choices">' +
+        '<div class="latest-choice' + (q.answer.indexOf('1')!==-1?' correct':'') + '">① ' + q.choice_1 + '</div>' +
+        '<div class="latest-choice' + (q.answer.indexOf('2')!==-1?' correct':'') + '">② ' + q.choice_2 + '</div>' +
+        '<div class="latest-choice' + (q.answer.indexOf('3')!==-1?' correct':'') + '">③ ' + q.choice_3 + '</div>' +
+        '<div class="latest-choice' + (q.answer.indexOf('4')!==-1?' correct':'') + '">④ ' + q.choice_4 + '</div>' +
+        '</div>';
+    if (q.explanation) html += '<div class="latest-explanation">' + q.explanation + '</div>';
+    html += '</div>';
+    preview.innerHTML = html;
+    preview.style.display = '';
+    document.getElementById('clone-source-id').value = qId;
+    document.getElementById('clone-submit-btn').disabled = false;
+}
+
+/* 기출 검색 등록 (유사 검색: 문장 → 단어 분리 → OR 매칭 + 매칭수 정렬) */
+function doGisaSearch() {
+    var keyword = document.getElementById('search-keyword').value.trim();
+    if (keyword.length < 2) { alert('2글자 이상 입력하세요.'); return; }
+    var resultsDiv = document.getElementById('search-results');
+    resultsDiv.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">검색 중...</div>';
+    fetch('{% url "gisa:api_gisa_search_questions" cert.pk %}?q=' + encodeURIComponent(keyword))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.questions.length === 0) {
+                resultsDiv.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">검색 결과가 없습니다.</div>';
+                return;
+            }
+            var kws = data.keywords || [keyword];
+            var html = '<div style="font-size:0.85rem;color:#666;margin-bottom:10px;">' +
+                data.questions.length + '건 검색됨' +
+                (kws.length > 1 ? ' <span style="color:#3949ab;">(' + kws.join(', ') + ')</span>' : '') +
+                '</div>';
+            data.questions.forEach(function(q) {
+                var matchLabel = q.match_count && kws.length > 1 ? ' <span style="font-size:0.72rem;color:#3949ab;font-weight:700;">' + q.match_count + '/' + kws.length + '일치</span>' : '';
+                html += '<div class="search-result-card">' +
+                    '<div class="sr-header"><span class="sr-meta">' + q.year + '년 ' + q.round + '회 ' + q.subject + ' ' + q.number + '번' + matchLabel + '</span>' +
+                    '<button type="button" class="sr-register-btn" onclick="registerFromSearch(' + q.id + ')">등록</button></div>' +
+                    '<div class="sr-text">' + highlightKws(q.text, kws) + '</div>' +
+                    '<div class="sr-choices">' +
+                    '<div class="sr-choice' + (q.answer.indexOf('1')!==-1?' correct':'') + '">① ' + highlightKws(q.choice_1, kws) + '</div>' +
+                    '<div class="sr-choice' + (q.answer.indexOf('2')!==-1?' correct':'') + '">② ' + highlightKws(q.choice_2, kws) + '</div>' +
+                    '<div class="sr-choice' + (q.answer.indexOf('3')!==-1?' correct':'') + '">③ ' + highlightKws(q.choice_3, kws) + '</div>' +
+                    '<div class="sr-choice' + (q.answer.indexOf('4')!==-1?' correct':'') + '">④ ' + highlightKws(q.choice_4, kws) + '</div>' +
+                    '</div></div>';
+            });
+            resultsDiv.innerHTML = html;
+        });
+}
+function highlightKws(text, kws) {
+    if (!kws || !kws.length) return text;
+    var pattern = kws.map(function(k) { return k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|');
+    return text.replace(new RegExp(pattern, 'gi'), '<mark>$&</mark>');
+}
+function registerFromSearch(qId) {
+    var year = document.getElementById('search-target-year').value;
+    var round = document.getElementById('search-target-round').value;
+    if (!year) { alert('등록연도를 입력하세요.'); return; }
+    if (!confirm(year + '년 ' + round + '차 최신기출로 등록하시겠습니까?')) return;
+    document.getElementById('search-source-id').value = qId;
+    document.getElementById('search-clone-year').value = year;
+    document.getElementById('search-clone-round').value = round;
+    document.getElementById('search-clone-form').submit();
+}
+
+/* 초기화 */
+(function() {
+    var params = new URLSearchParams(window.location.search);
+    var lastYear = params.get('last_year');
+    var lastRound = params.get('last_round');
+    var defaultYear = lastYear || new Date().getFullYear();
+    var defaultRound = lastRound || '1';
+    /* 신규 등록 폼 */
+    var yearInput = document.getElementById('latest-year-input');
+    if (yearInput) yearInput.value = defaultYear;
+    var roundInput = document.getElementById('latest-round-input');
+    if (roundInput) roundInput.value = defaultRound;
+    /* 기존 기출 출제 폼 */
+    var cloneYear = document.getElementById('clone-target-year');
+    if (cloneYear) cloneYear.value = defaultYear;
+    var cloneRound = document.getElementById('clone-target-round');
+    if (cloneRound) cloneRound.value = defaultRound;
+    /* 검색 등록 폼 */
+    var searchYear = document.getElementById('search-target-year');
+    if (searchYear) searchYear.value = defaultYear;
+    var searchRound = document.getElementById('search-target-round');
+    if (searchRound) searchRound.value = defaultRound;
+    /* 수정 섹션 열기 */
+    var openExam = params.get('open_exam');
+    if (openExam) {
+        var section = document.getElementById('year-section-' + openExam);
+        if (section) section.style.display = '';
+    }
+    /* 서브탭 복원 */
+    var sub = params.get('sub');
+    if (sub && document.getElementById('reg-' + sub)) {
+        document.querySelectorAll('.latest-reg-tab').forEach(function(b) { b.classList.remove('active'); });
+        document.querySelectorAll('.latest-reg-content').forEach(function(c) { c.classList.remove('active'); });
+        document.getElementById('reg-' + sub).classList.add('active');
+        document.querySelectorAll('.latest-reg-tab').forEach(function(b) {
+            if (b.textContent.indexOf(sub === 'existing' ? '기존' : (sub === 'search' ? '검색' : '신규')) !== -1) b.classList.add('active');
+        });
+        if (sub === 'existing') loadExistingExams();
+    }
+})();
 </script>
 {% endblock %}

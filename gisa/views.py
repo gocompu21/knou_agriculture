@@ -4,7 +4,7 @@ import uuid
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Max, Min, Q
+from django.db.models import Case, Count, IntegerField, Max, Min, Q, Value, When
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -315,11 +315,11 @@ def certification_list(request):
 @login_required
 def certification_detail(request, cert_id):
     cert = get_object_or_404(Certification, pk=cert_id)
-    exams = GisaExam.objects.filter(certification=cert)
+    exams = GisaExam.objects.filter(certification=cert).exclude(exam_type="최신")
     subjects = GisaSubject.objects.filter(certification=cert)
 
     active_tab = request.GET.get("tab", "textbook")
-    total_questions = GisaQuestion.objects.filter(exam__certification=cert).count()
+    total_questions = GisaQuestion.objects.filter(exam__certification=cert).exclude(exam__exam_type="최신").count()
 
     # 교재 탭이 아닐 때만 시험/세션 데이터 로드 (switchTab은 페이지 리로드)
     exam_cards = []
@@ -353,6 +353,43 @@ def certification_detail(request, cert_id):
         wrong_count = len(wrong_results)
 
     # history 탭은 API로 무한 스크롤 로딩 (certification_detail에서 직접 로드하지 않음)
+
+    # 최신기출 탭: exam_type='최신'인 GisaExam
+    latest_year_cards = []
+    latest_questions = []
+    if active_tab == "latest":
+        latest_exams = (
+            GisaExam.objects.filter(certification=cert, exam_type="최신")
+            .annotate(q_count=Count("gisaquestion"))
+            .order_by("-year", "-round")
+        )
+        # 과목별 문항수 집계
+        subject_counts = (
+            GisaQuestion.objects.filter(exam__certification=cert, exam__exam_type="최신")
+            .values("exam__pk", "subject__pk", "subject__name", "subject__order")
+            .annotate(cnt=Count("pk"))
+            .order_by("exam__pk", "subject__order")
+        )
+        exam_subject_map = {}
+        for sc in subject_counts:
+            exam_subject_map.setdefault(sc["exam__pk"], []).append({
+                "pk": sc["subject__pk"],
+                "name": sc["subject__name"],
+                "count": sc["cnt"],
+            })
+
+        latest_year_cards = [
+            {
+                "year": e.year, "round": e.round, "count": e.q_count,
+                "exam_id": e.pk, "subjects": exam_subject_map.get(e.pk, []),
+            }
+            for e in latest_exams if e.q_count > 0
+        ]
+        latest_questions = (
+            GisaQuestion.objects.filter(exam__certification=cert, exam__exam_type="최신")
+            .select_related("exam", "subject")
+            .order_by("-exam__year", "-exam__round", "number")
+        )
 
     # 교재 데이터 — 교재 탭일 때만 장 제목 전달 (섹션은 AJAX로 로드)
     textbook_chapters = []
@@ -388,6 +425,8 @@ def certification_detail(request, cert_id):
             "textbook_chapters": textbook_chapters,
             "textbook_subject": textbook_subject,
             "textbook_subjects": textbook_subjects,
+            "latest_year_cards": latest_year_cards,
+            "latest_questions": latest_questions,
         },
     )
 
@@ -421,6 +460,264 @@ def textbook_chapter_api(request, cert_id):
         "gisa/_chapter_body.html", {"ch": chapter, "cert": cert}, request=request
     )
     return JsonResponse({"html": html})
+
+
+## ══════════ 최신기출 CRUD ══════════ ##
+
+
+@login_required
+@require_POST
+def gisa_latest_create(request, cert_id):
+    cert = get_object_or_404(Certification, pk=cert_id)
+    year = int(request.POST.get("year", 2025))
+    round_num = int(request.POST.get("round", 1))
+
+    subject_id = request.POST.get("subject")
+    if subject_id:
+        subject = get_object_or_404(GisaSubject, pk=subject_id, certification=cert)
+    else:
+        subject = GisaSubject.objects.filter(certification=cert).order_by("order").first()
+    exam, _ = GisaExam.objects.get_or_create(
+        certification=cert, year=year, round=round_num, exam_type="최신",
+    )
+
+    max_num = GisaQuestion.objects.filter(exam=exam).aggregate(Max("number"))["number__max"] or 0
+    GisaQuestion.objects.create(
+        exam=exam,
+        subject=subject,
+        number=max_num + 1,
+        text=request.POST.get("text", ""),
+        choice_1=request.POST.get("choice_1", "") or "-",
+        choice_2=request.POST.get("choice_2", "") or "-",
+        choice_3=request.POST.get("choice_3", "") or "-",
+        choice_4=request.POST.get("choice_4", "") or "-",
+        answer=request.POST.get("answer", "0"),
+        explanation=request.POST.get("explanation", ""),
+    )
+
+    return redirect(f"{reverse('gisa:certification_detail', args=[cert_id])}?tab=latest&last_year={year}&last_round={round_num}")
+
+
+@login_required
+@require_POST
+def gisa_latest_update(request, cert_id, question_id):
+    cert = get_object_or_404(Certification, pk=cert_id)
+    question = get_object_or_404(
+        GisaQuestion, pk=question_id, exam__certification=cert, exam__exam_type="최신"
+    )
+
+    new_year = int(request.POST.get("year", question.exam.year))
+    new_round = int(request.POST.get("round", question.exam.round))
+
+    if new_year != question.exam.year or new_round != question.exam.round:
+        old_exam = question.exam
+        new_exam, _ = GisaExam.objects.get_or_create(
+            certification=cert, year=new_year, round=new_round, exam_type="최신",
+        )
+        max_num = GisaQuestion.objects.filter(exam=new_exam).aggregate(Max("number"))["number__max"] or 0
+        question.exam = new_exam
+        question.number = max_num + 1
+        # 이전 exam이 비면 삭제
+        if not GisaQuestion.objects.filter(exam=old_exam).exclude(pk=question.pk).exists():
+            old_exam.delete()
+
+    new_subject_id = request.POST.get("subject")
+    if new_subject_id:
+        question.subject = get_object_or_404(GisaSubject, pk=new_subject_id, certification=cert)
+
+    question.text = request.POST.get("text", question.text)
+    question.choice_1 = request.POST.get("choice_1", question.choice_1) or "-"
+    question.choice_2 = request.POST.get("choice_2", question.choice_2) or "-"
+    question.choice_3 = request.POST.get("choice_3", question.choice_3) or "-"
+    question.choice_4 = request.POST.get("choice_4", question.choice_4) or "-"
+    question.answer = request.POST.get("answer", question.answer)
+    question.explanation = request.POST.get("explanation", question.explanation)
+    question.save()
+
+    return redirect(f"{reverse('gisa:certification_detail', args=[cert_id])}?tab=latest&open_exam={new_year}-{new_round}")
+
+
+@login_required
+@require_POST
+def gisa_latest_delete(request, cert_id, question_id):
+    cert = get_object_or_404(Certification, pk=cert_id)
+    question = get_object_or_404(
+        GisaQuestion, pk=question_id, exam__certification=cert, exam__exam_type="최신"
+    )
+    exam = question.exam
+    question.delete()
+
+    if not GisaQuestion.objects.filter(exam=exam).exists():
+        exam.delete()
+
+    return redirect(f"{reverse('gisa:certification_detail', args=[cert_id])}?tab=latest")
+
+
+@login_required
+def gisa_latest_study(request, cert_id, year, round_num):
+    cert = get_object_or_404(Certification, pk=cert_id)
+    exam = GisaExam.objects.filter(certification=cert, year=year, round=round_num, exam_type="최신").first()
+    if not exam:
+        return redirect(f"{reverse('gisa:certification_detail', args=[cert_id])}?tab=latest")
+
+    questions = GisaQuestion.objects.filter(exam=exam).order_by("number")
+    if not questions.exists():
+        return redirect(f"{reverse('gisa:certification_detail', args=[cert_id])}?tab=latest")
+
+    return render(
+        request,
+        "gisa/study_mode.html",
+        {
+            "cert": cert,
+            "exam": exam,
+            "subject": None,
+            "questions": questions,
+            "from_tab": "latest",
+        },
+    )
+
+
+@login_required
+@require_POST
+def gisa_latest_clone(request, cert_id):
+    """기존 기출문제를 최신기출로 복사 등록"""
+    cert = get_object_or_404(Certification, pk=cert_id)
+    source_id = request.POST.get("source_id")
+    target_year = int(request.POST.get("target_year", 2025))
+    target_round = int(request.POST.get("target_round", 1))
+    sub = request.POST.get("sub", "existing")
+
+    source = get_object_or_404(GisaQuestion, pk=source_id, exam__certification=cert)
+
+    exam, _ = GisaExam.objects.get_or_create(
+        certification=cert, year=target_year, round=target_round, exam_type="최신",
+    )
+    max_num = GisaQuestion.objects.filter(exam=exam).aggregate(Max("number"))["number__max"] or 0
+    GisaQuestion.objects.create(
+        exam=exam,
+        subject=source.subject,
+        number=max_num + 1,
+        text=source.text,
+        choice_1=source.choice_1,
+        choice_2=source.choice_2,
+        choice_3=source.choice_3,
+        choice_4=source.choice_4,
+        answer=source.answer,
+        explanation=source.explanation,
+        choice_1_exp=source.choice_1_exp,
+        choice_2_exp=source.choice_2_exp,
+        choice_3_exp=source.choice_3_exp,
+        choice_4_exp=source.choice_4_exp,
+    )
+
+    return redirect(
+        f"{reverse('gisa:certification_detail', args=[cert_id])}?tab=latest"
+        f"&last_year={target_year}&last_round={target_round}&sub={sub}"
+    )
+
+
+@login_required
+def api_gisa_existing_exams(request, cert_id):
+    """기존 기출 시험 목록 (최신기출 제외)"""
+    cert = get_object_or_404(Certification, pk=cert_id)
+    exams = (
+        GisaExam.objects.filter(certification=cert)
+        .exclude(exam_type="최신")
+        .order_by("-year", "-round")
+        .values_list("pk", "year", "round", "exam_type")
+    )
+    return JsonResponse({
+        "exams": [
+            {"id": pk, "year": y, "round": r, "exam_type": t,
+             "label": f"{y}년 {r}회 {t}"}
+            for pk, y, r, t in exams
+        ]
+    })
+
+
+@login_required
+def api_gisa_exam_questions(request, cert_id, exam_id):
+    """특정 시험회차의 문제 목록"""
+    cert = get_object_or_404(Certification, pk=cert_id)
+    exam = get_object_or_404(GisaExam, pk=exam_id, certification=cert)
+    questions = GisaQuestion.objects.filter(exam=exam).order_by("number")
+    return JsonResponse({
+        "questions": [
+            {
+                "id": q.pk, "number": q.number, "text": q.text,
+                "choice_1": q.choice_1, "choice_2": q.choice_2,
+                "choice_3": q.choice_3, "choice_4": q.choice_4,
+                "answer": q.answer, "explanation": q.explanation,
+                "subject": q.subject.name,
+            }
+            for q in questions
+        ]
+    })
+
+
+@login_required
+def api_gisa_search_questions(request, cert_id):
+    """기출문제 유사 검색 (최신기출 제외) — 문장 입력 시 단어별 OR 검색 + 매칭수 정렬"""
+    cert = get_object_or_404(Certification, pk=cert_id)
+    keyword = request.GET.get("q", "").strip()
+    if len(keyword) < 2:
+        return JsonResponse({"questions": [], "keywords": []})
+
+    # 단어 분리 (1글자 제거, 최대 10개)
+    words = [w for w in keyword.split() if len(w) >= 2][:10]
+    if not words:
+        words = [keyword]
+
+    # 단어별 OR 조건
+    combined_q = Q()
+    for w in words:
+        combined_q |= (
+            Q(text__icontains=w)
+            | Q(choice_1__icontains=w)
+            | Q(choice_2__icontains=w)
+            | Q(choice_3__icontains=w)
+            | Q(choice_4__icontains=w)
+        )
+
+    # DB 레벨에서 매칭 단어 수 집계 → 상위 50개만 가져오기
+    match_annotation = Value(0, output_field=IntegerField())
+    for w in words:
+        word_q = (
+            Q(text__icontains=w)
+            | Q(choice_1__icontains=w)
+            | Q(choice_2__icontains=w)
+            | Q(choice_3__icontains=w)
+            | Q(choice_4__icontains=w)
+        )
+        match_annotation = match_annotation + Case(
+            When(word_q, then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField(),
+        )
+
+    qs = (
+        GisaQuestion.objects.filter(exam__certification=cert)
+        .exclude(exam__exam_type="최신")
+        .filter(combined_q)
+        .annotate(match_count=match_annotation)
+        .select_related("exam", "subject")
+        .order_by("-match_count", "-exam__year", "-exam__round", "number")[:50]
+    )
+
+    return JsonResponse({
+        "questions": [
+            {
+                "id": q.pk, "number": q.number, "text": q.text,
+                "choice_1": q.choice_1, "choice_2": q.choice_2,
+                "choice_3": q.choice_3, "choice_4": q.choice_4,
+                "answer": q.answer, "year": q.exam.year,
+                "round": q.exam.round, "subject": q.subject.name,
+                "match_count": q.match_count,
+            }
+            for q in qs
+        ],
+        "keywords": words,
+    })
 
 
 ## ══════════ 학습모드 ══════════ ##
@@ -592,7 +889,7 @@ def mock_exam_take(request, cert_id):
         qs = list(
             GisaQuestion.objects.filter(
                 exam__certification=cert, subject=subject
-            ).order_by("?")[:20]
+            ).exclude(exam__exam_type="최신").order_by("?")[:20]
         )
         questions.extend(qs)
 

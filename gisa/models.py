@@ -29,6 +29,7 @@ class GisaExam(models.Model):
     EXAM_TYPE_CHOICES = [
         ('필기', '필기'),
         ('실기', '실기'),
+        ('최신', '최신기출'),
     ]
 
     certification = models.ForeignKey(Certification, on_delete=models.CASCADE, verbose_name='자격증')

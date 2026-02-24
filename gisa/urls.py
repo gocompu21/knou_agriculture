@@ -8,6 +8,15 @@ urlpatterns = [
     # 자격증 목록/상세
     path("", views.certification_list, name="certification_list"),
     path("<int:cert_id>/", views.certification_detail, name="certification_detail"),
+    # 최신기출
+    path("<int:cert_id>/latest/create/", views.gisa_latest_create, name="gisa_latest_create"),
+    path("<int:cert_id>/latest/<int:question_id>/update/", views.gisa_latest_update, name="gisa_latest_update"),
+    path("<int:cert_id>/latest/<int:question_id>/delete/", views.gisa_latest_delete, name="gisa_latest_delete"),
+    path("<int:cert_id>/latest/study/<int:year>/<int:round_num>/", views.gisa_latest_study, name="gisa_latest_study"),
+    path("<int:cert_id>/latest/clone/", views.gisa_latest_clone, name="gisa_latest_clone"),
+    path("<int:cert_id>/api/latest/exams/", views.api_gisa_existing_exams, name="api_gisa_existing_exams"),
+    path("<int:cert_id>/api/latest/questions/<int:exam_id>/", views.api_gisa_exam_questions, name="api_gisa_exam_questions"),
+    path("<int:cert_id>/api/latest/search/", views.api_gisa_search_questions, name="api_gisa_search_questions"),
     # 학습모드
     path("<int:cert_id>/study/<int:exam_id>/<int:subject_id>/", views.study_mode, name="study_mode"),
     # 풀이모드
