@@ -138,7 +138,7 @@
         display: block;
     }
 
-    /* ══════════ 쪽집게 노트 (Chapter/Section 구조) ══════════ */
+    /* ══════════ 쪽집게 정리 (Chapter/Section 구조) ══════════ */
     .chapter-item {
         border: 1px solid #e0e0e0; border-radius: 10px;
         margin-bottom: 10px; overflow: hidden;
@@ -1289,7 +1289,7 @@
     <!-- Tab Navigation -->
     <div class="tab-nav fade-up">
         <button class="tab-btn{% if active_tab == 'notes' %} active{% endif %}" data-tab="notes"
-            onclick="switchTab('notes')">쪽집게 노트{% if study_notes_count %}<sup style="font-size:0.7em;color:#2d6a4f;font-weight:700;margin-left:2px;">{{ study_notes_count }}</sup>{% endif %}</button>
+            onclick="switchTab('notes')">쪽집게 정리{% if study_notes_count %}<sup style="font-size:0.7em;color:#2d6a4f;font-weight:700;margin-left:2px;">{{ study_notes_count }}</sup>{% endif %}</button>
         <button class="tab-btn{% if active_tab == 'study' %} active{% endif %}" data-tab="study"
             onclick="switchTab('study')">기출학습</button>
         <button class="tab-btn{% if active_tab == 'solve' %} active{% endif %}" data-tab="solve"
@@ -1308,7 +1308,7 @@
         </button>
     </div>
 
-    <!-- Tab 0: 쪽집게 노트 -->
+    <!-- Tab 0: 쪽집게 정리 -->
     <div class="tab-content{% if active_tab == 'notes' %} active{% endif %}" id="tab-notes">
         {% if note_chapters %}
         {% for ch in note_chapters %}
@@ -1366,7 +1366,7 @@
             <button type="button" id="toggle-all-notes" onclick="toggleAllNotes()" style="background:none;border:1px solid #ccc;border-radius:4px;padding:3px 10px;font-size:0.78rem;color:#555;cursor:pointer;">전체 펼치기</button>
         </div>
         {% else %}
-        <div class="empty-msg">등록된 쪽집게 노트가 없습니다.</div>
+        <div class="empty-msg">등록된 쪽집게 정리가 없습니다.</div>
         {% endif %}
     </div>
 
