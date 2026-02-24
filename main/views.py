@@ -966,7 +966,7 @@ def restore_stats(request):
         cert_name = row["exam__certification__name"]
         restore_rows.append({
             "name": row["created_by_name"] or "미확인",
-            "subject": f"[{cert_name}] {row['subject__name']}",
+            "subject": f"[{cert_name}{'' if '기사' in cert_name else '기사'}] {row['subject__name']}",
             "count": row["cnt"],
             "last_date": row["last_date"],
         })
