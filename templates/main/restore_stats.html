@@ -151,19 +151,19 @@
     <table class="restore-table">
         <thead>
             <tr>
-                <th>이름</th>
+                <th>등록일</th>
                 <th>과목</th>
                 <th style="text-align:center;">문항수</th>
-                <th>등록일</th>
+                <th>이름</th>
             </tr>
         </thead>
         <tbody>
             {% for r in restore_rows %}
             <tr>
-                <td class="td-name">{{ r.name }}</td>
+                <td class="td-date">{% if r.reg_date %}{{ r.reg_date|date:"Y.m.d" }}{% else %}-{% endif %}</td>
                 <td>{{ r.subject }}</td>
                 <td class="td-count">{{ r.count }}</td>
-                <td class="td-date">{% if r.reg_date %}{{ r.reg_date|date:"Y.m.d" }}{% else %}-{% endif %}</td>
+                <td class="td-name">{{ r.name }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -174,12 +174,12 @@
         {% for r in restore_rows %}
         <div class="r-card">
             <div class="r-card-left">
-                <div class="r-card-name">{{ r.name }}</div>
+                <div class="r-card-date">{% if r.reg_date %}{{ r.reg_date|date:"Y.m.d" }}{% else %}-{% endif %}</div>
                 <div class="r-card-subj">{{ r.subject }}</div>
             </div>
             <div class="r-card-right">
                 <div class="r-card-count">{{ r.count }}문항</div>
-                <div class="r-card-date">{% if r.reg_date %}{{ r.reg_date|date:"Y.m.d" }}{% else %}-{% endif %}</div>
+                <div class="r-card-name">{{ r.name }}</div>
             </div>
         </div>
         {% endfor %}
