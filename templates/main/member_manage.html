@@ -286,7 +286,7 @@
         <tbody>
             {% for m in members %}
             <tr>
-                <td style="text-align:center; color:#888; font-size:0.8rem;">{{ forloop.counter }}</td>
+                <td style="text-align:center; color:#888; font-size:0.8rem;">{{ forloop.revcounter }}</td>
                 <td class="td-name">{{ m.first_name|default:"-" }}</td>
                 <td class="td-id">{{ m.username }}</td>
                 <td class="td-email">{{ m.email|default:"-" }}</td>
