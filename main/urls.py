@@ -26,4 +26,5 @@ urlpatterns = [
     path("manage/subjects/<int:pk>/delete/", views.subject_delete, name="subject_delete"),
     path("manage/members/", views.member_manage, name="member_manage"),
     path("manage/members/<int:pk>/toggle/", views.member_toggle, name="member_toggle"),
+    path("manage/restore/", views.restore_stats, name="restore_stats"),
 ]

@@ -934,7 +934,13 @@ def member_manage(request):
             else:
                 m.usage_display = f"{minutes}분"
 
-    # ── 복원통계: 등록자 + 과목 + 문항수 + 최근등록일 ──
+    return render(request, "main/member_manage.html", {"members": members})
+
+
+@login_required
+@user_passes_test(staff_required)
+def restore_stats(request):
+    """복원통계: 최신기출 등록자별 과목/문항수/등록일"""
     exam_stats = (
         Question.objects.filter(year__gte=2020)
         .exclude(created_by_name="")
@@ -967,12 +973,9 @@ def member_manage(request):
             "last_date": row["last_date"],
         })
     restore_rows.sort(key=lambda x: (x["name"], x["subject"]))
-
-    # 전체 합계
     restore_total = sum(r["count"] for r in restore_rows)
 
-    return render(request, "main/member_manage.html", {
-        "members": members,
+    return render(request, "main/restore_stats.html", {
         "restore_rows": restore_rows,
         "restore_total": restore_total,
     })
