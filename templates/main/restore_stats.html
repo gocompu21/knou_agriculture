@@ -84,7 +84,7 @@
     .restore-table tbody tr:last-child td { border-bottom: none; }
 
     .td-name { font-weight: 600; color: #1b4332; }
-    .td-count { font-weight: 700; color: #1565c0; text-align: right; }
+    .td-count { font-weight: 700; color: #333; text-align: right; }
     .td-date { color: #888; font-size: 0.8rem; white-space: nowrap; }
 
     .restore-summary {
@@ -162,7 +162,7 @@
             <tr>
                 <td class="td-date">{% if r.reg_date %}{{ r.reg_date|date:"Y.m.d" }}{% else %}-{% endif %}</td>
                 <td>{{ r.subject }}</td>
-                <td class="td-count">{{ r.count }} / {{ r.total }}</td>
+                <td class="td-count"><span style="color:#1565c0;">{{ r.count }}</span> / {{ r.total }}</td>
                 <td class="td-name">{{ r.name }}</td>
             </tr>
             {% endfor %}
@@ -178,7 +178,7 @@
                 <div class="r-card-subj">{{ r.subject }}</div>
             </div>
             <div class="r-card-right">
-                <div class="r-card-count">{{ r.count }}/{{ r.total }}문항</div>
+                <div class="r-card-count"><span style="color:#1565c0;">{{ r.count }}</span>/{{ r.total }}문항</div>
                 <div class="r-card-name">{{ r.name }}</div>
             </div>
         </div>
