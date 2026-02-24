@@ -945,16 +945,24 @@ def member_manage(request):
     gisa_stats = (
         GisaQuestion.objects.filter(exam__exam_type="최신")
         .exclude(created_by_name="")
-        .values("created_by_name", "subject__name")
+        .values("created_by_name", "subject__name", "exam__certification__name")
         .annotate(cnt=Count("pk"), last_date=Max("created_at"))
         .order_by("created_by_name", "subject__name")
     )
 
     restore_rows = []
-    for row in list(exam_stats) + list(gisa_stats):
+    for row in exam_stats:
         restore_rows.append({
             "name": row["created_by_name"],
             "subject": row["subject__name"],
+            "count": row["cnt"],
+            "last_date": row["last_date"],
+        })
+    for row in gisa_stats:
+        cert_name = row["exam__certification__name"]
+        restore_rows.append({
+            "name": row["created_by_name"],
+            "subject": f"[{cert_name}] {row['subject__name']}",
             "count": row["cnt"],
             "last_date": row["last_date"],
         })
