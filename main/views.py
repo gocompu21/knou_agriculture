@@ -957,20 +957,40 @@ def restore_stats(request):
         .order_by("-reg_date")
     )
 
+    # 과목별 전체 문항수
+    exam_totals = dict(
+        Question.objects.filter(year__gte=2020)
+        .values_list("subject__name")
+        .annotate(cnt=Count("pk"))
+    )
+    gisa_totals = {}
+    for row in (
+        GisaQuestion.objects.filter(exam__exam_type="최신")
+        .values("exam__certification__name", "subject__name")
+        .annotate(cnt=Count("pk"))
+    ):
+        cert_name = row["exam__certification__name"]
+        key = f"[{cert_name}{'' if '기사' in cert_name else '기사'}] {row['subject__name']}"
+        gisa_totals[key] = row["cnt"]
+
     restore_rows = []
     for row in exam_stats:
+        subj = row["subject__name"]
         restore_rows.append({
             "name": row["created_by_name"] or "미확인",
-            "subject": row["subject__name"],
+            "subject": subj,
             "count": row["cnt"],
+            "total": exam_totals.get(subj, row["cnt"]),
             "reg_date": row["reg_date"],
         })
     for row in gisa_stats:
         cert_name = row["exam__certification__name"]
+        subj = f"[{cert_name}{'' if '기사' in cert_name else '기사'}] {row['subject__name']}"
         restore_rows.append({
             "name": row["created_by_name"] or "미확인",
-            "subject": f"[{cert_name}{'' if '기사' in cert_name else '기사'}] {row['subject__name']}",
+            "subject": subj,
             "count": row["cnt"],
+            "total": gisa_totals.get(subj, row["cnt"]),
             "reg_date": row["reg_date"],
         })
     restore_rows.sort(key=lambda x: (x["reg_date"] or date.min,), reverse=True)

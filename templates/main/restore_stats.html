@@ -162,7 +162,7 @@
             <tr>
                 <td class="td-date">{% if r.reg_date %}{{ r.reg_date|date:"Y.m.d" }}{% else %}-{% endif %}</td>
                 <td>{{ r.subject }}</td>
-                <td class="td-count">{{ r.count }}</td>
+                <td class="td-count">{{ r.count }} / {{ r.total }}</td>
                 <td class="td-name">{{ r.name }}</td>
             </tr>
             {% endfor %}
@@ -178,7 +178,7 @@
                 <div class="r-card-subj">{{ r.subject }}</div>
             </div>
             <div class="r-card-right">
-                <div class="r-card-count">{{ r.count }}문항</div>
+                <div class="r-card-count">{{ r.count }}/{{ r.total }}문항</div>
                 <div class="r-card-name">{{ r.name }}</div>
             </div>
         </div>
