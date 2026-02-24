@@ -470,6 +470,7 @@ def latest_question_create(request, pk):
         choice_4=request.POST.get("choice_4", "").strip() or "-",
         answer=request.POST.get("answer", "0"),
         explanation=request.POST.get("explanation", ""),
+        created_by_name=request.user.first_name or request.user.username,
     )
     return redirect(f"/subjects/{subject.pk}/?tab=latest&last_year={year}")
 
@@ -729,6 +730,7 @@ def latest_question_clone(request, pk):
         choice_2_exp=source.choice_2_exp,
         choice_3_exp=source.choice_3_exp,
         choice_4_exp=source.choice_4_exp,
+        created_by_name=request.user.first_name or request.user.username,
     )
     sub = request.POST.get("sub", "existing")
     return redirect(f"/subjects/{subject.pk}/?tab=latest&last_year={target_year}&sub={sub}")

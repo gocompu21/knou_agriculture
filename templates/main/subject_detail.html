@@ -1000,6 +1000,14 @@
         border-radius: 6px;
     }
 
+    .latest-author {
+        font-size: 0.72rem;
+        color: #999;
+        font-weight: 600;
+        margin-right: auto;
+        margin-left: 8px;
+    }
+
     .latest-del-btn {
         background: none;
         border: 1px solid #ddd;
@@ -1508,6 +1516,7 @@
                     <div id="lq-view-{{ q.pk }}">
                         <div class="latest-card-header">
                             <span class="latest-badge">{{ q.number }}번</span>
+                            {% if q.created_by_name %}<span class="latest-author">{{ q.created_by_name }}</span>{% endif %}
                             <div style="display:flex; gap:4px;">
                                 <button type="button" class="latest-edit-btn"
                                     onclick="toggleEditForm({{ q.pk }})">수정</button>

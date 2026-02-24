@@ -139,6 +139,13 @@
         margin-bottom: 10px;
     }
 
+    .restore-sup {
+        font-size: 0.6em;
+        font-weight: 400;
+        color: #bbb;
+        margin-left: 2px;
+    }
+
     .q-content {
         font-weight: bold;
         margin-bottom: 10px;
@@ -454,6 +461,7 @@
                 <div class="q-content">
                     {{ forloop.counter }}. {{ q.text }}
                     {% if is_wrong_retry or is_notes_study %}<span class="q-badge" style="float:none; margin-left:8px; vertical-align:2px; font-size:0.75em; {% if is_notes_study %}background:#fff3e0; color:#e65100;{% endif %}">{{ q.year }}년 {{ q.number }}번</span>{% endif %}
+                    {% if from_tab == 'latest' and q.created_by_name %}<sup class="restore-sup">복원:{{ q.created_by_name }}</sup>{% endif %}
                 </div>
             </div>
 
