@@ -493,6 +493,7 @@ def gisa_latest_create(request, cert_id):
         choice_4=request.POST.get("choice_4", "") or "-",
         answer=request.POST.get("answer", "0"),
         explanation=request.POST.get("explanation", ""),
+        created_by_name=request.user.get_full_name() or request.user.username,
     )
 
     return redirect(f"{reverse('gisa:certification_detail', args=[cert_id])}?tab=latest&last_year={year}&last_round={round_num}")
@@ -608,6 +609,7 @@ def gisa_latest_clone(request, cert_id):
         choice_2_exp=source.choice_2_exp,
         choice_3_exp=source.choice_3_exp,
         choice_4_exp=source.choice_4_exp,
+        created_by_name=request.user.get_full_name() or request.user.username,
     )
 
     return redirect(

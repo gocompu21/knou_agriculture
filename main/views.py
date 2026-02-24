@@ -11,7 +11,7 @@ import markdown
 import re
 
 from django.conf import settings
-from django.db.models import Count, F, Max, Min, Q, Sum
+from django.db.models import Case, Count, F, IntegerField, Max, Min, Q, Sum, Value, When
 from django.db.models.functions import TruncDate
 
 from django.contrib.auth.models import User
@@ -539,24 +539,66 @@ def api_existing_questions(request, pk, year):
 
 @login_required
 def api_search_questions(request, pk):
-    """해당 과목의 전체 문제에서 키워드 검색"""
+    """해당 과목의 전체 문제에서 유사 검색 (문장 → 단어 분리 → 매칭 수 정렬)"""
     subject = get_object_or_404(Subject, pk=pk)
     keyword = request.GET.get("q", "").strip()
     if not keyword or len(keyword) < 2:
-        return JsonResponse({"questions": [], "error": "2글자 이상 입력하세요."})
-    questions = list(
-        Question.objects.filter(subject=subject)
-        .filter(
-            Q(text__icontains=keyword)
-            | Q(choice_1__icontains=keyword)
-            | Q(choice_2__icontains=keyword)
-            | Q(choice_3__icontains=keyword)
-            | Q(choice_4__icontains=keyword)
+        return JsonResponse({"questions": [], "keywords": [], "error": "2글자 이상 입력하세요."})
+
+    # 불용어 제거 + 2글자 이상 단어만
+    stopwords = {"은", "는", "이", "가", "을", "를", "의", "에", "로", "와", "과", "한", "할", "하는", "된", "인", "것은", "대한", "중", "수", "등", "및", "또는", "있는", "없는", "아닌", "않은", "대해", "통해", "위한", "것이", "하여", "에서", "으로", "부터", "까지", "에게", "처럼", "같은", "보다", "만큼"}
+    raw_words = re.split(r"[,\s?!.()\-–—·:;/]+", keyword)
+    words = [w for w in raw_words if len(w) >= 2 and w not in stopwords]
+
+    if not words:
+        return JsonResponse({"questions": [], "keywords": [], "error": "검색 가능한 키워드가 없습니다."})
+
+    # 단어별 OR 조건
+    combined_q = Q()
+    for w in words:
+        combined_q |= (
+            Q(text__icontains=w)
+            | Q(choice_1__icontains=w)
+            | Q(choice_2__icontains=w)
+            | Q(choice_3__icontains=w)
+            | Q(choice_4__icontains=w)
         )
-        .order_by("-year", "number")
-        .values("id", "year", "number", "text", "choice_1", "choice_2", "choice_3", "choice_4", "answer")[:50]
+
+    # DB 레벨에서 매칭 단어 수 집계 → 상위 50개
+    match_annotation = Value(0, output_field=IntegerField())
+    for w in words:
+        word_q = (
+            Q(text__icontains=w)
+            | Q(choice_1__icontains=w)
+            | Q(choice_2__icontains=w)
+            | Q(choice_3__icontains=w)
+            | Q(choice_4__icontains=w)
+        )
+        match_annotation = match_annotation + Case(
+            When(word_q, then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField(),
+        )
+
+    qs = (
+        Question.objects.filter(subject=subject)
+        .filter(combined_q)
+        .annotate(match_count=match_annotation)
+        .order_by("-match_count", "-year", "number")[:50]
     )
-    return JsonResponse({"questions": questions, "keyword": keyword})
+
+    return JsonResponse({
+        "questions": [
+            {
+                "id": q.pk, "year": q.year, "number": q.number,
+                "text": q.text, "choice_1": q.choice_1, "choice_2": q.choice_2,
+                "choice_3": q.choice_3, "choice_4": q.choice_4, "answer": q.answer,
+                "match_count": q.match_count,
+            }
+            for q in qs
+        ],
+        "keywords": words,
+    })
 
 
 class ParsedQuestion(BaseModel):
@@ -892,7 +934,52 @@ def member_manage(request):
             else:
                 m.usage_display = f"{minutes}분"
 
-    return render(request, "main/member_manage.html", {"members": members})
+    # ── 복원통계: 최신기출 등록자별 집계 ──
+    # 방송대 기출 (year >= 2020)
+    exam_stats = (
+        Question.objects.filter(year__gte=2020)
+        .exclude(created_by_name="")
+        .values("created_by_name", "subject__name")
+        .annotate(cnt=Count("pk"))
+        .order_by("created_by_name", "subject__name")
+    )
+    # 기사시험 최신기출
+    gisa_stats = (
+        GisaQuestion.objects.filter(exam__exam_type="최신")
+        .exclude(created_by_name="")
+        .values("created_by_name", "subject__name")
+        .annotate(cnt=Count("pk"))
+        .order_by("created_by_name", "subject__name")
+    )
+
+    # 등록자별 { name: { subjects: [{name, count}], total } }
+    restore_map = {}
+    for row in list(exam_stats) + list(gisa_stats):
+        name = row["created_by_name"]
+        entry = restore_map.setdefault(name, {"subjects": {}, "total": 0})
+        subj = row["subject__name"]
+        entry["subjects"][subj] = entry["subjects"].get(subj, 0) + row["cnt"]
+        entry["total"] += row["cnt"]
+
+    restore_stats = sorted(
+        [
+            {
+                "name": name,
+                "total": info["total"],
+                "subjects": sorted(
+                    [{"name": s, "count": c} for s, c in info["subjects"].items()],
+                    key=lambda x: -x["count"],
+                ),
+            }
+            for name, info in restore_map.items()
+        ],
+        key=lambda x: -x["total"],
+    )
+
+    return render(request, "main/member_manage.html", {
+        "members": members,
+        "restore_stats": restore_stats,
+    })
 
 
 @login_required

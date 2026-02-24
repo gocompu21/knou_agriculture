@@ -110,6 +110,93 @@
     }
     .td-time .dash { color: #ccc; }
 
+    /* ── 복원통계 ── */
+    .restore-section {
+        margin-top: 40px;
+    }
+
+    .restore-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .restore-header h2 {
+        font-size: 1.2rem;
+        color: var(--forest);
+        margin: 0;
+    }
+
+    .restore-total {
+        font-size: 0.85rem;
+        color: #888;
+        font-weight: 600;
+    }
+
+    .restore-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 14px;
+    }
+
+    .restore-card {
+        background: #fff;
+        border-radius: 14px;
+        padding: 16px 18px;
+        box-shadow: 0 2px 12px rgba(30, 70, 42, 0.07);
+        border: 1px solid #eef3ee;
+    }
+
+    .restore-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .restore-name {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #1b4332;
+    }
+
+    .restore-count {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--forest);
+        background: #e8f5df;
+        padding: 3px 10px;
+        border-radius: 10px;
+    }
+
+    .restore-subjects {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .restore-subj {
+        font-size: 0.78rem;
+        padding: 3px 9px;
+        border-radius: 8px;
+        background: #f6faf3;
+        color: #555;
+        font-weight: 600;
+    }
+
+    .restore-subj .s-cnt {
+        color: var(--forest);
+        font-weight: 700;
+        margin-left: 3px;
+    }
+
+    @media (max-width: 720px) {
+        .restore-cards {
+            grid-template-columns: 1fr;
+        }
+    }
+
     .toggle-btn {
         display: inline-flex;
         align-items: center;
@@ -359,6 +446,30 @@
         </div>
         {% endfor %}
     </div>
+
+    {% if restore_stats %}
+    <div class="restore-section">
+        <div class="restore-header">
+            <h2>복원통계</h2>
+            <span class="restore-total">{% for s in restore_stats %}{% if forloop.first %}총 {% endif %}{% endfor %}{{ restore_stats|length }}명 참여</span>
+        </div>
+        <div class="restore-cards">
+            {% for person in restore_stats %}
+            <div class="restore-card">
+                <div class="restore-card-top">
+                    <span class="restore-name">{{ person.name }}</span>
+                    <span class="restore-count">{{ person.total }}문항</span>
+                </div>
+                <div class="restore-subjects">
+                    {% for subj in person.subjects %}
+                    <span class="restore-subj">{{ subj.name }}<span class="s-cnt">{{ subj.count }}</span></span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
 

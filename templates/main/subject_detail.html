@@ -1943,12 +1943,12 @@
                 }
                 headerDiv.textContent = '검색 결과: ' + data.questions.length + '건' +
                     (data.questions.length >= 50 ? ' (최대 50건 표시)' : '');
-                renderSearchResults(data.questions, data.keyword);
+                renderSearchResults(data.questions, data.keywords || [data.keyword]);
             })
             .catch(function () { headerDiv.textContent = '검색 중 오류가 발생했습니다.'; });
     }
 
-    function renderSearchResults(questions, keyword) {
+    function renderSearchResults(questions, keywords) {
         var listDiv = document.getElementById('search-results-list');
         listDiv.innerHTML = '';
         var labels = ['\u2460', '\u2461', '\u2462', '\u2463'];
@@ -1961,12 +1961,13 @@
             var header = document.createElement('div');
             header.className = 'search-result-header';
             header.innerHTML = '<span class="search-year-badge">' + q.year + '년 ' + q.number + '번</span>' +
+                (q.match_count ? '<span style="color:#888;font-size:0.8em;margin-left:6px;">' + q.match_count + '개 일치</span>' : '') +
                 '<button type="button" class="search-register-btn" onclick="registerFromSearch(' + q.id + ')">등록</button>';
             card.appendChild(header);
             // text
             var textDiv = document.createElement('div');
             textDiv.className = 'search-q-text';
-            textDiv.innerHTML = highlightKeyword(q.text, keyword);
+            textDiv.innerHTML = highlightKws(q.text, keywords);
             card.appendChild(textDiv);
             // choices
             for (var i = 0; i < 4; i++) {
@@ -1974,7 +1975,7 @@
                     var isCorrect = answerNums.indexOf(String(i + 1)) >= 0;
                     var ch = document.createElement('div');
                     ch.className = 'search-choice' + (isCorrect ? ' correct' : '');
-                    ch.innerHTML = labels[i] + ' ' + highlightKeyword(q[fields[i]], keyword);
+                    ch.innerHTML = labels[i] + ' ' + highlightKws(q[fields[i]], keywords);
                     card.appendChild(ch);
                 }
             }
@@ -1988,10 +1989,11 @@
         });
     }
 
-    function highlightKeyword(text, keyword) {
-        if (!keyword || !text) return text || '';
-        var escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        return text.replace(new RegExp('(' + escaped + ')', 'gi'), '<mark class="search-highlight">$1</mark>');
+    function highlightKws(text, keywords) {
+        if (!keywords || !keywords.length || !text) return text || '';
+        var escaped = keywords.map(function (w) { return w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
+        var re = new RegExp('(' + escaped.join('|') + ')', 'gi');
+        return text.replace(re, '<mark class="search-highlight">$1</mark>');
     }
 
     function registerFromSearch(questionId) {
