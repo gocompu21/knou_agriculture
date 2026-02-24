@@ -110,10 +110,39 @@
     }
     .td-time .dash { color: #ccc; }
 
-    /* ── 복원통계 ── */
-    .restore-section {
-        margin-top: 40px;
+    /* ── 서브탭 ── */
+    .sub-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
     }
+
+    .sub-tab {
+        padding: 7px 18px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: #eef3ee;
+        color: #6b8a72;
+    }
+
+    .sub-tab.active {
+        background: var(--forest);
+        color: #fff;
+    }
+
+    .sub-tab:not(.active):hover {
+        background: #d4ebc8;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── 복원통계 ── */
+    .restore-section {}
 
     .restore-header {
         display: flex;
@@ -354,6 +383,14 @@
         <span class="member-count">{{ members|length }}명</span>
     </div>
 
+    <div class="sub-tabs">
+        <button class="sub-tab active" onclick="switchTab('members')">회원목록</button>
+        <button class="sub-tab" onclick="switchTab('restore')">복원통계</button>
+    </div>
+
+    <!-- ═══ 회원목록 탭 ═══ -->
+    <div class="tab-panel active" id="tab-members">
+
     <!-- 데스크톱 테이블 -->
     <table class="member-table">
         <thead>
@@ -447,11 +484,15 @@
         {% endfor %}
     </div>
 
+    </div><!-- /tab-members -->
+
+    <!-- ═══ 복원통계 탭 ═══ -->
+    <div class="tab-panel" id="tab-restore">
     {% if restore_stats %}
     <div class="restore-section">
         <div class="restore-header">
             <h2>복원통계</h2>
-            <span class="restore-total">{% for s in restore_stats %}{% if forloop.first %}총 {% endif %}{% endfor %}{{ restore_stats|length }}명 참여</span>
+            <span class="restore-total">{{ restore_stats|length }}명 참여</span>
         </div>
         <div class="restore-cards">
             {% for person in restore_stats %}
@@ -469,12 +510,23 @@
             {% endfor %}
         </div>
     </div>
+    {% else %}
+    <p style="color:#888; text-align:center; padding:40px 0;">등록된 복원 데이터가 없습니다.</p>
     {% endif %}
+    </div><!-- /tab-restore -->
+
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+function switchTab(tab) {
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelectorAll('.sub-tab').forEach(function(b) { b.classList.remove('active'); });
+    document.getElementById('tab-' + tab).classList.add('active');
+    event.target.classList.add('active');
+}
+
 function toggleMember(btn) {
     var pk = btn.dataset.pk;
     var field = btn.dataset.field;
