@@ -20,7 +20,7 @@ from pydantic import BaseModel, Field
 
 from accounts.models import LoginLog
 from exam.models import Attempt, Question, StudyNote
-from gisa.models import GisaAttempt
+from gisa.models import GisaAttempt, GisaQuestion
 from .forms import SubjectForm
 from .models import FavoriteSubject, Subject
 
