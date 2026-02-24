@@ -154,7 +154,7 @@
                 <th>이름</th>
                 <th>과목</th>
                 <th style="text-align:center;">문항수</th>
-                <th>최근 등록일</th>
+                <th>등록일</th>
             </tr>
         </thead>
         <tbody>
@@ -163,7 +163,7 @@
                 <td class="td-name">{{ r.name }}</td>
                 <td>{{ r.subject }}</td>
                 <td class="td-count">{{ r.count }}</td>
-                <td class="td-date">{% if r.last_date %}{{ r.last_date|date:"Y.m.d" }}{% else %}-{% endif %}</td>
+                <td class="td-date">{% if r.reg_date %}{{ r.reg_date|date:"Y.m.d" }}{% else %}-{% endif %}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -179,7 +179,7 @@
             </div>
             <div class="r-card-right">
                 <div class="r-card-count">{{ r.count }}문항</div>
-                <div class="r-card-date">{% if r.last_date %}{{ r.last_date|date:"Y.m.d" }}{% else %}-{% endif %}</div>
+                <div class="r-card-date">{% if r.reg_date %}{{ r.reg_date|date:"Y.m.d" }}{% else %}-{% endif %}</div>
             </div>
         </div>
         {% endfor %}
