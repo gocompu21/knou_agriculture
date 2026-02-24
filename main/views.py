@@ -943,14 +943,12 @@ def restore_stats(request):
     """복원통계: 최신기출 등록자별 과목/문항수/등록일"""
     exam_stats = (
         Question.objects.filter(year__gte=2020)
-        .exclude(created_by_name="")
         .values("created_by_name", "subject__name")
         .annotate(cnt=Count("pk"), last_date=Max("created_at"))
         .order_by("created_by_name", "subject__name")
     )
     gisa_stats = (
         GisaQuestion.objects.filter(exam__exam_type="최신")
-        .exclude(created_by_name="")
         .values("created_by_name", "subject__name", "exam__certification__name")
         .annotate(cnt=Count("pk"), last_date=Max("created_at"))
         .order_by("created_by_name", "subject__name")
@@ -959,7 +957,7 @@ def restore_stats(request):
     restore_rows = []
     for row in exam_stats:
         restore_rows.append({
-            "name": row["created_by_name"],
+            "name": row["created_by_name"] or "미확인",
             "subject": row["subject__name"],
             "count": row["cnt"],
             "last_date": row["last_date"],
@@ -967,7 +965,7 @@ def restore_stats(request):
     for row in gisa_stats:
         cert_name = row["exam__certification__name"]
         restore_rows.append({
-            "name": row["created_by_name"],
+            "name": row["created_by_name"] or "미확인",
             "subject": f"[{cert_name}] {row['subject__name']}",
             "count": row["cnt"],
             "last_date": row["last_date"],
