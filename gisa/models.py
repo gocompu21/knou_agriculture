@@ -84,6 +84,7 @@ class GisaQuestion(models.Model):
     choice_3_exp = models.TextField('보기③ 해설', blank=True)
     choice_4_exp = models.TextField('보기④ 해설', blank=True)
     created_by_name = models.CharField('등록자', max_length=50, blank=True)
+    created_at = models.DateTimeField('등록일', auto_now_add=True, null=True)
 
     class Meta:
         verbose_name = '기출문제'

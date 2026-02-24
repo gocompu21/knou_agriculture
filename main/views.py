@@ -934,51 +934,39 @@ def member_manage(request):
             else:
                 m.usage_display = f"{minutes}분"
 
-    # ── 복원통계: 최신기출 등록자별 집계 ──
-    # 방송대 기출 (year >= 2020)
+    # ── 복원통계: 등록자 + 과목 + 문항수 + 최근등록일 ──
     exam_stats = (
         Question.objects.filter(year__gte=2020)
         .exclude(created_by_name="")
         .values("created_by_name", "subject__name")
-        .annotate(cnt=Count("pk"))
+        .annotate(cnt=Count("pk"), last_date=Max("created_at"))
         .order_by("created_by_name", "subject__name")
     )
-    # 기사시험 최신기출
     gisa_stats = (
         GisaQuestion.objects.filter(exam__exam_type="최신")
         .exclude(created_by_name="")
         .values("created_by_name", "subject__name")
-        .annotate(cnt=Count("pk"))
+        .annotate(cnt=Count("pk"), last_date=Max("created_at"))
         .order_by("created_by_name", "subject__name")
     )
 
-    # 등록자별 { name: { subjects: [{name, count}], total } }
-    restore_map = {}
+    restore_rows = []
     for row in list(exam_stats) + list(gisa_stats):
-        name = row["created_by_name"]
-        entry = restore_map.setdefault(name, {"subjects": {}, "total": 0})
-        subj = row["subject__name"]
-        entry["subjects"][subj] = entry["subjects"].get(subj, 0) + row["cnt"]
-        entry["total"] += row["cnt"]
+        restore_rows.append({
+            "name": row["created_by_name"],
+            "subject": row["subject__name"],
+            "count": row["cnt"],
+            "last_date": row["last_date"],
+        })
+    restore_rows.sort(key=lambda x: (x["name"], x["subject"]))
 
-    restore_stats = sorted(
-        [
-            {
-                "name": name,
-                "total": info["total"],
-                "subjects": sorted(
-                    [{"name": s, "count": c} for s, c in info["subjects"].items()],
-                    key=lambda x: -x["count"],
-                ),
-            }
-            for name, info in restore_map.items()
-        ],
-        key=lambda x: -x["total"],
-    )
+    # 전체 합계
+    restore_total = sum(r["count"] for r in restore_rows)
 
     return render(request, "main/member_manage.html", {
         "members": members,
-        "restore_stats": restore_stats,
+        "restore_rows": restore_rows,
+        "restore_total": restore_total,
     })
 
 

@@ -142,87 +142,100 @@
     .tab-panel.active { display: block; }
 
     /* ── 복원통계 ── */
-    .restore-section {}
+    .restore-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: #fff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(30, 70, 42, 0.07);
+    }
 
-    .restore-header {
+    .restore-table thead { background: #f6faf3; }
+
+    .restore-table th {
+        padding: 12px 14px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-align: left;
+        color: #6b8a72;
+        border-bottom: 2px solid #e0ece0;
+        white-space: nowrap;
+    }
+
+    .restore-table td {
+        padding: 11px 14px;
+        font-size: 0.85rem;
+        border-bottom: 1px solid #f2f5f2;
+        color: #333;
+    }
+
+    .restore-table tbody tr:hover { background: #fafdf8; }
+    .restore-table tbody tr:last-child td { border-bottom: none; }
+
+    .restore-table .td-name { font-weight: 600; color: #1b4332; }
+    .restore-table .td-count { font-weight: 700; color: var(--forest); text-align: center; }
+    .restore-table .td-date { color: #888; font-size: 0.8rem; white-space: nowrap; }
+
+    .restore-summary {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-    }
-
-    .restore-header h2 {
-        font-size: 1.2rem;
-        color: var(--forest);
-        margin: 0;
-    }
-
-    .restore-total {
+        justify-content: flex-end;
+        margin-top: 10px;
         font-size: 0.85rem;
         color: #888;
         font-weight: 600;
     }
 
-    .restore-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 14px;
-    }
-
-    .restore-card {
-        background: #fff;
-        border-radius: 14px;
-        padding: 16px 18px;
-        box-shadow: 0 2px 12px rgba(30, 70, 42, 0.07);
-        border: 1px solid #eef3ee;
-    }
-
-    .restore-card-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-    }
-
-    .restore-name {
-        font-size: 1rem;
-        font-weight: 800;
-        color: #1b4332;
-    }
-
-    .restore-count {
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: var(--forest);
-        background: #e8f5df;
-        padding: 3px 10px;
-        border-radius: 10px;
-    }
-
-    .restore-subjects {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-    }
-
-    .restore-subj {
-        font-size: 0.78rem;
-        padding: 3px 9px;
-        border-radius: 8px;
-        background: #f6faf3;
-        color: #555;
-        font-weight: 600;
-    }
-
-    .restore-subj .s-cnt {
-        color: var(--forest);
-        font-weight: 700;
-        margin-left: 3px;
-    }
+    /* 모바일 복원통계 카드 */
+    .restore-cards { display: none; }
 
     @media (max-width: 720px) {
-        .restore-cards {
-            grid-template-columns: 1fr;
+        .restore-table { display: none; }
+        .restore-cards { display: block; }
+
+        .r-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 6px rgba(30,70,42,0.06);
+            border: 1px solid #eef3ee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .r-card-left {
+            flex: 1;
+        }
+
+        .r-card-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1b4332;
+        }
+
+        .r-card-subj {
+            font-size: 0.78rem;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .r-card-right {
+            text-align: right;
+        }
+
+        .r-card-count {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--forest);
+        }
+
+        .r-card-date {
+            font-size: 0.72rem;
+            color: #aaa;
+            margin-top: 2px;
         }
     }
 
@@ -488,28 +501,48 @@
 
     <!-- ═══ 복원통계 탭 ═══ -->
     <div class="tab-panel" id="tab-restore">
-    {% if restore_stats %}
-    <div class="restore-section">
-        <div class="restore-header">
-            <h2>복원통계</h2>
-            <span class="restore-total">{{ restore_stats|length }}명 참여</span>
-        </div>
-        <div class="restore-cards">
-            {% for person in restore_stats %}
-            <div class="restore-card">
-                <div class="restore-card-top">
-                    <span class="restore-name">{{ person.name }}</span>
-                    <span class="restore-count">{{ person.total }}문항</span>
-                </div>
-                <div class="restore-subjects">
-                    {% for subj in person.subjects %}
-                    <span class="restore-subj">{{ subj.name }}<span class="s-cnt">{{ subj.count }}</span></span>
-                    {% endfor %}
-                </div>
-            </div>
+    {% if restore_rows %}
+
+    <!-- 데스크톱 테이블 -->
+    <table class="restore-table">
+        <thead>
+            <tr>
+                <th>이름</th>
+                <th>과목</th>
+                <th style="text-align:center;">문항수</th>
+                <th>최근 등록일</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in restore_rows %}
+            <tr>
+                <td class="td-name">{{ r.name }}</td>
+                <td>{{ r.subject }}</td>
+                <td class="td-count">{{ r.count }}</td>
+                <td class="td-date">{% if r.last_date %}{{ r.last_date|date:"Y.m.d" }}{% else %}-{% endif %}</td>
+            </tr>
             {% endfor %}
+        </tbody>
+    </table>
+    <div class="restore-summary">총 {{ restore_total }}문항</div>
+
+    <!-- 모바일 카드 -->
+    <div class="restore-cards">
+        {% for r in restore_rows %}
+        <div class="r-card">
+            <div class="r-card-left">
+                <div class="r-card-name">{{ r.name }}</div>
+                <div class="r-card-subj">{{ r.subject }}</div>
+            </div>
+            <div class="r-card-right">
+                <div class="r-card-count">{{ r.count }}문항</div>
+                <div class="r-card-date">{% if r.last_date %}{{ r.last_date|date:"Y.m.d" }}{% else %}-{% endif %}</div>
+            </div>
         </div>
+        {% endfor %}
+        <div class="restore-summary">총 {{ restore_total }}문항</div>
     </div>
+
     {% else %}
     <p style="color:#888; text-align:center; padding:40px 0;">등록된 복원 데이터가 없습니다.</p>
     {% endif %}
