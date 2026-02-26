@@ -62,6 +62,7 @@
     .btn-register { padding: 5px 14px; background: #3949ab; color: #fff; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; margin-top: 6px; }
     .btn-register:hover { background: #283593; }
     .btn-registered { background: #aaa; cursor: default; }
+    .kw-hl { background: #fff176; color: #000; padding: 0 2px; border-radius: 2px; }
 
     @media (max-width: 768px) {
         .manage-wrap { flex-direction: column; }
@@ -102,6 +103,7 @@
 
         <textarea class="paste-area" id="pasteArea" placeholder="문제 텍스트를 붙여넣으세요..."></textarea>
         <button class="btn-parse" onclick="parseQuestions()">파싱하기</button>
+        <button class="btn-parse" style="background:#78909c;" onclick="resetAll()">초기화</button>
 
         <div class="parsed-list" id="parsedList"></div>
     </div>
@@ -147,6 +149,13 @@ const CSRF = '{{ csrf_token }}';
         document.getElementById('selCert').dispatchEvent(new Event('change'));
     }
 })();
+
+function resetAll() {
+    _parsed = [];
+    document.getElementById('pasteArea').value = '';
+    document.getElementById('parsedList').innerHTML = '';
+    clearSearchPanel();
+}
 
 // ── 파싱 ──
 let _parsed = [];
@@ -234,6 +243,13 @@ function esc(s) {
     const d = document.createElement('div');
     d.textContent = s;
     return d.innerHTML;
+}
+
+function highlight(text, keywords) {
+    if (!keywords || !keywords.length) return text;
+    const escaped = keywords.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const re = new RegExp('(' + escaped.join('|') + ')', 'gi');
+    return text.replace(re, '<span class="kw-hl">$1</span>');
 }
 
 // ── 명사 추출 + 태그 선택 ──
@@ -363,12 +379,12 @@ function renderSearchResults(questions, parsedIdx, keywords) {
                 <span class="sr-badge">${esc(q.cert_name)}</span>
                 <span class="sr-badge" style="background:#37474f">${q.year}-${q.round}회</span>
                 <span class="sr-badge" style="background:#5c6bc0">${esc(q.subject)}</span>
-                <div class="sr-text">${q.number}. ${esc(q.text)}</div>
+                <div class="sr-text">${q.number}. ${highlight(esc(q.text), keywords)}</div>
                 <div class="sr-choices">
-                    <div>1) ${esc(q.choice_1)}</div>
-                    <div>2) ${esc(q.choice_2)}</div>
-                    <div>3) ${esc(q.choice_3)}</div>
-                    <div>4) ${esc(q.choice_4)}</div>
+                    <div>1) ${highlight(esc(q.choice_1), keywords)}</div>
+                    <div>2) ${highlight(esc(q.choice_2), keywords)}</div>
+                    <div>3) ${highlight(esc(q.choice_3), keywords)}</div>
+                    <div>4) ${highlight(esc(q.choice_4), keywords)}</div>
                 </div>
                 <div class="sr-answer">정답: ${q.answer}</div>
                 ${q.explanation ? `<div class="sr-exp">${esc(q.explanation)}</div>` : ''}
