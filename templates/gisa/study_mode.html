@@ -290,6 +290,13 @@
         }
 
     }
+
+    .q-image-wrap { margin: 8px 0; }
+    .q-image { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; }
+    .choice-image { display: block; max-width: 240px; margin: 4px 0; border: 1px solid #ddd; border-radius: 4px; }
+    @media (max-width: 480px) {
+        .choice-image { max-width: 100%; }
+    }
 </style>
 {% endblock %}
 
@@ -330,25 +337,26 @@
             <div class="q-header">
                 <div class="q-content">
                     {{ forloop.counter }}. {{ q.text }}
+                    {% if q.text_image %}<div class="q-image-wrap"><img src="{{ q.text_image.url }}" class="q-image"></div>{% endif %}
                     {% if is_wrong_retry or is_textbook_study %}<span class="q-badge"
                         style="float:none; margin-left:8px; vertical-align:2px; font-size:0.75em;">{{ q.exam.year }}-{{ q.exam.round }}-{{ q.number }}</span>{% endif %}
                 </div>
             </div>
             <div class="q-choices" data-question-id="{{ q.id }}" data-answer="{{ q.answer }}">
                 <div class="choice-item" onclick="selectChoice(this, 1)">
-                    <span class="choice-num" data-choice="1">1</span> {{ q.choice_1 }}
+                    <span class="choice-num" data-choice="1">1</span> {{ q.choice_1 }}{% if q.choice_1_image %}<img src="{{ q.choice_1_image.url }}" class="choice-image">{% endif %}
                     {% if q.choice_1_exp %}<div class="choice-exp{% if '1' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_1_exp }}</span></div>{% endif %}
                 </div>
                 <div class="choice-item" onclick="selectChoice(this, 2)">
-                    <span class="choice-num" data-choice="2">2</span> {{ q.choice_2 }}
+                    <span class="choice-num" data-choice="2">2</span> {{ q.choice_2 }}{% if q.choice_2_image %}<img src="{{ q.choice_2_image.url }}" class="choice-image">{% endif %}
                     {% if q.choice_2_exp %}<div class="choice-exp{% if '2' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_2_exp }}</span></div>{% endif %}
                 </div>
                 <div class="choice-item" onclick="selectChoice(this, 3)">
-                    <span class="choice-num" data-choice="3">3</span> {{ q.choice_3 }}
+                    <span class="choice-num" data-choice="3">3</span> {{ q.choice_3 }}{% if q.choice_3_image %}<img src="{{ q.choice_3_image.url }}" class="choice-image">{% endif %}
                     {% if q.choice_3_exp %}<div class="choice-exp{% if '3' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_3_exp }}</span></div>{% endif %}
                 </div>
                 <div class="choice-item" onclick="selectChoice(this, 4)">
-                    <span class="choice-num" data-choice="4">4</span> {{ q.choice_4 }}
+                    <span class="choice-num" data-choice="4">4</span> {{ q.choice_4 }}{% if q.choice_4_image %}<img src="{{ q.choice_4_image.url }}" class="choice-image">{% endif %}
                     {% if q.choice_4_exp %}<div class="choice-exp{% if '4' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_4_exp }}</span></div>{% endif %}
                 </div>
             </div>

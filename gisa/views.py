@@ -3,7 +3,7 @@ import re
 import uuid
 
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Case, Count, IntegerField, Max, Min, Q, Value, When
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -264,12 +264,12 @@ def build_results(attempts):
         q = a.question
         correct_answers = q.answer.split(",")
         choices = []
-        for i, (text, exp) in enumerate(
+        for i, (text, exp, img) in enumerate(
             [
-                (q.choice_1, q.choice_1_exp),
-                (q.choice_2, q.choice_2_exp),
-                (q.choice_3, q.choice_3_exp),
-                (q.choice_4, q.choice_4_exp),
+                (q.choice_1, q.choice_1_exp, q.choice_1_image),
+                (q.choice_2, q.choice_2_exp, q.choice_2_image),
+                (q.choice_3, q.choice_3_exp, q.choice_3_image),
+                (q.choice_4, q.choice_4_exp, q.choice_4_image),
             ],
             start=1,
         ):
@@ -278,6 +278,7 @@ def build_results(attempts):
                     "num": i,
                     "text": text,
                     "exp": exp,
+                    "image": img,
                     "is_correct": str(i) in correct_answers,
                     "is_selected": str(i) == a.selected,
                     "user_correct": str(i) == a.selected and str(i) in correct_answers,
@@ -1422,3 +1423,239 @@ def textbook_study(request, cert_id):
             "section_id": section_id,
         },
     )
+
+
+## ══════════ 기사문제 관리 ══════════ ##
+
+
+def _gisa_staff_required(user):
+    return user.is_active and user.is_staff
+
+
+@login_required
+@user_passes_test(_gisa_staff_required)
+def gisa_question_manage(request):
+    import json as _json
+
+    certs = Certification.objects.all().order_by("name")
+    # 자격증별 과목 목록 JSON
+    subjects_map = {}
+    for s in GisaSubject.objects.select_related("certification").order_by("order"):
+        subjects_map.setdefault(s.certification_id, []).append(
+            {"id": s.pk, "name": s.name}
+        )
+
+    return render(
+        request,
+        "gisa/gisa_question_manage.html",
+        {
+            "certs": certs,
+            "subjects_json": _json.dumps(subjects_map, ensure_ascii=False),
+        },
+    )
+
+
+@login_required
+@user_passes_test(_gisa_staff_required)
+@require_POST
+def manage_nouns(request):
+    """문제 텍스트에서 명사 추출 (kiwipiepy)"""
+    import json as _json
+
+    try:
+        data = _json.loads(request.body)
+    except _json.JSONDecodeError:
+        return JsonResponse({"nouns": []})
+
+    text = data.get("text", "").strip()
+    if not text:
+        return JsonResponse({"nouns": []})
+
+    from kiwipiepy import Kiwi
+    kiwi = Kiwi()
+    tokens = kiwi.tokenize(text)
+    # NN*: 일반명사(NNG), 고유명사(NNP), 의존명사(NNB) 등
+    seen = set()
+    nouns = []
+    for t in tokens:
+        if t.tag.startswith("NN") and len(t.form) >= 2 and t.form not in seen:
+            seen.add(t.form)
+            nouns.append(t.form)
+
+    return JsonResponse({"nouns": nouns})
+
+
+@login_required
+@user_passes_test(_gisa_staff_required)
+@require_POST
+def manage_search(request):
+    """문제 텍스트 검색 — 선택된 키워드 AND 검색 + 과목 필터"""
+    import json as _json
+
+    try:
+        data = _json.loads(request.body)
+    except _json.JSONDecodeError:
+        return JsonResponse({"ok": False, "error": "잘못된 요청"}, status=400)
+
+    words = data.get("keywords", [])
+    subject_id = data.get("subject_id")
+
+    if not words:
+        return JsonResponse({"questions": []})
+
+    # 과목 필터
+    qs = GisaQuestion.objects.all()
+    if subject_id:
+        qs = qs.filter(subject_id=subject_id)
+
+    # 키워드별 AND 조건 (각 키워드는 text OR choice 에 포함)
+    for w in words[:10]:
+        w = w.strip()
+        if len(w) < 2:
+            continue
+        qs = qs.filter(
+            Q(text__icontains=w)
+            | Q(choice_1__icontains=w)
+            | Q(choice_2__icontains=w)
+            | Q(choice_3__icontains=w)
+            | Q(choice_4__icontains=w)
+        )
+
+    # 매칭 단어 수로 정렬
+    match_annotation = Value(0, output_field=IntegerField())
+    for w in words[:10]:
+        w = w.strip()
+        if len(w) < 2:
+            continue
+        word_q = (
+            Q(text__icontains=w)
+            | Q(choice_1__icontains=w)
+            | Q(choice_2__icontains=w)
+            | Q(choice_3__icontains=w)
+            | Q(choice_4__icontains=w)
+        )
+        match_annotation = match_annotation + Case(
+            When(word_q, then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField(),
+        )
+
+    qs = (
+        qs.annotate(match_count=match_annotation)
+        .select_related("exam", "exam__certification", "subject")
+        .order_by("-match_count", "-exam__year", "-exam__round", "number")[:30]
+    )
+
+    return JsonResponse({
+        "questions": [
+            {
+                "id": q.pk,
+                "number": q.number,
+                "text": q.text,
+                "choice_1": q.choice_1,
+                "choice_2": q.choice_2,
+                "choice_3": q.choice_3,
+                "choice_4": q.choice_4,
+                "answer": q.answer,
+                "explanation": q.explanation or "",
+                "year": q.exam.year,
+                "round": q.exam.round,
+                "subject": q.subject.name,
+                "subject_id": q.subject_id,
+                "cert_name": q.exam.certification.name,
+                "match_count": q.match_count,
+            }
+            for q in qs
+        ],
+    })
+
+
+@login_required
+@user_passes_test(_gisa_staff_required)
+@require_POST
+def manage_register(request):
+    """문제 등록 — copy(기존 복사) 또는 new(직접 등록)"""
+    import json as _json
+
+    try:
+        data = _json.loads(request.body)
+    except _json.JSONDecodeError:
+        return JsonResponse({"ok": False, "error": "잘못된 요청"}, status=400)
+
+    mode = data.get("mode")
+    cert_id = data.get("cert_id")
+    year = data.get("year")
+    round_num = data.get("round")
+    subject_id = data.get("subject_id")
+    number = data.get("number")
+
+    if not all([cert_id, year, round_num, subject_id, number]):
+        return JsonResponse({"ok": False, "error": "필수 항목 누락"}, status=400)
+
+    cert = get_object_or_404(Certification, pk=cert_id)
+    subject = get_object_or_404(GisaSubject, pk=subject_id)
+    exam, _ = GisaExam.objects.get_or_create(
+        certification=cert, year=year, round=round_num, exam_type="최신",
+    )
+
+    # 중복 체크
+    if GisaQuestion.objects.filter(exam=exam, number=number).exists():
+        return JsonResponse({"ok": False, "error": f"{number}번 문제가 이미 존재합니다"}, status=409)
+
+    if mode == "copy":
+        source = get_object_or_404(GisaQuestion, pk=data.get("source_id"))
+        GisaQuestion.objects.create(
+            exam=exam, subject=subject, number=number,
+            text=source.text,
+            choice_1=source.choice_1, choice_2=source.choice_2,
+            choice_3=source.choice_3, choice_4=source.choice_4,
+            answer=source.answer, explanation=source.explanation,
+            choice_1_exp=source.choice_1_exp, choice_2_exp=source.choice_2_exp,
+            choice_3_exp=source.choice_3_exp, choice_4_exp=source.choice_4_exp,
+        )
+    elif mode == "new":
+        GisaQuestion.objects.create(
+            exam=exam, subject=subject, number=number,
+            text=data.get("text", ""),
+            choice_1=data.get("choice_1", ""),
+            choice_2=data.get("choice_2", ""),
+            choice_3=data.get("choice_3", ""),
+            choice_4=data.get("choice_4", ""),
+            answer=data.get("answer", "0"),
+        )
+    else:
+        return JsonResponse({"ok": False, "error": "mode는 copy 또는 new"}, status=400)
+
+    return JsonResponse({"ok": True})
+
+
+@login_required
+@user_passes_test(_gisa_staff_required)
+@require_POST
+def gisa_question_delete(request, pk):
+    question = get_object_or_404(GisaQuestion, pk=pk)
+    cert_id = question.exam.certification_id
+    exam_id = question.exam_id
+    question.delete()
+    return redirect(f"/gisa/manage/?cert={cert_id}&exam={exam_id}")
+
+
+@login_required
+@user_passes_test(_gisa_staff_required)
+@require_POST
+def gisa_question_update(request, pk):
+    import json
+    question = get_object_or_404(GisaQuestion, pk=pk)
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"ok": False, "error": "잘못된 요청"}, status=400)
+
+    question.text = data.get("text", question.text)
+    question.choice_1 = data.get("choice_1", question.choice_1)
+    question.choice_2 = data.get("choice_2", question.choice_2)
+    question.choice_3 = data.get("choice_3", question.choice_3)
+    question.choice_4 = data.get("choice_4", question.choice_4)
+    question.answer = data.get("answer", question.answer)
+    question.save()
+    return JsonResponse({"ok": True})

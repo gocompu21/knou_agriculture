@@ -288,6 +288,13 @@
             font-size: 1rem;
         }
     }
+
+    .q-image-wrap { margin: 8px 0; }
+    .q-image { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; }
+    .choice-image { display: block; max-width: 240px; margin: 4px 0; border: 1px solid #ddd; border-radius: 4px; }
+    @media (max-width: 480px) {
+        .choice-image { max-width: 100%; }
+    }
 </style>
 {% endblock %}
 
@@ -318,13 +325,14 @@
     <div class="wrong-question" id="wq-{{ r.question.id }}">
         <div class="wq-content">
             {{ forloop.counter }}. {{ r.question.text }}
+            {% if r.question.text_image %}<div class="q-image-wrap"><img src="{{ r.question.text_image.url }}" class="q-image"></div>{% endif %}
             <span class="wq-source">{{ r.question.subject.name }} {{ r.question.exam.year }}년 {{ r.question.exam.round }}회</span>
         </div>
         <div class="wq-choices">
             {% for c in r.choices %}
             <div class="wq-choice{% if c.is_selected %} user-selected{% endif %}{% if c.user_wrong %} user-wrong{% endif %}">
                 <span class="q-mark{% if c.is_correct %} correct-mark wrong-q-correct{% endif %}{% if c.user_wrong %} wrong-mark{% endif %}">{{ c.num }}</span>
-                <div class="wq-choice-text">{{ c.text }}{% if c.is_selected and not r.is_correct %}<span class="my-pick">← 내 답</span>{% endif %}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
+                <div class="wq-choice-text">{{ c.text }}{% if c.image %}<img src="{{ c.image.url }}" class="choice-image">{% endif %}{% if c.is_selected and not r.is_correct %}<span class="my-pick">← 내 답</span>{% endif %}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
             </div>
             {% endfor %}
         </div>

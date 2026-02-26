@@ -42,4 +42,11 @@ urlpatterns = [
     # 세션 관리
     path("<int:cert_id>/session/<str:session_id>/delete/", views.session_delete, name="session_delete"),
     path("<int:cert_id>/session/delete-all/", views.session_delete_all, name="session_delete_all"),
+    # 기사문제 관리
+    path("manage/", views.gisa_question_manage, name="gisa_question_manage"),
+    path("manage/api/nouns/", views.manage_nouns, name="manage_nouns"),
+    path("manage/api/search/", views.manage_search, name="manage_search"),
+    path("manage/api/register/", views.manage_register, name="manage_register"),
+    path("manage/question/<int:pk>/delete/", views.gisa_question_delete, name="gisa_question_delete"),
+    path("manage/question/<int:pk>/update/", views.gisa_question_update, name="gisa_question_update"),
 ]

@@ -572,6 +572,13 @@
         /* Desktop: hide mobile header */
         .mobile-header { display: none; }
         .mobile-actions { display: none; }
+
+        .q-image-wrap { margin: 8px 0; }
+        .q-image { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; }
+        .choice-image { display: block; max-width: 240px; margin: 4px 0; border: 1px solid #ddd; border-radius: 4px; }
+        @media (max-width: 480px) {
+            .choice-image { max-width: 100%; }
+        }
     </style>
 </head>
 
@@ -625,13 +632,14 @@
                 <div class="question-content {% if not r.is_correct %}wrong-text{% endif %}">
                     <span class="q-number{% if not is_wrong_retry %} {% if r.is_correct %}q-correct{% else %}q-wrong{% endif %}{% endif %}">{{ forloop.counter }}.</span>
                     <span>{{ r.question.text }}</span>
+                    {% if r.question.text_image %}<div class="q-image-wrap"><img src="{{ r.question.text_image.url }}" class="q-image"></div>{% endif %}
                 </div>
 
                 <div class="choices">
                     {% for c in r.choices %}
                     <div class="choice-item{% if c.is_selected %} user-selected{% endif %}{% if c.user_correct %} user-correct{% elif c.user_wrong %} user-wrong{% endif %}">
                         <span class="q-mark{% if c.is_correct %} correct-mark{% if not r.is_correct %} wrong-q-correct{% endif %}{% endif %}{% if c.user_wrong %} wrong-mark{% endif %}">{{ c.num }}</span>
-                        <div class="choice-text">{{ c.text }}{% if c.is_selected and not r.is_correct %}<span class="my-pick">← 내 답</span>{% endif %}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
+                        <div class="choice-text">{{ c.text }}{% if c.image %}<img src="{{ c.image.url }}" class="choice-image">{% endif %}{% if c.is_selected and not r.is_correct %}<span class="my-pick">← 내 답</span>{% endif %}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
                     </div>
                     {% endfor %}
                 </div>

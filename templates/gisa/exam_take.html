@@ -491,6 +491,13 @@
                 display: none;
             }
         }
+
+        .q-image-wrap { margin: 8px 0; }
+        .q-image { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; }
+        .choice-image { display: block; max-width: 240px; margin: 4px 0; border: 1px solid #ddd; border-radius: 4px; }
+        @media (max-width: 480px) {
+            .choice-image { max-width: 100%; }
+        }
     </style>
 </head>
 
@@ -539,19 +546,20 @@
                 <div class="question-content">
                     <span class="q-number">{{ forloop.counter }}.</span>
                     <span>{{ q.text }}</span>
+                    {% if q.text_image %}<div class="q-image-wrap"><img src="{{ q.text_image.url }}" class="q-image"></div>{% endif %}
                 </div>
                 <div class="choices">
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '1')">
-                        <span class="q-mark">1</span> {{ q.choice_1 }}
+                        <span class="q-mark">1</span> {{ q.choice_1 }}{% if q.choice_1_image %}<img src="{{ q.choice_1_image.url }}" class="choice-image">{% endif %}
                     </div>
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '2')">
-                        <span class="q-mark">2</span> {{ q.choice_2 }}
+                        <span class="q-mark">2</span> {{ q.choice_2 }}{% if q.choice_2_image %}<img src="{{ q.choice_2_image.url }}" class="choice-image">{% endif %}
                     </div>
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '3')">
-                        <span class="q-mark">3</span> {{ q.choice_3 }}
+                        <span class="q-mark">3</span> {{ q.choice_3 }}{% if q.choice_3_image %}<img src="{{ q.choice_3_image.url }}" class="choice-image">{% endif %}
                     </div>
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '4')">
-                        <span class="q-mark">4</span> {{ q.choice_4 }}
+                        <span class="q-mark">4</span> {{ q.choice_4 }}{% if q.choice_4_image %}<img src="{{ q.choice_4_image.url }}" class="choice-image">{% endif %}
                     </div>
                 </div>
             </div>

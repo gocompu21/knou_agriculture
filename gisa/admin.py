@@ -38,6 +38,10 @@ class GisaQuestionAdmin(admin.ModelAdmin):
         ('보기', {
             'fields': ('choice_1', 'choice_2', 'choice_3', 'choice_4'),
         }),
+        ('이미지', {
+            'fields': ('text_image', 'choice_1_image', 'choice_2_image', 'choice_3_image', 'choice_4_image'),
+            'classes': ('collapse',),
+        }),
         ('해설', {
             'fields': ('choice_1_exp', 'choice_2_exp', 'choice_3_exp', 'choice_4_exp', 'explanation'),
             'classes': ('collapse',),
