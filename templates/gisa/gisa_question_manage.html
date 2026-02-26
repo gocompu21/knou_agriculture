@@ -46,6 +46,7 @@
     .noun-tag:hover { background: #e8eaf6; }
     .noun-tag.selected { background: #3949ab; color: #fff; border-color: #3949ab; }
     .noun-loading { font-size: 0.78rem; color: #999; margin-top: 6px; }
+    .search-input { padding: 4px 8px; border: 1px solid #c5cae9; border-radius: 6px; font-size: 0.8rem; width: 120px; }
 
     /* 우측 검색결과 */
     .search-empty { color: #999; text-align: center; padding: 60px 20px; font-size: 0.9rem; }
@@ -291,7 +292,8 @@ function renderNounTags(idx) {
             ${q.nouns.map(n => `<span class="noun-tag selected" onclick="toggleNoun(this)">${esc(n)}</span>`).join('')}
         </div>
         <div class="pc-actions" style="margin-top:6px;">
-            <button class="btn-sm btn-go-search" onclick="doSearch(${idx})">선택 키워드로 검색</button>
+            <input type="text" class="search-input" id="sinput-${idx}" placeholder="직접 입력" onkeydown="if(event.key==='Enter')doSearch(${idx})">
+            <button class="btn-sm btn-go-search" onclick="doSearch(${idx})">검색</button>
             <button class="btn-sm btn-direct" onclick="directRegister(${idx})">직접등록</button>
         </div>
     `;
@@ -333,10 +335,18 @@ async function doSearch(idx) {
         }
     }
 
-    const selectedTags = nounsDiv.querySelectorAll('.noun-tag.selected');
-    const keywords = Array.from(selectedTags).map(t => t.textContent);
+    // 직접 입력란 우선, 없으면 선택된 태그
+    const sinput = document.getElementById('sinput-' + idx);
+    const manualText = sinput ? sinput.value.trim() : '';
+    let keywords;
+    if (manualText) {
+        keywords = manualText.split(/\s+/);
+    } else {
+        const selectedTags = nounsDiv.querySelectorAll('.noun-tag.selected');
+        keywords = Array.from(selectedTags).map(t => t.textContent);
+    }
 
-    if (!keywords.length) return alert('검색할 키워드를 선택하세요.');
+    if (!keywords.length) return alert('검색할 키워드를 선택하거나 입력하세요.');
 
     // 과목 필터
     const subjectId = document.getElementById('selSubject').value;
