@@ -1616,6 +1616,11 @@ def manage_register(request):
     while number in existing:
         number += 1
 
+    # 등록자명: 로그인 사용자
+    by_name = ""
+    if request.user.is_authenticated:
+        by_name = request.user.get_full_name() or request.user.username
+
     if mode == "copy":
         GisaQuestion.objects.create(
             exam=exam, subject=subject, number=number,
@@ -1625,6 +1630,7 @@ def manage_register(request):
             answer=source.answer, explanation=source.explanation,
             choice_1_exp=source.choice_1_exp, choice_2_exp=source.choice_2_exp,
             choice_3_exp=source.choice_3_exp, choice_4_exp=source.choice_4_exp,
+            created_by_name=by_name,
         )
     elif mode == "new":
         GisaQuestion.objects.create(
@@ -1635,6 +1641,7 @@ def manage_register(request):
             choice_3=data.get("choice_3", ""),
             choice_4=data.get("choice_4", ""),
             answer=data.get("answer", "0"),
+            created_by_name=by_name,
         )
     else:
         return JsonResponse({"ok": False, "error": "mode는 copy 또는 new"}, status=400)
