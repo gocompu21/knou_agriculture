@@ -1598,12 +1598,25 @@ def manage_register(request):
         certification=cert, year=year, round=round_num, exam_type="최신",
     )
 
-    # 중복 체크
-    if GisaQuestion.objects.filter(exam=exam, number=number).exists():
-        return JsonResponse({"ok": False, "error": f"{number}번 문제가 이미 존재합니다"}, status=409)
-
+    # 등록할 텍스트 결정
     if mode == "copy":
         source = get_object_or_404(GisaQuestion, pk=data.get("source_id"))
+        q_text = source.text
+    elif mode == "new":
+        q_text = data.get("text", "")
+    else:
+        return JsonResponse({"ok": False, "error": "mode는 copy 또는 new"}, status=400)
+
+    # 중복 체크: 같은 시험에 동일한 문제 텍스트가 있으면 중복
+    if GisaQuestion.objects.filter(exam=exam, text=q_text).exists():
+        return JsonResponse({"ok": False, "error": "동일한 문제가 이미 존재합니다"}, status=409)
+
+    # 번호 충돌 시 연속으로 빈 번호 탐색
+    existing = set(GisaQuestion.objects.filter(exam=exam).values_list("number", flat=True))
+    while number in existing:
+        number += 1
+
+    if mode == "copy":
         GisaQuestion.objects.create(
             exam=exam, subject=subject, number=number,
             text=source.text,
@@ -1616,7 +1629,7 @@ def manage_register(request):
     elif mode == "new":
         GisaQuestion.objects.create(
             exam=exam, subject=subject, number=number,
-            text=data.get("text", ""),
+            text=q_text,
             choice_1=data.get("choice_1", ""),
             choice_2=data.get("choice_2", ""),
             choice_3=data.get("choice_3", ""),
