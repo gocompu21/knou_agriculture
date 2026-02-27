@@ -746,6 +746,7 @@
 
     <!-- ══════════ 최신기출 탭 ══════════ -->
     <div id="tab-latest" class="tab-content{% if active_tab == 'latest' %} active{% endif %}">
+        {% if messages %}{% for message in messages %}<div style="background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:0.88rem;">{{ message }}</div>{% endfor %}{% endif %}
         {% if latest_year_cards %}
         <div class="exam-grid">
             {% for card in latest_year_cards %}

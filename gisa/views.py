@@ -3,6 +3,7 @@ import re
 import uuid
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Case, Count, IntegerField, Max, Min, Q, Value, When
 from django.http import JsonResponse
@@ -478,16 +479,21 @@ def gisa_latest_create(request, cert_id):
         subject = get_object_or_404(GisaSubject, pk=subject_id, certification=cert)
     else:
         subject = GisaSubject.objects.filter(certification=cert).order_by("order").first()
+    text = request.POST.get("text", "")
     exam, _ = GisaExam.objects.get_or_create(
         certification=cert, year=year, round=round_num, exam_type="최신",
     )
+
+    if GisaQuestion.objects.filter(exam=exam, text=text).exists():
+        messages.warning(request, f"{year}년 {round_num}회차에 동일한 문제가 이미 등록되어 있습니다.")
+        return redirect(f"{reverse('gisa:certification_detail', args=[cert_id])}?tab=latest&last_year={year}&last_round={round_num}")
 
     max_num = GisaQuestion.objects.filter(exam=exam).aggregate(Max("number"))["number__max"] or 0
     GisaQuestion.objects.create(
         exam=exam,
         subject=subject,
         number=max_num + 1,
-        text=request.POST.get("text", ""),
+        text=text,
         choice_1=request.POST.get("choice_1", "") or "-",
         choice_2=request.POST.get("choice_2", "") or "-",
         choice_3=request.POST.get("choice_3", "") or "-",
@@ -594,6 +600,14 @@ def gisa_latest_clone(request, cert_id):
     exam, _ = GisaExam.objects.get_or_create(
         certification=cert, year=target_year, round=target_round, exam_type="최신",
     )
+
+    if GisaQuestion.objects.filter(exam=exam, text=source.text).exists():
+        messages.warning(request, f"{target_year}년 {target_round}회차에 동일한 문제가 이미 등록되어 있습니다.")
+        return redirect(
+            f"{reverse('gisa:certification_detail', args=[cert_id])}?tab=latest"
+            f"&last_year={target_year}&last_round={target_round}&sub={sub}"
+        )
+
     max_num = GisaQuestion.objects.filter(exam=exam).aggregate(Max("number"))["number__max"] or 0
     GisaQuestion.objects.create(
         exam=exam,
