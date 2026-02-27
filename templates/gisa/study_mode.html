@@ -297,6 +297,40 @@
     @media (max-width: 480px) {
         .choice-image { max-width: 100%; }
     }
+
+    /* 관리자 편집 */
+    .edit-btn {
+        background: none; border: none; cursor: pointer; color: #aaa;
+        font-size: 0.85em; padding: 2px 6px; margin-left: 6px;
+        vertical-align: 2px; opacity: 0.5; transition: opacity 0.2s;
+    }
+    .edit-btn:hover { opacity: 1; color: #1a237e; }
+
+    .edit-form { display: none; padding: 8px 0; }
+    .question-card.editing .q-content,
+    .question-card.editing .q-choices { display: none; }
+    .question-card.editing .edit-form { display: block; }
+
+    .edit-form label { display: block; font-size: 0.78rem; font-weight: 700; color: #666; margin: 8px 0 3px; }
+    .edit-form textarea, .edit-form input[type="text"] {
+        width: 100%; box-sizing: border-box; padding: 6px 8px;
+        border: 1px solid #ccc; border-radius: 6px; font-size: 0.92rem;
+        font-family: inherit; line-height: 1.5;
+    }
+    .edit-form textarea { min-height: 60px; resize: vertical; }
+    .edit-form select {
+        padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px;
+        font-size: 0.92rem; font-family: inherit;
+    }
+    .edit-actions { margin-top: 10px; display: flex; gap: 8px; }
+    .edit-actions button {
+        padding: 6px 16px; border: none; border-radius: 6px;
+        font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit;
+    }
+    .edit-save { background: #1a237e; color: #fff; }
+    .edit-save:hover { background: #283593; }
+    .edit-cancel { background: #eee; color: #555; }
+    .edit-cancel:hover { background: #ddd; }
 </style>
 {% endblock %}
 
@@ -333,10 +367,11 @@
 
     <div class="content-area">
         {% for q in questions %}
-        <div class="question-card" data-answer="{{ q.answer }}">
+        <div class="question-card" data-answer="{{ q.answer }}" data-qid="{{ q.id }}">
             <div class="q-header">
                 <div class="q-content">
-                    {{ forloop.counter }}. {{ q.text }}
+                    {{ forloop.counter }}. <span class="q-text-display">{{ q.text }}</span>
+                    {% if request.user.is_staff %}<button type="button" class="edit-btn" onclick="startEdit(this)" title="수정">&#9998;</button>{% endif %}
                     {% if q.text_image %}<div class="q-image-wrap"><img src="{{ q.text_image.url }}" class="q-image"></div>{% endif %}
                     {% if is_wrong_retry or is_textbook_study %}<span class="q-badge"
                         style="float:none; margin-left:8px; vertical-align:2px; font-size:0.75em;">{{ q.exam.year }}-{{ q.exam.round }}-{{ q.number }}</span>{% endif %}
@@ -344,22 +379,47 @@
             </div>
             <div class="q-choices" data-question-id="{{ q.id }}" data-answer="{{ q.answer }}">
                 <div class="choice-item" onclick="selectChoice(this, 1)">
-                    <span class="choice-num" data-choice="1">1</span> {{ q.choice_1 }}{% if q.choice_1_image %}<img src="{{ q.choice_1_image.url }}" class="choice-image">{% endif %}
+                    <span class="choice-num" data-choice="1">1</span> <span class="c-text-display">{{ q.choice_1 }}</span>{% if q.choice_1_image %}<img src="{{ q.choice_1_image.url }}" class="choice-image">{% endif %}
                     {% if q.choice_1_exp %}<div class="choice-exp{% if '1' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_1_exp }}</span></div>{% endif %}
                 </div>
                 <div class="choice-item" onclick="selectChoice(this, 2)">
-                    <span class="choice-num" data-choice="2">2</span> {{ q.choice_2 }}{% if q.choice_2_image %}<img src="{{ q.choice_2_image.url }}" class="choice-image">{% endif %}
+                    <span class="choice-num" data-choice="2">2</span> <span class="c-text-display">{{ q.choice_2 }}</span>{% if q.choice_2_image %}<img src="{{ q.choice_2_image.url }}" class="choice-image">{% endif %}
                     {% if q.choice_2_exp %}<div class="choice-exp{% if '2' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_2_exp }}</span></div>{% endif %}
                 </div>
                 <div class="choice-item" onclick="selectChoice(this, 3)">
-                    <span class="choice-num" data-choice="3">3</span> {{ q.choice_3 }}{% if q.choice_3_image %}<img src="{{ q.choice_3_image.url }}" class="choice-image">{% endif %}
+                    <span class="choice-num" data-choice="3">3</span> <span class="c-text-display">{{ q.choice_3 }}</span>{% if q.choice_3_image %}<img src="{{ q.choice_3_image.url }}" class="choice-image">{% endif %}
                     {% if q.choice_3_exp %}<div class="choice-exp{% if '3' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_3_exp }}</span></div>{% endif %}
                 </div>
                 <div class="choice-item" onclick="selectChoice(this, 4)">
-                    <span class="choice-num" data-choice="4">4</span> {{ q.choice_4 }}{% if q.choice_4_image %}<img src="{{ q.choice_4_image.url }}" class="choice-image">{% endif %}
+                    <span class="choice-num" data-choice="4">4</span> <span class="c-text-display">{{ q.choice_4 }}</span>{% if q.choice_4_image %}<img src="{{ q.choice_4_image.url }}" class="choice-image">{% endif %}
                     {% if q.choice_4_exp %}<div class="choice-exp{% if '4' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_4_exp }}</span></div>{% endif %}
                 </div>
             </div>
+            {% if request.user.is_staff %}
+            <div class="edit-form">
+                <label>문제</label>
+                <textarea class="ef-text">{{ q.text }}</textarea>
+                <label>① 보기1</label>
+                <input type="text" class="ef-c1" value="{{ q.choice_1 }}">
+                <label>② 보기2</label>
+                <input type="text" class="ef-c2" value="{{ q.choice_2 }}">
+                <label>③ 보기3</label>
+                <input type="text" class="ef-c3" value="{{ q.choice_3 }}">
+                <label>④ 보기4</label>
+                <input type="text" class="ef-c4" value="{{ q.choice_4 }}">
+                <label>정답</label>
+                <select class="ef-answer">
+                    <option value="1"{% if q.answer == '1' %} selected{% endif %}>①</option>
+                    <option value="2"{% if q.answer == '2' %} selected{% endif %}>②</option>
+                    <option value="3"{% if q.answer == '3' %} selected{% endif %}>③</option>
+                    <option value="4"{% if q.answer == '4' %} selected{% endif %}>④</option>
+                </select>
+                <div class="edit-actions">
+                    <button type="button" class="edit-save" onclick="saveEdit(this)">저장</button>
+                    <button type="button" class="edit-cancel" onclick="cancelEdit(this)">취소</button>
+                </div>
+            </div>
+            {% endif %}
             {% if is_wrong_retry %}
             <div class="dismiss-wrap" style="display:none; text-align:right; margin-top:10px;">
                 <button type="button" class="dismiss-btn" onclick="dismissQuestion(this, '{% url 'gisa:wrong_dismiss' cert.pk q.id %}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 노트 제외</button>
@@ -424,6 +484,57 @@
         });
         text.textContent = allExpanded ? '전체 접기' : '전체 펼치기';
         if (allExpanded) btn.classList.add('active'); else btn.classList.remove('active');
+    }
+
+    function startEdit(btn) {
+        var card = btn.closest('.question-card');
+        card.classList.add('editing');
+    }
+
+    function saveEdit(btn) {
+        var card = btn.closest('.question-card');
+        var qid = card.getAttribute('data-qid');
+        var form = card.querySelector('.edit-form');
+        var payload = {
+            text: form.querySelector('.ef-text').value.trim(),
+            choice_1: form.querySelector('.ef-c1').value.trim(),
+            choice_2: form.querySelector('.ef-c2').value.trim(),
+            choice_3: form.querySelector('.ef-c3').value.trim(),
+            choice_4: form.querySelector('.ef-c4').value.trim(),
+            answer: form.querySelector('.ef-answer').value
+        };
+        fetch('/gisa/manage/question/' + qid + '/update/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify(payload)
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (!data.ok) { alert(data.error || '저장 실패'); return; }
+            card.querySelector('.q-text-display').textContent = payload.text;
+            var displays = card.querySelectorAll('.c-text-display');
+            displays[0].textContent = payload.choice_1;
+            displays[1].textContent = payload.choice_2;
+            displays[2].textContent = payload.choice_3;
+            displays[3].textContent = payload.choice_4;
+            card.setAttribute('data-answer', payload.answer);
+            card.querySelector('.q-choices').setAttribute('data-answer', payload.answer);
+            card.classList.remove('editing');
+        })
+        .catch(function() { alert('오류가 발생했습니다.'); });
+    }
+
+    function cancelEdit(btn) {
+        var card = btn.closest('.question-card');
+        var form = card.querySelector('.edit-form');
+        form.querySelector('.ef-text').value = card.querySelector('.q-text-display').textContent;
+        var displays = card.querySelectorAll('.c-text-display');
+        form.querySelector('.ef-c1').value = displays[0].textContent;
+        form.querySelector('.ef-c2').value = displays[1].textContent;
+        form.querySelector('.ef-c3').value = displays[2].textContent;
+        form.querySelector('.ef-c4').value = displays[3].textContent;
+        form.querySelector('.ef-answer').value = card.querySelector('.q-choices').getAttribute('data-answer');
+        card.classList.remove('editing');
     }
 
     function dismissQuestion(btn, url) {
