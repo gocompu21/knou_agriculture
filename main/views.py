@@ -922,6 +922,20 @@ def member_manage(request):
 
         usage_map[m.pk] = total
 
+    # 최종작업: exam/gisa 각각의 마지막 풀이 기록
+    from itertools import chain
+
+    last_exam = dict(
+        Attempt.objects.values("user_id")
+        .annotate(last=Max("created_at"))
+        .values_list("user_id", "last")
+    )
+    last_gisa = dict(
+        GisaAttempt.objects.values("user_id")
+        .annotate(last=Max("created_at"))
+        .values_list("user_id", "last")
+    )
+
     for m in members:
         td = usage_map.get(m.pk, timedelta())
         total_sec = int(td.total_seconds())
@@ -934,6 +948,33 @@ def member_manage(request):
                 m.usage_display = f"{hours}시간 {minutes}분"
             else:
                 m.usage_display = f"{minutes}분"
+
+        # 최종작업 & 작업시간
+        e_last = last_exam.get(m.pk)
+        g_last = last_gisa.get(m.pk)
+        if e_last and g_last:
+            m.last_activity_at = max(e_last, g_last)
+            m.last_activity_source = "기사" if g_last > e_last else "방송대"
+        elif g_last:
+            m.last_activity_at = g_last
+            m.last_activity_source = "기사"
+        elif e_last:
+            m.last_activity_at = e_last
+            m.last_activity_source = "방송대"
+        else:
+            m.last_activity_at = None
+            m.last_activity_source = None
+
+        # 최종작업의 mode 조회
+        m.last_activity_mode = None
+        if m.last_activity_at:
+            if m.last_activity_source == "기사":
+                rec = GisaAttempt.objects.filter(user=m, created_at=m.last_activity_at).first()
+            else:
+                rec = Attempt.objects.filter(user=m, created_at=m.last_activity_at).first()
+            if rec:
+                mode_map = {"exam": "기출풀이", "mock": "모의고사", "wrong_retry": "오답재풀이"}
+                m.last_activity_mode = mode_map.get(rec.mode, rec.mode)
 
     return render(request, "main/member_manage.html", {"members": members})
 

@@ -110,6 +110,20 @@
     }
     .td-time .dash { color: #ccc; }
 
+    .td-activity { font-size: 0.82rem; color: #555; white-space: nowrap; }
+    .td-activity .dash { color: #ccc; }
+    .activity-source {
+        display: inline-block;
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 1px 5px;
+        border-radius: 4px;
+        margin-right: 3px;
+        vertical-align: middle;
+    }
+    .activity-source.gisa { background: #e3f2fd; color: #1565c0; }
+    .activity-source.knou { background: #e8f5e9; color: #2e7d32; }
+
     .toggle-btn {
         display: inline-flex;
         align-items: center;
@@ -280,6 +294,8 @@
                 <th>가입일</th>
                 <th>로그인</th>
                 <th>사용시간</th>
+                <th>최종작업</th>
+                <th>작업시간</th>
                 <th>스태프</th>
                 <th>활성</th>
             </tr>
@@ -294,6 +310,8 @@
                 <td class="td-date">{{ m.date_joined|date:"Y.m.d" }}</td>
                 <td class="td-login"><span class="num {% if m.login_count == 0 %}zero{% endif %}">{{ m.login_count }}</span></td>
                 <td class="td-time">{% if m.usage_display == "-" %}<span class="dash">-</span>{% else %}{{ m.usage_display }}{% endif %}</td>
+                <td class="td-activity">{% if m.last_activity_mode %}<span class="activity-source {% if m.last_activity_source == '기사' %}gisa{% else %}knou{% endif %}">{{ m.last_activity_source }}</span> {{ m.last_activity_mode }}{% else %}<span class="dash">-</span>{% endif %}</td>
+                <td class="td-date">{% if m.last_activity_at %}{{ m.last_activity_at|date:"m.d H:i" }}{% else %}<span class="dash">-</span>{% endif %}</td>
                 <td class="td-toggle">
                     <button type="button"
                             class="toggle-btn {% if m.is_staff %}on{% else %}off{% endif %}"
@@ -356,8 +374,8 @@
                     <div class="m-stat-value {% if m.usage_display != '-' %}green{% else %}muted{% endif %}">{{ m.usage_display }}</div>
                 </div>
                 <div class="m-stat">
-                    <div class="m-stat-label">최근접속</div>
-                    <div class="m-stat-value {% if m.last_login %}{% else %}muted{% endif %}">{% if m.last_login %}{{ m.last_login|date:"m/d" }}{% else %}-{% endif %}</div>
+                    <div class="m-stat-label">최종작업</div>
+                    <div class="m-stat-value {% if m.last_activity_mode %}{% else %}muted{% endif %}">{% if m.last_activity_mode %}{{ m.last_activity_mode }}{% else %}-{% endif %}</div>
                 </div>
             </div>
         </div>
