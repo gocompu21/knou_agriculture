@@ -11,7 +11,9 @@
     .manage-nav a:not(.active):hover { background: #c5cae9; }
     .manage-wrap { display: flex; gap: 16px; padding: 16px; min-height: calc(100vh - 60px); }
     .panel { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px; overflow-y: auto; }
-    .panel-left { flex: 0 0 45%; max-height: calc(100vh - 80px); overflow-y: auto; }
+    .panel-left { flex: 0 0 45%; max-height: calc(100vh - 80px); display: flex; flex-direction: column; overflow: hidden; }
+    .panel-left-top { flex-shrink: 0; }
+    .parsed-list { flex: 1; overflow-y: auto; }
     .panel-right { flex: 1; position: sticky; top: 70px; max-height: calc(100vh - 80px); overflow-y: auto; }
     .panel-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 12px; color: #1a237e; }
 
@@ -96,39 +98,41 @@
 <div class="manage-wrap">
     <!-- 좌측 패널 -->
     <div class="panel panel-left">
-        <div class="panel-title">문제 입력 / 파싱</div>
+        <div class="panel-left-top">
+            <div class="panel-title">문제 입력 / 파싱</div>
 
-        <div class="sel-row">
-            <select id="selCert">
-                <option value="">자격증 선택</option>
-                {% for c in certs %}
-                <option value="{{ c.pk }}">{{ c.name }} ({{ c.category }})</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="sel-row">
-            <select id="selYear">
-                <option value="">연도</option>
-            </select>
-            <select id="selRound">
-                <option value="">회차</option>
-                <option value="1">1회</option>
-                <option value="2">2회</option>
-                <option value="3">3회</option>
-                <option value="4">4회</option>
-            </select>
-            <select id="selSubject">
-                <option value="">과목</option>
-            </select>
-        </div>
+            <div class="sel-row">
+                <select id="selCert">
+                    <option value="">자격증 선택</option>
+                    {% for c in certs %}
+                    <option value="{{ c.pk }}">{{ c.name }} ({{ c.category }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="sel-row">
+                <select id="selYear">
+                    <option value="">연도</option>
+                </select>
+                <select id="selRound">
+                    <option value="">회차</option>
+                    <option value="1">1회</option>
+                    <option value="2">2회</option>
+                    <option value="3">3회</option>
+                    <option value="4">4회</option>
+                </select>
+                <select id="selSubject">
+                    <option value="">과목</option>
+                </select>
+            </div>
 
-        <textarea class="paste-area" id="pasteArea" placeholder="문제 텍스트를 붙여넣으세요..."></textarea>
-        <button class="btn-parse" onclick="parseQuestions()">파싱하기</button>
-        <button class="btn-parse" style="background:#78909c;" onclick="resetAll()">초기화</button>
+            <textarea class="paste-area" id="pasteArea" placeholder="문제 텍스트를 붙여넣으세요..."></textarea>
+            <button class="btn-parse" onclick="parseQuestions()">파싱하기</button>
+            <button class="btn-parse" style="background:#78909c;" onclick="resetAll()">초기화</button>
 
-        <div class="direct-search">
-            <input type="text" id="directSearchInput" placeholder="검색어 직접 입력...">
-            <button onclick="directSearch()">검색</button>
+            <div class="direct-search">
+                <input type="text" id="directSearchInput" placeholder="검색어 직접 입력...">
+                <button onclick="directSearch()">검색</button>
+            </div>
         </div>
 
         <div class="parsed-list" id="parsedList"></div>
