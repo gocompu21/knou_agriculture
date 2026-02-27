@@ -49,4 +49,5 @@ urlpatterns = [
     path("manage/api/register/", views.manage_register, name="manage_register"),
     path("manage/question/<int:pk>/delete/", views.gisa_question_delete, name="gisa_question_delete"),
     path("manage/question/<int:pk>/update/", views.gisa_question_update, name="gisa_question_update"),
+    path("manage/question/<int:pk>/generate-exp/", views.gisa_question_generate_exp, name="gisa_question_generate_exp"),
 ]

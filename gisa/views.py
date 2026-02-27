@@ -1691,5 +1691,87 @@ def gisa_question_update(request, pk):
     question.choice_3 = data.get("choice_3", question.choice_3)
     question.choice_4 = data.get("choice_4", question.choice_4)
     question.answer = data.get("answer", question.answer)
+    if "explanation" in data:
+        question.explanation = data["explanation"]
+    if "choice_1_exp" in data:
+        question.choice_1_exp = data["choice_1_exp"]
+    if "choice_2_exp" in data:
+        question.choice_2_exp = data["choice_2_exp"]
+    if "choice_3_exp" in data:
+        question.choice_3_exp = data["choice_3_exp"]
+    if "choice_4_exp" in data:
+        question.choice_4_exp = data["choice_4_exp"]
     question.save()
     return JsonResponse({"ok": True})
+
+
+@login_required
+@user_passes_test(_gisa_staff_required)
+@require_POST
+def gisa_question_generate_exp(request, pk):
+    """Gemini API로 문제 해설 생성"""
+    import json
+    from django.conf import settings as djsettings
+
+    question = get_object_or_404(GisaQuestion, pk=pk)
+
+    api_key = djsettings.GEMINI_API_KEY
+    if not api_key:
+        return JsonResponse({"ok": False, "error": "GEMINI_API_KEY 미설정"}, status=500)
+
+    try:
+        from google import genai
+        from pydantic import BaseModel, Field
+
+        class ExpResult(BaseModel):
+            explanation: str = Field(description="정답에 대한 설명")
+            choice_1_exp: str = Field(description="보기 ①에 대한 해설")
+            choice_2_exp: str = Field(description="보기 ②에 대한 해설")
+            choice_3_exp: str = Field(description="보기 ③에 대한 해설")
+            choice_4_exp: str = Field(description="보기 ④에 대한 해설")
+
+        circles = {"1": "①", "2": "②", "3": "③", "4": "④"}
+        answer_circle = circles.get(question.answer, "?")
+        cert = question.exam.certification
+        cert_full = cert.name if cert.category in cert.name else f"{cert.name}{cert.category}"
+        prompt = (
+            f"당신은 {cert_full} 시험 전문가이다.\n"
+            f"다음은 {cert_full} {question.subject.name} 기출문제이다.\n\n"
+            f"{question.number}. {question.text}\n"
+            f"① {question.choice_1}\n② {question.choice_2}\n"
+            f"③ {question.choice_3}\n④ {question.choice_4}\n\n"
+            f"정답은 {answer_circle}\n\n"
+            f"해당 문제에 대해 [정답설명]과 [선지별 해설]을 해줘.\n"
+            f"공부팁이나 인사말 기타 내용은 넣지마"
+        )
+
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config={
+                "response_mime_type": "application/json",
+                "response_schema": ExpResult,
+            },
+        )
+        result = ExpResult.model_validate_json(response.text)
+
+        question.explanation = result.explanation
+        question.choice_1_exp = result.choice_1_exp
+        question.choice_2_exp = result.choice_2_exp
+        question.choice_3_exp = result.choice_3_exp
+        question.choice_4_exp = result.choice_4_exp
+        if question.answer in ("1", "2", "3", "4"):
+            setattr(question, f"choice_{question.answer}_exp", result.explanation)
+        question.save()
+
+        return JsonResponse({
+            "ok": True,
+            "explanation": question.explanation,
+            "choice_1_exp": question.choice_1_exp,
+            "choice_2_exp": question.choice_2_exp,
+            "choice_3_exp": question.choice_3_exp,
+            "choice_4_exp": question.choice_4_exp,
+        })
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=500)

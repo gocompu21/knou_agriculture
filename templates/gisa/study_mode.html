@@ -322,7 +322,7 @@
         padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px;
         font-size: 0.92rem; font-family: inherit;
     }
-    .edit-actions { margin-top: 10px; display: flex; gap: 8px; }
+    .edit-actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
     .edit-actions button {
         padding: 6px 16px; border: none; border-radius: 6px;
         font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit;
@@ -331,6 +331,10 @@
     .edit-save:hover { background: #283593; }
     .edit-cancel { background: #eee; color: #555; }
     .edit-cancel:hover { background: #ddd; }
+    .edit-gemini { background: #e8f5e9; color: #2e7d32; border: 1px solid #81c784; }
+    .edit-gemini:hover { background: #c8e6c9; }
+    .edit-gemini:disabled { opacity: 0.6; cursor: wait; }
+    .ef-exp { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85rem; font-family: inherit; line-height: 1.5; min-height: 40px; resize: vertical; background: #fafafa; }
 </style>
 {% endblock %}
 
@@ -414,8 +418,19 @@
                     <option value="3"{% if q.answer == '3' %} selected{% endif %}>③</option>
                     <option value="4"{% if q.answer == '4' %} selected{% endif %}>④</option>
                 </select>
+                <label>해설</label>
+                <textarea class="ef-exp ef-explanation">{{ q.explanation|default:"" }}</textarea>
+                <label>① 해설</label>
+                <textarea class="ef-exp ef-c1exp">{{ q.choice_1_exp|default:"" }}</textarea>
+                <label>② 해설</label>
+                <textarea class="ef-exp ef-c2exp">{{ q.choice_2_exp|default:"" }}</textarea>
+                <label>③ 해설</label>
+                <textarea class="ef-exp ef-c3exp">{{ q.choice_3_exp|default:"" }}</textarea>
+                <label>④ 해설</label>
+                <textarea class="ef-exp ef-c4exp">{{ q.choice_4_exp|default:"" }}</textarea>
                 <div class="edit-actions">
                     <button type="button" class="edit-save" onclick="saveEdit(this)">저장</button>
+                    <button type="button" class="edit-gemini" onclick="generateExp(this)">설명 가져오기</button>
                     <button type="button" class="edit-cancel" onclick="cancelEdit(this)">취소</button>
                 </div>
             </div>
@@ -501,7 +516,12 @@
             choice_2: form.querySelector('.ef-c2').value.trim(),
             choice_3: form.querySelector('.ef-c3').value.trim(),
             choice_4: form.querySelector('.ef-c4').value.trim(),
-            answer: form.querySelector('.ef-answer').value
+            answer: form.querySelector('.ef-answer').value,
+            explanation: form.querySelector('.ef-explanation').value.trim(),
+            choice_1_exp: form.querySelector('.ef-c1exp').value.trim(),
+            choice_2_exp: form.querySelector('.ef-c2exp').value.trim(),
+            choice_3_exp: form.querySelector('.ef-c3exp').value.trim(),
+            choice_4_exp: form.querySelector('.ef-c4exp').value.trim()
         };
         fetch('/gisa/manage/question/' + qid + '/update/', {
             method: 'POST',
@@ -519,9 +539,63 @@
             displays[3].textContent = payload.choice_4;
             card.setAttribute('data-answer', payload.answer);
             card.querySelector('.q-choices').setAttribute('data-answer', payload.answer);
+            updateExpDisplay(card, payload);
             card.classList.remove('editing');
         })
         .catch(function() { alert('오류가 발생했습니다.'); });
+    }
+
+    function updateExpDisplay(card, data) {
+        var choices = card.querySelectorAll('.choice-item');
+        var answer = data.answer || card.querySelector('.q-choices').getAttribute('data-answer');
+        var answers = answer.split(',').map(function(s) { return s.trim(); });
+        for (var i = 0; i < 4; i++) {
+            var expText = data['choice_' + (i+1) + '_exp'] || '';
+            var expDiv = choices[i].querySelector('.choice-exp');
+            if (expText) {
+                if (!expDiv) {
+                    expDiv = document.createElement('div');
+                    expDiv.className = 'choice-exp';
+                    choices[i].appendChild(expDiv);
+                }
+                expDiv.className = 'choice-exp' + (answers.indexOf(String(i+1)) !== -1 ? ' correct-exp' : '');
+                expDiv.innerHTML = '<span class="exp-arrow">\u21AA </span><span class="exp-text-inner">' + escHtml(expText) + '</span>';
+            } else if (expDiv) {
+                expDiv.remove();
+            }
+        }
+    }
+
+    function escHtml(s) {
+        var d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+
+    function generateExp(btn) {
+        var card = btn.closest('.question-card');
+        var qid = card.getAttribute('data-qid');
+        var form = card.querySelector('.edit-form');
+        btn.disabled = true;
+        var origText = btn.textContent;
+        btn.textContent = '생성 중...';
+        fetch('/gisa/manage/question/' + qid + '/generate-exp/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (!data.ok) { alert(data.error || '생성 실패'); btn.disabled = false; btn.textContent = origText; return; }
+            form.querySelector('.ef-explanation').value = data.explanation || '';
+            form.querySelector('.ef-c1exp').value = data.choice_1_exp || '';
+            form.querySelector('.ef-c2exp').value = data.choice_2_exp || '';
+            form.querySelector('.ef-c3exp').value = data.choice_3_exp || '';
+            form.querySelector('.ef-c4exp').value = data.choice_4_exp || '';
+            updateExpDisplay(card, data);
+            btn.disabled = false;
+            btn.textContent = origText;
+        })
+        .catch(function(e) { alert('오류: ' + e.message); btn.disabled = false; btn.textContent = origText; });
     }
 
     function cancelEdit(btn) {
