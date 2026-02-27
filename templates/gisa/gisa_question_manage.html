@@ -70,6 +70,13 @@
     .btn-registered { background: #aaa; cursor: default; }
     .kw-hl { background: #fff176; color: #000; padding: 0 2px; border-radius: 2px; }
 
+    /* 직접 검색 */
+    .direct-search { display: flex; gap: 6px; align-items: center; margin-top: 12px; margin-bottom: 4px; }
+    .direct-search input { flex: 1; padding: 7px 10px; border: 1px solid #c5cae9; border-radius: 8px; font-size: 0.88rem; }
+    .direct-search input:focus { outline: none; border-color: #3949ab; }
+    .direct-search button { padding: 7px 16px; background: #3949ab; color: #fff; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .direct-search button:hover { background: #283593; }
+
     @media (max-width: 768px) {
         .manage-wrap { flex-direction: column; }
         .panel-left, .panel-right { flex: none; max-height: none; position: static; }
@@ -118,6 +125,11 @@
         <textarea class="paste-area" id="pasteArea" placeholder="문제 텍스트를 붙여넣으세요..."></textarea>
         <button class="btn-parse" onclick="parseQuestions()">파싱하기</button>
         <button class="btn-parse" style="background:#78909c;" onclick="resetAll()">초기화</button>
+
+        <div class="direct-search">
+            <input type="text" id="directSearchInput" placeholder="검색어 직접 입력...">
+            <button onclick="directSearch()">검색</button>
+        </div>
 
         <div class="parsed-list" id="parsedList"></div>
     </div>
@@ -168,7 +180,72 @@ function resetAll() {
     _parsed = [];
     document.getElementById('pasteArea').value = '';
     document.getElementById('parsedList').innerHTML = '';
+    document.getElementById('directSearchInput').value = '';
     clearSearchPanel();
+}
+
+// ── 직접 검색 ──
+document.getElementById('directSearchInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); directSearch(); }
+});
+
+async function directSearch() {
+    const input = document.getElementById('directSearchInput');
+    const text = input.value.trim();
+    if (!text) return alert('검색어를 입력하세요.');
+
+    const keywords = text.split(/\s+/);
+    const subjectId = document.getElementById('selSubject').value;
+
+    const panel = document.getElementById('searchResult');
+    panel.innerHTML = '<div class="search-empty">검색 중...</div>';
+
+    // 활성 파싱카드 해제
+    document.querySelectorAll('.parsed-card').forEach(c => c.classList.remove('active-search'));
+
+    try {
+        const res = await fetch('{% url "gisa:manage_search" %}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
+            body: JSON.stringify({keywords: keywords, subject_id: subjectId ? +subjectId : null}),
+        });
+        const data = await res.json();
+        renderDirectSearchResults(data.questions || [], keywords);
+    } catch (e) {
+        panel.innerHTML = '<div class="search-empty">검색 오류: ' + e.message + '</div>';
+    }
+}
+
+function renderDirectSearchResults(questions, keywords) {
+    const panel = document.getElementById('searchResult');
+    const kwHtml = keywords.map(k => `<span class="search-kw">${esc(k)}</span>`).join('');
+
+    if (!questions.length) {
+        panel.innerHTML = `<div class="search-keywords">${kwHtml}</div>
+            <div class="search-empty">검색 결과가 없습니다.</div>`;
+        return;
+    }
+
+    panel.innerHTML = `
+        <div class="search-keywords">${kwHtml}</div>
+        <div class="search-info">${questions.length}건</div>
+        <div class="sr-list">${questions.map(q => `
+            <div class="sr-card">
+                <span class="sr-badge">${esc(q.cert_name)}</span>
+                <span class="sr-badge" style="background:#37474f">${q.year}-${q.round}회</span>
+                <span class="sr-badge" style="background:#5c6bc0">${esc(q.subject)}</span>
+                <div class="sr-text">${q.number}. ${highlight(esc(q.text), keywords)}</div>
+                <div class="sr-choices">
+                    <div>1) ${highlight(esc(q.choice_1), keywords)}</div>
+                    <div>2) ${highlight(esc(q.choice_2), keywords)}</div>
+                    <div>3) ${highlight(esc(q.choice_3), keywords)}</div>
+                    <div>4) ${highlight(esc(q.choice_4), keywords)}</div>
+                </div>
+                <div class="sr-answer">정답: ${q.answer}</div>
+                ${q.explanation ? `<div class="sr-exp">${esc(q.explanation)}</div>` : ''}
+                <button class="btn-register" id="dreg-${q.id}" onclick="registerFromDirect(${q.id}, ${q.subject_id})">등록</button>
+            </div>`).join('')}
+        </div>`;
 }
 
 // ── 파싱 ──
@@ -459,6 +536,38 @@ async function registerCopy(sourceId, sourceSubjectId, parsedIdx) {
             btn.textContent = '등록완료'; btn.classList.add('btn-registered');
             document.getElementById('pc-' + parsedIdx)?.classList.add('registered');
             clearSearchPanel();
+        } else {
+            alert(data.error || '등록 실패');
+            btn.disabled = false; btn.textContent = '등록';
+        }
+    } catch (e) {
+        alert('오류: ' + e.message);
+        btn.disabled = false; btn.textContent = '등록';
+    }
+}
+
+async function registerFromDirect(sourceId, sourceSubjectId) {
+    const sel = getSelectors();
+    if (!sel) return;
+
+    const body = {
+        mode: 'copy', source_id: sourceId,
+        cert_id: sel.cert_id, year: sel.year, round: sel.round,
+        subject_id: sel.subject_id || sourceSubjectId, number: 1,
+    };
+
+    const btn = document.getElementById('dreg-' + sourceId);
+    btn.disabled = true; btn.textContent = '등록 중...';
+
+    try {
+        const res = await fetch('{% url "gisa:manage_register" %}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
+            body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (data.ok) {
+            btn.textContent = '등록완료'; btn.classList.add('btn-registered');
         } else {
             alert(data.error || '등록 실패');
             btn.disabled = false; btn.textContent = '등록';
