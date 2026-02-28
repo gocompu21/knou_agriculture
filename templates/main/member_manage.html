@@ -296,6 +296,7 @@
                 <th>사용시간</th>
                 <th>최종작업</th>
                 <th>작업시간</th>
+                <th>이메일</th>
                 <th>스태프</th>
                 <th>활성</th>
             </tr>
@@ -312,6 +313,13 @@
                 <td class="td-time">{% if m.usage_display == "-" %}<span class="dash">-</span>{% else %}{{ m.usage_display }}{% endif %}</td>
                 <td class="td-activity">{% if m.last_activity_mode %}<span class="activity-source {% if m.last_activity_source == '기사' %}gisa{% else %}knou{% endif %}">{{ m.last_activity_source }}</span> {{ m.last_activity_mode }}{% else %}<span class="dash">-</span>{% endif %}</td>
                 <td class="td-date">{% if m.last_activity_at %}{{ m.last_activity_at|date:"m.d H:i" }}{% else %}<span class="dash">-</span>{% endif %}</td>
+                <td class="td-toggle">
+                    <button type="button"
+                            class="toggle-btn {% if m.receive_email %}on{% else %}off{% endif %}"
+                            data-pk="{{ m.pk }}" data-field="receive_email"
+                            onclick="toggleMember(this)">
+                    </button>
+                </td>
                 <td class="td-toggle">
                     <button type="button"
                             class="toggle-btn {% if m.is_staff %}on{% else %}off{% endif %}"
@@ -340,6 +348,14 @@
             <div class="m-card-top">
                 <div class="m-card-name">{{ m.first_name|default:m.username }}<small>{{ m.username }}</small></div>
                 <div class="m-card-toggles">
+                    <div class="m-card-toggle-label">
+                        이메일
+                        <button type="button"
+                                class="toggle-btn {% if m.receive_email %}on{% else %}off{% endif %}"
+                                data-pk="{{ m.pk }}" data-field="receive_email"
+                                onclick="toggleMember(this)">
+                        </button>
+                    </div>
                     <div class="m-card-toggle-label">
                         스태프
                         <button type="button"
@@ -390,7 +406,8 @@
 function toggleMember(btn) {
     var pk = btn.dataset.pk;
     var field = btn.dataset.field;
-    var label = field === 'is_staff' ? '스태프 권한' : '활성 상태';
+    var labels = {'is_staff': '스태프 권한', 'is_active': '활성 상태', 'receive_email': '이메일 수신'};
+    var label = labels[field] || field;
     var current = btn.classList.contains('on');
     var action = current ? '해제' : '부여';
     if (!confirm(label + '을(를) ' + action + '하시겠습니까?')) return;

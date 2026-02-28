@@ -1,14 +1,50 @@
 import os
+import re
+import threading
 import uuid
 from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.core.mail import EmailMessage
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from accounts.models import UserProfile
 from .models import Comment, Notice
+
+SITE_URL = "https://hanulstudy.kr"
+
+
+def _send_notice_email(notice, recipients):
+    """공지사항 이메일을 별도 스레드에서 발송한다."""
+    content_html = re.sub(
+        r'src="(/media/[^"]+)"',
+        rf'src="{SITE_URL}\1"',
+        notice.content,
+    )
+    body_html = (
+        f'<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">'
+        f'<p style="color:#555;">안녕하세요, 한울회 A+ 학습시스템입니다.</p>'
+        f'<p>새로운 공지사항이 등록되었습니다.</p>'
+        f'<h2 style="color:#1b4332;margin:16px 0 8px;">{notice.title}</h2>'
+        f'<hr style="border:none;border-top:1px solid #ddd;">'
+        f'<div style="padding:12px 0;line-height:1.7;">{content_html}</div>'
+        f'<hr style="border:none;border-top:1px solid #ddd;">'
+        f'<p><a href="{SITE_URL}/bbs/{notice.pk}/" '
+        f'style="color:#1b4332;font-weight:bold;">전체 내용 보기 →</a></p>'
+        f'</div>'
+    )
+    msg = EmailMessage(
+        subject=f"[한울회 A+] 공지사항: {notice.title}",
+        body=body_html,
+        from_email="admin@hanulstudy.kr",
+        bcc=recipients,
+    )
+    msg.content_subtype = "html"
+    threading.Thread(target=msg.send, kwargs={"fail_silently": True}, daemon=True).start()
 
 
 def notice_list(request):
@@ -72,12 +108,27 @@ def notice_create(request):
         is_pinned = request.POST.get("is_pinned") == "on" and request.user.is_staff
 
         if title and content:
-            Notice.objects.create(
+            notice = Notice.objects.create(
                 title=title,
                 content=content,
                 author=request.user,
                 is_pinned=is_pinned,
             )
+
+            # 전체 회원에게 이메일 발송 (BCC, 이메일 수신 거부 회원 제외)
+            opt_out_ids = set(
+                UserProfile.objects.filter(receive_email=False)
+                .values_list("user_id", flat=True)
+            )
+            recipients = list(
+                User.objects.filter(is_active=True)
+                .exclude(email="")
+                .exclude(pk__in=opt_out_ids)
+                .values_list("email", flat=True)
+            )
+            if recipients:
+                _send_notice_email(notice, recipients)
+
             return redirect("bbs:notice_list")
 
     return render(request, "bbs/notice_form.html", {"mode": "create"})

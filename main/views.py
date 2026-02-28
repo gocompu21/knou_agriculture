@@ -976,6 +976,14 @@ def member_manage(request):
                 mode_map = {"exam": "기출풀이", "mock": "모의고사", "wrong_retry": "오답재풀이"}
                 m.last_activity_mode = mode_map.get(rec.mode, rec.mode)
 
+    # 이메일 수신 여부
+    from accounts.models import UserProfile
+    email_opt_out = set(
+        UserProfile.objects.filter(receive_email=False).values_list("user_id", flat=True)
+    )
+    for m in members:
+        m.receive_email = m.pk not in email_opt_out
+
     return render(request, "main/member_manage.html", {"members": members})
 
 
@@ -1075,10 +1083,16 @@ def restore_stats_api(request):
 def member_toggle(request, pk):
     target_user = get_object_or_404(User, pk=pk)
     field = request.POST.get("field", "")
-    if field not in ("is_staff", "is_active"):
+    if field not in ("is_staff", "is_active", "receive_email"):
         return JsonResponse({"error": "invalid field"}, status=400)
-    if target_user == request.user:
+    if field in ("is_staff", "is_active") and target_user == request.user:
         return JsonResponse({"error": "자기 자신의 권한은 변경할 수 없습니다."}, status=400)
+    if field == "receive_email":
+        from accounts.models import UserProfile
+        profile, _ = UserProfile.objects.get_or_create(user=target_user)
+        profile.receive_email = not profile.receive_email
+        profile.save(update_fields=["receive_email"])
+        return JsonResponse({"ok": True, "field": field, "value": profile.receive_email})
     new_val = not getattr(target_user, field)
     setattr(target_user, field, new_val)
     target_user.save(update_fields=[field])
