@@ -439,7 +439,7 @@
         <div class="question-card" id="q{{ q.number }}" data-answer="{{ q.answer }}" data-qid="{{ q.id }}">
             <div class="q-header">
                 <div class="q-content">
-                    <div class="q-text-display"><span class="q-num-label">{{ q.number }}.</span><span class="q-text-body">{{ q.text|qtext }}{% if request.user.is_staff %} <button type="button" class="edit-btn" onclick="startEdit(this)" title="수정">&#9998;</button>{% endif %}</span>{% if is_wrong_retry or is_textbook_study %}<sup class="q-badge">{{ q.exam.year }}-{{ q.exam.round }}</sup>{% endif %}</div>
+                    <div class="q-text-display"><span class="q-num-label">{{ q.number }}.</span><span class="q-text-body">{{ q.text|qtext }}{% if request.user.is_staff %} <button type="button" class="edit-btn" onclick="startEdit(this)" title="수정">&#9998;</button>{% endif %}{% if is_wrong_retry or is_textbook_study %} <sup class="q-badge">{{ q.exam.year }}-{{ q.exam.round }}</sup>{% endif %}</span></div>
                 </div>
             </div>
             {% if q.text_image %}<div class="q-image-wrap"><img src="{{ q.text_image.url }}" class="q-image"></div>{% endif %}
