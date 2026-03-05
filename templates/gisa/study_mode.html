@@ -273,13 +273,14 @@
         }
         .subject-divider {
             font-weight: bold;
-            font-size: 1.5em;
-            padding: 12px 16px;
-            margin: 48px 0 24px;
-            border: 2px solid #1b4332;
-            border-radius: 6px;
+            font-size: 0.85em;
+            padding: 5px 12px;
+            margin: 24px 0 12px;
+            border: 1.5px solid #1b4332;
+            border-radius: 4px;
             background: #f0f4f0;
             color: #1b4332;
+            text-align: center;
         }
         .subject-divider:first-child { margin-top: 0; }
         .q-box {
@@ -411,7 +412,7 @@
 
     <div class="content-area">
         {% for q in questions %}
-        {% if not subject %}{% ifchanged q.subject_id %}<div class="subject-divider" style="font-size:1.5em;font-weight:bold;padding:12px 16px;margin:48px 0 24px;border:2px solid #1b4332;border-radius:6px;background:#f0f4f0;color:#1b4332;text-align:center">{{ q.subject.order }}과목: {{ q.subject.name }}</div>{% endifchanged %}{% endif %}
+        {% if not subject %}{% ifchanged q.subject_id %}<div class="subject-divider">{{ q.subject.order }}과목: {{ q.subject.name }}</div>{% endifchanged %}{% endif %}
         <div class="question-card" id="q{{ q.number }}" data-answer="{{ q.answer }}" data-qid="{{ q.id }}">
             <div class="q-header">
                 <div class="q-content">
