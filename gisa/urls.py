@@ -18,6 +18,7 @@ urlpatterns = [
     path("<int:cert_id>/api/latest/questions/<int:exam_id>/", views.api_gisa_exam_questions, name="api_gisa_exam_questions"),
     path("<int:cert_id>/api/latest/search/", views.api_gisa_search_questions, name="api_gisa_search_questions"),
     # 학습모드
+    path("<int:cert_id>/study/<int:exam_id>/", views.study_mode, name="study_mode_all"),
     path("<int:cert_id>/study/<int:exam_id>/<int:subject_id>/", views.study_mode, name="study_mode"),
     # 풀이모드
     path("<int:cert_id>/take/<int:exam_id>/", views.exam_take, name="exam_take"),

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static gisa_filters %}
 
 {% block title %}
 {% if is_textbook_study %}{{ section_title }}{% elif is_wrong_retry %}오답 재풀이{% elif from_tab == 'latest' %}최신기출 학습{% else %}{{ subject.name }} 학습모드{% endif %}
@@ -111,13 +111,12 @@
     }
 
     .q-badge {
-        float: right;
-        background: #e8eaf6;
-        padding: 5px 10px;
-        border-radius: 15px;
-        font-size: 0.9em;
-        color: #3949ab;
-        margin-bottom: 10px;
+        font-size: 0.55em;
+        color: #9e9e9e;
+        vertical-align: super;
+        margin-left: 3px;
+        font-weight: normal;
+        white-space: nowrap;
     }
 
     .q-content {
@@ -125,9 +124,15 @@
         line-height: 1.6;
         margin-bottom: 20px;
         font-weight: bold;
-        padding-left: 1.2em;
-        text-indent: -1.2em;
         clear: both;
+    }
+    .q-text-display {
+        display: flex;
+        align-items: flex-start;
+    }
+    .q-num-label {
+        flex-shrink: 0;
+        margin-right: 0.3em;
     }
 
     .q-choices {
@@ -263,6 +268,31 @@
             line-height: 1.5;
             margin-bottom: 5px;
         }
+        .q-num-label {
+            font-weight: bold;
+        }
+        .subject-divider {
+            font-weight: bold;
+            font-size: 1.5em;
+            padding: 12px 16px;
+            margin: 48px 0 24px;
+            border: 2px solid #1b4332;
+            border-radius: 6px;
+            background: #f0f4f0;
+            color: #1b4332;
+        }
+        .subject-divider:first-child { margin-top: 0; }
+        .q-box {
+            display: block;
+            border: 1.5px solid #333;
+            border-radius: 4px;
+            padding: 6px 12px;
+            margin: 6px 0;
+            background: #fafafa;
+            line-height: 1.7;
+        }
+
+        .q-image-wrap { padding-left: 10px; }
 
         .q-choices {
             padding-left: 10px;
@@ -291,9 +321,9 @@
 
     }
 
-    .q-image-wrap { margin: 8px 0; }
+    .q-image-wrap { margin: 8px 0; padding-left: 20px; }
     .q-image { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; }
-    .choice-image { display: block; max-width: 240px; margin: 4px 0; border: 1px solid #ddd; border-radius: 4px; }
+    .choice-image { display: inline; max-width: 240px; margin: 0 0 0 2px; border: 1px solid #ddd; border-radius: 4px; vertical-align: middle; }
     @media (max-width: 480px) {
         .choice-image { max-width: 100%; }
     }
@@ -318,6 +348,7 @@
         font-family: inherit; line-height: 1.5;
     }
     .edit-form textarea { min-height: 60px; resize: vertical; }
+    .edit-form textarea.ef-text { min-height: 120px; }
     .edit-form select {
         padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px;
         font-size: 0.92rem; font-family: inherit;
@@ -335,6 +366,15 @@
     .edit-gemini:hover { background: #c8e6c9; }
     .edit-gemini:disabled { opacity: 0.6; cursor: wait; }
     .ef-exp { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85rem; font-family: inherit; line-height: 1.5; min-height: 40px; resize: vertical; background: #fafafa; }
+    .ef-img-group { margin: 8px 0; padding: 8px; background: #f5f5f5; border-radius: 6px; border: 1px dashed #ccc; }
+    .ef-img-group label { display: inline-block; font-size: 0.78rem; font-weight: 700; color: #666; margin: 0 0 4px; }
+    .ef-img-row { display: flex; align-items: center; gap: 8px; margin: 4px 0; flex-wrap: wrap; }
+    .ef-img-row input[type="file"] { display: none; }
+    .ef-img-preview { max-width: 200px; max-height: 120px; border-radius: 4px; border: 1px solid #ddd; }
+    .ef-img-clear { font-size: 0.75rem; color: #d93025; cursor: pointer; background: none; border: 1px solid #d93025; border-radius: 4px; padding: 2px 8px; }
+    .ef-img-paste-btn, .ef-img-file-btn { font-size: 0.75rem; padding: 4px 10px; border-radius: 4px; cursor: pointer; border: 1px solid #aaa; background: #fff; color: #555; }
+    .ef-img-paste-btn:hover, .ef-img-file-btn:hover { background: #e8eaf6; border-color: #1a237e; color: #1a237e; }
+    .ef-img-paste-btn.has-img { border-color: #4caf50; background: #f1f8e9; color: #2e7d32; }
 </style>
 {% endblock %}
 
@@ -349,7 +389,7 @@
             {% elif from_tab == 'latest' %}
             {{ exam.year }}년 {{ exam.round }}차 최신기출 <small>{{ questions|length }}문항</small>
             {% else %}
-            {{ subject.name }} <small>{{ exam }} &middot; {{ questions|length }}문항</small>
+            {% if subject %}{{ subject.name }}{% else %}전체{% endif %} <small>{{ exam }} &middot; {{ questions|length }}문항</small>
             {% endif %}
         </div>
         <button class="header-btn expand-btn" id="expand-all-btn" onclick="toggleAllExplanations()">
@@ -371,38 +411,36 @@
 
     <div class="content-area">
         {% for q in questions %}
-        <div class="question-card" data-answer="{{ q.answer }}" data-qid="{{ q.id }}">
+        {% if not subject %}{% ifchanged q.subject_id %}<div class="subject-divider" style="font-size:1.5em;font-weight:bold;padding:12px 16px;margin:48px 0 24px;border:2px solid #1b4332;border-radius:6px;background:#f0f4f0;color:#1b4332;text-align:center">{{ q.subject.order }}과목: {{ q.subject.name }}</div>{% endifchanged %}{% endif %}
+        <div class="question-card" id="q{{ q.number }}" data-answer="{{ q.answer }}" data-qid="{{ q.id }}">
             <div class="q-header">
                 <div class="q-content">
-                    {{ forloop.counter }}. <span class="q-text-display">{{ q.text }}</span>
-                    {% if request.user.is_staff %}<button type="button" class="edit-btn" onclick="startEdit(this)" title="수정">&#9998;</button>{% endif %}
-                    {% if q.text_image %}<div class="q-image-wrap"><img src="{{ q.text_image.url }}" class="q-image"></div>{% endif %}
-                    {% if is_wrong_retry or is_textbook_study %}<span class="q-badge"
-                        style="float:none; margin-left:8px; vertical-align:2px; font-size:0.75em;">{{ q.exam.year }}-{{ q.exam.round }}-{{ q.number }}</span>{% endif %}
+                    <div class="q-text-display"><span class="q-num-label">{{ q.number }}.</span><span class="q-text-body">{{ q.text|qtext }}{% if request.user.is_staff %} <button type="button" class="edit-btn" onclick="startEdit(this)" title="수정">&#9998;</button>{% endif %}</span>{% if is_wrong_retry or is_textbook_study %}<sup class="q-badge">{{ q.exam.year }}-{{ q.exam.round }}</sup>{% endif %}</div>
                 </div>
             </div>
+            {% if q.text_image %}<div class="q-image-wrap"><img src="{{ q.text_image.url }}" class="q-image"></div>{% endif %}
             <div class="q-choices" data-question-id="{{ q.id }}" data-answer="{{ q.answer }}">
                 <div class="choice-item" onclick="selectChoice(this, 1)">
-                    <span class="choice-num" data-choice="1">1</span> <span class="c-text-display">{{ q.choice_1 }}</span>{% if q.choice_1_image %}<img src="{{ q.choice_1_image.url }}" class="choice-image">{% endif %}
+                    <span class="choice-num" data-choice="1">1</span> <span class="c-text-display">{{ q.choice_1|qtext }}</span>{% if q.choice_1_image %}<img src="{{ q.choice_1_image.url }}" class="choice-image">{% endif %}
                     {% if q.choice_1_exp %}<div class="choice-exp{% if '1' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_1_exp }}</span></div>{% endif %}
                 </div>
                 <div class="choice-item" onclick="selectChoice(this, 2)">
-                    <span class="choice-num" data-choice="2">2</span> <span class="c-text-display">{{ q.choice_2 }}</span>{% if q.choice_2_image %}<img src="{{ q.choice_2_image.url }}" class="choice-image">{% endif %}
+                    <span class="choice-num" data-choice="2">2</span> <span class="c-text-display">{{ q.choice_2|qtext }}</span>{% if q.choice_2_image %}<img src="{{ q.choice_2_image.url }}" class="choice-image">{% endif %}
                     {% if q.choice_2_exp %}<div class="choice-exp{% if '2' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_2_exp }}</span></div>{% endif %}
                 </div>
                 <div class="choice-item" onclick="selectChoice(this, 3)">
-                    <span class="choice-num" data-choice="3">3</span> <span class="c-text-display">{{ q.choice_3 }}</span>{% if q.choice_3_image %}<img src="{{ q.choice_3_image.url }}" class="choice-image">{% endif %}
+                    <span class="choice-num" data-choice="3">3</span> <span class="c-text-display">{{ q.choice_3|qtext }}</span>{% if q.choice_3_image %}<img src="{{ q.choice_3_image.url }}" class="choice-image">{% endif %}
                     {% if q.choice_3_exp %}<div class="choice-exp{% if '3' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_3_exp }}</span></div>{% endif %}
                 </div>
                 <div class="choice-item" onclick="selectChoice(this, 4)">
-                    <span class="choice-num" data-choice="4">4</span> <span class="c-text-display">{{ q.choice_4 }}</span>{% if q.choice_4_image %}<img src="{{ q.choice_4_image.url }}" class="choice-image">{% endif %}
+                    <span class="choice-num" data-choice="4">4</span> <span class="c-text-display">{{ q.choice_4|qtext }}</span>{% if q.choice_4_image %}<img src="{{ q.choice_4_image.url }}" class="choice-image">{% endif %}
                     {% if q.choice_4_exp %}<div class="choice-exp{% if '4' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_4_exp }}</span></div>{% endif %}
                 </div>
             </div>
             {% if request.user.is_staff %}
             <div class="edit-form">
                 <label>문제</label>
-                <textarea class="ef-text">{{ q.text }}</textarea>
+                <textarea class="ef-text" rows="5">{{ q.text }}</textarea>
                 <label>① 보기1</label>
                 <input type="text" class="ef-c1" value="{{ q.choice_1 }}">
                 <label>② 보기2</label>
@@ -428,6 +466,43 @@
                 <textarea class="ef-exp ef-c3exp">{{ q.choice_3_exp|default:"" }}</textarea>
                 <label>④ 해설</label>
                 <textarea class="ef-exp ef-c4exp">{{ q.choice_4_exp|default:"" }}</textarea>
+                <div class="ef-img-group">
+                    <label>문제 이미지</label>
+                    <div class="ef-img-row" data-field="text_image">
+                        <input type="file" class="ef-img" data-field="text_image" accept="image/*">
+                        <button type="button" class="ef-img-paste-btn" onclick="pasteFromClipboard(this)">붙여넣기</button>
+                        <button type="button" class="ef-img-file-btn" onclick="this.parentNode.querySelector('input').click()">파일선택</button>
+                        {% if q.text_image %}<img src="{{ q.text_image.url }}" class="ef-img-preview"><button type="button" class="ef-img-clear" data-field="text_image" onclick="clearImg(this)">삭제</button>{% endif %}
+                    </div>
+                    <label>① 이미지</label>
+                    <div class="ef-img-row" data-field="choice_1_image">
+                        <input type="file" class="ef-img" data-field="choice_1_image" accept="image/*">
+                        <button type="button" class="ef-img-paste-btn" onclick="pasteFromClipboard(this)">붙여넣기</button>
+                        <button type="button" class="ef-img-file-btn" onclick="this.parentNode.querySelector('input').click()">파일선택</button>
+                        {% if q.choice_1_image %}<img src="{{ q.choice_1_image.url }}" class="ef-img-preview"><button type="button" class="ef-img-clear" data-field="choice_1_image" onclick="clearImg(this)">삭제</button>{% endif %}
+                    </div>
+                    <label>② 이미지</label>
+                    <div class="ef-img-row" data-field="choice_2_image">
+                        <input type="file" class="ef-img" data-field="choice_2_image" accept="image/*">
+                        <button type="button" class="ef-img-paste-btn" onclick="pasteFromClipboard(this)">붙여넣기</button>
+                        <button type="button" class="ef-img-file-btn" onclick="this.parentNode.querySelector('input').click()">파일선택</button>
+                        {% if q.choice_2_image %}<img src="{{ q.choice_2_image.url }}" class="ef-img-preview"><button type="button" class="ef-img-clear" data-field="choice_2_image" onclick="clearImg(this)">삭제</button>{% endif %}
+                    </div>
+                    <label>③ 이미지</label>
+                    <div class="ef-img-row" data-field="choice_3_image">
+                        <input type="file" class="ef-img" data-field="choice_3_image" accept="image/*">
+                        <button type="button" class="ef-img-paste-btn" onclick="pasteFromClipboard(this)">붙여넣기</button>
+                        <button type="button" class="ef-img-file-btn" onclick="this.parentNode.querySelector('input').click()">파일선택</button>
+                        {% if q.choice_3_image %}<img src="{{ q.choice_3_image.url }}" class="ef-img-preview"><button type="button" class="ef-img-clear" data-field="choice_3_image" onclick="clearImg(this)">삭제</button>{% endif %}
+                    </div>
+                    <label>④ 이미지</label>
+                    <div class="ef-img-row" data-field="choice_4_image">
+                        <input type="file" class="ef-img" data-field="choice_4_image" accept="image/*">
+                        <button type="button" class="ef-img-paste-btn" onclick="pasteFromClipboard(this)">붙여넣기</button>
+                        <button type="button" class="ef-img-file-btn" onclick="this.parentNode.querySelector('input').click()">파일선택</button>
+                        {% if q.choice_4_image %}<img src="{{ q.choice_4_image.url }}" class="ef-img-preview"><button type="button" class="ef-img-clear" data-field="choice_4_image" onclick="clearImg(this)">삭제</button>{% endif %}
+                    </div>
+                </div>
                 <div class="edit-actions">
                     <button type="button" class="edit-save" onclick="saveEdit(this)">저장</button>
                     <button type="button" class="edit-gemini" onclick="generateExp(this)">설명 가져오기</button>
@@ -448,6 +523,11 @@
 
 {% block extra_js %}
 <script>
+    // 해시 기반 스크롤 (수정 후 reload 시)
+    if (location.hash) {
+        var _t = document.querySelector(location.hash);
+        if (_t) setTimeout(function() { _t.scrollIntoView({block:'center', behavior:'smooth'}); }, 200);
+    }
     function selectChoice(choiceItem, choiceNum) {
         var parent = choiceItem.closest('.q-choices');
         var card = choiceItem.closest('.question-card');
@@ -506,6 +586,83 @@
         card.classList.add('editing');
     }
 
+    // 붙여넣기 & 파일선택 이미지 처리
+    var _pastedFiles = {};  // field -> File
+
+    function pasteFromClipboard(btn) {
+        var row = btn.closest('.ef-img-row');
+        var field = row.getAttribute('data-field');
+        navigator.clipboard.read().then(function(items) {
+            for (var i = 0; i < items.length; i++) {
+                var types = items[i].types;
+                for (var j = 0; j < types.length; j++) {
+                    if (types[j].indexOf('image') !== -1) {
+                        items[i].getType(types[j]).then(function(blob) {
+                            _pastedFiles[field] = blob;
+                            btn.classList.add('has-img');
+                            btn.textContent = '붙여넣기 완료';
+                            showImgPreview(row, blob, field);
+                        });
+                        return;
+                    }
+                }
+            }
+            alert('클립보드에 이미지가 없습니다.');
+        }).catch(function() {
+            alert('클립보드 접근 권한이 필요합니다.');
+        });
+    }
+
+    document.addEventListener('change', function(e) {
+        if (!e.target.classList.contains('ef-img')) return;
+        var row = e.target.closest('.ef-img-row');
+        var field = row.getAttribute('data-field');
+        if (e.target.files.length > 0) {
+            showImgPreview(row, e.target.files[0], field);
+        }
+    });
+
+    function showImgPreview(row, file, field) {
+        // 기존 미리보기 제거
+        var old = row.querySelector('.ef-img-preview');
+        if (old) old.remove();
+        var oldClear = row.querySelector('.ef-img-clear');
+        if (oldClear) oldClear.remove();
+        // 새 미리보기
+        var img = document.createElement('img');
+        img.className = 'ef-img-preview';
+        var url = URL.createObjectURL(file);
+        img.src = url;
+        row.appendChild(img);
+        // 붙여넣기 버튼 업데이트
+        var pasteBtn = row.querySelector('.ef-img-paste-btn');
+        if (pasteBtn) { pasteBtn.classList.add('has-img'); pasteBtn.textContent = '완료'; }
+    }
+
+    function clearImg(btn) {
+        var row = btn.closest('.ef-img-row');
+        var field = btn.getAttribute('data-field');
+        btn.setAttribute('data-cleared', '1');
+        var preview = row.querySelector('.ef-img-preview');
+        if (preview) preview.style.display = 'none';
+        var pasteBtn = row.querySelector('.ef-img-paste-btn');
+        if (pasteBtn) { pasteBtn.classList.remove('has-img'); pasteBtn.textContent = '붙여넣기'; }
+        btn.textContent = '삭제됨';
+        btn.disabled = true;
+    }
+
+    function renderQtext(raw) {
+        var t = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+        // <u> 밑줄 복원
+        t = t.replace(/&lt;u&gt;/g, '<u>').replace(/&lt;\/u&gt;/g, '</u>');
+        t = t.replace(/\[box\]([\s\S]*?)\[\/box\]/gi, function(m, inner) {
+            return '<div class="q-box" style="border:2px solid #333;border-radius:4px;padding:6px 12px;margin:6px 0;background:#fff;line-height:1.7;text-indent:0;font-weight:normal;display:block">' + inner.trim() + '</div>';
+        });
+        t = t.replace(/_\{([^}]+)\}/g, '<sub>$1</sub>');
+        t = t.replace(/\n/g, '<br>');
+        return t;
+    }
+
     function saveEdit(btn) {
         var card = btn.closest('.question-card');
         var qid = card.getAttribute('data-qid');
@@ -523,15 +680,43 @@
             choice_3_exp: form.querySelector('.ef-c3exp').value.trim(),
             choice_4_exp: form.querySelector('.ef-c4exp').value.trim()
         };
-        fetch('/gisa/manage/question/' + qid + '/update/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-            body: JSON.stringify(payload)
-        })
+
+        // 이미지 파일 확인 (파일선택 + 붙여넣기)
+        var imgRows = form.querySelectorAll('.ef-img-row');
+        var clearBtns = form.querySelectorAll('.ef-img-clear[data-cleared="1"]');
+        var hasFiles = clearBtns.length > 0;
+        imgRows.forEach(function(row) {
+            var field = row.getAttribute('data-field');
+            var inp = row.querySelector('.ef-img');
+            if ((inp && inp.files.length > 0) || _pastedFiles[field]) hasFiles = true;
+        });
+
+        var fetchOpts;
+        if (hasFiles) {
+            var fd = new FormData();
+            Object.keys(payload).forEach(function(k) { fd.append(k, payload[k]); });
+            imgRows.forEach(function(row) {
+                var field = row.getAttribute('data-field');
+                var inp = row.querySelector('.ef-img');
+                if (_pastedFiles[field]) {
+                    fd.append(field, _pastedFiles[field], field + '.png');
+                } else if (inp && inp.files.length > 0) {
+                    fd.append(field, inp.files[0]);
+                }
+            });
+            clearBtns.forEach(function(btn) { fd.append(btn.getAttribute('data-field') + '_clear', '1'); });
+            fetchOpts = { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' }, body: fd };
+        } else {
+            fetchOpts = { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' }, body: JSON.stringify(payload) };
+        }
+
+        fetch('/gisa/manage/question/' + qid + '/update/', fetchOpts)
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (!data.ok) { alert(data.error || '저장 실패'); return; }
-            card.querySelector('.q-text-display').textContent = payload.text;
+            var numLabel = card.querySelector('.q-num-label');
+            var numHtml = numLabel ? numLabel.outerHTML + ' ' : '';
+            card.querySelector('.q-text-display').innerHTML = numHtml + '<span class="q-text-body">' + renderQtext(payload.text) + '</span>';
             var displays = card.querySelectorAll('.c-text-display');
             displays[0].textContent = payload.choice_1;
             displays[1].textContent = payload.choice_2;
@@ -541,6 +726,10 @@
             card.querySelector('.q-choices').setAttribute('data-answer', payload.answer);
             updateExpDisplay(card, payload);
             card.classList.remove('editing');
+            _pastedFiles = {};
+            var qnum = card.querySelector('.q-num-label').textContent.replace('.','');
+            if (hasFiles) { location.hash = '#q' + qnum; location.reload(); }
+            else setTimeout(function() { card.scrollIntoView({block:'center', behavior:'smooth'}); }, 100);
         })
         .catch(function() { alert('오류가 발생했습니다.'); });
     }
@@ -601,7 +790,11 @@
     function cancelEdit(btn) {
         var card = btn.closest('.question-card');
         var form = card.querySelector('.edit-form');
-        form.querySelector('.ef-text').value = card.querySelector('.q-text-display').textContent;
+        var display = card.querySelector('.q-text-display');
+        var numEl = display.querySelector('.q-num-label');
+        var rawText = display.textContent;
+        if (numEl) rawText = rawText.substring(numEl.textContent.length).replace(/^\s+/, '');
+        form.querySelector('.ef-text').value = rawText;
         var displays = card.querySelectorAll('.c-text-display');
         form.querySelector('.ef-c1').value = displays[0].textContent;
         form.querySelector('.ef-c2').value = displays[1].textContent;

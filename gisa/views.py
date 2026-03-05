@@ -395,7 +395,8 @@ def certification_detail(request, cert_id):
 
     # 교재 데이터 — 교재 탭일 때만 장 제목 전달 (섹션은 AJAX로 로드)
     textbook_chapters = []
-    textbook_subject = request.GET.get("subject", "식물병리학")
+    first_subject = subjects.first().name if subjects.exists() else ""
+    textbook_subject = request.GET.get("subject", first_subject)
     textbook_subjects = list(subjects.values_list("name", flat=True))
     if active_tab == "textbook":
         textbook = GisaTextbook.objects.filter(
@@ -440,7 +441,8 @@ def certification_detail(request, cert_id):
 def textbook_chapter_api(request, cert_id):
     """AJAX: 특정 장의 섹션 HTML을 JSON으로 반환"""
     cert = get_object_or_404(Certification, pk=cert_id)
-    subject = request.GET.get("subject", "식물병리학")
+    first_subj = GisaSubject.objects.filter(certification=cert).order_by("order").values_list("name", flat=True).first() or ""
+    subject = request.GET.get("subject", first_subj)
     ch_idx = int(request.GET.get("ch", 0))
 
     textbook = GisaTextbook.objects.filter(
@@ -741,13 +743,18 @@ def api_gisa_search_questions(request, cert_id):
 
 
 @login_required
-def study_mode(request, cert_id, exam_id, subject_id):
+def study_mode(request, cert_id, exam_id, subject_id=None):
     cert = get_object_or_404(Certification, pk=cert_id)
     exam = get_object_or_404(GisaExam, pk=exam_id, certification=cert)
-    subject = get_object_or_404(GisaSubject, pk=subject_id, certification=cert)
-    questions = GisaQuestion.objects.filter(
-        exam=exam, subject=subject
-    ).order_by("number")
+
+    if subject_id:
+        subject = get_object_or_404(GisaSubject, pk=subject_id, certification=cert)
+        questions = GisaQuestion.objects.filter(
+            exam=exam, subject=subject
+        ).order_by("number")
+    else:
+        subject = None
+        questions = GisaQuestion.objects.filter(exam=exam).select_related("subject").order_by("number")
 
     if not questions.exists():
         return redirect("gisa:certification_detail", cert_id=cert_id)
@@ -1680,10 +1687,23 @@ def gisa_question_delete(request, pk):
 def gisa_question_update(request, pk):
     import json
     question = get_object_or_404(GisaQuestion, pk=pk)
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({"ok": False, "error": "잘못된 요청"}, status=400)
+
+    # multipart/form-data (이미지 업로드 포함)
+    if request.content_type and "multipart" in request.content_type:
+        data = request.POST
+        files = request.FILES
+        # 이미지 필드 처리
+        img_fields = ["text_image", "choice_1_image", "choice_2_image", "choice_3_image", "choice_4_image"]
+        for field in img_fields:
+            if field in files:
+                setattr(question, field, files[field])
+            elif data.get(f"{field}_clear") == "1":
+                setattr(question, field, "")
+    else:
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"ok": False, "error": "잘못된 요청"}, status=400)
 
     question.text = data.get("text", question.text)
     question.choice_1 = data.get("choice_1", question.choice_1)

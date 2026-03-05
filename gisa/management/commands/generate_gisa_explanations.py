@@ -41,7 +41,8 @@ def build_prompt(question):
         f"④ {question.choice_4}\n\n"
         f"정답은 {answer_circle}\n\n"
         f"해당 문제에 대해 [정답설명]과 [선지별 해설]을 해줘.\n"
-        f"공부팁이나 인사말 기타 내용은 넣지마"
+        f"공부팁이나 인사말 기타 내용은 넣지마.\n"
+        f"'올바른 설명이다', '정답이다' 같은 판정 문구는 넣지마."
     )
 
 

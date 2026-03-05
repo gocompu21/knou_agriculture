@@ -637,6 +637,7 @@
                 <div class="exam-card-title">{{ ec.exam }}</div>
                 <div class="exam-card-info">{{ ec.count }}문제</div>
                 <div class="subject-list">
+                    <a href="{% url 'gisa:study_mode_all' cert.pk ec.exam.pk %}" class="subject-link" style="font-weight:bold;background:#1b4332;color:#fff;">전체보기 ({{ ec.count }}문제)</a>
                     {% for subj in subjects %}
                     <a href="{% url 'gisa:study_mode' cert.pk ec.exam.pk subj.pk %}" class="subject-link">
                         {{ subj.order }}과목: {{ subj.name }}
@@ -1006,7 +1007,7 @@ function scrollToWithOffset(el, offset) {
 
 // 모바일 약칭 매핑
 (function() {
-    var map = {'식물병리학':'병리','농림해충학':'해충','재배학원론':'재배학','농약학':'농약','잡초방제학':'잡초방제'};
+    var map = {'식물병리학':'병리','농림해충학':'해충','재배학원론':'재배학','농약학':'농약','잡초방제학':'잡초방제','조경사':'조경사','조경계획':'계획','조경설계':'설계','조경식재':'식재','조경시공구조학':'시공','조경관리론':'관리'};
     document.querySelectorAll('.short-name').forEach(function(el) {
         var t = el.textContent.trim();
         if (map[t]) el.textContent = map[t];

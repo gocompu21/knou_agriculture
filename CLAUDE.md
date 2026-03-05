@@ -361,16 +361,18 @@ python load_latest.py 식물의학_latest.json
 ### 대상 자격증
 
 - **식물보호기사** (pk=1, category='기사')
-- 데이터: 2011~2022년 필기 기출문제, 총 660문제 (33개 회차 × 20문항)
+- 데이터: 2011~2024년 필기 기출문제, 총 3,631문제 (35회차 필기 + 최신기출)
 - 과목: 식물병리학, 농림해충학, 재배학원론, 농약학, 잡초방제학 (5과목)
+- 2023년 1회 필기(100문항), 2024년 1회 필기(100문항) 추가 완료
 
 - **식물보호산업기사** (pk=2, category='산업기사')
-- 데이터: 2002~2020년 필기 기출문제, 총 2,880문제 (36개 회차 × 80문항)
+- 데이터: 2002~2024년 필기 기출문제, 총 3,207문제 (40회차 필기 + 최신기출)
 - 과목: 식물병리학(pk=6), 해충학(pk=7), 농약학(pk=8), 잡초방제학(pk=9) (4과목)
 - 문제 번호: 1~80 통번호 (과목1: 1~20, 과목2: 21~40, 과목3: 41~60, 과목4: 61~80)
 - 데이터 원본: comcbt.com에서 다운로드한 PDF (`data/comcbt/식물보호산업기사YYYY-R.pdf`)
 - PDF 파싱: LLM 에이전트 6배치 병렬로 직접 읽어서 파싱 (파싱 스크립트 없음)
-- AI 해설: 2,880문제 전체 Gemini 해설 생성 완료 (gemini-2.5-flash)
+- AI 해설: 전체 Gemini 해설 생성 완료 (gemini-2.5-flash)
+- 2023년 1회(80문항), 2024년 1회(80문항) 추가 완료 + 쪽집게 노트 보강
 
 ### 모델 구조 (gisa/models.py)
 
@@ -437,6 +439,9 @@ python generate_sanup_explanations.py
 | `/gisa/<id>/mock/` | `mock_exam_take` | `mock_exam_take.html` | 모의고사 (과목별 20문제) |
 | `/gisa/<id>/wrong/` | `wrong_answers` | `wrong_answers.html` | 오답노트 |
 | `/gisa/<id>/textbook/study/` | `textbook_study` | `study_mode.html` (재사용) | 교재 관련 문제 학습 |
+| `/gisa/manage/` | `gisa_question_manage` | `gisa_question_manage.html` | 기사문제 관리 (파싱/등록/수정) |
+| `/gisa/manage/question/<pk>/update/` | `gisa_question_update` | — (JSON API) | 문제 수정 (staff only) |
+| `/gisa/manage/question/<pk>/generate-exp/` | `gisa_question_generate_exp` | — (JSON API) | Gemini 해설 생성 (staff only) |
 
 ### certification_detail 탭 구조
 
@@ -536,7 +541,8 @@ gisa/
 templates/gisa/
 ├── certification_list.html    # 자격증 목록
 ├── certification_detail.html  # 자격증 상세 (교재/학습/풀이/모의/오답/이력 탭)
-├── study_mode.html            # 학습모드 (교재 학습 겸용)
+├── gisa_question_manage.html  # 기사문제 관리 (파싱/등록/수정)
+├── study_mode.html            # 학습모드 (교재 학습 겸용, 관리자 인라인 편집)
 ├── exam_take.html             # 풀이모드
 ├── mock_exam_take.html        # 모의고사
 ├── exam_result.html           # 채점 결과
@@ -930,9 +936,110 @@ PREFIX_MAP = {
 - `section-item` 순회하며 `section-header span` 텍스트가 장 제목에 포함되는지 검사
 - 매칭된 절의 부모 `chapter-item`을 열고 해당 `section-item`으로 스크롤
 
+## 최신기출 중복 방지 (gisa)
+
+`gisa_latest_create`와 `gisa_latest_clone` 뷰에서 동일 문제 중복 등록을 차단한다.
+
+- 중복 판정: `GisaQuestion.objects.filter(exam=exam, text=text).exists()` (문제 텍스트 기반)
+- 중복 시 `django.contrib.messages.warning()`으로 경고 메시지 표시 후 리다이렉트
+- `certification_detail.html`의 최신기출 탭 상단에 메시지 표시 영역 추가
+
+## 학습모드 관리자 인라인 편집 (gisa/study_mode.html)
+
+staff 사용자가 학습모드에서 문제/보기/정답/해설을 인라인으로 수정할 수 있다.
+
+### 편집 기능 (기존)
+
+- `{% if request.user.is_staff %}` 조건으로 연필 아이콘 편집 버튼 표시
+- 클릭 시 해당 카드만 편집 모드 전환 (문제 → textarea, 보기 → input, 정답 → select)
+- AJAX POST → `/gisa/manage/question/<pk>/update/` → DOM 텍스트 갱신
+
+### Gemini 해설 생성 (신규)
+
+- "설명 가져오기" 버튼 클릭 → `/gisa/manage/question/<pk>/generate-exp/` API 호출
+- `gisa_question_generate_exp` 뷰: Gemini API(`gemini-2.5-flash`)로 해설 자동 생성
+- Pydantic 모델로 구조화 응답: explanation + choice_1_exp~choice_4_exp
+- 프롬프트: `generate_gisa_explanations.py`의 `build_prompt()`와 동일
+- 생성된 해설은 편집 폼의 textarea에 자동 채움 + DB 저장
+- `gisa_question_update` 뷰에도 explanation 필드 저장 기능 추가
+
+### 관련 CSS
+
+- `.edit-gemini`: 설명 가져오기 버튼 스타일
+- `.ef-exp`: 해설 textarea 스타일
+
+## 기사문제 관리 페이지 (gisa_question_manage.html)
+
+`/gisa/manage/` — staff 전용 기사시험 문제 파싱/등록/수정 페이지.
+
+### 좌측 패널 레이아웃
+
+- 상단 고정 영역 (`.panel-left-top`): 자격증/시험/과목 셀렉터, 텍스트 입력, 직접 검색
+- 하단 스크롤 영역 (`.parsed-list`): 파싱된 문제 목록만 스크롤
+- CSS: `.panel-left { display: flex; flex-direction: column; overflow: hidden; }`
+- `.panel-left-top { flex-shrink: 0; }`, `.parsed-list { flex: 1; overflow-y: auto; }`
+
+## 산업기사 쪽집게 노트 현황
+
+식물보호산업기사(pk=2)의 쪽집게 노트 4과목 완성:
+- 식물병리학 (pk=6)
+- 해충학 (pk=7)
+- 농약학 (pk=8)
+- 잡초방제학 (pk=9)
+
 ## EC2 배포
 
 - 서버: `ubuntu@hanulstudy.kr`
 - SSH 키: `C:\AWS\knou_key2.pem`
 - 접속: `ssh -o ServerAliveInterval=60 -i "C:\AWS\knou_key2.pem" ubuntu@hanulstudy.kr`
+- 프로젝트 경로: `/home/ubuntu/knou_agriculture/`
+- 가상환경: `/home/ubuntu/knou_agriculture/venv/` (프로젝트 내부)
 - 가상환경 자동 활성화: `~/.bashrc`에 `source $HOME/venv/bin/activate` 추가
+- 배포 절차: `git push` → SSH 접속 → `cd ~/knou_agriculture && git pull && sudo systemctl restart gunicorn`
+
+## 공지사항 게시판 (bbs 앱)
+
+### 모델 (bbs/models.py)
+
+| 모델 | 설명 | 주요 필드 |
+|------|------|-----------|
+| `Notice` | 공지사항 | title, content(Summernote HTML), author(FK), is_pinned, view_count, created_at |
+| `Comment` | 댓글 | notice(FK), author(FK), content, created_at |
+
+- `is_pinned`: 상단 고정 여부 (BooleanField, default=False)
+- `ordering`: `["-is_pinned", "-created_at"]` — 고정글 우선, 최신순
+
+### 공지사항 이메일 발송
+
+공지사항 등록 시 이메일 수신 동의한 전체 활성 회원에게 HTML 이메일을 발송한다.
+
+- 발송 방식: `threading.Thread(daemon=True)`로 비동기 발송 (사용자 응답 지연 없음)
+- 수신자: BCC로 일괄 발송 (수신자 간 이메일 주소 미노출)
+- 발신자: `admin@hanulstudy.kr`
+- 이메일 형식: HTML (`content_subtype = "html"`)
+- 이미지: Summernote의 상대 경로(`/media/...`)를 절대 URL(`https://hanulstudy.kr/media/...`)로 자동 변환
+- opt-out: `UserProfile.receive_email=False`인 회원은 발송 대상에서 제외
+
+### 회원별 이메일 수신 토글
+
+`accounts/models.py`의 `UserProfile` 모델로 회원별 이메일 수신 여부를 관리한다.
+
+- `UserProfile.receive_email`: BooleanField (default=True)
+- `/manage/members/` 회원관리 페이지에서 토글 버튼으로 ON/OFF 제어
+- `member_toggle` 뷰에서 `receive_email` 필드 처리 (profile `get_or_create`)
+- 관련 파일: `accounts/models.py`, `main/views.py`, `bbs/views.py`, `templates/main/member_manage.html`
+
+### 서버 일괄 제어 (Django shell)
+
+```bash
+# 전체 회원 이메일 수신 비활성화
+ssh ... ubuntu@hanulstudy.kr 'cd ~/knou_agriculture && source venv/bin/activate && python manage.py shell -c "
+from accounts.models import UserProfile
+from django.contrib.auth.models import User
+for u in User.objects.all():
+    UserProfile.objects.get_or_create(user=u)
+UserProfile.objects.update(receive_email=False)
+"'
+
+# 전체 활성화: UserProfile.objects.update(receive_email=True)
+```
