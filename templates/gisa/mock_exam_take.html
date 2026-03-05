@@ -151,6 +151,8 @@
         }
 
         .choices .choice-item {
+            display: flex;
+            align-items: flex-start;
             margin-bottom: 6px;
             cursor: pointer;
             padding: 6px 8px;
@@ -168,6 +170,7 @@
             display: inline-flex;
             justify-content: center;
             align-items: center;
+            flex-shrink: 0;
             width: 20px;
             height: 20px;
             border-radius: 50%;
@@ -175,7 +178,7 @@
             font-size: 0.72em;
             font-weight: 600;
             margin-right: 6px;
-            vertical-align: 1px;
+            margin-top: 1px;
             background: #fff;
             color: #333;
         }
