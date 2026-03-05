@@ -413,7 +413,7 @@
 
     <div class="content-area">
         {% for q in questions %}
-        {% if not subject %}{% ifchanged q.subject_id %}<div class="subject-divider">{{ q.subject.order }}과목: {{ q.subject.name }}</div>{% endifchanged %}{% endif %}
+        {% if not subject and not is_textbook_study %}{% ifchanged q.subject_id %}<div class="subject-divider">{{ q.subject.order }}과목: {{ q.subject.name }}</div>{% endifchanged %}{% endif %}
         <div class="question-card" id="q{{ q.number }}" data-answer="{{ q.answer }}" data-qid="{{ q.id }}">
             <div class="q-header">
                 <div class="q-content">
