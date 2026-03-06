@@ -1754,7 +1754,7 @@ def gisa_question_generate_exp(request, pk):
         answer_circle = circles.get(question.answer, "?")
         cert = question.exam.certification
         cert_full = cert.name if cert.category in cert.name else f"{cert.name}{cert.category}"
-        prompt = (
+        prompt_text = (
             f"당신은 {cert_full} 시험 전문가이다.\n"
             f"다음은 {cert_full} {question.subject.name} 기출문제이다.\n\n"
             f"{question.number}. {question.text}\n"
@@ -1765,10 +1765,33 @@ def gisa_question_generate_exp(request, pk):
             f"공부팁이나 인사말 기타 내용은 넣지마"
         )
 
+        # 이미지 필드가 있으면 멀티모달로 전송
+        from google.genai import types
+        import pathlib
+        contents = []
+        image_fields = [
+            ("text_image", "문제 이미지:"),
+            ("choice_1_image", "보기 ① 이미지:"),
+            ("choice_2_image", "보기 ② 이미지:"),
+            ("choice_3_image", "보기 ③ 이미지:"),
+            ("choice_4_image", "보기 ④ 이미지:"),
+        ]
+        for field_name, label in image_fields:
+            img_field = getattr(question, field_name)
+            if img_field and img_field.name:
+                img_path = img_field.path
+                if pathlib.Path(img_path).exists():
+                    contents.append(label)
+                    contents.append(types.Part.from_bytes(
+                        data=pathlib.Path(img_path).read_bytes(),
+                        mime_type="image/png",
+                    ))
+        contents.append(prompt_text)
+
         client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
+            model="gemini-3-flash-preview",
+            contents=contents,
             config={
                 "response_mime_type": "application/json",
                 "response_schema": ExpResult,
