@@ -1762,6 +1762,7 @@ def gisa_question_generate_exp(request, pk):
             f"③ {question.choice_3}\n④ {question.choice_4}\n\n"
             f"정답은 {answer_circle}\n\n"
             f"해당 문제에 대해 [정답설명]과 [선지별 해설]을 해줘.\n"
+            f"화학식은 유니코드 아래첨자/위첨자를 사용해서 표기해라. 예: H₂O, Ca²⁺, NO₃⁻, CO₂, C₂H₅OH, PO₄³⁻\n"
             f"공부팁이나 인사말 기타 내용은 넣지마"
         )
 
