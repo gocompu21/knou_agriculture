@@ -68,6 +68,8 @@ def parse_study_guide(filepath_or_content, cache_key=None, cache_version=None):
         body = re.sub(r"\*\*관련 기출문제\*\*.*", "", body, flags=re.DOTALL).strip()
         # 마크다운 볼드/이탤릭을 HTML로 변환
         body = re.sub(r"\*\*핵심 정리\*\*", "", body)
+        # 마크다운 이미지 태그를 HTML로 변환
+        body = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', r'<img src="\2" alt="\1" class="tb-img">', body)
         # bullet + table + paragraph를 HTML로
         html_lines = []
         table_rows = []
@@ -151,6 +153,9 @@ def parse_study_guide(filepath_or_content, cache_key=None, cache_version=None):
                 )
                 line_content = re.sub(r"\*(.+?)\*", r"<em>\1</em>", line_content)
                 html_lines.append(f"<li class='sub-item'>{line_content}</li>")
+            elif "<img " in line:
+                _flush_para()
+                html_lines.append(line)
             else:
                 para_lines.append(line)
 
