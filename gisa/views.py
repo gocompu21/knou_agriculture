@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import uuid
@@ -359,6 +360,19 @@ def certification_detail(request, cert_id):
         wrong_results = build_results(wrong_attempts)
         wrong_count = len(wrong_results)
 
+    # 오답 탭 쪽집게 노트 매핑
+    wrong_q_notes_json = "{}"
+    if active_tab == "wrong" and wrong_results:
+        wrong_questions = [r["question"] for r in wrong_results]
+        wrong_note_subjects = list({q.subject for q in wrong_questions if q.subject})
+        wrong_note_map = _build_note_map(cert, wrong_note_subjects)
+        wrong_q_notes = {}
+        for q in wrong_questions:
+            key = f"{q.exam.year}-{q.exam.round}-{q.number}"
+            if key in wrong_note_map:
+                wrong_q_notes[str(q.id)] = _rank_notes(q.text, wrong_note_map[key])
+        wrong_q_notes_json = json.dumps(wrong_q_notes, ensure_ascii=False)
+
     # history 탭은 API로 무한 스크롤 로딩 (certification_detail에서 직접 로드하지 않음)
 
     # 최신기출 탭: exam_type='최신'인 GisaExam
@@ -427,6 +441,7 @@ def certification_detail(request, cert_id):
             "exam_cards": exam_cards,
             "wrong_count": wrong_count,
             "wrong_results": wrong_results,
+            "wrong_q_notes_json": wrong_q_notes_json,
             "exam_sessions": exam_sessions,
             "active_tab": active_tab,
             "total_questions": total_questions,
@@ -747,6 +762,88 @@ def api_gisa_search_questions(request, cert_id):
 ## ══════════ 학습모드 ══════════ ##
 
 
+_RE_HTML_TAG = re.compile(r"<[^>]+>")
+_RE_PAREN = re.compile(r"[（(]([^)）]+)[)）]")
+_RE_HANJA = re.compile(r"[\u4e00-\u9fff]+")
+
+
+def _extract_keywords(text):
+    """문제 텍스트에서 매칭용 키워드를 추출한다."""
+    keywords = set()
+    # 괄호 안 내용 (한자, 영문, 한글)
+    for m in _RE_PAREN.finditer(text):
+        inner = m.group(1).strip()
+        if inner:
+            keywords.add(inner.lower())
+    # 한자
+    for m in _RE_HANJA.finditer(text):
+        keywords.add(m.group())
+    # 2글자 이상 한글 명사구 (정원, 궁전, 양식 등 포함)
+    for m in re.finditer(r"[가-힣]{2,}", text):
+        w = m.group()
+        if len(w) >= 3:
+            keywords.add(w)
+    return keywords
+
+
+def _rank_notes(question_text, notes):
+    """문제 텍스트와의 키워드 매칭도로 노트를 정렬한다."""
+    if len(notes) <= 1:
+        return notes
+    keywords = _extract_keywords(question_text)
+    if not keywords:
+        return notes
+
+    scored = []
+    for note in notes:
+        plain = _RE_HTML_TAG.sub("", note.get("html", "")).lower()
+        title = note.get("title", "").lower()
+        target = title + " " + plain
+        score = sum(1 for kw in keywords if kw.lower() in target)
+        scored.append((score, note))
+
+    scored.sort(key=lambda x: -x[0])
+    return [n for _, n in scored]
+
+
+def _build_note_map(cert, subjects):
+    """쪽집게 노트에서 문제 참조(YYYY-R-N) → 절 HTML 매핑을 구축한다."""
+    note_map = {}  # "YYYY-R-N" -> [{title, chapter, html}, ...]
+    for subj in subjects:
+        try:
+            tb = GisaTextbook.objects.get(certification=cert, subject=subj)
+        except GisaTextbook.DoesNotExist:
+            continue
+        if not tb.content:
+            continue
+        chapters = parse_study_guide(
+            tb.content,
+            cache_key=f"tb_{tb.pk}",
+            cache_version=str(tb.updated_at),
+        )
+        for ch in chapters:
+            for sec in ch["sections"]:
+                sec_html = sec.get("content_html", "")
+                sec_title = sec.get("title", "")
+                ch_title = ch.get("title", "")
+                for qref in sec.get("questions", []):
+                    note_map.setdefault(qref, []).append({
+                        "title": sec_title,
+                        "chapter": ch_title,
+                        "html": sec_html,
+                    })
+                for sub in sec.get("subsections", []):
+                    sub_html = sub.get("content_html", "")
+                    sub_title = sub.get("title", "")
+                    for qref in sub.get("questions", []):
+                        note_map.setdefault(qref, []).append({
+                            "title": sub_title,
+                            "chapter": ch_title,
+                            "html": sub_html,
+                        })
+    return note_map
+
+
 @login_required
 def study_mode(request, cert_id, exam_id, subject_id=None):
     cert = get_object_or_404(Certification, pk=cert_id)
@@ -764,6 +861,20 @@ def study_mode(request, cert_id, exam_id, subject_id=None):
     if not questions.exists():
         return redirect("gisa:certification_detail", cert_id=cert_id)
 
+    # 쪽집게 노트 매핑
+    if subject:
+        note_subjects = [subject]
+    else:
+        note_subjects = list(GisaSubject.objects.filter(certification=cert))
+    note_map = _build_note_map(cert, note_subjects)
+
+    # 문제별 노트 매핑 (관련도 정렬)
+    q_notes = {}
+    for q in questions:
+        key = f"{exam.year}-{exam.round}-{q.number}"
+        if key in note_map:
+            q_notes[str(q.id)] = _rank_notes(q.text, note_map[key])
+
     return render(
         request,
         "gisa/study_mode.html",
@@ -772,6 +883,7 @@ def study_mode(request, cert_id, exam_id, subject_id=None):
             "exam": exam,
             "subject": subject,
             "questions": questions,
+            "q_notes_json": json.dumps(q_notes, ensure_ascii=False),
         },
     )
 
@@ -1434,6 +1546,15 @@ def textbook_study(request, cert_id):
                 if section_id:
                     break
 
+    # 쪽집게 노트 매핑
+    note_subjects = list({q.subject for q in questions if q.subject})
+    note_map = _build_note_map(cert, note_subjects)
+    q_notes = {}
+    for q in questions:
+        key = f"{q.exam.year}-{q.exam.round}-{q.number}"
+        if key in note_map:
+            q_notes[str(q.id)] = _rank_notes(q.text, note_map[key])
+
     return render(
         request,
         "gisa/study_mode.html",
@@ -1447,6 +1568,7 @@ def textbook_study(request, cert_id):
             "textbook_subject": textbook_subject,
             "chapter_idx": chapter_idx,
             "section_id": section_id,
+            "q_notes_json": json.dumps(q_notes, ensure_ascii=False),
         },
     )
 

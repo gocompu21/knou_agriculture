@@ -159,7 +159,50 @@
     /* ══════════ 쪽집게 노트 탭 ══════════ */
     .subject-pills {
         display: flex; gap: 6px; flex-wrap: nowrap;
-        margin-bottom: 20px; padding: 4px 0;
+        margin-bottom: 12px; padding: 4px 0;
+    }
+    .tb-search-bar {
+        display: flex; gap: 6px; margin-bottom: 16px;
+    }
+    .tb-search-bar input {
+        flex: 1; padding: 8px 12px; border: 1.5px solid #ccc; border-radius: 8px;
+        font-size: 0.88rem; font-family: inherit; outline: none;
+        transition: border-color 0.2s;
+    }
+    .tb-search-bar input:focus { border-color: #2d6a4f; }
+    .tb-search-bar button {
+        padding: 8px 16px; border: none; border-radius: 8px;
+        background: #2d6a4f; color: #fff; font-size: 0.85rem; font-weight: 600;
+        cursor: pointer; font-family: inherit; white-space: nowrap;
+        transition: background 0.2s;
+    }
+    .tb-search-bar button:hover { background: #1b4332; }
+    .tb-search-results {
+        margin-bottom: 16px; border: 1px solid #dce8dc; border-radius: 8px;
+        background: #f9fbf9; overflow: hidden;
+    }
+    .tb-search-results .sr-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 8px 14px; background: #e8f5e9; font-size: 0.82rem; color: #555;
+    }
+    .tb-search-results .sr-close {
+        background: none; border: none; cursor: pointer; font-size: 1rem; color: #888; padding: 0 4px;
+    }
+    .tb-search-results .sr-list { max-height: 240px; overflow-y: auto; }
+    .tb-search-results .sr-item {
+        padding: 9px 14px; cursor: pointer; font-size: 0.85rem; color: #333;
+        border-top: 1px solid #eef2ee; transition: background 0.1s;
+    }
+    .tb-search-results .sr-item:first-child { border-top: none; }
+    .tb-search-results .sr-item:hover { background: #e8f5e9; }
+    .tb-search-results .sr-item .sr-chapter {
+        font-size: 0.75rem; color: #888; margin-top: 2px;
+    }
+    .tb-search-results .sr-highlight { color: #d93025; font-weight: 700; }
+    .tb-search-results .sr-snippet {
+        font-size: 0.78rem; color: #666; margin-top: 3px;
+        line-height: 1.5; overflow: hidden;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
     }
     .subject-pill {
         flex: 1; text-align: center;
@@ -430,6 +473,26 @@
         font-size: 0.9em; color: #555; line-height: 1.6;
     }
     .wrong-question.exp-open .choice-exp { display: block; }
+    .wrong-question.exp-open .wq-note-section { display: block; }
+    .wq-note-section { display: none; margin: 8px 0 0; padding: 10px 16px; background: #f9fbf9; border: 1px solid #dce8dc; border-radius: 6px; }
+    .wq-note-header { font-size: 0.78rem; font-weight: 700; color: #1b4332; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .wq-note-header svg { flex-shrink: 0; }
+    .wq-note-body { font-size: 0.85rem; line-height: 1.7; color: #333; }
+    .wq-note-body ul { padding-left: 1.2em; margin: 4px 0; }
+    .wq-note-body li { margin-bottom: 2px; }
+    .wq-note-body li.sub-item { margin-left: 1.2em; list-style-type: circle; }
+    .wq-note-body table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 0.82rem; }
+    .wq-note-body th, .wq-note-body td { border: 1px solid #ccc; padding: 4px 8px; }
+    .wq-note-body th { background: #e8f0e8; font-weight: 700; }
+    .wq-note-body p { margin: 4px 0; text-align: justify; }
+    .wq-note-body strong { color: #1b4332; }
+    .wq-note-body .num-item { padding-left: 1.4em; text-indent: -1.4em; margin: 2px 0; }
+    .wq-note-body .num-marker { font-weight: 700; margin-right: 0.3em; }
+    .wq-note-body .tb-img { max-width: 100%; margin: 6px 0; border-radius: 4px; }
+    .wq-note-more { display: none; }
+    .wq-note-section.notes-expanded .wq-note-more { display: block; }
+    .wq-note-toggle { background: none; border: 1px dashed #aaa; border-radius: 4px; padding: 4px 12px; font-size: 0.78rem; color: #666; cursor: pointer; margin-top: 6px; font-family: inherit; }
+    .wq-note-toggle:hover { color: #333; border-color: #888; }
     .choice-exp.correct-choice-exp { color: #111; font-weight: 500; }
     .choice-exp.correct-choice-exp .exp-text-inner {
         background: linear-gradient(to top, #fff176 40%, transparent 40%);
@@ -613,6 +676,14 @@
             {% endfor %}
         </div>
 
+        <!-- 검색 -->
+        <div class="tb-search-bar">
+            <input type="text" id="tb-search-input" placeholder="키워드 검색 (예: 병원체, 균근, 전정)" onkeydown="if(event.key==='Enter')searchTextbook()">
+            <button type="button" onclick="searchTextbook()">검색</button>
+            <button type="button" onclick="clearTextbookSearch()" style="background:#eee;color:#555;">지우기</button>
+        </div>
+        <div id="tb-search-results" class="tb-search-results" style="display:none;"></div>
+
         {% if textbook_chapters %}
         <!-- 아코디언 목차 (장 제목만 렌더링, 섹션은 AJAX 로드) -->
         {% for ch in textbook_chapters %}
@@ -718,6 +789,7 @@
                 </div>
                 {% endfor %}
             </div>
+            <div class="wq-note-section" data-note-qid="{{ r.question.id }}"></div>
             <div class="wq-actions">
                 <button type="button" class="exp-toggle" onclick="wrongToggleExp(this)">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 9L12 16L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1053,6 +1125,139 @@ function scrollToWithOffset(el, offset) {
 
 formatBadges(document);
 
+/* ── 쪽집게 노트 검색 ── */
+function searchTextbook() {
+    var keyword = document.getElementById('tb-search-input').value.trim();
+    if (!keyword) return;
+    var resultsDiv = document.getElementById('tb-search-results');
+
+    /* 모든 장이 AJAX 로드될 때까지 대기 */
+    var chapters = document.querySelectorAll('#tab-textbook .chapter-item');
+    var allLoaded = true;
+    chapters.forEach(function(ch) {
+        if (!ch.querySelector('.chapter-body').dataset.loaded) allLoaded = false;
+    });
+    if (!allLoaded) {
+        autoLoadAllChapters();
+        resultsDiv.innerHTML = '<div class="sr-header"><span>로딩 중... 잠시 후 다시 검색해주세요.</span></div>';
+        resultsDiv.style.display = 'block';
+        setTimeout(function() { searchTextbook(); }, 800);
+        return;
+    }
+
+    var matches = [];
+    var kwLower = keyword.toLowerCase();
+    chapters.forEach(function(ch) {
+        var chTitle = ch.querySelector('.chapter-header span').textContent.trim();
+        var sections = ch.querySelectorAll('.section-item');
+        sections.forEach(function(sec) {
+            var secHeader = sec.querySelector('.section-header span');
+            if (!secHeader) return;
+            var secTitle = secHeader.textContent.trim();
+            var secBody = sec.querySelector('.section-body');
+            var bodyText = secBody ? secBody.textContent : '';
+            var fullText = secTitle + ' ' + bodyText;
+            if (fullText.toLowerCase().indexOf(kwLower) >= 0) {
+                /* 본문에서 키워드 주변 텍스트 추출 */
+                var snippet = '';
+                var idx = bodyText.toLowerCase().indexOf(kwLower);
+                if (idx >= 0) {
+                    var start = Math.max(0, idx - 30);
+                    var end = Math.min(bodyText.length, idx + keyword.length + 50);
+                    snippet = (start > 0 ? '...' : '') + bodyText.substring(start, end).trim() + (end < bodyText.length ? '...' : '');
+                }
+                matches.push({ chTitle: chTitle, secTitle: secTitle, snippet: snippet, secEl: sec, chEl: ch });
+            }
+        });
+    });
+
+    if (matches.length === 0) {
+        resultsDiv.innerHTML = '<div class="sr-header"><span>"' + escHtml(keyword) + '" 검색 결과 없음</span><button class="sr-close" onclick="this.closest(\'.tb-search-results\').style.display=\'none\'">&times;</button></div>';
+        resultsDiv.style.display = 'block';
+        return;
+    }
+
+    var html = '<div class="sr-header"><span>"' + escHtml(keyword) + '" ' + matches.length + '건</span><button class="sr-close" onclick="this.closest(\'.tb-search-results\').style.display=\'none\'">&times;</button></div>';
+    html += '<div class="sr-list">';
+    matches.forEach(function(m, i) {
+        html += '<div class="sr-item" data-idx="' + i + '">';
+        html += '<div>' + highlightKw(escHtml(m.secTitle), keyword) + '</div>';
+        if (m.snippet) {
+            html += '<div class="sr-snippet">' + highlightKw(escHtml(m.snippet), keyword) + '</div>';
+        }
+        html += '<div class="sr-chapter">' + escHtml(m.chTitle) + '</div>';
+        html += '</div>';
+    });
+    html += '</div>';
+    resultsDiv.innerHTML = html;
+    resultsDiv.style.display = 'block';
+
+    resultsDiv.querySelectorAll('.sr-item').forEach(function(item) {
+        item.addEventListener('click', function() {
+            var idx = parseInt(this.dataset.idx);
+            var m = matches[idx];
+            clearHighlights();
+            m.chEl.classList.add('open');
+            m.secEl.classList.add('open');
+            highlightInBody(m.secEl.querySelector('.section-body'), keyword);
+            scrollToWithOffset(m.secEl);
+            m.secEl.querySelector('.section-header').style.background = '#fff3cd';
+            setTimeout(function() { m.secEl.querySelector('.section-header').style.background = ''; }, 1500);
+        });
+    });
+}
+
+function clearTextbookSearch() {
+    document.getElementById('tb-search-input').value = '';
+    document.getElementById('tb-search-results').style.display = 'none';
+    clearHighlights();
+}
+
+function clearHighlights() {
+    document.querySelectorAll('mark.tb-kw-hl').forEach(function(mark) {
+        var parent = mark.parentNode;
+        parent.replaceChild(document.createTextNode(mark.textContent), mark);
+        parent.normalize();
+    });
+}
+
+function highlightInBody(container, keyword) {
+    if (!container || !keyword) return;
+    var re = new RegExp('(' + keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function(node) {
+        if (!re.test(node.nodeValue)) return;
+        re.lastIndex = 0;
+        var frag = document.createDocumentFragment();
+        var text = node.nodeValue;
+        var lastIdx = 0;
+        var match;
+        while ((match = re.exec(text)) !== null) {
+            if (match.index > lastIdx) frag.appendChild(document.createTextNode(text.slice(lastIdx, match.index)));
+            var mark = document.createElement('mark');
+            mark.className = 'tb-kw-hl';
+            mark.style.color = '#d93025';
+            mark.style.background = 'transparent';
+            mark.style.fontWeight = '700';
+            mark.textContent = match[1];
+            frag.appendChild(mark);
+            lastIdx = re.lastIndex;
+        }
+        if (lastIdx < text.length) frag.appendChild(document.createTextNode(text.slice(lastIdx)));
+        node.parentNode.replaceChild(frag, node);
+    });
+}
+
+function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function highlightKw(text, kw) {
+    var re = new RegExp('(' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    return text.replace(re, '<span class="sr-highlight">$1</span>');
+}
+
 /* ── 상대 시간 표시 ── */
 function timeAgo(dateStr) {
     var d = new Date(dateStr.replace(' ', 'T'));
@@ -1213,6 +1418,38 @@ function filterWrong(pill, subject) {
         var base = '{% url "gisa:wrong_answers_retry" cert.pk %}';
         retryLink.href = subject ? base + '?subject=' + encodeURIComponent(subject) : base;
     }
+}
+
+// 오답 탭 쪽집게 노트 매핑
+var _wrongQNotes = {{ wrong_q_notes_json|safe }};
+(function() {
+    var svgIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="color:#1b4332"><path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    document.querySelectorAll('.wq-note-section').forEach(function(el) {
+        var qid = el.getAttribute('data-note-qid');
+        var notes = _wrongQNotes[qid];
+        if (notes && notes.length > 0) {
+            var n0 = notes[0];
+            var html = '<div class="wq-note-header">' + svgIcon + n0.chapter + ' &gt; ' + n0.title + '</div><div class="wq-note-body">' + n0.html + '</div>';
+            if (notes.length > 1) {
+                html += '<div class="wq-note-more">';
+                for (var i = 1; i < notes.length; i++) {
+                    html += '<div style="border-top:1px dashed #ccc;margin:8px 0;"></div>';
+                    html += '<div class="wq-note-header">' + svgIcon + notes[i].chapter + ' &gt; ' + notes[i].title + '</div><div class="wq-note-body">' + notes[i].html + '</div>';
+                }
+                html += '</div>';
+                html += '<button type="button" class="wq-note-toggle" onclick="toggleWrongNoteMore(this)">관련 노트 ' + (notes.length - 1) + '건 더보기</button>';
+            }
+            el.innerHTML = html;
+        } else {
+            el.remove();
+        }
+    });
+})();
+function toggleWrongNoteMore(btn) {
+    var section = btn.closest('.wq-note-section');
+    var expanded = section.classList.toggle('notes-expanded');
+    var count = section.querySelectorAll('.wq-note-more .wq-note-header').length;
+    btn.textContent = expanded ? '접기' : '관련 노트 ' + count + '건 더보기';
 }
 
 var wrongAllOpen = false;
