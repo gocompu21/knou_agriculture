@@ -251,6 +251,24 @@
         color: #d93025;
     }
 
+    /* 문제별 접기/펼치기 */
+    .q-fold-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #bbb;
+        padding: 2px 4px;
+        margin-left: 4px;
+        font-size: 0.7em;
+        vertical-align: 2px;
+        transition: transform 0.25s, color 0.15s;
+        flex-shrink: 0;
+    }
+    .q-fold-btn:hover { color: #666; }
+    .q-fold-btn svg { display: block; }
+    .question-card.exp-open .q-fold-btn { transform: rotate(180deg); color: #888; }
+    .question-card:not(.exp-open) .q-fold-btn { transform: rotate(0deg); }
+
     @media (max-width: 480px) {
         .tabs-header {
             padding: 10px;
@@ -400,6 +418,31 @@
     .ef-img-paste-btn:hover, .ef-img-file-btn:hover { background: #e8eaf6; border-color: #1a237e; color: #1a237e; }
     .ef-img-paste-btn.has-img { border-color: #4caf50; background: #f1f8e9; color: #2e7d32; }
 
+    /* 쪽집게 노트 영역 */
+    .q-note-section { display: none; margin: 0 0 8px; padding: 10px 16px; background: #f9fbf9; border: 1px solid #dce8dc; border-radius: 6px; }
+    .question-card.exp-open .q-note-section { display: block; }
+    .q-note-header { font-size: 0.78rem; font-weight: 700; color: #1b4332; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .q-note-header svg { flex-shrink: 0; }
+    .q-note-body { font-size: 0.85rem; line-height: 1.7; color: #333; }
+    .q-note-body ul { padding-left: 1.2em; margin: 4px 0; }
+    .q-note-body li { margin-bottom: 2px; }
+    .q-note-body li.sub-item { margin-left: 1.2em; list-style-type: circle; }
+    .q-note-body table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 0.82rem; }
+    .q-note-body th, .q-note-body td { border: 1px solid #ccc; padding: 4px 8px; }
+    .q-note-body th { background: #e8f0e8; font-weight: 700; }
+    .q-note-body p { margin: 4px 0; text-align: justify; }
+    .q-note-body strong { color: #1b4332; }
+    .q-note-body .num-item { padding-left: 1.4em; text-indent: -1.4em; margin: 2px 0; }
+    .q-note-body .num-marker { font-weight: 700; margin-right: 0.3em; }
+    .q-note-body .tb-img { max-width: 100%; margin: 6px 0; border-radius: 4px; }
+    .q-note-more { display: none; }
+    .q-note-section.notes-expanded .q-note-more { display: block; }
+    .q-note-toggle { background: none; border: none; cursor: pointer; color: #888; font-size: 0.78rem; padding: 4px 0; margin-top: 4px; text-decoration: underline; text-underline-offset: 2px; }
+    .q-note-toggle:hover { color: #1b4332; }
+    @media (max-width: 480px) {
+        .q-note-section { margin: 0 0 4px; padding: 8px 10px; border: none; background: #f5f8f5; border-radius: 0; }
+    }
+
 </style>
 {% endblock %}
 
@@ -440,7 +483,7 @@
         <div class="question-card" id="q{{ q.number }}" data-answer="{{ q.answer }}" data-qid="{{ q.id }}">
             <div class="q-header">
                 <div class="q-content">
-                    <div class="q-text-display"><span class="q-num-label">{{ q.number }}.</span><span class="q-text-body">{{ q.text|qtext }}{% if is_wrong_retry or is_textbook_study %} <sup class="q-badge">{{ q.exam.year }}-{{ q.exam.round }}</sup>{% endif %}{% if request.user.is_staff %} <button type="button" class="edit-btn" onclick="startEdit(this)" title="수정">&#9998;</button>{% endif %}</span></div>
+                    <div class="q-text-display"><span class="q-num-label">{{ q.number }}.</span><span class="q-text-body">{{ q.text|qtext }}{% if is_wrong_retry or is_textbook_study %} <sup class="q-badge">{{ q.exam.year }}-{{ q.exam.round }}</sup>{% endif %}{% if request.user.is_staff %} <button type="button" class="edit-btn" onclick="startEdit(this)" title="수정">&#9998;</button>{% endif %}</span><button type="button" class="q-fold-btn" onclick="toggleFold(this)" title="접기/펼치기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 7 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
                 </div>
             </div>
             {% if q.text_image %}<div class="q-image-wrap"><img src="{{ q.text_image.url }}" class="q-image"></div>{% endif %}
@@ -462,6 +505,7 @@
                     {% if q.choice_4_exp %}<div class="choice-exp{% if '4' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_4_exp }}</span></div>{% endif %}
                 </div>
             </div>
+            <div class="q-note-section" data-note-qid="{{ q.id }}"></div>
             {% if request.user.is_staff %}
             <div class="edit-form">
                 <label>문제</label>
@@ -548,11 +592,49 @@
 
 {% block extra_js %}
 <script>
+    // 쪽집게 노트 매핑
+    var _qNotes = {% if q_notes_json %}{{ q_notes_json|safe }}{% else %}{}{% endif %};
+    document.querySelectorAll('.q-note-section').forEach(function(el) {
+        var qid = el.getAttribute('data-note-qid');
+        var notes = _qNotes[qid];
+        if (notes && notes.length > 0) {
+            var svgIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" stroke="#1b4332" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            var n0 = notes[0];
+            var html = '<div class="q-note-header">' + svgIcon + n0.chapter + ' &gt; ' + n0.title + '</div><div class="q-note-body">' + n0.html + '</div>';
+            if (notes.length > 1) {
+                html += '<div class="q-note-more">';
+                for (var i = 1; i < notes.length; i++) {
+                    html += '<div style="border-top:1px dashed #ccc;margin:8px 0;"></div>';
+                    html += '<div class="q-note-header">' + svgIcon + notes[i].chapter + ' &gt; ' + notes[i].title + '</div><div class="q-note-body">' + notes[i].html + '</div>';
+                }
+                html += '</div>';
+                html += '<button type="button" class="q-note-toggle" onclick="toggleNoteMore(this)">관련 노트 ' + (notes.length - 1) + '건 더보기</button>';
+            }
+            el.innerHTML = html;
+        } else {
+            el.remove();
+        }
+    });
+
+    function toggleNoteMore(btn) {
+        var section = btn.closest('.q-note-section');
+        var expanded = section.classList.toggle('notes-expanded');
+        var count = section.querySelectorAll('.q-note-more .q-note-header').length;
+        btn.textContent = expanded ? '접기' : '관련 노트 ' + count + '건 더보기';
+    }
+
     // 해시 기반 스크롤 (수정 후 reload 시)
     if (location.hash) {
         var _t = document.querySelector(location.hash);
         if (_t) setTimeout(function() { _t.scrollIntoView({block:'center', behavior:'smooth'}); }, 200);
     }
+    function toggleFold(btn) {
+        var card = btn.closest('.question-card');
+        if (card.classList.toggle('exp-open')) return;
+        card.querySelectorAll('.choice-item').forEach(function(c) { c.classList.remove('selected'); });
+        card.querySelectorAll('.choice-num').forEach(function(cn) { cn.classList.remove('picked', 'correct'); });
+    }
+
     function selectChoice(choiceItem, choiceNum) {
         var parent = choiceItem.closest('.q-choices');
         var card = choiceItem.closest('.question-card');
@@ -739,9 +821,14 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (!data.ok) { alert(data.error || '저장 실패'); return; }
-            var numLabel = card.querySelector('.q-num-label');
-            var numHtml = numLabel ? numLabel.outerHTML + ' ' : '';
-            card.querySelector('.q-text-display').innerHTML = numHtml + '<span class="q-text-body">' + renderQtext(payload.text) + '</span>';
+            var body = card.querySelector('.q-text-body');
+            var editBtn = body.querySelector('.edit-btn');
+            var badge = body.querySelector('.q-badge');
+            if (editBtn) editBtn.remove();
+            if (badge) badge.remove();
+            body.innerHTML = renderQtext(payload.text);
+            if (badge) body.appendChild(document.createTextNode(' ')), body.appendChild(badge);
+            if (editBtn) body.appendChild(document.createTextNode(' ')), body.appendChild(editBtn);
             var displays = card.querySelectorAll('.c-text-display');
             displays[0].textContent = payload.choice_1;
             displays[1].textContent = payload.choice_2;
