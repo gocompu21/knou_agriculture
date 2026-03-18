@@ -1083,8 +1083,13 @@ function formatBadges(container) {
             var yr = parts[0], rd = parts[1];
             var key = yr + '-' + rd;
             badge.classList.add('y' + yr);
-            if (seen[key]) { badge.style.display = 'none'; return; }
-            seen[key] = true;
+            if (seen[key]) {
+                seen[key].count++;
+                seen[key].el.textContent = key + ' (' + seen[key].count + ')';
+                badge.style.display = 'none';
+                return;
+            }
+            seen[key] = { el: badge, count: 1 };
             badge.textContent = key;
         });
     });
