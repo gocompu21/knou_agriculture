@@ -1,0 +1,104 @@
+<!-- 용어집 팝업: 해설 텍스트 내 용어를 자동 매칭하여 팝업 표시 -->
+<style>
+strong.gl { cursor: pointer; border-bottom: 1.5px dotted #6a1b9a; }
+strong.gl:hover { background: #f3e5f5; }
+.gl-popup { display: none; position: fixed; z-index: 9999; max-width: 340px; padding: 12px 16px; background: #fff; border: 1.5px solid #6a1b9a; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,.18); font-size: 0.85rem; line-height: 1.65; color: #333; }
+.gl-popup .gl-popup-term { font-weight: 700; color: #6a1b9a; margin-bottom: 4px; font-size: 0.9rem; }
+.gl-popup .gl-popup-desc { font-weight: 400; }
+@media (max-width: 480px) { .gl-popup { max-width: calc(100vw - 32px); left: 16px !important; right: 16px !important; } }
+</style>
+<script>
+(function(){
+    var glossary = {{ glossary_json|safe }};
+    if (!glossary || !Object.keys(glossary).length) return;
+
+    /* 팝업 요소 생성 */
+    var popup = document.createElement('div');
+    popup.className = 'gl-popup';
+    popup.innerHTML = '<div class="gl-popup-term"></div><div class="gl-popup-desc"></div>';
+    document.body.appendChild(popup);
+
+    /* 용어를 길이 내림차순 정렬 (긴 용어 우선 매칭) */
+    var terms = Object.keys(glossary).sort(function(a, b) { return b.length - a.length; });
+
+    /* 정규식 생성: 특수문자 이스케이프 */
+    function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+    var pattern = new RegExp('(' + terms.map(escRe).join('|') + ')', 'g');
+
+    /* 텍스트 노드를 찾아서 용어를 <strong class="gl"> 태그로 치환 */
+    function linkTerms(el) {
+        var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+        var nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(function(node) {
+            if (!node.nodeValue || !pattern.test(node.nodeValue)) { pattern.lastIndex = 0; return; }
+            pattern.lastIndex = 0;
+            var frag = document.createDocumentFragment();
+            var text = node.nodeValue;
+            var lastIdx = 0;
+            var m;
+            while ((m = pattern.exec(text)) !== null) {
+                if (m.index > lastIdx) frag.appendChild(document.createTextNode(text.slice(lastIdx, m.index)));
+                var strong = document.createElement('strong');
+                strong.className = 'gl';
+                strong.setAttribute('data-desc', glossary[m[1]]);
+                strong.textContent = m[1];
+                frag.appendChild(strong);
+                lastIdx = pattern.lastIndex;
+            }
+            if (lastIdx < text.length) frag.appendChild(document.createTextNode(text.slice(lastIdx)));
+            node.parentNode.replaceChild(frag, node);
+        });
+    }
+
+    /* 해설 요소에 용어 링크 적용 */
+    document.querySelectorAll('.exp-text-inner').forEach(linkTerms);
+
+    /* 쪽집게 노트의 <strong> 태그에 glossary 팝업 연결 */
+    function linkStrong(container) {
+        container.querySelectorAll('strong:not(.gl)').forEach(function(el) {
+            var term = el.textContent.trim();
+            if (glossary[term]) {
+                el.className = 'gl';
+                el.setAttribute('data-desc', glossary[term]);
+                el.style.cursor = 'pointer';
+            }
+        });
+    }
+    document.querySelectorAll('.q-note-body').forEach(linkStrong);
+
+    /* 동적으로 추가되는 노트에도 적용 (MutationObserver) */
+    var obs = new MutationObserver(function(muts) {
+        muts.forEach(function(m) {
+            m.addedNodes.forEach(function(n) {
+                if (n.nodeType !== 1) return;
+                if (n.classList && n.classList.contains('q-note-body')) linkStrong(n);
+                n.querySelectorAll && n.querySelectorAll('.q-note-body').forEach(linkStrong);
+                n.querySelectorAll && n.querySelectorAll('.exp-text-inner').forEach(linkTerms);
+            });
+        });
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+
+    /* 팝업 클릭 핸들러 */
+    document.addEventListener('click', function(e) {
+        var el = e.target.closest('strong.gl');
+        if (el) {
+            e.preventDefault(); e.stopPropagation();
+            popup.querySelector('.gl-popup-term').textContent = el.textContent;
+            popup.querySelector('.gl-popup-desc').textContent = el.getAttribute('data-desc');
+            var rect = el.getBoundingClientRect();
+            var top = rect.bottom + 6;
+            var left = rect.left;
+            if (top + 200 > window.innerHeight) top = rect.top - popup.offsetHeight - 6;
+            if (left + 340 > window.innerWidth) left = window.innerWidth - 356;
+            if (left < 8) left = 8;
+            popup.style.top = top + 'px';
+            popup.style.left = left + 'px';
+            popup.style.display = 'block';
+        } else if (!e.target.closest('.gl-popup')) {
+            popup.style.display = 'none';
+        }
+    });
+})();
+</script>

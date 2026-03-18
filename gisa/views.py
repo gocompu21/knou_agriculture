@@ -13,7 +13,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from .models import Certification, GisaAttempt, GisaExam, GisaQuestion, GisaSubject, GisaTextbook
+from .models import Certification, GisaAttempt, GisaExam, GisaGlossary, GisaQuestion, GisaSubject, GisaTextbook
 
 
 ## ══════════ 교재 마크다운 파서 ══════════ ##
@@ -22,9 +22,10 @@ from .models import Certification, GisaAttempt, GisaExam, GisaQuestion, GisaSubj
 _study_guide_cache = {}
 
 
-def parse_study_guide(filepath_or_content, cache_key=None, cache_version=None):
+def parse_study_guide(filepath_or_content, cache_key=None, cache_version=None, glossary=None):
     """마크다운 핵심정리를 파싱하여 구조화된 데이터 반환.
     filepath_or_content: 파일 경로 또는 마크다운 문자열.
+    glossary: {용어: 설명} 딕셔너리 — 볼드 텍스트에 용어집 팝업 연결.
     cache_key/cache_version: DB 기반 캐시용 (key=subject_id, version=updated_at).
     """
     # 파일 경로인 경우 (하위 호환)
@@ -45,6 +46,23 @@ def parse_study_guide(filepath_or_content, cache_key=None, cache_version=None):
             cached = _study_guide_cache.get(effective_key)
             if cached and cached[0] == effective_version:
                 return cached[1]
+
+    _gl = glossary or {}
+
+    def _bold_replace(m):
+        """볼드 텍스트를 <strong>으로 변환. glossary에 있으면 팝업 속성 추가."""
+        term = m.group(1)
+        desc = _gl.get(term)
+        if desc:
+            esc = desc.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;")
+            return f'<strong class="gl" data-desc="{esc}">{term}</strong>'
+        return f"<strong>{term}</strong>"
+
+    def _apply_bold(text):
+        """볼드+이탤릭 마크다운을 HTML로 변환 (glossary 매칭 포함)."""
+        text = re.sub(r"\*\*(.+?)\*\*", _bold_replace, text)
+        text = re.sub(r"\*(.+?)\*", r"<em>\1</em>", text)
+        return text
 
     chapters = []
     current_chapter = None
@@ -94,8 +112,7 @@ def parse_study_guide(filepath_or_content, cache_key=None, cache_version=None):
             if not para_lines:
                 return
             text = " ".join(para_lines)
-            text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
-            text = re.sub(r"\*(.+?)\*", r"<em>\1</em>", text)
+            text = _apply_bold(text)
             html_lines.append(f"<p>{text}</p>")
             para_lines = []
 
@@ -111,9 +128,7 @@ def parse_study_guide(filepath_or_content, cache_key=None, cache_version=None):
                 # 구분선(|---|---|) 건너뜀
                 if re.match(r"^\|[\s\-:|]+\|$", line):
                     continue
-                # 볼드 변환
-                line = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", line)
-                line = re.sub(r"\*(.+?)\*", r"<em>\1</em>", line)
+                line = _apply_bold(line)
                 table_rows.append(line)
                 continue
             _flush_table()
@@ -122,37 +137,19 @@ def parse_study_guide(filepath_or_content, cache_key=None, cache_version=None):
             if circled_match:
                 _flush_para()
                 num = circled_match.group(1)
-                line_content = circled_match.group(2)
-                line_content = re.sub(
-                    r"\*\*(.+?)\*\*", r"<strong>\1</strong>", line_content
-                )
-                line_content = re.sub(r"\*(.+?)\*", r"<em>\1</em>", line_content)
+                line_content = _apply_bold(circled_match.group(2))
                 html_lines.append(f"<div class='num-item'><span class='num-marker'>{num}</span>{line_content}</div>")
             elif line.startswith("→ ") or line.startswith("  → "):
                 _flush_para()
-                line_content = line.lstrip().lstrip("→").strip()
-                line_content = re.sub(
-                    r"\*\*(.+?)\*\*", r"<strong>\1</strong>", line_content
-                )
-                line_content = re.sub(r"\*(.+?)\*", r"<em>\1</em>", line_content)
+                line_content = _apply_bold(line.lstrip().lstrip("→").strip())
                 html_lines.append(f"<div class='num-item num-sub'>→ {line_content}</div>")
             elif line.startswith("- "):
                 _flush_para()
-                line_content = line[2:]
-                # 볼드 변환
-                line_content = re.sub(
-                    r"\*\*(.+?)\*\*", r"<strong>\1</strong>", line_content
-                )
-                # 이탤릭 변환
-                line_content = re.sub(r"\*(.+?)\*", r"<em>\1</em>", line_content)
+                line_content = _apply_bold(line[2:])
                 html_lines.append(f"<li>{line_content}</li>")
             elif line.startswith("  - "):
                 _flush_para()
-                line_content = line[4:]
-                line_content = re.sub(
-                    r"\*\*(.+?)\*\*", r"<strong>\1</strong>", line_content
-                )
-                line_content = re.sub(r"\*(.+?)\*", r"<em>\1</em>", line_content)
+                line_content = _apply_bold(line[4:])
                 html_lines.append(f"<li class='sub-item'>{line_content}</li>")
             elif "<img " in line:
                 _flush_para()
@@ -262,6 +259,14 @@ def parse_study_guide(filepath_or_content, cache_key=None, cache_version=None):
 
     _study_guide_cache[effective_key] = (effective_version, chapters)
     return chapters
+
+
+def _glossary_json(cert):
+    """자격증의 전 과목 용어집을 {term: description} JSON 문자열로 반환."""
+    qs = GisaGlossary.objects.filter(certification=cert).exclude(
+        description=""
+    ).values_list("term", "description")
+    return json.dumps(dict(qs), ensure_ascii=False) if qs.exists() else "{}"
 
 
 def build_results(attempts):
@@ -412,6 +417,23 @@ def certification_detail(request, cert_id):
             .order_by("-exam__year", "-exam__round", "number")
         )
 
+    # 용어집 탭
+    glossary_terms = []
+    glossary_count = 0
+    glossary_subject = ""
+    glossary_subjects = []
+    if active_tab == "glossary":
+        glossary_subjects = list(subjects.values_list("name", flat=True))
+        glossary_subject = request.GET.get("subject", glossary_subjects[0] if glossary_subjects else "")
+        import re as _re
+        glossary_terms = list(
+            GisaGlossary.objects.filter(
+                certification=cert, subject__name=glossary_subject
+            ).values("id", "term", "description")
+        )
+        glossary_terms.sort(key=lambda t: _re.sub(r'[^가-힣a-zA-Z0-9]', '', t["term"]))
+        glossary_count = GisaGlossary.objects.filter(certification=cert).count()
+
     # 교재 데이터 — 교재 탭일 때만 장 제목 전달 (섹션은 AJAX로 로드)
     textbook_chapters = []
     first_subject = subjects.first().name if subjects.exists() else ""
@@ -422,10 +444,16 @@ def certification_detail(request, cert_id):
             certification=cert, subject__name=textbook_subject
         ).first()
         if textbook:
+            # 용어집 로드 (해당 과목)
+            _gl_qs = GisaGlossary.objects.filter(
+                certification=cert, subject__name=textbook_subject
+            ).exclude(description="").values_list("term", "description")
+            _gl_dict = dict(_gl_qs) if _gl_qs.exists() else {}
             full = parse_study_guide(
                 textbook.content,
-                cache_key=f"gisa_tb_{textbook.pk}",
+                cache_key=f"gisa_tb_{textbook.pk}_gl{len(_gl_dict)}",
                 cache_version=textbook.updated_at,
+                glossary=_gl_dict,
             )
             textbook_chapters = [
                 {"id": ch["id"], "title": ch["title"]} for ch in full
@@ -450,6 +478,11 @@ def certification_detail(request, cert_id):
             "textbook_subjects": textbook_subjects,
             "latest_year_cards": latest_year_cards,
             "latest_questions": latest_questions,
+            "glossary_terms": glossary_terms,
+            "glossary_count": glossary_count,
+            "glossary_subject": glossary_subject,
+            "glossary_subjects": glossary_subjects,
+            "glossary_json": _glossary_json(cert),
         },
     )
 
@@ -470,10 +503,15 @@ def textbook_chapter_api(request, cert_id):
     ).first()
     if not textbook:
         return JsonResponse({"html": ""})
+    _gl_qs = GisaGlossary.objects.filter(
+        certification=cert, subject__name=subject
+    ).exclude(description="").values_list("term", "description")
+    _gl_dict = dict(_gl_qs) if _gl_qs.exists() else {}
     chapters = parse_study_guide(
         textbook.content,
-        cache_key=f"gisa_tb_{textbook.pk}",
+        cache_key=f"gisa_tb_{textbook.pk}_gl{len(_gl_dict)}",
         cache_version=textbook.updated_at,
+        glossary=_gl_dict,
     )
 
     if ch_idx < 0 or ch_idx >= len(chapters):
@@ -884,6 +922,7 @@ def study_mode(request, cert_id, exam_id, subject_id=None):
             "subject": subject,
             "questions": questions,
             "q_notes_json": json.dumps(q_notes, ensure_ascii=False),
+            "glossary_json": _glossary_json(cert),
         },
     )
 
@@ -1012,6 +1051,7 @@ def exam_result(request, cert_id, exam_id):
             "score": score,
             "passed": passed,
             "subject_scores": subject_scores,
+            "glossary_json": _glossary_json(cert),
         },
     )
 
@@ -1149,6 +1189,7 @@ def mock_exam_result(request, cert_id, session_id):
             "subject_scores": subject_scores,
             "is_mock": True,
             "session_id": session_id,
+            "glossary_json": _glossary_json(cert),
         },
     )
 
@@ -1199,6 +1240,7 @@ def wrong_answers(request, cert_id):
             "cert": cert,
             "results": results,
             "total_wrong": len(wrong_qids),
+            "glossary_json": _glossary_json(cert),
         },
     )
 
@@ -1233,6 +1275,7 @@ def wrong_answers_session(request, cert_id, session_id):
             "session_id": session_id,
             "is_session": True,
             "mode": mode,
+            "glossary_json": _glossary_json(cert),
         },
     )
 
@@ -1341,6 +1384,7 @@ def wrong_answers_result(request, cert_id, session_id):
             "score": score,
             "passed": False,
             "is_wrong_retry": True,
+            "glossary_json": _glossary_json(cert),
         },
     )
 
@@ -1569,6 +1613,7 @@ def textbook_study(request, cert_id):
             "chapter_idx": chapter_idx,
             "section_id": section_id,
             "q_notes_json": json.dumps(q_notes, ensure_ascii=False),
+            "glossary_json": _glossary_json(cert),
         },
     )
 

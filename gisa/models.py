@@ -117,6 +117,23 @@ class GisaTextbook(models.Model):
         return f"[{self.certification.name}] {self.subject.name} 핵심정리"
 
 
+class GisaGlossary(models.Model):
+    """기사시험 용어집 - 자격증×과목별 용어와 설명"""
+    certification = models.ForeignKey(Certification, on_delete=models.CASCADE, verbose_name='자격증')
+    subject = models.ForeignKey(GisaSubject, on_delete=models.CASCADE, verbose_name='과목')
+    term = models.CharField('용어', max_length=200)
+    description = models.TextField('설명', blank=True)
+
+    class Meta:
+        verbose_name = '용어'
+        verbose_name_plural = '용어집'
+        ordering = ['subject__order', 'term']
+        unique_together = ['certification', 'subject', 'term']
+
+    def __str__(self):
+        return f"[{self.certification.name}/{self.subject.name}] {self.term}"
+
+
 class GisaAttempt(models.Model):
     MODE_CHOICES = [
         ('exam', '풀이모드'),

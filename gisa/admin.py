@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Certification, GisaExam, GisaSubject, GisaQuestion, GisaAttempt, GisaTextbook
+from .models import Certification, GisaExam, GisaSubject, GisaQuestion, GisaAttempt, GisaTextbook, GisaGlossary
 
 
 @admin.register(Certification)
@@ -61,6 +61,18 @@ class GisaTextbookAdmin(admin.ModelAdmin):
     @admin.display(description='분량')
     def content_length(self, obj):
         return f"{len(obj.content):,} chars"
+
+
+@admin.register(GisaGlossary)
+class GisaGlossaryAdmin(admin.ModelAdmin):
+    list_display = ('certification', 'subject', 'term', 'has_description')
+    list_filter = ('certification', 'subject')
+    search_fields = ('term', 'description')
+    list_per_page = 50
+
+    @admin.display(description='설명', boolean=True)
+    def has_description(self, obj):
+        return bool(obj.description)
 
 
 @admin.register(GisaAttempt)

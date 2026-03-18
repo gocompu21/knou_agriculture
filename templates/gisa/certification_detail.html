@@ -285,6 +285,12 @@
     }
     .content-box p:last-child { margin-bottom: 0; }
     .content-box p strong { color: #1b4332; }
+    strong.gl { cursor: pointer; border-bottom: 1.5px dotted #6a1b9a; }
+    strong.gl:hover { background: #f3e5f5; }
+    .gl-popup { display: none; position: fixed; z-index: 9999; max-width: 340px; padding: 12px 16px; background: #fff; border: 1.5px solid #6a1b9a; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,.18); font-size: 0.85rem; line-height: 1.65; color: #333; }
+    .gl-popup .gl-popup-term { font-weight: 700; color: #6a1b9a; margin-bottom: 4px; font-size: 0.9rem; }
+    .gl-popup .gl-popup-desc { font-weight: 400; }
+    @media (max-width: 480px) { .gl-popup { max-width: calc(100vw - 32px); left: 16px !important; right: 16px !important; } }
     .content-box img.tb-img {
         display: block; max-width: 100%; height: auto;
         border: 1px solid #ddd; border-radius: 6px; margin: 10px 0;
@@ -635,6 +641,14 @@
     @media (max-width: 480px) {
         .choice-image { max-width: 100%; }
     }
+
+    /* ══════════ 용어집 (glossary) ══════════ */
+    .glossary-list { display: flex; flex-direction: column; gap: 6px; }
+    .glossary-item { padding: 10px 14px; background: #f9fbf9; border: 1px solid #dce8dc; border-radius: 8px; }
+    .glossary-item.hidden { display: none; }
+    .glossary-term { font-weight: 700; font-size: 0.92rem; color: #1b4332; margin-bottom: 4px; }
+    .glossary-desc { font-size: 0.85rem; color: #444; line-height: 1.6; }
+    .glossary-desc.no-desc { color: #aaa; font-style: italic; }
 </style>
 {% endblock %}
 
@@ -662,6 +676,7 @@
         </button>
         <button class="tab-btn{% if active_tab == 'history' %} active{% endif %}" onclick="switchTab('history')">시험이력</button>
         <button class="tab-btn{% if active_tab == 'latest' %} active{% endif %}" onclick="switchTab('latest')">최신기출{% if latest_year_cards %}<span class="tab-badge" style="background:#3949ab;">{{ latest_year_cards|length }}</span>{% endif %}</button>
+        <button class="tab-btn{% if active_tab == 'glossary' %} active{% endif %}" onclick="switchTab('glossary')">용어집{% if glossary_count %}<span class="tab-badge" style="background:#6a1b9a;">{{ glossary_count }}</span>{% endif %}</button>
     </div>
 
     <!-- ══════════ 쪽집게 노트 탭 ══════════ -->
@@ -999,6 +1014,39 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- ══════════ 용어집 탭 ══════════ -->
+    <div id="tab-glossary" class="tab-content{% if active_tab == 'glossary' %} active{% endif %}">
+        <!-- 과목 선택 버튼 -->
+        <div class="subject-pills">
+            {% for sname in glossary_subjects %}
+            <a href="?tab=glossary&subject={{ sname }}" class="subject-pill{% if sname == glossary_subject %} active{% endif %}">
+                <span class="full-name">{{ sname }}</span><span class="short-name">{{ sname }}</span>
+            </a>
+            {% endfor %}
+        </div>
+
+        {% if glossary_terms %}
+        <div class="glossary-search" style="margin:12px 0;">
+            <input type="text" id="glossary-filter" placeholder="용어 검색..." style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;font-size:0.9rem;">
+        </div>
+        <div class="glossary-count" style="text-align:right;font-size:0.82rem;color:#888;margin-bottom:8px;">
+            <span id="glossary-visible-count">{{ glossary_terms|length }}</span> / {{ glossary_terms|length }}개
+        </div>
+        <div class="glossary-list">
+            {% for item in glossary_terms %}
+            <div class="glossary-item" data-term="{{ item.term|lower }}">
+                <div class="glossary-term">{{ item.term }}</div>
+                {% if item.description %}<div class="glossary-desc">{{ item.description }}</div>{% else %}<div class="glossary-desc no-desc">설명 준비 중</div>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-tab">
+            {% if glossary_subject %}{{ glossary_subject }} 용어집이 아직 준비되지 않았습니다.{% else %}등록된 용어가 없습니다.{% endif %}
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
@@ -1704,6 +1752,81 @@ function registerFromSearch(qId) {
         });
         if (sub === 'existing') loadExistingExams();
     }
+})();
+
+/* ── 용어집 검색 ── */
+(function(){
+    var input = document.getElementById('glossary-filter');
+    if (!input) return;
+    input.addEventListener('input', function(){
+        var q = this.value.toLowerCase();
+        var items = document.querySelectorAll('.glossary-item');
+        var visible = 0;
+        items.forEach(function(el){
+            var match = el.getAttribute('data-term').indexOf(q) !== -1;
+            el.classList.toggle('hidden', !match);
+            if (match) visible++;
+        });
+        var cnt = document.getElementById('glossary-visible-count');
+        if (cnt) cnt.textContent = visible;
+    });
+})();
+
+/* 용어집 팝업 */
+(function(){
+    var popup = document.createElement('div');
+    popup.className = 'gl-popup';
+    popup.innerHTML = '<div class="gl-popup-term"></div><div class="gl-popup-desc"></div>';
+    document.body.appendChild(popup);
+    document.addEventListener('click', function(e) {
+        var el = e.target.closest('strong.gl');
+        if (el) {
+            e.preventDefault();
+            e.stopPropagation();
+            var term = el.textContent;
+            var desc = el.getAttribute('data-desc');
+            popup.querySelector('.gl-popup-term').textContent = term;
+            popup.querySelector('.gl-popup-desc').textContent = desc;
+            var rect = el.getBoundingClientRect();
+            var top = rect.bottom + 6;
+            var left = rect.left;
+            if (top + 200 > window.innerHeight) top = rect.top - popup.offsetHeight - 6;
+            if (left + 340 > window.innerWidth) left = window.innerWidth - 356;
+            if (left < 8) left = 8;
+            popup.style.top = top + 'px';
+            popup.style.left = left + 'px';
+            popup.style.display = 'block';
+        } else if (!e.target.closest('.gl-popup')) {
+            popup.style.display = 'none';
+        }
+    });
+})();
+/* 오답 탭 해설 텍스트에 용어 팝업 매칭 */
+(function(){
+    var glossary = {{ glossary_json|safe }};
+    if (!glossary || !Object.keys(glossary).length) return;
+    var terms = Object.keys(glossary).sort(function(a,b){ return b.length - a.length; });
+    function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+    var pattern = new RegExp('(' + terms.map(escRe).join('|') + ')','g');
+    function linkTerms(el){
+        var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+        var nodes = [];
+        while(walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(function(node){
+            if(!node.nodeValue || !pattern.test(node.nodeValue)){pattern.lastIndex=0;return;}
+            pattern.lastIndex=0;
+            var frag=document.createDocumentFragment(), text=node.nodeValue, last=0, m;
+            while((m=pattern.exec(text))!==null){
+                if(m.index>last) frag.appendChild(document.createTextNode(text.slice(last,m.index)));
+                var s=document.createElement('strong');s.className='gl';
+                s.setAttribute('data-desc',glossary[m[1]]);s.textContent=m[1];
+                frag.appendChild(s);last=pattern.lastIndex;
+            }
+            if(last<text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+            node.parentNode.replaceChild(frag,node);
+        });
+    }
+    document.querySelectorAll('.exp-text-inner').forEach(linkTerms);
 })();
 </script>
 {% endblock %}
