@@ -1569,6 +1569,7 @@ def textbook_study(request, cert_id):
     textbook_subject = ""
     chapter_idx = ""
     section_id = ""
+    subsection_id = ""
     if questions:
         subj_name = questions[0].subject.name if questions[0].subject else ""
         textbook_subject = subj_name
@@ -1589,6 +1590,7 @@ def textbook_study(request, cert_id):
                         if sub["title"] == section_title:
                             chapter_idx = str(ci)
                             section_id = sec["id"]
+                            subsection_id = sub["id"]
                             break
                     if section_id:
                         break
@@ -1617,6 +1619,7 @@ def textbook_study(request, cert_id):
             "textbook_subject": textbook_subject,
             "chapter_idx": chapter_idx,
             "section_id": section_id,
+            "subsection_id": subsection_id,
             "q_notes_json": json.dumps(q_notes, ensure_ascii=False),
             "glossary_json": _glossary_json(cert, include_ids=request.user.is_staff if request.user.is_authenticated else False),
         },

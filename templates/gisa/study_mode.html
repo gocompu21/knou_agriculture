@@ -467,7 +467,7 @@
             </svg>
             <span id="expand-all-text">전체 펼치기</span>
         </button>
-        <a href="{% if is_textbook_study %}{% url 'gisa:certification_detail' cert.pk %}?tab=textbook{% if textbook_subject %}&subject={{ textbook_subject }}{% endif %}{% if chapter_idx %}&open_ch={{ chapter_idx }}{% endif %}{% if section_id %}&open_sec={{ section_id }}{% endif %}{% elif is_wrong_retry %}{% url 'gisa:certification_detail' cert.pk %}?tab=wrong{% elif from_tab == 'latest' %}{% url 'gisa:certification_detail' cert.pk %}?tab=latest{% else %}{% url 'gisa:certification_detail' cert.pk %}?tab=study{% endif %}"
+        <a href="{% if is_textbook_study %}{% url 'gisa:certification_detail' cert.pk %}?tab=textbook{% if textbook_subject %}&subject={{ textbook_subject }}{% endif %}{% if chapter_idx %}&open_ch={{ chapter_idx }}{% endif %}{% if section_id %}&open_sec={{ section_id }}{% endif %}{% if subsection_id %}&open_sub={{ subsection_id }}{% endif %}{% elif is_wrong_retry %}{% url 'gisa:certification_detail' cert.pk %}?tab=wrong{% elif from_tab == 'latest' %}{% url 'gisa:certification_detail' cert.pk %}?tab=latest{% else %}{% url 'gisa:certification_detail' cert.pk %}?tab=study{% endif %}"
             class="header-btn back-btn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="margin-right:3px;">
                 <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"

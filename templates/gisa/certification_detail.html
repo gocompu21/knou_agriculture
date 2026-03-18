@@ -1138,23 +1138,28 @@ function scrollToWithOffset(el, offset) {
     });
 })();
 
-// ?open_ch=N&open_sec=ID 파라미터로 해당 장 펼침 → AJAX 로드 → 절 스크롤
+// ?open_ch=N&open_sec=ID&open_sub=ID 파라미터로 해당 장 펼침 → AJAX 로드 → 절/항 스크롤
 (function() {
     var params = new URLSearchParams(window.location.search);
     var openCh = params.get('open_ch');
     var openSec = params.get('open_sec');
+    var openSub = params.get('open_sub');
     if (openCh === null) return;
     var item = document.querySelector('.chapter-item[data-ch-idx="' + openCh + '"]');
     if (!item) return;
     item.classList.add('open');
     var body = item.querySelector('.chapter-body');
-    if (body.dataset.loaded) {
+
+    function _openAndScroll() {
         if (openSec) {
             var secEl = document.getElementById(openSec);
-            if (secEl) { secEl.classList.add('open'); setTimeout(function() { scrollToWithOffset(secEl); }, 100); }
-        } else { setTimeout(function() { scrollToWithOffset(item); }, 100); }
-        return;
+            if (secEl) secEl.classList.add('open');
+        }
+        var target = (openSub && document.getElementById(openSub)) || (openSec && document.getElementById(openSec)) || item;
+        setTimeout(function() { scrollToWithOffset(target); }, 100);
     }
+
+    if (body.dataset.loaded) { _openAndScroll(); return; }
     var subject = params.get('subject') || '{{ textbook_subject }}';
     body.dataset.loading = '1';
     body.innerHTML = '<div style="padding:16px;color:#888;text-align:center;">로딩 중...</div>';
@@ -1164,10 +1169,7 @@ function scrollToWithOffset(el, offset) {
             body.innerHTML = data.html;
             body.dataset.loaded = '1';
             formatBadges(body);
-            if (openSec) {
-                var secEl = document.getElementById(openSec);
-                if (secEl) { secEl.classList.add('open'); setTimeout(function() { scrollToWithOffset(secEl); }, 150); }
-            } else { setTimeout(function() { scrollToWithOffset(item); }, 150); }
+            setTimeout(_openAndScroll, 150);
         });
 })();
 

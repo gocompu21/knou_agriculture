@@ -10,7 +10,7 @@
         {% if sec.content_html %}<div class="content-box">{{ sec.content_html|safe }}</div>{% endif %}
 
         {% for sub in sec.subsections %}
-        <div class="subsection-title">{{ sub.title }}</div>
+        <div class="subsection-title" id="{{ sub.id }}">{{ sub.title }}</div>
         {% if sub.content_html %}<div class="content-box">{{ sub.content_html|safe }}</div>{% endif %}
         {% if sub.questions %}
         <div class="q-box">
