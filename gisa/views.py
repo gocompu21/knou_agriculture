@@ -261,12 +261,17 @@ def parse_study_guide(filepath_or_content, cache_key=None, cache_version=None, g
     return chapters
 
 
-def _glossary_json(cert):
-    """자격증의 전 과목 용어집을 {term: description} JSON 문자열로 반환."""
-    qs = GisaGlossary.objects.filter(certification=cert).exclude(
-        description=""
-    ).values_list("term", "description")
-    return json.dumps(dict(qs), ensure_ascii=False) if qs.exists() else "{}"
+def _glossary_json(cert, include_ids=False):
+    """자격증의 전 과목 용어집을 JSON 문자열로 반환.
+    include_ids=True이면 {term: [description, id]} 형태, 아니면 {term: description}."""
+    qs = GisaGlossary.objects.filter(certification=cert).exclude(description="")
+    if not qs.exists():
+        return "{}"
+    if include_ids:
+        data = {t: [d, pk] for pk, t, d in qs.values_list("id", "term", "description")}
+    else:
+        data = dict(qs.values_list("term", "description"))
+    return json.dumps(data, ensure_ascii=False)
 
 
 def build_results(attempts):
@@ -482,7 +487,7 @@ def certification_detail(request, cert_id):
             "glossary_count": glossary_count,
             "glossary_subject": glossary_subject,
             "glossary_subjects": glossary_subjects,
-            "glossary_json": _glossary_json(cert),
+            "glossary_json": _glossary_json(cert, include_ids=request.user.is_staff if request.user.is_authenticated else False),
         },
     )
 
@@ -922,7 +927,7 @@ def study_mode(request, cert_id, exam_id, subject_id=None):
             "subject": subject,
             "questions": questions,
             "q_notes_json": json.dumps(q_notes, ensure_ascii=False),
-            "glossary_json": _glossary_json(cert),
+            "glossary_json": _glossary_json(cert, include_ids=request.user.is_staff if request.user.is_authenticated else False),
         },
     )
 
@@ -1051,7 +1056,7 @@ def exam_result(request, cert_id, exam_id):
             "score": score,
             "passed": passed,
             "subject_scores": subject_scores,
-            "glossary_json": _glossary_json(cert),
+            "glossary_json": _glossary_json(cert, include_ids=request.user.is_staff if request.user.is_authenticated else False),
         },
     )
 
@@ -1189,7 +1194,7 @@ def mock_exam_result(request, cert_id, session_id):
             "subject_scores": subject_scores,
             "is_mock": True,
             "session_id": session_id,
-            "glossary_json": _glossary_json(cert),
+            "glossary_json": _glossary_json(cert, include_ids=request.user.is_staff if request.user.is_authenticated else False),
         },
     )
 
@@ -1240,7 +1245,7 @@ def wrong_answers(request, cert_id):
             "cert": cert,
             "results": results,
             "total_wrong": len(wrong_qids),
-            "glossary_json": _glossary_json(cert),
+            "glossary_json": _glossary_json(cert, include_ids=request.user.is_staff if request.user.is_authenticated else False),
         },
     )
 
@@ -1275,7 +1280,7 @@ def wrong_answers_session(request, cert_id, session_id):
             "session_id": session_id,
             "is_session": True,
             "mode": mode,
-            "glossary_json": _glossary_json(cert),
+            "glossary_json": _glossary_json(cert, include_ids=request.user.is_staff if request.user.is_authenticated else False),
         },
     )
 
@@ -1384,7 +1389,7 @@ def wrong_answers_result(request, cert_id, session_id):
             "score": score,
             "passed": False,
             "is_wrong_retry": True,
-            "glossary_json": _glossary_json(cert),
+            "glossary_json": _glossary_json(cert, include_ids=request.user.is_staff if request.user.is_authenticated else False),
         },
     )
 
@@ -1613,7 +1618,7 @@ def textbook_study(request, cert_id):
             "chapter_idx": chapter_idx,
             "section_id": section_id,
             "q_notes_json": json.dumps(q_notes, ensure_ascii=False),
-            "glossary_json": _glossary_json(cert),
+            "glossary_json": _glossary_json(cert, include_ids=request.user.is_staff if request.user.is_authenticated else False),
         },
     )
 
@@ -1991,3 +1996,14 @@ def gisa_question_generate_exp(request, pk):
         })
     except Exception as e:
         return JsonResponse({"ok": False, "error": str(e)}, status=500)
+
+
+@login_required
+@user_passes_test(_gisa_staff_required)
+@require_POST
+def glossary_delete(request, pk):
+    """용어집 항목 삭제 (staff only, AJAX)"""
+    glossary = get_object_or_404(GisaGlossary, pk=pk)
+    term = glossary.term
+    glossary.delete()
+    return JsonResponse({"ok": True, "term": term})

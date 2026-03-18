@@ -5,17 +5,41 @@ strong.gl:hover { background: #f3e5f5; }
 .gl-popup { display: none; position: fixed; z-index: 9999; max-width: 340px; padding: 12px 16px; background: #fff; border: 1.5px solid #6a1b9a; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,.18); font-size: 0.85rem; line-height: 1.65; color: #333; }
 .gl-popup .gl-popup-term { font-weight: 700; color: #6a1b9a; margin-bottom: 4px; font-size: 0.9rem; }
 .gl-popup .gl-popup-desc { font-weight: 400; }
+.gl-popup .gl-popup-del { position: absolute; bottom: 6px; right: 10px; background: none; border: none; cursor: pointer; color: #bbb; font-size: 0.8rem; font-weight: 700; line-height: 1; padding: 2px 4px; font-family: inherit; }
+.gl-popup .gl-popup-del:hover { color: #d93025; }
 @media (max-width: 480px) { .gl-popup { max-width: calc(100vw - 32px); left: 16px !important; right: 16px !important; } }
 </style>
 <script>
 (function(){
-    var glossary = {{ glossary_json|safe }};
-    if (!glossary || !Object.keys(glossary).length) return;
+    var raw = {{ glossary_json|safe }};
+    if (!raw || !Object.keys(raw).length) return;
+
+    /* 형식 정규화: staff이면 {term: [desc, id]}, 일반이면 {term: desc} */
+    var glossary = {};  /* {term: desc} */
+    var idMap = {};     /* {term: id} — staff only */
+    var isStaff = false;
+    Object.keys(raw).forEach(function(k) {
+        if (Array.isArray(raw[k])) {
+            glossary[k] = raw[k][0];
+            idMap[k] = raw[k][1];
+            isStaff = true;
+        } else {
+            glossary[k] = raw[k];
+        }
+    });
 
     /* 팝업 요소 생성 */
     var popup = document.createElement('div');
     popup.className = 'gl-popup';
     popup.innerHTML = '<div class="gl-popup-term"></div><div class="gl-popup-desc"></div>';
+    if (isStaff) {
+        var delBtn = document.createElement('button');
+        delBtn.className = 'gl-popup-del';
+        delBtn.type = 'button';
+        delBtn.textContent = '✕';
+        delBtn.title = '용어 삭제';
+        popup.appendChild(delBtn);
+    }
     document.body.appendChild(popup);
 
     /* 용어를 길이 내림차순 정렬 (긴 용어 우선 매칭) */
@@ -80,12 +104,16 @@ strong.gl:hover { background: #f3e5f5; }
     });
     obs.observe(document.body, { childList: true, subtree: true });
 
+    /* 현재 팝업에 표시된 용어 */
+    var currentTerm = '';
+
     /* 팝업 클릭 핸들러 */
     document.addEventListener('click', function(e) {
         var el = e.target.closest('strong.gl');
         if (el) {
             e.preventDefault(); e.stopPropagation();
-            popup.querySelector('.gl-popup-term').textContent = el.textContent;
+            currentTerm = el.textContent;
+            popup.querySelector('.gl-popup-term').textContent = currentTerm;
             popup.querySelector('.gl-popup-desc').textContent = el.getAttribute('data-desc');
             var rect = el.getBoundingClientRect();
             var top = rect.bottom + 6;
@@ -100,5 +128,33 @@ strong.gl:hover { background: #f3e5f5; }
             popup.style.display = 'none';
         }
     });
+
+    /* 삭제 버튼 핸들러 (staff only) */
+    if (isStaff) {
+        delBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (!currentTerm || !idMap[currentTerm]) return;
+            if (!confirm('용어 "' + currentTerm + '" 을(를) 삭제하시겠습니까?')) return;
+            var termId = idMap[currentTerm];
+            fetch('/gisa/glossary/' + termId + '/delete/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.ok) {
+                    popup.style.display = 'none';
+                    /* 해당 용어의 모든 gl 태그를 일반 텍스트로 복원 */
+                    document.querySelectorAll('strong.gl').forEach(function(g) {
+                        if (g.textContent === currentTerm) {
+                            g.replaceWith(document.createTextNode(g.textContent));
+                        }
+                    });
+                    delete glossary[currentTerm];
+                    delete idMap[currentTerm];
+                }
+            });
+        });
+    }
 })();
 </script>

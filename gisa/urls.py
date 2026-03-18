@@ -51,4 +51,6 @@ urlpatterns = [
     path("manage/question/<int:pk>/delete/", views.gisa_question_delete, name="gisa_question_delete"),
     path("manage/question/<int:pk>/update/", views.gisa_question_update, name="gisa_question_update"),
     path("manage/question/<int:pk>/generate-exp/", views.gisa_question_generate_exp, name="gisa_question_generate_exp"),
+    # 용어집
+    path("glossary/<int:pk>/delete/", views.glossary_delete, name="glossary_delete"),
 ]
