@@ -1,0 +1,112 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>전자칠판 — {{ pdf.title }}</title>
+<link rel="stylesheet" href="{% static 'pdfviewer/css/viewer.css' %}?v=2">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+<!-- 메인 컨테이너 -->
+<div id="app">
+    <div id="app-body">
+        <!-- 썸네일 패널 (좌측) -->
+        <div id="thumb-panel"></div>
+
+        <!-- PDF 모드 -->
+        <div id="pdf-mode" class="mode-container active">
+            <div id="pdf-scroll-container">
+                <div id="pdf-pages-container"></div>
+            </div>
+            <!-- 이벤트 수신 오버레이 (스크롤 컨테이너 위에 덮음) -->
+            <div id="fixed-draw-canvas"></div>
+        </div>
+
+        <!-- 칠판 모드 -->
+        <div id="chalk-mode" class="mode-container">
+            <div id="chalk-frame" class="wood-frame">
+                <canvas id="chalk-canvas"></canvas>
+                <div id="chalk-date"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 지우개 (드래그 가능) -->
+    <div id="eraser-panel" style="display:none;">
+        <img id="eraser-img" src="{% static 'pdfviewer/eraser.png' %}" alt="지우개"
+             onerror="this.style.display='none';this.parentElement.innerHTML='<div class=eraser-fallback>지우개</div>'">
+        <div id="eraser-chalk-btn" title="칠판 ON/OFF">OFF</div>
+    </div>
+
+    <!-- 하단 툴바 -->
+    <div id="toolbar">
+        <div class="tb-group tb-left">
+            <button id="btn-back" title="목록으로">☰</button>
+            <button id="btn-thumbs" class="pdf-only" title="미리보기">📑</button>
+            <span id="file-name">{{ pdf.title }}</span>
+        </div>
+        <div class="tb-group tb-center">
+            <span id="page-info" class="pdf-only">
+                <input id="page-input" type="number" min="1" value="1"> / <span id="total-pages">0</span>
+            </span>
+            <span class="tb-sep pdf-only"></span>
+            <button id="btn-zout" class="pdf-only" title="축소">−</button>
+            <span id="zoom-label" class="pdf-only">100%</span>
+            <button id="btn-zin" class="pdf-only" title="확대">+</button>
+        </div>
+        <div class="tb-group tb-right">
+            <button id="btn-pen" class="tool-btn active" title="펜">✏️</button>
+            <button id="btn-highlighter" class="tool-btn" title="형광펜">🖍️</button>
+            <button id="btn-chalk" class="tool-btn chalk-only" title="분필">
+                <svg width="20" height="20" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="20" rx="3" fill="#f0f0f0" stroke="#bbb"/><rect x="9" y="3" width="6" height="14" rx="2" fill="#fff"/></svg>
+            </button>
+            <span class="tb-sep"></span>
+            <button id="btn-color" title="색상"><span id="color-dot"></span></button>
+            <button id="btn-width" title="굵기"><span id="width-bar"></span></button>
+            <span class="tb-sep"></span>
+            <button id="btn-clear" title="전체 지우기">🗑</button>
+            <span class="tb-sep pdf-only"></span>
+            <button id="btn-fit-page" class="pdf-only" title="페이지 맞춤">📄</button>
+            <button id="btn-fit-width" class="pdf-only" title="너비 맞춤">↔</button>
+            <button id="btn-export" class="pdf-only" title="이미지 PDF 변환">🖼</button>
+            <button id="btn-fullscreen" title="전체화면">⛶</button>
+        </div>
+    </div>
+</div>
+
+<!-- 색상 팝업 -->
+<div id="color-popup" class="popup" style="display:none;">
+    <div class="color-grid">
+        <button class="color-swatch" data-color="#ff0000" style="background:#ff0000"></button>
+        <button class="color-swatch" data-color="#0064ff" style="background:#0064ff"></button>
+        <button class="color-swatch" data-color="#000000" style="background:#000000"></button>
+        <button class="color-swatch" data-color="#00b400" style="background:#00b400"></button>
+        <button class="color-swatch" data-color="#ffe600" style="background:#ffe600"></button>
+        <button class="color-swatch" data-color="#ffffff" style="background:#ffffff; border:1px solid #ccc;"></button>
+    </div>
+</div>
+
+<!-- 굵기 팝업 -->
+<div id="width-popup" class="popup" style="display:none;">
+    <div class="width-options">
+        <div class="width-option" data-width="1"><span class="width-line" style="height:1px"></span></div>
+        <div class="width-option" data-width="2"><span class="width-line" style="height:2px"></span></div>
+        <div class="width-option" data-width="3"><span class="width-line" style="height:3px"></span></div>
+        <div class="width-option" data-width="5"><span class="width-line" style="height:5px"></span></div>
+        <div class="width-option" data-width="8"><span class="width-line" style="height:8px"></span></div>
+        <div class="width-option" data-width="12"><span class="width-line" style="height:12px"></span></div>
+        <div class="width-option" data-width="18"><span class="width-line" style="height:18px"></span></div>
+    </div>
+</div>
+
+<script>
+    // PDF URL을 Django 템플릿에서 전달
+    window.PDF_URL = "{{ pdf.file.url }}";
+    window.BACK_URL = "{% url 'pdfviewer:pdf_list' %}";
+    window.ERASER_IMG_URL = "{% static 'pdfviewer/eraser.png' %}";
+</script>
+<script defer src="{% static 'pdfviewer/js/viewer.js' %}?v=2"></script>
+</body>
+</html>

@@ -1,0 +1,217 @@
+/* ========== 전역 리셋 ========== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #222; font-family: sans-serif; overscroll-behavior: none; user-select: none; -webkit-user-select: none; }
+#app { width: 100%; height: 100%; display: flex; flex-direction: column; overscroll-behavior: none; overflow: hidden; }
+
+/* ========== 모드 + 썸네일 레이아웃 ========== */
+#app-body { flex: 1; display: flex; overflow: hidden; overscroll-behavior: none; }
+.mode-container { flex: 1; display: none; position: relative; overflow: hidden; will-change: transform; }
+.mode-container.active { display: flex; }
+
+/* ========== PDF 모드 ========== */
+#pdf-scroll-container {
+    flex: 1; overflow: auto; overscroll-behavior: none;
+    background: #e0e0e0; -webkit-overflow-scrolling: touch;
+}
+#pdf-pages-container { position: relative; }
+.pdf-page-wrapper {
+    position: relative; margin: 0 auto 12px;
+    background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.pdf-page-wrapper canvas.pdf-canvas { display: block; width: 100%; height: 100%; }
+.pdf-page-wrapper canvas.draw-canvas {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    cursor: crosshair; touch-action: none; user-select: none;
+    -webkit-user-drag: none; overscroll-behavior: none;
+}
+/* 고정 그리기 캔버스 — 스크롤 컨테이너 위에 겹침 */
+#fixed-draw-canvas {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 50; cursor: crosshair;
+    touch-action: none; user-select: none; -webkit-user-drag: none;
+    pointer-events: auto; background: transparent;
+}
+
+/* ========== 칠판 모드 ========== */
+#chalk-mode { background: #1e3520; }
+.wood-frame {
+    flex: 1; position: relative; margin: 0;
+    border-top: 14px solid #6e4b28;
+    border-left: 14px solid #6e4b28;
+    border-right: 14px solid #6e4b28;
+    border-bottom: none;
+    border-image: none;
+    background:
+        /* 나무결 시뮬레이션 */
+        repeating-linear-gradient(0deg, transparent, rgba(85,55,30,0.1) 2px, transparent 4px);
+    box-shadow:
+        inset 1px 1px 0 rgba(255,255,255,0.15),
+        inset -1px 0 0 rgba(0,0,0,0.3);
+}
+/* 못 자국 (CSS pseudo-elements) */
+.wood-frame::before, .wood-frame::after {
+    content: '';
+    position: absolute; width: 6px; height: 6px; border-radius: 50%;
+    background: radial-gradient(circle, #50412d 40%, #3a2510 100%);
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.4), inset 0 0 1px rgba(255,255,255,0.2);
+    z-index: 10;
+}
+.wood-frame::before { top: -10px; left: -10px; }
+.wood-frame::after { top: -10px; right: -10px; }
+
+#chalk-canvas {
+    width: 100%; height: 100%; display: block;
+    cursor: crosshair; touch-action: none;
+}
+#chalk-date {
+    position: absolute; top: 20px; right: 30px;
+    font-family: 'Segoe Script', 'Comic Sans MS', cursive;
+    font-size: 18px; color: rgba(220,220,210,0.5);
+    pointer-events: none; z-index: 5;
+}
+
+/* ========== 지우개 ========== */
+#eraser-panel {
+    position: fixed; z-index: 1000; cursor: grab;
+    width: 300px; height: 165px; touch-action: none;
+}
+#eraser-panel img {
+    width: 100%; height: 100%; object-fit: contain;
+    pointer-events: none; transform: rotate(-10deg);
+    filter: drop-shadow(2px 3px 4px rgba(0,0,0,0.3));
+}
+/* 지우개 위 칠판 ON/OFF 버튼 */
+#eraser-chalk-btn {
+    position: absolute; top: 34px; left: calc(50% - 62px);
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(30, 53, 32, 0.7); border: 1px solid #aaa;
+    color: #aaa; font-size: 9px; font-weight: bold;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; user-select: none; z-index: 10;
+    pointer-events: auto;
+}
+#eraser-chalk-btn:hover { border-color: #fff; color: #fff; }
+#eraser-chalk-btn.on { background: rgba(30, 53, 32, 0.9); color: #7f7; border-color: #7f7; }
+
+.eraser-fallback {
+    width: 100%; height: 100%; background: #d4a574;
+    border-radius: 4px; display: flex; align-items: center;
+    justify-content: center; font-size: 14px; color: #fff;
+    border: 2px solid #a07040;
+}
+
+/* ========== 하단 툴바 ========== */
+#toolbar {
+    height: 44px; display: flex; align-items: center;
+    padding: 0 8px; gap: 4px; flex-shrink: 0;
+    background: linear-gradient(to bottom,
+        #8B6914 0%, #7a5c30 5%, #6e4b28 20%, #5c3d20 40%,
+        #6e4b28 50%, #5c3d20 60%, #4a3018 80%, #3e2810 95%, #2e1c0a 100%);
+    border-top: 2px solid #8B6914;
+    user-select: none;
+}
+.tb-group { display: flex; align-items: center; gap: 4px; }
+.tb-left { flex: 0 0 auto; }
+.tb-center { flex: 0 0 auto; }
+.tb-right { margin-left: auto; display: flex; align-items: center; gap: 2px; flex-wrap: nowrap; }
+.tb-sep { width: 1px; height: 20px; background: rgba(255,200,100,0.3); margin: 0 4px; }
+
+#toolbar button {
+    background: transparent; color: #f5e6d0; border: none;
+    border-radius: 4px; padding: 4px 8px; font-size: 16px;
+    cursor: pointer; white-space: nowrap;
+}
+#toolbar button:hover { background: rgba(255,255,255,0.15); }
+#toolbar button.active { background: rgba(0,0,0,0.3); color: #ffe0a0; }
+#file-name {
+    color: #f5e6d0; font-size: 13px; max-width: 150px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#page-input {
+    width: 40px; text-align: center; background: rgba(0,0,0,0.3);
+    color: #f5e6d0; border: 1px solid rgba(0,0,0,0.4);
+    border-radius: 3px; font-size: 13px; padding: 2px;
+}
+#page-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+#total-pages, #zoom-label { color: #f0d8b8; font-size: 13px; }
+#zoom-label {
+    display: inline-block; width: 46px; text-align: center;
+    background: rgba(0,0,0,0.3); border: 1px solid rgba(0,0,0,0.4);
+    border-radius: 3px; font-size: 12px; padding: 2px; color: #f5e6d0;
+}
+
+/* 색상 버튼 */
+#color-dot {
+    display: inline-block; width: 16px; height: 16px;
+    border-radius: 50%; border: 2px solid #fff;
+    vertical-align: middle;
+}
+/* 굵기 버튼 */
+#width-bar {
+    display: inline-block; width: 20px; height: 3px;
+    background: #f5e6d0; border-radius: 2px; vertical-align: middle;
+}
+
+/* 칠판 전용 도구 숨김 (PDF 모드) */
+.chalk-only { display: none; }
+body.chalkboard-mode .chalk-only { display: inline-flex; }
+body.chalkboard-mode .pdf-only { display: none; }
+
+/* ========== 팝업 ========== */
+.popup {
+    position: fixed; bottom: 54px; background: #3a3a3a;
+    border: 1px solid #555; border-radius: 8px; padding: 10px;
+    z-index: 2000; box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.color-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.color-swatch {
+    width: 32px; height: 32px; border-radius: 50%; border: 2px solid #666;
+    cursor: pointer;
+}
+.color-swatch:hover { border-color: #fff; transform: scale(1.1); }
+#width-popup { padding: 8px 12px; }
+.width-options { display: flex; flex-direction: column; gap: 10px; }
+.width-option {
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 4px 8px; border-radius: 4px;
+    min-width: 80px;
+}
+.width-option:hover { background: rgba(255,255,255,0.1); }
+.width-option.active { background: rgba(79,195,247,0.3); }
+.width-line {
+    display: block; width: 60px; background: #f5e6d0; border-radius: 4px;
+}
+
+/* ========== 전체화면 ========== */
+body.fullscreen-mode #toolbar { display: none; }
+body.fullscreen-mode.chalkboard-mode #toolbar { display: flex; }
+body.fullscreen-mode:not(.chalkboard-mode) #toolbar-trigger {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 5px; z-index: 999;
+}
+
+/* ========== 썸네일 패널 ========== */
+#thumb-panel {
+    width: 0; min-width: 0; max-width: 140px; background: #2a2a2a; flex-shrink: 0; flex-grow: 0;
+    overflow-y: auto; overflow-x: hidden;
+    -webkit-overflow-scrolling: touch; touch-action: pan-y;
+    transition: width 0.25s ease;
+    padding: 0; display: flex; flex-direction: column; gap: 8px;
+}
+#thumb-panel.visible { width: 140px; min-width: 140px; padding: 8px 4px; }
+#thumb-panel::-webkit-scrollbar { width: 4px; }
+#thumb-panel::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
+.thumb-item {
+    cursor: pointer; text-align: center; padding: 4px;
+    border: 2px solid transparent; border-radius: 4px; transition: border-color 0.15s;
+}
+.thumb-item:hover { border-color: #4fc3f7; }
+.thumb-item canvas { width: 100%; height: auto; display: block; border-radius: 2px; }
+.thumb-num { font-size: 11px; color: #aaa; margin-top: 2px; display: block; }
+
+/* ========== 반응형 ========== */
+@media (max-width: 768px) {
+    #file-name { display: none; }
+    #toolbar button { padding: 4px 6px; font-size: 14px; }
+    .tb-sep { margin: 0 2px; }
+    #eraser-panel { width: 200px; height: 110px; }
+}

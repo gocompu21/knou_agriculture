@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}전자칠판 — PDF 관리{% endblock %}
+
+{% block content %}
+<style>
+.pdf-hero {
+    background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+    color: #fff;
+    padding: 32px 24px 24px;
+    text-align: center;
+}
+.pdf-hero h1 { font-size: 1.6em; margin: 0 0 6px; }
+.pdf-hero p { opacity: 0.85; font-size: 0.95em; margin: 0; }
+
+.pdf-container {
+    max-width: 800px;
+    margin: 24px auto;
+    padding: 0 16px;
+}
+
+/* 업로드 폼 */
+.upload-card {
+    background: #fff;
+    border: 2px dashed #b7d9b7;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    text-align: center;
+}
+.upload-card h3 { margin: 0 0 16px; color: #2d6a4f; font-size: 1.1em; }
+.upload-row {
+    display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap;
+}
+.upload-row input[type="text"] {
+    flex: 1; min-width: 150px; max-width: 250px;
+    padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;
+}
+.upload-row input[type="file"] { font-size: 13px; }
+.upload-btn {
+    background: #2d6a4f; color: #fff; border: none; border-radius: 6px;
+    padding: 8px 20px; font-size: 14px; cursor: pointer;
+}
+.upload-btn:hover { background: #1b4332; }
+
+/* PDF 목록 */
+.pdf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}
+.pdf-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    transition: box-shadow 0.2s;
+    position: relative;
+}
+.pdf-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.pdf-icon { font-size: 48px; margin-bottom: 8px; }
+.pdf-title {
+    font-size: 14px; font-weight: 600; color: #333;
+    margin-bottom: 4px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pdf-date { font-size: 12px; color: #999; margin-bottom: 12px; }
+.pdf-actions { display: flex; gap: 8px; justify-content: center; }
+.pdf-actions a, .pdf-actions button {
+    padding: 6px 14px; border-radius: 6px; font-size: 13px;
+    text-decoration: none; cursor: pointer; border: none;
+}
+.btn-open { background: #2d6a4f; color: #fff; }
+.btn-open:hover { background: #1b4332; }
+.btn-delete { background: #e0e0e0; color: #666; }
+.btn-delete:hover { background: #d33; color: #fff; }
+
+.empty-msg {
+    text-align: center; color: #999; padding: 40px 0; font-size: 15px;
+}
+
+@media (max-width: 480px) {
+    .pdf-grid { grid-template-columns: 1fr; }
+    .upload-row { flex-direction: column; }
+    .upload-row input[type="text"] { max-width: 100%; }
+}
+</style>
+
+<div class="pdf-hero">
+    <h1>전자칠판</h1>
+    <p>수업 교재 PDF를 업로드하고 칠판 모드로 학습하세요</p>
+</div>
+
+<div class="pdf-container">
+    <div class="upload-card">
+        <h3>PDF 업로드</h3>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="upload-row">
+                <input type="text" name="title" placeholder="제목 (빈칸이면 파일명 사용)">
+                <input type="file" name="pdf_file" accept=".pdf" required>
+                <button type="submit" class="upload-btn">업로드</button>
+            </div>
+        </form>
+    </div>
+
+    {% if pdfs %}
+    <div class="pdf-grid">
+        {% for pdf in pdfs %}
+        <div class="pdf-card">
+            <div class="pdf-icon">📄</div>
+            <div class="pdf-title" title="{{ pdf.title }}">{{ pdf.title }}</div>
+            <div class="pdf-date">{{ pdf.uploaded_at|date:"Y.m.d" }}</div>
+            <div class="pdf-actions">
+                <a href="{% url 'pdfviewer:pdf_view' pdf.pk %}" class="btn-open">열기</a>
+                <form method="post" action="{% url 'pdfviewer:pdf_delete' pdf.pk %}" style="display:inline;"
+                      onsubmit="return confirm('삭제하시겠습니까?')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-delete">삭제</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-msg">업로드된 PDF가 없습니다.<br>위에서 PDF 파일을 업로드해 주세요.</div>
+    {% endif %}
+</div>
+{% endblock %}

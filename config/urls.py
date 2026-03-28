@@ -10,6 +10,7 @@ urlpatterns = [
     path("exam/", include("exam.urls")),
     path("gisa/", include("gisa.urls")),
     path("bbs/", include("bbs.urls")),
+    path("pdf/", include("pdfviewer.urls")),
     path("", include("main.urls")),
 ]
 
