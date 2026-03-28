@@ -361,55 +361,58 @@ fixedCanvas.addEventListener('pointerdown', e => {
         bctx.clearRect(0, 0, pd._backCanvas.width, pd._backCanvas.height);
         bctx.drawImage(pd.drawCanvas, 0, 0);
 
-        // 시작 점 즉시 그리기 (첫 프레임부터 선명)
+        // draw context에 스타일 설정 (pointermove에서 재사용)
         const ctx = pd.drawCtx;
         const tool = state.tool, color = state.color, w = state.width;
-        ctx.save();
-        ctx.fillStyle = color;
-        ctx.globalAlpha = (tool === 'highlighter') ? 80/255 : (tool === 'chalk') ? 0.9 : 1.0;
-        const r = (tool === 'highlighter') ? w*2 : (tool === 'chalk') ? w*1.25 : w/2;
+        if (tool === 'highlighter') {
+            ctx.globalAlpha = 80 / 255; ctx.strokeStyle = color; ctx.lineWidth = w * 4;
+        } else if (tool === 'chalk') {
+            ctx.globalAlpha = 0.9; ctx.strokeStyle = color; ctx.lineWidth = w * 2.5;
+        } else {
+            ctx.globalAlpha = 1.0; ctx.strokeStyle = color; ctx.lineWidth = w;
+        }
+        ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        // 시작 점 즉시 그리기
         ctx.beginPath();
-        ctx.arc(hit.x, hit.y, Math.max(r, 1), 0, Math.PI * 2);
+        ctx.arc(hit.x, hit.y, ctx.lineWidth / 2, 0, Math.PI * 2);
+        ctx.fillStyle = color;
         ctx.fill();
-        ctx.restore();
     }
     lockScroll();
 }, { passive: false });
 
-// pointermove: 백업 복원 + 전체 현재 경로 베지어 곡선 그리기
+// pointermove: 세그먼트 추가 방식 (백업 복원 없음 — 고성능)
 fixedCanvas.addEventListener('pointermove', e => {
     if (e.pointerType === 'touch') return;
     if (state.eraserDragging) {
         moveEraser(e);
-        const hit = screenToPageCoord(e.clientX, e.clientY);
-        if (hit) eraseUnderEraser(hit.pageNum);
+        // 지우개: 5프레임에 1번만 판정 (성능)
+        state._eraseCounter = (state._eraseCounter || 0) + 1;
+        if (state._eraseCounter % 3 === 0) {
+            const hit = screenToPageCoord(e.clientX, e.clientY);
+            if (hit) eraseUnderEraser(hit.pageNum);
+        }
         return;
     }
     if (!state.drawing || !state._activePageNum) return;
     e.preventDefault();
     const pt = getPagePoint(e, state._activePageNum);
     if (!pt) return;
+
+    const prev = state.currentPath[state.currentPath.length - 1];
     state.currentPath.push(pt);
 
+    // 이전 점 → 현재 점을 직접 stroke (전체 재그리기 없음)
     const pd = state.pages[state._activePageNum - 1];
     if (!pd?.drawCtx) return;
     const ctx = pd.drawCtx;
-    const vp = pd.viewport;
-    const dpr = window.devicePixelRatio || 1;
-
-    // 백업 복원
-    ctx.save();
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, pd.drawCanvas.width, pd.drawCanvas.height);
-    if (pd._backCanvas) ctx.drawImage(pd._backCanvas, 0, 0);
-    ctx.restore();
-
-    // 현재 경로 베지어 곡선 그리기
-    drawPath(ctx, state.currentPath, state.tool, state.color,
-        state.width * Math.max(pt.pressure, 0.3));
+    ctx.beginPath();
+    ctx.moveTo(prev.x, prev.y);
+    ctx.lineTo(pt.x, pt.y);
+    ctx.stroke();
 }, { passive: false });
 
-// pointerup: 아이템 저장
+// pointerup: 아이템 저장 + 전체 경로를 베지어 곡선으로 다시 그려서 부드럽게
 fixedCanvas.addEventListener('pointerup', e => {
     if (e.pointerType === 'touch') return;
     if (state.eraserDragging) { stopEraserDrag(); return; }
@@ -417,10 +420,15 @@ fixedCanvas.addEventListener('pointerup', e => {
     state.drawing = false;
     unlockScroll();
     const pageNum = state._activePageNum;
+    // globalAlpha 복원
+    const pd = state.pages[pageNum - 1];
+    if (pd?.drawCtx) pd.drawCtx.globalAlpha = 1.0;
+
     if (state.currentPath.length > 1 && pageNum) {
         const item = { path: [...state.currentPath], color: state.color, width: state.width, tool: state.tool };
         item.path2d = buildPath2D(item.path, item.width);
         state.drawItems[pageNum].push(item);
+        // lineTo로 그린 것을 베지어 곡선으로 교체 (부드럽게)
         redrawPage(pageNum);
     }
     state.currentPath = [];
