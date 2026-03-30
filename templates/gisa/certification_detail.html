@@ -18,9 +18,9 @@
     .sr-choice:hover { background: #f5f5f5; }
     .sr-cnum { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; border: 1px solid #ccc; font-size: 0.75rem; font-weight: 600; flex-shrink: 0; }
     .sr-ctxt { flex: 1; }
-    .sr-choice.sr-selected .sr-cnum { background: #333; color: #fff; border-color: #333; }
     .sr-cnum.sr-correct-mark { background: #333; color: #fff; border-color: #333; }
     .sr-cnum.sr-wrong-mark { background: #d93025; color: #fff; border-color: #d93025; }
+    .sr-my-pick { font-size: 0.75rem; color: #d93025; font-weight: 600; margin-left: 4px; }
     .sr-card.sr-graded .sr-choice { cursor: default; }
     .sr-exp { font-size: 0.8rem; color: #555; margin-top: 3px; padding-left: 24px; line-height: 1.5; width: 100%; }
     .sr-exp-arrow { color: #999; }
@@ -1152,7 +1152,13 @@ function srSelect(el, num) {
     card.querySelectorAll('.sr-choice').forEach(function(c){
         var cn = c.querySelector('.sr-cnum').getAttribute('data-choice');
         if (ansList.indexOf(cn) !== -1) c.querySelector('.sr-cnum').classList.add('sr-correct-mark');
-        if (c.classList.contains('sr-selected') && !isCorrect) c.querySelector('.sr-cnum').classList.add('sr-wrong-mark');
+        if (c.classList.contains('sr-selected') && !isCorrect) {
+            c.querySelector('.sr-cnum').classList.add('sr-wrong-mark');
+            var myPick = document.createElement('span');
+            myPick.className = 'sr-my-pick';
+            myPick.textContent = '\u2190 \ub0b4 \ub2f5';
+            c.querySelector('.sr-cnum').after(myPick);
+        }
         var exp = c.querySelector('.sr-exp');
         if (exp) exp.style.display = 'block';
     });
