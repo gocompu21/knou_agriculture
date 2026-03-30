@@ -18,8 +18,11 @@
     .sr-choice:hover { background: #f5f5f5; }
     .sr-cnum { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; border: 1px solid #ccc; font-size: 0.75rem; font-weight: 600; flex-shrink: 0; }
     .sr-ctxt { flex: 1; }
+    .sr-choice.sr-selected .sr-cnum { background: #1b4332; color: #fff; border-color: #1b4332; }
+    .sr-card.sr-graded .sr-choice.sr-selected .sr-cnum { background: transparent; color: inherit; border-color: #ccc; }
     .sr-cnum.sr-correct-mark { background: #333; color: #fff; border-color: #333; }
     .sr-cnum.sr-wrong-mark { background: #d93025; color: #fff; border-color: #d93025; }
+    .sr-grade-btn { margin: 6px 0 2px 4px; padding: 4px 16px; background: #1b4332; color: #fff; border: none; border-radius: 4px; font-size: 0.82rem; cursor: pointer; }
     .sr-card.sr-graded .sr-choice { cursor: default; }
     .sr-exp { font-size: 0.8rem; color: #555; margin-top: 3px; padding-left: 24px; line-height: 1.5; width: 100%; }
     .sr-exp-arrow { color: #999; }
@@ -1131,7 +1134,9 @@ function searchQuestions(e) {
                 }
                 html += '</div>';
             }
-            html += '</div></div>';
+            html += '</div>';
+            html += '<button class="sr-grade-btn" onclick="srGrade(this)" style="display:none;">채점</button>';
+            html += '</div>';
         });
         list.innerHTML = html;
         wrap.style.display = 'block';
@@ -1143,10 +1148,20 @@ function srSelect(el, num) {
     if (card.classList.contains('sr-graded')) return;
     card.querySelectorAll('.sr-choice').forEach(function(c){ c.classList.remove('sr-selected'); });
     el.classList.add('sr-selected');
-    /* 자동 채점 */
+    card.setAttribute('data-picked', num);
+    /* 채점 버튼 표시 */
+    var btn = card.querySelector('.sr-grade-btn');
+    if (btn) btn.style.display = 'inline-block';
+}
+function srGrade(btn) {
+    var card = btn.closest('.sr-card');
+    if (card.classList.contains('sr-graded')) return;
+    var num = parseInt(card.getAttribute('data-picked'));
+    if (!num) return;
     var ans = card.getAttribute('data-answer').trim();
     var ansList = ans.split(',');
     card.classList.add('sr-graded');
+    btn.style.display = 'none';
     var isCorrect = ansList.indexOf(String(num)) !== -1;
     card.querySelectorAll('.sr-choice').forEach(function(c){
         var cn = c.querySelector('.sr-cnum').getAttribute('data-choice');
