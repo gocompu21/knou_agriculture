@@ -1111,7 +1111,7 @@ function searchQuestions(e) {
         var keywords = data.keywords || [];
         var html = '';
         data.questions.forEach(function(item, idx){
-            var txt = hlKw(escHtml(item.text), keywords);
+            var txt = hlKw(fmtQtext(item.text), keywords);
             var choices = [item.choice_1, item.choice_2, item.choice_3, item.choice_4];
             var exps = [item.choice_1_exp, item.choice_2_exp, item.choice_3_exp, item.choice_4_exp];
             var ans = item.answer;
@@ -1125,7 +1125,7 @@ function searchQuestions(e) {
                 var isAns = ansList.indexOf(String(cn)) !== -1;
                 html += '<div class="sr-choice" onclick="srSelect(this,' + cn + ')">';
                 html += '<span class="sr-cnum" data-choice="' + cn + '">' + cn + '</span> ';
-                html += '<span class="sr-ctxt">' + hlKw(escHtml(choices[i]), keywords) + '</span>';
+                html += '<span class="sr-ctxt">' + hlKw(fmtQtext(choices[i]), keywords) + '</span>';
                 if (exps[i]) {
                     html += '<div class="sr-exp' + (isAns ? ' sr-correct-exp' : '') + '" style="display:none;"><span class="sr-exp-arrow">\u21AA </span>' + escHtml(exps[i]) + '</div>';
                 }
@@ -1172,6 +1172,17 @@ function clearSearch() {
 function escHtml(s) {
     if (!s) return '';
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function fmtQtext(s) {
+    var t = escHtml(s);
+    t = t.replace(/&lt;u&gt;/g,'<u>').replace(/&lt;\/u&gt;/g,'</u>');
+    t = t.replace(/\[box\]([\s\S]*?)\[\/box\]/gi, function(m,inner){
+        return '<div class="q-box" style="border:2px solid #333;border-radius:4px;padding:6px 12px;margin:6px 0;background:#fff;line-height:1.7;text-indent:0;font-weight:normal;display:block">' + inner.trim() + '</div>';
+    });
+    t = t.replace(/\^\{([^}]+)\}/g,'<sup>$1</sup>');
+    t = t.replace(/_\{([^}]+)\}/g,'<sub>$1</sub>');
+    t = t.replace(/\n/g,'<br>');
+    return t;
 }
 function hlKw(text, keywords) {
     keywords.forEach(function(kw){
