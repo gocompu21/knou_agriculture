@@ -720,8 +720,20 @@
 
     <!-- ══════════ 학습 탭 ══════════ -->
     <div id="tab-study" class="tab-content{% if active_tab == 'study' %} active{% endif %}">
+        <!-- 기출검색 -->
+        <div class="search-box" style="margin-bottom:12px;">
+            <form onsubmit="searchQuestions(event)" style="display:flex;gap:6px;">
+                <input type="text" id="study-search-input" placeholder="기출검색 (문제·보기에서 검색)" style="flex:1;padding:8px 12px;border:1px solid #ccc;border-radius:6px;font-size:0.9rem;">
+                <button type="submit" style="padding:8px 16px;background:#1b4332;color:#fff;border:none;border-radius:6px;font-size:0.9rem;cursor:pointer;white-space:nowrap;">검색</button>
+                <button type="button" onclick="clearSearch()" style="padding:8px 12px;background:#eee;color:#555;border:none;border-radius:6px;font-size:0.9rem;cursor:pointer;white-space:nowrap;">초기화</button>
+            </form>
+        </div>
+        <div id="search-results" style="display:none;margin-bottom:16px;">
+            <div id="search-summary" style="font-size:0.85rem;color:#666;margin-bottom:8px;"></div>
+            <div id="search-list"></div>
+        </div>
         {% if exam_cards %}
-        <div class="exam-grid">
+        <div class="exam-grid" id="exam-grid-study">
             {% for ec in exam_cards %}
             <div class="exam-card">
                 <div class="exam-card-title">{{ ec.exam }}</div>
@@ -1055,6 +1067,65 @@
 <script>
 function switchTab(tabName) {
     window.location.href = '?tab=' + tabName;
+}
+
+/* ── 기출검색 ── */
+function searchQuestions(e) {
+    e.preventDefault();
+    var q = document.getElementById('study-search-input').value.trim();
+    if (q.length < 2) { alert('2글자 이상 입력해주세요.'); return; }
+    var url = '/gisa/{{ cert.pk }}/api/latest/search/?q=' + encodeURIComponent(q);
+    fetch(url).then(function(r){ return r.json(); }).then(function(data){
+        var list = document.getElementById('search-list');
+        var summary = document.getElementById('search-summary');
+        var wrap = document.getElementById('search-results');
+        var grid = document.getElementById('exam-grid-study');
+        if (!data.questions.length) {
+            summary.textContent = '"' + q + '" 검색 결과가 없습니다.';
+            list.innerHTML = '';
+            wrap.style.display = 'block';
+            if (grid) grid.style.display = 'none';
+            return;
+        }
+        summary.textContent = '"' + q + '" 검색 결과: ' + data.questions.length + '건';
+        var keywords = data.keywords || [];
+        var html = '';
+        data.questions.forEach(function(item){
+            var txt = escHtml(item.text);
+            var c1 = escHtml(item.choice_1), c2 = escHtml(item.choice_2);
+            var c3 = escHtml(item.choice_3), c4 = escHtml(item.choice_4);
+            keywords.forEach(function(kw){
+                var re = new RegExp('(' + kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+                txt = txt.replace(re, '<mark>$1</mark>');
+                c1 = c1.replace(re, '<mark>$1</mark>');
+                c2 = c2.replace(re, '<mark>$1</mark>');
+                c3 = c3.replace(re, '<mark>$1</mark>');
+                c4 = c4.replace(re, '<mark>$1</mark>');
+            });
+            html += '<div style="padding:10px 0;border-bottom:1px solid #eee;">';
+            html += '<div style="font-size:0.78rem;color:#888;margin-bottom:4px;">' + item.year + '년 ' + item.round + '회 | ' + escHtml(item.subject) + ' | ' + item.number + '번</div>';
+            html += '<div style="font-size:0.9rem;font-weight:600;margin-bottom:6px;">' + txt + '</div>';
+            html += '<div style="font-size:0.83rem;color:#444;padding-left:8px;">';
+            html += '① ' + c1 + '<br>② ' + c2 + '<br>③ ' + c3 + '<br>④ ' + c4;
+            html += '</div>';
+            html += '<div style="margin-top:4px;font-size:0.8rem;color:#1b4332;font-weight:600;">정답: ' + item.answer + '</div>';
+            html += '</div>';
+        });
+        list.innerHTML = html;
+        wrap.style.display = 'block';
+        if (grid) grid.style.display = 'none';
+    });
+}
+function clearSearch() {
+    document.getElementById('study-search-input').value = '';
+    document.getElementById('search-results').style.display = 'none';
+    document.getElementById('search-list').innerHTML = '';
+    var grid = document.getElementById('exam-grid-study');
+    if (grid) grid.style.display = '';
+}
+function escHtml(s) {
+    if (!s) return '';
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function toggleChapter(el) {
