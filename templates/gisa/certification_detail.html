@@ -1116,13 +1116,14 @@ function searchQuestions(e) {
             var choices = [item.choice_1, item.choice_2, item.choice_3, item.choice_4];
             var exps = [item.choice_1_exp, item.choice_2_exp, item.choice_3_exp, item.choice_4_exp];
             var ans = item.answer;
+            var ansList = ans.split(',');
             html += '<div class="sr-card" data-answer="' + ans + '">';
             html += '<div class="sr-meta">' + item.year + '년 ' + item.round + '회 | ' + escHtml(item.subject) + '</div>';
             html += '<div class="sr-text"><span class="sr-num">' + item.number + '.</span> ' + txt + ' <button class="sr-fold-btn" onclick="srToggleFold(this)" title="접기/펼치기"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 7 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>';
             html += '<div class="sr-choices">';
             for (var i = 0; i < 4; i++) {
                 var cn = i + 1;
-                var isAns = ans.indexOf(String(cn)) !== -1;
+                var isAns = ansList.indexOf(String(cn)) !== -1;
                 html += '<div class="sr-choice" onclick="srSelect(this,' + cn + ')">';
                 html += '<span class="sr-cnum" data-choice="' + cn + '">' + cn + '</span> ';
                 html += '<span class="sr-ctxt">' + hlKw(escHtml(choices[i]), keywords) + '</span>';
@@ -1144,12 +1145,13 @@ function srSelect(el, num) {
     card.querySelectorAll('.sr-choice').forEach(function(c){ c.classList.remove('sr-selected'); });
     el.classList.add('sr-selected');
     /* 자동 채점 */
-    var ans = card.getAttribute('data-answer');
+    var ans = card.getAttribute('data-answer').trim();
+    var ansList = ans.split(',');
     card.classList.add('sr-graded');
-    var isCorrect = ans.indexOf(String(num)) !== -1;
+    var isCorrect = ansList.indexOf(String(num)) !== -1;
     card.querySelectorAll('.sr-choice').forEach(function(c){
         var cn = c.querySelector('.sr-cnum').getAttribute('data-choice');
-        if (ans.indexOf(cn) !== -1) c.querySelector('.sr-cnum').classList.add('sr-correct-mark');
+        if (ansList.indexOf(cn) !== -1) c.querySelector('.sr-cnum').classList.add('sr-correct-mark');
         if (c.classList.contains('sr-selected') && !isCorrect) c.querySelector('.sr-cnum').classList.add('sr-wrong-mark');
         var exp = c.querySelector('.sr-exp');
         if (exp) exp.style.display = 'block';
