@@ -795,6 +795,11 @@ def api_gisa_search_questions(request, cert_id):
                 "answer": q.answer, "year": q.exam.year,
                 "round": q.exam.round, "subject": q.subject.name,
                 "match_count": q.match_count,
+                "explanation": q.explanation or "",
+                "choice_1_exp": q.choice_1_exp or "",
+                "choice_2_exp": q.choice_2_exp or "",
+                "choice_3_exp": q.choice_3_exp or "",
+                "choice_4_exp": q.choice_4_exp or "",
             }
             for q in qs
         ],

@@ -5,6 +5,27 @@
 
 {% block extra_css %}
 <style>
+    /* ── 기출검색 결과 ── */
+    .sr-card { padding: 8px 0; border-bottom: 1px solid #eee; }
+    .sr-card.sr-folded .sr-choices { display: none; }
+    .sr-meta { font-size: 0.78rem; color: #888; margin-bottom: 2px; }
+    .sr-text { font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; line-height: 1.5; }
+    .sr-num { color: #1b4332; }
+    .sr-fold-btn { background: none; border: none; cursor: pointer; color: #999; vertical-align: middle; padding: 2px; }
+    .sr-card.sr-folded .sr-fold-btn svg { transform: rotate(-90deg); }
+    .sr-choices { padding-left: 4px; }
+    .sr-choice { padding: 5px 4px; font-size: 0.85rem; cursor: pointer; border-radius: 4px; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 4px; }
+    .sr-choice:hover { background: #f5f5f5; }
+    .sr-cnum { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; border: 1px solid #ccc; font-size: 0.75rem; font-weight: 600; flex-shrink: 0; }
+    .sr-ctxt { flex: 1; }
+    .sr-choice.sr-selected .sr-cnum { background: #333; color: #fff; border-color: #333; }
+    .sr-cnum.sr-correct-mark { background: #333; color: #fff; border-color: #333; }
+    .sr-cnum.sr-wrong-mark { background: #d93025; color: #fff; border-color: #d93025; }
+    .sr-card.sr-graded .sr-choice { cursor: default; }
+    .sr-exp { font-size: 0.8rem; color: #555; margin-top: 3px; padding-left: 24px; line-height: 1.5; width: 100%; }
+    .sr-exp-arrow { color: #999; }
+    .sr-correct-exp { background: #fff9e6; padding: 3px 6px; border-radius: 4px; }
+
     .detail-hero {
         background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
         color: #fff;
@@ -1090,31 +1111,53 @@ function searchQuestions(e) {
         summary.textContent = '"' + q + '" 검색 결과: ' + data.questions.length + '건';
         var keywords = data.keywords || [];
         var html = '';
-        data.questions.forEach(function(item){
-            var txt = escHtml(item.text);
-            var c1 = escHtml(item.choice_1), c2 = escHtml(item.choice_2);
-            var c3 = escHtml(item.choice_3), c4 = escHtml(item.choice_4);
-            keywords.forEach(function(kw){
-                var re = new RegExp('(' + kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
-                txt = txt.replace(re, '<mark>$1</mark>');
-                c1 = c1.replace(re, '<mark>$1</mark>');
-                c2 = c2.replace(re, '<mark>$1</mark>');
-                c3 = c3.replace(re, '<mark>$1</mark>');
-                c4 = c4.replace(re, '<mark>$1</mark>');
-            });
-            html += '<div style="padding:10px 0;border-bottom:1px solid #eee;">';
-            html += '<div style="font-size:0.78rem;color:#888;margin-bottom:4px;">' + item.year + '년 ' + item.round + '회 | ' + escHtml(item.subject) + ' | ' + item.number + '번</div>';
-            html += '<div style="font-size:0.9rem;font-weight:600;margin-bottom:6px;">' + txt + '</div>';
-            html += '<div style="font-size:0.83rem;color:#444;padding-left:8px;">';
-            html += '① ' + c1 + '<br>② ' + c2 + '<br>③ ' + c3 + '<br>④ ' + c4;
-            html += '</div>';
-            html += '<div style="margin-top:4px;font-size:0.8rem;color:#1b4332;font-weight:600;">정답: ' + item.answer + '</div>';
-            html += '</div>';
+        data.questions.forEach(function(item, idx){
+            var txt = hlKw(escHtml(item.text), keywords);
+            var choices = [item.choice_1, item.choice_2, item.choice_3, item.choice_4];
+            var exps = [item.choice_1_exp, item.choice_2_exp, item.choice_3_exp, item.choice_4_exp];
+            var ans = item.answer;
+            html += '<div class="sr-card" data-answer="' + ans + '">';
+            html += '<div class="sr-meta">' + item.year + '년 ' + item.round + '회 | ' + escHtml(item.subject) + '</div>';
+            html += '<div class="sr-text"><span class="sr-num">' + item.number + '.</span> ' + txt + ' <button class="sr-fold-btn" onclick="srToggleFold(this)" title="접기/펼치기"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 7 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>';
+            html += '<div class="sr-choices">';
+            for (var i = 0; i < 4; i++) {
+                var cn = i + 1;
+                var isAns = ans.indexOf(String(cn)) !== -1;
+                html += '<div class="sr-choice" onclick="srSelect(this,' + cn + ')">';
+                html += '<span class="sr-cnum" data-choice="' + cn + '">' + cn + '</span> ';
+                html += '<span class="sr-ctxt">' + hlKw(escHtml(choices[i]), keywords) + '</span>';
+                if (exps[i]) {
+                    html += '<div class="sr-exp' + (isAns ? ' sr-correct-exp' : '') + '" style="display:none;"><span class="sr-exp-arrow">\u21AA </span>' + escHtml(exps[i]) + '</div>';
+                }
+                html += '</div>';
+            }
+            html += '</div></div>';
         });
         list.innerHTML = html;
         wrap.style.display = 'block';
         if (grid) grid.style.display = 'none';
     });
+}
+function srSelect(el, num) {
+    var card = el.closest('.sr-card');
+    if (card.classList.contains('sr-graded')) return;
+    card.querySelectorAll('.sr-choice').forEach(function(c){ c.classList.remove('sr-selected'); });
+    el.classList.add('sr-selected');
+    /* 자동 채점 */
+    var ans = card.getAttribute('data-answer');
+    card.classList.add('sr-graded');
+    var isCorrect = ans.indexOf(String(num)) !== -1;
+    card.querySelectorAll('.sr-choice').forEach(function(c){
+        var cn = c.querySelector('.sr-cnum').getAttribute('data-choice');
+        if (ans.indexOf(cn) !== -1) c.querySelector('.sr-cnum').classList.add('sr-correct-mark');
+        if (c.classList.contains('sr-selected') && !isCorrect) c.querySelector('.sr-cnum').classList.add('sr-wrong-mark');
+        var exp = c.querySelector('.sr-exp');
+        if (exp) exp.style.display = 'block';
+    });
+}
+function srToggleFold(btn) {
+    var card = btn.closest('.sr-card');
+    card.classList.toggle('sr-folded');
 }
 function clearSearch() {
     document.getElementById('study-search-input').value = '';
@@ -1126,6 +1169,13 @@ function clearSearch() {
 function escHtml(s) {
     if (!s) return '';
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function hlKw(text, keywords) {
+    keywords.forEach(function(kw){
+        var re = new RegExp('(' + kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+        text = text.replace(re, '<mark>$1</mark>');
+    });
+    return text;
 }
 
 function toggleChapter(el) {
