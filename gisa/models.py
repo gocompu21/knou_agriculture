@@ -63,6 +63,16 @@ class GisaSubject(models.Model):
         return f"[{self.certification.name}] {self.order}. {self.name}"
 
 
+def _gisa_question_img_path(instance, filename):
+    """cert_id/year-round/ 하위에 저장하여 파일명 충돌 방지."""
+    import os
+    ext = os.path.splitext(filename)[1] or '.png'
+    cert_id = instance.exam.certification_id
+    year = instance.exam.year
+    rnd = instance.exam.round
+    return f'gisa/questions/c{cert_id}/{year}-{rnd}/{filename}'
+
+
 class GisaQuestion(models.Model):
     ANSWER_CHOICES = [
         ('0', '미확인'),
@@ -77,11 +87,11 @@ class GisaQuestion(models.Model):
     choice_2 = models.TextField('보기②')
     choice_3 = models.TextField('보기③')
     choice_4 = models.TextField('보기④')
-    text_image = models.ImageField('문제 이미지', upload_to='gisa/questions/', blank=True)
-    choice_1_image = models.ImageField('보기① 이미지', upload_to='gisa/questions/', blank=True)
-    choice_2_image = models.ImageField('보기② 이미지', upload_to='gisa/questions/', blank=True)
-    choice_3_image = models.ImageField('보기③ 이미지', upload_to='gisa/questions/', blank=True)
-    choice_4_image = models.ImageField('보기④ 이미지', upload_to='gisa/questions/', blank=True)
+    text_image = models.ImageField('문제 이미지', upload_to=_gisa_question_img_path, blank=True)
+    choice_1_image = models.ImageField('보기① 이미지', upload_to=_gisa_question_img_path, blank=True)
+    choice_2_image = models.ImageField('보기② 이미지', upload_to=_gisa_question_img_path, blank=True)
+    choice_3_image = models.ImageField('보기③ 이미지', upload_to=_gisa_question_img_path, blank=True)
+    choice_4_image = models.ImageField('보기④ 이미지', upload_to=_gisa_question_img_path, blank=True)
     answer = models.CharField('정답', max_length=10, choices=ANSWER_CHOICES, default='0')
     explanation = models.TextField('정답 설명', blank=True)
     choice_1_exp = models.TextField('보기① 해설', blank=True)
