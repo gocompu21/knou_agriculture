@@ -730,7 +730,7 @@
     });
 
     function showImgPreview(row, file, field) {
-        // 기존 미리보기 제거
+        // 기존 미리보기/삭제 버튼 제거
         var old = row.querySelector('.ef-img-preview');
         if (old) old.remove();
         var oldClear = row.querySelector('.ef-img-clear');
@@ -741,6 +741,14 @@
         var url = URL.createObjectURL(file);
         img.src = url;
         row.appendChild(img);
+        // 삭제 버튼 추가
+        var delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'ef-img-clear';
+        delBtn.setAttribute('data-field', field);
+        delBtn.textContent = '삭제';
+        delBtn.onclick = function(){ clearImg(delBtn); };
+        row.appendChild(delBtn);
         // 붙여넣기 버튼 업데이트
         var pasteBtn = row.querySelector('.ef-img-paste-btn');
         if (pasteBtn) { pasteBtn.classList.add('has-img'); pasteBtn.textContent = '완료'; }
@@ -751,9 +759,13 @@
         var field = btn.getAttribute('data-field');
         btn.setAttribute('data-cleared', '1');
         var preview = row.querySelector('.ef-img-preview');
-        if (preview) preview.style.display = 'none';
+        if (preview) preview.remove();
         var pasteBtn = row.querySelector('.ef-img-paste-btn');
         if (pasteBtn) { pasteBtn.classList.remove('has-img'); pasteBtn.textContent = '붙여넣기'; }
+        // 붙여넣기/파일선택 데이터 초기화
+        if (_pastedFiles[field]) delete _pastedFiles[field];
+        var inp = row.querySelector('.ef-img');
+        if (inp) inp.value = '';
         btn.textContent = '삭제됨';
         btn.disabled = true;
     }
