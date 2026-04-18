@@ -76,6 +76,29 @@
             z-index: 0;
         }
         .question-item.study-graded .q-number { z-index: 1; }
+
+        /* OMR 답안지 O/X 마크 */
+        .omr-row .omr-num { position: relative; }
+        .omr-row.omr-correct .omr-num::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-5deg);
+            width: 28px; height: 26px;
+            border: 2.5px solid #1565c0;
+            border-radius: 50% 45% 55% 48% / 55% 50% 45% 52%;
+            pointer-events: none;
+        }
+        .omr-row.omr-wrong .omr-num::after {
+            content: '✕';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5em;
+            color: rgba(198, 40, 40, 0.75);
+            font-weight: bold;
+            pointer-events: none;
+        }
         /* 정답 문제(사용자가 맞춤): 정답 선지 검은 반전 */
         .question-item.study-graded.is-correct .choice-item.study-correct .q-mark { background: #333; color: #fff; border-color: #333; }
         /* 오답 문제: 정답 선지 빨간 반전, 사용자가 선택한 오답은 검은 반전 */
@@ -657,6 +680,7 @@
                     q.querySelectorAll('.choice-item').forEach(function(c){ c.classList.remove('study-correct','study-picked'); });
                     q.querySelectorAll('.my-pick').forEach(function(p){ p.remove(); });
                 });
+                document.querySelectorAll('.omr-row').forEach(function(r){ r.classList.remove('omr-correct','omr-wrong'); });
             }
         }
 
@@ -681,6 +705,12 @@
             qDiv.classList.add('study-graded');
             qDiv.classList.remove('is-correct','is-wrong');
             qDiv.classList.add(isCorrect ? 'is-correct' : 'is-wrong');
+            // OMR 답안지에도 O/X 표시
+            var omrRow = document.getElementById('omr-row-' + questionId);
+            if (omrRow) {
+                omrRow.classList.remove('omr-correct','omr-wrong');
+                omrRow.classList.add(isCorrect ? 'omr-correct' : 'omr-wrong');
+            }
             qDiv.querySelectorAll('.choice-item').forEach(function(c){
                 c.classList.remove('study-correct','study-picked');
                 // 이전 "← 내 답" 라벨 제거
