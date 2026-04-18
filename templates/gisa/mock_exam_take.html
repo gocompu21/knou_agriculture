@@ -26,6 +26,15 @@
             border-right: 1px solid #ccc;
         }
 
+        /* 학습모드 토글 + 채점 스타일 */
+        .study-toggle { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.82rem; color: #fff; font-weight: 500; }
+        .study-toggle input[type="checkbox"] { accent-color: #ffc107; width: 14px; height: 14px; cursor: pointer; }
+        .study-exp { display: none; font-size: 0.82rem; color: #555; line-height: 1.55; margin-top: 4px; padding: 4px 8px; background: #f5f5f5; border-radius: 4px; border-left: 2px solid #ccc; }
+        .question-item.study-graded .study-exp { display: block; }
+        .question-item.study-graded .choice-item.study-correct .q-mark { background: #333; color: #fff; border-color: #333; }
+        .question-item.study-graded .choice-item.study-wrong .q-mark { background: #d93025; color: #fff; border-color: #d93025; }
+        .question-item.study-graded .choice-item.study-correct .study-exp { background: #fff9e6; border-left-color: #ffc107; color: #111; font-weight: 500; }
+
         .exam-top-header {
             display: flex;
             align-items: center;
@@ -476,6 +485,12 @@
                 <small>모의고사 &middot; {{ questions|length }}문항</small>
             </span>
         </div>
+        <div class="th-right" style="display:flex; align-items:center; gap:10px;">
+            <label class="study-toggle">
+                <input type="checkbox" id="study-mode-toggle" onchange="toggleStudyMode(this)">
+                <span>학습모드</span>
+            </label>
+        </div>
     </div>
 
     <form method="post" action="{% url 'gisa:mock_exam_submit' cert.pk %}" class="exam-form">
@@ -502,24 +517,28 @@
                 <span class="subject-name">{{ q.subject.name }}</span>
             </div>
             {% endifchanged %}
-            <div class="question-item" id="q-{{ q.id }}">
+            <div class="question-item" id="q-{{ q.id }}" data-answer="{{ q.answer }}">
                 <div class="question-content">
                     <span class="q-number">{{ forloop.counter }}.</span>
                     <span>{{ q.text|qtext }}</span>
                 </div>
                 {% if q.text_image %}<div style="margin:6px 0;"><img src="{{ q.text_image.url }}" style="max-width:100%;"></div>{% endif %}
                 <div class="choices">
-                    <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '1')">
+                    <div class="choice-item" data-choice="1" onclick="selectAnswer('{{ q.id }}', '1')">
                         <span class="q-mark">1</span> {{ q.choice_1|qtext }}{% if q.choice_1_image %}<br><img src="{{ q.choice_1_image.url }}" style="max-width:100%;margin-top:4px;">{% endif %}
+                        {% if q.choice_1_exp %}<div class="study-exp">↪ {{ q.choice_1_exp }}</div>{% endif %}
                     </div>
-                    <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '2')">
+                    <div class="choice-item" data-choice="2" onclick="selectAnswer('{{ q.id }}', '2')">
                         <span class="q-mark">2</span> {{ q.choice_2|qtext }}{% if q.choice_2_image %}<br><img src="{{ q.choice_2_image.url }}" style="max-width:100%;margin-top:4px;">{% endif %}
+                        {% if q.choice_2_exp %}<div class="study-exp">↪ {{ q.choice_2_exp }}</div>{% endif %}
                     </div>
-                    <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '3')">
+                    <div class="choice-item" data-choice="3" onclick="selectAnswer('{{ q.id }}', '3')">
                         <span class="q-mark">3</span> {{ q.choice_3|qtext }}{% if q.choice_3_image %}<br><img src="{{ q.choice_3_image.url }}" style="max-width:100%;margin-top:4px;">{% endif %}
+                        {% if q.choice_3_exp %}<div class="study-exp">↪ {{ q.choice_3_exp }}</div>{% endif %}
                     </div>
-                    <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '4')">
+                    <div class="choice-item" data-choice="4" onclick="selectAnswer('{{ q.id }}', '4')">
                         <span class="q-mark">4</span> {{ q.choice_4|qtext }}{% if q.choice_4_image %}<br><img src="{{ q.choice_4_image.url }}" style="max-width:100%;margin-top:4px;">{% endif %}
+                        {% if q.choice_4_exp %}<div class="study-exp">↪ {{ q.choice_4_exp }}</div>{% endif %}
                     </div>
                 </div>
             </div>
@@ -578,15 +597,42 @@
         }
         setInterval(updateTimer, 1000);
 
+        /* ── 학습모드 토글 ── */
+        var studyMode = false;
+        function toggleStudyMode(cb) {
+            studyMode = cb.checked;
+            if (!studyMode) {
+                document.querySelectorAll('.question-item.study-graded').forEach(function(q){
+                    q.classList.remove('study-graded');
+                    q.querySelectorAll('.choice-item').forEach(function(c){ c.classList.remove('study-correct','study-wrong'); });
+                });
+            }
+        }
+
         /* ── Question click → OMR sync ── */
         function selectAnswer(questionId, choiceVal) {
             const omrRow = document.getElementById('omr-row-' + questionId);
             if (omrRow) {
                 const bubble = omrRow.querySelector('.val-' + choiceVal);
                 if (bubble) selectBubble(bubble);
-                omrRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (!studyMode) omrRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
             highlightQuestionChoice(questionId, choiceVal);
+            if (studyMode) gradeStudy(questionId, choiceVal);
+        }
+
+        function gradeStudy(questionId, choiceVal) {
+            var qDiv = document.getElementById('q-' + questionId);
+            if (!qDiv) return;
+            var ans = (qDiv.getAttribute('data-answer') || '').trim();
+            var ansList = ans.split(',');
+            qDiv.classList.add('study-graded');
+            qDiv.querySelectorAll('.choice-item').forEach(function(c){
+                c.classList.remove('study-correct','study-wrong');
+                var cn = c.getAttribute('data-choice');
+                if (ansList.indexOf(cn) !== -1) c.classList.add('study-correct');
+                if (cn === String(choiceVal) && ansList.indexOf(cn) === -1) c.classList.add('study-wrong');
+            });
         }
 
         /* ── OMR bubble click ── */
