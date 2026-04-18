@@ -50,6 +50,30 @@
         .question-item.study-graded .q-note-section { display: block !important; }
         .q-note-section ul { padding-left: 20px; margin: 4px 0 4px 20px; }
         .q-note-section li { margin: 2px 0; }
+        /* O/X 마크 */
+        .question-item .q-number { position: relative; }
+        .question-item.study-graded.is-correct .q-number::after {
+            content: '';
+            position: absolute;
+            top: 0.8em; left: 50%;
+            transform: translate(-50%, -50%) rotate(-5deg);
+            width: 1.5em; height: 1.4em;
+            border: 2.5px solid #1565c0;
+            border-radius: 50% 45% 55% 48% / 55% 50% 45% 52%;
+            pointer-events: none;
+        }
+        .question-item.study-graded.is-wrong .q-number::after {
+            content: '✕';
+            position: absolute;
+            top: 0.55em; left: 30%;
+            transform: translate(-50%, -50%);
+            font-size: 1.6em;
+            color: rgba(198, 40, 40, 0.7);
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .question-item.study-graded .q-number { z-index: 1; }
         /* 정답 문제(사용자가 맞춤): 정답 선지 검은 반전 */
         .question-item.study-graded.is-correct .choice-item.study-correct .q-mark { background: #333; color: #fff; border-color: #333; }
         /* 오답 문제: 정답 선지 빨간 반전, 사용자가 선택한 오답은 검은 반전 */
