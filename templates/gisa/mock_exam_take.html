@@ -26,33 +26,32 @@
             border-right: 1px solid #ccc;
         }
 
-        /* 학습모드 토글 + 채점 스타일 */
+        /* 학습모드 토글 + 채점 스타일 (exam_result.html과 동일) */
         .study-toggle { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.82rem; color: #fff; font-weight: 500; }
         .study-toggle input[type="checkbox"] { accent-color: #ffc107; width: 14px; height: 14px; cursor: pointer; }
         .choice-item .choice-exp {
             display: none;
             margin-top: 4px;
-            margin-left: 1.55em;
-            padding: 6px 0 6px 1.4em;
-            text-indent: -1.4em;
-            font-size: 0.85rem;
-            font-weight: 400;
+            margin-left: 0;
+            padding: 4px 0;
+            font-size: 0.9em;
             color: #555;
             line-height: 1.6;
         }
-        .choice-item .choice-exp.correct-exp {
-            font-weight: 400;
+        .choice-item .choice-exp.correct-choice-exp {
             color: #111;
+            font-weight: 500;
         }
-        .choice-item .choice-exp.correct-exp .exp-text-inner {
+        .choice-item .choice-exp.correct-choice-exp .exp-text-inner {
             background: linear-gradient(to top, #fff176 40%, transparent 40%);
         }
-        .choice-item .choice-exp.correct-exp .exp-arrow {
-            color: #d93025;
-        }
         .question-item.study-graded .choice-item .choice-exp { display: block; }
-        .question-item.study-graded .choice-item.study-correct .q-mark { background: #333; color: #fff; border-color: #333; }
-        .question-item.study-graded .choice-item.study-wrong .q-mark { background: #d93025; color: #fff; border-color: #d93025; }
+        /* 정답 문제(사용자가 맞춤): 정답 선지 검은 반전 */
+        .question-item.study-graded.is-correct .choice-item.study-correct .q-mark { background: #333; color: #fff; border-color: #333; }
+        /* 오답 문제: 정답 선지 빨간 반전, 사용자가 선택한 오답은 검은 반전 */
+        .question-item.study-graded.is-wrong .choice-item.study-correct .q-mark { background: #d93025; color: #fff; border-color: #d93025; }
+        .question-item.study-graded.is-wrong .choice-item.study-picked .q-mark { background: #333; color: #fff; border-color: #333; }
+        .my-pick { display: inline-block; font-size: 0.72em; font-weight: 700; color: #d93025; margin-left: 6px; }
 
         .exam-top-header {
             display: flex;
@@ -545,19 +544,19 @@
                 <div class="choices">
                     <div class="choice-item" data-choice="1" onclick="selectAnswer('{{ q.id }}', '1')">
                         <span class="q-mark">1</span> {{ q.choice_1|qtext }}{% if q.choice_1_image %}<br><img src="{{ q.choice_1_image.url }}" style="max-width:100%;margin-top:4px;">{% endif %}
-                        {% if q.choice_1_exp %}<div class="choice-exp{% if '1' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_1_exp }}</span></div>{% endif %}
+                        {% if q.choice_1_exp %}<div class="choice-exp{% if '1' in q.answer %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ q.choice_1_exp }}</span></div>{% endif %}
                     </div>
                     <div class="choice-item" data-choice="2" onclick="selectAnswer('{{ q.id }}', '2')">
                         <span class="q-mark">2</span> {{ q.choice_2|qtext }}{% if q.choice_2_image %}<br><img src="{{ q.choice_2_image.url }}" style="max-width:100%;margin-top:4px;">{% endif %}
-                        {% if q.choice_2_exp %}<div class="choice-exp{% if '2' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_2_exp }}</span></div>{% endif %}
+                        {% if q.choice_2_exp %}<div class="choice-exp{% if '2' in q.answer %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ q.choice_2_exp }}</span></div>{% endif %}
                     </div>
                     <div class="choice-item" data-choice="3" onclick="selectAnswer('{{ q.id }}', '3')">
                         <span class="q-mark">3</span> {{ q.choice_3|qtext }}{% if q.choice_3_image %}<br><img src="{{ q.choice_3_image.url }}" style="max-width:100%;margin-top:4px;">{% endif %}
-                        {% if q.choice_3_exp %}<div class="choice-exp{% if '3' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_3_exp }}</span></div>{% endif %}
+                        {% if q.choice_3_exp %}<div class="choice-exp{% if '3' in q.answer %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ q.choice_3_exp }}</span></div>{% endif %}
                     </div>
                     <div class="choice-item" data-choice="4" onclick="selectAnswer('{{ q.id }}', '4')">
                         <span class="q-mark">4</span> {{ q.choice_4|qtext }}{% if q.choice_4_image %}<br><img src="{{ q.choice_4_image.url }}" style="max-width:100%;margin-top:4px;">{% endif %}
-                        {% if q.choice_4_exp %}<div class="choice-exp{% if '4' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_4_exp }}</span></div>{% endif %}
+                        {% if q.choice_4_exp %}<div class="choice-exp{% if '4' in q.answer %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ q.choice_4_exp }}</span></div>{% endif %}
                     </div>
                 </div>
             </div>
@@ -622,8 +621,9 @@
             studyMode = cb.checked;
             if (!studyMode) {
                 document.querySelectorAll('.question-item.study-graded').forEach(function(q){
-                    q.classList.remove('study-graded');
-                    q.querySelectorAll('.choice-item').forEach(function(c){ c.classList.remove('study-correct','study-wrong'); });
+                    q.classList.remove('study-graded','is-correct','is-wrong');
+                    q.querySelectorAll('.choice-item').forEach(function(c){ c.classList.remove('study-correct','study-picked'); });
+                    q.querySelectorAll('.my-pick').forEach(function(p){ p.remove(); });
                 });
             }
         }
@@ -645,12 +645,27 @@
             if (!qDiv) return;
             var ans = (qDiv.getAttribute('data-answer') || '').trim();
             var ansList = ans.split(',');
+            var isCorrect = ansList.indexOf(String(choiceVal)) !== -1;
             qDiv.classList.add('study-graded');
+            qDiv.classList.remove('is-correct','is-wrong');
+            qDiv.classList.add(isCorrect ? 'is-correct' : 'is-wrong');
             qDiv.querySelectorAll('.choice-item').forEach(function(c){
-                c.classList.remove('study-correct','study-wrong');
+                c.classList.remove('study-correct','study-picked');
+                // 이전 "← 내 답" 라벨 제거
+                var oldPick = c.querySelector('.my-pick');
+                if (oldPick) oldPick.remove();
                 var cn = c.getAttribute('data-choice');
                 if (ansList.indexOf(cn) !== -1) c.classList.add('study-correct');
-                if (cn === String(choiceVal) && ansList.indexOf(cn) === -1) c.classList.add('study-wrong');
+                if (cn === String(choiceVal)) {
+                    c.classList.add('study-picked');
+                    if (!isCorrect) {
+                        var pick = document.createElement('span');
+                        pick.className = 'my-pick';
+                        pick.textContent = '\u2190 \ub0b4 \ub2f5';
+                        var qMark = c.querySelector('.q-mark');
+                        if (qMark) qMark.after(pick);
+                    }
+                }
             });
         }
 
