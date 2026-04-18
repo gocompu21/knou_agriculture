@@ -1,4 +1,4 @@
-{% load static %}
+{% load static gisa_filters %}
 <!DOCTYPE html>
 <html lang="ko">
 
@@ -505,20 +505,21 @@
             <div class="question-item" id="q-{{ q.id }}">
                 <div class="question-content">
                     <span class="q-number">{{ forloop.counter }}.</span>
-                    <span>{{ q.text }}</span>
+                    <span>{{ q.text|qtext }}</span>
                 </div>
+                {% if q.text_image %}<div style="margin:6px 0;"><img src="{{ q.text_image.url }}" style="max-width:100%;"></div>{% endif %}
                 <div class="choices">
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '1')">
-                        <span class="q-mark">1</span> {{ q.choice_1 }}
+                        <span class="q-mark">1</span> {{ q.choice_1|qtext }}{% if q.choice_1_image %}<br><img src="{{ q.choice_1_image.url }}" style="max-width:100%;margin-top:4px;">{% endif %}
                     </div>
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '2')">
-                        <span class="q-mark">2</span> {{ q.choice_2 }}
+                        <span class="q-mark">2</span> {{ q.choice_2|qtext }}{% if q.choice_2_image %}<br><img src="{{ q.choice_2_image.url }}" style="max-width:100%;margin-top:4px;">{% endif %}
                     </div>
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '3')">
-                        <span class="q-mark">3</span> {{ q.choice_3 }}
+                        <span class="q-mark">3</span> {{ q.choice_3|qtext }}{% if q.choice_3_image %}<br><img src="{{ q.choice_3_image.url }}" style="max-width:100%;margin-top:4px;">{% endif %}
                     </div>
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '4')">
-                        <span class="q-mark">4</span> {{ q.choice_4 }}
+                        <span class="q-mark">4</span> {{ q.choice_4|qtext }}{% if q.choice_4_image %}<br><img src="{{ q.choice_4_image.url }}" style="max-width:100%;margin-top:4px;">{% endif %}
                     </div>
                 </div>
             </div>
