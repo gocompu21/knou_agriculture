@@ -134,6 +134,44 @@
 
     /* Session Cards */
     #tab-history { background: #fff; border-radius: 10px; padding: 24px 20px; }
+
+    /* ══════════ 시험이력 테이블 ══════════ */
+    .history-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .history-table thead th {
+        background: #1b4332; color: #fff; padding: 10px 8px; text-align: center;
+        font-weight: 600; font-size: 0.85rem; position: sticky; top: 0; z-index: 5;
+    }
+    .history-table tbody tr { border-bottom: 1px solid #eee; transition: background 0.15s; }
+    .history-table tbody tr:hover { background: #fafafa; }
+    .history-table td { padding: 10px 8px; text-align: center; vertical-align: middle; }
+    .history-table .ht-score { font-size: 1.1rem; font-weight: 800; }
+    .history-table .ht-pass {
+        display: inline-block; padding: 3px 10px; border-radius: 10px;
+        font-size: 0.78rem; font-weight: 700;
+    }
+    .history-table .ht-pass.pass { background: #e8f5e9; color: #1b5e20; }
+    .history-table .ht-pass.fail { background: #fafafa; color: #666; border: 1px solid #ddd; }
+    .history-table .ht-subjects { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+    .history-table .ht-subj {
+        display: inline-flex; flex-direction: column; align-items: center;
+        padding: 3px 8px; border-radius: 6px; background: #f5f5f5;
+        min-width: 48px;
+    }
+    .history-table .ht-subj-name { font-size: 0.7rem; color: #555; }
+    .history-table .ht-subj-score { font-size: 0.9rem; font-weight: 700; }
+    .history-table .ht-date { font-size: 0.8rem; color: #555; line-height: 1.3; }
+    .history-table .ht-actions { display: flex; gap: 4px; justify-content: center; align-items: center; }
+    .history-table .ht-btn {
+        padding: 4px 10px; font-size: 0.78rem; border-radius: 4px;
+        text-decoration: none; color: #fff; background: #d93025; white-space: nowrap;
+    }
+    .history-table .ht-btn-wrong { background: #d93025; }
+    .history-table .ht-btn-danger {
+        background: none; border: none; color: #888; cursor: pointer; padding: 4px;
+        display: inline-flex; align-items: center; justify-content: center;
+    }
+    .history-table .ht-btn-danger:hover { color: #d93025; }
+
     .session-list { display: flex; flex-direction: column; gap: 14px; padding: 12px; }
     .session-card {
         background: #fff;
@@ -604,7 +642,16 @@
         .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
         /* ── 시험이력 모바일 컴팩트 ── */
         #tab-history { padding: 8px 4px; }
-        #history-scroll { max-height: none !important; overflow: visible !important; border: none !important; }
+        #history-scroll { max-height: none !important; overflow-x: auto; }
+        .history-table { font-size: 0.78rem; min-width: 600px; }
+        .history-table thead th { padding: 8px 4px; font-size: 0.75rem; }
+        .history-table td { padding: 8px 4px; }
+        .history-table .ht-score { font-size: 0.95rem; }
+        .history-table .ht-subj { min-width: 40px; padding: 2px 5px; }
+        .history-table .ht-subj-name { font-size: 0.65rem; }
+        .history-table .ht-subj-score { font-size: 0.8rem; }
+        .history-table .ht-pass { padding: 2px 7px; font-size: 0.7rem; }
+        .history-table .ht-btn { padding: 3px 7px; font-size: 0.7rem; }
         .session-list { gap: 8px; padding: 0; }
         .session-card {
             padding: 10px 12px;
@@ -865,8 +912,20 @@
 
     <!-- ══════════ 시험이력 탭 ══════════ -->
     <div id="tab-history" class="tab-content{% if active_tab == 'history' %} active{% endif %}">
-        <div id="history-scroll" style="max-height:60vh; overflow-y:auto; border:1px solid #e0e0e0; border-radius:8px;">
-            <div class="session-list" id="history-list"></div>
+        <div id="history-scroll" style="max-height:65vh; overflow-y:auto; border:1px solid #e0e0e0; border-radius:8px;">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th style="width:70px;">모드</th>
+                        <th style="width:70px;">평균</th>
+                        <th>과목별 점수</th>
+                        <th style="width:60px;">합격</th>
+                        <th style="width:100px;">일시</th>
+                        <th style="width:120px;">액션</th>
+                    </tr>
+                </thead>
+                <tbody id="history-list"></tbody>
+            </table>
             <div id="history-loading" style="text-align:center; padding:20px; color:#888; display:none;">로딩 중...</div>
         </div>
         <div id="history-empty" class="empty-tab" style="display:none;">풀이 기록이 없습니다.</div>
@@ -1483,54 +1542,49 @@ function loadHistory() {
         .then(function(data) {
             var list = document.getElementById('history-list');
             data.sessions.forEach(function(s) {
-                var card = document.createElement('div');
-                card.className = 'session-card';
-                card.id = 'session-' + s.session_id;
+                var row = document.createElement('tr');
+                row.id = 'session-' + s.session_id;
                 var ago = timeAgo(s.date);
-                var trashIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
-                var wrongBtn = s.wrong > 0 ? '<a href="' + s.wrong_url + '" class="btn-sm btn-wrong">오답 ' + s.wrong + '개</a>' : '';
+                var trashIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
+                var wrongBtn = s.wrong > 0 ? '<a href="' + s.wrong_url + '" class="ht-btn ht-btn-wrong">오답 ' + s.wrong + '</a>' : '';
 
-                /* 상단: 모드 배지 + 평균점수 + 합격여부 + 액션 */
                 var passLabel = '';
                 if (s.mode === 'exam' || s.mode === 'mock') {
                     passLabel = s.passed
-                        ? '<span class="sc-pass pass">합격</span>'
-                        : '<span class="sc-pass fail">불합격</span>';
+                        ? '<span class="ht-pass pass">합격</span>'
+                        : '<span class="ht-pass fail">불합격</span>';
+                } else {
+                    passLabel = '<span style="color:#bbb;">–</span>';
                 }
                 var scoreColor = (s.mode === 'exam' || s.mode === 'mock')
-                    ? (s.passed ? 'color:#1b5e20' : 'color:#666')
-                    : (s.score >= 60 ? 'color:#1b5e20' : 'color:#666');
+                    ? (s.passed ? '#1b5e20' : '#666')
+                    : (s.score >= 60 ? '#1b5e20' : '#666');
 
-                var html = '<div class="sc-top">' +
-                    '<div class="sc-info">' +
-                    '<span class="session-mode mode-' + s.mode + '">' + s.mode_label + '</span>' +
-                    '<span class="sc-score" style="' + scoreColor + '">평균 ' + s.score + '점</span>' +
-                    passLabel +
-                    '</div>' +
-                    '<div class="sc-actions">' + wrongBtn +
-                    '<form method="post" action="' + s.delete_url + '" style="display:inline" onsubmit="return confirm(\'이 세션 기록을 삭제할까요?\');">' +
-                    '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '">' +
-                    '<button class="btn-danger" type="submit" title="삭제">' + trashIcon + '</button></form></div></div>';
-
-                /* 과목별 점수 바 */
+                // 과목별 점수 셀
+                var subjHtml = '';
                 if (s.subjects && s.subjects.length > 0) {
-                    html += '<div class="sc-subjects">';
+                    subjHtml = '<div class="ht-subjects">';
                     s.subjects.forEach(function(sub) {
-                        var scoreColor2 = sub.score >= 60 ? '#1b5e20' : (sub.score >= 40 ? '#e65100' : '#c62828');
-                        var bgColor = sub.score >= 60 ? '#e8f5e9' : (sub.score >= 40 ? '#fff8e1' : '#fce4ec');
-                        html += '<div class="sc-subj" style="background:' + bgColor + ';">' +
-                            '<div class="sc-subj-name">' + sub.name + '</div>' +
-                            '<div class="sc-subj-score" style="color:' + scoreColor2 + ';">' + sub.score + '점</div>' +
-                            '<div class="sc-subj-detail">' + sub.correct + '/' + sub.total + '</div></div>';
+                        var cc = sub.score >= 60 ? '#1b5e20' : (sub.score >= 40 ? '#e65100' : '#c62828');
+                        subjHtml += '<span class="ht-subj" title="' + sub.name + ': ' + sub.correct + '/' + sub.total + '"><span class="ht-subj-name">' + sub.name + '</span><span class="ht-subj-score" style="color:' + cc + ';">' + sub.score + '</span></span>';
                     });
-                    html += '</div>';
+                    subjHtml += '</div>';
+                } else {
+                    subjHtml = '<span style="color:#bbb;">–</span>';
                 }
 
-                /* 날짜 */
-                html += '<div class="sc-date">' + s.date + ' (' + ago + ')</div>';
+                row.innerHTML =
+                    '<td><span class="session-mode mode-' + s.mode + '">' + s.mode_label + '</span></td>' +
+                    '<td><span class="ht-score" style="color:' + scoreColor + ';">' + s.score + '</span></td>' +
+                    '<td>' + subjHtml + '</td>' +
+                    '<td>' + passLabel + '</td>' +
+                    '<td class="ht-date"><div>' + s.date.split(' ')[0] + '</div><div style="font-size:0.72rem;color:#999;">' + ago + '</div></td>' +
+                    '<td class="ht-actions">' + wrongBtn +
+                    '<form method="post" action="' + s.delete_url + '" style="display:inline" onsubmit="return confirm(\'이 세션 기록을 삭제할까요?\');">' +
+                    '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '">' +
+                    '<button class="ht-btn-danger" type="submit" title="삭제">' + trashIcon + '</button></form></td>';
 
-                card.innerHTML = html;
-                list.appendChild(card);
+                list.appendChild(row);
             });
             historyHasNext = data.has_next;
             historyPage++;
