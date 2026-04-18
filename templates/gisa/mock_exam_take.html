@@ -567,7 +567,7 @@
             <div class="question-item" id="q-{{ q.id }}" data-answer="{{ q.answer }}">
                 <div class="question-content">
                     <span class="q-number">{{ forloop.counter }}.</span>
-                    <span>{{ q.text|qtext }}</span>
+                    <span>{{ q.text|qtext }} <sup style="color:#888;font-size:0.72em;font-weight:500;">[{{ q.exam.year }}-{{ q.exam.round }}-{{ q.number }}]</sup></span>
                 </div>
                 {% if q.text_image %}<div style="margin:6px 0;"><img src="{{ q.text_image.url }}" style="max-width:100%;"></div>{% endif %}
                 <div class="choices">
