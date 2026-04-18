@@ -33,7 +33,6 @@ INSTALLED_APPS = [
     "accounts",
     "gisa",
     "bbs",
-    "pdfviewer",
 ]
 
 SITE_ID = 1
