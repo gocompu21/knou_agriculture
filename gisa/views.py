@@ -1290,6 +1290,16 @@ def wrong_answers_session(request, cert_id, session_id):
     ).count()
     mode = wrong_attempts.first().mode if wrong_attempts.exists() else "exam"
 
+    # 쪽집게 노트 매핑
+    note_subjects = list(GisaSubject.objects.filter(certification=cert))
+    note_map = _build_note_map(cert, note_subjects)
+    q_notes = {}
+    for a in wrong_attempts:
+        q = a.question
+        key = f"{q.exam.year}-{q.exam.round}-{q.number}"
+        if key in note_map:
+            q_notes[str(q.id)] = _rank_notes(q.text, note_map[key])
+
     return render(
         request,
         "gisa/wrong_answers.html",
@@ -1302,6 +1312,7 @@ def wrong_answers_session(request, cert_id, session_id):
             "is_session": True,
             "mode": mode,
             "glossary_json": _glossary_json(cert, include_ids=request.user.is_staff if request.user.is_authenticated else False),
+            "q_notes_json": json.dumps(q_notes, ensure_ascii=False),
         },
     )
 
