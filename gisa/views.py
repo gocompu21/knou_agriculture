@@ -1098,6 +1098,15 @@ def mock_exam_take(request, cert_id):
     session_id = str(uuid.uuid4())
     request.session[f"gisa_mock_{session_id}"] = [q.pk for q in questions]
 
+    # 쪽집게 노트 매핑
+    note_subjects = list(GisaSubject.objects.filter(certification=cert))
+    note_map = _build_note_map(cert, note_subjects)
+    q_notes = {}
+    for q in questions:
+        key = f"{q.exam.year}-{q.exam.round}-{q.number}"
+        if key in note_map:
+            q_notes[str(q.id)] = _rank_notes(q.text, note_map[key])
+
     return render(
         request,
         "gisa/mock_exam_take.html",
@@ -1106,6 +1115,7 @@ def mock_exam_take(request, cert_id):
             "questions": questions,
             "session_id": session_id,
             "subjects": subjects,
+            "q_notes_json": json.dumps(q_notes, ensure_ascii=False),
         },
     )
 
