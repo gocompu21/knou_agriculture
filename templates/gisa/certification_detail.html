@@ -794,9 +794,21 @@
     <!-- ══════════ 모의고사 탭 ══════════ -->
     <div id="tab-mock" class="tab-content{% if active_tab == 'mock' %} active{% endif %}">
         {% if total_questions > 0 %}
-        <div style="text-align:center; padding:40px 20px;">
-            <p style="margin-bottom:16px; color:#666;">각 과목별 20문제씩 임의로 추출하여, 총 100문제 모의고사를 치룹니다.</p>
-            <a href="{% url 'gisa:mock_exam_take' cert.pk %}" class="btn-sm btn-mock" style="font-size:1rem; padding:12px 32px;">모의고사 시작</a>
+        <div style="padding:24px 16px;">
+            <div style="margin-bottom:24px; padding:16px; background:#f9fbf9; border:1px solid #dce8dc; border-radius:8px;">
+                <div style="font-weight:700; color:#1b4332; margin-bottom:8px;">전과목 모의고사</div>
+                <div style="font-size:0.9rem; color:#666; margin-bottom:12px;">각 과목별 20문제씩 임의로 추출, 총 {{ subjects|length|add:"0" }}과목 모의고사</div>
+                <a href="{% url 'gisa:mock_exam_take' cert.pk %}" class="btn-sm btn-mock" style="font-size:0.95rem; padding:10px 24px;">전과목 모의고사 시작</a>
+            </div>
+            <div style="padding:16px; background:#fff; border:1px solid #e0e0e0; border-radius:8px;">
+                <div style="font-weight:700; color:#1b4332; margin-bottom:8px;">과목별 모의고사</div>
+                <div style="font-size:0.9rem; color:#666; margin-bottom:12px;">선택한 과목의 20문제로 모의고사를 치룹니다.</div>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    {% for subj in subjects %}
+                    <a href="{% url 'gisa:mock_exam_take' cert.pk %}?subject={{ subj.pk }}" class="btn-sm" style="padding:8px 16px; background:#fff; color:#1b4332; border:1px solid #1b4332; border-radius:20px; font-size:0.88rem; text-decoration:none;">{{ subj.order }}과목: {{ subj.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
         {% else %}
         <div class="empty-tab">문제가 없어 모의고사를 진행할 수 없습니다.</div>

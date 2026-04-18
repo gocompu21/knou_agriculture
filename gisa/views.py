@@ -1072,11 +1072,16 @@ def exam_result(request, cert_id, exam_id):
 @login_required
 def mock_exam_take(request, cert_id):
     cert = get_object_or_404(Certification, pk=cert_id)
+    subject_id = request.GET.get("subject")
     subjects = GisaSubject.objects.filter(certification=cert).order_by("order")
+    if subject_id:
+        subjects_target = subjects.filter(pk=subject_id)
+    else:
+        subjects_target = subjects
 
     # 과목별 20문제씩 랜덤 추출
     questions = []
-    for subject in subjects:
+    for subject in subjects_target:
         qs = list(
             GisaQuestion.objects.filter(
                 exam__certification=cert, subject=subject
