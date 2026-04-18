@@ -364,6 +364,7 @@ def certification_detail(request, cert_id):
         )
         wrong_attempts = (
             GisaAttempt.objects.filter(pk__in=latest_ids, is_correct=False)
+            .exclude(selected="0")
             .select_related("question", "question__subject", "question__exam")
             .order_by("question__subject__order", "question__number")
         )
@@ -1234,7 +1235,7 @@ def mock_exam_result(request, cert_id, session_id):
 
 
 def _get_wrong_question_ids(user, cert):
-    """사용자의 최신 GisaAttempt 중 오답인 문제 ID 리스트 반환"""
+    """사용자의 최신 GisaAttempt 중 오답인 문제 ID 리스트 반환 (미응답 제외)"""
     latest_ids = (
         GisaAttempt.objects.filter(
             user=user, question__exam__certification=cert
@@ -1245,6 +1246,7 @@ def _get_wrong_question_ids(user, cert):
     )
     return list(
         GisaAttempt.objects.filter(pk__in=latest_ids, is_correct=False)
+        .exclude(selected="0")
         .values_list("question_id", flat=True)
     )
 
@@ -1264,6 +1266,7 @@ def wrong_answers(request, cert_id):
     )
     wrong_attempts = (
         GisaAttempt.objects.filter(pk__in=latest_ids, is_correct=False)
+        .exclude(selected="0")
         .select_related("question", "question__subject", "question__exam")
         .order_by("question__subject__order", "question__number")
     )
@@ -1290,6 +1293,7 @@ def wrong_answers_session(request, cert_id, session_id):
             session_id=session_id,
             is_correct=False,
         )
+        .exclude(selected="0")
         .select_related("question", "question__subject", "question__exam")
         .order_by("question__number")
     )
@@ -1519,7 +1523,8 @@ def history_api(request, cert_id):
         first = s_attempts.order_by("created_at").first()
         total = row["total"]
         correct = row["correct"]
-        wrong = total - correct
+        # 미응답(selected='0')은 오답노트에서 제외되므로 wrong 카운트에도 포함 안 함
+        wrong = s_attempts.filter(is_correct=False).exclude(selected="0").count()
         mode = first.mode if first else "exam"
 
         # 과목별 점수 산정 (기출고사/모의고사)
