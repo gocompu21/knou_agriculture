@@ -1457,7 +1457,7 @@ def session_delete(request, cert_id, session_id):
         question__exam__certification_id=cert_id,
     ).delete()
     return redirect(
-        f"{reverse('gisa:certification_detail', args=[cert_id])}?tab=wrong"
+        f"{reverse('gisa:certification_detail', args=[cert_id])}?tab=history"
     )
 
 
@@ -1469,7 +1469,7 @@ def session_delete_all(request, cert_id):
         question__exam__certification_id=cert_id,
     ).delete()
     return redirect(
-        f"{reverse('gisa:certification_detail', args=[cert_id])}?tab=wrong"
+        f"{reverse('gisa:certification_detail', args=[cert_id])}?tab=history"
     )
 
 
