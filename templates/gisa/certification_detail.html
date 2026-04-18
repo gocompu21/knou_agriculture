@@ -166,6 +166,7 @@
         text-decoration: none; color: #fff; background: #d93025; white-space: nowrap;
     }
     .history-table .ht-btn-wrong { background: #d93025; }
+    .history-table .ht-btn-skip { background: #9e9e9e; color: #fff; cursor: default; }
     .history-table .ht-btn-danger {
         background: none; border: none; color: #888; cursor: pointer; padding: 4px;
         display: inline-flex; align-items: center; justify-content: center;
@@ -1556,6 +1557,7 @@ function loadHistory() {
                 var ago = timeAgo(s.date);
                 var trashIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
                 var wrongBtn = s.wrong > 0 ? '<a href="' + s.wrong_url + '" class="ht-btn ht-btn-wrong">오답 ' + s.wrong + '</a>' : '';
+                var skipBadge = s.skipped > 0 ? '<span class="ht-btn ht-btn-skip">미응답 ' + s.skipped + '</span>' : '';
 
                 var passLabel = '';
                 if (s.mode === 'exam' || s.mode === 'mock') {
@@ -1588,7 +1590,7 @@ function loadHistory() {
                     '<td>' + subjHtml + '</td>' +
                     '<td>' + passLabel + '</td>' +
                     '<td class="ht-date"><div>' + s.date.split(' ')[0] + '</div><div style="font-size:0.72rem;color:#999;">' + ago + '</div></td>' +
-                    '<td class="ht-actions">' + wrongBtn +
+                    '<td class="ht-actions">' + wrongBtn + skipBadge +
                     '<form method="post" action="' + s.delete_url + '" style="display:inline" onsubmit="return confirm(\'이 세션 기록을 삭제할까요?\');">' +
                     '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '">' +
                     '<button class="ht-btn-danger" type="submit" title="삭제">' + trashIcon + '</button></form></td>';

@@ -1525,6 +1525,7 @@ def history_api(request, cert_id):
         correct = row["correct"]
         # 미응답(selected='0')은 오답노트에서 제외되므로 wrong 카운트에도 포함 안 함
         wrong = s_attempts.filter(is_correct=False).exclude(selected="0").count()
+        skipped = s_attempts.filter(selected="0").count()
         mode = first.mode if first else "exam"
 
         # 과목별 점수 산정 (기출고사/모의고사)
@@ -1559,6 +1560,7 @@ def history_api(request, cert_id):
             "total": total,
             "correct": correct,
             "wrong": wrong,
+            "skipped": skipped,
             "score": avg_score,
             "passed": passed,
             "subjects": subjects_data,
