@@ -861,7 +861,7 @@
                 <div style="font-size:0.9rem; color:#666; margin-bottom:12px;">선택한 과목의 20문제로 모의고사를 치룹니다.</div>
                 <div style="display:flex; flex-wrap:wrap; gap:8px;">
                     {% for subj in subjects %}
-                    <a href="{% url 'gisa:mock_exam_take' cert.pk %}?subject={{ subj.pk }}" class="btn-sm" style="padding:8px 16px; background:#fff; color:#1b4332; border:1px solid #1b4332; border-radius:20px; font-size:0.88rem; text-decoration:none;">{{ subj.order }}과목: {{ subj.name }}</a>
+                    <a href="{% url 'gisa:mock_exam_take' cert.pk %}?subject={{ subj.pk }}" style="display:inline-block; padding:9px 18px; background:#1b4332; color:#fff; border-radius:6px; font-size:0.88rem; font-weight:600; text-decoration:none; box-shadow:0 2px 4px rgba(0,0,0,0.1);">{{ subj.order }}과목: {{ subj.name }}</a>
                     {% endfor %}
                 </div>
             </div>
