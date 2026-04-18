@@ -842,6 +842,15 @@
     <div id="tab-mock" class="tab-content{% if active_tab == 'mock' %} active{% endif %}">
         {% if total_questions > 0 %}
         <div style="padding:24px 16px;">
+            <div style="margin-bottom:20px; padding:14px 16px; background:#fff8e1; border:1px solid #ffe082; border-radius:8px; font-size:0.88rem; line-height:1.6; color:#5d4037;">
+                <div style="font-weight:700; margin-bottom:8px; color:#e65100;">📘 시험 진행 방식 안내</div>
+                <div style="margin-bottom:6px;">
+                    <strong style="color:#1a237e;">· 시험모드 (기본)</strong>: 모의고사 시작 후 <strong>OMR 카드에 답을 마킹</strong>하는 방식입니다. 모든 문제를 푼 뒤 <strong>제출하기</strong>를 누르면 채점 결과가 표시됩니다. 실제 시험과 유사한 환경에서 연습할 수 있습니다.
+                </div>
+                <div>
+                    <strong style="color:#1b4332;">· 학습모드</strong>: 화면 우측 상단 <strong>[학습모드] 체크박스</strong>를 켜면, 선지를 선택하는 즉시 <strong>정답/오답이 채점</strong>되고 <strong>선지별 해설 + 쪽집게 노트</strong>가 자동으로 펼쳐집니다. 문제를 풀면서 바로 개념을 확인하고 싶을 때 사용하세요.
+                </div>
+            </div>
             <div style="margin-bottom:24px; padding:16px; background:#f9fbf9; border:1px solid #dce8dc; border-radius:8px;">
                 <div style="font-weight:700; color:#1b4332; margin-bottom:8px;">전과목 모의고사</div>
                 <div style="font-size:0.9rem; color:#666; margin-bottom:12px;">각 과목별 20문제씩 임의로 추출, 총 {{ subjects|length|add:"0" }}과목 모의고사</div>
