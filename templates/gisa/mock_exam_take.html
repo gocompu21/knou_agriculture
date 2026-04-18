@@ -48,6 +48,8 @@
         }
         .question-item.study-graded .choice-item .choice-exp { display: block; }
         .question-item.study-graded .q-note-section { display: block !important; }
+        .q-exam-badge { display: none; color: #888; font-size: 0.72em; font-weight: 500; }
+        .question-item.study-graded .q-exam-badge { display: inline; }
         .q-note-section ul { padding-left: 20px; margin: 4px 0 4px 20px; }
         .q-note-section li { margin: 2px 0; }
         /* O/X 마크 */
@@ -567,7 +569,7 @@
             <div class="question-item" id="q-{{ q.id }}" data-answer="{{ q.answer }}">
                 <div class="question-content">
                     <span class="q-number">{{ forloop.counter }}.</span>
-                    <span>{{ q.text|qtext }} <sup style="color:#888;font-size:0.72em;font-weight:500;">[{{ q.exam.year }}-{{ q.exam.round }}-{{ q.number }}]</sup></span>
+                    <span>{{ q.text|qtext }} <sup class="q-exam-badge">[{{ q.exam.year }}-{{ q.exam.round }}-{{ q.number }}]</sup></span>
                 </div>
                 {% if q.text_image %}<div style="margin:6px 0;"><img src="{{ q.text_image.url }}" style="max-width:100%;"></div>{% endif %}
                 <div class="choices">
