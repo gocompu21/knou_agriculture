@@ -754,6 +754,125 @@ knou_agriculture/
 - 모의고사 배지: 녹색 톤, 기출고사 배지: 남색 톤
 - 전체 기록 삭제 버튼: 하단 배치
 
+## 시험이력 탭 테이블 디자인 (history-table)
+
+시험이력 탭을 카드 대신 **테이블** 형태로 렌더링.
+
+### 컬럼 구성
+
+| 컬럼 | 너비 | 내용 |
+|------|------|------|
+| 모드 | 70px | 기출고사/모의고사/오답재풀이 배지 (`.session-mode.mode-{exam|mock|wrong_retry}`) |
+| 평균 | 70px | 큰 점수 숫자 (합격 시 녹색 `#1b5e20`) |
+| 과목별 점수 | auto | pill 형태(`.ht-subj`)로 과목명 + 점수 표시. 60↑ 녹색, 40~59 주황, <40 빨강 |
+| 합격 | 60px | `.ht-pass.pass`(녹색 배경) / `.ht-pass.fail`(회색 테두리) |
+| 일시 | 100px | 날짜 + 상대시간 |
+| 액션 | 120px | 오답 버튼 + 삭제 아이콘 |
+
+### 스타일 규칙
+
+- 헤더: `background: #1b4332; color: #fff; position: sticky; top: 0`
+- 행: `border-bottom: 1px solid #eee`, hover 시 `background: #fafafa`
+- 모바일: `.history-table { min-width: 600px }`로 가로 스크롤 대응
+
+### 세션 삭제 후 탭 유지
+
+- `session_delete`, `session_delete_all` 모두 `?tab=history`로 리다이렉트
+- 기존에는 `?tab=wrong`으로 이동하던 문제 수정
+
+## 모의고사 학습모드 (mock_exam_take)
+
+모의고사 페이지 상단 우측에 **학습모드 토글** 체크박스.
+
+### 동작
+
+| 상태 | 선지 선택 시 |
+|------|------------|
+| **OFF** (기본) | OMR 마킹만. 스크롤 이동 |
+| **ON** (학습모드) | 즉시 채점 + 해설 표시, OMR 스크롤 안 함 |
+
+### 학습모드 채점 UI (exam_result와 동일)
+
+- 문제 번호에 **O/X 마크**: 정답=파란 손그림 동그라미, 오답=빨간 ✕
+- 문제 텍스트 뒤에 **`(YYYY-NN)` 배지** 표시 (`.q-exam-badge`, 채점 후에만 `display: inline`)
+- 정답 선지: 원번호 검은 반전(정답 문제) / 빨간 반전(오답 문제)
+- 오답 선택: 원번호 검은 반전 + `← 내 답` 라벨
+- 선지 해설: `→ <span class="exp-text-inner">` 형식, 정답 해설은 노란 하이라이트(`#fff176`)
+- `flex-basis: 100%`로 해설을 **다음 줄**에 표시
+- **쪽집게 노트** 자동 펼침 (study_mode와 동일한 `_qNotes` + `q-note-section` 구조)
+
+### 관련 CSS 클래스
+
+- `.study-toggle` — 헤더 체크박스
+- `.question-item.study-graded.is-correct|is-wrong` — 채점 상태
+- `.choice-item.study-correct|study-picked|study-wrong` — 선지 상태
+- `.choice-exp.correct-choice-exp` — 정답 선지 해설 하이라이트
+
+## 모의고사·채점결과·오답노트 공통 UX
+
+### qtext 필터 적용
+
+`mock_exam_take.html`, `exam_result.html`, `wrong_answers.html` 모두 `{% load gisa_filters %}`로 `qtext` 필터 사용:
+- `[box]...[/box]` → `<div class="q-box">` 테두리 박스
+- `<u>` 밑줄, 위/아래첨자(`^{X}`, `_{X}`), 줄바꿈 변환
+
+### 채점 결과·오답노트 하단 쪽집게 노트
+
+- `_build_note_map()` + `_rank_notes()`로 문제별 관련 절(chapter/section) 매핑
+- `q_notes_json`을 템플릿에 전달 → JS로 `.q-note-section`에 동적 렌더링
+- **해설보기** 클릭 시 선지 해설 + 쪽집게 노트 동시 노출
+- `q-note-section ul` 들여쓰기: `padding-left: 20px; margin-left: 20px` (문단보다 한 단계 들여쓰기)
+
+## 기출검색 (certification_detail ?tab=study)
+
+학습 탭 상단에 검색창 추가. 문제/보기 텍스트에서 키워드 매칭.
+
+### API: `api_gisa_search_questions`
+
+- 단어 분리(1글자 제외, 최대 10개) → OR 검색 + 매칭 수 정렬
+- 최신기출 제외(`exclude(exam__exam_type="최신")`)
+- 응답에 `explanation`, `choice_X_exp` 포함
+
+### 검색 결과 UI
+
+- 카드 형태 (`.sr-card`): 메타(년도/회차/과목) + 문제 + 4개 선지
+- 선지 클릭 → 정답 표시(검은 반전) + 4개 선지별 해설 펼침
+- 채점 없음(맞/틀 판정 X) — 정답과 해설만 제공
+- `fmtQtext()` JS 함수로 `[box]`, `<u>`, 위/아래첨자 변환
+- 접기/펼치기 버튼으로 선지 영역 토글
+
+## 이미지 upload_to 경로 규칙
+
+`GisaQuestion`의 이미지 필드는 `_gisa_question_img_path()` 함수로 동적 경로 생성:
+
+```
+gisa/questions/c{cert_id}/{year}-{round}/{filename}
+예: gisa/questions/c5/2022-1/choice_1_image.png
+```
+
+**이전 방식** (파일명 충돌 위험):
+```
+gisa/questions/choice_1_image.png  # 모든 자격증 공유 → 식물보호기사 이미지가 조경기사 이미지를 덮어쓸 수 있음
+```
+
+조경기사 2022-1 #52, #57은 과거 충돌로 이미지가 덮어씌워졌던 사례 (c5 경로로 재업로드하여 복구).
+
+## 식물보호기사 용어집 (5,870개)
+
+식물보호기사(pk=1) 5과목 쪽집게 노트의 볼드 용어를 추출하여 `GisaGlossary`에 저장:
+
+| 과목 | 용어 수 |
+|------|---------|
+| 식물병리학 | 912 |
+| 농림해충학 | 1,294 |
+| 재배학원론 | 1,705 |
+| 농약학 | 1,141 |
+| 잡초방제학 | 818 |
+
+- 추출: `re.findall(r'\*\*(.+?)\*\*', tb.content)` (2글자 이상, "관련"/"핵심" 제외)
+- 설명 생성: Gemini 3 Flash Preview, 배치 100개 단위, 총 62회 호출
+- 스크립트: `_generate_glossary_desc.py`
+
 ## 채점 결과 모바일 헤더 (exam_result)
 
 gisa/exam_result.html, exam/exam_result.html 모두 동일한 컴팩트 모바일 헤더 적용.
