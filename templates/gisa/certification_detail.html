@@ -854,7 +854,7 @@
             <div style="margin-bottom:24px; padding:16px; background:#f9fbf9; border:1px solid #dce8dc; border-radius:8px;">
                 <div style="font-weight:700; color:#1b4332; margin-bottom:8px;">전과목 모의고사</div>
                 <div style="font-size:0.9rem; color:#666; margin-bottom:12px;">각 과목별 20문제씩 임의로 추출, 총 {{ subjects|length|add:"0" }}과목 모의고사</div>
-                <a href="{% url 'gisa:mock_exam_take' cert.pk %}" class="btn-sm btn-mock" style="font-size:0.95rem; padding:10px 24px;">전과목 모의고사 시작</a>
+                <a href="{% url 'gisa:mock_exam_take' cert.pk %}" style="display:inline-block; font-size:0.95rem; padding:10px 28px; background:#1b4332; color:#fff; border-radius:6px; font-weight:700; text-decoration:none; box-shadow:0 2px 4px rgba(0,0,0,0.1);">전과목 모의고사 시작</a>
             </div>
             <div style="padding:16px; background:#fff; border:1px solid #e0e0e0; border-radius:8px;">
                 <div style="font-weight:700; color:#1b4332; margin-bottom:8px;">과목별 모의고사</div>
