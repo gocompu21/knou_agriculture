@@ -353,11 +353,13 @@ def certification_detail(request, cert_id):
 
     wrong_results = []
     if active_tab == "wrong" and request.user.is_authenticated:
+        # 오답 판단은 wrong_review 제외한 최신 시도 기준
         latest_ids = (
             GisaAttempt.objects.filter(
                 user=request.user,
                 question__exam__certification=cert,
             )
+            .exclude(mode="wrong_review")
             .values("question")
             .annotate(latest_id=Max("id"))
             .values_list("latest_id", flat=True)
@@ -366,7 +368,24 @@ def certification_detail(request, cert_id):
             GisaAttempt.objects.filter(pk__in=latest_ids, is_correct=False)
             .exclude(selected="0")
             .select_related("question", "question__subject", "question__exam")
-            .order_by("question__subject__order", "question__number")
+        )
+        # 오답복습 최신 시각 매핑
+        review_times = dict(
+            GisaAttempt.objects.filter(
+                user=request.user,
+                mode="wrong_review",
+                question__exam__certification=cert,
+            ).values_list("question_id", "created_at")
+        )
+        # 복습 안 한 문제 먼저, 복습한 문제는 오래된 순으로 뒤
+        wrong_attempts = sorted(
+            wrong_attempts,
+            key=lambda a: (
+                a.question_id in review_times,  # False(0) 먼저, True(1) 뒤
+                review_times.get(a.question_id) or a.created_at,  # 복습 시각 오래된 순
+                a.question.subject.order,
+                a.question.number,
+            ),
         )
         wrong_results = build_results(wrong_attempts)
         wrong_count = len(wrong_results)
@@ -1460,6 +1479,32 @@ def wrong_dismiss(request, cert_id, question_id):
     if referer:
         return redirect(referer)
     return redirect("gisa:wrong_answers", cert_id=cert_id)
+
+
+@login_required
+@require_POST
+def wrong_review(request, cert_id, question_id):
+    """오답노트에서 선지를 클릭한 풀이 기록 저장 (순환용).
+    기존 wrong_review 기록이 있으면 갱신, 없으면 생성."""
+    cert = get_object_or_404(Certification, pk=cert_id)
+    question = get_object_or_404(
+        GisaQuestion, pk=question_id, exam__certification=cert
+    )
+    selected = request.POST.get("selected", "0")
+    correct_answers = question.answer.split(",")
+    is_correct = selected in correct_answers and selected != "0"
+    # 기존 wrong_review 기록 삭제 후 새로 생성 (최신 시각 반영)
+    GisaAttempt.objects.filter(
+        user=request.user, question=question, mode="wrong_review"
+    ).delete()
+    GisaAttempt.objects.create(
+        user=request.user,
+        question=question,
+        selected=selected,
+        is_correct=is_correct,
+        mode="wrong_review",
+    )
+    return JsonResponse({"ok": True, "is_correct": is_correct})
 
 
 @login_required

@@ -149,6 +149,7 @@ class GisaAttempt(models.Model):
         ('exam', '풀이모드'),
         ('mock', '모의고사'),
         ('wrong_retry', '오답재풀이'),
+        ('wrong_review', '오답복습'),
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='사용자')

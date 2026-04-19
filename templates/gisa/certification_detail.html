@@ -1761,6 +1761,16 @@ function wrongSelectChoice(el) {
         var svg = expToggleBtn.querySelector('svg');
         if (svg) svg.style.transform = 'rotate(180deg)';
     }
+    // 서버에 복습 기록 전송 (순환용)
+    var qid = card.id.replace('wq-', '');
+    var url = '/gisa/{{ cert.pk }}/wrong/review/' + qid + '/';
+    var fd = new FormData();
+    fd.append('selected', picked);
+    fetch(url, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+        body: fd,
+    });
 }
 function wrongToggleAll() {
     wrongAllOpen = !wrongAllOpen;
