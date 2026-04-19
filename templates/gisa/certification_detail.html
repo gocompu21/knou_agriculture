@@ -501,8 +501,7 @@
         padding-left: 1.3em; text-indent: -1.3em; margin-bottom: 10px;
     }
     .wq-source {
-        display: block; text-align: right; font-size: 0.8em;
-        font-weight: 500; color: #888; margin-top: 4px; text-indent: 0;
+        font-size: 0.72em; font-weight: 500; color: #888; text-indent: 0;
     }
     .wq-choices { padding-left: 10px; }
     .wq-choice {
@@ -919,9 +918,8 @@
         {% for r in wrong_results %}
         <div class="wrong-question" id="wq-{{ r.question.id }}" data-subject="{{ r.question.subject.name }}" data-answer="{{ r.question.answer }}">
             <div class="wq-content">
-                <span class="wq-num">{{ forloop.counter }}.</span> {{ r.question.text }}
+                <span class="wq-num">{{ forloop.counter }}.</span> {{ r.question.text }} <sup class="wq-source">({{ r.question.subject.name }} {{ r.question.exam.year }}-{{ r.question.exam.round|stringformat:"02d" }})</sup>
                 {% if r.question.text_image %}<div class="q-image-wrap"><img src="{{ r.question.text_image.url }}" class="q-image"></div>{% endif %}
-                <span class="wq-source">{{ r.question.exam.year }}년 {{ r.question.exam.round }}회</span>
             </div>
             <div class="wq-choices">
                 {% for c in r.choices %}
