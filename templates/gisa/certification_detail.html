@@ -23,6 +23,10 @@
     .sr-exp-arrow { color: #999; }
     .sr-correct-exp { background: #fff9e6; padding: 3px 6px; border-radius: 4px; }
 
+    /* 좌우 연한 녹색 배경 제거 */
+    body { background: #fff !important; }
+    main { padding-top: 0 !important; }
+
     .detail-hero {
         background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
         color: #fff;
@@ -468,7 +472,7 @@
 
     /* ══════════ 오답노트 인라인 ══════════ */
     #tab-wrong {
-        background: #fff; border-radius: 10px; padding: 24px 0;
+        background: #fff; border-radius: 10px; padding: 24px 20px;
     }
     .wrong-filter-bar {
         display: flex; gap: 6px; flex-wrap: nowrap; margin-bottom: 16px;
