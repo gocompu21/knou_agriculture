@@ -510,6 +510,28 @@
     .wq-choice-text { flex: 1; }
     .wq-choice { cursor: pointer; }
     .wrong-question.exp-open .wq-choice { cursor: default; }
+    /* 문제 번호에 O/X 마크 */
+    .wrong-question .wq-num { position: relative; display: inline-block; }
+    .wrong-question.is-correct .wq-num::after {
+        content: '';
+        position: absolute;
+        top: 0.8em; left: 50%;
+        transform: translate(-50%, -50%) rotate(-5deg);
+        width: 1.5em; height: 1.4em;
+        border: 2.5px solid #1565c0;
+        border-radius: 50% 45% 55% 48% / 55% 50% 45% 52%;
+        pointer-events: none;
+    }
+    .wrong-question.is-wrong .wq-num::after {
+        content: '✕';
+        position: absolute;
+        top: 0.55em; left: 30%;
+        transform: translate(-50%, -50%);
+        font-size: 1.6em;
+        color: rgba(198, 40, 40, 0.75);
+        font-weight: bold;
+        pointer-events: none;
+    }
     #tab-wrong .q-mark {
         display: inline-flex; justify-content: center; align-items: center;
         width: 20px; height: 20px; border-radius: 50%;
