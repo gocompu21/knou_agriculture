@@ -917,7 +917,7 @@
         {% for r in wrong_results %}
         <div class="wrong-question" id="wq-{{ r.question.id }}" data-subject="{{ r.question.subject.name }}" data-answer="{{ r.question.answer }}">
             <div class="wq-content">
-                <span class="wq-num">{{ forloop.counter }}.</span> {{ r.question.text|qtext }} <sup class="wq-source">({{ r.question.subject.name }} {{ r.question.exam.year }}-{{ r.question.exam.round|stringformat:"02d" }})</sup>
+                <span class="wq-num">{{ forloop.counter }}.</span> {{ r.question.text|qtext_pre }} <sup class="wq-source">({{ r.question.subject.name }} {{ r.question.exam.year }}-{{ r.question.exam.round|stringformat:"02d" }})</sup>{{ r.question.text|qtext_box }}
                 {% if r.question.text_image %}<div class="q-image-wrap"><img src="{{ r.question.text_image.url }}" class="q-image"></div>{% endif %}
             </div>
             <div class="wq-choices">
