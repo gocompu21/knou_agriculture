@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load humanize gisa_filters %}
 
 {% block title %}{{ cert.name }} | 기사시험{% endblock %}
 
@@ -917,14 +917,14 @@
         {% for r in wrong_results %}
         <div class="wrong-question" id="wq-{{ r.question.id }}" data-subject="{{ r.question.subject.name }}" data-answer="{{ r.question.answer }}">
             <div class="wq-content">
-                <span class="wq-num">{{ forloop.counter }}.</span> {{ r.question.text }} <sup class="wq-source">({{ r.question.subject.name }} {{ r.question.exam.year }}-{{ r.question.exam.round|stringformat:"02d" }})</sup>
+                <span class="wq-num">{{ forloop.counter }}.</span> {{ r.question.text|qtext }} <sup class="wq-source">({{ r.question.subject.name }} {{ r.question.exam.year }}-{{ r.question.exam.round|stringformat:"02d" }})</sup>
                 {% if r.question.text_image %}<div class="q-image-wrap"><img src="{{ r.question.text_image.url }}" class="q-image"></div>{% endif %}
             </div>
             <div class="wq-choices">
                 {% for c in r.choices %}
                 <div class="wq-choice" data-choice="{{ c.num }}" onclick="wrongSelectChoice(this)">
                     <span class="q-mark">{{ c.num }}</span>
-                    <div class="wq-choice-text">{{ c.text }}{% if c.image %}<img src="{{ c.image.url }}" class="choice-image">{% endif %}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
+                    <div class="wq-choice-text">{{ c.text|qtext }}{% if c.image %}<img src="{{ c.image.url }}" class="choice-image">{% endif %}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
                 </div>
                 {% endfor %}
             </div>
