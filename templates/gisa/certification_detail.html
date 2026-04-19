@@ -663,13 +663,28 @@
             border-radius: 0; padding: 0; margin: 0;
         }
         /* ── 오답노트 모바일 컴팩트 ── */
-        .wrong-filter-bar { gap: 4px; }
-        .wrong-filter-pill { padding: 6px 2px; font-size: 0.75rem; }
+        #tab-wrong { padding: 12px 4px; }
+        .wrong-filter-bar { gap: 4px; overflow-x: auto; flex-wrap: nowrap; }
+        .wrong-filter-pill { padding: 6px 10px; font-size: 0.75rem; flex: 0 0 auto; }
         .wrong-count-label { display: none; }
-        .wrong-action-bar { justify-content: flex-end !important; }
+        .wrong-action-bar { justify-content: flex-end !important; margin-bottom: 10px !important; }
         .btn-label { display: none; }
         .btn-icon { display: inline; font-size: 0.75rem; }
         .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
+        /* 문제 레이아웃 — 모의고사 스타일 */
+        .wrong-question { padding: 16px 8px; margin: 0 !important; }
+        .wq-content {
+            font-weight: 600; font-size: 0.92rem; line-height: 1.6;
+            padding-left: 1.3em; text-indent: -1.3em; margin-bottom: 8px;
+        }
+        .wq-choices { padding-left: 0; }
+        .wq-choice {
+            display: flex; align-items: flex-start; flex-wrap: wrap;
+            padding: 6px 4px; font-size: 0.88rem; line-height: 1.5;
+        }
+        .wq-choice > .q-mark { margin-top: 1px; margin-right: 6px; }
+        .wq-note-section { padding: 8px 10px !important; font-size: 0.82rem; }
+        .wq-source { font-size: 0.7em; }
         /* ── 시험이력 모바일 컴팩트 ── */
         #tab-history { padding: 8px 4px; }
         #history-scroll { max-height: none !important; overflow-x: auto; }
