@@ -490,9 +490,11 @@
         background: #1a237e; color: #fff; border-color: #1a237e;
     }
     .wf-count {
-        font-size: 0.65em; vertical-align: super; opacity: 0.7; margin-left: 1px;
+        font-size: 0.65em; vertical-align: super; margin-left: 1px;
+        color: #d93025; font-weight: 700;
     }
-    .wrong-filter-pill.active .wf-count { opacity: 0.85; }
+    .wrong-filter-pill.active .wf-count { color: #ffcdd2; }
+    .wf-count:empty, .wf-count.hidden { display: none; }
     .wrong-question {
         padding: 20px 0; border-bottom: 1px solid #f0f0f0;
     }
@@ -1669,7 +1671,8 @@ if ('{{ active_tab }}' === 'history') {
         var cntEl = pill.querySelector('.wf-count');
         if (!cntEl) return;
         var subjName = pill.getAttribute('data-subject');
-        cntEl.textContent = counts[subjName] || 0;
+        var n = counts[subjName] || 0;
+        cntEl.textContent = n > 0 ? n : '';
     });
 })();
 
@@ -1812,7 +1815,8 @@ function updateWrongCounts() {
     document.querySelectorAll('#tab-wrong .wrong-filter-pill[data-subject]').forEach(function(pill) {
         var cntEl = pill.querySelector('.wf-count');
         if (!cntEl) return;
-        cntEl.textContent = counts[pill.getAttribute('data-subject')] || 0;
+        var n = counts[pill.getAttribute('data-subject')] || 0;
+        cntEl.textContent = n > 0 ? n : '';
     });
     var allPill = document.querySelector('#tab-wrong .wrong-filter-bar .wrong-filter-pill:first-child .wf-count');
     if (allPill) allPill.textContent = total;
