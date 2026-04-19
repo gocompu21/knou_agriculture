@@ -911,7 +911,6 @@
         <div class="wrong-action-bar" style="margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
             <span class="wrong-count-label" style="font-size:0.95rem; font-weight:600; color:#333;" id="wrongCountLabel">전체 오답 {{ wrong_count }}문제</span>
             <div style="display:flex; gap:8px;">
-                <a href="{% url 'gisa:wrong_answers_retry' cert.pk %}" class="btn-sm btn-solve" id="wrongRetryLink"><span class="btn-label">오답 재풀이</span><span class="btn-icon" title="오답 재풀이">&#x21BB; 재풀이</span></a>
                 <button type="button" class="btn-sm" id="wrongToggleAllBtn" onclick="wrongToggleAll()" style="cursor:pointer; border:1px solid #ddd;"><span class="btn-label">전체 펼치기</span><span class="btn-icon" title="전체 펼치기">&#x25BC; 펼치기</span></button>
             </div>
         </div>
@@ -1693,11 +1692,6 @@ function filterWrong(pill, subject) {
     });
     var label = document.getElementById('wrongCountLabel');
     if (label) label.textContent = (subject || '전체') + ' 오답 ' + visible + '문제';
-    var retryLink = document.getElementById('wrongRetryLink');
-    if (retryLink) {
-        var base = '{% url "gisa:wrong_answers_retry" cert.pk %}';
-        retryLink.href = subject ? base + '?subject=' + encodeURIComponent(subject) : base;
-    }
 }
 
 // 오답 탭 쪽집게 노트 매핑
