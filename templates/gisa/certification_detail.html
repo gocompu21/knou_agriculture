@@ -678,9 +678,9 @@
             padding-left: 0; text-indent: 0; margin-bottom: 8px;
         }
         .wq-num { display: inline-block; margin-right: 3px; }
-        /* 모바일: O 마크 위치 */
+        /* 모바일: O 마크 위치 (-1px) */
         .wrong-question.is-correct .wq-num::after {
-            transform: translate(-50%, -50%) rotate(-5deg) !important;
+            transform: translate(calc(-50% - 1px), -50%) rotate(-5deg) !important;
         }
         /* 모바일: X 마크 위치 (-1px) */
         .wrong-question.is-wrong .wq-num::after {
