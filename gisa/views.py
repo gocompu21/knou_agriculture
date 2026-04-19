@@ -364,7 +364,7 @@ def certification_detail(request, cert_id):
             .annotate(latest_id=Max("id"))
             .values_list("latest_id", flat=True)
         )
-        wrong_attempts = (
+        wrong_attempts = list(
             GisaAttempt.objects.filter(pk__in=latest_ids, is_correct=False)
             .exclude(selected="0")
             .select_related("question", "question__subject", "question__exam")
@@ -377,15 +377,18 @@ def certification_detail(request, cert_id):
                 question__exam__certification=cert,
             ).values_list("question_id", "created_at")
         )
-        # 복습 안 한 문제 먼저, 복습한 문제는 오래된 순으로 뒤
-        wrong_attempts = sorted(
-            wrong_attempts,
+        # 복습 시각이 최근 오답 시각보다 이전이면 무효(=복습 안 한 것으로 취급)
+        def is_valid_review(a):
+            rt = review_times.get(a.question_id)
+            return rt is not None and rt >= a.created_at
+        # 복습 안 한 문제 먼저, 복습한 문제는 오래된 복습 순으로 뒤
+        wrong_attempts.sort(
             key=lambda a: (
-                a.question_id in review_times,  # False(0) 먼저, True(1) 뒤
-                review_times.get(a.question_id) or a.created_at,  # 복습 시각 오래된 순
+                is_valid_review(a),  # False(0) 먼저, True(1) 뒤
+                review_times.get(a.question_id) if is_valid_review(a) else a.created_at,
                 a.question.subject.order,
                 a.question.number,
-            ),
+            )
         )
         wrong_results = build_results(wrong_attempts)
         wrong_count = len(wrong_results)
