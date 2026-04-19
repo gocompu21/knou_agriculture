@@ -878,7 +878,7 @@
         <div class="wrong-filter-bar">
             <button class="wrong-filter-pill active" onclick="filterWrong(this, '')">전체 <span class="wf-count">{{ wrong_count }}</span></button>
             {% for s in subjects %}
-            <button class="wrong-filter-pill" onclick="filterWrong(this, '{{ s.name }}')"><span class="full-name">{{ s.name }}</span><span class="short-name">{{ s.name }}</span> <span class="wf-count" id="wf-cnt-{{ s.pk }}"></span></button>
+            <button class="wrong-filter-pill" data-subject="{{ s.name }}" onclick="filterWrong(this, '{{ s.name }}')"><span class="full-name">{{ s.name }}</span><span class="short-name">{{ s.name }}</span> <span class="wf-count" id="wf-cnt-{{ s.pk }}"></span></button>
             {% endfor %}
         </div>
         <div class="wrong-action-bar" style="margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
@@ -1640,14 +1640,11 @@ if ('{{ active_tab }}' === 'history') {
         var subj = el.dataset.subject;
         counts[subj] = (counts[subj] || 0) + 1;
     });
-    document.querySelectorAll('.wrong-filter-pill').forEach(function(pill) {
+    document.querySelectorAll('#tab-wrong .wrong-filter-pill[data-subject]').forEach(function(pill) {
         var cntEl = pill.querySelector('.wf-count');
         if (!cntEl) return;
-        // 과목별 pill의 id에서 카운트 매칭은 텍스트로
-        var subjName = pill.textContent.trim().replace(/\d+$/, '').trim();
-        if (counts[subjName] !== undefined) {
-            cntEl.textContent = counts[subjName];
-        }
+        var subjName = pill.getAttribute('data-subject');
+        cntEl.textContent = counts[subjName] || 0;
     });
 })();
 
