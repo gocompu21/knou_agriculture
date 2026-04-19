@@ -1763,7 +1763,23 @@ function wrongToggleAll() {
     wrongAllOpen = !wrongAllOpen;
     document.querySelectorAll('#tab-wrong .wrong-question').forEach(function(el) {
         if (el.style.display === 'none') return;
-        if (wrongAllOpen) el.classList.add('exp-open'); else el.classList.remove('exp-open');
+        if (wrongAllOpen) {
+            el.classList.add('exp-open');
+            // 아직 채점되지 않은(풀지 않은) 문제는 정답 선지에 검은 반전 표시
+            if (!el.classList.contains('is-correct') && !el.classList.contains('is-wrong')) {
+                var ans = (el.getAttribute('data-answer') || '').trim();
+                var ansList = ans.split(',');
+                el.querySelectorAll('.wq-choice').forEach(function(c) {
+                    var cn = c.getAttribute('data-choice');
+                    var qMark = c.querySelector('.q-mark');
+                    if (!qMark) return;
+                    qMark.classList.remove('correct-mark','wrong-q-correct','wrong-mark');
+                    if (ansList.indexOf(cn) !== -1) qMark.classList.add('correct-mark');
+                });
+            }
+        } else {
+            el.classList.remove('exp-open');
+        }
         var svg = el.querySelector('.exp-toggle svg');
         if (svg) svg.style.transform = wrongAllOpen ? 'rotate(180deg)' : '';
     });
