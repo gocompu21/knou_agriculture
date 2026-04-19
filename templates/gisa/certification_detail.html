@@ -508,6 +508,8 @@
     }
     .wq-choice > .q-mark { flex-shrink: 0; margin-top: 2px; }
     .wq-choice-text { flex: 1; }
+    .wq-choice { cursor: pointer; }
+    .wrong-question.exp-open .wq-choice { cursor: default; }
     #tab-wrong .q-mark {
         display: inline-flex; justify-content: center; align-items: center;
         width: 20px; height: 20px; border-radius: 50%;
@@ -889,7 +891,7 @@
             </div>
         </div>
         {% for r in wrong_results %}
-        <div class="wrong-question" id="wq-{{ r.question.id }}" data-subject="{{ r.question.subject.name }}">
+        <div class="wrong-question" id="wq-{{ r.question.id }}" data-subject="{{ r.question.subject.name }}" data-answer="{{ r.question.answer }}">
             <div class="wq-content">
                 <span class="wq-num">{{ forloop.counter }}.</span> {{ r.question.text }}
                 {% if r.question.text_image %}<div class="q-image-wrap"><img src="{{ r.question.text_image.url }}" class="q-image"></div>{% endif %}
@@ -897,9 +899,9 @@
             </div>
             <div class="wq-choices">
                 {% for c in r.choices %}
-                <div class="wq-choice{% if c.is_selected %} user-selected{% endif %}{% if c.user_wrong %} user-wrong{% endif %}">
-                    <span class="q-mark{% if c.is_correct %} correct-mark wrong-q-correct{% endif %}{% if c.user_wrong %} wrong-mark{% endif %}">{{ c.num }}</span>
-                    <div class="wq-choice-text">{{ c.text }}{% if c.image %}<img src="{{ c.image.url }}" class="choice-image">{% endif %}{% if c.is_selected and not r.is_correct %}<span class="my-pick">← 내 답</span>{% endif %}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
+                <div class="wq-choice" data-choice="{{ c.num }}" onclick="wrongSelectChoice(this)">
+                    <span class="q-mark">{{ c.num }}</span>
+                    <div class="wq-choice-text">{{ c.text }}{% if c.image %}<img src="{{ c.image.url }}" class="choice-image">{% endif %}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
                 </div>
                 {% endfor %}
             </div>
@@ -1711,6 +1713,33 @@ function wrongToggleExp(btn) {
     var item = btn.closest('.wrong-question');
     item.classList.toggle('exp-open');
     btn.querySelector('svg').style.transform = item.classList.contains('exp-open') ? 'rotate(180deg)' : '';
+}
+
+function wrongSelectChoice(el) {
+    var card = el.closest('.wrong-question');
+    if (card.classList.contains('exp-open')) return;
+    var ans = (card.getAttribute('data-answer') || '').trim();
+    var ansList = ans.split(',');
+    var picked = el.getAttribute('data-choice');
+    var isCorrect = ansList.indexOf(picked) !== -1;
+    card.classList.remove('is-correct','is-wrong');
+    card.classList.add(isCorrect ? 'is-correct' : 'is-wrong');
+    card.querySelectorAll('.wq-choice').forEach(function(c){
+        var cn = c.getAttribute('data-choice');
+        var qMark = c.querySelector('.q-mark');
+        qMark.classList.remove('correct-mark','wrong-q-correct','wrong-mark');
+        if (ansList.indexOf(cn) !== -1) {
+            qMark.classList.add('correct-mark');
+            if (!isCorrect) qMark.classList.add('wrong-q-correct');
+        }
+        if (cn === picked && !isCorrect) qMark.classList.add('wrong-mark');
+    });
+    card.classList.add('exp-open');
+    var expToggleBtn = card.querySelector('.exp-toggle');
+    if (expToggleBtn) {
+        var svg = expToggleBtn.querySelector('svg');
+        if (svg) svg.style.transform = 'rotate(180deg)';
+    }
 }
 function wrongToggleAll() {
     wrongAllOpen = !wrongAllOpen;
