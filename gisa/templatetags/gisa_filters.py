@@ -47,8 +47,9 @@ def qtext_pre(value):
 
 @register.filter(name="qtext_box")
 def qtext_box(value):
-    """[box] 이후 부분만 렌더링 (box가 없으면 빈 문자열)"""
+    """[box] 이후 부분만 렌더링 (box가 없으면 빈 문자열).
+    박스가 항상 다음 줄에 오도록 <br>로 개행을 선행한다."""
     idx = value.find("[box]")
     if idx == -1:
         return ""
-    return mark_safe(_render_qtext(value[idx:]))
+    return mark_safe("<br>" + _render_qtext(value[idx:]))
