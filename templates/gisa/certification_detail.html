@@ -1792,8 +1792,42 @@ function dismissWrong(btn, url, cardId) {
             var card = document.getElementById(cardId);
             card.style.opacity = '0';
             card.style.transition = 'opacity 0.3s';
-            setTimeout(function() { card.remove(); }, 300);
+            setTimeout(function() {
+                card.remove();
+                updateWrongCounts();
+            }, 300);
         });
+}
+
+function updateWrongCounts() {
+    // 과목별 카운트 재계산
+    var counts = {};
+    var total = 0;
+    document.querySelectorAll('#tab-wrong .wrong-question').forEach(function(el) {
+        var subj = el.dataset.subject;
+        counts[subj] = (counts[subj] || 0) + 1;
+        total++;
+    });
+    // 상단 pill 갱신
+    document.querySelectorAll('#tab-wrong .wrong-filter-pill[data-subject]').forEach(function(pill) {
+        var cntEl = pill.querySelector('.wf-count');
+        if (!cntEl) return;
+        cntEl.textContent = counts[pill.getAttribute('data-subject')] || 0;
+    });
+    var allPill = document.querySelector('#tab-wrong .wrong-filter-bar .wrong-filter-pill:first-child .wf-count');
+    if (allPill) allPill.textContent = total;
+    // 상단 탭 뱃지 갱신
+    var tabBadge = document.querySelector('.tab-btn[onclick*="wrong"] .tab-badge, .tab-btn[onclick*="wrong"] .badge');
+    if (tabBadge) tabBadge.textContent = total;
+    // 카운트 라벨 갱신
+    var label = document.getElementById('wrongCountLabel');
+    if (label) {
+        var visible = 0;
+        document.querySelectorAll('#tab-wrong .wrong-question').forEach(function(el) {
+            if (el.style.display !== 'none') visible++;
+        });
+        label.textContent = (wrongCurrentFilter || '전체') + ' 오답 ' + visible + '문제';
+    }
 }
 
 /* ── 최신기출 ── */
