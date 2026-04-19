@@ -36,11 +36,13 @@ def qtext(value):
 
 @register.filter(name="qtext_pre")
 def qtext_pre(value):
-    """[box] 이전 부분만 렌더링 (box가 없으면 전체 반환)"""
+    """[box] 이전 부분만 렌더링 (box가 없으면 전체 반환).
+    배지가 질문문 바로 옆에 붙도록 끝쪽 공백/개행을 제거한다."""
     idx = value.find("[box]")
     if idx == -1:
         return mark_safe(_render_qtext(value))
-    return mark_safe(_render_qtext(value[:idx]))
+    pre = value[:idx].rstrip()
+    return mark_safe(_render_qtext(pre))
 
 
 @register.filter(name="qtext_box")
