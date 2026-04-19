@@ -21,7 +21,7 @@ def qtext(value):
     # [box]...[/box] → <div class="q-box">...</div>
     text = re.sub(
         r"\[box\](.*?)\[/box\]",
-        lambda m: '<div class="q-box" style="border:2px solid #333;border-radius:4px;padding:6px 12px;margin:6px 0;background:#fff;line-height:1.7;text-indent:0;font-weight:normal;display:block">' + m.group(1).strip() + "</div>",
+        lambda m: '<div class="q-box" style="border:2px solid #333;border-radius:4px;padding:6px 12px;margin:6px 0;background:#fff;line-height:1.7;text-indent:0;font-weight:normal;display:inline-block;max-width:100%">' + m.group(1).strip() + "</div>",
         text,
         flags=re.DOTALL | re.IGNORECASE,
     )
