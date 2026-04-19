@@ -682,10 +682,10 @@
         .wrong-question.is-correct .wq-num::after {
             transform: translate(calc(-50% + 10px), -50%) rotate(-5deg) !important;
         }
-        /* 모바일: X 마크를 문제번호 위에 정확히 (+2px 보정) */
+        /* 모바일: X 마크 위치 */
         .wrong-question.is-wrong .wq-num::after {
             left: 50% !important;
-            transform: translate(calc(-50% + 2px), -50%) !important;
+            transform: translate(-50%, -50%) !important;
         }
         /* 모바일: O 마크 추가로 좌로 10px 이동 */
         .wrong-question.is-correct .wq-num::after {
