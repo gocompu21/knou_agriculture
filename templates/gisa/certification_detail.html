@@ -720,13 +720,13 @@
         .detail-hero .hero-inner {
             display: flex !important; flex-direction: row !important;
             align-items: center; flex-wrap: nowrap; gap: 10px;
-            padding: 0 12px;
+            padding: 0;
         }
-        /* 햄버거 좌측 고정 */
+        /* 햄버거 좌측 고정: .wrap 내부 시작점과 맞춤 */
         .hero-hamburger {
             order: 1; flex-shrink: 0;
             background: transparent !important; border: none !important;
-            padding: 4px !important; color: #fff;
+            padding: 4px !important; margin-left: -4px; color: #fff;
             opacity: 0.95;
         }
         .hero-hamburger:active { opacity: 1; background: rgba(255,255,255,0.1) !important; }
