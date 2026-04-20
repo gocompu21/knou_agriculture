@@ -1109,7 +1109,7 @@
                 {% for c in r.choices %}
                 <div class="wq-choice" data-choice="{{ c.num }}" onclick="wrongSelectChoice(this)">
                     <span class="q-mark">{{ c.num }}</span>
-                    <div class="wq-choice-text">{{ c.text|qtext }}{% if c.image %}<img src="{{ c.image.url }}" class="choice-image">{% endif %}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
+                    <div class="wq-choice-text">{{ c.text|qtext }}{% if c.image %}<img src="{{ c.image.url }}" class="choice-image">{% endif %}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span class="exp-text-inner">{{ c.exp|qtext }}</span></div>{% endif %}</div>
                 </div>
                 {% endfor %}
             </div>

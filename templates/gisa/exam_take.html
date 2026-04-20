@@ -1,4 +1,4 @@
-{% load static %}
+{% load static gisa_filters %}
 <!DOCTYPE html>
 <html lang="ko">
 
@@ -548,21 +548,21 @@
             <div class="question-item" id="q-{{ q.id }}">
                 <div class="question-content">
                     <span class="q-number">{{ forloop.counter }}.</span>
-                    <span>{{ q.text }}</span>
+                    <span>{{ q.text|qtext }}</span>
                     {% if q.text_image %}<div class="q-image-wrap"><img src="{{ q.text_image.url }}" class="q-image"></div>{% endif %}
                 </div>
                 <div class="choices">
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '1')">
-                        <span class="q-mark">1</span> {{ q.choice_1 }}{% if q.choice_1_image %}<img src="{{ q.choice_1_image.url }}" class="choice-image">{% endif %}
+                        <span class="q-mark">1</span> {{ q.choice_1|qtext }}{% if q.choice_1_image %}<img src="{{ q.choice_1_image.url }}" class="choice-image">{% endif %}
                     </div>
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '2')">
-                        <span class="q-mark">2</span> {{ q.choice_2 }}{% if q.choice_2_image %}<img src="{{ q.choice_2_image.url }}" class="choice-image">{% endif %}
+                        <span class="q-mark">2</span> {{ q.choice_2|qtext }}{% if q.choice_2_image %}<img src="{{ q.choice_2_image.url }}" class="choice-image">{% endif %}
                     </div>
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '3')">
-                        <span class="q-mark">3</span> {{ q.choice_3 }}{% if q.choice_3_image %}<img src="{{ q.choice_3_image.url }}" class="choice-image">{% endif %}
+                        <span class="q-mark">3</span> {{ q.choice_3|qtext }}{% if q.choice_3_image %}<img src="{{ q.choice_3_image.url }}" class="choice-image">{% endif %}
                     </div>
                     <div class="choice-item" onclick="selectAnswer('{{ q.id }}', '4')">
-                        <span class="q-mark">4</span> {{ q.choice_4 }}{% if q.choice_4_image %}<img src="{{ q.choice_4_image.url }}" class="choice-image">{% endif %}
+                        <span class="q-mark">4</span> {{ q.choice_4|qtext }}{% if q.choice_4_image %}<img src="{{ q.choice_4_image.url }}" class="choice-image">{% endif %}
                     </div>
                 </div>
             </div>

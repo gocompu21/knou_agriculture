@@ -9,6 +9,8 @@ register = Library()
 
 def _render_qtext(value):
     """내부 공통 렌더링"""
+    if value is None:
+        return ""
     text = escape(value)
     text = text.replace("&lt;u&gt;", "<u>").replace("&lt;/u&gt;", "</u>")
     text = re.sub(
@@ -17,6 +19,16 @@ def _render_qtext(value):
         text,
         flags=re.DOTALL | re.IGNORECASE,
     )
+    # LaTeX-style $...$ 수식: 내부의 ^{X}, _{X}를 <sup>, <sub>로 바꾸고 $ 제거
+    def _latex_inline(m):
+        inner = m.group(1)
+        inner = re.sub(r"\^\{([^}]+)\}", r"<sup>\1</sup>", inner)
+        inner = re.sub(r"_\{([^}]+)\}", r"<sub>\1</sub>", inner)
+        inner = re.sub(r"\^([A-Za-z0-9+\-])", r"<sup>\1</sup>", inner)
+        inner = re.sub(r"_([A-Za-z0-9+\-])", r"<sub>\1</sub>", inner)
+        return inner
+    text = re.sub(r"\$([^$]+)\$", _latex_inline, text)
+    # 일반 ^{X}, _{X} 첨자
     text = re.sub(r"\^\{([^}]+)\}", r"<sup>\1</sup>", text)
     text = re.sub(r"_\{([^}]+)\}", r"<sub>\1</sub>", text)
     text = text.replace("\n", "<br>")
