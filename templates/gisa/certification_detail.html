@@ -797,9 +797,11 @@
         .wrong-question { padding: 16px 12px; margin: 0 !important; }
         .wq-content {
             font-weight: 600; font-size: 0.92rem; line-height: 1.6;
-            padding-left: 0; text-indent: 0; margin-bottom: 8px;
+            margin-bottom: 8px;
+            display: flex; align-items: flex-start; gap: 6px;
         }
-        .wq-content .wq-num { margin-right: 4px; }
+        .wq-content .wq-num { flex-shrink: 0; }
+        .wq-content .wq-text-body { flex: 1; min-width: 0; }
         .wq-num { display: inline-block; margin-right: 3px; }
         /* 모바일: O 마크 위치 (-2px) */
         .wrong-question.is-correct .wq-num::after {
@@ -1099,8 +1101,7 @@
         {% for r in wrong_results %}
         <div class="wrong-question" id="wq-{{ r.question.id }}" data-subject="{{ r.question.subject.name }}" data-answer="{{ r.question.answer }}">
             <div class="wq-content">
-                <span class="wq-num">{{ forloop.counter }}.</span> {{ r.question.text|qtext_pre }} <sup class="wq-source">({{ r.question.subject.name }} {{ r.question.exam.year }}-{{ r.question.exam.round|stringformat:"02d" }})</sup>{{ r.question.text|qtext_box }}
-                {% if r.question.text_image %}<div class="q-image-wrap"><img src="{{ r.question.text_image.url }}" class="q-image"></div>{% endif %}
+                <span class="wq-num">{{ forloop.counter }}.</span><span class="wq-text-body">{{ r.question.text|qtext_pre }} <sup class="wq-source">({{ r.question.subject.name }} {{ r.question.exam.year }}-{{ r.question.exam.round|stringformat:"02d" }})</sup>{{ r.question.text|qtext_box }}{% if r.question.text_image %}<div class="q-image-wrap"><img src="{{ r.question.text_image.url }}" class="q-image"></div>{% endif %}</span>
             </div>
             <div class="wq-choices">
                 {% for c in r.choices %}
