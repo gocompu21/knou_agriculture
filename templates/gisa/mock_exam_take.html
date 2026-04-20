@@ -495,14 +495,59 @@
             }
 
             .mobile-submit-btn {
-                background: #ff6b35;
-                color: white;
+                background: #fff;
+                color: #e65100;
                 border: none;
-                padding: 6px 14px;
-                border-radius: 16px;
-                font-size: 0.85rem;
+                padding: 6px 16px;
+                border-radius: 14px;
+                font-size: 0.82rem;
+                font-weight: 700;
+                cursor: pointer;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+                transition: transform 0.1s;
+            }
+            .mobile-submit-btn:active { transform: scale(0.96); }
+
+            /* 모바일 학습 토글 재디자인 */
+            .mobile-header .mobile-study-toggle {
+                display: inline-flex !important;
+                align-items: center;
+                gap: 4px;
+                margin-left: 4px;
+                padding: 4px 10px;
+                background: rgba(255,255,255,0.18);
+                border-radius: 12px;
+                color: #fff;
+                font-size: 0.76rem;
                 font-weight: 600;
                 cursor: pointer;
+                transition: background 0.2s;
+            }
+            .mobile-header .mobile-study-toggle:hover { background: rgba(255,255,255,0.28); }
+            .mobile-header .mobile-study-toggle input[type="checkbox"] {
+                appearance: none; -webkit-appearance: none;
+                width: 28px; height: 14px;
+                background: rgba(255,255,255,0.35);
+                border-radius: 7px;
+                position: relative;
+                cursor: pointer;
+                transition: background 0.2s;
+                margin: 0;
+            }
+            .mobile-header .mobile-study-toggle input[type="checkbox"]::before {
+                content: '';
+                position: absolute;
+                top: 2px; left: 2px;
+                width: 10px; height: 10px;
+                background: #fff;
+                border-radius: 50%;
+                transition: transform 0.2s;
+            }
+            .mobile-header .mobile-study-toggle input[type="checkbox"]:checked {
+                background: #ffc107;
+            }
+            .mobile-header .mobile-study-toggle input[type="checkbox"]:checked::before {
+                transform: translateX(14px);
             }
 
             .subject-divider {
