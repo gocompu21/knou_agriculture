@@ -709,21 +709,21 @@
     mark { background: #fff176; padding: 0 2px; border-radius: 2px; }
 
     @media (max-width: 480px) {
-        .detail-hero { padding: 8px 0; }
+        .detail-hero { padding: 10px 0; min-height: 50px; }
         .detail-hero .wrap {
             display: flex; flex-direction: row;
             align-items: center; justify-content: space-between;
-            gap: 10px;
+            gap: 8px; flex-wrap: wrap; padding: 0 14px;
         }
         .detail-hero h1 {
-            font-size: 0.95rem; margin: 0; white-space: nowrap;
+            font-size: 0.95rem; margin: 0; color: #fff;
             display: inline-flex; align-items: baseline; gap: 4px;
         }
         .detail-hero h1 > span { font-size: 0.7em; }
         .detail-hero .hero-stats {
-            font-size: 0.72rem; margin: 0;
-            display: flex; gap: 8px; flex-wrap: nowrap;
-            opacity: 0.9; white-space: nowrap;
+            font-size: 0.72rem; margin: 0; color: #fff;
+            display: flex; gap: 8px; flex-wrap: wrap;
+            opacity: 0.9;
         }
         .detail-hero .hero-stats span { white-space: nowrap; }
         .exam-grid { grid-template-columns: 1fr; }
