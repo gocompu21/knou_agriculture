@@ -465,108 +465,97 @@
                 display: flex !important;
                 justify-content: space-between;
                 align-items: center;
-                padding: 10px 16px;
-                background: linear-gradient(135deg, #bf360c 0%, #e65100 100%);
-                font-weight: bold;
-                color: white;
+                padding: 10px 14px;
+                background: #1a237e;
+                font-weight: 500;
+                color: #fff;
                 position: fixed;
                 top: 0;
                 left: 0;
                 right: 0;
                 z-index: 100;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.15);
             }
 
             .question-panel {
-                padding-top: 48px;
+                padding-top: 52px;
             }
 
             .mobile-header .info {
                 display: flex;
                 align-items: center;
-                gap: 12px;
-                font-size: 0.95rem;
+                gap: 10px;
             }
 
             .mobile-header .mobile-title {
-                font-size: 0.95rem;
-                font-weight: 700;
-                letter-spacing: 0.02em;
+                font-size: 0.88rem;
+                font-weight: 600;
+                color: rgba(255,255,255,0.88);
             }
 
             .mobile-header #mobile-timer {
                 font-family: "SF Mono", Consolas, monospace;
-                font-size: 0.88rem;
+                font-size: 0.92rem;
                 font-weight: 600;
-                padding: 3px 10px;
-                background: rgba(0,0,0,0.22);
-                border-radius: 10px;
-                letter-spacing: 0.03em;
+                letter-spacing: 0.04em;
+                color: #fff;
             }
 
             .mobile-header .mobile-actions {
                 display: flex;
                 align-items: center;
-                gap: 10px;
-            }
-
-            .mobile-header .badge {
-                background: rgba(255,255,255,0.2);
-                padding: 4px 10px;
-                border-radius: 12px;
-                font-size: 0.85rem;
+                gap: 8px;
             }
 
             .mobile-submit-btn {
-                background: #fff;
-                color: #e65100;
+                background: #ff6b35;
+                color: #fff;
                 border: none;
-                padding: 6px 16px;
-                border-radius: 14px;
+                padding: 7px 18px;
+                border-radius: 8px;
                 font-size: 0.82rem;
                 font-weight: 700;
                 cursor: pointer;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-                transition: transform 0.1s;
+                transition: all 0.15s;
             }
             .mobile-submit-btn:active { transform: scale(0.96); }
+            .mobile-submit-btn:hover { background: #ff5722; }
 
-            /* 모바일 학습 토글 재디자인 */
+            /* 모바일 학습 토글 — iOS 스위치 스타일 */
             .mobile-header .mobile-study-toggle {
                 display: inline-flex !important;
                 align-items: center;
-                gap: 4px;
-                margin-left: 4px;
-                padding: 4px 10px;
-                background: rgba(255,255,255,0.18);
-                border-radius: 12px;
-                color: #fff;
-                font-size: 0.76rem;
-                font-weight: 600;
+                gap: 6px;
+                padding: 0;
+                background: none;
+                color: rgba(255,255,255,0.9);
+                font-size: 0.8rem;
+                font-weight: 500;
                 cursor: pointer;
-                transition: background 0.2s;
             }
-            .mobile-header .mobile-study-toggle:hover { background: rgba(255,255,255,0.28); }
             .mobile-header .mobile-study-toggle input[type="checkbox"] {
                 appearance: none; -webkit-appearance: none;
-                width: 28px; height: 14px;
-                background: rgba(255,255,255,0.35);
-                border-radius: 7px;
+                width: 32px; height: 18px;
+                background: rgba(255,255,255,0.22);
+                border-radius: 9px;
                 position: relative;
                 cursor: pointer;
                 transition: background 0.2s;
                 margin: 0;
+                flex-shrink: 0;
             }
             .mobile-header .mobile-study-toggle input[type="checkbox"]::before {
                 content: '';
                 position: absolute;
                 top: 2px; left: 2px;
-                width: 10px; height: 10px;
+                width: 14px; height: 14px;
                 background: #fff;
                 border-radius: 50%;
                 transition: transform 0.2s;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.2);
             }
             .mobile-header .mobile-study-toggle input[type="checkbox"]:checked {
-                background: #ffc107;
+                background: #4caf50;
             }
             .mobile-header .mobile-study-toggle input[type="checkbox"]:checked::before {
                 transform: translateX(14px);
