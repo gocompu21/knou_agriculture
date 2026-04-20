@@ -798,11 +798,11 @@
         .wq-content {
             font-weight: 600; font-size: 0.92rem; line-height: 1.6;
             margin-bottom: 8px;
-            display: flex; align-items: flex-start; gap: 6px;
+            padding-left: 0 !important; text-indent: 0 !important;
+            display: flex !important; align-items: flex-start; gap: 6px;
         }
-        .wq-content .wq-num { flex-shrink: 0; }
+        .wq-content .wq-num { flex-shrink: 0; margin-right: 0; }
         .wq-content .wq-text-body { flex: 1; min-width: 0; }
-        .wq-num { display: inline-block; margin-right: 3px; }
         /* 모바일: O 마크 위치 (-2px) */
         .wrong-question.is-correct .wq-num::after {
             transform: translate(calc(-50% - 2px), -50%) rotate(-5deg) !important;
