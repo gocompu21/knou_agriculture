@@ -716,28 +716,35 @@
 
     @media (max-width: 480px) {
         main { padding-top: 0 !important; }
-        .detail-hero { padding: 14px 0 12px; margin-top: 0; }
+        .detail-hero { padding: 9px 0; margin-top: 0; }
         .detail-hero .hero-inner {
             display: flex !important; flex-direction: row !important;
-            align-items: center; flex-wrap: wrap; gap: 8px 12px;
-            padding: 0 16px;
+            align-items: center; flex-wrap: nowrap; gap: 10px;
+            padding: 0 12px;
         }
+        /* 햄버거 좌측 고정 */
+        .hero-hamburger {
+            order: 1; flex-shrink: 0;
+            background: transparent !important; border: none !important;
+            padding: 4px !important; color: #fff;
+            opacity: 0.95;
+        }
+        .hero-hamburger:active { opacity: 1; background: rgba(255,255,255,0.1) !important; }
+        /* 탭 이름: 메인 타이틀 */
+        .hero-tab-label {
+            order: 2; flex: 1; min-width: 0;
+            font-size: 1.02rem !important; font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+        /* 자격증 이름: 우측 작게 */
         .detail-hero h1 {
-            font-size: 0.98rem; margin: 0 !important; font-weight: 700;
-            flex-shrink: 0;
+            order: 3; flex-shrink: 0;
+            font-size: 0.82rem; margin: 0 !important; font-weight: 500;
+            opacity: 0.82;
         }
-        .detail-hero h1 > span { font-size: 0.7em; }
-        .detail-hero .hero-stats {
-            display: inline-flex !important; gap: 8px !important;
-            font-size: 0.74rem !important; margin: 0 !important;
-            opacity: 0.85; flex-shrink: 0;
-        }
-        .detail-hero .hero-stats span { white-space: nowrap; }
-        /* 모바일에서는 '시험 N회'만 표시, 총 문제수/오답은 숨김 */
-        .detail-hero .hero-stats span:nth-child(n+2) { display: none; }
-        /* 햄버거 + 탭 라벨 줄을 flex-basis 100%로 다음 줄에 */
-        .hero-tab-label { flex: 1; min-width: 100px; font-size: 1.05rem !important; }
-        .hero-hamburger { padding: 7px 9px !important; }
+        .detail-hero h1 > span { display: none; }
+        /* 통계 완전히 숨김 (모바일에서는 탭 이름 우선) */
+        .detail-hero .hero-stats { display: none !important; }
         .exam-grid { grid-template-columns: 1fr; }
         .subject-pills { gap: 6px; }
         .subject-pills { gap: 4px; }
