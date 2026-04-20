@@ -629,7 +629,7 @@
         </div>
         <div class="th-right" style="display:flex; align-items:center; gap:10px;">
             <label class="study-toggle">
-                <input type="checkbox" id="study-mode-toggle" onchange="toggleStudyMode(this); syncStudyToggle(this)">
+                <input type="checkbox" id="study-mode-toggle" checked onchange="toggleStudyMode(this); syncStudyToggle(this)">
                 <span>학습모드</span>
             </label>
         </div>
@@ -647,7 +647,7 @@
             </div>
             <div class="mobile-actions">
                 <label class="study-toggle mobile-study-toggle">
-                    <input type="checkbox" onchange="toggleStudyMode(this); syncStudyToggle(this)">
+                    <input type="checkbox" checked onchange="toggleStudyMode(this); syncStudyToggle(this)">
                     <span>학습</span>
                 </label>
                 <button type="submit" class="mobile-submit-btn">제출</button>
@@ -752,8 +752,8 @@
             });
         }
 
-        /* ── 학습모드 토글 ── */
-        var studyMode = false;
+        /* ── 학습모드 토글 (기본: ON) ── */
+        var studyMode = true;
         function toggleStudyMode(cb) {
             studyMode = cb.checked;
             if (!studyMode) {
