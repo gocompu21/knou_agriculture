@@ -25,7 +25,7 @@
 
     /* 좌우 연한 녹색 배경 제거 */
     body { background: #fff !important; }
-    main { padding-top: 0 !important; }
+    main { padding-top: 0 !important; padding-bottom: 0 !important; }
 
     .detail-hero {
         background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
@@ -709,9 +709,20 @@
     mark { background: #fff176; padding: 0 2px; border-radius: 2px; }
 
     @media (max-width: 480px) {
-        .detail-hero { padding: 14px 0; }
-        .detail-hero h1 { font-size: 1rem; margin-bottom: 2px; }
-        .detail-hero .hero-stats { font-size: 0.78rem; gap: 10px; margin-top: 2px; }
+        .detail-hero { padding: 10px 0 8px; }
+        .detail-hero .hero-inner {
+            display: flex !important; flex-direction: row !important;
+            align-items: center; flex-wrap: wrap; gap: 4px 10px;
+        }
+        .detail-hero h1 {
+            font-size: 0.95rem; margin: 0 !important; font-weight: 700;
+        }
+        .detail-hero .hero-stats {
+            display: inline-flex !important; gap: 8px !important;
+            font-size: 0.72rem !important; margin: 0 !important;
+            opacity: 0.9;
+        }
+        .detail-hero .hero-stats span { white-space: nowrap; }
         .exam-grid { grid-template-columns: 1fr; }
         .subject-pills { gap: 6px; }
         .subject-pills { gap: 4px; }
@@ -839,7 +850,7 @@
 
 {% block content %}
 <div class="detail-hero">
-    <div class="wrap">
+    <div class="wrap hero-inner">
         <h1>{{ cert.name }} <span style="font-size:0.6em; font-weight:400; opacity:0.8;">{{ cert.get_category_display }}</span></h1>
         <div class="hero-stats">
             <span>시험 <strong>{{ exams.count }}회</strong></span>
