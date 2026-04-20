@@ -718,17 +718,21 @@
         .detail-hero { padding: 8px 0; }
         .detail-hero .hero-inner {
             display: flex !important; flex-direction: row !important;
-            align-items: center; gap: 8px;
+            align-items: center; flex-wrap: wrap; gap: 6px 10px;
         }
         .detail-hero h1 {
-            display: none !important;
+            font-size: 0.92rem; margin: 0 !important; font-weight: 700;
+            flex-shrink: 0;
         }
+        .detail-hero h1 > span { font-size: 0.7em; }
         .detail-hero .hero-stats {
             display: inline-flex !important; gap: 8px !important;
-            font-size: 0.72rem !important; margin: 0 !important;
+            font-size: 0.7rem !important; margin: 0 !important;
             opacity: 0.85; flex-shrink: 0;
         }
         .detail-hero .hero-stats span { white-space: nowrap; }
+        /* 햄버거 + 탭 라벨 줄을 flex-basis 100%로 다음 줄에 */
+        .hero-tab-label { flex: 1; min-width: 100px; }
         .exam-grid { grid-template-columns: 1fr; }
         .subject-pills { gap: 6px; }
         .subject-pills { gap: 4px; }
