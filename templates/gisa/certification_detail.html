@@ -709,20 +709,23 @@
     mark { background: #fff176; padding: 0 2px; border-radius: 2px; }
 
     @media (max-width: 480px) {
-        .detail-hero { padding: 10px 0 8px; }
+        .detail-hero { padding: 8px 0; }
         .detail-hero .wrap {
-            display: flex; flex-direction: column; gap: 2px;
+            display: flex; flex-direction: row;
+            align-items: center; justify-content: space-between;
+            gap: 10px;
         }
         .detail-hero h1 {
-            font-size: 1rem; margin: 0;
+            font-size: 0.95rem; margin: 0; white-space: nowrap;
             display: inline-flex; align-items: baseline; gap: 4px;
         }
         .detail-hero h1 > span { font-size: 0.7em; }
         .detail-hero .hero-stats {
             font-size: 0.72rem; margin: 0;
-            display: flex; gap: 10px; flex-wrap: wrap;
-            opacity: 0.85;
+            display: flex; gap: 8px; flex-wrap: nowrap;
+            opacity: 0.9; white-space: nowrap;
         }
+        .detail-hero .hero-stats span { white-space: nowrap; }
         .exam-grid { grid-template-columns: 1fr; }
         .subject-pills { gap: 6px; }
         .subject-pills { gap: 4px; }
