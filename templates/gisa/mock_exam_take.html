@@ -29,6 +29,7 @@
         /* 학습모드 토글 + 채점 스타일 (exam_result.html과 동일) */
         .study-toggle { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.82rem; color: #fff; font-weight: 500; }
         .study-toggle input[type="checkbox"] { accent-color: #ffc107; width: 14px; height: 14px; cursor: pointer; }
+        .mobile-study-toggle { color: #1a237e; font-size: 0.78rem; margin-left: 4px; }
         .choice-item .choice-exp {
             display: none;
             flex-basis: 100%;
@@ -559,7 +560,7 @@
         </div>
         <div class="th-right" style="display:flex; align-items:center; gap:10px;">
             <label class="study-toggle">
-                <input type="checkbox" id="study-mode-toggle" onchange="toggleStudyMode(this)">
+                <input type="checkbox" id="study-mode-toggle" onchange="toggleStudyMode(this); syncStudyToggle(this)">
                 <span>학습모드</span>
             </label>
         </div>
@@ -575,6 +576,10 @@
                 <span class="badge">{{ cert.name }}</span>
                 <span>모의고사</span>
                 <span id="mobile-timer">00:00:00</span>
+                <label class="study-toggle mobile-study-toggle">
+                    <input type="checkbox" onchange="toggleStudyMode(this); syncStudyToggle(this)">
+                    <span>학습</span>
+                </label>
             </div>
             <button type="submit" class="mobile-submit-btn">제출하기</button>
         </div>
@@ -669,6 +674,13 @@
             if (mob) mob.textContent = str;
         }
         setInterval(updateTimer, 1000);
+
+        /* ── 학습모드 토글 동기화 ── */
+        function syncStudyToggle(src) {
+            document.querySelectorAll('.study-toggle input[type="checkbox"]').forEach(function(cb){
+                if (cb !== src) cb.checked = src.checked;
+            });
+        }
 
         /* ── 학습모드 토글 ── */
         var studyMode = false;
