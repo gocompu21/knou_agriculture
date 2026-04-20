@@ -79,14 +79,21 @@
     /* 모바일 햄버거 메뉴 */
     .mobile-menu-bar { display: none; }
     .mobile-drawer { display: none; }
+    .hero-hamburger, .hero-tab-label { display: none; }
     @media (max-width: 768px) {
         .tab-nav { display: none; }
-        .mobile-menu-bar {
-            display: flex; align-items: center; gap: 10px;
-            background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
-            padding: 10px 14px;
-            position: sticky; top: 0; z-index: 10;
-            color: #fff;
+        .mobile-menu-bar { display: none !important; }
+        /* hero 내부 햄버거 + 탭 라벨 표시 */
+        .hero-hamburger {
+            display: flex !important; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.15); border: none; cursor: pointer;
+            color: #fff; padding: 5px 7px; border-radius: 6px;
+            flex-shrink: 0;
+        }
+        .hero-tab-label {
+            display: inline-block !important;
+            font-weight: 700; font-size: 0.95rem; color: #fff;
+            margin-right: auto;
         }
         .hamburger-btn {
             background: rgba(255,255,255,0.15); border: none; cursor: pointer;
@@ -708,18 +715,18 @@
     mark { background: #fff176; padding: 0 2px; border-radius: 2px; }
 
     @media (max-width: 480px) {
-        .detail-hero { padding: 10px 0 8px; }
+        .detail-hero { padding: 8px 0; }
         .detail-hero .hero-inner {
             display: flex !important; flex-direction: row !important;
-            align-items: center; flex-wrap: wrap; gap: 4px 10px;
+            align-items: center; gap: 8px;
         }
         .detail-hero h1 {
-            font-size: 0.95rem; margin: 0 !important; font-weight: 700;
+            display: none !important;
         }
         .detail-hero .hero-stats {
             display: inline-flex !important; gap: 8px !important;
             font-size: 0.72rem !important; margin: 0 !important;
-            opacity: 0.9;
+            opacity: 0.85; flex-shrink: 0;
         }
         .detail-hero .hero-stats span { white-space: nowrap; }
         .exam-grid { grid-template-columns: 1fr; }
@@ -850,6 +857,10 @@
 {% block content %}
 <div class="detail-hero" style="color:#fff;">
     <div class="wrap hero-inner" style="color:#fff;">
+        <button class="hamburger-btn hero-hamburger" onclick="toggleMobileMenu()" aria-label="메뉴">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <span class="mobile-tab-label hero-tab-label">{% if active_tab == 'textbook' %}쪽집게 노트{% elif active_tab == 'study' %}기출학습{% elif active_tab == 'solve' %}기출고사{% elif active_tab == 'mock' %}모의고사{% elif active_tab == 'wrong' %}오답노트{% elif active_tab == 'history' %}시험이력{% elif active_tab == 'latest' %}최신기출{% elif active_tab == 'glossary' %}용어집{% endif %}</span>
         <h1 style="color:#fff;">{{ cert.name }} <span style="font-size:0.6em; font-weight:400; opacity:0.8;">{{ cert.get_category_display }}</span></h1>
         <div class="hero-stats" style="color:#fff;">
             <span>시험 <strong style="color:#fff;">{{ exams.count }}회</strong></span>
