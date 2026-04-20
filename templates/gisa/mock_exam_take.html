@@ -540,6 +540,15 @@
 
             /* 보기 텍스트가 원번호 옆에 한 줄로 오도록 */
             .choices .choice-item .c-text { flex: 1; min-width: 0; padding-left: 4px; }
+
+            /* 모바일 O/X 마크 위치 보정 */
+            .question-item.study-graded.is-correct .q-number::after {
+                transform: translate(calc(-50% - 2px), -50%) rotate(-5deg) !important;
+            }
+            .question-item.study-graded.is-wrong .q-number::after {
+                top: calc(0.55em - 1px) !important;
+                transform: translate(calc(-50% + 1px), -50%) !important;
+            }
         }
 
         /* Desktop: hide mobile header */
