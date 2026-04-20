@@ -483,8 +483,30 @@
             .mobile-header .info {
                 display: flex;
                 align-items: center;
-                gap: 10px;
+                gap: 12px;
                 font-size: 0.95rem;
+            }
+
+            .mobile-header .mobile-title {
+                font-size: 0.95rem;
+                font-weight: 700;
+                letter-spacing: 0.02em;
+            }
+
+            .mobile-header #mobile-timer {
+                font-family: "SF Mono", Consolas, monospace;
+                font-size: 0.88rem;
+                font-weight: 600;
+                padding: 3px 10px;
+                background: rgba(0,0,0,0.22);
+                border-radius: 10px;
+                letter-spacing: 0.03em;
+            }
+
+            .mobile-header .mobile-actions {
+                display: flex;
+                align-items: center;
+                gap: 10px;
             }
 
             .mobile-header .badge {
@@ -631,15 +653,16 @@
         <!-- Mobile Header -->
         <div class="mobile-header">
             <div class="info">
-                <span class="badge">{{ cert.name }}</span>
-                <span>모의고사</span>
+                <span class="mobile-title">모의고사</span>
                 <span id="mobile-timer">00:00:00</span>
+            </div>
+            <div class="mobile-actions">
                 <label class="study-toggle mobile-study-toggle">
                     <input type="checkbox" onchange="toggleStudyMode(this); syncStudyToggle(this)">
                     <span>학습</span>
                 </label>
+                <button type="submit" class="mobile-submit-btn">제출</button>
             </div>
-            <button type="submit" class="mobile-submit-btn">제출하기</button>
         </div>
 
         <!-- Left: Questions -->
