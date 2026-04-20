@@ -849,12 +849,12 @@
 {% endblock %}
 
 {% block content %}
-<div class="detail-hero">
-    <div class="wrap hero-inner">
-        <h1>{{ cert.name }} <span style="font-size:0.6em; font-weight:400; opacity:0.8;">{{ cert.get_category_display }}</span></h1>
-        <div class="hero-stats">
-            <span>시험 <strong>{{ exams.count }}회</strong></span>
-            <span>총 <strong>{{ total_questions|intcomma }}문제</strong></span>
+<div class="detail-hero" style="color:#fff;">
+    <div class="wrap hero-inner" style="color:#fff;">
+        <h1 style="color:#fff;">{{ cert.name }} <span style="font-size:0.6em; font-weight:400; opacity:0.8;">{{ cert.get_category_display }}</span></h1>
+        <div class="hero-stats" style="color:#fff;">
+            <span>시험 <strong style="color:#fff;">{{ exams.count }}회</strong></span>
+            <span>총 <strong style="color:#fff;">{{ total_questions|intcomma }}문제</strong></span>
             {% if wrong_count %}<span>오답 <strong style="color:#ffcdd2">{{ wrong_count }}개</strong></span>{% endif %}
         </div>
     </div>
