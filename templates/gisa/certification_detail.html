@@ -731,6 +731,8 @@
             opacity: 0.85; flex-shrink: 0;
         }
         .detail-hero .hero-stats span { white-space: nowrap; }
+        /* 모바일에서는 '시험 N회'만 표시, 총 문제수/오답은 숨김 */
+        .detail-hero .hero-stats span:nth-child(n+2) { display: none; }
         /* 햄버거 + 탭 라벨 줄을 flex-basis 100%로 다음 줄에 */
         .hero-tab-label { flex: 1; min-width: 100px; }
         .exam-grid { grid-template-columns: 1fr; }
