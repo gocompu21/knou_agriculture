@@ -761,9 +761,33 @@
             border-radius: 0; padding: 0; margin: 0;
         }
         /* ── 오답노트 모바일 컴팩트 ── */
-        #tab-wrong { padding: 12px 4px; }
-        .wrong-filter-bar { gap: 4px; overflow-x: auto; flex-wrap: nowrap; }
-        .wrong-filter-pill { padding: 6px 10px; font-size: 0.75rem; flex: 0 0 auto; }
+        #tab-wrong { padding: 14px 12px; }
+        .wrong-filter-bar {
+            gap: 6px; margin-bottom: 14px;
+            overflow-x: auto; flex-wrap: nowrap;
+            padding: 4px 0 8px;
+            scrollbar-width: none;
+        }
+        .wrong-filter-bar::-webkit-scrollbar { display: none; }
+        .wrong-filter-pill {
+            flex: 0 0 auto; padding: 7px 14px;
+            font-size: 0.78rem; font-weight: 600;
+            border: none; border-radius: 16px;
+            background: #f0f2f8; color: #5a6478;
+            transition: all 0.15s;
+        }
+        .wrong-filter-pill:hover {
+            background: #e4e7f1; color: #1a237e;
+        }
+        .wrong-filter-pill.active {
+            background: #1a237e; color: #fff;
+            box-shadow: 0 2px 6px rgba(26,35,126,0.25);
+        }
+        .wf-count {
+            font-size: 0.72em !important; vertical-align: super;
+            margin-left: 3px; color: #d93025; font-weight: 700;
+        }
+        .wrong-filter-pill.active .wf-count { color: #ffcdd2; }
         .wrong-count-label { display: none; }
         .wrong-action-bar { justify-content: flex-end !important; margin-bottom: 10px !important; }
         .btn-label { display: none; }
