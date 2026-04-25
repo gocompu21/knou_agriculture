@@ -176,6 +176,25 @@
 
     .td-toggle { text-align: center; }
 
+    .member-delete-btn {
+        background: none;
+        border: 1px solid #e2c8c8;
+        border-radius: 6px;
+        color: #b04a4a;
+        padding: 4px 6px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .member-delete-btn:hover {
+        background: #fff5f5;
+        border-color: #d93025;
+        color: #d93025;
+    }
+
     /* ── 모바일 카드 ── */
     .member-cards { display: none; }
 
@@ -299,6 +318,7 @@
                 <th>이메일</th>
                 <th>스태프</th>
                 <th>활성</th>
+                <th>삭제</th>
             </tr>
         </thead>
         <tbody>
@@ -335,6 +355,13 @@
                             onclick="toggleMember(this)"
                             {% if m.pk == request.user.pk %}disabled title="자기 자신은 변경 불가"{% endif %}>
                     </button>
+                </td>
+                <td class="td-toggle">
+                    {% if m.pk != request.user.pk and not m.is_superuser %}
+                    <button type="button" class="member-delete-btn" data-pk="{{ m.pk }}" data-username="{{ m.username }}" data-name="{{ m.first_name|default:m.username }}" onclick="deleteMember(this)" title="회원 삭제">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14H7L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                    </button>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
@@ -374,6 +401,14 @@
                                 {% if m.pk == request.user.pk %}disabled{% endif %}>
                         </button>
                     </div>
+                    {% if m.pk != request.user.pk and not m.is_superuser %}
+                    <div class="m-card-toggle-label">
+                        삭제
+                        <button type="button" class="member-delete-btn" data-pk="{{ m.pk }}" data-username="{{ m.username }}" data-name="{{ m.first_name|default:m.username }}" onclick="deleteMember(this)" title="회원 삭제">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14H7L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                        </button>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
             <div class="m-card-stats">
@@ -433,6 +468,43 @@ function toggleMember(btn) {
                 b.classList.add('off');
             }
         });
+    })
+    .catch(function() { alert('오류가 발생했습니다.'); });
+}
+
+function deleteMember(btn) {
+    var pk = btn.dataset.pk;
+    var username = btn.dataset.username;
+    var name = btn.dataset.name || username;
+    var msg = name + ' (' + username + ') 회원을 정말 삭제하시겠습니까?\n\n'
+        + '⚠️ 이 작업은 되돌릴 수 없습니다.\n'
+        + '해당 회원의 모든 풀이기록, 오답노트, 댓글 등이 함께 삭제됩니다.';
+    if (!confirm(msg)) return;
+    if (!confirm('정말 삭제할까요? 다시 한 번 확인합니다.')) return;
+
+    fetch('/manage/members/' + pk + '/delete/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.error) { alert(data.error); return; }
+        // 데스크톱 행 + 모바일 카드 모두 제거
+        document.querySelectorAll('.member-delete-btn[data-pk="'+pk+'"]').forEach(function(b) {
+            var row = b.closest('tr');
+            if (row) row.remove();
+            var card = b.closest('.m-card');
+            if (card) card.remove();
+        });
+        // 회원수 갱신
+        var counter = document.querySelector('.member-count');
+        if (counter) {
+            var m = counter.textContent.match(/(\d+)/);
+            if (m) counter.textContent = (parseInt(m[1], 10) - 1) + '명';
+        }
     })
     .catch(function() { alert('오류가 발생했습니다.'); });
 }

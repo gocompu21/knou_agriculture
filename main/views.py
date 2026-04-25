@@ -1097,3 +1097,17 @@ def member_toggle(request, pk):
     setattr(target_user, field, new_val)
     target_user.save(update_fields=[field])
     return JsonResponse({"ok": True, "field": field, "value": new_val})
+
+
+@login_required
+@user_passes_test(staff_required)
+@require_POST
+def member_delete(request, pk):
+    target_user = get_object_or_404(User, pk=pk)
+    if target_user == request.user:
+        return JsonResponse({"error": "자기 자신은 삭제할 수 없습니다."}, status=400)
+    if target_user.is_superuser:
+        return JsonResponse({"error": "슈퍼유저는 삭제할 수 없습니다."}, status=400)
+    username = target_user.username
+    target_user.delete()
+    return JsonResponse({"ok": True, "username": username})
