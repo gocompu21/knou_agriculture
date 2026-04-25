@@ -534,6 +534,11 @@
                     <span class="choice-num" data-choice="4">4</span> <span class="c-text-display">{{ q.choice_4|qtext }}</span>{% if q.choice_4_image %}<img src="{{ q.choice_4_image.url }}" class="choice-image">{% endif %}
                     {% if q.choice_4_exp %}<div class="choice-exp{% if '4' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_4_exp|qtext }}</span></div>{% endif %}
                 </div>
+                {% if not is_wrong_retry and not is_textbook_study and request.user.is_authenticated %}
+                <div class="send-wrong-wrap" style="display:none; text-align:right; margin-top:8px;">
+                    <button type="button" class="send-wrong-btn" onclick="sendToWrong(this, '{% url 'gisa:mark_wrong' cert.pk q.id %}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;"><path d="M12 9v3m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> 오답으로 보내기</button>
+                </div>
+                {% endif %}
             </div>
             <div class="q-note-section" data-note-qid="{{ q.id }}"></div>
             {% if request.user.is_staff %}
@@ -612,10 +617,6 @@
             {% if is_wrong_retry %}
             <div class="dismiss-wrap" style="display:none; text-align:right; margin-top:10px;">
                 <button type="button" class="dismiss-btn" onclick="dismissQuestion(this, '{% url 'gisa:wrong_dismiss' cert.pk q.id %}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 노트 제외</button>
-            </div>
-            {% elif not is_textbook_study and request.user.is_authenticated %}
-            <div class="send-wrong-wrap" style="display:none; text-align:right; margin-top:10px;">
-                <button type="button" class="send-wrong-btn" onclick="sendToWrong(this, '{% url 'gisa:mark_wrong' cert.pk q.id %}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;"><path d="M12 9v3m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> 오답으로 보내기</button>
             </div>
             {% endif %}
         </div>
