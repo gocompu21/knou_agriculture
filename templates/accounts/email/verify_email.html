@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>한울회 A+ 학습시스템 회원가입 인증</title>
+</head>
+<body style="margin:0; padding:0; font-family:'Noto Sans KR', Arial, sans-serif; background:#f5f7fa;">
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f5f7fa; padding:30px 0;">
+        <tr>
+            <td align="center">
+                <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.06);">
+                    <tr>
+                        <td style="background:linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%); padding:30px 40px; text-align:center;">
+                            <div style="font-size:2.2rem;">🌿</div>
+                            <h1 style="color:#fff; margin:8px 0 4px 0; font-size:1.5rem;">한울회 A+ 학습시스템</h1>
+                            <p style="color:#d8efe1; margin:0; font-size:0.95rem;">한국방송통신대학교 농학과 학습동아리</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:36px 40px;">
+                            <h2 style="color:#1b4332; font-size:1.25rem; margin:0 0 16px 0;">회원가입 이메일 인증 안내</h2>
+                            <p style="color:#333; font-size:1rem; line-height:1.7; margin:0 0 18px 0;">
+                                안녕하세요, <b>{{ user.first_name }}</b>님.<br>
+                                한울회 A+ 학습시스템 가입을 신청해 주셔서 감사합니다.
+                            </p>
+                            <p style="color:#444; font-size:0.95rem; line-height:1.7; margin:0 0 24px 0;">
+                                아래 <b>"가입 완료하기"</b> 버튼을 클릭하시면 회원가입이 최종 완료됩니다.<br>
+                                이 링크는 발송일로부터 <b>24시간</b> 동안 유효합니다.
+                            </p>
+                            <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto;">
+                                <tr>
+                                    <td style="background:linear-gradient(to right, #2d6a4f, #1b4332); border-radius:8px;">
+                                        <a href="{{ verify_url }}" style="display:inline-block; padding:14px 36px; color:#fff; text-decoration:none; font-weight:600; font-size:1.05rem;">가입 완료하기</a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <p style="color:#777; font-size:0.85rem; line-height:1.6; margin:28px 0 0 0; text-align:center;">
+                                버튼이 동작하지 않는 경우 아래 주소를 복사해 브라우저에 붙여넣어 주세요:<br>
+                                <a href="{{ verify_url }}" style="color:#2d6a4f; word-break:break-all;">{{ verify_url }}</a>
+                            </p>
+                            <hr style="border:none; border-top:1px solid #eee; margin:32px 0 20px 0;">
+                            <p style="color:#888; font-size:0.85rem; line-height:1.6; margin:0;">
+                                본인이 가입을 신청하지 않았다면 이 메일을 무시하셔도 됩니다. 인증이 완료되지 않은 계정은 활성화되지 않습니다.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background:#f8fafc; padding:18px 40px; text-align:center; color:#94a3b8; font-size:0.8rem;">
+                            © 한울회 A+ 학습시스템 · admin@hanulstudy.kr
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

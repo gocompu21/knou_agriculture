@@ -5,22 +5,103 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
+from django.urls import reverse
 
 from .forms import LoginForm, SignUpForm
+from .models import EmailVerificationToken
+
+
+def _send_verification_email(request, user, token):
+    """가입 인증 메일 발송 (HTML)"""
+    verify_path = reverse("accounts:verify_email", args=[str(token.token)])
+    verify_url = request.build_absolute_uri(verify_path)
+    html = render_to_string(
+        "accounts/email/verify_email.html",
+        {"user": user, "verify_url": verify_url},
+    )
+    msg = EmailMessage(
+        "[한울회 A+] 회원가입 이메일 인증 안내",
+        html,
+        "admin@hanulstudy.kr",
+        [user.email],
+    )
+    msg.content_subtype = "html"
+    msg.send(fail_silently=False)
 
 
 def user_signup(request):
     if request.method == "POST":
+        # 비활성 상태로 이미 가입한 사용자가 같은 username/email로 다시 시도한 경우
+        # → 기존 계정의 토큰을 갱신하고 메일 재발송
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip()
+        if username and email:
+            existing = User.objects.filter(
+                username=username, email=email, is_active=False
+            ).first()
+            if existing:
+                token, _ = EmailVerificationToken.objects.get_or_create(user=existing)
+                token.refresh()
+                try:
+                    _send_verification_email(request, existing, token)
+                    return render(
+                        request,
+                        "accounts/signup_pending.html",
+                        {"email": existing.email, "resent": True},
+                    )
+                except Exception as e:
+                    messages.error(request, f"인증 메일 재발송에 실패했습니다: {e}")
+
         form = SignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-            return redirect("main:mypage")
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
+            token = EmailVerificationToken.objects.create(user=user)
+            try:
+                _send_verification_email(request, user, token)
+            except Exception as e:
+                user.delete()  # 메일 발송 실패 시 가입 취소
+                messages.error(request, f"인증 메일 발송에 실패했습니다: {e}")
+                return render(request, "accounts/signup.html", {"form": form})
+            return render(
+                request,
+                "accounts/signup_pending.html",
+                {"email": user.email, "resent": False},
+            )
     else:
         form = SignUpForm()
     return render(request, "accounts/signup.html", {"form": form})
+
+
+def verify_email(request, token):
+    """이메일 인증 링크 처리: 토큰 검증 → 활성화 → 자동 로그인"""
+    try:
+        record = EmailVerificationToken.objects.select_related("user").get(token=token)
+    except (EmailVerificationToken.DoesNotExist, ValueError):
+        return render(request, "accounts/verify_failed.html", {"reason": "invalid"})
+
+    if record.is_expired():
+        return render(
+            request,
+            "accounts/verify_failed.html",
+            {"reason": "expired", "username": record.user.username, "email": record.user.email},
+        )
+
+    user = record.user
+    if user.is_active:
+        record.delete()
+        return render(request, "accounts/verify_failed.html", {"reason": "already_active"})
+
+    user.is_active = True
+    user.save(update_fields=["is_active"])
+    record.delete()
+    login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    messages.success(request, "이메일 인증이 완료되었습니다. 환영합니다!")
+    return redirect("main:mypage")
 
 
 def user_login(request):
@@ -34,7 +115,14 @@ def user_login(request):
                 return redirect(next_url)
             return redirect("main:mypage")
         else:
-            return render(request, "main/index.html", {"login_error": "아이디 또는 비밀번호가 올바르지 않습니다."})
+            # 비활성 계정인지 별도 체크해 안내 메시지 차별화
+            username = request.POST.get("username", "").strip()
+            inactive = User.objects.filter(username=username, is_active=False).exists()
+            if inactive:
+                err = "이메일 인증이 완료되지 않은 계정입니다. 가입 시 받은 메일의 인증 링크를 확인해 주세요."
+            else:
+                err = "아이디 또는 비밀번호가 올바르지 않습니다."
+            return render(request, "main/index.html", {"login_error": err})
     return redirect("main:index")
 
 
@@ -69,6 +157,7 @@ def password_reset_request(request):
                 f"로그인 후 반드시 비밀번호를 변경해 주세요."
             )
 
+            from django.core.mail import send_mail
             send_mail(
                 subject,
                 message,

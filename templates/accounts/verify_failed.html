@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한울회 - 인증 안내</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
+                linear-gradient(135deg, #1b4332 0%, #2d6a4f 50%, #40916c 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 520px;
+            margin: 20px;
+            padding: 50px 40px;
+            text-align: center;
+        }
+
+        .icon {
+            font-size: 3.5rem;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            color: #1b4332;
+            font-size: 1.5rem;
+            margin: 0 0 14px 0;
+        }
+
+        .lead {
+            color: #4a5568;
+            font-size: 0.98rem;
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        .actions a {
+            display: inline-block;
+            padding: 12px 22px;
+            background: linear-gradient(to right, #2d6a4f, #1b4332);
+            color: #fff;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 4px;
+        }
+
+        .actions a.sub {
+            background: #f1f5f9;
+            color: #475569;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        {% if reason == "invalid" %}
+        <div class="icon">⚠️</div>
+        <h1>유효하지 않은 인증 링크입니다</h1>
+        <p class="lead">
+            인증 링크가 잘못되었거나 이미 사용된 링크입니다.<br>
+            메일의 링크를 다시 확인하시거나, 회원가입을 다시 시도해 주세요.
+        </p>
+        <div class="actions">
+            <a href="/accounts/signup/">회원가입</a>
+            <a href="/" class="sub">홈으로</a>
+        </div>
+        {% elif reason == "expired" %}
+        <div class="icon">⏰</div>
+        <h1>인증 링크가 만료되었습니다</h1>
+        <p class="lead">
+            인증 링크는 발송 후 24시간 동안만 유효합니다.<br>
+            아래 버튼으로 회원가입 페이지에서 같은 정보로 다시 신청하면<br>
+            인증 메일이 재발송됩니다.
+        </p>
+        <div class="actions">
+            <a href="/accounts/signup/">회원가입 다시 시도</a>
+            <a href="/" class="sub">홈으로</a>
+        </div>
+        {% elif reason == "already_active" %}
+        <div class="icon">✅</div>
+        <h1>이미 인증이 완료된 계정입니다</h1>
+        <p class="lead">
+            이 계정은 이미 활성화되어 있습니다.<br>
+            로그인하여 학습을 시작해 주세요.
+        </p>
+        <div class="actions">
+            <a href="/">로그인</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>

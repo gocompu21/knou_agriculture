@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한울회 - 이메일 인증 안내</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
+                linear-gradient(135deg, #1b4332 0%, #2d6a4f 50%, #40916c 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 540px;
+            margin: 20px;
+            padding: 50px 40px;
+            text-align: center;
+        }
+
+        .icon {
+            font-size: 3.5rem;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            color: #1b4332;
+            font-size: 1.6rem;
+            margin: 0 0 14px 0;
+        }
+
+        .lead {
+            color: #4a5568;
+            font-size: 1rem;
+            line-height: 1.7;
+            margin-bottom: 22px;
+        }
+
+        .email-box {
+            background: #f0f9f4;
+            border: 1px solid #b7e0c5;
+            color: #1b4332;
+            font-weight: 600;
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 24px;
+        }
+
+        .notice {
+            background: #fff8e1;
+            border-left: 4px solid #ffc107;
+            color: #6b5a16;
+            text-align: left;
+            padding: 14px 16px;
+            border-radius: 6px;
+            font-size: 0.92rem;
+            line-height: 1.6;
+            margin-bottom: 26px;
+        }
+
+        .notice b {
+            color: #5a4710;
+        }
+
+        .actions a {
+            display: inline-block;
+            padding: 12px 22px;
+            background: linear-gradient(to right, #2d6a4f, #1b4332);
+            color: #fff;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 4px;
+        }
+
+        .actions a.sub {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .resent-banner {
+            background: #e3f2fd;
+            color: #0d47a1;
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 0.92rem;
+            margin-bottom: 18px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="icon">✉️</div>
+        <h1>이메일 인증을 완료해 주세요</h1>
+        {% if resent %}
+        <div class="resent-banner">아직 인증이 완료되지 않은 계정이 있어 인증 메일을 다시 보냈습니다.</div>
+        {% endif %}
+        <p class="lead">
+            아래 이메일 주소로 인증 메일을 보내드렸습니다.<br>
+            메일에 포함된 <b>"가입 완료하기"</b> 버튼을 클릭하면 회원가입이 완료됩니다.
+        </p>
+        <div class="email-box">{{ email }}</div>
+        <div class="notice">
+            <b>메일이 도착하지 않나요?</b><br>
+            • 스팸 메일함을 확인해 주세요.<br>
+            • 인증 링크는 발송 후 <b>24시간</b> 동안 유효합니다.<br>
+            • 만료되었거나 메일을 못 받았다면 <a href="/accounts/signup/">회원가입 페이지</a>에서 같은 정보로 다시 신청하면 인증 메일이 재발송됩니다.
+        </div>
+        <div class="actions">
+            <a href="/">홈으로</a>
+        </div>
+    </div>
+</body>
+
+</html>
