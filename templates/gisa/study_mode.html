@@ -252,29 +252,33 @@
     }
 
     .send-wrong-btn {
-        background: none;
-        border: none;
+        background: #fff;
+        border: 1px solid #e2c8c8;
+        border-radius: 999px;
         cursor: pointer;
-        color: #888;
-        font-size: 1em;
-        font-weight: 400;
-        padding: 0;
+        color: #b04a4a;
+        font-size: 0.85rem;
+        font-weight: 500;
+        padding: 4px 12px;
         font-family: inherit;
-        text-decoration: underline;
-        text-underline-offset: 2px;
+        line-height: 1.4;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 5px;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
     }
 
     .send-wrong-btn:hover {
+        background: #fff5f5;
+        border-color: #d93025;
         color: #d93025;
     }
 
     .send-wrong-btn.done {
-        color: #d93025;
+        background: #fdecea;
+        border-color: #f5c2c0;
+        color: #c62828;
         cursor: default;
-        text-decoration: none;
     }
 
     /* 문제별 접기/펼치기 */
