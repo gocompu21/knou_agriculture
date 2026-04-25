@@ -1487,22 +1487,25 @@ def wrong_dismiss(request, cert_id, question_id):
 @login_required
 @require_POST
 def mark_wrong(request, cert_id, question_id):
-    """학습모드에서 정답을 맞췄어도 오답노트에 보내는 기능.
-    가짜 오답 attempt를 추가해 가장 최근 attempt가 오답이 되게 만든다."""
+    """학습모드에서 문제를 오답노트로 보내는 기능.
+    오답 attempt를 추가해 가장 최근 attempt가 오답이 되게 만든다.
+    selected가 실제 사용자 오답이면 그걸 저장, 아니면 첫 번째 오답 선지 사용."""
     cert = get_object_or_404(Certification, pk=cert_id)
     question = get_object_or_404(
         GisaQuestion, pk=question_id, exam__certification=cert
     )
     correct_answers = question.answer.split(",")
-    wrong_choice = "1"
-    for c in ["1", "2", "3", "4"]:
-        if c not in correct_answers:
-            wrong_choice = c
-            break
+    selected = request.POST.get("selected", "")
+    if selected not in ["1", "2", "3", "4"] or selected in correct_answers:
+        selected = "1"
+        for c in ["1", "2", "3", "4"]:
+            if c not in correct_answers:
+                selected = c
+                break
     GisaAttempt.objects.create(
         user=request.user,
         question=question,
-        selected=wrong_choice,
+        selected=selected,
         is_correct=False,
         mode="study",
     )

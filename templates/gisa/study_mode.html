@@ -281,6 +281,20 @@
         cursor: default;
     }
 
+    .auto-mark-msg {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #fdecea;
+        border: 1px solid #f5c2c0;
+        border-radius: 999px;
+        color: #c62828;
+        font-size: 0.72rem;
+        font-weight: 500;
+        padding: 4px 12px;
+        line-height: 1.4;
+    }
+
     /* 문제별 접기/펼치기 */
     .q-fold-btn {
         background: none;
@@ -536,7 +550,10 @@
                 </div>
                 {% if not is_wrong_retry and not is_textbook_study and request.user.is_authenticated %}
                 <div class="send-wrong-wrap" style="display:none; text-align:right; margin-top:8px;">
-                    <button type="button" class="send-wrong-btn" onclick="sendToWrong(this, '{% url 'gisa:mark_wrong' cert.pk q.id %}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;"><path d="M12 9v3m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> 오답노트 보내기</button>
+                    <button type="button" class="send-wrong-btn" data-url="{% url 'gisa:mark_wrong' cert.pk q.id %}" onclick="sendToWrong(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;"><path d="M12 9v3m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> 오답노트 보내기</button>
+                </div>
+                <div class="auto-mark-wrap" style="display:none; text-align:right; margin-top:8px;">
+                    <span class="auto-mark-msg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 오답노트에 자동 등록됨</span>
                 </div>
                 {% endif %}
             </div>
@@ -694,7 +711,23 @@
         var dismissWrap = card.querySelector('.dismiss-wrap');
         if (dismissWrap) dismissWrap.style.display = 'block';
         var sendWrongWrap = card.querySelector('.send-wrong-wrap');
-        if (sendWrongWrap) sendWrongWrap.style.display = 'block';
+        var autoMarkWrap = card.querySelector('.auto-mark-wrap');
+        if (sendWrongWrap) {
+            if (isCorrect) {
+                sendWrongWrap.style.display = 'block';
+                if (autoMarkWrap) autoMarkWrap.style.display = 'none';
+            } else {
+                sendWrongWrap.style.display = 'none';
+                if (autoMarkWrap) autoMarkWrap.style.display = 'block';
+                if (!card.dataset.autoMarked) {
+                    card.dataset.autoMarked = '1';
+                    var markUrl = sendWrongWrap.querySelector('.send-wrong-btn').getAttribute('data-url');
+                    var fd = new FormData();
+                    fd.append('selected', selectedChoice);
+                    fetch(markUrl, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' }, body: fd });
+                }
+            }
+        }
 
         var topAfter = choiceItem.getBoundingClientRect().top;
         if (topAfter - topBefore !== 0) window.scrollBy(0, topAfter - topBefore);
@@ -978,8 +1011,9 @@
         });
     }
 
-    function sendToWrong(btn, url) {
+    function sendToWrong(btn) {
         if (btn.classList.contains('done')) return;
+        var url = btn.getAttribute('data-url');
         fetch(url, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
             .then(function (r) { return r.json(); })
             .then(function (data) {
