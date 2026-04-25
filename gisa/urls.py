@@ -36,6 +36,7 @@ urlpatterns = [
     path("<int:cert_id>/wrong/retry/result/<str:session_id>/", views.wrong_answers_result, name="wrong_answers_result"),
     path("<int:cert_id>/wrong/dismiss/<int:question_id>/", views.wrong_dismiss, name="wrong_dismiss"),
     path("<int:cert_id>/wrong/review/<int:question_id>/", views.wrong_review, name="wrong_review"),
+    path("<int:cert_id>/wrong/mark/<int:question_id>/", views.mark_wrong, name="mark_wrong"),
     # 교재 학습
     path("<int:cert_id>/textbook/study/", views.textbook_study, name="textbook_study"),
     path("<int:cert_id>/textbook/chapter/", views.textbook_chapter_api, name="textbook_chapter_api"),

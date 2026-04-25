@@ -1486,6 +1486,31 @@ def wrong_dismiss(request, cert_id, question_id):
 
 @login_required
 @require_POST
+def mark_wrong(request, cert_id, question_id):
+    """학습모드에서 정답을 맞췄어도 오답노트에 보내는 기능.
+    가짜 오답 attempt를 추가해 가장 최근 attempt가 오답이 되게 만든다."""
+    cert = get_object_or_404(Certification, pk=cert_id)
+    question = get_object_or_404(
+        GisaQuestion, pk=question_id, exam__certification=cert
+    )
+    correct_answers = question.answer.split(",")
+    wrong_choice = "1"
+    for c in ["1", "2", "3", "4"]:
+        if c not in correct_answers:
+            wrong_choice = c
+            break
+    GisaAttempt.objects.create(
+        user=request.user,
+        question=question,
+        selected=wrong_choice,
+        is_correct=False,
+        mode="study",
+    )
+    return JsonResponse({"ok": True})
+
+
+@login_required
+@require_POST
 def wrong_review(request, cert_id, question_id):
     """오답노트에서 선지를 클릭한 풀이 기록 저장 (순환용).
     기존 wrong_review 기록이 있으면 갱신, 없으면 생성."""

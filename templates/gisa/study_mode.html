@@ -251,6 +251,32 @@
         color: #d93025;
     }
 
+    .send-wrong-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #888;
+        font-size: 1em;
+        font-weight: 400;
+        padding: 0;
+        font-family: inherit;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .send-wrong-btn:hover {
+        color: #d93025;
+    }
+
+    .send-wrong-btn.done {
+        color: #d93025;
+        cursor: default;
+        text-decoration: none;
+    }
+
     /* 문제별 접기/펼치기 */
     .q-fold-btn {
         background: none;
@@ -583,6 +609,10 @@
             <div class="dismiss-wrap" style="display:none; text-align:right; margin-top:10px;">
                 <button type="button" class="dismiss-btn" onclick="dismissQuestion(this, '{% url 'gisa:wrong_dismiss' cert.pk q.id %}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 노트 제외</button>
             </div>
+            {% elif not is_textbook_study and request.user.is_authenticated %}
+            <div class="send-wrong-wrap" style="display:none; text-align:right; margin-top:10px;">
+                <button type="button" class="send-wrong-btn" onclick="sendToWrong(this, '{% url 'gisa:mark_wrong' cert.pk q.id %}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;"><path d="M12 9v3m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> 오답으로 보내기</button>
+            </div>
             {% endif %}
         </div>
         {% endfor %}
@@ -658,6 +688,8 @@
 
         var dismissWrap = card.querySelector('.dismiss-wrap');
         if (dismissWrap) dismissWrap.style.display = 'block';
+        var sendWrongWrap = card.querySelector('.send-wrong-wrap');
+        if (sendWrongWrap) sendWrongWrap.style.display = 'block';
 
         var topAfter = choiceItem.getBoundingClientRect().top;
         if (topAfter - topBefore !== 0) window.scrollBy(0, topAfter - topBefore);
@@ -683,6 +715,9 @@
         });
         document.querySelectorAll('.dismiss-wrap').forEach(function (dw) {
             dw.style.display = allExpanded ? 'block' : 'none';
+        });
+        document.querySelectorAll('.send-wrong-wrap').forEach(function (sw) {
+            sw.style.display = allExpanded ? 'block' : 'none';
         });
         text.textContent = allExpanded ? '전체 접기' : '전체 펼치기';
         if (allExpanded) btn.classList.add('active'); else btn.classList.remove('active');
@@ -936,6 +971,18 @@
             card.style.overflow = 'hidden';
             setTimeout(function () { card.style.maxHeight = '0'; card.style.padding = '0'; card.style.margin = '0'; card.style.border = 'none'; setTimeout(function () { card.remove(); }, 300); }, 300);
         });
+    }
+
+    function sendToWrong(btn, url) {
+        if (btn.classList.contains('done')) return;
+        fetch(url, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data && data.ok) {
+                    btn.classList.add('done');
+                    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 오답 등록됨';
+                }
+            });
     }
 </script>
 {% include "gisa/_glossary_popup.html" %}
