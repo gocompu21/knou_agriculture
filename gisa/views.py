@@ -946,6 +946,13 @@ def study_mode(request, cert_id, exam_id, subject_id=None):
         if key in note_map:
             q_notes[str(q.id)] = _rank_notes(q.text, note_map[key])
 
+    # 사용자의 현재 오답노트에 등록된 문제 ID
+    wrong_qids = (
+        set(_get_wrong_question_ids(request.user, cert))
+        if request.user.is_authenticated
+        else set()
+    )
+
     return render(
         request,
         "gisa/study_mode.html",
@@ -954,6 +961,7 @@ def study_mode(request, cert_id, exam_id, subject_id=None):
             "exam": exam,
             "subject": subject,
             "questions": questions,
+            "wrong_qids": wrong_qids,
             "q_notes_json": json.dumps(q_notes, ensure_ascii=False),
             "glossary_json": _glossary_json(cert, include_ids=request.user.is_staff if request.user.is_authenticated else False),
         },
@@ -1731,6 +1739,13 @@ def textbook_study(request, cert_id):
         if key in note_map:
             q_notes[str(q.id)] = _rank_notes(q.text, note_map[key])
 
+    # 사용자의 현재 오답노트에 등록된 문제 ID
+    wrong_qids = (
+        set(_get_wrong_question_ids(request.user, cert))
+        if request.user.is_authenticated
+        else set()
+    )
+
     return render(
         request,
         "gisa/study_mode.html",
@@ -1739,6 +1754,7 @@ def textbook_study(request, cert_id):
             "exam": None,
             "subject": None,
             "questions": questions,
+            "wrong_qids": wrong_qids,
             "is_textbook_study": True,
             "section_title": section_title,
             "textbook_subject": textbook_subject,

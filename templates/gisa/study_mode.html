@@ -108,6 +108,11 @@
         padding: 14px 20px 10px;
         margin-bottom: 0;
         box-shadow: none;
+        position: relative;
+    }
+
+    .question-card.already-wrong {
+        border-left: 3px solid #d93025;
     }
 
     .q-badge {
@@ -524,7 +529,7 @@
     <div class="content-area">
         {% for q in questions %}
         {% if not subject and not is_textbook_study %}{% ifchanged q.subject_id %}<div class="subject-divider">{{ q.subject.order }}과목: {{ q.subject.name }}</div>{% endifchanged %}{% endif %}
-        <div class="question-card" id="q{{ q.number }}" data-answer="{{ q.answer }}" data-qid="{{ q.id }}">
+        <div class="question-card{% if q.id in wrong_qids %} already-wrong{% endif %}" id="q{{ q.number }}" data-answer="{{ q.answer }}" data-qid="{{ q.id }}"{% if q.id in wrong_qids %} data-already-wrong="1"{% endif %}>
             <div class="q-header">
                 <div class="q-content">
                     <div class="q-text-display"><span class="q-num-label">{{ q.number }}.</span><span class="q-text-body">{{ q.text|qtext }}{% if is_wrong_retry or is_textbook_study %} <sup class="q-badge">{{ q.exam.year }}-{{ q.exam.round }}</sup>{% endif %}{% if request.user.is_staff %} <button type="button" class="edit-btn" onclick="startEdit(this)" title="수정">&#9998;</button>{% endif %}</span><button type="button" class="q-fold-btn" onclick="toggleFold(this)" title="접기/펼치기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 7 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
@@ -549,11 +554,11 @@
                     {% if q.choice_4_exp %}<div class="choice-exp{% if '4' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_4_exp|qtext }}</span></div>{% endif %}
                 </div>
                 {% if not is_wrong_retry and request.user.is_authenticated %}
-                <div class="send-wrong-wrap" style="display:none; text-align:right; margin-top:8px;">
+                <div class="send-wrong-wrap" style="display:{% if q.id in wrong_qids %}none{% else %}none{% endif %}; text-align:right; margin-top:8px;">
                     <button type="button" class="send-wrong-btn" data-url="{% url 'gisa:mark_wrong' cert.pk q.id %}" onclick="sendToWrong(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;"><path d="M12 9v3m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> 오답노트 보내기</button>
                 </div>
-                <div class="auto-mark-wrap" style="display:none; text-align:right; margin-top:8px;">
-                    <span class="auto-mark-msg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 오답노트에 자동 등록됨</span>
+                <div class="auto-mark-wrap" style="display:{% if q.id in wrong_qids %}block{% else %}none{% endif %}; text-align:right; margin-top:8px;">
+                    <span class="auto-mark-msg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> {% if q.id in wrong_qids %}오답노트 등록됨{% else %}오답노트에 자동 등록됨{% endif %}</span>
                 </div>
                 {% endif %}
             </div>
@@ -712,8 +717,13 @@
         if (dismissWrap) dismissWrap.style.display = 'block';
         var sendWrongWrap = card.querySelector('.send-wrong-wrap');
         var autoMarkWrap = card.querySelector('.auto-mark-wrap');
+        var alreadyWrong = card.dataset.alreadyWrong === '1';
         if (sendWrongWrap) {
-            if (isCorrect) {
+            if (alreadyWrong) {
+                // 이미 오답노트에 등록된 문제 - 등록 안내만 유지
+                sendWrongWrap.style.display = 'none';
+                if (autoMarkWrap) autoMarkWrap.style.display = 'block';
+            } else if (isCorrect) {
                 sendWrongWrap.style.display = 'block';
                 if (autoMarkWrap) autoMarkWrap.style.display = 'none';
             } else {
