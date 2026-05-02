@@ -29,4 +29,10 @@ urlpatterns = [
     path("manage/members/<int:pk>/delete/", views.member_delete, name="member_delete"),
     path("manage/restore/", views.restore_stats, name="restore_stats"),
     path("manage/restore/api/", views.restore_stats_api, name="restore_stats_api"),
+    path("manage/materials/", views.material_manage, name="material_manage"),
+    path("manage/materials/upload/", views.material_upload, name="material_upload"),
+    path("manage/materials/<int:pk>/delete/", views.material_delete, name="material_delete"),
+    path("subjects/<int:pk>/materials/", views.material_list, name="material_list"),
+    path("subjects/<int:pk>/materials/<int:material_pk>/view/", views.material_view, name="material_view"),
+    path("subjects/<int:pk>/materials/<int:material_pk>/stream/", views.material_stream, name="material_stream"),
 ]

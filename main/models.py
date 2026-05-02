@@ -35,3 +35,23 @@ class FavoriteSubject(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.subject.name}"
+
+
+def _material_upload_path(instance, filename):
+    return f"materials/subject_{instance.subject_id}/{filename}"
+
+
+class SubjectMaterial(models.Model):
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, verbose_name='과목', related_name='materials')
+    title = models.CharField('자료 제목', max_length=200)
+    file = models.FileField('PDF 파일', upload_to=_material_upload_path)
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='등록자')
+    created_at = models.DateTimeField('등록일시', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '교과목 자료'
+        verbose_name_plural = '교과목 자료'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.subject.name} - {self.title}"

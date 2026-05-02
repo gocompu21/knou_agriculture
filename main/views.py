@@ -23,7 +23,7 @@ from accounts.models import LoginLog
 from exam.models import Attempt, Question, StudyNote
 from gisa.models import GisaAttempt, GisaQuestion
 from .forms import SubjectForm
-from .models import FavoriteSubject, Subject
+from .models import FavoriteSubject, Subject, SubjectMaterial
 
 logger = logging.getLogger(__name__)
 
@@ -1111,3 +1111,109 @@ def member_delete(request, pk):
     username = target_user.username
     target_user.delete()
     return JsonResponse({"ok": True, "username": username})
+
+
+# ===== 교과목 자료 (PDF) 관리 =====
+
+@login_required
+@user_passes_test(staff_required)
+def material_manage(request):
+    subjects = Subject.objects.all().order_by('grade', 'semester', 'name')
+    selected_id = request.GET.get('subject')
+    selected_subject = None
+    materials = SubjectMaterial.objects.none()
+    if selected_id:
+        try:
+            selected_subject = Subject.objects.get(pk=int(selected_id))
+            materials = SubjectMaterial.objects.filter(subject=selected_subject).order_by('-created_at')
+        except (Subject.DoesNotExist, ValueError):
+            pass
+    all_materials = SubjectMaterial.objects.select_related('subject').order_by('-created_at')[:100]
+    return render(request, 'main/material_manage.html', {
+        'subjects': subjects,
+        'selected_subject': selected_subject,
+        'materials': materials,
+        'all_materials': all_materials,
+    })
+
+
+@login_required
+@user_passes_test(staff_required)
+@require_POST
+def material_upload(request):
+    subject_id = request.POST.get('subject')
+    title = request.POST.get('title', '').strip()
+    pdf_file = request.FILES.get('file')
+    if not subject_id or not pdf_file:
+        from django.contrib import messages
+        messages.error(request, '과목과 파일을 모두 선택해주세요.')
+        return redirect('main:material_manage')
+    subject = get_object_or_404(Subject, pk=int(subject_id))
+    if not pdf_file.name.lower().endswith('.pdf'):
+        from django.contrib import messages
+        messages.error(request, 'PDF 파일만 업로드할 수 있습니다.')
+        return redirect(f'/manage/materials/?subject={subject.pk}')
+    if not title:
+        title = pdf_file.name.rsplit('.', 1)[0]
+    SubjectMaterial.objects.create(
+        subject=subject,
+        title=title,
+        file=pdf_file,
+        uploaded_by=request.user,
+    )
+    return redirect(f'/manage/materials/?subject={subject.pk}')
+
+
+@login_required
+@user_passes_test(staff_required)
+@require_POST
+def material_delete(request, pk):
+    material = get_object_or_404(SubjectMaterial, pk=pk)
+    subject_id = material.subject_id
+    if material.file:
+        material.file.delete(save=False)
+    material.delete()
+    return redirect(f'/manage/materials/?subject={subject_id}')
+
+
+@login_required
+def material_list(request, pk):
+    """과목별 자료 목록 (사용자 모달용 JSON)"""
+    subject = get_object_or_404(Subject, pk=pk)
+    materials = SubjectMaterial.objects.filter(subject=subject).order_by('-created_at')
+    data = [{
+        'id': m.id,
+        'title': m.title,
+        'created_at': m.created_at.strftime('%Y-%m-%d'),
+    } for m in materials]
+    return JsonResponse({'materials': data, 'subject_name': subject.name})
+
+
+@login_required
+def material_view(request, pk, material_pk):
+    """PDF 뷰어 페이지 (다운로드 차단 UI)"""
+    subject = get_object_or_404(Subject, pk=pk)
+    material = get_object_or_404(SubjectMaterial, pk=material_pk, subject=subject)
+    return render(request, 'main/material_view.html', {
+        'subject': subject,
+        'material': material,
+    })
+
+
+@login_required
+def material_stream(request, pk, material_pk):
+    """PDF 파일 inline 스트리밍 (다운로드 차단 헤더)"""
+    from django.http import FileResponse, Http404
+    subject = get_object_or_404(Subject, pk=pk)
+    material = get_object_or_404(SubjectMaterial, pk=material_pk, subject=subject)
+    if not material.file:
+        raise Http404
+    try:
+        f = material.file.open('rb')
+    except FileNotFoundError:
+        raise Http404
+    response = FileResponse(f, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="material_{material.pk}.pdf"'
+    response['X-Content-Type-Options'] = 'nosniff'
+    response['Cache-Control'] = 'private, no-store'
+    return response
