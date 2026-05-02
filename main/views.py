@@ -431,6 +431,10 @@ def subject_detail(request, pk):
         subject=subject, year__gte=2020
     ).order_by("-year", "number")
 
+    # 자료실: PDF 등 첨부 자료 목록
+    materials = SubjectMaterial.objects.filter(subject=subject).order_by('-created_at')
+    materials_count = materials.count()
+
     return render(
         request,
         "main/subject_detail.html",
@@ -445,6 +449,8 @@ def subject_detail(request, pk):
             "study_notes_count": study_notes_count,
             "latest_year_cards": latest_year_cards,
             "latest_questions": latest_questions,
+            "materials": materials,
+            "materials_count": materials_count,
         },
     )
 

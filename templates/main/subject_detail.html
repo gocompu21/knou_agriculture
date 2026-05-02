@@ -1346,6 +1346,85 @@
     }
     .ml-view-btn:hover { background: #d4ebc8; }
     .ml-empty { text-align: center; color: #888; padding: 24px; font-size: 0.88rem; }
+
+    /* 자료실 탭 */
+    .materials-tab {
+        background: #fff;
+        border-radius: 14px;
+        padding: 22px;
+        box-shadow: 0 4px 16px rgba(30, 70, 42, 0.08);
+    }
+    .materials-head {
+        display: flex; align-items: center; gap: 10px;
+        padding-bottom: 14px;
+        border-bottom: 2px solid #e5e9e6;
+        margin-bottom: 14px;
+    }
+    .materials-icon { font-size: 1.4rem; }
+    .materials-title {
+        font-size: 1.1rem; font-weight: 700; color: var(--forest);
+    }
+    .materials-count {
+        margin-left: auto;
+        background: #e8f5df; color: var(--forest);
+        padding: 4px 12px; border-radius: 20px;
+        font-size: 0.82rem; font-weight: 700;
+    }
+    .materials-list-tab {
+        list-style: none; padding: 0; margin: 0;
+        display: flex; flex-direction: column; gap: 8px;
+    }
+    .material-item {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 14px 16px;
+        border: 1px solid #e5e9e6;
+        border-radius: 10px;
+        transition: background 0.15s, border-color 0.15s;
+    }
+    .material-item:hover {
+        background: #f7faf7;
+        border-color: var(--forest);
+    }
+    .material-info {
+        display: flex; align-items: center; gap: 12px; min-width: 0;
+    }
+    .material-icon {
+        font-size: 1.5rem; flex-shrink: 0;
+    }
+    .material-meta {
+        display: flex; flex-direction: column; gap: 2px; min-width: 0;
+    }
+    .material-title {
+        font-weight: 700; color: var(--forest);
+        font-size: 0.95rem;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .material-date {
+        font-size: 0.78rem; color: #888;
+    }
+    .material-view-btn {
+        background: linear-gradient(135deg, #1f6a47, #2d8a56);
+        color: #fff;
+        padding: 8px 22px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-decoration: none;
+        flex-shrink: 0;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .material-view-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(31, 106, 71, 0.3);
+        color: #fff;
+    }
+
+    @media (max-width: 480px) {
+        .materials-tab { padding: 14px; }
+        .material-item { padding: 10px 12px; }
+        .material-title { font-size: 0.88rem; }
+        .material-view-btn { padding: 7px 16px; font-size: 0.82rem; }
+    }
 </style>
 {% endblock %}
 
@@ -1384,6 +1463,11 @@
             onclick="switchTab('latest')">
             최신기출
             {% if latest_year_cards %}<span class="tab-badge" style="background:#3d9ed6;">{{ latest_year_cards|length }}</span>{% endif %}
+        </button>
+        <button class="tab-btn{% if active_tab == 'materials' %} active{% endif %}" data-tab="materials"
+            onclick="switchTab('materials')">
+            자료실
+            {% if materials_count %}<span class="tab-badge" style="background:#1f6a47;">{{ materials_count }}</span>{% endif %}
         </button>
     </div>
 
@@ -1451,11 +1535,6 @@
 
     <!-- Tab 1: 학습 -->
     <div class="tab-content{% if active_tab == 'study' %} active{% endif %}" id="tab-study">
-        <div class="materials-bar">
-            <button type="button" class="materials-btn" onclick="openMaterialsModal()">
-                📄 PDF 자료 보기
-            </button>
-        </div>
         {% if year_cards %}
         <div class="year-grid">
             {% for card in year_cards %}
@@ -1477,20 +1556,6 @@
         {% else %}
         <div class="empty-msg">등록된 기출문제가 없습니다.</div>
         {% endif %}
-    </div>
-
-    <!-- PDF 자료 모달 -->
-    <div id="materialsModal" class="materials-modal" style="display:none;">
-        <div class="materials-modal-bg" onclick="closeMaterialsModal()"></div>
-        <div class="materials-modal-box">
-            <div class="materials-modal-head">
-                <h3 id="materialsModalTitle">PDF 자료</h3>
-                <button type="button" class="materials-modal-close" onclick="closeMaterialsModal()">✕</button>
-            </div>
-            <div class="materials-modal-body" id="materialsModalBody">
-                <div style="text-align:center; padding:24px; color:#888;">불러오는 중...</div>
-            </div>
-        </div>
     </div>
 
     <!-- Tab 2: 풀이 -->
@@ -1829,6 +1894,37 @@
         </div>
     </div>
 
+    <!-- Tab 6: 자료실 -->
+    <div class="tab-content{% if active_tab == 'materials' %} active{% endif %}" id="tab-materials">
+        {% if materials %}
+        <div class="materials-tab">
+            <div class="materials-head">
+                <span class="materials-icon">📚</span>
+                <span class="materials-title">자료실</span>
+                <span class="materials-count">{{ materials_count }}건</span>
+            </div>
+            <ul class="materials-list-tab">
+                {% for m in materials %}
+                <li class="material-item">
+                    <div class="material-info">
+                        <span class="material-icon">📄</span>
+                        <div class="material-meta">
+                            <span class="material-title">{{ m.title }}</span>
+                            <span class="material-date">{{ m.created_at|date:"Y.m.d" }}</span>
+                        </div>
+                    </div>
+                    <a class="material-view-btn" href="{% url 'main:material_view' subject.pk m.pk %}" target="_blank">
+                        보기
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% else %}
+        <div class="empty-msg">등록된 자료가 없습니다.</div>
+        {% endif %}
+    </div>
+
 </div>
 {% endblock %}
 
@@ -2123,52 +2219,5 @@
         }
     }
 
-    // PDF 자료 모달
-    function openMaterialsModal() {
-        var modal = document.getElementById('materialsModal');
-        var body = document.getElementById('materialsModalBody');
-        var titleEl = document.getElementById('materialsModalTitle');
-        body.innerHTML = '<div style="text-align:center; padding:24px; color:#888;">불러오는 중...</div>';
-        modal.style.display = 'flex';
-        fetch('{% url "main:material_list" subject.pk %}')
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                titleEl.textContent = data.subject_name + ' 자료';
-                if (!data.materials || data.materials.length === 0) {
-                    body.innerHTML = '<div class="ml-empty">등록된 PDF 자료가 없습니다.</div>';
-                    return;
-                }
-                var html = '<ul class="materials-list">';
-                data.materials.forEach(function(m) {
-                    var url = '/subjects/{{ subject.pk }}/materials/' + m.id + '/view/';
-                    html += '<li>'
-                        + '<div class="ml-info">'
-                        + '<span class="ml-title">' + escapeHtml(m.title) + '</span>'
-                        + '<span class="ml-date">' + m.created_at + '</span>'
-                        + '</div>'
-                        + '<a class="ml-view-btn" href="' + url + '" target="_blank">PDF 보기</a>'
-                        + '</li>';
-                });
-                html += '</ul>';
-                body.innerHTML = html;
-            })
-            .catch(function() {
-                body.innerHTML = '<div class="ml-empty">자료를 불러오지 못했습니다.</div>';
-            });
-    }
-    function closeMaterialsModal() {
-        document.getElementById('materialsModal').style.display = 'none';
-    }
-    function escapeHtml(s) {
-        return String(s).replace(/[&<>"']/g, function(c) {
-            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-        });
-    }
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            var m = document.getElementById('materialsModal');
-            if (m && m.style.display === 'flex') closeMaterialsModal();
-        }
-    });
 </script>
 {% endblock %}
