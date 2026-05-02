@@ -243,7 +243,8 @@
         renderPage(currentPage);
     });
 
-    // 인쇄: 모든 페이지를 캔버스로 렌더링 후 새 창에 띄워 print 호출
+    // 인쇄: 숨겨진 iframe에 페이지 이미지를 모아 contentWindow.print() 호출
+    // (모바일에서는 window.open 팝업 차단 우려가 있어 iframe 방식 사용)
     document.getElementById('printBtn').addEventListener('click', async () => {
         if (!pdfDoc) return;
         const btn = document.getElementById('printBtn');
@@ -251,52 +252,66 @@
         const orig = btn.textContent;
         btn.textContent = '⏳ 준비 중...';
 
+        // 기존 iframe이 있으면 제거
+        const oldFrame = document.getElementById('printFrame');
+        if (oldFrame) oldFrame.remove();
+
+        // 숨겨진 인쇄용 iframe 생성
+        const frame = document.createElement('iframe');
+        frame.id = 'printFrame';
+        frame.style.cssText = 'position:fixed; right:0; bottom:0; width:0; height:0; border:0; visibility:hidden;';
+        document.body.appendChild(frame);
+
         try {
-            const printWin = window.open('', '_blank', 'width=900,height=1100');
-            if (!printWin) {
-                alert('팝업이 차단되어 있습니다. 팝업 허용 후 다시 시도하세요.');
-                return;
-            }
-            printWin.document.write(`
-                <!DOCTYPE html>
-                <html><head><meta charset="utf-8"><title>{{ material.title }}</title>
+            const fdoc = frame.contentDocument || frame.contentWindow.document;
+            fdoc.open();
+            fdoc.write(`<!DOCTYPE html>
+                <html><head><meta charset="utf-8"><title>{{ material.title|escapejs }}</title>
                 <style>
                     @page { margin: 10mm; }
-                    body { margin: 0; padding: 0; }
+                    html, body { margin: 0; padding: 0; }
                     img { display: block; width: 100%; page-break-after: always; }
                     img:last-child { page-break-after: auto; }
-                </style></head><body><div id="container">
-                <p style="text-align:center; color:#888; font-family:sans-serif;">인쇄 준비 중... (전체 페이지 렌더링)</p>
-                </div></body></html>
-            `);
-            printWin.document.close();
-            const container = printWin.document.getElementById('container');
+                </style></head><body><div id="container"></div></body></html>`);
+            fdoc.close();
+            const container = fdoc.getElementById('container');
 
             for (let i = 1; i <= pdfDoc.numPages; i++) {
-                btn.textContent = `⏳ 렌더링 ${i}/${pdfDoc.numPages}`;
+                btn.textContent = `⏳ ${i}/${pdfDoc.numPages}`;
                 const page = await pdfDoc.getPage(i);
                 const viewport = page.getViewport({ scale: 2.0 });
                 const canvas = document.createElement('canvas');
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
                 await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-                if (i === 1) container.innerHTML = '';
-                const img = printWin.document.createElement('img');
-                img.src = canvas.toDataURL('image/jpeg', 0.85);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                const img = fdoc.createElement('img');
+                img.src = dataUrl;
                 container.appendChild(img);
+                // canvas 메모리 해제
+                canvas.width = 0;
+                canvas.height = 0;
             }
 
-            // 모든 이미지 로드 완료 후 인쇄
+            // 이미지 로드 완료 대기
             const imgs = container.querySelectorAll('img');
-            const waits = Array.from(imgs).map(img =>
+            await Promise.all(Array.from(imgs).map(img =>
                 img.complete ? Promise.resolve() : new Promise(r => { img.onload = img.onerror = r; })
-            );
-            await Promise.all(waits);
-            printWin.focus();
-            printWin.print();
+            ));
+
+            // 인쇄 호출 (다음 tick으로 미뤄 모바일 안정성 확보)
+            setTimeout(() => {
+                try {
+                    frame.contentWindow.focus();
+                    frame.contentWindow.print();
+                } catch (err) {
+                    console.error('print() 실패:', err);
+                    alert('이 기기에서는 인쇄를 지원하지 않거나 차단되었습니다.');
+                }
+            }, 200);
         } catch (err) {
             console.error('인쇄 준비 실패:', err);
-            alert('인쇄 준비에 실패했습니다.');
+            alert('인쇄 준비에 실패했습니다: ' + (err.message || err));
         } finally {
             btn.disabled = false;
             btn.textContent = orig;
