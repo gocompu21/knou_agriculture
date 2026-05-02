@@ -4,6 +4,7 @@ from datetime import date
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_POST
 
 import json
@@ -1190,6 +1191,33 @@ def material_list(request, pk):
 
 
 @login_required
+@xframe_options_sameorigin
+def material_stream(request, pk, material_pk):
+    """PDF 파일 inline 스트리밍 (다운로드 차단 헤더)"""
+    from django.http import FileResponse, Http404
+    import os
+    subject = get_object_or_404(Subject, pk=pk)
+    material = get_object_or_404(SubjectMaterial, pk=material_pk, subject=subject)
+    if not material.file:
+        raise Http404
+    try:
+        path = material.file.path
+        if not os.path.exists(path):
+            raise Http404
+        f = open(path, 'rb')
+    except (FileNotFoundError, ValueError):
+        raise Http404
+    response = FileResponse(f, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="material_{material.pk}.pdf"'
+    response['Content-Length'] = os.path.getsize(path)
+    response['Accept-Ranges'] = 'bytes'
+    response['X-Content-Type-Options'] = 'nosniff'
+    response['Cache-Control'] = 'private, no-store'
+    return response
+
+
+@login_required
+@xframe_options_sameorigin
 def material_view(request, pk, material_pk):
     """PDF 뷰어 페이지 (다운로드 차단 UI)"""
     subject = get_object_or_404(Subject, pk=pk)
@@ -1198,22 +1226,3 @@ def material_view(request, pk, material_pk):
         'subject': subject,
         'material': material,
     })
-
-
-@login_required
-def material_stream(request, pk, material_pk):
-    """PDF 파일 inline 스트리밍 (다운로드 차단 헤더)"""
-    from django.http import FileResponse, Http404
-    subject = get_object_or_404(Subject, pk=pk)
-    material = get_object_or_404(SubjectMaterial, pk=material_pk, subject=subject)
-    if not material.file:
-        raise Http404
-    try:
-        f = material.file.open('rb')
-    except FileNotFoundError:
-        raise Http404
-    response = FileResponse(f, content_type='application/pdf')
-    response['Content-Disposition'] = f'inline; filename="material_{material.pk}.pdf"'
-    response['X-Content-Type-Options'] = 'nosniff'
-    response['Cache-Control'] = 'private, no-store'
-    return response
