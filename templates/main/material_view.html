@@ -125,7 +125,7 @@
     </div>
 
     <div class="pdf-notice">
-        ⚠️ 본 자료는 학습 목적의 열람만 가능합니다. 다운로드·인쇄·복제는 제한되어 있습니다.
+        ⚠️ 본 자료는 학습 목적의 열람·인쇄만 가능합니다. 다운로드·복제는 제한되어 있습니다.
     </div>
 
     <div class="pdf-toolbar">
@@ -140,6 +140,8 @@
         <span id="zoomLevel">100%</span>
         <button type="button" id="zoomIn" title="확대">＋</button>
         <button type="button" id="zoomFit" title="너비맞춤">↔</button>
+        <span style="margin: 0 8px; opacity: 0.5;">|</span>
+        <button type="button" id="printBtn" title="인쇄">🖨 인쇄</button>
     </div>
 
     <div class="pdf-canvas-wrap" id="canvasWrap" data-watermark="{{ request.user.username }} · 한울회">
@@ -226,6 +228,66 @@
         renderPage(currentPage);
     });
 
+    // 인쇄: 모든 페이지를 캔버스로 렌더링 후 새 창에 띄워 print 호출
+    document.getElementById('printBtn').addEventListener('click', async () => {
+        if (!pdfDoc) return;
+        const btn = document.getElementById('printBtn');
+        btn.disabled = true;
+        const orig = btn.textContent;
+        btn.textContent = '⏳ 준비 중...';
+
+        try {
+            const printWin = window.open('', '_blank', 'width=900,height=1100');
+            if (!printWin) {
+                alert('팝업이 차단되어 있습니다. 팝업 허용 후 다시 시도하세요.');
+                return;
+            }
+            printWin.document.write(`
+                <!DOCTYPE html>
+                <html><head><meta charset="utf-8"><title>{{ material.title }}</title>
+                <style>
+                    @page { margin: 10mm; }
+                    body { margin: 0; padding: 0; }
+                    img { display: block; width: 100%; page-break-after: always; }
+                    img:last-child { page-break-after: auto; }
+                </style></head><body><div id="container">
+                <p style="text-align:center; color:#888; font-family:sans-serif;">인쇄 준비 중... (전체 페이지 렌더링)</p>
+                </div></body></html>
+            `);
+            printWin.document.close();
+            const container = printWin.document.getElementById('container');
+
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+                btn.textContent = `⏳ 렌더링 ${i}/${pdfDoc.numPages}`;
+                const page = await pdfDoc.getPage(i);
+                const viewport = page.getViewport({ scale: 2.0 });
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                if (i === 1) container.innerHTML = '';
+                const img = printWin.document.createElement('img');
+                img.src = canvas.toDataURL('image/jpeg', 0.85);
+                container.appendChild(img);
+            }
+
+            // 모든 이미지 로드 완료 후 인쇄
+            const imgs = container.querySelectorAll('img');
+            const waits = Array.from(imgs).map(img =>
+                img.complete ? Promise.resolve() : new Promise(r => { img.onload = img.onerror = r; })
+            );
+            await Promise.all(waits);
+            printWin.focus();
+            printWin.print();
+        } catch (err) {
+            console.error('인쇄 준비 실패:', err);
+            alert('인쇄 준비에 실패했습니다.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = orig;
+        }
+    });
+
     // 키보드 네비게이션
     document.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT') return;
@@ -261,10 +323,10 @@
         e.preventDefault();
         return false;
     });
-    // 다운로드/저장/인쇄/소스보기/개발자도구 단축키 차단
+    // 다운로드/저장/소스보기/개발자도구 단축키 차단 (인쇄 Ctrl+P 는 허용)
     document.addEventListener('keydown', function(e) {
         var key = (e.key || '').toLowerCase();
-        if ((e.ctrlKey || e.metaKey) && (key === 's' || key === 'p' || key === 'u' || key === 'a' || key === 'c')) {
+        if ((e.ctrlKey || e.metaKey) && (key === 's' || key === 'u' || key === 'a' || key === 'c')) {
             // 입력 필드 안에서는 허용
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
             e.preventDefault();
