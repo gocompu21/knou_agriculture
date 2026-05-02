@@ -181,17 +181,32 @@
         }
         const finalViewport = page.getViewport({ scale: renderScale });
 
+        // 고해상도 디스플레이 대응 (DPR 적용 + 줌 시 추가 oversample)
+        const dpr = window.devicePixelRatio || 1;
+        // 사용자가 확대했을 때(scale > 1.0) 추가 oversample로 픽셀 깨짐 방지
+        const oversample = Math.min(Math.max(scale, 1), 2);
+        const outputScale = dpr * oversample;
+
         // 기존 canvas 제거
         wrap.querySelectorAll('canvas').forEach(c => c.remove());
         if (loading) loading.style.display = 'none';
 
         const canvas = document.createElement('canvas');
-        canvas.width = finalViewport.width;
-        canvas.height = finalViewport.height;
+        canvas.width = Math.floor(finalViewport.width * outputScale);
+        canvas.height = Math.floor(finalViewport.height * outputScale);
+        canvas.style.width = Math.floor(finalViewport.width) + 'px';
+        canvas.style.height = Math.floor(finalViewport.height) + 'px';
         wrap.appendChild(canvas);
 
         const ctx = canvas.getContext('2d');
-        await page.render({ canvasContext: ctx, viewport: finalViewport }).promise;
+        const transform = outputScale !== 1
+            ? [outputScale, 0, 0, outputScale, 0, 0]
+            : null;
+        await page.render({
+            canvasContext: ctx,
+            viewport: finalViewport,
+            transform: transform,
+        }).promise;
 
         currentPage = num;
         pageNumInput.value = num;
