@@ -1216,7 +1216,9 @@ def material_stream(request, pk, material_pk):
     response = FileResponse(f, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="material_{material.pk}.pdf"'
     response['Content-Length'] = os.path.getsize(path)
-    response['Accept-Ranges'] = 'bytes'
+    # Range 요청 비활성화 - Django FileResponse는 byte range를 제대로 못 다루므로
+    # PDF.js가 부분 다운로드 시도하지 않도록 명시적으로 none 응답
+    response['Accept-Ranges'] = 'none'
     response['X-Content-Type-Options'] = 'nosniff'
     response['Cache-Control'] = 'private, no-store'
     return response

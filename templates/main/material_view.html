@@ -331,11 +331,23 @@
     });
 
     // PDF 로드
+    // disableRange/disableStream: Django FileResponse가 HTTP Range 요청을 제대로
+    // 처리하지 못해 큰 파일에서 'Bad end offset' 에러 발생 → 한 번에 전체 다운로드
     try {
+        if (loading) loading.textContent = '📄 PDF 다운로드 중... (큰 파일은 시간이 걸릴 수 있습니다)';
         const loadingTask = pdfjsLib.getDocument({
             url: PDF_URL,
             withCredentials: true,
+            disableRange: true,
+            disableStream: true,
+            disableAutoFetch: true,
         });
+        loadingTask.onProgress = function(p) {
+            if (loading && p.total) {
+                const pct = Math.round(p.loaded / p.total * 100);
+                loading.textContent = `📄 다운로드 중... ${pct}%`;
+            }
+        };
         pdfDoc = await loadingTask.promise;
         pageCountSpan.textContent = pdfDoc.numPages;
         pageNumInput.max = pdfDoc.numPages;
