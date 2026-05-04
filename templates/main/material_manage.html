@@ -257,6 +257,23 @@
     var label = document.getElementById('progressLabel');
     var detail = document.getElementById('progressDetail');
 
+    // 교과목 선택 시 페이지 하단의 과목 필터도 자동 동기화 + URL 갱신
+    var subjectSelect = document.getElementById('subject');
+    var filterSelect = document.getElementById('filter-subject');
+    if (subjectSelect) {
+        subjectSelect.addEventListener('change', function() {
+            var v = this.value;
+            // 필터 select 즉시 동기화 (페이지 이동 전 시각적 반영)
+            if (filterSelect) filterSelect.value = v || '';
+            // URL을 해당 과목으로 갱신 → 하단 자료 목록도 같이 갱신됨
+            if (v) {
+                location.href = '?subject=' + v;
+            } else {
+                location.href = '{% url "main:material_manage" %}';
+            }
+        });
+    }
+
     function fmtSize(b) {
         if (b < 1024) return b + ' B';
         if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
