@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Comment, Notice
+from .models import Comment, Notice, NoticeOpenLog
 
 
 @admin.register(Notice)
@@ -14,3 +14,11 @@ class NoticeAdmin(admin.ModelAdmin):
 class CommentAdmin(admin.ModelAdmin):
     list_display = ("notice", "author", "content", "created_at")
     list_filter = ("created_at",)
+
+
+@admin.register(NoticeOpenLog)
+class NoticeOpenLogAdmin(admin.ModelAdmin):
+    list_display = ("notice", "user", "opened_at", "ip")
+    list_filter = ("opened_at",)
+    search_fields = ("user__username", "notice__title")
+    readonly_fields = ("notice", "user", "opened_at", "ip", "user_agent")

@@ -1,3 +1,5 @@
+import hmac
+import hashlib
 import os
 import re
 import threading
@@ -8,43 +10,96 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.mail import EmailMessage
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from accounts.models import UserProfile
-from .models import Comment, Notice
+from .models import Comment, Notice, NoticeOpenLog
 
 SITE_URL = "https://hanulstudy.kr"
 
+# 트래킹 픽셀 1x1 투명 PNG (정적 바이트)
+_PIXEL_PNG = (
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+    b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc\x00\x01"
+    b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+)
 
-def _send_notice_email(notice, recipients):
-    """공지사항 이메일을 별도 스레드에서 발송한다."""
+
+def _track_token(notice_id, user_id):
+    """HMAC-SHA256 토큰 (앞 16자) — 위변조 방지."""
+    msg = f"{notice_id}:{user_id}".encode()
+    key = settings.SECRET_KEY.encode()
+    return hmac.new(key, msg, hashlib.sha256).hexdigest()[:16]
+
+
+def _track_pixel_url(notice_id, user_id):
+    token = _track_token(notice_id, user_id)
+    return f"{SITE_URL}/bbs/track/{notice_id}/{user_id}/{token}.png"
+
+
+def _send_notice_email(notice, recipient_users):
+    """공지사항 이메일을 회원별로 트래킹 픽셀과 함께 발송 (개별 발송)."""
     content_html = re.sub(
         r'src="(/media/[^"]+)"',
         rf'src="{SITE_URL}\1"',
         notice.content,
     )
-    body_html = (
-        f'<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">'
-        f'<p style="color:#555;">안녕하세요, 한울회 A+ 학습시스템입니다.</p>'
-        f'<p>새로운 공지사항이 등록되었습니다.</p>'
-        f'<h2 style="color:#1b4332;margin:16px 0 8px;">{notice.title}</h2>'
-        f'<hr style="border:none;border-top:1px solid #ddd;">'
-        f'<div style="padding:12px 0;line-height:1.7;">{content_html}</div>'
-        f'<hr style="border:none;border-top:1px solid #ddd;">'
-        f'<p><a href="{SITE_URL}/bbs/{notice.pk}/" '
-        f'style="color:#1b4332;font-weight:bold;">전체 내용 보기 →</a></p>'
-        f'</div>'
-    )
-    msg = EmailMessage(
-        subject=f"[한울회 A+] 공지사항: {notice.title}",
-        body=body_html,
-        from_email="admin@hanulstudy.kr",
-        bcc=recipients,
-    )
-    msg.content_subtype = "html"
-    threading.Thread(target=msg.send, kwargs={"fail_silently": True}, daemon=True).start()
+
+    def _send():
+        for u in recipient_users:
+            if not u.email:
+                continue
+            pixel = _track_pixel_url(notice.pk, u.pk)
+            body_html = (
+                f'<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">'
+                f'<p style="color:#555;">안녕하세요, 한울회 A+ 학습시스템입니다.</p>'
+                f'<p>새로운 공지사항이 등록되었습니다.</p>'
+                f'<h2 style="color:#1b4332;margin:16px 0 8px;">{notice.title}</h2>'
+                f'<hr style="border:none;border-top:1px solid #ddd;">'
+                f'<div style="padding:12px 0;line-height:1.7;">{content_html}</div>'
+                f'<hr style="border:none;border-top:1px solid #ddd;">'
+                f'<p><a href="{SITE_URL}/bbs/{notice.pk}/" '
+                f'style="color:#1b4332;font-weight:bold;">전체 내용 보기 →</a></p>'
+                f'<img src="{pixel}" width="1" height="1" alt="" style="display:none">'
+                f'</div>'
+            )
+            msg = EmailMessage(
+                subject=f"[한울회 A+] 공지사항: {notice.title}",
+                body=body_html,
+                from_email="admin@hanulstudy.kr",
+                to=[u.email],
+            )
+            msg.content_subtype = "html"
+            try:
+                msg.send(fail_silently=True)
+            except Exception:
+                pass
+
+    threading.Thread(target=_send, daemon=True).start()
+
+
+def notice_track_pixel(request, notice_id, user_id, token):
+    """1x1 투명 PNG 반환 + 열람 기록 저장. HMAC 토큰으로 위변조 차단."""
+    expected = _track_token(notice_id, user_id)
+    if hmac.compare_digest(expected, token):
+        try:
+            ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip() \
+                or request.META.get("REMOTE_ADDR")
+            ua = request.META.get("HTTP_USER_AGENT", "")[:300]
+            NoticeOpenLog.objects.create(
+                notice_id=notice_id,
+                user_id=user_id,
+                ip=ip or None,
+                user_agent=ua,
+            )
+        except Exception:
+            pass
+    response = HttpResponse(_PIXEL_PNG, content_type="image/png")
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response["Pragma"] = "no-cache"
+    return response
 
 
 def notice_list(request):
@@ -88,6 +143,28 @@ def notice_detail(request, pk):
     nearby = Notice.objects.exclude(pk=pk)[:10]
     can_edit = request.user == notice.author or request.user.is_staff
 
+    # 메일 열람 통계 (스태프 전용)
+    open_stats = None
+    if request.user.is_staff:
+        from django.db.models import Count, Max
+        opened_users = (
+            NoticeOpenLog.objects.filter(notice=notice)
+            .values("user_id", "user__username", "user__first_name")
+            .annotate(opens=Count("id"), last_opened=Max("opened_at"))
+            .order_by("-last_opened")
+        )
+        opt_out_count = UserProfile.objects.filter(receive_email=False).count()
+        sent_total = (
+            User.objects.filter(is_active=True)
+            .exclude(email="")
+            .count() - opt_out_count
+        )
+        open_stats = {
+            "sent": max(sent_total, 0),
+            "opened": len(opened_users),
+            "opened_list": list(opened_users),
+        }
+
     return render(
         request,
         "bbs/notice_detail.html",
@@ -96,6 +173,7 @@ def notice_detail(request, pk):
             "comments": comments,
             "nearby": nearby,
             "can_edit": can_edit,
+            "open_stats": open_stats,
         },
     )
 
@@ -115,19 +193,18 @@ def notice_create(request):
                 is_pinned=is_pinned,
             )
 
-            # 전체 회원에게 이메일 발송 (BCC, 이메일 수신 거부 회원 제외)
+            # 전체 회원에게 이메일 발송 (개별 발송 + 트래킹 픽셀, 수신 거부 제외)
             opt_out_ids = set(
                 UserProfile.objects.filter(receive_email=False)
                 .values_list("user_id", flat=True)
             )
-            recipients = list(
+            recipient_users = list(
                 User.objects.filter(is_active=True)
                 .exclude(email="")
                 .exclude(pk__in=opt_out_ids)
-                .values_list("email", flat=True)
             )
-            if recipients:
-                _send_notice_email(notice, recipients)
+            if recipient_users:
+                _send_notice_email(notice, recipient_users)
 
             return redirect("bbs:notice_list")
 

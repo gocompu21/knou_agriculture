@@ -14,4 +14,6 @@ urlpatterns = [
     path("<int:pk>/comment/", views.comment_create, name="comment_create"),
     path("comment/<int:pk>/delete/", views.comment_delete, name="comment_delete"),
     path("image/upload/", views.image_upload, name="image_upload"),
+    path("track/<int:notice_id>/<int:user_id>/<str:token>.png",
+         views.notice_track_pixel, name="notice_track_pixel"),
 ]

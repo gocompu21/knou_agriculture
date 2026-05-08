@@ -318,6 +318,64 @@
 
         <div class="detail-content">{{ notice.content|safe }}</div>
 
+        {% if open_stats %}
+        <!-- 메일 열람 통계 (스태프 전용) -->
+        <div class="open-stats">
+            <div class="open-stats-header">
+                📧 이메일 열람 통계
+                <span class="open-stats-summary">
+                    {{ open_stats.opened }} / {{ open_stats.sent }}명
+                    {% if open_stats.sent %}
+                        ({% widthratio open_stats.opened open_stats.sent 100 %}%)
+                    {% endif %}
+                </span>
+            </div>
+            {% if open_stats.opened_list %}
+            <details class="open-stats-detail">
+                <summary>열람 회원 보기 ({{ open_stats.opened }}명)</summary>
+                <ul class="open-stats-list">
+                    {% for o in open_stats.opened_list %}
+                    <li>
+                        <span class="ol-name">{{ o.user__first_name|default:o.user__username }}</span>
+                        <span class="ol-id">{{ o.user__username }}</span>
+                        <span class="ol-meta">{{ o.opens }}회 · 최근 {{ o.last_opened|date:"m/d H:i" }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </details>
+            {% endif %}
+        </div>
+        <style>
+            .open-stats {
+                margin: 22px 0; padding: 14px 18px;
+                background: #f1f8f4; border-left: 4px solid #1b4332;
+                border-radius: 6px;
+            }
+            .open-stats-header {
+                font-weight: 700; color: #1b4332; font-size: 0.92rem;
+                display: flex; justify-content: space-between; align-items: center;
+                flex-wrap: wrap; gap: 8px;
+            }
+            .open-stats-summary { font-size: 0.86rem; color: #2d6a4f; }
+            .open-stats-detail summary {
+                cursor: pointer; font-size: 0.84rem; color: #2d6a4f;
+                margin-top: 8px; padding: 4px 0;
+            }
+            .open-stats-list {
+                list-style: none; padding: 8px 0 0; margin: 0;
+                max-height: 260px; overflow-y: auto;
+            }
+            .open-stats-list li {
+                display: flex; gap: 10px; align-items: center;
+                padding: 5px 0; font-size: 0.84rem;
+                border-bottom: 1px dashed #d4ebc8;
+            }
+            .ol-name { font-weight: 700; color: #1b4332; min-width: 70px; }
+            .ol-id { color: #888; min-width: 110px; }
+            .ol-meta { color: #555; margin-left: auto; }
+        </style>
+        {% endif %}
+
         <!-- 댓글 -->
         <div class="comment-section">
             <div class="comment-header">댓글 <span class="comment-count">{{ comments|length }}</span></div>

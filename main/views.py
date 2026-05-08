@@ -991,6 +991,15 @@ def member_manage(request):
         m.receive_email = prof.receive_email if prof else True
         m.password_changed_at = prof.password_changed_at if prof else None
 
+    # 회원별 최근 메일 열람 시각
+    from bbs.models import NoticeOpenLog
+    last_opens = {
+        r["user_id"]: r["last"]
+        for r in NoticeOpenLog.objects.values("user_id").annotate(last=Max("opened_at"))
+    }
+    for m in members:
+        m.last_mail_open = last_opens.get(m.pk)
+
     return render(request, "main/member_manage.html", {"members": members})
 
 

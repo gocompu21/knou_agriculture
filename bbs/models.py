@@ -35,3 +35,29 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.author} - {self.content[:20]}"
+
+
+class NoticeOpenLog(models.Model):
+    """공지사항 메일 열람 기록 (트래킹 픽셀 호출 시 생성)."""
+
+    notice = models.ForeignKey(
+        Notice, on_delete=models.CASCADE, related_name="open_logs", verbose_name="공지"
+    )
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="notice_opens", verbose_name="사용자"
+    )
+    opened_at = models.DateTimeField("열람 시각", auto_now_add=True)
+    ip = models.GenericIPAddressField("IP", null=True, blank=True)
+    user_agent = models.CharField("User-Agent", max_length=300, blank=True)
+
+    class Meta:
+        verbose_name = "메일 열람 기록"
+        verbose_name_plural = "메일 열람 기록"
+        ordering = ["-opened_at"]
+        indexes = [
+            models.Index(fields=["notice", "user"]),
+            models.Index(fields=["opened_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} → {self.notice.title[:20]} @ {self.opened_at:%Y-%m-%d %H:%M}"
