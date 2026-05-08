@@ -983,13 +983,13 @@ def member_manage(request):
                 mode_map = {"exam": "기출풀이", "mock": "모의고사", "wrong_retry": "오답재풀이"}
                 m.last_activity_mode = mode_map.get(rec.mode, rec.mode)
 
-    # 이메일 수신 여부
+    # 이메일 수신 여부 + 비밀번호 변경 시각
     from accounts.models import UserProfile
-    email_opt_out = set(
-        UserProfile.objects.filter(receive_email=False).values_list("user_id", flat=True)
-    )
+    profiles = {p.user_id: p for p in UserProfile.objects.all()}
     for m in members:
-        m.receive_email = m.pk not in email_opt_out
+        prof = profiles.get(m.pk)
+        m.receive_email = prof.receive_email if prof else True
+        m.password_changed_at = prof.password_changed_at if prof else None
 
     return render(request, "main/member_manage.html", {"members": members})
 

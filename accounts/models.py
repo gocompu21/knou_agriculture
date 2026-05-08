@@ -14,6 +14,7 @@ class UserProfile(models.Model):
         verbose_name="사용자",
     )
     receive_email = models.BooleanField("이메일 수신", default=True)
+    password_changed_at = models.DateTimeField("비밀번호 변경 시각", null=True, blank=True)
 
     class Meta:
         verbose_name = "사용자 프로필"
