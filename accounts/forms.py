@@ -29,19 +29,19 @@ class SignUpForm(UserCreationForm):
         return username
 
     def clean_first_name(self):
+        # 검증 규칙 (조용히, 통합 메시지로):
+        # - 2자 이상
+        # - 한글(자모/음절) 1자 이상 포함
+        # - 한글/영문/공백/괄호 외 특수문자 금지
+        # 봇이 어느 규칙을 어겼는지 알 수 없도록 동일한 일반 메시지 사용
         name = (self.cleaned_data.get("first_name") or "").strip()
-        if len(name) < 2:
-            raise forms.ValidationError("이름은 2자 이상 입력해주세요.")
-        if not _HANGUL_RE.search(name):
-            raise forms.ValidationError(
-                "이름은 한글로 입력해주세요. (한울회는 한국어 학습 모임입니다)"
-            )
-        # 한글 외에 숫자·특수문자가 과도하게 섞인 경우 차단
-        # 한글·공백·괄호·영문 외의 특수문자가 있으면 거부
-        if re.search(r"[^가-힣ᄀ-ᇿ㄰-㆏ a-zA-Z()]", name):
-            raise forms.ValidationError(
-                "이름에는 한글·영문·공백·괄호만 사용할 수 있습니다."
-            )
+        invalid = (
+            len(name) < 2
+            or not _HANGUL_RE.search(name)
+            or bool(re.search(r"[^가-힣ᄀ-ᇿ㄰-㆏ a-zA-Z()]", name))
+        )
+        if invalid:
+            raise forms.ValidationError("입력하신 정보를 확인해 주세요.")
         return name
 
     def clean_email(self):

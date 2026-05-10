@@ -284,9 +284,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="id_first_name">이름 (한글 실명)</label>
-                    <input type="text" name="first_name" id="id_first_name" placeholder="홍길동 (한글로 입력)"
-                        value="{{ form.first_name.value|default:'' }}" pattern="[가-힣 a-zA-Z()]+" required>
+                    <label for="id_first_name">이름 (실명)</label>
+                    <input type="text" name="first_name" id="id_first_name" placeholder="홍길동"
+                        value="{{ form.first_name.value|default:'' }}" required>
                     {% if form.first_name.errors %}
                     <ul class="error-list">{% for error in form.first_name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
                     {% endif %}
