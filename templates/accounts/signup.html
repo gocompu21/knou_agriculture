@@ -268,6 +268,12 @@
             <form action="" method="post">
                 {% csrf_token %}
 
+                <!-- honeypot: 봇 차단용 숨김 필드 (사용자에게 안 보임, 봇이 채우면 차단) -->
+                <div style="position:absolute; left:-9999px; opacity:0; pointer-events:none; height:0; overflow:hidden;" aria-hidden="true">
+                    <label for="website">홈페이지 (입력하지 마세요)</label>
+                    <input type="text" name="website" id="website" tabindex="-1" autocomplete="off">
+                </div>
+
                 <div class="form-group">
                     <label for="id_username">아이디</label>
                     <input type="text" name="username" id="id_username" placeholder="사용할 아이디"

@@ -32,8 +32,53 @@ def _send_verification_email(request, user, token):
     msg.send(fail_silently=False)
 
 
+def _notify_admin_signup(user, request):
+    """관리자에게 신규 가입 알림 메일 (백그라운드 발송)."""
+    import threading
+
+    def _send():
+        try:
+            ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip() \
+                or request.META.get("REMOTE_ADDR", "")
+            ua = request.META.get("HTTP_USER_AGENT", "")[:200]
+            body = (
+                f"새 회원이 가입 신청했습니다.\n\n"
+                f"아이디  : {user.username}\n"
+                f"이름    : {user.first_name}\n"
+                f"이메일  : {user.email}\n"
+                f"가입시각: {user.date_joined:%Y-%m-%d %H:%M:%S}\n"
+                f"IP      : {ip}\n"
+                f"User-Agent: {ua}\n\n"
+                f"※ 이메일 인증 완료 후 활성화됩니다.\n"
+                f"※ 봇 의심 시 회원관리에서 삭제하세요: https://hanulstudy.kr/manage/members/\n"
+            )
+            EmailMessage(
+                f"[한울회 A+] 신규 가입: {user.first_name}({user.username})",
+                body,
+                "admin@hanulstudy.kr",
+                ["gocompu21@gmail.com"],  # 관리자 메일 (필요 시 settings로 분리)
+            ).send(fail_silently=True)
+        except Exception:
+            pass
+
+    threading.Thread(target=_send, daemon=True).start()
+
+
 def user_signup(request):
     if request.method == "POST":
+        # honeypot: 사용자에게 보이지 않는 'website' 필드에 값이 들어오면 봇으로 간주
+        if request.POST.get("website", "").strip():
+            import logging
+            logging.getLogger("django").warning(
+                "Bot signup blocked (honeypot): username=%s ip=%s",
+                request.POST.get("username", ""),
+                request.META.get("REMOTE_ADDR", ""),
+            )
+            # 일반 에러처럼 보여 봇이 우회 학습 못 하게 함
+            from django.contrib import messages as _msg
+            _msg.error(request, "잠시 후 다시 시도해 주세요.")
+            return render(request, "accounts/signup.html", {"form": SignUpForm()})
+
         # 비활성 상태로 이미 가입한 사용자가 같은 username/email로 다시 시도한 경우
         # → 기존 계정의 토큰을 갱신하고 메일 재발송
         username = request.POST.get("username", "").strip()
@@ -67,6 +112,8 @@ def user_signup(request):
                 user.delete()  # 메일 발송 실패 시 가입 취소
                 messages.error(request, f"인증 메일 발송에 실패했습니다: {e}")
                 return render(request, "accounts/signup.html", {"form": form})
+            # 관리자 알림 메일 (백그라운드)
+            _notify_admin_signup(user, request)
             return render(
                 request,
                 "accounts/signup_pending.html",
