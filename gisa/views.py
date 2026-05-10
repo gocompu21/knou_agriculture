@@ -1138,6 +1138,11 @@ def mock_exam_take(request, cert_id):
         if key in note_map:
             q_notes[str(q.id)] = _rank_notes(q.text, note_map[key])
 
+    # 이미 오답노트에 등록된 문제 ID (학습모드에서 오답노트 등록 상태 표시용)
+    wrong_qids = set()
+    if request.user.is_authenticated:
+        wrong_qids = set(_get_wrong_question_ids(request.user, cert))
+
     return render(
         request,
         "gisa/mock_exam_take.html",
@@ -1147,6 +1152,7 @@ def mock_exam_take(request, cert_id):
             "session_id": session_id,
             "subjects": subjects,
             "q_notes_json": json.dumps(q_notes, ensure_ascii=False),
+            "wrong_qids": wrong_qids,
         },
     )
 
