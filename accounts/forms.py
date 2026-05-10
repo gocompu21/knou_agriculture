@@ -1,11 +1,22 @@
+import re
+
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 
 
+# 한글(자모 + 음절) 1자 이상 포함 여부 체크
+_HANGUL_RE = re.compile(r"[가-힣ᄀ-ᇿ㄰-㆏]")
+
+
 class SignUpForm(UserCreationForm):
     email = forms.EmailField(required=True, help_text="이메일 주소를 입력해주세요.")
-    first_name = forms.CharField(max_length=30, required=True, label="이름")
+    first_name = forms.CharField(
+        max_length=30,
+        required=True,
+        label="이름",
+        help_text="한글 실명을 입력해주세요. (예: 홍길동)",
+    )
 
     class Meta:
         model = User
@@ -16,6 +27,22 @@ class SignUpForm(UserCreationForm):
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError("사용자 이름이 이미 있습니다.")
         return username
+
+    def clean_first_name(self):
+        name = (self.cleaned_data.get("first_name") or "").strip()
+        if len(name) < 2:
+            raise forms.ValidationError("이름은 2자 이상 입력해주세요.")
+        if not _HANGUL_RE.search(name):
+            raise forms.ValidationError(
+                "이름은 한글로 입력해주세요. (한울회는 한국어 학습 모임입니다)"
+            )
+        # 한글 외에 숫자·특수문자가 과도하게 섞인 경우 차단
+        # 한글·공백·괄호·영문 외의 특수문자가 있으면 거부
+        if re.search(r"[^가-힣ᄀ-ᇿ㄰-㆏ a-zA-Z()]", name):
+            raise forms.ValidationError(
+                "이름에는 한글·영문·공백·괄호만 사용할 수 있습니다."
+            )
+        return name
 
     def clean_email(self):
         email = self.cleaned_data["email"]
