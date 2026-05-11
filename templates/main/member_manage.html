@@ -314,6 +314,7 @@
                 <th>가입일</th>
                 <th>비번변경</th>
                 <th>메일열람</th>
+                <th>PDF열람</th>
                 <th>로그인</th>
                 <th>사용시간</th>
                 <th>최종작업</th>
@@ -334,6 +335,7 @@
                 <td class="td-date">{{ m.date_joined|date:"Y.m.d" }}</td>
                 <td class="td-date">{% if m.password_changed_at %}<span title="비밀번호 변경일">{{ m.password_changed_at|date:"Y.m.d" }}</span>{% else %}<span class="dash">-</span>{% endif %}</td>
                 <td class="td-date">{% if m.last_mail_open %}<span title="최근 메일 열람">{{ m.last_mail_open|date:"m.d H:i" }}</span>{% else %}<span class="dash">-</span>{% endif %}</td>
+                <td class="td-date">{% if m.last_pdf_open %}<span title="최근 PDF 열람 / 총 {{ m.pdf_open_count }}회">{{ m.last_pdf_open|date:"m.d H:i" }} <small style="color:#888;">({{ m.pdf_open_count }})</small></span>{% else %}<span class="dash">-</span>{% endif %}</td>
                 <td class="td-login"><span class="num {% if m.login_count == 0 %}zero{% endif %}">{{ m.login_count }}</span></td>
                 <td class="td-time">{% if m.usage_display == "-" %}<span class="dash">-</span>{% else %}{{ m.usage_display }}{% endif %}</td>
                 <td class="td-activity">{% if m.last_activity_mode %}<span class="activity-source {% if m.last_activity_source == '기사' %}gisa{% else %}knou{% endif %}">{{ m.last_activity_source }}</span> {{ m.last_activity_mode }}{% else %}<span class="dash">-</span>{% endif %}</td>

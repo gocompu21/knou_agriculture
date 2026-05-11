@@ -32,6 +32,7 @@ urlpatterns = [
     path("manage/materials/", views.material_manage, name="material_manage"),
     path("manage/materials/upload/", views.material_upload, name="material_upload"),
     path("manage/materials/<int:pk>/delete/", views.material_delete, name="material_delete"),
+    path("manage/materials/<int:pk>/logs/", views.material_open_logs, name="material_open_logs"),
     path("subjects/<int:pk>/materials/", views.material_list, name="material_list"),
     path("subjects/<int:pk>/materials/<int:material_pk>/view/", views.material_view, name="material_view"),
     path("subjects/<int:pk>/materials/<int:material_pk>/stream/", views.material_stream, name="material_stream"),

@@ -120,7 +120,7 @@
 
     <div class="upload-card">
         <h2>새 PDF 자료 업로드</h2>
-        <form id="uploadForm" class="upload-form" method="post" action="{% url 'main:material_upload' %}" enctype="multipart/form-data">
+        <form class="upload-form" method="post" action="{% url 'main:material_upload' %}" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="form-row">
                 <label for="subject">교과목</label>
@@ -141,26 +141,10 @@
                 <label for="file">PDF 파일</label>
                 <input type="file" id="file" name="file" accept="application/pdf,.pdf" required>
             </div>
-            <div class="form-row" id="fileInfoRow" style="display:none;">
-                <label>선택 파일</label>
-                <div id="fileInfo" style="font-size:0.85rem; color:#555;"></div>
-            </div>
             <div class="form-actions">
-                <button type="submit" id="uploadBtn" class="btn btn-primary">+ 업로드</button>
+                <button type="submit" class="btn btn-primary">+ 업로드</button>
             </div>
         </form>
-
-        <!-- 진행 상태 -->
-        <div id="uploadProgress" style="display:none; margin-top:14px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <span id="progressLabel" style="font-size:0.86rem; font-weight:700; color:var(--forest);">📤 업로드 중...</span>
-                <span id="progressPct" style="font-size:0.86rem; font-weight:700; color:#555;">0%</span>
-            </div>
-            <div style="background:#e5efe7; border-radius:10px; overflow:hidden; height:14px;">
-                <div id="progressBar" style="width:0%; height:100%; background:linear-gradient(90deg,#2d8a56,#1f6a47); transition:width .15s;"></div>
-            </div>
-            <div id="progressDetail" style="font-size:0.78rem; color:#777; margin-top:6px;"></div>
-        </div>
     </div>
 
     <div class="filter-bar">
@@ -186,15 +170,17 @@
                 <th>제목</th>
                 <th>등록자</th>
                 <th>등록일</th>
+                <th title="고유 사용자수 / 누적 열람수">열람</th>
                 <th>관리</th>
             </tr>
         </thead>
         <tbody>
             {% for m in materials %}
             <tr>
-                <td><strong>{{ m.title }}</strong></td>
+                <td><strong>{{ m.title }}</strong> <a href="{% url 'main:material_open_logs' m.pk %}" style="font-size:0.78em; color:#888; margin-left:6px; text-decoration:none;">[로그]</a></td>
                 <td>{{ m.uploaded_by.username|default:"-" }}</td>
                 <td>{{ m.created_at|date:"Y-m-d H:i" }}</td>
+                <td style="text-align:center;">{% if m.unique_viewers %}<strong style="color:var(--forest);">{{ m.unique_viewers }}</strong>명 / {{ m.open_count }}회{% else %}<span style="color:#bbb;">-</span>{% endif %}</td>
                 <td>
                     <form method="post" action="{% url 'main:material_delete' m.pk %}" onsubmit="return confirm('이 자료를 삭제하시겠습니까?');" style="margin:0; display:inline;">
                         {% csrf_token %}
@@ -218,6 +204,7 @@
                 <th>제목</th>
                 <th>등록자</th>
                 <th>등록일</th>
+                <th title="고유 사용자수 / 누적 열람수">열람</th>
                 <th>관리</th>
             </tr>
         </thead>
@@ -225,9 +212,10 @@
             {% for m in all_materials %}
             <tr>
                 <td>{{ m.subject.name }}</td>
-                <td><strong>{{ m.title }}</strong></td>
+                <td><strong>{{ m.title }}</strong> <a href="{% url 'main:material_open_logs' m.pk %}" style="font-size:0.78em; color:#888; margin-left:6px; text-decoration:none;">[로그]</a></td>
                 <td>{{ m.uploaded_by.username|default:"-" }}</td>
                 <td>{{ m.created_at|date:"Y-m-d H:i" }}</td>
+                <td style="text-align:center;">{% if m.unique_viewers %}<strong style="color:var(--forest);">{{ m.unique_viewers }}</strong>명 / {{ m.open_count }}회{% else %}<span style="color:#bbb;">-</span>{% endif %}</td>
                 <td>
                     <form method="post" action="{% url 'main:material_delete' m.pk %}" onsubmit="return confirm('이 자료를 삭제하시겠습니까?');" style="margin:0; display:inline;">
                         {% csrf_token %}
@@ -243,120 +231,4 @@
     {% endif %}
     {% endif %}
 </div>
-
-<script>
-(function() {
-    var fileInput = document.getElementById('file');
-    var fileInfo = document.getElementById('fileInfo');
-    var fileInfoRow = document.getElementById('fileInfoRow');
-    var form = document.getElementById('uploadForm');
-    var btn = document.getElementById('uploadBtn');
-    var progress = document.getElementById('uploadProgress');
-    var bar = document.getElementById('progressBar');
-    var pct = document.getElementById('progressPct');
-    var label = document.getElementById('progressLabel');
-    var detail = document.getElementById('progressDetail');
-
-    // 교과목 선택 시 페이지 하단의 과목 필터도 자동 동기화 + URL 갱신
-    var subjectSelect = document.getElementById('subject');
-    var filterSelect = document.getElementById('filter-subject');
-    if (subjectSelect) {
-        subjectSelect.addEventListener('change', function() {
-            var v = this.value;
-            // 필터 select 즉시 동기화 (페이지 이동 전 시각적 반영)
-            if (filterSelect) filterSelect.value = v || '';
-            // URL을 해당 과목으로 갱신 → 하단 자료 목록도 같이 갱신됨
-            if (v) {
-                location.href = '?subject=' + v;
-            } else {
-                location.href = '{% url "main:material_manage" %}';
-            }
-        });
-    }
-
-    function fmtSize(b) {
-        if (b < 1024) return b + ' B';
-        if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
-        return (b/1024/1024).toFixed(2) + ' MB';
-    }
-
-    fileInput.addEventListener('change', function() {
-        var f = this.files && this.files[0];
-        if (f) {
-            fileInfo.textContent = f.name + '  ·  ' + fmtSize(f.size);
-            fileInfoRow.style.display = '';
-        } else {
-            fileInfoRow.style.display = 'none';
-        }
-    });
-
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        var f = fileInput.files && fileInput.files[0];
-        if (!f) { alert('파일을 선택하세요.'); return; }
-        var subj = document.getElementById('subject').value;
-        if (!subj) { alert('과목을 선택하세요.'); return; }
-
-        var fd = new FormData(form);
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', form.action);
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-
-        progress.style.display = '';
-        btn.disabled = true;
-        btn.textContent = '⏳ 업로드 중...';
-        bar.style.width = '0%';
-        pct.textContent = '0%';
-        label.textContent = '📤 업로드 중...';
-        detail.textContent = '0 / ' + fmtSize(f.size);
-
-        var startTime = Date.now();
-        xhr.upload.addEventListener('progress', function(ev) {
-            if (ev.lengthComputable) {
-                var p = ev.loaded / ev.total * 100;
-                bar.style.width = p.toFixed(1) + '%';
-                pct.textContent = p.toFixed(1) + '%';
-                var elapsed = (Date.now() - startTime) / 1000;
-                var speed = ev.loaded / elapsed;  // bytes/sec
-                var remain = (ev.total - ev.loaded) / speed;
-                detail.textContent = fmtSize(ev.loaded) + ' / ' + fmtSize(ev.total)
-                    + '   ·  속도 ' + fmtSize(speed) + '/s'
-                    + '   ·  남은 시간 ' + Math.max(0, Math.round(remain)) + '초';
-            }
-        });
-
-        xhr.addEventListener('load', function() {
-            if (xhr.status >= 200 && xhr.status < 400) {
-                bar.style.width = '100%';
-                pct.textContent = '100%';
-                label.textContent = '✅ 업로드 완료! 페이지를 갱신합니다...';
-                detail.textContent = '';
-                setTimeout(function() {
-                    location.href = '?subject=' + subj;
-                }, 600);
-            } else {
-                label.textContent = '❌ 업로드 실패 (' + xhr.status + ')';
-                detail.textContent = xhr.responseText.substring(0, 200);
-                btn.disabled = false;
-                btn.textContent = '+ 업로드';
-            }
-        });
-
-        xhr.addEventListener('error', function() {
-            label.textContent = '❌ 네트워크 오류로 업로드 실패';
-            detail.textContent = '';
-            btn.disabled = false;
-            btn.textContent = '+ 업로드';
-        });
-
-        xhr.addEventListener('abort', function() {
-            label.textContent = '⛔ 업로드 취소됨';
-            btn.disabled = false;
-            btn.textContent = '+ 업로드';
-        });
-
-        xhr.send(fd);
-    });
-})();
-</script>
 {% endblock %}

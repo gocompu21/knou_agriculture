@@ -55,3 +55,26 @@ class SubjectMaterial(models.Model):
 
     def __str__(self):
         return f"{self.subject.name} - {self.title}"
+
+
+class MaterialOpenLog(models.Model):
+    """PDF 자료(SubjectMaterial) 열람 기록.
+    material_view 페이지 진입 시 한 행 저장. 동일 사용자가 여러 번 열면 행도 늘어남.
+    """
+    material = models.ForeignKey(SubjectMaterial, on_delete=models.CASCADE, related_name='open_logs', verbose_name='자료')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='material_opens', verbose_name='사용자')
+    opened_at = models.DateTimeField('열람 시각', auto_now_add=True)
+    ip = models.GenericIPAddressField('IP', null=True, blank=True)
+    user_agent = models.CharField('User-Agent', max_length=300, blank=True)
+
+    class Meta:
+        verbose_name = 'PDF 열람 기록'
+        verbose_name_plural = 'PDF 열람 기록'
+        ordering = ['-opened_at']
+        indexes = [
+            models.Index(fields=['material', 'user']),
+            models.Index(fields=['opened_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} → {self.material.title[:20]} @ {self.opened_at:%Y-%m-%d %H:%M}"

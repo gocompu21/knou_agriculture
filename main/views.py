@@ -1000,6 +1000,17 @@ def member_manage(request):
     for m in members:
         m.last_mail_open = last_opens.get(m.pk)
 
+    # 회원별 PDF 자료 열람 (최근 시각 + 총 횟수)
+    from .models import MaterialOpenLog
+    pdf_stats = {
+        r["user_id"]: (r["last"], r["c"])
+        for r in MaterialOpenLog.objects.values("user_id").annotate(last=Max("opened_at"), c=Count("id"))
+    }
+    for m in members:
+        last, cnt = pdf_stats.get(m.pk, (None, 0))
+        m.last_pdf_open = last
+        m.pdf_open_count = cnt
+
     return render(request, "main/member_manage.html", {"members": members})
 
 
@@ -1133,6 +1144,34 @@ def member_delete(request, pk):
 
 @login_required
 @user_passes_test(staff_required)
+def material_open_logs(request, pk):
+    """자료별 PDF 열람 로그 상세 (스태프 전용)"""
+    from .models import MaterialOpenLog
+    material = get_object_or_404(SubjectMaterial.objects.select_related('subject'), pk=pk)
+    # 사용자별 열람 통계
+    by_user = (
+        MaterialOpenLog.objects.filter(material=material)
+        .values('user_id', 'user__username', 'user__first_name')
+        .annotate(opens=Count('id'), last=Max('opened_at'), first=Min('opened_at'))
+        .order_by('-last')
+    )
+    # 최근 30건 상세 로그
+    recent_logs = (
+        MaterialOpenLog.objects.filter(material=material)
+        .select_related('user')
+        .order_by('-opened_at')[:30]
+    )
+    total_opens = MaterialOpenLog.objects.filter(material=material).count()
+    return render(request, 'main/material_open_logs.html', {
+        'material': material,
+        'by_user': by_user,
+        'recent_logs': recent_logs,
+        'total_opens': total_opens,
+    })
+
+
+@login_required
+@user_passes_test(staff_required)
 def material_manage(request):
     subjects = Subject.objects.all().order_by('grade', 'semester', 'name')
     selected_id = request.GET.get('subject')
@@ -1145,6 +1184,21 @@ def material_manage(request):
         except (Subject.DoesNotExist, ValueError):
             pass
     all_materials = SubjectMaterial.objects.select_related('subject').order_by('-created_at')[:100]
+
+    # 자료별 열람 통계 (열람 횟수 + 고유 사용자수)
+    from .models import MaterialOpenLog
+    open_counts = {}
+    for r in MaterialOpenLog.objects.values('material_id').annotate(c=Count('id'), uniq=Count('user_id', distinct=True)):
+        open_counts[r['material_id']] = (r['c'], r['uniq'])
+    for m in materials:
+        c, u = open_counts.get(m.pk, (0, 0))
+        m.open_count = c
+        m.unique_viewers = u
+    for m in all_materials:
+        c, u = open_counts.get(m.pk, (0, 0))
+        m.open_count = c
+        m.unique_viewers = u
+
     return render(request, 'main/material_manage.html', {
         'subjects': subjects,
         'selected_subject': selected_subject,
@@ -1236,9 +1290,25 @@ def material_stream(request, pk, material_pk):
 @login_required
 @xframe_options_sameorigin
 def material_view(request, pk, material_pk):
-    """PDF 뷰어 페이지 (다운로드 차단 UI)"""
+    """PDF 뷰어 페이지 (다운로드 차단 UI). 진입 시 열람 로그 저장."""
     subject = get_object_or_404(Subject, pk=pk)
     material = get_object_or_404(SubjectMaterial, pk=material_pk, subject=subject)
+
+    # 열람 로그 저장 (실패해도 PDF 보기는 계속)
+    try:
+        from .models import MaterialOpenLog
+        ip = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() \
+            or request.META.get('REMOTE_ADDR')
+        ua = request.META.get('HTTP_USER_AGENT', '')[:300]
+        MaterialOpenLog.objects.create(
+            material=material,
+            user=request.user,
+            ip=ip or None,
+            user_agent=ua,
+        )
+    except Exception:
+        pass
+
     return render(request, 'main/material_view.html', {
         'subject': subject,
         'material': material,
