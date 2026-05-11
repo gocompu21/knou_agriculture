@@ -108,6 +108,10 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+# 발신자: Gmail이 admin@hanulstudy.kr를 강제로 gocompu21@gmail.com으로 교체하므로
+# 처음부터 발신 계정으로 통일하되, 표시 이름은 "한울회 A+ 학습시스템"으로 유지
+DEFAULT_FROM_EMAIL = '"한울회 A+ 학습시스템" <gocompu21@gmail.com>'
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/mypage/"

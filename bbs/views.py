@@ -62,13 +62,17 @@ def _send_notice_email(notice, recipient_users):
                 f'<hr style="border:none;border-top:1px solid #ddd;">'
                 f'<p><a href="{SITE_URL}/bbs/{notice.pk}/" '
                 f'style="color:#1b4332;font-weight:bold;">전체 내용 보기 →</a></p>'
+                f'<p style="color:#999;font-size:0.82em;margin-top:18px;text-align:center;">'
+                f'본 메일은 <strong>한울회 A+ 학습시스템</strong>(hanulstudy.kr)에서 발송된 공식 안내입니다.<br>'
+                f'발신 계정: gocompu21@gmail.com (운영자 Gmail로 발송)'
+                f'</p>'
                 f'<img src="{pixel}" width="1" height="1" alt="" style="display:none">'
                 f'</div>'
             )
             msg = EmailMessage(
                 subject=f"[한울회 A+] 공지사항: {notice.title}",
                 body=body_html,
-                from_email="admin@hanulstudy.kr",
+                # from_email 생략 → settings.DEFAULT_FROM_EMAIL 사용
                 to=[u.email],
             )
             msg.content_subtype = "html"

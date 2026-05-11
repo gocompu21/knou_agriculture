@@ -25,7 +25,7 @@ def _send_verification_email(request, user, token):
     msg = EmailMessage(
         "[한울회 A+] 회원가입 이메일 인증 안내",
         html,
-        "admin@hanulstudy.kr",
+        None,  # settings.DEFAULT_FROM_EMAIL 사용
         [user.email],
     )
     msg.content_subtype = "html"
@@ -55,8 +55,8 @@ def _notify_admin_signup(user, request):
             EmailMessage(
                 f"[한울회 A+] 신규 가입: {user.first_name}({user.username})",
                 body,
-                "admin@hanulstudy.kr",
-                ["gocompu21@gmail.com"],  # 관리자 메일 (필요 시 settings로 분리)
+                None,  # settings.DEFAULT_FROM_EMAIL 사용
+                ["gocompu21@gmail.com"],
             ).send(fail_silently=True)
         except Exception:
             pass
@@ -208,7 +208,7 @@ def password_reset_request(request):
             send_mail(
                 subject,
                 message,
-                "admin@hanulstudy.kr",
+                None,  # settings.DEFAULT_FROM_EMAIL 사용
                 [user.email],
                 fail_silently=False,
             )
