@@ -36,4 +36,5 @@ urlpatterns = [
     path("subjects/<int:pk>/materials/", views.material_list, name="material_list"),
     path("subjects/<int:pk>/materials/<int:material_pk>/view/", views.material_view, name="material_view"),
     path("subjects/<int:pk>/materials/<int:material_pk>/stream/", views.material_stream, name="material_stream"),
+    path("subjects/<int:pk>/materials/<int:material_pk>/print-log/", views.material_print_log, name="material_print_log"),
 ]

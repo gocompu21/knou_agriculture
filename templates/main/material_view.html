@@ -252,6 +252,15 @@
         const orig = btn.textContent;
         btn.textContent = '⏳ 준비 중...';
 
+        // 서버에 인쇄 시도 로그 전송 (실패해도 인쇄는 진행)
+        try {
+            fetch('{% url "main:material_print_log" subject.pk material.pk %}', {
+                method: 'POST',
+                headers: {'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest'},
+                credentials: 'same-origin',
+            }).catch(function() {});
+        } catch (e) {}
+
         // 기존 iframe이 있으면 제거
         const oldFrame = document.getElementById('printFrame');
         if (oldFrame) oldFrame.remove();

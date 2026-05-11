@@ -49,24 +49,29 @@
     <div class="stat-row">
         <div class="stat-card">
             <div class="v">{{ by_user|length }}</div>
-            <div class="l">고유 열람자</div>
+            <div class="l">고유 사용자</div>
         </div>
         <div class="stat-card">
-            <div class="v">{{ total_opens }}</div>
+            <div class="v">{{ total_view }}</div>
             <div class="l">누적 열람수</div>
+        </div>
+        <div class="stat-card">
+            <div class="v" style="color:#d93025;">{{ total_print }}</div>
+            <div class="l">누적 인쇄수</div>
         </div>
     </div>
 
-    <h2 class="section">사용자별 열람 통계</h2>
+    <h2 class="section">사용자별 열람·인쇄 통계</h2>
     {% if by_user %}
     <table>
         <thead>
             <tr>
                 <th>사용자ID</th>
                 <th>이름</th>
-                <th style="text-align:center;">열람 횟수</th>
-                <th>최초 열람</th>
-                <th>최근 열람</th>
+                <th style="text-align:center;">열람</th>
+                <th style="text-align:center;">인쇄</th>
+                <th>최초</th>
+                <th>최근</th>
             </tr>
         </thead>
         <tbody>
@@ -74,7 +79,8 @@
             <tr>
                 <td><strong>{{ u.user__username }}</strong></td>
                 <td>{{ u.user__first_name|default:"-" }}</td>
-                <td style="text-align:center;"><strong style="color:var(--forest);">{{ u.opens }}</strong></td>
+                <td style="text-align:center;"><strong style="color:var(--forest);">{{ u.views }}</strong></td>
+                <td style="text-align:center;">{% if u.prints %}<strong style="color:#d93025;">{{ u.prints }}</strong>{% else %}<span style="color:#bbb;">-</span>{% endif %}</td>
                 <td>{{ u.first|date:"m.d H:i" }}</td>
                 <td>{{ u.last|date:"m.d H:i" }}</td>
             </tr>
@@ -85,12 +91,13 @@
     <div class="empty">아직 아무도 이 자료를 열람하지 않았습니다.</div>
     {% endif %}
 
-    <h2 class="section">최근 열람 로그 (최대 30건)</h2>
+    <h2 class="section">최근 활동 로그 (최대 30건)</h2>
     {% if recent_logs %}
     <table>
         <thead>
             <tr>
                 <th>시각</th>
+                <th style="text-align:center;">동작</th>
                 <th>사용자</th>
                 <th>IP</th>
             </tr>
@@ -99,6 +106,7 @@
             {% for l in recent_logs %}
             <tr>
                 <td>{{ l.opened_at|date:"Y-m-d H:i" }}</td>
+                <td style="text-align:center;">{% if l.action == 'print' %}<span style="background:#fee;color:#d93025;padding:2px 8px;border-radius:4px;font-size:0.78em;font-weight:700;">🖨 인쇄</span>{% else %}<span style="background:#e8f5df;color:var(--forest);padding:2px 8px;border-radius:4px;font-size:0.78em;font-weight:700;">📄 열람</span>{% endif %}</td>
                 <td><strong>{{ l.user.first_name|default:l.user.username }}</strong> <small style="color:#888;">({{ l.user.username }})</small></td>
                 <td><small style="color:#888;">{{ l.ip|default:"-" }}</small></td>
             </tr>
@@ -106,7 +114,7 @@
         </tbody>
     </table>
     {% else %}
-    <div class="empty">열람 기록 없음</div>
+    <div class="empty">기록 없음</div>
     {% endif %}
 </div>
 {% endblock %}

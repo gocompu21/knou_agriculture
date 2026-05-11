@@ -170,7 +170,8 @@
                 <th>제목</th>
                 <th>등록자</th>
                 <th>등록일</th>
-                <th title="고유 사용자수 / 누적 열람수">열람</th>
+                <th title="고유 N명 / 누적 N회">열람</th>
+                <th title="고유 N명 / 누적 N회">인쇄</th>
                 <th>관리</th>
             </tr>
         </thead>
@@ -180,7 +181,8 @@
                 <td><strong>{{ m.title }}</strong> <a href="{% url 'main:material_open_logs' m.pk %}" style="font-size:0.78em; color:#888; margin-left:6px; text-decoration:none;">[로그]</a></td>
                 <td>{{ m.uploaded_by.username|default:"-" }}</td>
                 <td>{{ m.created_at|date:"Y-m-d H:i" }}</td>
-                <td style="text-align:center;">{% if m.unique_viewers %}<strong style="color:var(--forest);">{{ m.unique_viewers }}</strong>명 / {{ m.open_count }}회{% else %}<span style="color:#bbb;">-</span>{% endif %}</td>
+                <td style="text-align:center;">{% if m.unique_viewers %}<strong style="color:var(--forest);">{{ m.unique_viewers }}</strong>/{{ m.view_count }}{% else %}<span style="color:#bbb;">-</span>{% endif %}</td>
+                <td style="text-align:center;">{% if m.unique_printers %}<strong style="color:#d93025;">{{ m.unique_printers }}</strong>/{{ m.print_count }}{% else %}<span style="color:#bbb;">-</span>{% endif %}</td>
                 <td>
                     <form method="post" action="{% url 'main:material_delete' m.pk %}" onsubmit="return confirm('이 자료를 삭제하시겠습니까?');" style="margin:0; display:inline;">
                         {% csrf_token %}
@@ -204,7 +206,8 @@
                 <th>제목</th>
                 <th>등록자</th>
                 <th>등록일</th>
-                <th title="고유 사용자수 / 누적 열람수">열람</th>
+                <th title="고유 N명 / 누적 N회">열람</th>
+                <th title="고유 N명 / 누적 N회">인쇄</th>
                 <th>관리</th>
             </tr>
         </thead>
@@ -215,7 +218,8 @@
                 <td><strong>{{ m.title }}</strong> <a href="{% url 'main:material_open_logs' m.pk %}" style="font-size:0.78em; color:#888; margin-left:6px; text-decoration:none;">[로그]</a></td>
                 <td>{{ m.uploaded_by.username|default:"-" }}</td>
                 <td>{{ m.created_at|date:"Y-m-d H:i" }}</td>
-                <td style="text-align:center;">{% if m.unique_viewers %}<strong style="color:var(--forest);">{{ m.unique_viewers }}</strong>명 / {{ m.open_count }}회{% else %}<span style="color:#bbb;">-</span>{% endif %}</td>
+                <td style="text-align:center;">{% if m.unique_viewers %}<strong style="color:var(--forest);">{{ m.unique_viewers }}</strong>/{{ m.view_count }}{% else %}<span style="color:#bbb;">-</span>{% endif %}</td>
+                <td style="text-align:center;">{% if m.unique_printers %}<strong style="color:#d93025;">{{ m.unique_printers }}</strong>/{{ m.print_count }}{% else %}<span style="color:#bbb;">-</span>{% endif %}</td>
                 <td>
                     <form method="post" action="{% url 'main:material_delete' m.pk %}" onsubmit="return confirm('이 자료를 삭제하시겠습니까?');" style="margin:0; display:inline;">
                         {% csrf_token %}

@@ -1145,14 +1145,20 @@ def member_delete(request, pk):
 @login_required
 @user_passes_test(staff_required)
 def material_open_logs(request, pk):
-    """자료별 PDF 열람 로그 상세 (스태프 전용)"""
+    """자료별 PDF 열람·인쇄 로그 상세 (스태프 전용)"""
     from .models import MaterialOpenLog
+    from django.db.models import Q
     material = get_object_or_404(SubjectMaterial.objects.select_related('subject'), pk=pk)
-    # 사용자별 열람 통계
+    # 사용자별 열람/인쇄 통계
     by_user = (
         MaterialOpenLog.objects.filter(material=material)
         .values('user_id', 'user__username', 'user__first_name')
-        .annotate(opens=Count('id'), last=Max('opened_at'), first=Min('opened_at'))
+        .annotate(
+            views=Count('id', filter=Q(action='view')),
+            prints=Count('id', filter=Q(action='print')),
+            last=Max('opened_at'),
+            first=Min('opened_at'),
+        )
         .order_by('-last')
     )
     # 최근 30건 상세 로그
@@ -1161,12 +1167,14 @@ def material_open_logs(request, pk):
         .select_related('user')
         .order_by('-opened_at')[:30]
     )
-    total_opens = MaterialOpenLog.objects.filter(material=material).count()
+    total_view = MaterialOpenLog.objects.filter(material=material, action='view').count()
+    total_print = MaterialOpenLog.objects.filter(material=material, action='print').count()
     return render(request, 'main/material_open_logs.html', {
         'material': material,
         'by_user': by_user,
         'recent_logs': recent_logs,
-        'total_opens': total_opens,
+        'total_view': total_view,
+        'total_print': total_print,
     })
 
 
@@ -1185,19 +1193,29 @@ def material_manage(request):
             pass
     all_materials = SubjectMaterial.objects.select_related('subject').order_by('-created_at')[:100]
 
-    # 자료별 열람 통계 (열람 횟수 + 고유 사용자수)
+    # 자료별 열람·인쇄 통계
     from .models import MaterialOpenLog
-    open_counts = {}
-    for r in MaterialOpenLog.objects.values('material_id').annotate(c=Count('id'), uniq=Count('user_id', distinct=True)):
-        open_counts[r['material_id']] = (r['c'], r['uniq'])
-    for m in materials:
-        c, u = open_counts.get(m.pk, (0, 0))
-        m.open_count = c
-        m.unique_viewers = u
-    for m in all_materials:
-        c, u = open_counts.get(m.pk, (0, 0))
-        m.open_count = c
-        m.unique_viewers = u
+    stats = {}
+    for r in MaterialOpenLog.objects.values('material_id', 'action').annotate(c=Count('id'), uniq=Count('user_id', distinct=True)):
+        mid = r['material_id']
+        stats.setdefault(mid, {'view_c': 0, 'view_u': 0, 'print_c': 0, 'print_u': 0})
+        if r['action'] == 'view':
+            stats[mid]['view_c'] = r['c']
+            stats[mid]['view_u'] = r['uniq']
+        elif r['action'] == 'print':
+            stats[mid]['print_c'] = r['c']
+            stats[mid]['print_u'] = r['uniq']
+
+    def _attach(mat_list):
+        for m in mat_list:
+            s = stats.get(m.pk, {'view_c': 0, 'view_u': 0, 'print_c': 0, 'print_u': 0})
+            m.view_count = s['view_c']
+            m.unique_viewers = s['view_u']
+            m.print_count = s['print_c']
+            m.unique_printers = s['print_u']
+
+    _attach(materials)
+    _attach(all_materials)
 
     return render(request, 'main/material_manage.html', {
         'subjects': subjects,
@@ -1303,6 +1321,7 @@ def material_view(request, pk, material_pk):
         MaterialOpenLog.objects.create(
             material=material,
             user=request.user,
+            action='view',
             ip=ip or None,
             user_agent=ua,
         )
@@ -1313,3 +1332,26 @@ def material_view(request, pk, material_pk):
         'subject': subject,
         'material': material,
     })
+
+
+@login_required
+@require_POST
+def material_print_log(request, pk, material_pk):
+    """PDF 인쇄 버튼 클릭 시 기록 (AJAX)"""
+    from .models import MaterialOpenLog
+    subject = get_object_or_404(Subject, pk=pk)
+    material = get_object_or_404(SubjectMaterial, pk=material_pk, subject=subject)
+    try:
+        ip = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() \
+            or request.META.get('REMOTE_ADDR')
+        ua = request.META.get('HTTP_USER_AGENT', '')[:300]
+        MaterialOpenLog.objects.create(
+            material=material,
+            user=request.user,
+            action='print',
+            ip=ip or None,
+            user_agent=ua,
+        )
+        return JsonResponse({'ok': True})
+    except Exception as e:
+        return JsonResponse({'ok': False, 'error': str(e)}, status=500)
