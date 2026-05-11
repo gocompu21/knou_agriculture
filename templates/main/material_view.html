@@ -32,7 +32,7 @@
     .pdf-notice {
         background: #fff8e1; border-left: 3px solid #f5b042;
         padding: 8px 14px; font-size: 0.82rem; color: #6b4d12;
-        margin-bottom: 12px; border-radius: 4px;
+        margin-top: 12px; border-radius: 4px;
     }
 
     .pdf-toolbar {
@@ -90,18 +90,25 @@
         font-size: 0.95rem;
     }
 
-    /* 워터마크 (사용자명) */
+    /* 워터마크 — 스크롤 영역(canvasWrap) 가운데 고정 */
+    .pdf-canvas-wrap { position: relative; }
     .pdf-canvas-wrap::before {
         content: attr(data-watermark);
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%) rotate(-30deg);
-        font-size: 3rem;
+        position: sticky;            /* 스크롤해도 화면 가운데에 머무름 */
+        top: 50%;
+        display: block;
+        text-align: center;
+        transform: rotate(-30deg);
+        font-size: 4.5rem;            /* 3rem → 4.5rem 확대 */
         color: rgba(0, 0, 0, 0.18);
         font-weight: 900;
         pointer-events: none;
         white-space: nowrap;
         z-index: 1;
+        margin: 0 auto;
+        width: fit-content;
+        line-height: 0;
+        height: 0;
     }
 
     @media (max-width: 768px) {
@@ -124,10 +131,6 @@
         </div>
     </div>
 
-    <div class="pdf-notice">
-        ⚠️ 본 자료는 학습 목적의 열람·인쇄만 가능합니다. 다운로드·복제는 제한되어 있습니다.
-    </div>
-
     <div class="pdf-toolbar">
         <button type="button" id="prevPage" title="이전">◀</button>
         <span class="page-info">
@@ -144,8 +147,12 @@
         <button type="button" id="printBtn" title="인쇄">🖨 인쇄</button>
     </div>
 
-    <div class="pdf-canvas-wrap" id="canvasWrap" data-watermark="한울회 A+ 시스템">
+    <div class="pdf-canvas-wrap" id="canvasWrap" data-watermark="한울회 A+ 학습 시스템">
         <div class="pdf-loading" id="pdfLoading">📄 PDF 로딩 중...</div>
+    </div>
+
+    <div class="pdf-notice">
+        ⚠️ 본 자료는 학습 목적의 열람·인쇄만 가능합니다. 다운로드·복제는 제한되어 있습니다.
     </div>
 </div>
 
