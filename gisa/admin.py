@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Certification, GisaExam, GisaSubject, GisaQuestion, GisaAttempt, GisaTextbook, GisaGlossary
+from .models import Certification, GisaExam, GisaSubject, GisaQuestion, GisaAttempt, GisaTextbook, GisaGlossary, MockGeneration
 
 
 @admin.register(Certification)
@@ -80,3 +80,15 @@ class GisaAttemptAdmin(admin.ModelAdmin):
     list_display = ('user', 'question', 'selected', 'is_correct', 'mode', 'created_at')
     list_filter = ('is_correct', 'mode', 'created_at')
     list_per_page = 25
+
+
+@admin.register(MockGeneration)
+class MockGenerationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'certification', 'generation', 'seen_count', 'updated_at')
+    list_filter = ('certification', 'generation')
+    search_fields = ('user__username',)
+    readonly_fields = ('seen_question_ids',)
+
+    def seen_count(self, obj):
+        return len(obj.seen_question_ids or [])
+    seen_count.short_description = '누적 출제수'

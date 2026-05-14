@@ -1110,24 +1110,52 @@ def mock_exam_take(request, cert_id):
     else:
         subjects_target = subjects
 
-    # 과목별 20문제씩 랜덤 추출
+    # 세대(generation) 추적: 같은 세대에 이미 출제된 문제 제외, 풀 소진 시 +1
+    from .models import MockGeneration
+    gen_obj, _ = MockGeneration.objects.get_or_create(
+        user=request.user, certification=cert,
+        defaults={'generation': 1, 'seen_question_ids': []},
+    )
+    seen_ids = set(gen_obj.seen_question_ids or [])
+    gen_reset_just_now = False
+
+    # 과목별 20문제씩 — 세대 내 미출제 우선
     questions = []
     for subject in subjects_target:
-        qs = list(
-            GisaQuestion.objects.filter(
-                exam__certification=cert, subject=subject
-            ).exclude(exam__exam_type="최신").order_by("?")[:20]
-        )
-        questions.extend(qs)
+        base_qs = GisaQuestion.objects.filter(
+            exam__certification=cert, subject=subject
+        ).exclude(exam__exam_type="최신")
+        total_pool = base_qs.count()
+        unseen_qs = base_qs.exclude(id__in=seen_ids).order_by("?")[:20]
+        unseen_list = list(unseen_qs)
+
+        # 미출제 풀이 20개 미만이면 → 세대 종료, 리셋 후 새 세대로 추출
+        if len(unseen_list) < min(20, total_pool):
+            # 이 과목 풀의 거의 모두를 본 상태 → 리셋
+            seen_ids = set()
+            gen_obj.generation += 1
+            gen_obj.seen_question_ids = []
+            gen_reset_just_now = True
+            unseen_list = list(base_qs.order_by("?")[:20])
+
+        questions.extend(unseen_list)
 
     if not questions:
         return redirect("gisa:certification_detail", cert_id=cert_id)
+
+    # 세대에 출제 문제 누적 저장
+    new_seen = seen_ids | {q.pk for q in questions}
+    gen_obj.seen_question_ids = list(new_seen)
+    gen_obj.save(update_fields=['generation', 'seen_question_ids', 'updated_at'])
 
     # 과목순서 → 문제번호 정렬
     questions.sort(key=lambda q: (q.subject.order, q.number))
 
     session_id = str(uuid.uuid4())
     request.session[f"gisa_mock_{session_id}"] = [q.pk for q in questions]
+    # 세대 정보 (템플릿 표시용)
+    current_generation = gen_obj.generation
+    seen_count = len(gen_obj.seen_question_ids)
 
     # 쪽집게 노트 매핑
     note_subjects = list(GisaSubject.objects.filter(certification=cert))
@@ -1153,6 +1181,9 @@ def mock_exam_take(request, cert_id):
             "subjects": subjects,
             "q_notes_json": json.dumps(q_notes, ensure_ascii=False),
             "wrong_qids": wrong_qids,
+            "current_generation": current_generation,
+            "seen_count": seen_count,
+            "gen_reset_just_now": gen_reset_just_now,
         },
     )
 

@@ -656,7 +656,13 @@
 
         <!-- Left: Questions -->
         <div class="question-panel">
-            <div class="panel-header">{{ cert.name }} &middot; 모의고사 &middot; {{ questions|length }}문항</div>
+            <div class="panel-header">
+                {{ cert.name }} &middot; 모의고사 &middot; {{ questions|length }}문항
+                <span style="font-size:0.78rem; opacity:0.85; margin-left:6px;">
+                    · 세대 {{ current_generation }}
+                    {% if gen_reset_just_now %}<span style="background:#ffc107; color:#1a237e; padding:2px 6px; border-radius:4px; font-weight:700; margin-left:4px;">🎉 새 세대 시작!</span>{% endif %}
+                </span>
+            </div>
 
             {% for q in questions %}
             {% ifchanged q.subject.id %}

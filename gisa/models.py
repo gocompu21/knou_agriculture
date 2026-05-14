@@ -167,3 +167,23 @@ class GisaAttempt(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.question} ({'O' if self.is_correct else 'X'})"
+
+
+class MockGeneration(models.Model):
+    """사용자·자격증별 모의고사 세대 추적.
+    한 자격증의 모든 문제를 모의고사로 다 풀면 generation +1 후 다시 시작.
+    같은 세대 안에서는 이전에 낸 문제는 다시 안 나옴.
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='mock_generations', verbose_name='사용자')
+    certification = models.ForeignKey(Certification, on_delete=models.CASCADE, related_name='mock_generations', verbose_name='자격증')
+    generation = models.IntegerField('세대', default=1)
+    seen_question_ids = models.JSONField('이번 세대에 출제된 문제 ID', default=list)
+    updated_at = models.DateTimeField('최종 갱신', auto_now=True)
+
+    class Meta:
+        verbose_name = '모의고사 세대'
+        verbose_name_plural = '모의고사 세대'
+        unique_together = [('user', 'certification')]
+
+    def __str__(self):
+        return f"{self.user.username} · {self.certification.name} (세대 {self.generation}, {len(self.seen_question_ids)}문제 누적)"
