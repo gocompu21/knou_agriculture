@@ -623,7 +623,7 @@
         <div class="mh-row">
             <div class="mh-score"><span class="mh-score-num">{{ score }}</span><span class="mh-score-unit">점</span> <span class="mh-score-detail">{{ correct }}/{{ total }}</span></div>
             <div class="mh-actions">
-                {% if is_mock %}<a href="{% url 'gisa:mock_exam_take' cert.pk %}" class="mh-btn">새 모의고사</a>{% endif %}
+                {% if is_mock %}<a href="{{ next_mock_url|default_if_none:'' }}{% if not next_mock_url %}{% url 'gisa:mock_exam_take' cert.pk %}{% endif %}" class="mh-btn">새 모의고사</a>{% endif %}
                 <a href="{% url 'gisa:certification_detail' cert.pk %}?tab=wrong" class="mh-btn">오답노트</a>
                 <a href="{% url 'gisa:certification_detail' cert.pk %}?tab={% if is_mock %}mock{% elif is_wrong_retry %}wrong{% else %}solve{% endif %}" class="mh-btn mh-btn-sub">돌아가기</a>
             </div>
@@ -683,7 +683,7 @@
                     </div>
                     <div class="action-btns">
                         {% if is_mock %}
-                        <a class="action-btn btn-retry" href="{% url 'gisa:mock_exam_take' cert.pk %}">새 모의고사</a>
+                        <a class="action-btn btn-retry" href="{{ next_mock_url|default_if_none:'' }}{% if not next_mock_url %}{% url 'gisa:mock_exam_take' cert.pk %}{% endif %}">새 모의고사</a>
                         {% elif is_wrong_retry %}
                         <a class="action-btn btn-retry" href="{% url 'gisa:wrong_answers_retry' cert.pk %}">다시 풀기</a>
                         {% endif %}

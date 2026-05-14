@@ -1272,6 +1272,14 @@ def mock_exam_result(request, cert_id, session_id):
         score = 0
         passed = False
 
+    # 새 모의고사 URL: 단일 과목 응시였으면 같은 과목으로 재응시
+    distinct_subject_ids = {a.question.subject_id for a in attempts}
+    if len(distinct_subject_ids) == 1:
+        only_sid = next(iter(distinct_subject_ids))
+        next_mock_url = f"/gisa/{cert.pk}/mock/?subject={only_sid}"
+    else:
+        next_mock_url = f"/gisa/{cert.pk}/mock/"
+
     # 쪽집게 노트 매핑
     note_subjects = list(GisaSubject.objects.filter(certification=cert))
     note_map = _build_note_map(cert, note_subjects)
@@ -1298,6 +1306,7 @@ def mock_exam_result(request, cert_id, session_id):
             "session_id": session_id,
             "glossary_json": _glossary_json(cert, include_ids=request.user.is_staff if request.user.is_authenticated else False),
             "q_notes_json": json.dumps(q_notes, ensure_ascii=False),
+            "next_mock_url": next_mock_url,
         },
     )
 
