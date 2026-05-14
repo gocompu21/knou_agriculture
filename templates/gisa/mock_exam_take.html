@@ -624,7 +624,7 @@
             </a>
             <span class="th-title">
                 <span class="th-cert-badge">{{ cert.name }}</span>
-                <small>모의고사 &middot; {{ questions|length }}문항</small>
+                <small>모의고사 &middot; {{ questions|length }}문항 &middot; <strong style="color:#ffc107;">세대 {{ current_generation }}</strong>{% if gen_reset_just_now %} <span style="background:#ffc107; color:#1a237e; padding:2px 6px; border-radius:4px; font-weight:700; font-size:0.78em;">🎉 새 세대!</span>{% endif %}</small>
             </span>
         </div>
         <div class="th-right" style="display:flex; align-items:center; gap:10px;">
@@ -642,7 +642,7 @@
         <!-- Mobile Header -->
         <div class="mobile-header">
             <div class="info">
-                <span class="mobile-title">모의고사</span>
+                <span class="mobile-title">모의고사 · 세대 {{ current_generation }}</span>
                 <span id="mobile-timer">00:00:00</span>
             </div>
             <div class="mobile-actions">
