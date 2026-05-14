@@ -84,9 +84,9 @@ class GisaAttemptAdmin(admin.ModelAdmin):
 
 @admin.register(MockGeneration)
 class MockGenerationAdmin(admin.ModelAdmin):
-    list_display = ('user', 'certification', 'generation', 'seen_count', 'updated_at')
-    list_filter = ('certification', 'generation')
-    search_fields = ('user__username',)
+    list_display = ('user', 'subject', 'generation', 'seen_count', 'updated_at')
+    list_filter = ('subject', 'generation')
+    search_fields = ('user__username', 'subject__name')
     readonly_fields = ('seen_question_ids',)
 
     def seen_count(self, obj):

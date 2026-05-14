@@ -170,12 +170,13 @@ class GisaAttempt(models.Model):
 
 
 class MockGeneration(models.Model):
-    """사용자·자격증별 모의고사 세대 추적.
-    한 자격증의 모든 문제를 모의고사로 다 풀면 generation +1 후 다시 시작.
+    """사용자·과목별 모의고사 세대 추적.
+    한 과목의 모든 문제를 모의고사로 다 풀면 generation +1 후 다시 시작.
     같은 세대 안에서는 이전에 낸 문제는 다시 안 나옴.
+    전체 모의고사·부분 과목 모의고사 모두 과목별로 독립 추적.
     """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='mock_generations', verbose_name='사용자')
-    certification = models.ForeignKey(Certification, on_delete=models.CASCADE, related_name='mock_generations', verbose_name='자격증')
+    subject = models.ForeignKey(GisaSubject, on_delete=models.CASCADE, related_name='mock_generations', verbose_name='과목')
     generation = models.IntegerField('세대', default=1)
     seen_question_ids = models.JSONField('이번 세대에 출제된 문제 ID', default=list)
     updated_at = models.DateTimeField('최종 갱신', auto_now=True)
@@ -183,7 +184,7 @@ class MockGeneration(models.Model):
     class Meta:
         verbose_name = '모의고사 세대'
         verbose_name_plural = '모의고사 세대'
-        unique_together = [('user', 'certification')]
+        unique_together = [('user', 'subject')]
 
     def __str__(self):
-        return f"{self.user.username} · {self.certification.name} (세대 {self.generation}, {len(self.seen_question_ids)}문제 누적)"
+        return f"{self.user.username} · {self.subject.name} (세대 {self.generation}, {len(self.seen_question_ids)}문제 누적)"
