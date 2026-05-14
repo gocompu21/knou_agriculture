@@ -796,7 +796,24 @@
                 if (!studyMode) omrRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
             highlightQuestionChoice(questionId, choiceVal);
+            // 세대 누적: 답안 선택 즉시 서버에 기록 (한 문제당 최초 1회만 호출)
+            markAnsweredOnce(questionId);
             if (studyMode) gradeStudy(questionId, choiceVal);
+        }
+
+        /* ── 답안 선택 시 세대(MockGeneration) 즉시 기록 (per-question once) ── */
+        const _markedQids = new Set();
+        function markAnsweredOnce(questionId) {
+            if (_markedQids.has(String(questionId))) return;
+            _markedQids.add(String(questionId));
+            const fd = new FormData();
+            fd.append('question_id', String(questionId));
+            fetch('{% url "gisa:mock_mark_answered" cert.pk %}', {
+                method: 'POST',
+                headers: {'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest'},
+                body: fd,
+                credentials: 'same-origin',
+            }).catch(function(){ /* 네트워크 오류 시 무시, 제출 시 보강됨 */ });
         }
 
         function gradeStudy(questionId, choiceVal) {
@@ -917,6 +934,8 @@
                 if (name && name.startsWith('question_')) {
                     const qId = name.split('_')[1];
                     highlightQuestionChoice(qId, radio.value);
+                    // OMR에서 직접 답안 선택한 경우도 세대 기록
+                    markAnsweredOnce(qId);
                 }
             }
             updateRemainCount();

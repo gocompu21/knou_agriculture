@@ -27,6 +27,7 @@ urlpatterns = [
     # 모의고사
     path("<int:cert_id>/mock/", views.mock_exam_take, name="mock_exam_take"),
     path("<int:cert_id>/mock/submit/", views.mock_exam_submit, name="mock_exam_submit"),
+    path("<int:cert_id>/mock/mark-answered/", views.mock_mark_answered, name="mock_mark_answered"),
     path("<int:cert_id>/mock/result/<str:session_id>/", views.mock_exam_result, name="mock_exam_result"),
     # 오답노트
     path("<int:cert_id>/wrong/", views.wrong_answers, name="wrong_answers"),

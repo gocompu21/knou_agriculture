@@ -1195,6 +1195,37 @@ def mock_exam_take(request, cert_id):
 
 @login_required
 @require_POST
+def mock_mark_answered(request, cert_id):
+    """모의고사 풀이 중 답안 선택 시 즉시 해당 문제를 세대(MockGeneration)에 기록.
+    body: {"question_id": 123}
+    """
+    cert = get_object_or_404(Certification, pk=cert_id)
+    try:
+        qid = int(request.POST.get('question_id', '0'))
+    except (TypeError, ValueError):
+        return JsonResponse({'ok': False, 'error': 'bad question_id'}, status=400)
+    if not qid:
+        return JsonResponse({'ok': False}, status=400)
+    try:
+        q = GisaQuestion.objects.select_related('subject').get(pk=qid, exam__certification=cert)
+    except GisaQuestion.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'question not found'}, status=404)
+
+    from .models import MockGeneration
+    gen_obj, _ = MockGeneration.objects.get_or_create(
+        user=request.user, subject=q.subject,
+        defaults={'generation': 1, 'seen_question_ids': []},
+    )
+    seen = set(gen_obj.seen_question_ids or [])
+    if qid not in seen:
+        seen.add(qid)
+        gen_obj.seen_question_ids = list(seen)
+        gen_obj.save(update_fields=['seen_question_ids', 'updated_at'])
+    return JsonResponse({'ok': True, 'seen': len(gen_obj.seen_question_ids), 'generation': gen_obj.generation})
+
+
+@login_required
+@require_POST
 def mock_exam_submit(request, cert_id):
     cert = get_object_or_404(Certification, pk=cert_id)
     session_id = request.POST.get("session_id", "")
@@ -1221,24 +1252,28 @@ def mock_exam_submit(request, cert_id):
         )
         attempt_ids.append(attempt.pk)
 
-    # 세대 누적 — 실제로 '응답한' 문제만 과목별로 반영 (미응답 제외)
+    # 세대 누적은 풀이 중 답안 선택 시점에 AJAX(mock_mark_answered)로 이미 처리됨
+    # 제출 시점에는 누적 갱신 없음 (보조 방어선으로 응답한 문제만 한 번 더 보장)
     from .models import MockGeneration
     answered_qids_by_subject = {}
     for q in ordered_questions:
         selected = request.POST.get(f"question_{q.id}", "0") or "0"
         if selected == "0":
-            continue   # 미응답은 누적하지 않음
+            continue
         answered_qids_by_subject.setdefault(q.subject_id, []).append(q.pk)
-
     for sid, qids in answered_qids_by_subject.items():
-        gen_obj, _ = MockGeneration.objects.get_or_create(
-            user=request.user, subject_id=sid,
-            defaults={'generation': 1, 'seen_question_ids': []},
-        )
+        gen_obj = MockGeneration.objects.filter(user=request.user, subject_id=sid).first()
+        if not gen_obj:
+            gen_obj = MockGeneration.objects.create(
+                user=request.user, subject_id=sid,
+                generation=1, seen_question_ids=[],
+            )
         seen = set(gen_obj.seen_question_ids or [])
+        before = len(seen)
         seen.update(qids)
-        gen_obj.seen_question_ids = list(seen)
-        gen_obj.save(update_fields=['seen_question_ids', 'updated_at'])
+        if len(seen) != before:
+            gen_obj.seen_question_ids = list(seen)
+            gen_obj.save(update_fields=['seen_question_ids', 'updated_at'])
 
     request.session.pop(f"gisa_mock_{session_id}", None)
     request.session["gisa_last_attempt_ids"] = attempt_ids
