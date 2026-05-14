@@ -1111,6 +1111,8 @@ def mock_exam_take(request, cert_id):
         subjects_target = subjects
 
     # 세대(generation) 추적: 과목별로 독립. 같은 세대에 이미 출제된 문제 제외, 풀 소진 시 +1
+    # ※ 누적 저장은 출제 시점이 아니라 '제출' 시점(mock_exam_submit)에서 수행
+    #   → 사용자가 페이지만 열고 풀지 않으면 세대 누적에 반영되지 않음
     from .models import MockGeneration
     questions = []
     gen_info = []           # 각 과목별 세대 정보 (UI 표시용)
@@ -1129,17 +1131,16 @@ def mock_exam_take(request, cert_id):
         unseen_list = list(base_qs.exclude(id__in=seen_ids).order_by("?")[:20])
 
         # 미출제 풀이 20개 미만이면 → 이 과목 세대 종료, 리셋 후 새 세대 추출
+        # (리셋은 즉시 저장 — 출제 풀이 진짜로 소진된 시점이므로)
         if len(unseen_list) < min(20, total_pool):
             seen_ids = set()
             gen_obj.generation += 1
             gen_obj.seen_question_ids = []
+            gen_obj.save(update_fields=['generation', 'seen_question_ids', 'updated_at'])
             gen_reset_just_now = True
             unseen_list = list(base_qs.order_by("?")[:20])
 
-        # 이 과목 출제분 누적
-        new_seen = seen_ids | {q.pk for q in unseen_list}
-        gen_obj.seen_question_ids = list(new_seen)
-        gen_obj.save(update_fields=['generation', 'seen_question_ids', 'updated_at'])
+        # ⚠️ 출제 시점에는 저장하지 않음. submit에서 실제 푼 문제만 반영.
         gen_info.append({
             'subject': subject.name,
             'generation': gen_obj.generation,
@@ -1219,6 +1220,21 @@ def mock_exam_submit(request, cert_id):
             session_id=session_id,
         )
         attempt_ids.append(attempt.pk)
+
+    # 세대 누적 — 실제로 제출된 문제만 과목별로 반영
+    from .models import MockGeneration
+    by_subject = {}
+    for q in ordered_questions:
+        by_subject.setdefault(q.subject_id, []).append(q.pk)
+    for sid, qids in by_subject.items():
+        gen_obj, _ = MockGeneration.objects.get_or_create(
+            user=request.user, subject_id=sid,
+            defaults={'generation': 1, 'seen_question_ids': []},
+        )
+        seen = set(gen_obj.seen_question_ids or [])
+        seen.update(qids)
+        gen_obj.seen_question_ids = list(seen)
+        gen_obj.save(update_fields=['seen_question_ids', 'updated_at'])
 
     request.session.pop(f"gisa_mock_{session_id}", None)
     request.session["gisa_last_attempt_ids"] = attempt_ids
