@@ -1221,12 +1221,16 @@ def mock_exam_submit(request, cert_id):
         )
         attempt_ids.append(attempt.pk)
 
-    # 세대 누적 — 실제로 제출된 문제만 과목별로 반영
+    # 세대 누적 — 실제로 '응답한' 문제만 과목별로 반영 (미응답 제외)
     from .models import MockGeneration
-    by_subject = {}
+    answered_qids_by_subject = {}
     for q in ordered_questions:
-        by_subject.setdefault(q.subject_id, []).append(q.pk)
-    for sid, qids in by_subject.items():
+        selected = request.POST.get(f"question_{q.id}", "0") or "0"
+        if selected == "0":
+            continue   # 미응답은 누적하지 않음
+        answered_qids_by_subject.setdefault(q.subject_id, []).append(q.pk)
+
+    for sid, qids in answered_qids_by_subject.items():
         gen_obj, _ = MockGeneration.objects.get_or_create(
             user=request.user, subject_id=sid,
             defaults={'generation': 1, 'seen_question_ids': []},
