@@ -626,11 +626,11 @@
                 <span class="th-cert-badge">{{ cert.name }}</span>
                 <small>모의고사 &middot; {{ questions|length }}문항
                 {% if gen_info|length == 1 %}
-                    &middot; <strong style="color:#ffc107;" title="{{ gen_info.0.subject }} 진행도">{{ gen_info.0.subject }} 세대 {{ gen_info.0.generation }}</strong>
+                    &middot; <strong style="color:#ffc107;" title="{{ gen_info.0.subject }} 진행도">R{{ gen_info.0.generation }}</strong>
                 {% else %}
-                    &middot; <strong style="color:#ffc107;" title="과목별 세대: {% for g in gen_info %}{{ g.subject }} {{ g.generation }}{% if not forloop.last %}, {% endif %}{% endfor %}">세대 {{ current_generation }}+</strong>
+                    &middot; <strong style="color:#ffc107;" title="과목별 세대: {% for g in gen_info %}{{ g.subject }} R{{ g.generation }}{% if not forloop.last %}, {% endif %}{% endfor %}">R{{ current_generation }}+</strong>
                 {% endif %}
-                {% if gen_reset_just_now %} <span style="background:#ffc107; color:#1a237e; padding:2px 6px; border-radius:4px; font-weight:700; font-size:0.78em;">🎉 새 세대!</span>{% endif %}
+                {% if gen_reset_just_now %} <span style="background:#ffc107; color:#1a237e; padding:2px 6px; border-radius:4px; font-weight:700; font-size:0.78em;">🎉 새 라운드!</span>{% endif %}
                 </small>
             </span>
         </div>
@@ -649,7 +649,7 @@
         <!-- Mobile Header -->
         <div class="mobile-header">
             <div class="info">
-                <span class="mobile-title">모의고사{% if gen_info|length == 1 %} · {{ gen_info.0.subject }} 세대 {{ gen_info.0.generation }}{% else %} · 세대 {{ current_generation }}+{% endif %}</span>
+                <span class="mobile-title">모의고사{% if gen_info|length == 1 %} · R{{ gen_info.0.generation }}{% else %} · R{{ current_generation }}+{% endif %}</span>
                 <span id="mobile-timer">00:00:00</span>
             </div>
             <div class="mobile-actions">
