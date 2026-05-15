@@ -102,7 +102,7 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%) rotate(-30deg);
-        color: rgba(0, 0, 0, 0.18);
+        color: rgba(0, 0, 0, 0.08);
         pointer-events: none;
         white-space: nowrap;
         z-index: 2;
@@ -119,7 +119,7 @@
         font-size: 1.4rem;
         font-weight: 700;
         margin-top: 4px;
-        color: rgba(0, 0, 0, 0.22);
+        color: rgba(0, 0, 0, 0.10);
     }
 
     @media (max-width: 768px) {
@@ -357,14 +357,14 @@
                 ctx2.save();
                 ctx2.translate(canvas.width / 2, canvas.height / 2);
                 ctx2.rotate(-Math.PI / 6);  // -30deg
-                ctx2.fillStyle = 'rgba(0, 0, 0, 0.18)';
+                ctx2.fillStyle = 'rgba(0, 0, 0, 0.08)';
                 ctx2.font = '900 ' + Math.round(canvas.width * 0.06) + 'px sans-serif';
                 ctx2.textAlign = 'center';
                 ctx2.textBaseline = 'middle';
                 ctx2.fillText(WATERMARK_MAIN, 0, 0);
                 // 부제목(사용자명·시각) — 작게
                 ctx2.font = '700 ' + Math.round(canvas.width * 0.025) + 'px sans-serif';
-                ctx2.fillStyle = 'rgba(0, 0, 0, 0.22)';
+                ctx2.fillStyle = 'rgba(0, 0, 0, 0.10)';
                 ctx2.fillText(sub, 0, Math.round(canvas.width * 0.055));
                 ctx2.restore();
 
