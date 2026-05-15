@@ -487,6 +487,37 @@ def certification_detail(request, cert_id):
                 {"id": ch["id"], "title": ch["title"]} for ch in full
             ]
 
+    # 모의고사 탭: 사용자별 과목 진행도 통계 (MockGeneration 기반)
+    mock_stats = []
+    if request.user.is_authenticated:
+        from .models import MockGeneration
+        gen_map = {
+            g.subject_id: g
+            for g in MockGeneration.objects.filter(user=request.user, subject__certification=cert)
+        }
+        for subj in subjects:
+            total_pool = GisaQuestion.objects.filter(
+                exam__certification=cert, subject=subj
+            ).exclude(exam__exam_type="최신").count()
+            g = gen_map.get(subj.pk)
+            if g:
+                seen = len(g.seen_question_ids or [])
+                gen = g.generation
+            else:
+                seen = 0
+                gen = 1
+            pct = round(seen / total_pool * 100, 1) if total_pool else 0
+            mock_stats.append({
+                "subject_id": subj.pk,
+                "order": subj.order,
+                "name": subj.name,
+                "round": gen,           # R (Round)
+                "seen": seen,
+                "total": total_pool,
+                "pct": pct,
+                "rounds_completed": gen - 1,  # 완주한 라운드 수
+            })
+
     return render(
         request,
         "gisa/certification_detail.html",
@@ -511,6 +542,7 @@ def certification_detail(request, cert_id):
             "glossary_subject": glossary_subject,
             "glossary_subjects": glossary_subjects,
             "glossary_json": _glossary_json(cert, include_ids=request.user.is_staff if request.user.is_authenticated else False),
+            "mock_stats": mock_stats,
         },
     )
 
