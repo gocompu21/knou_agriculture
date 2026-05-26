@@ -1167,11 +1167,65 @@ staff 사용자가 학습모드에서 문제/보기/정답/해설을 인라인�
 
 - 서버: `ubuntu@hanulstudy.kr`
 - SSH 키: `C:\AWS\knou_key2.pem`
-- 접속: `ssh -o ServerAliveInterval=60 -i "C:\AWS\knou_key2.pem" ubuntu@hanulstudy.kr`
+- SSH 포트: **22 + 60022** 둘 다 열려있음 (도서관 등 22 차단 환경 대응)
+- 접속(기본): `ssh -o ServerAliveInterval=60 -i "C:\AWS\knou_key2.pem" ubuntu@hanulstudy.kr`
+- 접속(공공 와이파이): `ssh -p 60022 -o ServerAliveInterval=60 -i "C:\AWS\knou_key2.pem" ubuntu@hanulstudy.kr`
 - 프로젝트 경로: `/home/ubuntu/knou_agriculture/`
 - 가상환경: `/home/ubuntu/knou_agriculture/venv/` (프로젝트 내부)
 - 가상환경 자동 활성화: `~/.bashrc`에 `source $HOME/venv/bin/activate` 추가
 - 배포 절차: `git push` → SSH 접속 → `cd ~/knou_agriculture && git pull && sudo systemctl restart gunicorn`
+
+### 시스템 사양 및 자원
+
+- **인스턴스**: vCPU 2, RAM 1.9GB (t2/t3 small급), EBS 29GB (현 사용 약 6GB, 여유 23GB+)
+- **스왑**: `/swapfile` 1GB (응급용 안전망). 부팅 시 자동 활성화
+- **swappiness**: 10 (메모리 압박 시에만 스왑 사용 — 평상시 0B 유지)
+- **PostgreSQL 18** (DB 크기 약 67MB), nginx, gunicorn 워커 2개
+
+평상시 CPU idle 100%, 메모리 39% 사용으로 매우 여유. 회원 200명까지 현 사양에서 무리 없음.
+
+**스왑 재설정 절차** (인스턴스 교체·복구 시):
+```bash
+sudo fallocate -l 1G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+echo 'vm.swappiness=10' | sudo tee /etc/sysctl.d/99-swappiness.conf
+sudo sysctl -p /etc/sysctl.d/99-swappiness.conf
+```
+
+### 네트워크별 SSH 접속 가능 여부
+
+도서관·일부 카페·공항 등 **공공 와이파이 환경에서는 22번 포트 아웃바운드를 차단**하므로 22번 SSH 접속이 불가능하다. 웹사이트(443)는 정상 작동하지만 SSH만 막힘. AWS 보안 그룹 문제가 아니라 사용자 측 네트워크의 발신 차단이 원인.
+
+이를 우회하기 위해 **60022 포트를 추가 개방**해두었음. 공공 와이파이는 보통 자주 쓰는 22·21·23 정도만 차단하므로 60022 같은 비표준 포트는 통과.
+
+| 네트워크 | SSH(22) | SSH(60022) | 웹(443) |
+|----------|---------|------------|---------|
+| 집/회사 유선·와이파이 | ✓ | ✓ | ✓ |
+| 휴대폰 테더링 | ✓ | ✓ | ✓ |
+| 도서관·공공 와이파이 | ✕ | **✓** | ✓ |
+
+**60022 추가 설정 내역** (재현·복구용):
+1. AWS 보안 그룹: 사용자 지정 TCP, 60022, 0.0.0.0/0 인바운드 규칙 추가
+2. EC2(Ubuntu 24.04+)는 `ssh.socket` socket-activation 방식이라 `sshd_config`의 `Port` 디렉티브가 무시됨. **반드시 `ssh.socket` override**로 추가:
+   ```
+   sudo mkdir -p /etc/systemd/system/ssh.socket.d
+   sudo tee /etc/systemd/system/ssh.socket.d/99-alt-port.conf <<'EOF'
+   [Socket]
+   ListenStream=60022
+   EOF
+   sudo systemctl daemon-reload
+   sudo systemctl restart ssh.socket
+   ```
+3. 확인: `sudo ss -tlnp | grep -E ':22 |:60022'` 으로 둘 다 리스닝되는지 확인
+
+**그래도 SSH가 모두 막힌 환경에서의 우회**:
+- **AWS EC2 Instance Connect**: AWS 콘솔 → EC2 → 인스턴스 → "연결" → "EC2 Instance Connect" 탭. 브라우저 안에서 셸 사용 (HTTPS로 통과)
+- **AWS Systems Manager Session Manager**: 22번 포트 불필요, IAM 권한 설정 필요
+
+Claude Code에서 SSH가 안 되는 환경이면 사용자가 Instance Connect로 명령 실행한 결과를 복붙해주는 방식으로 작업 진행.
 
 ## 공지사항 게시판 (bbs 앱)
 
@@ -1219,3 +1273,378 @@ UserProfile.objects.update(receive_email=False)
 
 # 전체 활성화: UserProfile.objects.update(receive_email=True)
 ```
+
+## 강의 자막 → 워드 강의록 변환
+
+조경기사 강의 영상의 srt 자막을 자연스러운 워드 문서(.docx)로 변환하는 작업 패턴.
+
+### ★ 절대 원칙: "워드 생성 전에 모든 처리를 텍스트 단계에서 완료한다"
+
+**워드 파일에 들어간 뒤 수정하지 말 것.** 워드(.docx) 파일은 한 번 만들면 수정이 매우 비효율적이다:
+- run 경계 문제로 단어 치환이 자주 누락됨
+- 사용자가 워드를 열어두면 PermissionError로 저장 실패
+- 한자 병기 시 볼드/스타일이 깨짐
+- 그림이 들어간 워드는 더 위험 (재생성하면 그림 손실)
+- 한 건씩 발견하면 한 건씩 수정하는 패턴이 반복되며 시간 낭비
+
+**올바른 흐름:**
+
+1. **참고서 정독** — 해당 단원(예: 한국 조경사 p.164~171)을 직접 처음부터 끝까지 정독해 한자·표기·용어를 파악. fuzzy matching이나 자동 검출만 의존하지 말고, 사람이 읽듯 직접 이해
+2. **자막 정독** — srt 자막 전체를 처음부터 끝까지 직접 읽어 STT 오타 후보·일본어 음독·강의 흐름 파악
+3. **교정·한자·볼드 사전을 한 번에 작성** — 두 텍스트 비교로 모든 항목을 한 사전에 모음
+4. **텍스트 단계에서 모두 적용** — srt → 구두점 부여 → STT 오타 교정 → 한자 병기 → 볼드 적용 → 단락 분할
+5. **마지막에 한 번만 워드 생성** — 모든 처리가 끝난 텍스트로 docx를 한 번만 작성
+
+### 입력 파일 위치
+
+- 자막: `C:\Users\gocom\Downloads\WORK\output\<강의명>\<강의명>.srt`
+- 강의 스틸컷(영상 캡처): `<강의명>.pptx` — 자막당 1슬라이드 1:1 대응 (텍스트 강의록에선 사용하지 않음)
+- 참고서 OCR 텍스트: `N:\개인\조경기사\pdf\조경사_텍스트.txt` — **단원별 정독 필수**
+- 조경기사 용어사전: `C:\Users\gocom\Downloads\WORK\조경기사_용어사전.txt` (보조 자료)
+- 출력 파일: `<강의명> 강의록.docx` (같은 폴더에 저장)
+
+### 처리 단계 (순서 엄수)
+
+**Step 1. 참고서 정독 (Read 도구로 직접 읽기)**
+- 해당 단원의 시작·끝 줄 번호를 grep으로 찾고 Read 도구로 통째로 읽음
+- 한자 표기, 인물·정원·책·식물 등 핵심 용어를 메모
+- fuzzy matching이나 어휘 빈도 분석에 의존하지 말 것 — 사람이 읽듯 이해해야 정확
+
+**Step 2. 자막 정독 (Read 도구로 직접 읽기)**
+- srt 전체를 800줄씩 나눠 끝까지 읽음
+- 일본어 음독, STT 오타, 강사가 풀어 설명한 부분 식별
+
+**Step 3. 텍스트 단계 일괄 처리 스크립트 작성**
+
+한 파이썬 스크립트에서 모든 처리를 순서대로 수행:
+
+```python
+# 1) srt 파싱: 시간 제거, 텍스트만 결합
+# 2) STT 오타 교정: 직접 정독해서 발견한 사례를 사전에 등록
+# 3) 종결 어미 기준 마침표/물음표 부여
+# 4) 접속 부사·연결 어미 뒤 쉼표 부여
+# 5) 한자 병기 사전을 길이순 정렬, "처음 등장 시 1회만" 한자 추가
+# 6) 문장 분할 → 5문장씩 단락 묶음
+# 7) 볼드 토큰화: 한자 병기 형태("term(漢字)") 포함
+# 8) python-docx로 워드 생성 (그림 없음, 텍스트만)
+```
+
+**Step 4. 한 번만 실행 → 검증 → 끝**
+- 실행 후 사용자에게 "여기 이상하다"는 지적이 들어오면, 그 항목을 명시적 교정 사전에 추가하고 처음부터 다시 한 번만 재생성
+- 워드를 열어 직접 수정하지 말 것
+
+### 한자 병기 원칙
+
+- **참고서에 한자가 명시된 용어만** 병기. 임의로 한자를 추측해 붙이지 말 것
+- 자막에 처음 등장하는 곳에 단 한 번만 한자 추가: `term` → `term(漢字)`
+- 길이순 정렬로 긴 용어 먼저 매칭 (예: "방지원도" 먼저, "방지" 나중)
+- 한 번 한자가 붙은 용어는 다시 처리하지 않도록 처리 완료 set 관리
+
+### STT 오타 자동 교정 원칙
+
+자막 STT가 잘못 받아쓴 표기를 참고 텍스트와 대조해 자동 검출/교정한다.
+
+- **검증 절차**: 교정 후보(`wrong → right`) 적용 전 참고 텍스트에 `right` 표기가 정확히 존재하는지 확인
+- **safe-list 기반**: 명백한 인명·정원명·책 이름의 오타만 치환. 강사가 자연스럽게 쓰는 일반 어휘(예: "디딤돌", "호남지방")는 정상 한국어이므로 보존
+- **fuzzy matching**: `difflib.SequenceMatcher`로 stem 유사도 0.6~1.0 사이 + 1~2글자 차이만 의심 후보로 등록
+- **run 경계 처리**: docx의 run이 단어 중간에서 분리될 수 있으므로, 단일 run 안 검색 → 인접 run 합쳐 검색 순서로 치환
+
+### 일본어 표기 → 한자 한국어 음독 통일
+
+조경 시험은 한자 한국어 음독 표기를 사용하므로 일본 정원·인물명을 시험 표기로 통일한다.
+
+| 자막(일본어 음독) | 시험 표기(한자) |
+|---|---|
+| 후시미성 | 복견성 |
+| 쥬라쿠다이 | 취락제 |
+| 니조성 | 이조성 |
+| 가쓰라리큐(가쓰라 이궁) | 계리궁 |
+| 신주쿠교엔 | 신주쿠어원 |
+| 아카사카이궁 | 적판이궁 |
+| 히비야공원 | 일비곡공원 |
+| 도다이지 | 동대사 |
+| 와카쿠사산 | 약초산 |
+| 센노리큐 | 천리휴 |
+| 고보리엔슈 | 소굴원주 |
+| 이스이엔 | 의수원 |
+| 신쥬안 | 진주암 |
+| 료안지 | 용안사 |
+| 다이안 | 대암 |
+| 후신안 | 불심암 |
+| 코호안 | 고봉암 |
+| 후루타 오리베 | 고전직부 |
+| 기타무라 엔킨사이 | 북촌원금재 |
+| 다이쇼시대 | 대정시대 |
+
+### 자막 STT 오타 사례 (모모야마~메이지 강의 기준)
+
+참고 텍스트와 대조해 검출된 실제 STT 오타:
+
+| 자막 STT | 참고 텍스트(정답) |
+|---|---|
+| 풍해 씻긴 | 풍우에 씻긴 |
+| 디딤돌이나 포석 | 뜀돌이나 포석 |
+| 북촌원금제 | 북촌원금재 |
+| 제국다정명석도회 | 제국다정명적도회 |
+| 삼도일련 | 삼도일연 |
+| 동해일련 | 동해일연 |
+| 삼신산도 | 삼신선도 |
+| 문진사자림 | 문원사자림 |
+| 마른 소나무는 뒤를 따라 지표를 표현했고 | 마른 소나무잎을 깔아 지피를 표현했고 |
+| 신쥬안 | 진주암 |
+| 료안지 | 용안사 |
+| 절석 직선 | 절석직선 |
+| 축산정조전 후편 | 축산정조전후편 |
+
+### STT 오타 자동 검출의 3단계 전략
+
+자막 STT 오타는 형태에 따라 검출 난이도가 다르므로 다음 3단계로 접근한다.
+
+**1단계: 단어 단위 fuzzy match (가장 쉬움)**
+- 1~2글자만 다른 케이스 (예: 북촌원금제↔북촌원금재, 삼도일련↔삼도일연)
+- `difflib.SequenceMatcher` ratio 0.6~0.92 + 1~2글자 차이로 검출
+- 강사의 일반 어휘는 노이즈가 많으므로 `safe-list` 적용 필수
+
+**2단계: 문장 단위 fuzzy match (중간)**
+- 어절 일부가 바뀐 케이스 (예: "지천회유식 정원이다" ↔ "지천회유식 정원")
+- 참고서에서 5~25자 구절을 추출해 docx의 비슷한 길이 구절과 비교
+- 대부분은 강사가 자연스럽게 풀어 설명한 정상 문장이므로, 자동 치환 위험. 후보만 보고하고 사용자 확인 필요
+
+**3단계: 단어가 거의 다 바뀐 케이스 (가장 어려움)**
+- 예: "마른 소나무잎을 깔아 지피 표현" → "마른 소나무는 뒤를 따라 지표를 표현"
+- 단어 fuzzy로도 0.6 미만, 문장 fuzzy도 길이 차이로 놓침
+- **앵커 기반 검출**: 같은 문장에 등장하는 고정 키워드(예: "석탑이나 석등으로 고찰의 분위기")를 앵커로 잡고, 앵커 주변의 다른 표현이 참고서와 다르면 의심
+- 결국 사용자의 명시적 지적이 가장 정확. 사용자가 알려준 케이스는 즉시 반영하고 CLAUDE.md에 사례로 누적
+
+### 새 강의록 작업 시 권장 흐름
+
+**[추천] 텍스트 단계 일괄 처리 흐름** (사전 작업 완료 후 워드는 한 번만 생성):
+
+1. 참고서 해당 단원을 Read 도구로 직접 정독
+2. srt 자막을 Read 도구로 끝까지 정독
+3. 두 텍스트를 비교해 STT 오타·일본어 음독·한자 병기 대상을 한 사전에 모음
+4. 한 파이썬 스크립트에서 순차 처리: srt 파싱 → 구두점 → STT 교정 → 한자 병기 → 볼드 → docx 생성
+5. **사용자 검토 후 추가 교정 필요하면 사전에 항목 추가하고 스크립트 재실행** (워드 직접 편집 금지)
+6. 누적된 사례를 CLAUDE.md `STT 오타 사례` 및 `일본어 → 한자 음독 매핑` 표에 추가
+
+### 한국 조경사 핵심 한자 병기 표 (16번 강의에서 누적)
+
+다음 강의(한국 조경사 시대별)에서도 그대로 활용 가능:
+
+| 분류 | 한글 | 한자 |
+|---|---|---|
+| 사상 | 신선사상 | 神仙思想 |
+| 사상 | 음양오행사상 | 陰陽五行思想 |
+| 사상 | 풍수지리사상 | 風水地理思想 |
+| 사상 | 유교사상 | 儒敎思想 |
+| 사상 | 은일사상 | 隱逸思想 |
+| 사상 | 노장사상 | 老莊思想 |
+| 사상 | 도참사상 | 圖讖思想 |
+| 핵심 | 천원지방 | 天圓地方 |
+| 핵심 | 비보 | 裨補 |
+| 핵심 | 배산임수 | 背山臨水 |
+| 양식 | 방지원도 | 方池圓島 |
+| 양식 | 방지방도 | 方池方島 |
+| 양식 | 자연풍경식 | 自然風景式 |
+| 양식 | 축경식 | 縮景式 |
+| 요소 | 석가산 | 石假山 |
+| 요소 | 축산 | 築山 |
+| 요소 | 가산 | 假山 |
+| 요소 | 조산 | 造山 |
+| 요소 | 괴석 | 怪石 |
+| 요소 | 경석 | 景石 |
+| 식물 | 사절우 | 四節友(梅松菊竹) |
+| 식물 | 사군자 | 四君子(梅蘭菊竹) |
+| 식물 | 세한삼우 | 歲寒三友(松竹梅) |
+| 인물 | 주돈이 | 周敦頤 |
+| 인물 | 도연명 | 陶淵明 |
+| 인물 | 강희맹 | 姜希孟 |
+| 인물 | 정약용 | 丁若鏞 |
+| 책 | 산림경제 | 山林經濟 |
+| 책 | 경국대전 | 經國大典 |
+| 책 | 지봉유설 | 芝峯類說 |
+| 책 | 애련설 | 愛蓮說 |
+| 정원 | 안압지 | 雁鴨池 |
+| 정원 | 포석정 | 鮑石亭 |
+| 정원 | 소쇄원 | 瀟灑園 |
+| 정원 | 다산초당 | 茶山草堂 |
+
+(전체 매핑은 16번 강의록 생성 스크립트의 `HANJA` 사전 참조)
+
+### docx 생성 시 주의사항
+
+- **외부 API 사용 금지**: 자막 텍스트 분석·구두점 부여·오타 교정은 모두 규칙 기반(정규식 + 사전 매칭)으로 직접 처리. Gemini 등 외부 API 호출 금지
+- **스타일 손실 방지**: 단락 전체 텍스트 치환보다 run 단위 치환 선호. run 경계에 걸친 표현은 인접 run을 합쳐 첫 run에 새 텍스트 + 나머지는 빈 문자열로 처리
+- **워드 파일 잠금**: 사용자가 워드를 열어둔 상태에서 저장하면 `PermissionError` 발생. 처리 전 닫혀있는지 확인하고 안 되면 사용자에게 안내
+- **인코딩**: 한글 출력 시 `sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")`로 강제. Windows 콘솔에서 한글 깨짐 방지
+
+### 워드 문서 스타일 규칙
+
+- 폰트: 맑은 고딕 11pt
+- 줄간격: 1.6
+- 단락 첫 줄 들여쓰기: 0.7cm
+- 단락 후 간격: 6pt
+- 페이지 여백: 좌우 2.5cm, 상하 2.0cm
+- 제목: Heading 0 (가운데 정렬)
+- 부제: 일반 단락 13pt 회색(#555)
+- 볼드 색상: 다크그린(#1B4332)
+
+## PDF 자료실 (main 앱)
+
+방송대 과목별 PDF 학습 자료를 회원에게 제공. 다운로드는 차단하고 열람·인쇄만 허용하며, 모든 사용 이력을 워터마크와 함께 추적한다.
+
+### 모델 구조
+
+| 모델 | 설명 | 주요 필드 |
+|------|------|-----------|
+| `SubjectMaterial` | 과목별 PDF 자료 | subject(FK), title, file(FileField), uploaded_by, created_at |
+| `MaterialOpenLog` | 열람·인쇄 기록 | material(FK), user(FK), action(view/print), opened_at, ip, user_agent |
+
+- 업로드 경로: `materials/subject_<id>/<filename>`
+- `MaterialOpenLog.action`: `'view'` (열람) / `'print'` (인쇄)
+- 인덱스: `opened_at`, `(user, opened_at)`
+
+### 다운로드 차단 4중 방어 (main/views.py)
+
+| 계층 | 방어 수단 | 위치 |
+|---|---|---|
+| URL | 별도 다운로드 엔드포인트 없음. `material_stream`만 존재하며 inline 렌더링 전용 | `main/urls.py` |
+| 응답 헤더 | `Content-Disposition: inline` (브라우저 다운로드 다이얼로그 차단) | `material_stream` |
+| 응답 헤더 | `Accept-Ranges: none` + `Cache-Control: private, no-store` (Range 요청·캐시 차단) | `material_stream` |
+| 렌더링 | PDF.js로 canvas에 그려서 원본 파일이 DOM에 노출 안 됨 + 우클릭/단축키 차단 + 워터마크 | `material_view.html` |
+
+- `@xframe_options_sameorigin` 적용 (iframe 임베드는 동일 출처만 허용)
+- 다운로드 시도 자체는 별도 로그 없음 (`material_stream` 호출은 PDF.js 정상 렌더링과 구분 불가)
+
+### 워터마크
+
+- **메인 워터마크**: "한울회 A+ 학습 시스템" + 사용자명·시각 (각 페이지 정중앙, -30도 회전)
+- **위치**: 각 PDF 페이지(canvas) 위에 개별 배치, 용지 가운데 정렬 (`pdf-page-frame > pdf-watermark`)
+- **투명도**: 메인 `rgba(0,0,0,0.08)`, 부제 `rgba(0,0,0,0.10)` (본문 가독성 우선, 2026-05-15 완화 적용)
+- **인쇄 시**: canvas에 `ctx.fillText()`로 직접 합성하여 인쇄물에도 워터마크 영구 각인
+
+### 열람·인쇄 추적
+
+- **열람 로그**: `material_view` 뷰 진입 시 `MaterialOpenLog(action='view')` 저장
+- **인쇄 로그**: 인쇄 버튼 클릭 → `material_print_log` API → `MaterialOpenLog(action='print')` 저장
+- IP는 `HTTP_X_FORWARDED_FOR` 우선, User-Agent는 300자 truncate
+
+### 사용자 입장에서의 "PDF 다운로드 이력" 해석
+
+시스템에는 직접 다운로드 엔드포인트가 없으므로, **사용자가 PDF를 받아 본 행위 = `action='view'` 로그**가 곧 다운로드 이력으로 간주된다. 사용 현황 조회 시 열람·인쇄를 함께 보여줄 것.
+
+### 통계 조회 패턴
+
+```python
+from main.models import MaterialOpenLog
+from django.db.models import Count
+
+# 사용자별 7일 사용량
+rows = MaterialOpenLog.objects.filter(opened_at__gte=week_ago).values(
+    'user__first_name','user__username','action'
+).annotate(c=Count('id'))
+
+# 자료별 7일 사용량
+rows = MaterialOpenLog.objects.filter(opened_at__gte=week_ago).values(
+    'material__title','material__subject__name','action'
+).annotate(c=Count('id'))
+```
+
+## 모의고사 세대(Round) 시스템 (gisa)
+
+같은 라운드 내에서 모의고사 출제 시 중복 문제를 피하고, 풀이 풀이 사이클을 라운드(R) 단위로 추적한다.
+
+### MockGeneration 모델 (gisa/models.py)
+
+| 필드 | 설명 |
+|------|------|
+| `user` | FK → User |
+| `subject` | FK → GisaSubject (과목 단위 추적) |
+| `generation` | IntegerField, 현재 라운드 (기본 1) |
+| `seen_question_ids` | JSONField (List[int]), 이번 라운드에 출제·응답된 문제 ID |
+| `updated_at` | DateTimeField (auto_now) |
+
+- `unique_together = [('user', 'subject')]` — **자격증이 아닌 과목 단위**로 라운드 관리
+- 한 과목만 집중 응시해도 다른 과목 신선도(R 진행도)에 영향 없음
+- 마이그레이션: `0010_mockgeneration` (자격증 단위 생성) → `0011_reset_mock_generation_to_subject` (과목 단위로 변환, RunPython으로 기존 데이터 삭제 후 필드 변경)
+
+### 누적 시점: 답안 선택 즉시 (AJAX)
+
+문제 출제 시점도 제출 시점도 아니라, **사용자가 답안을 선택하는 즉시** 해당 문제 ID를 누적한다.
+
+- API: `POST /gisa/<cert_id>/mock/mark-answered/` → `mock_mark_answered` 뷰
+- 트리거: `selectAnswer()`, `selectBubble()` 함수 내에서 `markAnsweredOnce(qid)` 호출
+- 중복 방지: 프론트엔드의 `_markedQids` Set으로 한 문제당 1회만 fetch POST
+- 응답: `{ok: true, seen: N, generation: G}`
+
+### 풀 소진 시 자동 라운드 +1
+
+- 출제 시점(`mock_exam_take`)에 unseen 문제 수가 `min(20, total_pool)`보다 적으면 generation 즉시 +1 + seen 리셋
+- 헤더에 `🎉 새 라운드!` 배지 1회 표시 (`gen_reset_just_now` 컨텍스트)
+- 제출 시점(`mock_exam_submit`)에도 보강 누적 (미응답 `selected='0'` 제외, 중복 저장 방지)
+
+### 라운드 표시 UI
+
+| 위치 | 형식 | 비고 |
+|------|------|------|
+| `mock_exam_take.html` exam-top-header | `· R{N}` 또는 `· R{N}+` | 다중 과목 응시 시 `+` 접미사 |
+| `mock_exam_take.html` mobile-header | `모의고사 · R{N}` | 단일/다중 동일 표기 규칙 |
+| `certification_detail.html` 모의고사 탭 카드 | `R{N} (완주 K회)` | K = generation - 1 |
+| `certification_detail.html` 과목별 모의고사 버튼 | `R{N} · {%}` 미니 배지 | 진행률 표시 |
+
+- 헤더 텍스트에서 과목명 제거 (`R1` 형식, "조경관리론 세대 1" 같은 장황한 표현 금지)
+- 색상: 노란색(`#ffc107`) 강조
+
+### 자격증 상세 모의고사 탭 진행도 통계 (?tab=mock)
+
+`certification_detail` 뷰에 `mock_stats` 컨텍스트 추가. 로그인 사용자에게만 표시.
+
+```python
+mock_stats = []
+if request.user.is_authenticated:
+    gen_map = {g.subject_id: g for g in MockGeneration.objects.filter(
+        user=request.user, subject__certification=cert)}
+    for subj in subjects:
+        total_pool = GisaQuestion.objects.filter(
+            exam__certification=cert, subject=subj
+        ).exclude(exam__exam_type="최신").count()
+        g = gen_map.get(subj.pk)
+        seen = len(g.seen_question_ids or []) if g else 0
+        gen = g.generation if g else 1
+        pct = round(seen / total_pool * 100, 1) if total_pool else 0
+        mock_stats.append({
+            "subject_id": subj.pk, "order": subj.order, "name": subj.name,
+            "round": gen, "seen": seen, "total": total_pool, "pct": pct,
+            "rounds_completed": gen - 1,
+        })
+```
+
+UI 구성:
+- 모의고사 탭 상단: 카드 그리드 (`grid-template-columns: repeat(auto-fill, minmax(260px, 1fr))`)
+- 카드 내용: 과목명, `R{N} (완주 K회)`, 진행률 바, `{seen} / {total}문제 · {pct}%`
+- 과목별 모의고사 버튼: `R{N} · {pct}%` 미니 배지 추가
+
+### 채점 후 "새 모의고사" 버튼: 같은 과목 유지
+
+`mock_exam_result` 뷰에 `next_mock_url` 컨텍스트 추가:
+- 단일 과목 응시 시 `?subject=<id>` 쿼리 파라미터 유지
+- 다중 과목/전체 응시 시 `/gisa/<cert>/mock/`로 이동
+- `exam_result.html` 모바일 헤더 + PC 액션 영역 2곳에 적용
+
+### 미응답 제외 규칙
+
+`mock_exam_submit`에서 `selected != '0'`인 문제만 누적:
+- 사용자가 페이지를 열기만 하고 안 풀었을 때 풀 소진 가속화 방지
+- 답안 선택 즉시 누적(`mock_mark_answered`)되므로 제출 단계 보강은 누락 케이스 대응용
+
+### 관련 URL
+
+```python
+path("<int:cert_id>/mock/mark-answered/", views.mock_mark_answered, name="mock_mark_answered"),
+```
+
+### 운영 주의사항
+
+- MockGeneration 데이터는 사용자 학습 이력의 일부이므로 함부로 삭제하지 말 것
+- 누적이 부정확해 보일 때(예: "2회 응시인데 120개 누적") 출제 시점 누적 → 답안 선택 시점 누적으로 이미 수정 완료
+- 풀 소진 판정은 `len(unseen) < min(20, total_pool)` 기준 (정확히 20문제 남았을 때는 마지막 라운드 완주 가능)
