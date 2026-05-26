@@ -1550,6 +1550,88 @@ rows = MaterialOpenLog.objects.filter(opened_at__gte=week_ago).values(
 ).annotate(c=Count('id'))
 ```
 
+## 사용자 활동 분석 쿼리 패턴
+
+운영자가 "사용자 현황"·"비활성 회원"·"이중 가입 의심" 등을 조회할 때 사용하는 표준 쿼리 패턴. 명단 자체는 휘발성·개인정보라 CLAUDE.md에 저장하지 않고, **추출 방법만** 기록한다.
+
+### 활성 사용자 판정 기준
+
+사용자가 "활성"인지는 다음 세 모델 중 **어느 하나라도** 기록이 있으면 참:
+
+```python
+active_g = set(GisaAttempt.objects.values_list('user__username', flat=True).distinct())
+active_e = set(ExamAttempt.objects.values_list('user__username', flat=True).distinct())
+active_p = set(MaterialOpenLog.objects.values_list('user__username', flat=True).distinct())
+active = active_g | active_e | active_p
+```
+
+- 풀이가 0건이어도 **PDF만 열람한 회원도 활성**으로 간주한다 (자료실만 활용하는 회원이 실제로 존재).
+- `User.is_active=True`만 대상으로 한다 (24h 미인증 자동삭제 대상은 제외됨).
+
+### 비활성 회원 카테고리 4분류
+
+활용 안내 우선순위를 정할 때 다음 4분류로 본다:
+
+| 카테고리 | 판정 | 의미 / 안내 우선순위 |
+|---|---|---|
+| 미로그인 | `last_login IS NULL` | 가입만 하고 한 번도 안 들어옴. **이메일 안내 1순위** |
+| 가입일 당일 이탈 | `last_login == date_joined` 일자 | 첫 진입 후 길을 잃은 것 — 사용법 안내 필요 |
+| 최근 로그인 + 활동 0건 | `last_login >= now-7d` AND 활동 없음 | 시스템 사용법이 막막한 케이스 — **개별 메시지 1순위** |
+| 오래된 비활성 | 위 모두 아님 | 학습 흥미 잃음 — 안내 효과 낮음 |
+
+### 이중 가입 의심 탐지
+
+같은 사람이 다른 이메일로 두 번 가입한 케이스가 실제로 발견됨 (예: 김태헌 totalrank / xogjs987).
+
+```python
+from collections import Counter
+names = User.objects.filter(is_active=True).values_list('first_name', flat=True)
+dups = [n for n, c in Counter(names).items() if c > 1 and n]
+# dups에 든 이름은 동명이인일 수도 있으므로 자동 병합·삭제 금지 — 운영자 수동 확인
+```
+
+- 동명이인이 실제로 존재할 수 있으므로 (예: 김상현 = 운영자 본인 + 학생) **이메일·가입일·활동량으로 교차 확인**한 뒤에만 처리.
+- 운영자 본인 계정은 `root` (관리용) + `gocompu21` (학습용) 분리. 통계에서 `root`는 풀이 0건으로 빠지고 실제 학습은 `gocompu21`에서 잡힘.
+
+### 사용자별 누적 활동 머지 패턴
+
+기사·방송대·PDF를 한 dict로 머지하는 표준 코드:
+
+```python
+from django.db.models import Count, Q, Max
+gisa_qs = GisaAttempt.objects.values('user__username','user__first_name').annotate(
+    c=Count('id'), correct=Count('id', filter=Q(is_correct=True)), last=Max('created_at'))
+exam_qs = ExamAttempt.objects.values('user__username','user__first_name').annotate(
+    c=Count('id'), correct=Count('id', filter=Q(is_correct=True)), last=Max('created_at'))
+pdf_qs = MaterialOpenLog.objects.values('user__username','user__first_name','action').annotate(
+    c=Count('id'), last=Max('opened_at'))
+
+merged = {}  # username → {name, gisa, gisa_correct, exam, exam_correct, pdf_v, pdf_p, last}
+# 세 쿼리를 username 키로 머지하면서 last(=가장 최근 활동 시각)는 max로 갱신
+```
+
+### 박만우 케이스 — 학습모드(study) 정답률 0%
+
+`GisaAttempt.mode='study'`(학습모드)는 채점이 없어 `is_correct=False`로 저장된다. 따라서 누적 정답률 0%로 보여도 **실력 부족이 아니라 모드 차이**다. 사용자 통계 해석 시 mode별로 나눠 봐야 한다:
+
+```python
+# 학습모드 제외한 실전 정답률
+GisaAttempt.objects.filter(user=u).exclude(mode='study').aggregate(
+    total=Count('id'), correct=Count('id', filter=Q(is_correct=True)))
+```
+
+- `mode` 값: `exam` (기출고사) / `mock` (모의고사) / `wrong_retry` (오답 재풀이) / `study` (학습모드)
+- 학습모드만 사용하는 회원에게는 "이제 기출고사·모의고사로 실력 점검 단계 추천" 안내가 적절.
+
+### 저장 금지 사항
+
+다음은 CLAUDE.md에 절대 저장하지 않는다:
+- 사용자 명단 (이름·이메일·username) — 개인정보 + 매일 변동
+- 사용자별 풀이 건수·정답률 스냅샷 — DB가 항상 정답이므로 코드 저장소에 두면 즉시 stale
+- 활동 로그 / 누가 무엇을 했나 — `git log`나 DB 쿼리로 항상 재생성 가능
+
+저장 가치가 있는 건 **분석 방법론과 판정 기준**뿐.
+
 ## 모의고사 세대(Round) 시스템 (gisa)
 
 같은 라운드 내에서 모의고사 출제 시 중복 문제를 피하고, 풀이 풀이 사이클을 라운드(R) 단위로 추적한다.
