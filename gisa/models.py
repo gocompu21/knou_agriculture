@@ -188,3 +188,28 @@ class MockGeneration(models.Model):
 
     def __str__(self):
         return f"{self.user.username} · {self.subject.name} (세대 {self.generation}, {len(self.seen_question_ids)}문제 누적)"
+
+
+class CertificationViewLog(models.Model):
+    """자격증 상세 페이지(certification_detail) 진입 기록.
+    사용자가 어느 자격증의 어느 탭을 언제 봤는지 추적.
+    """
+    certification = models.ForeignKey(Certification, on_delete=models.CASCADE, related_name='view_logs', verbose_name='자격증')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='certification_views', verbose_name='사용자')
+    tab = models.CharField('탭', max_length=20, blank=True, default='')
+    viewed_at = models.DateTimeField('시각', auto_now_add=True)
+    ip = models.GenericIPAddressField('IP', null=True, blank=True)
+    user_agent = models.CharField('User-Agent', max_length=300, blank=True)
+
+    class Meta:
+        verbose_name = '자격증 페이지 조회'
+        verbose_name_plural = '자격증 페이지 조회'
+        ordering = ['-viewed_at']
+        indexes = [
+            models.Index(fields=['viewed_at']),
+            models.Index(fields=['user', 'viewed_at']),
+            models.Index(fields=['certification', 'tab', 'viewed_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} viewed {self.certification.name}[{self.tab}] @ {self.viewed_at:%Y-%m-%d %H:%M}"

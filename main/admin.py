@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Subject, FavoriteSubject, SubjectMaterial, MaterialOpenLog
+from .models import Subject, FavoriteSubject, SubjectMaterial, MaterialOpenLog, SubjectViewLog
 
 
 @admin.register(SubjectMaterial)
@@ -16,3 +16,12 @@ class MaterialOpenLogAdmin(admin.ModelAdmin):
     list_filter = ('opened_at',)
     search_fields = ('user__username', 'material__title')
     readonly_fields = ('material', 'user', 'opened_at', 'ip', 'user_agent')
+
+
+@admin.register(SubjectViewLog)
+class SubjectViewLogAdmin(admin.ModelAdmin):
+    list_display = ('viewed_at', 'user', 'subject', 'tab', 'ip')
+    list_filter = ('tab', 'subject')
+    search_fields = ('user__username', 'user__first_name', 'subject__name')
+    date_hierarchy = 'viewed_at'
+    readonly_fields = ('subject', 'user', 'tab', 'viewed_at', 'ip', 'user_agent')

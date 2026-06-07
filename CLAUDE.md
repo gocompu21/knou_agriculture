@@ -1489,6 +1489,56 @@ UserProfile.objects.update(receive_email=False)
 - 부제: 일반 단락 13pt 회색(#555)
 - 볼드 색상: 다크그린(#1B4332)
 
+## 과목/자격증 페이지 조회 추적
+
+`subject_detail`(방송대) / `certification_detail`(기사) 페이지 진입을 추적해서 "어느 사용자가 어느 과목·탭을 몇 번 봤는지" 통계 산출.
+
+### 모델
+
+| 앱 | 모델 | 추적 대상 |
+|---|---|---|
+| main | `SubjectViewLog` | `/subjects/<pk>/?tab=<tab>` 진입 |
+| gisa | `CertificationViewLog` | `/gisa/<cert_id>/?tab=<tab>` 진입 |
+
+공통 필드: `subject/certification(FK) · user(FK) · tab(20자) · viewed_at · ip · user_agent(300자)`. 인덱스: `(viewed_at)`, `(user, viewed_at)`, `(대상, tab, viewed_at)`.
+
+### 진입 기록 시점
+
+- 두 뷰 모두 `active_tab = request.GET.get('tab', ...)` 직후 `try/except`로 `objects.create(...)` 호출. 로그 저장 실패해도 페이지 렌더링은 계속됨.
+- 탭 값 예: 방송대 `notes/exam/wrong/history/latest`, 기사 `textbook/study/solve/mock/wrong/history/latest/glossary`
+- `tab` 미지정 시 기본값: 방송대 `notes`, 기사 `textbook`
+
+### "조회 vs 풀이"의 차이
+
+- **조회(view log)**: 페이지 진입만 — 사용자가 문항을 펼쳐보지 않아도 카운트
+- **풀이(Attempt)**: 답안 제출 시점에만 — 조회보다 훨씬 적음
+- 자원식물학 사례(2026-06-07): 06-06 하루 `?tab=latest` 진입 44회·9 IP, 최신기출 풀이 0건 → "조회만 하고 풀이 안 함" 패턴이 일반적
+
+### 통계 조회 패턴
+
+```python
+from django.db.models import Count
+from main.models import SubjectViewLog
+
+# 어제 과목·탭별 조회 TOP
+SubjectViewLog.objects.filter(viewed_at__gte=yesterday, viewed_at__lt=today)\
+    .values('subject__name', 'tab').annotate(c=Count('id')).order_by('-c')
+
+# 특정 사용자가 본 최신기출 과목
+SubjectViewLog.objects.filter(user=u, tab='latest')\
+    .values('subject__name').annotate(c=Count('id')).order_by('-c')
+```
+
+### nginx access.log 기반 IP 통계는 불완전
+
+- IP↔사용자 매핑 불가 + 모바일 IP 변경 + 14일 보존 한계
+- `SubjectViewLog` 도입 이후로는 사용자별 정확 추적 가능
+
+### 마이그레이션
+
+- `main/0009_subjectviewlog.py`
+- `gisa/0012_certificationviewlog.py`
+
 ## PDF 자료실 (main 앱)
 
 방송대 과목별 PDF 학습 자료를 회원에게 제공. 다운로드는 차단하고 열람·인쇄만 허용하며, 모든 사용 이력을 워터마크와 함께 추적한다.

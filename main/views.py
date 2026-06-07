@@ -398,6 +398,22 @@ def subject_detail(request, pk):
 
     active_tab = request.GET.get("tab", "notes")
 
+    # 페이지 진입 로그 저장 (실패해도 페이지 표시는 계속)
+    try:
+        from .models import SubjectViewLog
+        ip = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() \
+            or request.META.get('REMOTE_ADDR')
+        ua = request.META.get('HTTP_USER_AGENT', '')[:300]
+        SubjectViewLog.objects.create(
+            subject=subject,
+            user=request.user,
+            tab=active_tab[:20],
+            ip=ip or None,
+            user_agent=ua,
+        )
+    except Exception:
+        pass
+
     # 정리노트 (구조화된 장/절/항 파싱)
     notes_qs = StudyNote.objects.filter(subject=subject).order_by("order")
     study_notes_count = notes_qs.count()

@@ -85,3 +85,28 @@ class MaterialOpenLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username} {self.get_action_display()} {self.material.title[:20]} @ {self.opened_at:%Y-%m-%d %H:%M}"
+
+
+class SubjectViewLog(models.Model):
+    """과목 상세 페이지(subject_detail) 진입 기록.
+    사용자가 어느 과목의 어느 탭을 언제 봤는지 추적.
+    """
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='view_logs', verbose_name='과목')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='subject_views', verbose_name='사용자')
+    tab = models.CharField('탭', max_length=20, blank=True, default='')
+    viewed_at = models.DateTimeField('시각', auto_now_add=True)
+    ip = models.GenericIPAddressField('IP', null=True, blank=True)
+    user_agent = models.CharField('User-Agent', max_length=300, blank=True)
+
+    class Meta:
+        verbose_name = '과목 페이지 조회'
+        verbose_name_plural = '과목 페이지 조회'
+        ordering = ['-viewed_at']
+        indexes = [
+            models.Index(fields=['viewed_at']),
+            models.Index(fields=['user', 'viewed_at']),
+            models.Index(fields=['subject', 'tab', 'viewed_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} viewed {self.subject.name}[{self.tab}] @ {self.viewed_at:%Y-%m-%d %H:%M}"

@@ -339,6 +339,22 @@ def certification_detail(request, cert_id):
     active_tab = request.GET.get("tab", "textbook")
     total_questions = GisaQuestion.objects.filter(exam__certification=cert).exclude(exam__exam_type="최신").count()
 
+    # 페이지 진입 로그 저장 (실패해도 페이지 표시는 계속)
+    try:
+        from .models import CertificationViewLog
+        ip = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() \
+            or request.META.get('REMOTE_ADDR')
+        ua = request.META.get('HTTP_USER_AGENT', '')[:300]
+        CertificationViewLog.objects.create(
+            certification=cert,
+            user=request.user,
+            tab=active_tab[:20],
+            ip=ip or None,
+            user_agent=ua,
+        )
+    except Exception:
+        pass
+
     # 교재 탭이 아닐 때만 시험/세션 데이터 로드 (switchTab은 페이지 리로드)
     exam_cards = []
     wrong_count = 0
