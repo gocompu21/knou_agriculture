@@ -15,6 +15,16 @@ class UserProfile(models.Model):
     )
     receive_email = models.BooleanField("이메일 수신", default=True)
     password_changed_at = models.DateTimeField("비밀번호 변경 시각", null=True, blank=True)
+    is_approved = models.BooleanField("관리자 승인", default=False)
+    approved_at = models.DateTimeField("승인 시각", null=True, blank=True)
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_signups",
+        verbose_name="승인자",
+    )
 
     class Meta:
         verbose_name = "사용자 프로필"

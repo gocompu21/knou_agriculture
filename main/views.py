@@ -1027,7 +1027,18 @@ def member_manage(request):
         m.last_pdf_open = last
         m.pdf_open_count = cnt
 
-    return render(request, "main/member_manage.html", {"members": members})
+    # 승인 대기 신청자 (is_active=False AND profile.is_approved=False)
+    pending_members = (
+        User.objects.filter(is_active=False, profile__is_approved=False)
+        .select_related("profile")
+        .order_by("-date_joined")
+    )
+
+    return render(request, "main/member_manage.html", {
+        "members": members,
+        "pending_members": pending_members,
+        "active_tab": request.GET.get("tab", "members"),
+    })
 
 
 @login_required
@@ -1151,6 +1162,51 @@ def member_delete(request, pk):
         return JsonResponse({"error": "자기 자신은 삭제할 수 없습니다."}, status=400)
     if target_user.is_superuser:
         return JsonResponse({"error": "슈퍼유저는 삭제할 수 없습니다."}, status=400)
+    username = target_user.username
+    target_user.delete()
+    return JsonResponse({"ok": True, "username": username})
+
+
+@login_required
+@user_passes_test(staff_required)
+@require_POST
+def member_approve(request, pk):
+    """가입 신청 승인. 승인 시 이메일 인증 토큰 생성 + 인증 메일 발송."""
+    from accounts.models import UserProfile, EmailVerificationToken
+    from accounts.views import _send_verification_email
+    from django.utils import timezone as _tz
+
+    target_user = get_object_or_404(User, pk=pk)
+    profile, _ = UserProfile.objects.get_or_create(user=target_user)
+    if profile.is_approved:
+        return JsonResponse({"error": "이미 승인된 회원입니다."}, status=400)
+
+    profile.is_approved = True
+    profile.approved_at = _tz.now()
+    profile.approved_by = request.user
+    profile.save(update_fields=["is_approved", "approved_at", "approved_by"])
+
+    # 토큰 발급 + 인증 메일 발송
+    token, _ = EmailVerificationToken.objects.get_or_create(user=target_user)
+    token.refresh()
+    try:
+        _send_verification_email(request, target_user, token)
+    except Exception as e:
+        return JsonResponse({"ok": True, "username": target_user.username,
+                             "warning": f"승인은 됐으나 인증 메일 발송 실패: {e}"})
+    return JsonResponse({"ok": True, "username": target_user.username})
+
+
+@login_required
+@user_passes_test(staff_required)
+@require_POST
+def member_reject(request, pk):
+    """가입 신청 거부 = 즉시 삭제."""
+    target_user = get_object_or_404(User, pk=pk)
+    if target_user == request.user:
+        return JsonResponse({"error": "자기 자신은 거부할 수 없습니다."}, status=400)
+    if target_user.is_superuser:
+        return JsonResponse({"error": "슈퍼유저는 거부할 수 없습니다."}, status=400)
     username = target_user.username
     target_user.delete()
     return JsonResponse({"ok": True, "username": username})

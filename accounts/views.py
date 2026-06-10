@@ -42,15 +42,15 @@ def _notify_admin_signup(user, request):
                 or request.META.get("REMOTE_ADDR", "")
             ua = request.META.get("HTTP_USER_AGENT", "")[:200]
             body = (
-                f"새 회원이 가입 신청했습니다.\n\n"
+                f"새 회원이 가입 신청했습니다. 관리자 승인이 필요합니다.\n\n"
                 f"아이디  : {user.username}\n"
                 f"이름    : {user.first_name}\n"
                 f"이메일  : {user.email}\n"
                 f"가입시각: {user.date_joined:%Y-%m-%d %H:%M:%S}\n"
                 f"IP      : {ip}\n"
                 f"User-Agent: {ua}\n\n"
-                f"※ 이메일 인증 완료 후 활성화됩니다.\n"
-                f"※ 봇 의심 시 회원관리에서 삭제하세요: https://hanulstudy.kr/manage/members/\n"
+                f"※ 승인하면 사용자에게 이메일 인증 메일이 발송됩니다.\n"
+                f"※ 승인/거부: https://hanulstudy.kr/manage/members/?tab=pending\n"
             )
             EmailMessage(
                 f"[한울회 A+] 신규 가입: {user.first_name}({user.username})",
@@ -80,7 +80,7 @@ def user_signup(request):
             return render(request, "accounts/signup.html", {"form": SignUpForm()})
 
         # 비활성 상태로 이미 가입한 사용자가 같은 username/email로 다시 시도한 경우
-        # → 기존 계정의 토큰을 갱신하고 메일 재발송
+        # → 승인 대기 안내 페이지로 다시 안내 (관리자에게 알림 재발송)
         username = request.POST.get("username", "").strip()
         email = request.POST.get("email", "").strip()
         if username and email:
@@ -88,31 +88,22 @@ def user_signup(request):
                 username=username, email=email, is_active=False
             ).first()
             if existing:
-                token, _ = EmailVerificationToken.objects.get_or_create(user=existing)
-                token.refresh()
-                try:
-                    _send_verification_email(request, existing, token)
-                    return render(
-                        request,
-                        "accounts/signup_pending.html",
-                        {"email": existing.email, "resent": True},
-                    )
-                except Exception as e:
-                    messages.error(request, f"인증 메일 재발송에 실패했습니다: {e}")
+                _notify_admin_signup(existing, request)
+                return render(
+                    request,
+                    "accounts/signup_pending.html",
+                    {"email": existing.email, "resent": True},
+                )
 
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
             user.is_active = False
             user.save()
-            token = EmailVerificationToken.objects.create(user=user)
-            try:
-                _send_verification_email(request, user, token)
-            except Exception as e:
-                user.delete()  # 메일 발송 실패 시 가입 취소
-                messages.error(request, f"인증 메일 발송에 실패했습니다: {e}")
-                return render(request, "accounts/signup.html", {"form": form})
-            # 관리자 알림 메일 (백그라운드)
+            # UserProfile.is_approved=False 명시 (기본값이 False이지만 가독성)
+            from .models import UserProfile
+            UserProfile.objects.get_or_create(user=user, defaults={'is_approved': False})
+            # 관리자에게 가입 신청 알림 메일 (인증 메일은 승인 후 발송)
             _notify_admin_signup(user, request)
             return render(
                 request,

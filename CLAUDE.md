@@ -1600,6 +1600,68 @@ rows = MaterialOpenLog.objects.filter(opened_at__gte=week_ago).values(
 ).annotate(c=Count('id'))
 ```
 
+## 회원 가입·승인 흐름 (accounts 앱)
+
+가입 신청 → **관리자 승인** → 이메일 인증 → 활성화의 3단계 절차로 운영. 봇/스팸/원치 않는 가입을 사전 차단.
+
+### 흐름
+
+1. **사용자 가입 폼 제출** (`/accounts/signup/`)
+2. **계정 생성**: `is_active=False, profile.is_approved=False`
+3. **관리자 알림 메일** 발송 (gocompu21@gmail.com) + 사용자에게 "관리자 검토 후 인증 메일 발송" 안내 페이지 표시
+4. 관리자가 `/manage/members/?tab=pending`에서 [승인] 또는 [거부]
+   - **승인**: `profile.is_approved=True, approved_at, approved_by` 설정 + `EmailVerificationToken` 생성 + 인증 메일 발송
+   - **거부**: `user.delete()` (즉시 삭제)
+5. 사용자가 인증 메일 링크 클릭 → `verify_email` → `is_active=True` + 자동 로그인
+
+→ **인증 메일은 관리자 승인 후에만** 사용자에게 발송된다. 봇이 가입 폼을 제출해도 관리자가 안 누르면 메일 전송 0.
+
+### 모델 (`accounts/models.py`)
+
+`UserProfile`에 승인 필드 3개:
+- `is_approved` BooleanField (default=False)
+- `approved_at` DateTimeField (null=True)
+- `approved_by` ForeignKey → User (null=True, related_name='approved_signups')
+
+### 관리자 알림 배지
+
+- `accounts/context_processors.py`의 `pending_signup_count`가 글로벌 컨텍스트에 주입
+- staff에게만 노출: `User.objects.filter(is_active=False, profile__is_approved=False).count()`
+- `base.html` "관리" 메뉴 옆에 빨간 배지 `(N)` 표시 (count > 0일 때만)
+- `config/settings.py`의 `TEMPLATES.OPTIONS.context_processors`에 등록
+
+### 관리자 페이지 (`/manage/members/`)
+
+상단 탭:
+- [회원 목록 (N)] — 기본
+- [승인 대기 (M)] — `?tab=pending` (M > 0이면 빨간 배경)
+
+승인 대기 탭: 이름·아이디·이메일·가입일시·[승인][거부] 버튼
+
+### URL/뷰
+
+| URL | 뷰 | 메서드 | 동작 |
+|---|---|---|---|
+| `/manage/members/<pk>/approve/` | `member_approve` | POST | 승인 + 인증 메일 발송 |
+| `/manage/members/<pk>/reject/` | `member_reject` | POST | 즉시 삭제 |
+
+JSON 응답: `{ok: true, username, [warning]}` 또는 `{error}`
+
+### 기존 비활성 회원 마이그레이션
+
+`accounts/0006_approve_existing_active_users.py` — 이미 `is_active=True`인 사용자 전원을 자동으로 `is_approved=True`로 처리하는 RunPython 마이그레이션. 도입 전 회원 100명 보호.
+
+### 자동 삭제 (`cleanup_unverified`)
+
+- 기존: 24시간 미인증 → 삭제
+- **변경**: **7일** 미승인·미인증 → 삭제 (`--days 7`)
+- 관리자가 휴가 등으로 며칠 못 봐도 신청이 사라지지 않게 여유 시간 확보
+- cron 일정도 동시에 조정 필요
+
+### 가입 안내 페이지 (`signup_pending.html`)
+
+"관리자 검토 후 승인되면 인증 메일이 발송됩니다" + 승인 절차 안내 박스 (보통 하루 이내, 7일 자동 취소 등)
+
 ## 사용자 활동 분석 쿼리 패턴
 
 운영자가 "사용자 현황"·"비활성 회원"·"이중 가입 의심" 등을 조회할 때 사용하는 표준 쿼리 패턴. 명단 자체는 휘발성·개인정보라 CLAUDE.md에 저장하지 않고, **추출 방법만** 기록한다.

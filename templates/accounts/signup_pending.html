@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>한울회 - 이메일 인증 안내</title>
+    <title>한울회 - 가입 신청 접수</title>
     <style>
         body {
             margin: 0;
@@ -103,21 +103,22 @@
 
 <body>
     <div class="card">
-        <div class="icon">✉️</div>
-        <h1>이메일 인증을 완료해 주세요</h1>
+        <div class="icon">⏳</div>
+        <h1>가입 신청이 접수되었습니다</h1>
         {% if resent %}
-        <div class="resent-banner">아직 인증이 완료되지 않은 계정이 있어 인증 메일을 다시 보냈습니다.</div>
+        <div class="resent-banner">이미 신청하신 계정이 있어 관리자에게 알림을 다시 보냈습니다.</div>
         {% endif %}
         <p class="lead">
-            아래 이메일 주소로 인증 메일을 보내드렸습니다.<br>
-            메일에 포함된 <b>"가입 완료하기"</b> 버튼을 클릭하면 회원가입이 완료됩니다.
+            <b>관리자 검토 후 승인</b>되면 아래 이메일 주소로<br>
+            인증 메일이 발송됩니다. 인증 후 사용하실 수 있습니다.
         </p>
         <div class="email-box">{{ email }}</div>
         <div class="notice">
-            <b>메일이 도착하지 않나요?</b><br>
-            • 스팸 메일함을 확인해 주세요.<br>
-            • 인증 링크는 발송 후 <b>24시간</b> 동안 유효합니다.<br>
-            • 만료되었거나 메일을 못 받았다면 <a href="/accounts/signup/">회원가입 페이지</a>에서 같은 정보로 다시 신청하면 인증 메일이 재발송됩니다.
+            <b>승인 절차 안내</b><br>
+            • 관리자 검토는 보통 <b>하루 이내</b> 처리됩니다.<br>
+            • 승인되면 등록하신 이메일로 <b>인증 메일</b>이 자동 발송됩니다.<br>
+            • 인증 메일이 도착하지 않으면 스팸함도 확인해 주세요.<br>
+            • 7일 이내 승인되지 않으면 신청은 자동 취소됩니다.
         </div>
         <div class="actions">
             <a href="/">홈으로</a>
