@@ -15,6 +15,7 @@ class UserProfile(models.Model):
     )
     receive_email = models.BooleanField("이메일 수신", default=True)
     password_changed_at = models.DateTimeField("비밀번호 변경 시각", null=True, blank=True)
+    cohort = models.IntegerField("기수", null=True, blank=True, db_index=True)
     is_approved = models.BooleanField("관리자 승인", default=False)
     approved_at = models.DateTimeField("승인 시각", null=True, blank=True)
     approved_by = models.ForeignKey(
