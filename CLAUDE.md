@@ -374,6 +374,9 @@ python load_latest.py 식물의학_latest.json
 - AI 해설: 전체 Gemini 해설 생성 완료 (현재 기본 모델: gemini-3-flash-preview)
 - 2023년 1회(80문항), 2024년 1회(80문항) 추가 완료 + 쪽집게 노트 보강
 
+- **조경기사** (pk=5, category='기사') — 3,480문항, 6과목. 상세는 아래 「조경기사」 섹션 참조
+- **자연생태복원기사** (로컬 pk=6 / 서버 pk=3, category='기사') — 3,160문항, 5과목. 상세는 아래 「자연생태복원기사」 섹션 참조
+
 ### 모델 구조 (gisa/models.py)
 
 | 모델 | 설명 | 주요 필드 |
@@ -536,6 +539,7 @@ gisa/
 ├── admin.py            # 5개 모델 Admin 등록
 └── management/commands/
     ├── import_gisa_questions.py       # 텍스트 파일 → DB import
+    ├── import_eco_questions.py        # 자연생태복원기사 파싱결과 → DB import
     └── generate_gisa_explanations.py  # Gemini 해설 생성
 
 templates/gisa/
@@ -573,6 +577,7 @@ knou_agriculture/
 │   ├── views.py        # parse_study_guide(), 학습/풀이/모의/오답/교재 뷰
 │   └── management/commands/
 │       ├── import_gisa_questions.py       # 텍스트 → DB import
+│       ├── import_eco_questions.py        # 자연생태복원기사 → DB import
 │       └── generate_gisa_explanations.py  # Gemini 해설 생성
 ├── accounts/           # 회원 관리 앱
 ├── templates/          # HTML 템플릿
@@ -584,8 +589,13 @@ knou_agriculture/
 ├── generate_all.py     # 전체 과목 병렬 해설 생성 (방송대)
 ├── generate_sanup_explanations.py  # 식물보호산업기사 병렬 해설 생성
 ├── load_latest.py      # 최신기출 JSON → DB import (update_or_create)
+├── parse_eco.py        # 자연생태복원기사 PDF 파서 (텍스트+이미지 자동 추출)
+├── generate_eco_explanations.py    # 자연생태복원기사 병렬 해설 생성
+├── deploy_eco.py       # 자연생태복원기사 문항·해설·이미지 export/load
+├── load_eco_textbook.py            # 쪽집게 노트 병합+검증+저장 (로컬)
+├── load_eco_textbook_deploy.py     # 쪽집게 노트 서버 적재
 └── data/               # 엑셀 파일 + 핵심정리 마크다운 (gitignore)
-    └── comcbt/         # 식물보호산업기사 PDF/HWP (36회차, comcbt.com 원본)
+    └── comcbt/         # 식물보호산업기사·조경기사·자연생태복원기사 PDF (comcbt.com 원본)
 ```
 
 ## 알려진 주의사항
@@ -856,6 +866,20 @@ gisa/questions/choice_1_image.png  # 모든 자격증 공유 → 식물보호기
 ```
 
 조경기사 2022-1 #52, #57은 과거 충돌로 이미지가 덮어씌워졌던 사례 (c5 경로로 재업로드하여 복구).
+
+## 문제/보기 이미지 표시 크기
+
+PDF에서 3배 확대 추출한 이미지는 원본 폭이 660~780px이라 CSS 상한이 없으면 화면을 가득 채운다.
+
+| 클래스 | 설정 | 비고 |
+|--------|------|------|
+| `.q-image` (지문 이미지) | `max-width: min(100%, 420px)` | 상한 없으면 원본 크기 그대로 표시됨 |
+| `.choice-image` (보기 이미지) | `max-width: min(100%, 300px)` | |
+| 모바일(768px 이하) | `max-width: 100%` | 기존 오버라이드 유지 |
+
+**적용 위치 6곳**: `study_mode.html`, `exam_take.html`, `mock_exam_take.html`, `exam_result.html`, `wrong_answers.html`, `certification_detail.html`
+
+> `mock_exam_take.html`만 CSS 클래스가 아니라 **인라인 `style` 속성**을 쓰므로 별도로 수정해야 한다.
 
 ## 식물보호기사 용어집 (5,870개)
 
@@ -1154,6 +1178,92 @@ staff 사용자가 학습모드에서 문제/보기/정답/해설을 인라인�
 |------|------|
 | `_deploy_3_textbooks_fix.py` + `.json` | 조경사/조경식재/조경시공구조학 3과목 교재 서버 반영 |
 | `_deploy_jogsa_ref.py` + `_deploy_jogsa_ref_fix.json` | 조경사 관련문제 수정본 서버 반영 |
+
+## 자연생태복원기사 (로컬 pk=6, 서버 pk=3)
+
+### 데이터 현황
+
+- 데이터: 2012~2022년 필기 기출, 총 **3,160문항** (32회차)
+- 과목: 환경생태학개론·환경계획학·생태복원공학·경관생태학·자연환경관계법규 (5과목)
+- **2022년부터 4과목 80문항으로 개편** (자연환경관계법규 제외) → 2022년만 160문항
+- 회차당 100문항 (과목별 20문항), 2022년은 80문항
+- 이미지 **340개** (수식·그래프·[보기]박스) — 306문항이 이미지 포함
+- AI 해설: 전체 Gemini 해설 생성 완료 (gemini-3-flash-preview)
+
+> ⚠️ **로컬 pk=6, 서버 pk=3**으로 다릅니다. 이미지 경로는 로컬 기준 `c6/`으로 생성돼 서버에도 `c6/`로 배포됐습니다(정상 동작). 서버에서 신규 문항을 추가하면 `c3/`로 생성되지만 파일명이 `eco*`로 고유해 충돌 위험은 없습니다.
+
+### 데이터 원본 및 파싱
+
+comcbt.com PDF (`data/comcbt/자연생태복원기사YYYY-R.pdf`, 32개). **텍스트 레이어가 있어 자동 파싱 가능** (조경기사의 스캔 PDF와 다름).
+
+```bash
+python parse_eco.py                 # 전체 32회차 파싱
+python parse_eco.py 2012-1          # 특정 회차만
+python manage.py import_eco_questions          # 파싱 결과 → DB
+python manage.py import_eco_questions --dry-run
+```
+
+**`parse_eco.py` 핵심 로직** (다른 comcbt PDF에도 재사용 가능):
+
+| 처리 | 방법 |
+|------|------|
+| 과목 판정 | 문항번호 범위(1~20, 21~40…)로 결정. `N과목 : 과목명` 표시는 해당 과목 **마지막 페이지 하단**에 나와서 신뢰 불가 |
+| 정답표 | 마지막 페이지에 번호 10개 → 정답(①~④) 10개 블록 반복 |
+| 광고 제거 | `종이 문제집`/`실제 시험에서 사용하는`/`PC 버전` 중 하나를 만나면 **그 줄부터 이후 전부 폐기** (개별 줄 필터링은 정상 문항을 오탐) |
+| 이미지 추출 | PDF 내 이미지 객체를 좌표로 문항에 매칭 후 3배 확대 렌더링 |
+
+**이미지 매칭에서 반드시 지켜야 할 3가지** (실제로 버그가 났던 지점):
+
+1. **2×2 격자 배치** — 보기가 좌우 2열로 놓이는 문항이 있어, y좌표만으로 정렬하면 ①②가 뒤바뀐다. **y로 행 클러스터링(tolerance 15pt) 후 행 안에서 x 오름차순** 정렬해야 한다.
+2. **컬럼/페이지 넘김** — 좌측 단 마지막 문항의 보기가 우측 단 상단에, 또는 다음 페이지 상단에 이어지는 경우. 해당 컬럼 위에 문항번호가 없으면 직전 컬럼/페이지의 마지막 문항으로 귀속시킨다.
+3. **이미지 개수별 매핑** — 5개 이상이면 **뒤 4개를 보기 ①~④**로, 앞의 여분은 지문 그림(`text_image`). 보기 텍스트가 있는데 그림이 4개면 각 보기의 부속 그림이므로 보기에 배정.
+
+### AI 해설 생성
+
+```bash
+python generate_eco_explanations.py            # 회차×과목 단위 40개 병렬
+python generate_eco_explanations.py --force    # 덮어쓰기
+python generate_eco_explanations.py --year 2012
+```
+
+- 회차·과목 목록을 **DB에서 자동 조회**하므로 2022년 4과목 개편이 자동 반영됨
+- `WORKERS=40`, `DELAY=0.5`, `MODEL=gemini-3-flash-preview`
+- 이미지 문항은 `get_image_parts()`가 멀티모달로 이미지를 함께 전송 (실측: 텍스트 문항 입력 ~250토큰 vs 이미지 문항 ~4,550토큰)
+
+### 배포
+
+```bash
+# 로컬: 문항+해설+이미지 추출
+python deploy_eco.py export     # → _deploy_eco.json(5.7MB) + _deploy_eco_images.zip(4.3MB)
+
+# git push 후 서버에서
+python deploy_eco.py load       # 이미지 압축해제 + DB 적재
+```
+
+### 쪽집게 노트
+
+| 과목 | 상태 | 분량 | 커버리지 |
+|------|------|------|----------|
+| 환경생태학개론 | ✅ 완성 | 144,468자 / 2,380줄 (12장+부록) | **640/640 (100%)** |
+| 환경계획학 | 미작성 | | |
+| 생태복원공학 | 미작성 | | |
+| 경관생태학 | 미작성 | | |
+| 자연환경관계법규 | 미작성 | | |
+
+```bash
+python load_eco_textbook.py 환경생태학개론 env --dry   # 병합+검증만
+python load_eco_textbook.py 환경생태학개론 env         # DB 저장 + 배포용 md 생성
+python load_eco_textbook_deploy.py                     # 서버에서 적재
+```
+
+`load_eco_textbook.py`가 **구조 점검(장/절/항/키워드표 개수)과 커버리지 검증(노트 ref vs DB 실제 문항)** 을 함께 수행한다. 존재하지 않는 ref도 검출한다.
+
+**노트 생성 작업 패턴** (조경기사와 동일):
+1. DB에서 과목 문항을 `[YYYY-R-N] 문제 / *정답보기` 형식 텍스트로 추출
+2. 12장을 3장씩 4묶음으로 나눠 **병렬 에이전트 4개**에 배정. 각 에이전트가 **640문항 전문을 정독**한 뒤 담당 장 작성
+3. 병합 → 커버리지 검증 → 미연결 문항은 **부록**으로 흡수해 100% 달성
+
+> 절 바로 아래에 도입 문단 없이 `####` 항으로 들어가면 절의 `content_html`이 비지만 정상이다. 기존 노트도 동일(조경관리론 55%, 식물병리학 54%가 그런 절). 하위 항까지 없는 진짜 빈 절이 0개인지만 확인하면 된다.
 
 ## 산업기사 쪽집게 노트 현황
 
