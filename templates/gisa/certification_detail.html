@@ -1019,9 +1019,9 @@
                 <div class="exam-card-info">{{ ec.count }}문제</div>
                 <div class="subject-list">
                     <a href="{% url 'gisa:study_mode_all' cert.pk ec.exam.pk %}" class="subject-link" style="font-weight:bold;background:#1b4332;color:#fff;">전체보기 ({{ ec.count }}문제)</a>
-                    {% for subj in subjects %}
+                    {% for subj in ec.subjects %}
                     <a href="{% url 'gisa:study_mode' cert.pk ec.exam.pk subj.pk %}" class="subject-link">
-                        {{ subj.order }}과목: {{ subj.name }}
+                        {{ forloop.counter }}과목: {{ subj.name }}
                     </a>
                     {% endfor %}
                 </div>
@@ -1095,16 +1095,16 @@
             </div>
             <div style="margin-bottom:24px; padding:16px; background:#f9fbf9; border:1px solid #dce8dc; border-radius:8px;">
                 <div style="font-weight:700; color:#1b4332; margin-bottom:8px;">전과목 모의고사</div>
-                <div style="font-size:0.9rem; color:#666; margin-bottom:12px;">각 과목별 20문제씩 임의로 추출, 총 {{ subjects|length|add:"0" }}과목 모의고사</div>
+                <div style="font-size:0.9rem; color:#666; margin-bottom:12px;">각 과목별 20문제씩 임의로 추출, 총 {{ mock_subjects|length }}과목 모의고사</div>
                 <a href="{% url 'gisa:mock_exam_take' cert.pk %}" style="display:inline-block; font-size:0.95rem; padding:10px 28px; background:#1b4332; color:#fff; border-radius:6px; font-weight:700; text-decoration:none; box-shadow:0 2px 4px rgba(0,0,0,0.1);">전과목 모의고사 시작</a>
             </div>
             <div style="padding:16px; background:#fff; border:1px solid #e0e0e0; border-radius:8px;">
                 <div style="font-weight:700; color:#1b4332; margin-bottom:8px;">과목별 모의고사</div>
                 <div style="font-size:0.9rem; color:#666; margin-bottom:12px;">선택한 과목의 20문제로 모의고사를 치룹니다.</div>
                 <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                    {% for subj in subjects %}
+                    {% for subj in mock_subjects %}
                     <a href="{% url 'gisa:mock_exam_take' cert.pk %}?subject={{ subj.pk }}" style="display:inline-flex; align-items:center; gap:6px; padding:9px 18px; background:#1b4332; color:#fff; border-radius:6px; font-size:0.88rem; font-weight:600; text-decoration:none; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-                        {{ subj.order }}과목: {{ subj.name }}
+                        {{ forloop.counter }}과목: {{ subj.name }}
                         {% for s in mock_stats %}{% if s.subject_id == subj.pk %}<span style="background:rgba(255,255,255,0.18); padding:1px 7px; border-radius:10px; font-size:0.74em; font-weight:700;">R{{ s.round }} · {{ s.pct }}%</span>{% endif %}{% endfor %}
                     </a>
                     {% endfor %}

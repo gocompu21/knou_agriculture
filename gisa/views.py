@@ -362,9 +362,34 @@ def certification_detail(request, cert_id):
 
     # 탭별 필요한 데이터만 로드 (switchTab은 페이지 리로드)
     if active_tab in ("study", "solve"):
+        _exam_list = list(
+            exams.annotate(q_count=Count("gisaquestion")).order_by("-year", "-round")
+        )
+        # 회차마다 실제 출제된 과목만 노출한다.
+        # (자연생태복원기사처럼 연도에 따라 과목 체계가 바뀌는 자격증이 있어
+        #  자격증 전체 과목 목록을 그대로 쓰면 없는 과목까지 표시된다)
+        _card_subjects = {}
+        for row in (
+            GisaQuestion.objects.filter(exam__in=_exam_list)
+            .values("exam__pk", "subject__pk", "subject__name", "subject__order")
+            .annotate(cnt=Count("pk"))
+            .order_by("exam__pk", "subject__order")
+        ):
+            if not row["subject__pk"]:
+                continue
+            _card_subjects.setdefault(row["exam__pk"], []).append({
+                "pk": row["subject__pk"],
+                "order": row["subject__order"],
+                "name": row["subject__name"],
+                "count": row["cnt"],
+            })
         exam_cards = [
-            {"exam": e, "count": e.q_count}
-            for e in exams.annotate(q_count=Count("gisaquestion")).order_by("-year", "-round")
+            {
+                "exam": e,
+                "count": e.q_count,
+                "subjects": _card_subjects.get(e.pk, []),
+            }
+            for e in _exam_list
         ]
 
     wrong_results = []
@@ -467,7 +492,12 @@ def certification_detail(request, cert_id):
     glossary_subject = ""
     glossary_subjects = []
     if active_tab == "glossary":
-        glossary_subjects = list(subjects.values_list("name", flat=True))
+        # 용어가 등록된 과목만 노출
+        _g_names = set(
+            GisaGlossary.objects.filter(certification=cert)
+            .values_list("subject__name", flat=True)
+        )
+        glossary_subjects = [n for n in subjects.values_list("name", flat=True) if n in _g_names]
         glossary_subject = request.GET.get("subject", glossary_subjects[0] if glossary_subjects else "")
         import re as _re
         glossary_terms = list(
@@ -503,6 +533,19 @@ def certification_detail(request, cert_id):
                 {"id": ch["id"], "title": ch["title"]} for ch in full
             ]
 
+    # 모의고사에 쓸 수 있는 과목(=문항이 있는 과목)만 추린다.
+    # 연도별로 과목 체계가 바뀐 자격증은 전체 과목을 그대로 쓰면
+    # 문항이 없는 과목까지 버튼이 생긴다.
+    _mock_pool = {
+        row["subject__pk"]: row["cnt"]
+        for row in GisaQuestion.objects.filter(exam__certification=cert)
+        .exclude(exam__exam_type="최신")
+        .values("subject__pk")
+        .annotate(cnt=Count("pk"))
+        if row["subject__pk"]
+    }
+    mock_subjects = [s for s in subjects if _mock_pool.get(s.pk)]
+
     # 모의고사 탭: 사용자별 과목 진행도 통계 (MockGeneration 기반)
     mock_stats = []
     if request.user.is_authenticated:
@@ -511,7 +554,7 @@ def certification_detail(request, cert_id):
             g.subject_id: g
             for g in MockGeneration.objects.filter(user=request.user, subject__certification=cert)
         }
-        for subj in subjects:
+        for subj in mock_subjects:
             total_pool = GisaQuestion.objects.filter(
                 exam__certification=cert, subject=subj
             ).exclude(exam__exam_type="최신").count()
@@ -541,6 +584,7 @@ def certification_detail(request, cert_id):
             "cert": cert,
             "exams": exams,
             "subjects": subjects,
+            "mock_subjects": mock_subjects,
             "exam_cards": exam_cards,
             "wrong_count": wrong_count,
             "wrong_results": wrong_results,
