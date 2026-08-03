@@ -15,7 +15,12 @@ import fitz
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "comcbt")
 
 # 과목: 문항번호 범위로 판정 (과목당 20문항)
-SUBJECTS = [
+#
+# 2022년부터 출제 체계가 전면 개편되어 과목명 자체가 바뀌었다.
+#   ~2021: 5과목 100문항 (환경생태학개론/환경계획학/생태복원공학/경관생태학/자연환경관계법규)
+#   2022~: 4과목  80문항 (생태환경조사분석/생태복원계획/생태복원설계·시공/생태복원 사후관리·평가)
+# 단순히 과목이 하나 빠진 것이 아니므로 연도별로 다른 표를 써야 한다.
+SUBJECTS_OLD = [           # 2012 ~ 2021
     (1, 20, "환경생태학개론"),
     (21, 40, "환경계획학"),
     (41, 60, "생태복원공학"),
@@ -23,12 +28,22 @@ SUBJECTS = [
     (81, 100, "자연환경관계법규"),
 ]
 
+SUBJECTS_NEW = [           # 2022 ~
+    (1, 20, "생태환경조사분석"),
+    (21, 40, "생태복원계획"),
+    (41, 60, "생태복원설계·시공"),
+    (61, 80, "생태복원 사후관리·평가"),
+]
+
+SUBJECT_REFORM_YEAR = 2022
+
 CIRCLED = "①②③④"
 CIRCLE_NUM = {c: i + 1 for i, c in enumerate(CIRCLED)}
 
 
-def subject_of(num):
-    for lo, hi, name in SUBJECTS:
+def subject_of(num, year):
+    table = SUBJECTS_NEW if year >= SUBJECT_REFORM_YEAR else SUBJECTS_OLD
+    for lo, hi, name in table:
         if lo <= num <= hi:
             return name
     return None
@@ -305,7 +320,7 @@ def parse_questions(pages):
     return questions
 
 
-def parse_pdf(path, img_dir=None, prefix=None):
+def parse_pdf(path, img_dir=None, prefix=None, year=None):
     pages = extract_pages(path)
     answers = parse_answers(pages)
     questions = parse_questions(pages)
@@ -316,7 +331,7 @@ def parse_pdf(path, img_dir=None, prefix=None):
 
     for q in questions:
         q["answer"] = answers.get(q["number"], "0")
-        q["subject"] = subject_of(q["number"])
+        q["subject"] = subject_of(q["number"], year)
         imgs = list(imgmap.get(q["number"], []))
         q["images"] = imgs
         blanks = [i for i, c in enumerate(q["choices"]) if not c.strip()]
@@ -375,7 +390,7 @@ def main():
     for fn in files:
         year, rnd = round_from_filename(fn)
         prefix = "eco%d-%d" % (year, rnd)
-        qs = parse_pdf(os.path.join(DATA_DIR, fn), img_dir=img_root, prefix=prefix)
+        qs = parse_pdf(os.path.join(DATA_DIR, fn), img_dir=img_root, prefix=prefix, year=year)
         bad = [q for q in qs if q["incomplete"]]
         noans = [q for q in qs if q["answer"] == "0"]
         nimg = sum(1 for q in qs if q.get("text_image") or any(q.get("choice_images", [])))

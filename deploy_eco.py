@@ -28,8 +28,13 @@ from gisa.models import Certification, GisaSubject, GisaExam, GisaQuestion
 
 CERT_NAME = '자연생태복원기사'
 CERT_CATEGORY = '기사'
+# 2022년 출제 체계 개편으로 과목명이 전면 교체됨(단순 축소 아님).
+#   ~2021: 5과목 100문항 / 2022~: 4과목 80문항
 SUBJECT_ORDER = [
+    # 2012~2021 (구 체계)
     '환경생태학개론', '환경계획학', '생태복원공학', '경관생태학', '자연환경관계법규',
+    # 2022~ (신 체계)
+    '생태환경조사분석', '생태복원계획', '생태복원설계·시공', '생태복원 사후관리·평가',
 ]
 JSON_PATH = '_deploy_eco.json'
 ZIP_PATH = '_deploy_eco_images.zip'
