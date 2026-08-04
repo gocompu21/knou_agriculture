@@ -126,18 +126,26 @@ class Command(BaseCommand):
                     if subj is None:
                         continue
 
+                    defaults = {
+                        "subject": subj,
+                        "text": q["text"],
+                        "choice_1": q["choices"][0],
+                        "choice_2": q["choices"][1],
+                        "choice_3": q["choices"][2],
+                        "choice_4": q["choices"][3],
+                        "answer": q["answer"],
+                    }
+                    # 해설이 파싱 결과에 있으면 함께 저장한다.
+                    # (없으면 키 자체를 넣지 않아 기존 해설을 보존한다)
+                    for key in ("explanation", "choice_1_exp", "choice_2_exp",
+                                "choice_3_exp", "choice_4_exp"):
+                        if q.get(key):
+                            defaults[key] = q[key]
+
                     obj, _created = GisaQuestion.objects.update_or_create(
                         exam=exam,
                         number=q["number"],
-                        defaults={
-                            "subject": subj,
-                            "text": q["text"],
-                            "choice_1": q["choices"][0],
-                            "choice_2": q["choices"][1],
-                            "choice_3": q["choices"][2],
-                            "choice_4": q["choices"][3],
-                            "answer": q["answer"],
-                        },
+                        defaults=defaults,
                     )
 
                     # 이미지 저장
