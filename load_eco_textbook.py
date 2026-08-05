@@ -4,6 +4,9 @@
 사용법:
     python load_eco_textbook.py 환경생태학개론 env      # 병합 후 저장
     python load_eco_textbook.py 환경생태학개론 env --dry # 검증만
+    python load_eco_textbook.py 생태환경조사분석 survey --dir <노트디렉토리>
+
+--dir 를 생략하면 구 체계 노트 디렉토리(eco_notes)를 쓴다.
 """
 import io
 import os
@@ -27,17 +30,18 @@ NOTE_DIR = (
 )
 
 
-def merge_parts(prefix):
+def merge_parts(prefix, note_dir=None):
     """env_ch01_03.md, env_ch04_06.md ... 를 장 번호순으로 병합."""
+    d = note_dir or NOTE_DIR
     parts = sorted(
-        f for f in os.listdir(NOTE_DIR)
+        f for f in os.listdir(d)
         if f.startswith(prefix + "_ch") and f.endswith(".md")
     )
     if not parts:
         return None, []
     chunks = []
     for fn in parts:
-        text = open(os.path.join(NOTE_DIR, fn), encoding="utf-8").read().strip()
+        text = open(os.path.join(d, fn), encoding="utf-8").read().strip()
         chunks.append(text)
     return "\n\n---\n\n".join(chunks), parts
 
@@ -83,9 +87,13 @@ def main():
     subject_name, prefix = sys.argv[1], sys.argv[2]
     dry = "--dry" in sys.argv
 
-    content, parts = merge_parts(prefix)
+    note_dir = NOTE_DIR
+    if "--dir" in sys.argv:
+        note_dir = sys.argv[sys.argv.index("--dir") + 1]
+
+    content, parts = merge_parts(prefix, note_dir)
     if content is None:
-        print("노트 파일 없음: %s_ch*.md in %s" % (prefix, NOTE_DIR))
+        print("노트 파일 없음: %s_ch*.md in %s" % (prefix, note_dir))
         return
 
     print("병합 대상 %d개:" % len(parts))
