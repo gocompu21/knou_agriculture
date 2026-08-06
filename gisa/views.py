@@ -16,6 +16,33 @@ from django.views.decorators.http import require_POST
 from .models import Certification, GisaAttempt, GisaExam, GisaGlossary, GisaQuestion, GisaSubject, GisaTextbook
 
 
+## ══════════ 쪽집게 노트 과목 통합 ══════════ ##
+#
+# 자연생태복원기사는 2022년 출제 체계 개편으로 과목이 5개(구)→4개(신)로 바뀌었다.
+# 노트는 현행 4과목 체계로 통합했으므로, 구 체계 과목은 UI에서 감추고
+# 구 체계 문항(2012~2021)의 학습 링크는 통합된 신 체계 노트로 연결한다.
+#
+# 문항 데이터(GisaQuestion)와 구 체계 노트는 DB에 그대로 남아 있다.
+# 되돌리려면 아래 두 상수만 비우면 된다.
+
+TEXTBOOK_HIDDEN_SUBJECTS = {
+    "자연생태복원기사": {
+        "환경생태학개론", "환경계획학", "생태복원공학",
+        "경관생태학", "자연환경관계법규",
+    },
+}
+
+TEXTBOOK_SUBJECT_MERGE = {
+    "자연생태복원기사": {
+        "환경생태학개론": "생태환경조사분석",
+        "경관생태학": "생태환경조사분석",
+        "환경계획학": "생태복원계획",
+        "생태복원공학": "생태복원설계·시공",
+        "자연환경관계법규": "생태복원 사후관리·평가",
+    },
+}
+
+
 ## ══════════ 교재 마크다운 파서 ══════════ ##
 
 # 파싱 결과 캐시: {cache_key: (version, parsed_data)}
@@ -509,10 +536,17 @@ def certification_detail(request, cert_id):
         glossary_count = GisaGlossary.objects.filter(certification=cert).count()
 
     # 교재 데이터 — 교재 탭일 때만 장 제목 전달 (섹션은 AJAX로 로드)
+    # 통합으로 감춘 과목은 목록에서 제외한다 (모듈 상단 TEXTBOOK_HIDDEN_SUBJECTS 참조)
+    _hidden = TEXTBOOK_HIDDEN_SUBJECTS.get(cert.name, set())
+
     textbook_chapters = []
-    first_subject = subjects.first().name if subjects.exists() else ""
+    textbook_subjects = [
+        n for n in subjects.values_list("name", flat=True) if n not in _hidden
+    ]
+    first_subject = textbook_subjects[0] if textbook_subjects else ""
     textbook_subject = request.GET.get("subject", first_subject)
-    textbook_subjects = list(subjects.values_list("name", flat=True))
+    if textbook_subject in _hidden:
+        textbook_subject = first_subject
     if active_tab == "textbook":
         textbook = GisaTextbook.objects.filter(
             certification=cert, subject__name=textbook_subject
@@ -1902,6 +1936,8 @@ def textbook_study(request, cert_id):
     subsection_id = ""
     if questions:
         subj_name = questions[0].subject.name if questions[0].subject else ""
+        # 자연생태복원기사 구 체계 과목(2012~2021)의 문항은 통합된 신 체계 노트로 연결한다.
+        subj_name = TEXTBOOK_SUBJECT_MERGE.get(cert.name, {}).get(subj_name, subj_name)
         textbook_subject = subj_name
         tb = GisaTextbook.objects.filter(certification=cert, subject__name=subj_name).first()
         if tb:
