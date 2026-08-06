@@ -35,9 +35,11 @@ class QuestionExplanation(BaseModel):
 def build_prompt(question):
     answer_circle = CIRCLE_NUMBERS.get(question.answer, '?')
     cert = question.exam.certification
+    # 자격증명에 이미 등급(기사/산업기사)이 포함돼 있으면 중복해서 붙이지 않는다
+    cert_full = cert.name if cert.name.endswith(cert.category) else f"{cert.name}{cert.category}"
     return (
-        f"당신은 {cert.name}{cert.category} 시험 전문가이다.\n"
-        f"다음은 {cert.name}{cert.category} {question.subject.name} 기출문제이다.\n\n"
+        f"당신은 {cert_full} 시험 전문가이다.\n"
+        f"다음은 {cert_full} {question.subject.name} 기출문제이다.\n\n"
         f"{question.number}. {question.text}\n"
         f"① {question.choice_1}\n"
         f"② {question.choice_2}\n"
@@ -80,7 +82,7 @@ def process_question(client, question, model_name):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cert', type=str, default='식물보호')
+    parser.add_argument('--cert', type=str, default='식물보호기사')
     parser.add_argument('--year', type=int)
     parser.add_argument('--round', type=int)
     parser.add_argument('--model', type=str, default='gemini-3-flash-preview')

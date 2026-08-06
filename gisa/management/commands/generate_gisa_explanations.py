@@ -127,7 +127,7 @@ class Command(BaseCommand):
     help = 'Gemini API를 사용하여 기사시험 기출문제 해설을 생성합니다.'
 
     def add_arguments(self, parser):
-        parser.add_argument('--cert', type=str, help='자격증명으로 필터링 (예: 식물보호)')
+        parser.add_argument('--cert', type=str, help='자격증명으로 필터링 (예: 식물보호기사)')
         parser.add_argument('--subject', type=str, help='과목명으로 필터링 (예: 식물병리학)')
         parser.add_argument('--year', type=int, help='출제연도로 필터링 (예: 2011)')
         parser.add_argument('--round', type=int, help='회차로 필터링 (예: 1)')
