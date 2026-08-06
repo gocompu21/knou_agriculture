@@ -108,7 +108,13 @@ def parse_study_guide(filepath_or_content, cache_key=None, cache_version=None, g
             return
 
         # 관련 문제 추출: (2011-1-5) 또는 2011-1-5 형식 모두 인식
+        # 마크다운에 적힌 순서가 제각각이므로 연도-회차-문항번호 오름차순으로 정렬한다.
         questions = re.findall(r"(?<!\w)(\d{4}-\d+-\d+)(?!\w)", text)
+        if questions:
+            questions = sorted(
+                dict.fromkeys(questions),  # 중복 제거 (등장 순서 보존)
+                key=lambda r: tuple(int(x) for x in r.split("-")),
+            )
         # 관련 문제 줄 제거 후 본문만 남김
         body = re.sub(r"\*\*관련 문제\*\*:.*", "", text, flags=re.DOTALL).strip()
         body = re.sub(r"\*\*관련 기출문제\*\*.*", "", body, flags=re.DOTALL).strip()
