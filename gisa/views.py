@@ -1988,8 +1988,12 @@ def textbook_study(request, cert_id):
     if not q_filters:
         return redirect("gisa:certification_detail", cert_id=cert_id)
 
+    # 같은 (연도, 회차)에 '필기'와 '최신' 시험이 함께 있으면 한 ref 가 두 문항에
+    # 매칭돼 배지 수보다 많은 문제가 나온다(식물보호기사 2024-1).
+    # 노트의 ref 는 정규 기출을 가리키므로 최신기출은 제외한다.
     questions = list(
         GisaQuestion.objects.filter(q_filters)
+        .exclude(exam__exam_type="최신")
         .select_related("subject", "exam")
         .order_by("exam__year", "exam__round", "number")
     )
