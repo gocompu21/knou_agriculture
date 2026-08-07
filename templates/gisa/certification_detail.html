@@ -896,6 +896,21 @@
     .glossary-term { font-weight: 700; font-size: 0.92rem; color: #1b4332; margin-bottom: 4px; }
     .glossary-desc { font-size: 0.85rem; color: #444; line-height: 1.6; }
     .glossary-desc.no-desc { color: #aaa; font-style: italic; }
+
+    /* 기출 빈출 등급 별표 (쪽집게 노트 절 단위 출제 빈도 기준) */
+    .freq-stars {
+        font-size: 0.72rem;
+        letter-spacing: -0.5px;
+        margin-left: 0.35em;
+        vertical-align: 0.1em;
+        white-space: nowrap;
+        cursor: help;
+    }
+    .freq-t5 { color: #d93025; }
+    .freq-t4 { color: #e8710a; }
+    .freq-t3 { color: #c9a227; }
+    .freq-t2 { color: #9aa0a6; }
+    .freq-t1 { color: #c4c7c5; }
 </style>
 {% endblock %}
 
@@ -1134,7 +1149,7 @@
         {% for r in wrong_results %}
         <div class="wrong-question" id="wq-{{ r.question.id }}" data-subject="{{ r.question.subject.name }}" data-answer="{{ r.question.answer }}">
             <div class="wq-content">
-                <span class="wq-num">{{ forloop.counter }}.</span><span class="wq-text-body">{{ r.question.text|qtext_pre }} <sup class="wq-source">({{ r.question.subject.name }} {{ r.question.exam.year }}-{{ r.question.exam.round|stringformat:"02d" }})</sup>{{ r.question.text|qtext_box }}{% if r.question.text_image %}<div class="q-image-wrap"><img src="{{ r.question.text_image.url }}" class="q-image"></div>{% endif %}</span>
+                <span class="wq-num">{{ forloop.counter }}.</span><span class="wq-text-body">{{ r.question.text|qtext_pre }}{{ r.question.freq_tier|freq_stars }} <sup class="wq-source">({{ r.question.subject.name }} {{ r.question.exam.year }}-{{ r.question.exam.round|stringformat:"02d" }})</sup>{{ r.question.text|qtext_box }}{% if r.question.text_image %}<div class="q-image-wrap"><img src="{{ r.question.text_image.url }}" class="q-image"></div>{% endif %}</span>
             </div>
             <div class="wq-choices">
                 {% for c in r.choices %}

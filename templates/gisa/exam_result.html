@@ -592,7 +592,22 @@
         @media (max-width: 480px) {
             .choice-image { max-width: 100%; }
         }
-    </style>
+    
+    /* 기출 빈출 등급 별표 (쪽집게 노트 절 단위 출제 빈도 기준) */
+    .freq-stars {
+        font-size: 0.72rem;
+        letter-spacing: -0.5px;
+        margin-left: 0.35em;
+        vertical-align: 0.1em;
+        white-space: nowrap;
+        cursor: help;
+    }
+    .freq-t5 { color: #d93025; }
+    .freq-t4 { color: #e8710a; }
+    .freq-t3 { color: #c9a227; }
+    .freq-t2 { color: #9aa0a6; }
+    .freq-t1 { color: #c4c7c5; }
+</style>
 </head>
 
 <body>
@@ -644,7 +659,7 @@
             <div class="question-item" id="q-{{ r.question.id }}">
                 <div class="question-content {% if not r.is_correct %}wrong-text{% endif %}">
                     <span class="q-number{% if not is_wrong_retry %} {% if r.is_correct %}q-correct{% else %}q-wrong{% endif %}{% endif %}">{{ forloop.counter }}.</span>
-                    <span>{{ r.question.text|qtext }} <sup style="color:#888;font-size:0.72em;font-weight:500;">[{{ r.question.exam.year }}-{{ r.question.exam.round }}-{{ r.question.number }}]</sup></span>
+                    <span>{{ r.question.text|qtext }}{{ r.question.freq_tier|freq_stars }} <sup style="color:#888;font-size:0.72em;font-weight:500;">[{{ r.question.exam.year }}-{{ r.question.exam.round }}-{{ r.question.number }}]</sup></span>
                     {% if r.question.text_image %}<div class="q-image-wrap"><img src="{{ r.question.text_image.url }}" class="q-image"></div>{% endif %}
                 </div>
 

@@ -98,6 +98,9 @@ class GisaQuestion(models.Model):
     choice_2_exp = models.TextField('보기② 해설', blank=True)
     choice_3_exp = models.TextField('보기③ 해설', blank=True)
     choice_4_exp = models.TextField('보기④ 해설', blank=True)
+    freq_tier = models.PositiveSmallIntegerField(
+        '빈출 등급', default=0, db_index=True,
+        help_text='1~5 (5가 최다 빈출). 0은 미산정 — 별표를 표시하지 않는다.')
     created_by_name = models.CharField('등록자', max_length=50, blank=True)
     created_at = models.DateTimeField('등록일', auto_now_add=True, null=True)
 

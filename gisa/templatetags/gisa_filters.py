@@ -65,3 +65,57 @@ def qtext_box(value):
     if idx == -1:
         return ""
     return mark_safe("<br>" + _render_qtext(value[idx:]))
+
+
+# 빈출 등급 별표 -------------------------------------------------------------
+# GisaQuestion.freq_tier: 1~5 (5가 최다 빈출), 0 이면 미산정이라 표시하지 않는다.
+# 등급은 쪽집게 노트의 절 단위로 "그 주제에 연결된 기출 수"를 세어 산출한다.
+
+_TIER_LABEL = {
+    5: "최다 빈출",
+    4: "자주 출제",
+    3: "보통",
+    2: "가끔 출제",
+    1: "드물게 출제",
+}
+
+
+@register.filter(name="freq_stars")
+def freq_stars(tier):
+    """빈출 등급을 별표 배지로 렌더링. 0/None 이면 아무것도 출력하지 않는다."""
+    try:
+        t = int(tier or 0)
+    except (TypeError, ValueError):
+        return ""
+    if t < 1 or t > 5:
+        return ""
+    label = _TIER_LABEL.get(t, "")
+    return mark_safe(
+        '<span class="freq-stars freq-t%d" title="%s (기출 빈도 %d/5)" aria-label="%s">%s</span>'
+        % (t, label, t, label, "★" * t)
+    )
+
+
+# calc_eco_frequency.py 가 산출한 경계와 동일하게 유지할 것.
+# (절에 연결된 기출 수 → 등급)
+_SEC_CUTOFFS = [(25, 5), (11, 4), (6, 3), (3, 2)]
+
+
+@register.filter(name="freq_stars_count")
+def freq_stars_count(n):
+    """절/항에 연결된 기출 문항 '수'를 받아 별표 배지로 렌더링.
+
+    쪽집게 노트에서 절 제목 옆에 쓴다. 문항 단위 freq_stars 와 등급 기준이 같다.
+    """
+    try:
+        n = int(n or 0)
+    except (TypeError, ValueError):
+        return ""
+    if n < 1:
+        return ""
+    tier = 1
+    for lo, t in _SEC_CUTOFFS:
+        if n >= lo:
+            tier = t
+            break
+    return freq_stars(tier)

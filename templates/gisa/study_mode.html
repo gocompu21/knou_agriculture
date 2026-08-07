@@ -154,6 +154,21 @@
         margin-right: 0.3em;
     }
 
+    /* 기출 빈출 등급 별표 (쪽집게 노트 절 단위 출제 빈도 기준) */
+    .freq-stars {
+        font-size: 0.72rem;
+        letter-spacing: -0.5px;
+        margin-left: 0.35em;
+        vertical-align: 0.1em;
+        white-space: nowrap;
+        cursor: help;
+    }
+    .freq-t5 { color: #d93025; }
+    .freq-t4 { color: #e8710a; }
+    .freq-t3 { color: #c9a227; }
+    .freq-t2 { color: #9aa0a6; }
+    .freq-t1 { color: #c4c7c5; }
+
     .q-choices {
         padding-left: 20px;
         margin-bottom: 20px;
@@ -532,7 +547,7 @@
         <div class="question-card{% if q.id in wrong_qids %} already-wrong{% endif %}" id="q{{ q.number }}" data-answer="{{ q.answer }}" data-qid="{{ q.id }}"{% if q.id in wrong_qids %} data-already-wrong="1"{% endif %}>
             <div class="q-header">
                 <div class="q-content">
-                    <div class="q-text-display"><span class="q-num-label">{{ q.number }}.</span><span class="q-text-body">{{ q.text|qtext }}{% if is_wrong_retry or is_textbook_study %} <sup class="q-badge">{{ q.exam.year }}-{{ q.exam.round }}</sup>{% endif %}{% if request.user.is_staff %} <button type="button" class="edit-btn" onclick="startEdit(this)" title="수정">&#9998;</button>{% endif %}</span><button type="button" class="q-fold-btn" onclick="toggleFold(this)" title="접기/펼치기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 7 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+                    <div class="q-text-display"><span class="q-num-label">{{ q.number }}.</span><span class="q-text-body">{{ q.text|qtext }}{{ q.freq_tier|freq_stars }}{% if is_wrong_retry or is_textbook_study %} <sup class="q-badge">{{ q.exam.year }}-{{ q.exam.round }}</sup>{% endif %}{% if request.user.is_staff %} <button type="button" class="edit-btn" onclick="startEdit(this)" title="수정">&#9998;</button>{% endif %}</span><button type="button" class="q-fold-btn" onclick="toggleFold(this)" title="접기/펼치기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 7 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
                 </div>
             </div>
             {% if q.text_image %}<div class="q-image-wrap"><img src="{{ q.text_image.url }}" class="q-image"></div>{% endif %}

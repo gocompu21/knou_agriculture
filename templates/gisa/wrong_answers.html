@@ -309,6 +309,21 @@
     @media (max-width: 480px) {
         .choice-image { max-width: 100%; }
     }
+
+    /* 기출 빈출 등급 별표 (쪽집게 노트 절 단위 출제 빈도 기준) */
+    .freq-stars {
+        font-size: 0.72rem;
+        letter-spacing: -0.5px;
+        margin-left: 0.35em;
+        vertical-align: 0.1em;
+        white-space: nowrap;
+        cursor: help;
+    }
+    .freq-t5 { color: #d93025; }
+    .freq-t4 { color: #e8710a; }
+    .freq-t3 { color: #c9a227; }
+    .freq-t2 { color: #9aa0a6; }
+    .freq-t1 { color: #c4c7c5; }
 </style>
 {% endblock %}
 
@@ -338,7 +353,7 @@
     {% for r in results %}
     <div class="wrong-question" id="wq-{{ r.question.id }}">
         <div class="wq-content">
-            {{ forloop.counter }}. {{ r.question.text|qtext }}
+            {{ forloop.counter }}. {{ r.question.text|qtext }}{{ r.question.freq_tier|freq_stars }}
             {% if r.question.text_image %}<div class="q-image-wrap"><img src="{{ r.question.text_image.url }}" class="q-image"></div>{% endif %}
             <span class="wq-source">{{ r.question.subject.name }} {{ r.question.exam.year }}년 {{ r.question.exam.round }}회</span>
         </div>

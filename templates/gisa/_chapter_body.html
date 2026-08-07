@@ -1,8 +1,9 @@
+{% load gisa_filters %}
 {% for sec in ch.sections %}
 <div class="section-item" id="{{ sec.id }}">
     <div class="section-header" onclick="toggleSection(this)">
         <span>{{ sec.title }}
-            {% if sec.total_questions %}<span class="q-count-badge">{{ sec.total_questions }}문제</span>{% endif %}
+            {% if sec.total_questions %}<span class="q-count-badge">{{ sec.total_questions }}문제</span>{{ sec.total_questions|freq_stars_count }}{% endif %}
         </span>
         <span class="section-chevron">&#9654;</span>
     </div>
@@ -10,7 +11,7 @@
         {% if sec.content_html %}<div class="content-box">{{ sec.content_html|safe }}</div>{% endif %}
 
         {% for sub in sec.subsections %}
-        <div class="subsection-title" id="{{ sub.id }}">{{ sub.title }}</div>
+        <div class="subsection-title" id="{{ sub.id }}">{{ sub.title }}{% if sub.questions %}{{ sub.questions|length|freq_stars_count }}{% endif %}</div>
         {% if sub.content_html %}<div class="content-box">{{ sub.content_html|safe }}</div>{% endif %}
         {% if sub.questions %}
         <div class="q-box">

@@ -609,7 +609,22 @@
 
         /* Desktop: hide mobile header */
         .mobile-header { display: none; }
-    </style>
+    
+    /* 기출 빈출 등급 별표 (쪽집게 노트 절 단위 출제 빈도 기준) */
+    .freq-stars {
+        font-size: 0.72rem;
+        letter-spacing: -0.5px;
+        margin-left: 0.35em;
+        vertical-align: 0.1em;
+        white-space: nowrap;
+        cursor: help;
+    }
+    .freq-t5 { color: #d93025; }
+    .freq-t4 { color: #e8710a; }
+    .freq-t3 { color: #c9a227; }
+    .freq-t2 { color: #9aa0a6; }
+    .freq-t1 { color: #c4c7c5; }
+</style>
 </head>
 
 <body>
@@ -680,7 +695,7 @@
             <div class="question-item" id="q-{{ q.id }}" data-answer="{{ q.answer }}" data-qid="{{ q.id }}"{% if q.id in wrong_qids %} data-already-wrong="1"{% endif %}>
                 <div class="question-content">
                     <span class="q-number">{{ forloop.counter }}.</span>
-                    <span>{{ q.text|qtext }} <sup class="q-exam-badge">({{ q.exam.year }}-{{ q.exam.round|stringformat:"02d" }})</sup></span>
+                    <span>{{ q.text|qtext }}{{ q.freq_tier|freq_stars }} <sup class="q-exam-badge">({{ q.exam.year }}-{{ q.exam.round|stringformat:"02d" }})</sup></span>
                 </div>
                 {% if q.text_image %}<div style="margin:6px 0;"><img src="{{ q.text_image.url }}" style="max-width:min(100%,420px);"></div>{% endif %}
                 <div class="choices">
