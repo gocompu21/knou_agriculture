@@ -94,28 +94,3 @@ def freq_stars(tier):
         '<span class="freq-stars freq-t%d" title="%s (기출 빈도 %d/5)" aria-label="%s">%s</span>'
         % (t, label, t, label, "★" * t)
     )
-
-
-# calc_eco_frequency.py 가 산출한 경계와 동일하게 유지할 것.
-# (절에 연결된 기출 수 → 등급)
-_SEC_CUTOFFS = [(25, 5), (11, 4), (6, 3), (3, 2)]
-
-
-@register.filter(name="freq_stars_count")
-def freq_stars_count(n):
-    """절/항에 연결된 기출 문항 '수'를 받아 별표 배지로 렌더링.
-
-    쪽집게 노트에서 절 제목 옆에 쓴다. 문항 단위 freq_stars 와 등급 기준이 같다.
-    """
-    try:
-        n = int(n or 0)
-    except (TypeError, ValueError):
-        return ""
-    if n < 1:
-        return ""
-    tier = 1
-    for lo, t in _SEC_CUTOFFS:
-        if n >= lo:
-            tier = t
-            break
-    return freq_stars(tier)

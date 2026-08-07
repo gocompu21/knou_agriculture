@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
-"""자연생태복원기사 문항별 기출 빈출도 등급(1~5) 산출.
+"""기사시험 문항별 기출 빈출도 등급(1~5) 산출.
 
 정의
   쪽집게 노트의 절/항에 연결된 기출 문항 수 = 그 **주제**의 출제 빈도.
   한 문항이 여러 절에 걸리면 그중 **가장 빈출인 절**의 값을 그 문항의 점수로 삼는다.
   (부수적으로 언급된 절보다 주력 주제가 그 문항의 성격을 규정한다)
 
-  구 체계 문항은 통합 4과목 노트에도 연결돼 있으므로
-  9과목 노트를 모두 훑어 ref 를 모은다.
+  "같은 문제가 몇 번 나왔나"(문항 반복)는 채택하지 않았다.
+  자연생태복원기사 실측에서 66%가 1회성이라 ★1에 몰려 변별력이 없었다.
 
 등급
-  전체 문항을 점수 순으로 정렬해 5분위로 나누는 게 아니라,
-  절에 걸린 기출 수의 자연스러운 구간으로 자른다.
-    ★5: 11개+   ★4: 7~10개   ★3: 4~6개   ★2: 2~3개   ★1: 1개
+  절대 구간으로 자르면 특정 등급에 쏠리므로(실측 ★5=32%),
+  실제 점수 분포를 목표 비중(TARGET)으로 잘라 경계를 자동 결정한다.
 
 사용법:
-    python calc_eco_frequency.py            # 계산·분포만
-    python calc_eco_frequency.py --apply    # DB 저장
+    python calc_freq_tier.py 자연생태복원기사             # 계산·분포만
+    python calc_freq_tier.py 자연생태복원기사 --apply     # DB 저장
+    python calc_freq_tier.py --all --apply                # 노트 있는 자격증 전체
 """
 import argparse
 import io
@@ -34,7 +34,13 @@ django.setup()
 from gisa.models import Certification, GisaQuestion, GisaTextbook
 from gisa.views import parse_study_guide
 
-CERT = "자연생태복원기사"
+# 노트가 완성돼 등급을 매길 수 있는 자격증
+ALL_CERTS = [
+    "자연생태복원기사",
+    "식물보호기사",
+    "식물보호산업기사",
+    "조경기사",
+]
 
 # 목표 비중 (★5 가 가장 적고 아래로 갈수록 넓다).
 # 절대 구간(11개+/7~10개…)으로 자르면 ★5 가 32% 로 쏠려 변별력이 없어
@@ -71,14 +77,17 @@ def tier_of(n, cutoffs):
     return 1
 
 
-# 현재 노출 중인 통합 4과목 노트만 사용한다.
-# 구 체계 5과목 노트를 함께 세면 같은 문항이 두 계통에 중복 계상돼
-# 상위 등급으로 쏠린다(실측: ★5 가 52%).
+# 한 문항이 두 계통의 노트에 모두 걸리면 중복 계상돼 상위 등급으로 쏠린다.
+# 자연생태복원기사는 2022년 개편으로 구/신 노트가 공존하므로,
+# 현재 노출 중인 통합 4과목만 센다(구 체계 포함 시 실측 ★5 가 52%).
+# 나머지 자격증은 노트 계통이 하나뿐이라 제한이 필요 없다.
 ACTIVE_NOTES = {
-    "생태환경조사분석",
-    "생태복원계획",
-    "생태복원설계·시공",
-    "생태복원 사후관리·평가",
+    "자연생태복원기사": {
+        "생태환경조사분석",
+        "생태복원계획",
+        "생태복원설계·시공",
+        "생태복원 사후관리·평가",
+    },
 }
 
 
@@ -87,8 +96,12 @@ def collect_ref_scores(cert):
     best = defaultdict(int)
     n_sec = 0
 
-    for tb in GisaTextbook.objects.filter(
-            certification=cert, subject__name__in=ACTIVE_NOTES).select_related("subject"):
+    tb_qs = GisaTextbook.objects.filter(certification=cert)
+    only = ACTIVE_NOTES.get(cert.name)
+    if only:
+        tb_qs = tb_qs.filter(subject__name__in=only)
+
+    for tb in tb_qs.select_related("subject"):
         for ch in parse_study_guide(tb.content):
             stack = []
             for s in ch.get("sections", []):
@@ -106,12 +119,11 @@ def collect_ref_scores(cert):
     return best, n_sec
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--apply", action="store_true")
-    args = ap.parse_args()
-
-    cert = Certification.objects.get(name=CERT)
+def run(cert_name, apply=False):
+    cert = Certification.objects.get(name=cert_name)
+    print("=" * 64)
+    print("■ %s" % cert.name)
+    print("=" * 64)
     best, n_sec = collect_ref_scores(cert)
     print("노트에서 수집한 절/항: %d개 · 고유 ref %d개" % (n_sec, len(best)))
     print()
@@ -131,15 +143,32 @@ def main():
             unmatched += 1
         scored.append((q, score))
 
-    cutoffs = build_cutoffs([s for _, s in scored])
-    print("[등급 경계] " + " · ".join(
-        "★%d=%d개+" % (t, lo) for lo, t in cutoffs) + " · 나머지 ★1")
+    # 등급은 **과목 안에서** 매긴다.
+    #
+    # 노트의 절 크기가 자격증·과목마다 크게 달라(식물보호기사 잡초방제학은
+    # 244문항짜리 절이 있고 조경기사는 최대 29개) 절대 문항수로 자르면
+    # 한 과목이 상위 등급을 독식한다. 실측에서 잡초방제학이 ★4↑ 88.8%,
+    # 재배학원론이 0.0% 로 갈렸다.
+    #
+    # 과목별로 잘라야 "이 과목 안에서 어디를 먼저 볼까"라는
+    # 실제 학습 판단에 맞고, 과목마다 같은 비율로 ★5 가 나온다.
+    by_subject_scores = defaultdict(list)
+    for q, score in scored:
+        by_subject_scores[q.subject_id].append(score)
+    subj_cutoffs = {
+        sid: build_cutoffs(vals) for sid, vals in by_subject_scores.items()
+    }
+
+    sample = sorted(subj_cutoffs.items())[0][1] if subj_cutoffs else []
+    print("[등급 경계] 과목별로 산출 (예: %s · 나머지 ★1)"
+          % " · ".join("★%d=%d개+" % (t, lo) for lo, t in sample))
     print()
 
     dist = Counter()
     by_subj = defaultdict(Counter)
     updates = []
     for q, score in scored:
+        cutoffs = subj_cutoffs[q.subject_id]
         t = tier_of(score, cutoffs) if score else 1
         dist[t] += 1
         by_subj[q.subject.name][t] += 1
@@ -164,7 +193,7 @@ def main():
         print("  %-22s 평균 %.2f · ★4↑ %3d개(%4.1f%%) · %d문항"
               % (s, avg, top, top / n * 100, n))
 
-    if args.apply:
+    if apply:
         from django.db import transaction
         with transaction.atomic():
             for pk, t, _ in updates:
@@ -174,6 +203,28 @@ def main():
     else:
         print()
         print("계산만 수행 (--apply 로 DB 저장)")
+    print()
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("cert", nargs="?", help="자격증명 (--all 이면 생략)")
+    ap.add_argument("--all", action="store_true", help="노트가 있는 자격증 전체")
+    ap.add_argument("--apply", action="store_true")
+    args = ap.parse_args()
+
+    if args.all:
+        targets = ALL_CERTS
+    elif args.cert:
+        targets = [args.cert]
+    else:
+        ap.error("자격증명을 지정하거나 --all 을 쓸 것")
+
+    for name in targets:
+        try:
+            run(name, apply=args.apply)
+        except Certification.DoesNotExist:
+            print("[자격증 없음] %s\n" % name)
 
 
 if __name__ == "__main__":

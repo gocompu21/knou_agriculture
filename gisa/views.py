@@ -2,6 +2,7 @@ import json
 import os
 import re
 import uuid
+from collections import Counter
 
 from django.conf import settings
 from django.contrib import messages
@@ -678,10 +679,70 @@ def textbook_chapter_api(request, cert_id):
         return JsonResponse({"html": ""})
 
     chapter = chapters[ch_idx]
+    _attach_freq_tier(cert, chapter)
     html = render_to_string(
         "gisa/_chapter_body.html", {"ch": chapter, "cert": cert}, request=request
     )
     return JsonResponse({"html": html})
+
+
+def _attach_freq_tier(cert, chapter):
+    """장의 각 절/항에 freq_tier(1~5)를 붙인다.
+
+    절 크기(문항 수)로 직접 등급을 매기면 노트 구조 차이 때문에 왜곡된다.
+    (식물보호기사 잡초방제학엔 244문항짜리 절이 있고 조경기사는 최대 29개)
+    그래서 절에 걸린 **문항들의 실제 freq_tier 최빈값**을 절의 등급으로 삼는다.
+    freq_tier 는 calc_freq_tier.py 가 과목별 분위로 산출한 값이다.
+    """
+    nodes = []
+    for sec in chapter.get("sections", []):
+        nodes.append(sec)
+        nodes.extend(sec.get("subsections") or [])
+
+    refs = set()
+    for nd in nodes:
+        refs.update(nd.get("questions") or [])
+    if not refs:
+        return
+
+    parsed = []
+    for r in refs:
+        try:
+            y, rd, num = (int(x) for x in r.split("-"))
+        except ValueError:
+            continue
+        parsed.append((r, y, rd, num))
+    if not parsed:
+        return
+
+    tier_map = {}
+    rows = (GisaQuestion.objects
+            .filter(exam__certification=cert,
+                    exam__year__in={p[1] for p in parsed},
+                    exam__round__in={p[2] for p in parsed},
+                    number__in={p[3] for p in parsed})
+            .exclude(freq_tier=0)
+            .values_list("exam__year", "exam__round", "number", "freq_tier"))
+    for y, rd, num, t in rows:
+        tier_map["%d-%d-%d" % (y, rd, num)] = t
+
+    for nd in nodes:
+        qs_ref = nd.get("questions") or []
+        tiers = [tier_map[r] for r in qs_ref if r in tier_map]
+        if tiers:
+            nd["freq_tier"] = Counter(tiers).most_common(1)[0][0]
+
+    # 절 자체엔 문항이 없고 하위 항에만 걸린 경우 — 항들의 등급으로 절을 대표한다
+    for sec in chapter.get("sections", []):
+        if sec.get("freq_tier"):
+            continue
+        sub_tiers = []
+        for sub in sec.get("subsections") or []:
+            for r in sub.get("questions") or []:
+                if r in tier_map:
+                    sub_tiers.append(tier_map[r])
+        if sub_tiers:
+            sec["freq_tier"] = Counter(sub_tiers).most_common(1)[0][0]
 
 
 ## ══════════ 최신기출 CRUD ══════════ ##
