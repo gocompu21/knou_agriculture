@@ -7,6 +7,94 @@ from django.utils.safestring import mark_safe
 register = Library()
 
 
+_TABLE_STYLE = (
+    "border-collapse:collapse;width:auto;max-width:100%;"
+    "margin:4px 0;font-size:0.92em;line-height:1.5;"
+)
+_CELL_STYLE = "border:1px solid #999;padding:3px 10px;text-align:left;"
+_TH_STYLE = _CELL_STYLE + "background:#f2f2f2;font-weight:600;white-space:nowrap;"
+
+
+def _md_table(block):
+    """마크다운 표 → HTML <table>.
+
+    `| a | b |` 행이 이어지고 둘째 줄이 `|---|---|` 인 덩어리만 표로 본다.
+    표가 아니면 원문을 그대로 돌려준다.
+    """
+    lines = [ln.strip() for ln in block.split("\n") if ln.strip()]
+    if len(lines) < 2:
+        return None
+    if not all(ln.startswith("|") for ln in lines):
+        return None
+    if not re.match(r"^\|[\s:\-|]+\|$", lines[1]):
+        return None
+
+    def cells(ln):
+        return [c.strip() for c in ln.strip("|").split("|")]
+
+    head = cells(lines[0])
+    body = [cells(ln) for ln in lines[2:]]
+
+    out = ['<table style="%s">' % _TABLE_STYLE]
+    out.append("<thead><tr>")
+    for h in head:
+        out.append('<th style="%s">%s</th>' % (_TH_STYLE, h))
+    out.append("</tr></thead><tbody>")
+    for row in body:
+        out.append("<tr>")
+        for cel in row:
+            out.append('<td style="%s">%s</td>' % (_CELL_STYLE, cel))
+        out.append("</tr>")
+    out.append("</tbody></table>")
+    return "".join(out)
+
+
+def _render_box(inner):
+    """[box] 안쪽을 렌더링. 마크다운 표가 있으면 HTML 표로 바꾼다."""
+    inner = inner.strip()
+    tbl = _md_table(inner)
+    if tbl is not None:
+        # 표만 있는 박스는 테두리가 이중이 되므로 박스 테두리를 뺀다
+        return (
+            '<div class="q-box q-box-table" style="margin:6px 0;'
+            'text-indent:0;font-weight:normal;display:block;'
+            'max-width:100%;overflow-x:auto">' + tbl + "</div>"
+        )
+    return (
+        '<div class="q-box" style="border:2px solid #333;border-radius:4px;'
+        "padding:6px 12px;margin:6px 0;background:#fff;line-height:1.7;"
+        'text-indent:0;font-weight:normal;display:block;max-width:100%">'
+        + inner
+        + "</div>"
+    )
+
+
+def _tables_anywhere(text):
+    """본문 중간에 있는 마크다운 표 덩어리를 찾아 HTML 표로 바꾼다.
+
+    [box] 밖에 표만 있는 해설(191건)이 있어 박스 처리와 별개로 필요하다.
+    `|`로 시작하는 줄이 2줄 이상 연속하고 둘째 줄이 구분행인 덩어리만 바꾼다.
+    """
+    lines = text.split("\n")
+    out = []
+    i = 0
+    n = len(lines)
+    while i < n:
+        if lines[i].lstrip().startswith("|"):
+            j = i
+            while j < n and lines[j].lstrip().startswith("|"):
+                j += 1
+            block = "\n".join(lines[i:j])
+            tbl = _md_table(block)
+            if tbl is not None:
+                out.append(tbl)
+                i = j
+                continue
+        out.append(lines[i])
+        i += 1
+    return "\n".join(out)
+
+
 def _render_qtext(value):
     """내부 공통 렌더링"""
     if value is None:
@@ -15,10 +103,11 @@ def _render_qtext(value):
     text = text.replace("&lt;u&gt;", "<u>").replace("&lt;/u&gt;", "</u>")
     text = re.sub(
         r"\[box\](.*?)\[/box\]",
-        lambda m: '<div class="q-box" style="border:2px solid #333;border-radius:4px;padding:6px 12px;margin:6px 0;background:#fff;line-height:1.7;text-indent:0;font-weight:normal;display:block;max-width:100%">' + m.group(1).strip() + "</div>",
+        lambda m: _render_box(m.group(1)),
         text,
         flags=re.DOTALL | re.IGNORECASE,
     )
+    text = _tables_anywhere(text)
     # LaTeX-style $...$ 수식: 내부의 ^{X}, _{X}를 <sup>, <sub>로 바꾸고 $ 제거
     def _latex_inline(m):
         inner = m.group(1)

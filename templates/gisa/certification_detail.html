@@ -1260,7 +1260,7 @@
                             <div class="latest-choice{% if '3' in q.answer %} correct{% endif %}">③ {{ q.choice_3 }}</div>
                             <div class="latest-choice{% if '4' in q.answer %} correct{% endif %}">④ {{ q.choice_4 }}</div>
                         </div>
-                        {% if q.explanation %}<div class="latest-explanation">{{ q.explanation }}</div>{% endif %}
+                        {% if q.explanation %}<div class="latest-explanation">{{ q.explanation|qtext }}</div>{% endif %}
                     </div>
                     <div id="lq-edit-{{ q.pk }}" style="display:none;">
                         <form method="post" action="{% url 'gisa:gisa_latest_update' cert.pk q.pk %}">
