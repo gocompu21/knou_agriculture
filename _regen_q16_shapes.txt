@@ -1,0 +1,11 @@
+# 자연생태복원기사 2022-1 #16 "종 다양성과 이질성의 관계 그래프" 보기별 곡선
+# 원본 스캔 이미지를 직접 판독한 결과. 재생성 검증 기준으로도 쓴다.
+# 정답은 1번 (종다양성은 이질성이 중간일 때 최대 = 볼록한 종형 곡선)
+
+1: A smooth bell-shaped (dome / inverted-U) curve. It starts at the origin at the bottom-left, rises gradually to a single rounded peak near the horizontal middle of the plot, then falls back down symmetrically to the baseline at the right end. The peak is rounded, not pointed. This is the classic hump-shaped curve.
+
+2: A perfectly flat horizontal straight line. It starts at a point on the vertical axis at roughly 60-65% of the axis height and runs straight to the right, staying at exactly the same height all the way, ending near the right end of the plot. No rise, no fall — completely constant.
+
+3: A monotonically increasing curve that saturates (S-shaped / logistic-like). It starts at the origin at the bottom-left, stays low and rises slowly at first, then climbs steeply through the middle, and finally flattens out into a horizontal plateau near the top-right. It never decreases.
+
+4: A straight line sloping downward from left to right. It starts high on the vertical axis (at roughly 65-70% of the axis height) and descends in a perfectly straight line, reaching the horizontal axis (zero) near the right end of the plot. Straight, not curved.
