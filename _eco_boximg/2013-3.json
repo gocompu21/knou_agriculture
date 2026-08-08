@@ -1,0 +1,215 @@
+{
+ "round": "2013-3",
+ "questions": [
+  {
+   "id": 15972,
+   "ref": "2013-3-7",
+   "number": 7,
+   "subject": "환경생태학개론",
+   "image": "7.png",
+   "text": "다음 [보기]에서 설명하는 것은?",
+   "choices": [
+    "간척지역",
+    "해안습지",
+    "해안사구",
+    "망그로브습지"
+   ],
+   "answer": "3"
+  },
+  {
+   "id": 15973,
+   "ref": "2013-3-8",
+   "number": 8,
+   "subject": "환경생태학개론",
+   "image": "8.png",
+   "text": "아래 설명과 그림이 나타내는 A지역의 군집 유형은?",
+   "choices": [
+    "온대낙엽수림(Temperate Deciduous Forest)",
+    "대초원(Prarie)",
+    "사바나(Savana)",
+    "타이가(Taiga)"
+   ],
+   "answer": "1"
+  },
+  {
+   "id": 15979,
+   "ref": "2013-3-14",
+   "number": 14,
+   "subject": "환경생태학개론",
+   "image": "14.png",
+   "text": "다음의 생산성에 관한 설명 중 ( )에 알맞은 용어를 순서 대로 나열한 것은?",
+   "choices": [
+    "㉠ 순일차생산력(net primary productivity) ㉡ 순군집생산력(net community productivity) ㉢ 이차 생산력(secondary productivity)",
+    "㉠ 순군집생산력(net community productivity) ㉡ 순일차생산력(net primary productivity) ㉢ 이차 생산력(secondary productivity)",
+    "이차 생산력(secondary productivity) ㉡ 순일차생산력(net primary productivity) ㉢ 이차 생산력(secondary productivity)",
+    "㉠ 순일차생산력(net primary productivity) ㉡ 이차 생산력(secondary productivity) ㉢ 순군집생산력(net community productivity)"
+   ],
+   "answer": "1"
+  },
+  {
+   "id": 15993,
+   "ref": "2013-3-28",
+   "number": 28,
+   "subject": "환경계획학",
+   "image": "28.png",
+   "text": "다음 설명은 「국토의 계획 및 이용에 관한 법률」에 의해 분류된 어떤 용도지역인가?",
+   "choices": [
+    "도시지역",
+    "관리지역",
+    "자연환경보전지역",
+    "농림지역"
+   ],
+   "answer": "3"
+  },
+  {
+   "id": 15999,
+   "ref": "2013-3-34",
+   "number": 34,
+   "subject": "환경계획학",
+   "image": "34.png",
+   "text": "다음 ( )안에 적합한 숫자는?",
+   "choices": [
+    "1",
+    "3",
+    "5",
+    "10"
+   ],
+   "answer": "3"
+  },
+  {
+   "id": 16008,
+   "ref": "2013-3-43",
+   "number": 43,
+   "subject": "생태복원공학",
+   "image": "43.png",
+   "text": "다음 표는 산지 1ha당 경사도별 단끊기 시공 연장표이다. 괄호 안에 알맞은 계단 연장은?",
+   "choices": [
+    "2000m",
+    "3000m",
+    "4000m",
+    "16000m"
+   ],
+   "answer": "3"
+  },
+  {
+   "id": 16024,
+   "ref": "2013-3-59",
+   "number": 59,
+   "subject": "생태복원공학",
+   "image": "59.png",
+   "text": "자연환경복원을 위한 생태계의 복원과정 중에서, ( )안에 적합한 것은?",
+   "choices": [
+    "적용기술 선정",
+    "공청회 개최",
+    "예산확인",
+    "복원목적의 설정"
+   ],
+   "answer": "4"
+  },
+  {
+   "id": 16036,
+   "ref": "2013-3-71",
+   "number": 71,
+   "subject": "경관생태학",
+   "image": "71.png",
+   "text": "다음 [보기]의 설명 중 ( )안에 적합한 용어는?",
+   "choices": [
+    "군집적",
+    "공간적",
+    "수자원적",
+    "에너지적"
+   ],
+   "answer": "2"
+  },
+  {
+   "id": 16037,
+   "ref": "2013-3-72",
+   "number": 72,
+   "subject": "경관생태학",
+   "image": "72.png",
+   "text": "다음 설명에 해당하는 산림녹지 관련 자료는?",
+   "choices": [
+    "현존식생도",
+    "녹지자연도",
+    "생태자연도",
+    "산지이용구분도"
+   ],
+   "answer": "4"
+  },
+  {
+   "id": 16044,
+   "ref": "2013-3-79",
+   "number": 79,
+   "subject": "경관생태학",
+   "image": "79.png",
+   "text": "다음은 습지의 기능을 평가하는 방법에 대한 설명이다. 어 떤 평가모델에 대한 설명인가?",
+   "choices": [
+    "RAM(rapid assessment methoh)",
+    "WETⅡ(wetland evaluation technique Ⅱ)",
+    "HGA(the hydrogeomorphic)",
+    "EMAP(environmental monitring assessment program)"
+   ],
+   "answer": "2"
+  },
+  {
+   "id": 16045,
+   "ref": "2013-3-80",
+   "number": 80,
+   "subject": "경관생태학",
+   "image": "80.png",
+   "text": "다음 설명의 ( )에 적절한 용어는?",
+   "choices": [
+    "A : 오염원, B : 최소화",
+    "A : 입지 타당성, B : 최소화",
+    "A : 오염원, B : 방지",
+    "A : 입지타당성, B : 방지"
+   ],
+   "answer": "2"
+  },
+  {
+   "id": 16046,
+   "ref": "2013-3-81",
+   "number": 81,
+   "subject": "자연환경관계법규",
+   "image": "81.png",
+   "text": "자연공원법상 자연공원 지정고시 및 지정기준에 관한 사항 이다. ( )안에 알맞은 것은?",
+   "choices": [
+    "①국토관리청,",
+    "환경부령 ② ①공원관리청, ②환경부령",
+    "①공원관리청, ②대통령령",
+    "①국토관리청, ②대통령령"
+   ],
+   "answer": "3"
+  },
+  {
+   "id": 16058,
+   "ref": "2013-3-93",
+   "number": 93,
+   "subject": "자연환경관계법규",
+   "image": "93.png",
+   "text": "다음은 산지관리법규상 산사태위험판정기준표에 시용되는 용어의 정의 및 적용기준이다. ( )안에 알맞은 것은?",
+   "choices": [
+    "①25% 초과 75% 미만,",
+    "6cm ② ①25% 초과 75% 미만, ②10",
+    "①50초과 75% 미만, ②6cm",
+    "①50초과 75% 미만, ②10"
+   ],
+   "answer": "1"
+  },
+  {
+   "id": 16065,
+   "ref": "2013-3-100",
+   "number": 100,
+   "subject": "자연환경관계법규",
+   "image": "100.png",
+   "text": "다음은 자연환경보전법상 용어의 정의이다. ( )안에 가장 적합한 것은?",
+   "choices": [
+    "생태축",
+    "소(小)생태계",
+    "생태통로",
+    "생태ㆍ경관보전지역"
+   ],
+   "answer": "2"
+  }
+ ]
+}
