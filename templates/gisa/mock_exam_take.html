@@ -697,7 +697,7 @@
                     <span class="q-number">{{ forloop.counter }}.</span>
                     <span>{{ q.text|qtext }}{{ q.freq_tier|freq_stars }} <sup class="q-exam-badge">({{ q.exam.year }}-{{ q.exam.round|stringformat:"02d" }})</sup></span>
                 </div>
-                {% if q.text_image %}<div style="margin:6px 0;"><img src="{{ q.text_image|vurl }}" style="max-width:min(100%,420px);"></div>{% endif %}
+                {% if q.text_image %}<div style="margin:6px 0;"><img src="{{ q.text_image|vurl }}" style="max-width:min(100%,320px);"></div>{% endif %}
                 <div class="choices">
                     <div class="choice-item" data-choice="1" onclick="selectAnswer('{{ q.id }}', '1')">
                         <span class="q-mark">1</span><span class="c-text">{{ q.choice_1|qtext }}{% if q.choice_1_image %}<br><img src="{{ q.choice_1_image|vurl }}" style="max-width:min(100%,300px);margin-top:4px;">{% endif %}</span>
