@@ -27,7 +27,7 @@ from PIL import Image
 
 from gisa.models import Certification, GisaQuestion
 
-TARGET_W = 760      # 표시 폭 300px 의 2배 이상 → 고해상도 화면에서도 선명
+TARGET_W = 600      # .choice-image 표시 상한 300px 의 2배
 MARGIN = 18         # 잘라낸 뒤 남길 흰 여백(px)
 
 

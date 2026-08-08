@@ -9,7 +9,7 @@ from django.conf import settings
 from PIL import Image
 from gisa.models import Certification, GisaQuestion
 
-TARGET_W = 860
+TARGET_W = 640  # .q-image 표시 상한 420px 의 약 1.5배
 MARGIN = 20
 
 def trim(im, margin=MARGIN):

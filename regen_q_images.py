@@ -136,6 +136,7 @@ def main():
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--shapes")
     ap.add_argument("--attempt", type=int, default=1)
+    ap.add_argument("--aspect", default="16:9", help="격자 전체 비율")
     args = ap.parse_args()
 
     shapes = load_shapes(args.shapes)
@@ -154,9 +155,12 @@ def main():
     from google.genai import types
 
     client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    # 2x2 격자를 16:9 로 만들면 각 칸이 8:9... 가 아니라 가로형이 된다.
+    # 원본 보기 이미지가 가로형(비율 약 1.3)이라 정사각으로 자르면
+    # 세로 여백이 커 보인다. 격자 전체를 가로로 길게 뽑아 맞춘다.
     cfg = types.GenerateContentConfig(
         response_modalities=["IMAGE"],
-        image_config=types.ImageConfig(aspect_ratio="1:1"),
+        image_config=types.ImageConfig(aspect_ratio=args.aspect),
     )
 
     parts = []
