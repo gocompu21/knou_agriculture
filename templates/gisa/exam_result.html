@@ -660,7 +660,7 @@
                 <div class="question-content {% if not r.is_correct %}wrong-text{% endif %}">
                     <span class="q-number{% if not is_wrong_retry %} {% if r.is_correct %}q-correct{% else %}q-wrong{% endif %}{% endif %}">{{ forloop.counter }}.</span>
                     <span>{{ r.question.text|qtext }}{{ r.question.freq_tier|freq_stars }} <sup style="color:#888;font-size:0.72em;font-weight:500;">[{{ r.question.exam.year }}-{{ r.question.exam.round }}-{{ r.question.number }}]</sup></span>
-                    {% if r.question.text_image %}<div class="q-image-wrap"><img src="{{ r.question.text_image.url }}" class="q-image"></div>{% endif %}
+                    {% if r.question.text_image %}<div class="q-image-wrap"><img src="{{ r.question.text_image|vurl }}" class="q-image"></div>{% endif %}
                 </div>
 
                 <div class="choices">

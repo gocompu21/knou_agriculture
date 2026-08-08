@@ -550,22 +550,22 @@
                     <div class="q-text-display"><span class="q-num-label">{{ q.number }}.</span><span class="q-text-body">{{ q.text|qtext }}{{ q.freq_tier|freq_stars }}{% if is_wrong_retry or is_textbook_study %} <sup class="q-badge">{{ q.exam.year }}-{{ q.exam.round }}</sup>{% endif %}{% if request.user.is_staff %} <button type="button" class="edit-btn" onclick="startEdit(this)" title="수정">&#9998;</button>{% endif %}</span><button type="button" class="q-fold-btn" onclick="toggleFold(this)" title="접기/펼치기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 7 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
                 </div>
             </div>
-            {% if q.text_image %}<div class="q-image-wrap"><img src="{{ q.text_image.url }}" class="q-image"></div>{% endif %}
+            {% if q.text_image %}<div class="q-image-wrap"><img src="{{ q.text_image|vurl }}" class="q-image"></div>{% endif %}
             <div class="q-choices" data-question-id="{{ q.id }}" data-answer="{{ q.answer }}">
                 <div class="choice-item" onclick="selectChoice(this, 1)">
-                    <span class="choice-num" data-choice="1">1</span> <span class="c-text-display">{{ q.choice_1|qtext }}</span>{% if q.choice_1_image %}<img src="{{ q.choice_1_image.url }}" class="choice-image">{% endif %}
+                    <span class="choice-num" data-choice="1">1</span> <span class="c-text-display">{{ q.choice_1|qtext }}</span>{% if q.choice_1_image %}<img src="{{ q.choice_1_image|vurl }}" class="choice-image">{% endif %}
                     {% if q.choice_1_exp %}<div class="choice-exp{% if '1' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_1_exp|qtext }}</span></div>{% endif %}
                 </div>
                 <div class="choice-item" onclick="selectChoice(this, 2)">
-                    <span class="choice-num" data-choice="2">2</span> <span class="c-text-display">{{ q.choice_2|qtext }}</span>{% if q.choice_2_image %}<img src="{{ q.choice_2_image.url }}" class="choice-image">{% endif %}
+                    <span class="choice-num" data-choice="2">2</span> <span class="c-text-display">{{ q.choice_2|qtext }}</span>{% if q.choice_2_image %}<img src="{{ q.choice_2_image|vurl }}" class="choice-image">{% endif %}
                     {% if q.choice_2_exp %}<div class="choice-exp{% if '2' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_2_exp|qtext }}</span></div>{% endif %}
                 </div>
                 <div class="choice-item" onclick="selectChoice(this, 3)">
-                    <span class="choice-num" data-choice="3">3</span> <span class="c-text-display">{{ q.choice_3|qtext }}</span>{% if q.choice_3_image %}<img src="{{ q.choice_3_image.url }}" class="choice-image">{% endif %}
+                    <span class="choice-num" data-choice="3">3</span> <span class="c-text-display">{{ q.choice_3|qtext }}</span>{% if q.choice_3_image %}<img src="{{ q.choice_3_image|vurl }}" class="choice-image">{% endif %}
                     {% if q.choice_3_exp %}<div class="choice-exp{% if '3' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_3_exp|qtext }}</span></div>{% endif %}
                 </div>
                 <div class="choice-item" onclick="selectChoice(this, 4)">
-                    <span class="choice-num" data-choice="4">4</span> <span class="c-text-display">{{ q.choice_4|qtext }}</span>{% if q.choice_4_image %}<img src="{{ q.choice_4_image.url }}" class="choice-image">{% endif %}
+                    <span class="choice-num" data-choice="4">4</span> <span class="c-text-display">{{ q.choice_4|qtext }}</span>{% if q.choice_4_image %}<img src="{{ q.choice_4_image|vurl }}" class="choice-image">{% endif %}
                     {% if q.choice_4_exp %}<div class="choice-exp{% if '4' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_4_exp|qtext }}</span></div>{% endif %}
                 </div>
                 {% if not is_wrong_retry and request.user.is_authenticated %}
@@ -613,35 +613,35 @@
                         <input type="file" class="ef-img" data-field="text_image" accept="image/*">
                         <button type="button" class="ef-img-paste-btn" onclick="pasteFromClipboard(this)">붙여넣기</button>
                         <button type="button" class="ef-img-file-btn" onclick="this.parentNode.querySelector('input').click()">파일선택</button>
-                        {% if q.text_image %}<img src="{{ q.text_image.url }}" class="ef-img-preview"><button type="button" class="ef-img-clear" data-field="text_image" onclick="clearImg(this)">삭제</button>{% endif %}
+                        {% if q.text_image %}<img src="{{ q.text_image|vurl }}" class="ef-img-preview"><button type="button" class="ef-img-clear" data-field="text_image" onclick="clearImg(this)">삭제</button>{% endif %}
                     </div>
                     <label>① 이미지</label>
                     <div class="ef-img-row" data-field="choice_1_image">
                         <input type="file" class="ef-img" data-field="choice_1_image" accept="image/*">
                         <button type="button" class="ef-img-paste-btn" onclick="pasteFromClipboard(this)">붙여넣기</button>
                         <button type="button" class="ef-img-file-btn" onclick="this.parentNode.querySelector('input').click()">파일선택</button>
-                        {% if q.choice_1_image %}<img src="{{ q.choice_1_image.url }}" class="ef-img-preview"><button type="button" class="ef-img-clear" data-field="choice_1_image" onclick="clearImg(this)">삭제</button>{% endif %}
+                        {% if q.choice_1_image %}<img src="{{ q.choice_1_image|vurl }}" class="ef-img-preview"><button type="button" class="ef-img-clear" data-field="choice_1_image" onclick="clearImg(this)">삭제</button>{% endif %}
                     </div>
                     <label>② 이미지</label>
                     <div class="ef-img-row" data-field="choice_2_image">
                         <input type="file" class="ef-img" data-field="choice_2_image" accept="image/*">
                         <button type="button" class="ef-img-paste-btn" onclick="pasteFromClipboard(this)">붙여넣기</button>
                         <button type="button" class="ef-img-file-btn" onclick="this.parentNode.querySelector('input').click()">파일선택</button>
-                        {% if q.choice_2_image %}<img src="{{ q.choice_2_image.url }}" class="ef-img-preview"><button type="button" class="ef-img-clear" data-field="choice_2_image" onclick="clearImg(this)">삭제</button>{% endif %}
+                        {% if q.choice_2_image %}<img src="{{ q.choice_2_image|vurl }}" class="ef-img-preview"><button type="button" class="ef-img-clear" data-field="choice_2_image" onclick="clearImg(this)">삭제</button>{% endif %}
                     </div>
                     <label>③ 이미지</label>
                     <div class="ef-img-row" data-field="choice_3_image">
                         <input type="file" class="ef-img" data-field="choice_3_image" accept="image/*">
                         <button type="button" class="ef-img-paste-btn" onclick="pasteFromClipboard(this)">붙여넣기</button>
                         <button type="button" class="ef-img-file-btn" onclick="this.parentNode.querySelector('input').click()">파일선택</button>
-                        {% if q.choice_3_image %}<img src="{{ q.choice_3_image.url }}" class="ef-img-preview"><button type="button" class="ef-img-clear" data-field="choice_3_image" onclick="clearImg(this)">삭제</button>{% endif %}
+                        {% if q.choice_3_image %}<img src="{{ q.choice_3_image|vurl }}" class="ef-img-preview"><button type="button" class="ef-img-clear" data-field="choice_3_image" onclick="clearImg(this)">삭제</button>{% endif %}
                     </div>
                     <label>④ 이미지</label>
                     <div class="ef-img-row" data-field="choice_4_image">
                         <input type="file" class="ef-img" data-field="choice_4_image" accept="image/*">
                         <button type="button" class="ef-img-paste-btn" onclick="pasteFromClipboard(this)">붙여넣기</button>
                         <button type="button" class="ef-img-file-btn" onclick="this.parentNode.querySelector('input').click()">파일선택</button>
-                        {% if q.choice_4_image %}<img src="{{ q.choice_4_image.url }}" class="ef-img-preview"><button type="button" class="ef-img-clear" data-field="choice_4_image" onclick="clearImg(this)">삭제</button>{% endif %}
+                        {% if q.choice_4_image %}<img src="{{ q.choice_4_image|vurl }}" class="ef-img-preview"><button type="button" class="ef-img-clear" data-field="choice_4_image" onclick="clearImg(this)">삭제</button>{% endif %}
                     </div>
                 </div>
                 <div class="edit-actions">

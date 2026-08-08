@@ -1149,7 +1149,7 @@
         {% for r in wrong_results %}
         <div class="wrong-question" id="wq-{{ r.question.id }}" data-subject="{{ r.question.subject.name }}" data-answer="{{ r.question.answer }}">
             <div class="wq-content">
-                <span class="wq-num">{{ forloop.counter }}.</span><span class="wq-text-body">{{ r.question.text|qtext_pre }}{{ r.question.freq_tier|freq_stars }} <sup class="wq-source">({{ r.question.subject.name }} {{ r.question.exam.year }}-{{ r.question.exam.round|stringformat:"02d" }})</sup>{{ r.question.text|qtext_box }}{% if r.question.text_image %}<div class="q-image-wrap"><img src="{{ r.question.text_image.url }}" class="q-image"></div>{% endif %}</span>
+                <span class="wq-num">{{ forloop.counter }}.</span><span class="wq-text-body">{{ r.question.text|qtext_pre }}{{ r.question.freq_tier|freq_stars }} <sup class="wq-source">({{ r.question.subject.name }} {{ r.question.exam.year }}-{{ r.question.exam.round|stringformat:"02d" }})</sup>{{ r.question.text|qtext_box }}{% if r.question.text_image %}<div class="q-image-wrap"><img src="{{ r.question.text_image|vurl }}" class="q-image"></div>{% endif %}</span>
             </div>
             <div class="wq-choices">
                 {% for c in r.choices %}

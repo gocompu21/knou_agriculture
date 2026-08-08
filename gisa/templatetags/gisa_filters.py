@@ -1,3 +1,4 @@
+import os
 import re
 
 from django.template import Library
@@ -183,3 +184,25 @@ def freq_stars(tier):
         '<span class="freq-stars freq-t%d" title="%s (기출 빈도 %d/5)" aria-label="%s">%s</span>'
         % (t, label, t, label, "★" * t)
     )
+
+
+# 이미지 캐시 무력화 -----------------------------------------------------------
+# 문항 이미지를 교체해도 파일명이 그대로면 브라우저가 옛 이미지를 계속 쓴다
+# (nginx 응답에 Cache-Control/ETag 가 없어 재검증도 하지 않는다).
+# 파일 수정시각을 쿼리로 붙여 파일이 바뀔 때만 새로 받게 한다.
+
+@register.filter(name="vurl")
+def vurl(field):
+    """ImageFieldFile → `url?v=<mtime>`. 파일이 없으면 url 만 돌려준다."""
+    if not field:
+        return ""
+    try:
+        url = field.url
+    except (ValueError, AttributeError):
+        return ""
+    try:
+        ts = int(os.path.getmtime(field.path))
+    except (OSError, ValueError, AttributeError, NotImplementedError):
+        return url
+    sep = "&" if "?" in url else "?"
+    return "%s%sv=%d" % (url, sep, ts)
