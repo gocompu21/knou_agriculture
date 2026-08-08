@@ -1,0 +1,41 @@
+THE FIGURE: exactly FIVE equal squares arranged in TWO ROWS, with an elevation
+label written at each grid corner. The exam asks for earth volume, so the number
+of squares and the position of every label are the question data itself.
+
+=== COUNT THE SQUARES: THERE ARE EXACTLY 5 ===
+- UPPER ROW: 3 squares in a horizontal line.
+- LOWER ROW: 2 squares in a horizontal line, sitting directly BELOW the
+  LEFTMOST TWO squares of the upper row.
+- The third (rightmost) upper square has EMPTY WHITE SPACE beneath it.
+- Total = 3 + 2 = 5 squares. TWO ROWS ONLY. Never draw a third row.
+- The outline looks like a wide rectangle with the bottom-right corner missing.
+
+=== THE 11 LABELS ===
+There are exactly 11 corner labels: 4 on the top line, 4 on the middle line,
+3 on the bottom line.
+
+TOP LINE (above the upper row), left to right:
+    3m , 2m , 2m , 1m
+
+MIDDLE LINE (the shared horizontal line between the two rows), left to right:
+    2m , 2m , 1m , 1m
+  The first "2m" is at the far left, outside the grid.
+  The last "1m" is at the far right end of the middle line — this is the
+  bottom-right corner of the rightmost upper square.
+
+BOTTOM LINE (below the lower row), left to right — only 3 labels:
+    1m , 1m , 1m
+  The last one sits at the bottom-right corner of the lower row, which is
+  directly below the MIDDLE of the figure, not below its right edge.
+
+Do not invent extra labels. Do not repeat a row of labels.
+
+=== LABEL PLACEMENT ===
+- Top labels: above the top line.
+- Leftmost labels of each line: to the left of the figure.
+- Other labels: just above-left of their corner, in the white space.
+- All labels the same font size, plain text like "3m".
+
+=== LINES ===
+Only the square outlines. All five squares identical in size, sharing edges.
+No diagonals, no arrows, no dimension lines, no hatching, no shading.
