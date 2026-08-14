@@ -1071,8 +1071,13 @@ def _rank_notes(question_text, notes):
 
 
 def _build_note_map(cert, subjects):
-    """쪽집게 노트에서 문제 참조(YYYY-R-N) → 절 HTML 매핑을 구축한다."""
-    note_map = {}  # "YYYY-R-N" -> [{title, chapter, html}, ...]
+    """쪽집게 노트에서 문제 참조(YYYY-R-N) → 절 HTML 매핑을 구축한다.
+
+    subject/ch_idx/sec_id/sub_id 는 학습모드에서 쪽집게 노트 탭의 해당 절을
+    바로 펼치는 링크(?tab=textbook&subject=..&open_ch=..&open_sec=..)를
+    만드는 데 쓴다.
+    """
+    note_map = {}  # "YYYY-R-N" -> [{title, chapter, html, subject, ch_idx, ...}]
     for subj in subjects:
         try:
             tb = GisaTextbook.objects.get(certification=cert, subject=subj)
@@ -1085,16 +1090,21 @@ def _build_note_map(cert, subjects):
             cache_key=f"tb_{tb.pk}",
             cache_version=str(tb.updated_at),
         )
-        for ch in chapters:
+        for ch_idx, ch in enumerate(chapters):
             for sec in ch["sections"]:
                 sec_html = sec.get("content_html", "")
                 sec_title = sec.get("title", "")
                 ch_title = ch.get("title", "")
+                sec_id = sec.get("id", "")
                 for qref in sec.get("questions", []):
                     note_map.setdefault(qref, []).append({
                         "title": sec_title,
                         "chapter": ch_title,
                         "html": sec_html,
+                        "subject": subj.name,
+                        "ch_idx": ch_idx,
+                        "sec_id": sec_id,
+                        "sub_id": "",
                     })
                 for sub in sec.get("subsections", []):
                     sub_html = sub.get("content_html", "")
@@ -1104,6 +1114,10 @@ def _build_note_map(cert, subjects):
                             "title": sub_title,
                             "chapter": ch_title,
                             "html": sub_html,
+                            "subject": subj.name,
+                            "ch_idx": ch_idx,
+                            "sec_id": sec_id,
+                            "sub_id": sub.get("id", ""),
                         })
     return note_map
 

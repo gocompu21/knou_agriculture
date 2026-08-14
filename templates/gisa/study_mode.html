@@ -487,6 +487,24 @@
     .question-card.exp-open .q-note-section { display: block; }
     .q-note-header { font-size: 0.78rem; font-weight: 700; color: #1b4332; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
     .q-note-header svg { flex-shrink: 0; }
+    /* 쪽집게 노트 탭의 해당 절을 새 창으로 여는 링크 */
+    .q-note-open {
+        margin-left: auto;
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 2px 8px;
+        border: 1px solid #b7d0b7;
+        border-radius: 12px;
+        background: #fff;
+        color: #1b4332;
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .q-note-open:hover { background: #eaf3ea; border-color: #1b4332; color: #1b4332; }
     .q-note-body { font-size: 0.85rem; line-height: 1.7; color: #333; }
     .q-note-body ul { padding-left: 1.2em; margin: 4px 0; }
     .q-note-body li { margin-bottom: 2px; }
@@ -671,13 +689,30 @@
         var notes = _qNotes[qid];
         if (notes && notes.length > 0) {
             var svgIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" stroke="#1b4332" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-            var n0 = notes[0];
-            var html = '<div class="q-note-header">' + svgIcon + n0.chapter + ' &gt; ' + n0.title + '</div><div class="q-note-body">' + n0.html + '</div>';
+            var openIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+            // 노트 탭의 해당 절을 새 창으로 펼쳐 여는 링크
+            function noteLink(n) {
+                if (!n.subject && n.ch_idx === undefined) return '';
+                var u = '{% url "gisa:certification_detail" cert.pk %}?tab=textbook'
+                      + '&subject=' + encodeURIComponent(n.subject || '')
+                      + '&open_ch=' + (n.ch_idx || 0);
+                if (n.sec_id) u += '&open_sec=' + encodeURIComponent(n.sec_id);
+                if (n.sub_id) u += '&open_sub=' + encodeURIComponent(n.sub_id);
+                return '<a class="q-note-open" href="' + u + '" target="_blank" rel="noopener" '
+                     + 'title="쪽집게 노트에서 이 절 보기">' + openIcon + '노트에서 보기</a>';
+            }
+            function noteBlock(n) {
+                return '<div class="q-note-header">' + svgIcon + n.chapter + ' &gt; ' + n.title
+                     + noteLink(n) + '</div><div class="q-note-body">' + n.html + '</div>';
+            }
+
+            var html = noteBlock(notes[0]);
             if (notes.length > 1) {
                 html += '<div class="q-note-more">';
                 for (var i = 1; i < notes.length; i++) {
                     html += '<div style="border-top:1px dashed #ccc;margin:8px 0;"></div>';
-                    html += '<div class="q-note-header">' + svgIcon + notes[i].chapter + ' &gt; ' + notes[i].title + '</div><div class="q-note-body">' + notes[i].html + '</div>';
+                    html += noteBlock(notes[i]);
                 }
                 html += '</div>';
                 html += '<button type="button" class="q-note-toggle" onclick="toggleNoteMore(this)">관련 노트 ' + (notes.length - 1) + '건 더보기</button>';
