@@ -260,13 +260,24 @@
         border-color: #1a237e;
     }
 
-    .choice-num.picked:hover,
-    .choice-num.correct:hover {
-        background: inherit;
-    }
 
     /* 정답: 빨간색 반전 */
     .choice-num.correct {
+        background: #d93025;
+        color: #fff;
+        border-color: #d93025;
+    }
+
+    /* 반전된 원번호(선택답·정답)는 hover 로 덮지 않는다.
+       배경만 밝게 바뀌면 흰 글씨가 묻혀 숫자가 사라져 보인다.
+       .picked / .correct 규칙보다 뒤에 와야 우선순위가 잡힌다. */
+    .choice-num.picked:hover {
+        background: #333;
+        color: #fff;
+        border-color: #333;
+    }
+
+    .choice-num.correct:hover {
         background: #d93025;
         color: #fff;
         border-color: #d93025;
