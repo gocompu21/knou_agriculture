@@ -174,17 +174,15 @@
         margin-bottom: 20px;
     }
 
+    /* 선택은 앞의 원번호(.choice-num)를 클릭해서 한다.
+       보기 문장은 클릭 대상이 아니므로 커서·hover 를 두지 않는다
+       (그래야 문장을 드래그해 복사·검색할 수 있다). */
     .choice-item {
         margin-bottom: 6px;
         font-size: 0.9rem;
         padding: 6px 5px 5px;
         border-radius: 5px;
-        cursor: pointer;
         transition: background 0.15s;
-    }
-
-    .choice-item:hover {
-        background-color: #e8eaf6;
     }
 
     .choice-item.selected {
@@ -242,6 +240,29 @@
         color: #333;
         position: relative;
         flex-shrink: 0;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.15s, color 0.15s;
+    }
+
+    /* 클릭 대상이 20px 원이라 작다. 여백까지 눌러도 잡히도록 넓힌다 */
+    .choice-num::before {
+        content: '';
+        position: absolute;
+        top: -8px;
+        right: -6px;
+        bottom: -8px;
+        left: -8px;
+    }
+
+    .choice-num:hover {
+        background: #e8eaf6;
+        border-color: #1a237e;
+    }
+
+    .choice-num.picked:hover,
+    .choice-num.correct:hover {
+        background: inherit;
     }
 
     /* 정답: 빨간색 반전 */
@@ -570,20 +591,20 @@
             </div>
             {% if q.text_image %}<div class="q-image-wrap"><img src="{{ q.text_image|vurl }}" class="q-image"></div>{% endif %}
             <div class="q-choices" data-question-id="{{ q.id }}" data-answer="{{ q.answer }}">
-                <div class="choice-item" onclick="selectChoice(this, 1)">
-                    <span class="choice-num" data-choice="1">1</span> <span class="c-text-display">{{ q.choice_1|qtext }}</span>{% if q.choice_1_image %}<img src="{{ q.choice_1_image|vurl }}" class="choice-image">{% endif %}
+                <div class="choice-item">
+                    <span class="choice-num" data-choice="1" onclick="selectChoice(this, 1)">1</span> <span class="c-text-display">{{ q.choice_1|qtext }}</span>{% if q.choice_1_image %}<img src="{{ q.choice_1_image|vurl }}" class="choice-image">{% endif %}
                     {% if q.choice_1_exp %}<div class="choice-exp{% if '1' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_1_exp|qtext }}</span></div>{% endif %}
                 </div>
-                <div class="choice-item" onclick="selectChoice(this, 2)">
-                    <span class="choice-num" data-choice="2">2</span> <span class="c-text-display">{{ q.choice_2|qtext }}</span>{% if q.choice_2_image %}<img src="{{ q.choice_2_image|vurl }}" class="choice-image">{% endif %}
+                <div class="choice-item">
+                    <span class="choice-num" data-choice="2" onclick="selectChoice(this, 2)">2</span> <span class="c-text-display">{{ q.choice_2|qtext }}</span>{% if q.choice_2_image %}<img src="{{ q.choice_2_image|vurl }}" class="choice-image">{% endif %}
                     {% if q.choice_2_exp %}<div class="choice-exp{% if '2' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_2_exp|qtext }}</span></div>{% endif %}
                 </div>
-                <div class="choice-item" onclick="selectChoice(this, 3)">
-                    <span class="choice-num" data-choice="3">3</span> <span class="c-text-display">{{ q.choice_3|qtext }}</span>{% if q.choice_3_image %}<img src="{{ q.choice_3_image|vurl }}" class="choice-image">{% endif %}
+                <div class="choice-item">
+                    <span class="choice-num" data-choice="3" onclick="selectChoice(this, 3)">3</span> <span class="c-text-display">{{ q.choice_3|qtext }}</span>{% if q.choice_3_image %}<img src="{{ q.choice_3_image|vurl }}" class="choice-image">{% endif %}
                     {% if q.choice_3_exp %}<div class="choice-exp{% if '3' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_3_exp|qtext }}</span></div>{% endif %}
                 </div>
-                <div class="choice-item" onclick="selectChoice(this, 4)">
-                    <span class="choice-num" data-choice="4">4</span> <span class="c-text-display">{{ q.choice_4|qtext }}</span>{% if q.choice_4_image %}<img src="{{ q.choice_4_image|vurl }}" class="choice-image">{% endif %}
+                <div class="choice-item">
+                    <span class="choice-num" data-choice="4" onclick="selectChoice(this, 4)">4</span> <span class="c-text-display">{{ q.choice_4|qtext }}</span>{% if q.choice_4_image %}<img src="{{ q.choice_4_image|vurl }}" class="choice-image">{% endif %}
                     {% if q.choice_4_exp %}<div class="choice-exp{% if '4' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_4_exp|qtext }}</span></div>{% endif %}
                 </div>
                 {% if not is_wrong_retry and request.user.is_authenticated %}
@@ -742,7 +763,11 @@
         card.querySelectorAll('.choice-num').forEach(function(cn) { cn.classList.remove('picked', 'correct'); });
     }
 
-    function selectChoice(choiceItem, choiceNum) {
+    function selectChoice(el, choiceNum) {
+        // 클릭 대상은 원번호(.choice-num)지만 이하 로직은 보기 전체(.choice-item)를
+        // 기준으로 하므로 여기서 한 번 올려잡는다. div 가 넘어와도 그대로 동작한다.
+        var choiceItem = el.closest('.choice-item');
+        if (!choiceItem) return;
         var parent = choiceItem.closest('.q-choices');
         var card = choiceItem.closest('.question-card');
         var rect = choiceItem.getBoundingClientRect();
