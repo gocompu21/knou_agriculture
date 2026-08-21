@@ -16,16 +16,49 @@ _CELL_STYLE = "border:1px solid #999;padding:3px 10px;text-align:left;"
 _TH_STYLE = _CELL_STYLE + "background:#f2f2f2;font-weight:600;white-space:nowrap;"
 
 
+def _table_rows(block):
+    """표 덩어리를 행 목록으로 정규화한다.
+
+    원문에는 두 가지 흐트러짐이 있다.
+      - 셀 안에 줄바꿈이 들어가 다음 줄이 `|` 로 시작하지 않는 경우
+        (2021-3-94: 서식지 특성 3줄이 한 셀에 들어 있다) -> 앞 행에 이어붙인다
+      - 표 뒤에 빈 줄과 각주가 이어지는 경우
+        (2017-3-45, 2013-3-43: "*본 표의 면적은 1ha...") -> 표는 거기서 끝난다
+
+    반환: (행목록, 표 뒤에 남은 줄들)
+    """
+    rows, tail = [], []
+    ended = False
+    for raw in block.split("\n"):
+        ln = raw.strip()
+        if ended:
+            tail.append(raw)
+            continue
+        if not ln:
+            if rows:
+                ended = True
+            continue
+        if ln.startswith("|"):
+            rows.append(ln)
+        elif rows:
+            # 셀 안 줄바꿈 - 직전 행 마지막 셀에 이어붙인다
+            base = rows[-1].rstrip()
+            if base.endswith("|"):
+                base = base[:-1].rstrip()
+            rows[-1] = base + "<br>" + ln + " |"
+        else:
+            return [], block.split("\n")
+    return rows, tail
+
+
 def _md_table(block):
-    """마크다운 표 → HTML <table>.
+    """마크다운 표 -> HTML <table>.
 
     `| a | b |` 행이 이어지고 둘째 줄이 `|---|---|` 인 덩어리만 표로 본다.
-    표가 아니면 원문을 그대로 돌려준다.
+    표가 아니면 None 을 돌려준다.
     """
-    lines = [ln.strip() for ln in block.split("\n") if ln.strip()]
+    lines, tail = _table_rows(block)
     if len(lines) < 2:
-        return None
-    if not all(ln.startswith("|") for ln in lines):
         return None
     if not re.match(r"^\|[\s:\-|]+\|$", lines[1]):
         return None
@@ -35,6 +68,7 @@ def _md_table(block):
 
     head = cells(lines[0])
     body = [cells(ln) for ln in lines[2:]]
+    ncol = len(head)
 
     out = ['<table style="%s">' % _TABLE_STYLE]
     out.append("<thead><tr>")
@@ -42,11 +76,17 @@ def _md_table(block):
         out.append('<th style="%s">%s</th>' % (_TH_STYLE, h))
     out.append("</tr></thead><tbody>")
     for row in body:
+        if len(row) < ncol:
+            row = row + [""] * (ncol - len(row))
         out.append("<tr>")
-        for cel in row:
+        for cel in row[:ncol]:
             out.append('<td style="%s">%s</td>' % (_CELL_STYLE, cel))
         out.append("</tr>")
     out.append("</tbody></table>")
+    note = "\n".join(tail).strip()
+    if note:
+        out.append('<div style="margin-top:6px;font-size:0.92em;line-height:1.6;">%s</div>'
+                   % note.replace("\n", "<br>"))
     return "".join(out)
 
 
