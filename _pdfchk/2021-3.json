@@ -1,0 +1,331 @@
+{
+ "round": "2021-3",
+ "items": [
+  {
+   "ref": "2021-3-2",
+   "round": "2021-3",
+   "number": 2,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'ecologocal'→'ecological' 영문 오식",
+   "changes": [
+    {
+     "old": "o",
+     "new": "i",
+     "ctx_before": "생태적 지위(ecologocal niche)",
+     "ctx_after": "생태적 지위(ecological niche)",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-3-13",
+   "round": "2021-3",
+   "number": 13,
+   "field": "choice_1",
+   "kind": "typo",
+   "note": "'육상생태계에'→'육상생태계와' 조사 오식 ('~와 ~ 사이')",
+   "changes": [
+    {
+     "old": "에",
+     "new": "와",
+     "ctx_before": "육상생태계에 수생태계 사이의 전이지대이다.",
+     "ctx_after": "육상생태계와 수생태계 사이의 전이지대이다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-3-43",
+   "round": "2021-3",
+   "number": 43,
+   "field": "text",
+   "kind": "typo",
+   "note": "'피토모스'→'피트모스'(peat moss) 오식",
+   "changes": [
+    {
+     "old": "토",
+     "new": "트",
+     "ctx_before": "토양개량에 쓰이는 자재 중 피토모스에 대한 설명으로 틀린 것은?",
+     "ctx_after": "토양개량에 쓰이는 자재 중 피트모스에 대한 설명으로 틀린 것은?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-3-51",
+   "round": "2021-3",
+   "number": 51,
+   "field": "text",
+   "kind": "typo",
+   "note": "'ecologocal'→'ecological' 영문 오식, '사용하는'이 갈라짐",
+   "changes": [
+    {
+     "old": "o",
+     "new": "i",
+     "ctx_before": "생태적 발자국(ecologocal footprint)의 분석",
+     "ctx_after": "생태적 발자국(ecological footprint)의 분석",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "print)의 분석을 위해 사용하 는 토지분류의 카테고리가 아닌 것",
+     "ctx_after": "print)의 분석을 위해 사용하는 토지분류의 카테고리가 아닌 것",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2021-3-52",
+   "round": "2021-3",
+   "number": 52,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'토양교질물읠'→'토양교질물의' 조사 오식",
+   "changes": [
+    {
+     "old": "읠",
+     "new": "의",
+     "ctx_before": " 상향 이동하기 때문에 토양교질물읠 하향 이동이 거의 일어나지 않는",
+     "ctx_after": " 상향 이동하기 때문에 토양교질물의 하향 이동이 거의 일어나지 않는",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-3-54",
+   "round": "2021-3",
+   "number": 54,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'접근한에'→'접근함에' 오식, '날아가면서'가 갈라짐",
+   "changes": [
+    {
+     "old": "한",
+     "new": "함",
+     "ctx_before": "도피거리 : 인간이 접근한에 따라 단숨에 장거리를 날아 가",
+     "ctx_after": "도피거리 : 인간이 접근함에 따라 단숨에 장거리를 날아가면",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "근한에 따라 단숨에 장거리를 날아 가면서 도피를 시작하는 거리",
+     "ctx_after": "근함에 따라 단숨에 장거리를 날아가면서 도피를 시작하는 거리",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-3-66",
+   "round": "2021-3",
+   "number": 66,
+   "field": "text",
+   "kind": "typo",
+   "note": "'환경영양평가'→'환경영향평가' 오식, '이루어지는'이 갈라짐",
+   "changes": [
+    {
+     "old": "양",
+     "new": "향",
+     "ctx_before": "환경영양평가의 현황조사는 생물서식공간을 ",
+     "ctx_after": "환경영향평가의 현황조사는 생물서식공간을 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "사는 생물서식공간을 중심으로 이루 어지는 것이 바람직한데, 경관생태",
+     "ctx_after": "사는 생물서식공간을 중심으로 이루어지는 것이 바람직한데, 경관생태",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2021-3-67",
+   "round": "2021-3",
+   "number": 67,
+   "field": "text",
+   "kind": "typo",
+   "note": "'대채습지'→'대체습지' 오식",
+   "changes": [
+    {
+     "old": "채",
+     "new": "체",
+     "ctx_before": "대채습지의 의무 면적(Credit) ",
+     "ctx_after": "대체습지의 의무 면적(Credit) ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-3-70",
+   "round": "2021-3",
+   "number": 70,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'도지'→'토지' 오식, '비오톱'이 갈라짐",
+   "changes": [
+    {
+     "old": "도",
+     "new": "토",
+     "ctx_before": "도지 전체에 대한 종합적인 지도작성",
+     "ctx_after": "토지 전체에 대한 종합적인 지도작성",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "합적인 지도작성을 통해 상세한 비 오톱 정보를 얻을 수는 있으나, ",
+     "ctx_after": "합적인 지도작성을 통해 상세한 비오톱 정보를 얻을 수는 있으나, ",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2021-3-71",
+   "round": "2021-3",
+   "number": 71,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'늘어는다'→'늘어난다' 오식",
+   "changes": [
+    {
+     "old": "는",
+     "new": "난",
+     "ctx_before": "고 가장자리 종인 덩굴식물도 늘어는다.",
+     "ctx_after": "고 가장자리 종인 덩굴식물도 늘어난다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-3-74",
+   "round": "2021-3",
+   "number": 74,
+   "field": "choice_1",
+   "kind": "typo",
+   "note": "'dispreasal'→'dispersal' 영문 철자 오식",
+   "changes": [
+    {
+     "old": "",
+     "new": "e",
+     "ctx_before": "분산(dispreasal)",
+     "ctx_after": "분산(dispersal)",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "ea",
+     "new": "",
+     "ctx_before": "분산(dispreasal)",
+     "ctx_after": "분산(dispersal)",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-3-81",
+   "round": "2021-3",
+   "number": 81,
+   "field": "text",
+   "kind": "typo",
+   "note": "'법령성'→'법령상' 오식",
+   "changes": [
+    {
+     "old": "성",
+     "new": "상",
+     "ctx_before": "생생물 보호 및 관리에 관한 법령성 생물자원 보전시설을 설치·운영하",
+     "ctx_after": "생생물 보호 및 관리에 관한 법령상 생물자원 보전시설을 설치·운영하",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-3-81",
+   "round": "2021-3",
+   "number": 81,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'소자자'→'소지자'(선지1과 대구), '분유에서'→'분야에서' 오식, '소지자로서'가 갈라짐",
+   "changes": [
+    {
+     "old": "",
+     "new": "지",
+     "ctx_before": "원과 관련된 분야의 학사 이상 소자자 로서 해당 분유에서 2년 이",
+     "ctx_after": "원과 관련된 분야의 학사 이상 소지자로서 해당 분야에서 2년 이상 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "자 ",
+     "new": "",
+     "ctx_before": "과 관련된 분야의 학사 이상 소자자 로서 해당 분유에서 2년 이상 종",
+     "ctx_after": " 관련된 분야의 학사 이상 소지자로서 해당 분야에서 2년 이상 종",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "유",
+     "new": "야",
+     "ctx_before": " 학사 이상 소자자 로서 해당 분유에서 2년 이상 종사한 자",
+     "ctx_after": "의 학사 이상 소지자로서 해당 분야에서 2년 이상 종사한 자",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-3-90",
+   "round": "2021-3",
+   "number": 90,
+   "field": "text",
+   "kind": "typo",
+   "note": "'자연환경보존법'→'자연환경보전법' 법률명 오식",
+   "changes": [
+    {
+     "old": "존",
+     "new": "전",
+     "ctx_before": "자연환경보존법상 생태·자연도 작성을 위한 지",
+     "ctx_after": "자연환경보전법상 생태·자연도 작성을 위한 지",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-3-98",
+   "round": "2021-3",
+   "number": 98,
+   "field": "text",
+   "kind": "typo",
+   "note": "'저년도'→'전년도' 오식 (같은 지문 뒤 문장은 '전년도'로 표기)",
+   "changes": [
+    {
+     "old": "저",
+     "new": "전",
+     "ctx_before": "전략 시행계획을 수립·시행하고, 저년도 시행계획의 추진실적과 해당 ",
+     "ctx_after": "전략 시행계획을 수립·시행하고, 전년도 시행계획의 추진실적과 해당 ",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,195 @@
+{
+ "round": "2020-2",
+ "items": [
+  {
+   "ref": "2020-2-46",
+   "round": "2020-2",
+   "number": 46,
+   "field": "text",
+   "kind": "typo",
+   "note": "'재두 각추제 에'→'재두각추체에' (조판 분리 + '제'→'체' 오식), '정사각형으로서'가 갈라짐",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "공사용재료인 석재로서 형상은 재두 각추제 에 가깝고, 전면은 거의 ",
+     "ctx_after": "공사용재료인 석재로서 형상은 재두각추체에 가깝고, 전면은 거의 평",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "제 ",
+     "new": "체",
+     "ctx_before": "재료인 석재로서 형상은 재두 각추제 에 가깝고, 전면은 거의 평면을 ",
+     "ctx_after": "용재료인 석재로서 형상은 재두각추체에 가깝고, 전면은 거의 평면을 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 평면을 이루며 대략 정사각형으로 서 뒷길이, 접폭면의 폭, 뒷면 ",
+     "ctx_after": " 평면을 이루며 대략 정사각형으로서 뒷길이, 접폭면의 폭, 뒷면 ",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2020-2-54",
+   "round": "2020-2",
+   "number": 54,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'Nanaged'→'Managed' 명백한 문자 오인식",
+   "changes": [
+    {
+     "old": "N",
+     "new": "M",
+     "ctx_before": "Nanaged Succession",
+     "ctx_after": "Managed Succession",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2020-2-57",
+   "round": "2020-2",
+   "number": 57,
+   "field": "text",
+   "kind": "typo",
+   "note": "'생육뷸량'→'생육불량' 오식, '기상율은'이 갈라짐",
+   "changes": [
+    {
+     "old": "뷸",
+     "new": "불",
+     "ctx_before": "고상율이 어느정도 이상일 때 생육뷸량현상이 현저히 나타난다고 볼 수",
+     "ctx_after": "고상율이 어느정도 이상일 때 생육불량현상이 현저히 나타난다고 볼 수",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "다고 볼 수 있는가? (단, 기상 율은 10% 이하이다.)",
+     "ctx_after": "다고 볼 수 있는가? (단, 기상율은 10% 이하이다.)",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2020-2-58",
+   "round": "2020-2",
+   "number": 58,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'떄에'→'때에' 오식",
+   "changes": [
+    {
+     "old": "떄",
+     "new": "때",
+     "ctx_before": "합한 물량이 적으므로 뿜기작업할 떄에 뿜기 재료의 유실이 적다.",
+     "ctx_after": "합한 물량이 적으므로 뿜기작업할 때에 뿜기 재료의 유실이 적다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2020-2-69",
+   "round": "2020-2",
+   "number": 69,
+   "field": "text",
+   "kind": "typo",
+   "note": "'물절석회조류'→'무절석회조류'(백화현상 원인 생물), '이상증식을 인하여'→'이상증식으로 인하여', '것으로'·'우리나라는'이 갈라짐",
+   "changes": [
+    {
+     "old": "물",
+     "new": "무",
+     "ctx_before": "해안연안에 물절석회조류의 이상증식을 인하여 발",
+     "ctx_after": "해안연안에 무절석회조류의 이상증식으로 인하여 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "을",
+     "new": "으로",
+     "ctx_before": "해안연안에 물절석회조류의 이상증식을 인하여 발생하는 것 으로 어류자",
+     "ctx_after": "해안연안에 무절석회조류의 이상증식으로 인하여 발생하는 것으로 어류자원",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "의 이상증식을 인하여 발생하는 것 으로 어류자원 및 해조자원에 심각",
+     "ctx_after": " 이상증식으로 인하여 발생하는 것으로 어류자원 및 해조자원에 심각",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "원에 심각한 피해가 발생한다. 우 리나라는 주로 동해안에 많이 발생",
+     "ctx_after": "원에 심각한 피해가 발생한다. 우리나라는 주로 동해안에 많이 발생",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2020-2-94",
+   "round": "2020-2",
+   "number": 94,
+   "field": "text",
+   "kind": "typo",
+   "note": "'야 생물'→'야생생물'(조판 분리 + '생' 누락), '1급'이 갈라짐",
+   "changes": [
+    {
+     "old": " ",
+     "new": "생",
+     "ctx_before": " 관리에 관한 법령상 멸종위기 야 생물 1 급에 해당되는 포유류 중",
+     "ctx_after": " 관리에 관한 법령상 멸종위기 야생생물 1급에 해당되는 포유류 중 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "관한 법령상 멸종위기 야 생물 1 급에 해당되는 포유류 중 올바르지",
+     "ctx_after": "관한 법령상 멸종위기 야생생물 1급에 해당되는 포유류 중 올바르지",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2020-2-95",
+   "round": "2020-2",
+   "number": 95,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'수식적'→'수직적' 오식, '아교목'이 갈라짐",
+   "changes": [
+    {
+     "old": "식",
+     "new": "직",
+     "ctx_before": "생태통로 내부에는 다양한 수식적 구조를 가진 아교 목, 관목,",
+     "ctx_after": "생태통로 내부에는 다양한 수직적 구조를 가진 아교목, 관목, ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 다양한 수식적 구조를 가진 아교 목, 관목, 초목 등으로 조성한다",
+     "ctx_after": " 다양한 수직적 구조를 가진 아교목, 관목, 초목 등으로 조성한다",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  }
+ ]
+}

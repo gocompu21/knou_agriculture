@@ -1,0 +1,147 @@
+{
+ "round": "2017-3",
+ "items": [
+  {
+   "ref": "2017-3-27",
+   "round": "2017-3",
+   "number": 27,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'생 물적' → '생물적', '네크워크' → '네트워크'(OCR 깨짐)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 크게 만들고 통로를 설치하여 생 물적 네크워크를 확보하는 것이 중",
+     "ctx_after": " 크게 만들고 통로를 설치하여 생물적 네트워크를 확보하는 것이 중",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "크",
+     "new": "트",
+     "ctx_before": "들고 통로를 설치하여 생 물적 네크워크를 확보하는 것이 중요하다.",
+     "ctx_after": "만들고 통로를 설치하여 생물적 네트워크를 확보하는 것이 중요하다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-3-47",
+   "round": "2017-3",
+   "number": 47,
+   "field": "text",
+   "kind": "typo",
+   "note": "'토 사량' → '토사량', 'A ：A1의 단면적'의 A는 아래첨자 1이 소실된 'A1' (보기의 A1과 대응)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 토사량 산출식은? (단, V：토 사량(m3), A：A의 단면적, ",
+     "ctx_after": " 토사량 산출식은? (단, V：토사량(m3), A：A의 단면적, ",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": " ",
+     "new": "1",
+     "ctx_before": "량(m3), A：A의 단면적, A ：A1의 단면적, L：A와 A1의",
+     "ctx_after": "량(m3), A：A의 단면적, A1：A1의 단면적, L：A와 A1의",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-3-69",
+   "round": "2017-3",
+   "number": 69,
+   "field": "text",
+   "kind": "split",
+   "note": "'교란의\\n(     )'의 줄바꿈은 조판 흔적",
+   "changes": [
+    {
+     "old": "\n",
+     "new": " ",
+     "ctx_before": "완전하게 이해하기 위해서는 교란의\n(     ), (     ), ",
+     "ctx_after": "완전하게 이해하기 위해서는 교란의 (     ), (     ), ",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-3-94",
+   "round": "2017-3",
+   "number": 94,
+   "field": "choice_1",
+   "kind": "typo",
+   "note": "'수화예상액' → '수확예상액' (2016-3-82 동일 문항이 '수확예상액'으로 되어 있음)",
+   "changes": [
+    {
+     "old": "화",
+     "new": "확",
+     "ctx_before": "수화예상액의 100분의 5 이상",
+     "ctx_after": "수확예상액의 100분의 5 이상",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-3-94",
+   "round": "2017-3",
+   "number": 94,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'수화예상액' → '수확예상액'",
+   "changes": [
+    {
+     "old": "화",
+     "new": "확",
+     "ctx_before": "수화예상액의 100분의 15 이상",
+     "ctx_after": "수확예상액의 100분의 15 이상",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-3-94",
+   "round": "2017-3",
+   "number": 94,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'수화예상액' → '수확예상액'",
+   "changes": [
+    {
+     "old": "화",
+     "new": "확",
+     "ctx_before": "수화예상액의 100분의 25 이상",
+     "ctx_after": "수확예상액의 100분의 25 이상",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-3-94",
+   "round": "2017-3",
+   "number": 94,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'수화예상액' → '수확예상액'",
+   "changes": [
+    {
+     "old": "화",
+     "new": "확",
+     "ctx_before": "수화예상액의 100분의 50 이상",
+     "ctx_after": "수확예상액의 100분의 50 이상",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,23 @@
+{
+ "round": "2012-3",
+ "items": [
+  {
+   "ref": "2012-3-88",
+   "round": "2012-3",
+   "number": 88,
+   "field": "choice_1",
+   "kind": "symbol",
+   "note": "'줁하여' → '준하여'. 글자 깨짐(PDF 파싱 손상)",
+   "changes": [
+    {
+     "old": "줁",
+     "new": "준",
+     "ctx_before": "업을 수용하기 위하여 도시지역에 줁하여 체계적으로 관리하거나 농림업",
+     "ctx_after": "업을 수용하기 위하여 도시지역에 준하여 체계적으로 관리하거나 농림업",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  }
+ ]
+}

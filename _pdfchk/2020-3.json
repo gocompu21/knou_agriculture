@@ -1,0 +1,233 @@
+{
+ "round": "2020-3",
+ "items": [
+  {
+   "ref": "2020-3-2",
+   "round": "2020-3",
+   "number": 2,
+   "field": "text",
+   "kind": "typo",
+   "note": "'bioligical'→'biological' 영문 오식",
+   "changes": [
+    {
+     "old": "i",
+     "new": "o",
+     "ctx_before": "생물학적 오염(bioligical pollution)의 ",
+     "ctx_after": "생물학적 오염(biological pollution)의 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2020-3-5",
+   "round": "2020-3",
+   "number": 5,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'Nitrosomomas'→'Nitrosomonas' 속명 오식",
+   "changes": [
+    {
+     "old": "m",
+     "new": "n",
+     "ctx_before": "Nitrosomomas",
+     "ctx_after": "Nitrosomonas",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2020-3-11",
+   "round": "2020-3",
+   "number": 11,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'기위'→'지위' 문자 오인식",
+   "changes": [
+    {
+     "old": "기",
+     "new": "지",
+     "ctx_before": "생태적 기위",
+     "ctx_after": "생태적 지위",
+     "in_pdf_old": null,
+     "in_pdf_new": null
+    }
+   ]
+  },
+  {
+   "ref": "2020-3-21",
+   "round": "2020-3",
+   "number": 21,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'색체'→'색채' (법 조문 원문은 '색채')",
+   "changes": [
+    {
+     "old": "체",
+     "new": "채",
+     "ctx_before": "건축물의 배치·형태·색체 또는 건축선에 관한 계획",
+     "ctx_after": "건축물의 배치·형태·색채 또는 건축선에 관한 계획",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2020-3-60",
+   "round": "2020-3",
+   "number": 60,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'견구기관'→'연구기관' 오식, '협조관계가'가 갈라짐",
+   "changes": [
+    {
+     "old": "견",
+     "new": "연",
+     "ctx_before": "터링, 그리고 복원 주체와 학문 견구기관과의 유기적인 협조관 계가 ",
+     "ctx_after": "터링, 그리고 복원 주체와 학문 연구기관과의 유기적인 협조관계가 포",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "학문 견구기관과의 유기적인 협조관 계가 포함되어야 한다.",
+     "ctx_after": "학문 연구기관과의 유기적인 협조관계가 포함되어야 한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2020-3-76",
+   "round": "2020-3",
+   "number": 76,
+   "field": "text",
+   "kind": "typo",
+   "note": "'따란'→'따른' 명백한 오식. '경관변화에'→'경관변화의'는 문맥상 복원(low 요소 포함)",
+   "changes": [
+    {
+     "old": "란",
+     "new": "른",
+     "ctx_before": "토지개발에 따란 경관변화에 형태와 관계가 먼 것",
+     "ctx_after": "토지개발에 따른 경관변화의 형태와 관계가 먼 것",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "에",
+     "new": "의",
+     "ctx_before": "토지개발에 따란 경관변화에 형태와 관계가 먼 것은?",
+     "ctx_after": "토지개발에 따른 경관변화의 형태와 관계가 먼 것은?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2020-3-82",
+   "round": "2020-3",
+   "number": 82,
+   "field": "text",
+   "kind": "typo",
+   "note": "'생테계'→'생태계' 오식, '특정도서에서의'가 갈라짐",
+   "changes": [
+    {
+     "old": "테",
+     "new": "태",
+     "ctx_before": "독도 등 도서지역의 생테계보전에 관한 특별법규상 특정도 ",
+     "ctx_after": "독도 등 도서지역의 생태계보전에 관한 특별법규상 특정도서",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "테계보전에 관한 특별법규상 특정도 서에서의 행위허가 신청서 작성 시",
+     "ctx_after": "태계보전에 관한 특별법규상 특정도서에서의 행위허가 신청서 작성 시",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2020-3-88",
+   "round": "2020-3",
+   "number": 88,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'지후수위'→'지하수위' 오식, '수심지역까지를'이 갈라짐",
+   "changes": [
+    {
+     "old": "후",
+     "new": "하",
+     "ctx_before": "지후수위가 높고 다습한 곳으로서 간조",
+     "ctx_after": "지하수위가 높고 다습한 곳으로서 간조",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 내에서 광합성이 가능한 수심지역 까지를 말한다.",
+     "ctx_after": " 내에서 광합성이 가능한 수심지역까지를 말한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2020-3-97",
+   "round": "2020-3",
+   "number": 97,
+   "field": "text",
+   "kind": "typo",
+   "note": "'다클로로메탄'→'디클로로메탄'(dichloromethane) 오식, '수생태계'·'건강보호기준으로'가 갈라짐",
+   "changes": [
+    {
+     "old": "다",
+     "new": "디",
+     "ctx_before": "환경정책기본법령상 하천에서의 다클로로메탄의 수질 및 수 생태계 ",
+     "ctx_after": "환경정책기본법령상 하천에서의 디클로로메탄의 수질 및 수생태계 기",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "에서의 다클로로메탄의 수질 및 수 생태계 기준(mg/L)으로 옳은 ",
+     "ctx_after": "에서의 디클로로메탄의 수질 및 수생태계 기준(mg/L)으로 옳은 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "은 것은? (단, 사람의 건강보호 기준으로 한다.)",
+     "ctx_after": "은 것은? (단, 사람의 건강보호기준으로 한다.)",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2020-3-99",
+   "round": "2020-3",
+   "number": 99,
+   "field": "text",
+   "kind": "typo",
+   "note": "'얼맞은'→'알맞은' 문자 오인식",
+   "changes": [
+    {
+     "old": "얼",
+     "new": "알",
+     "ctx_before": "획평가의 절차이다. ( ) 안에 얼맞은 것은?\n[box]국토교통부장",
+     "ctx_after": "획평가의 절차이다. ( ) 안에 알맞은 것은?\n[box]국토교통부장",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    }
+   ]
+  }
+ ]
+}

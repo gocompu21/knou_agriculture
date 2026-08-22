@@ -1,0 +1,75 @@
+{
+ "round": "2018-2",
+ "items": [
+  {
+   "ref": "2018-2-47",
+   "round": "2018-2",
+   "number": 47,
+   "field": "text",
+   "kind": "split",
+   "note": "'훼손 면적' → '훼손면적'. '협력급' → '협력금' 은 원문 오식 정정 (low 요소 포함)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "에서 5천제곱미터의 채굴사업 훼손 면적이 발생했을 경우 납부해야 할",
+     "ctx_after": "에서 5천제곱미터의 채굴사업 훼손면적이 발생했을 경우 납부해야 할",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "급",
+     "new": "금",
+     "ctx_before": " 경우 납부해야 할 생태계보전협력급은?",
+     "ctx_after": " 경우 납부해야 할 생태계보전협력금은?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-2-95",
+   "round": "2018-2",
+   "number": 95,
+   "field": "text",
+   "kind": "symbol",
+   "note": "'수위(선(水位線)' → '수위선(水位線)' 괄호 중복 깨짐",
+   "changes": [
+    {
+     "old": "(",
+     "new": "",
+     "ctx_before": "    )란 만조(滿潮) 때 수위(선(水位線)과 지면의 경계선으로부",
+     "ctx_after": "    )란 만조(滿潮) 때 수위선(水位線)과 지면의 경계선으로부",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-2-96",
+   "round": "2018-2",
+   "number": 96,
+   "field": "text",
+   "kind": "split",
+   "note": "'완충구역 에서의' → '완충구역에서의'. '절하는' → '정하는' 은 명백한 글자 깨짐 (앞부분에 '정하는'으로 나옴)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "률 시행령상 보호지역 중 완충구역 에서의 허용행위에 관한 기준이다.",
+     "ctx_after": "률 시행령상 보호지역 중 완충구역에서의 허용행위에 관한 기준이다.",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "절",
+     "new": "정",
+     "ctx_before": "허용하는데 여기서 \"대통령령으로 절하는 규모이하\"는\n1. 증축의 경",
+     "ctx_after": "허용하는데 여기서 \"대통령령으로 정하는 규모이하\"는\n1. 증축의 경",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    }
+   ]
+  }
+ ]
+}

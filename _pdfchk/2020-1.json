@@ -1,0 +1,255 @@
+{
+ "round": "2020-1",
+ "items": [
+  {
+   "ref": "2020-1-42",
+   "round": "2020-1",
+   "number": 42,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'녹 치축' → '녹지축' (조판 분리 + '지'가 '치'로 오인식)",
+   "changes": [
+    {
+     "old": " 치",
+     "new": "지",
+     "ctx_before": " 형성된 1~2m 정도의 좁은 녹 치축 조성",
+     "ctx_after": " 형성된 1~2m 정도의 좁은 녹지축 조성",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2020-1-53",
+   "round": "2020-1",
+   "number": 53,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'식생의'가 갈라짐 + '얆은'→'얇은', '도화주는'→'도와주는' 명백한 파싱 오식",
+   "changes": [
+    {
+     "old": "얆",
+     "new": "얇",
+     "ctx_before": "사, 경질토사, 리핑풍화암 등에 얆은 층의 식생기반재를 부착시켜 식",
+     "ctx_after": "사, 경질토사, 리핑풍화암 등에 얇은 층의 식생기반재를 부착시켜 식",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 층의 식생기반재를 부착시켜 식생 의 활착을 도화주는 공법",
+     "ctx_after": " 층의 식생기반재를 부착시켜 식생의 활착을 도와주는 공법",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "화",
+     "new": "와",
+     "ctx_before": "재를 부착시켜 식생 의 활착을 도화주는 공법",
+     "ctx_after": "반재를 부착시켜 식생의 활착을 도와주는 공법",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2020-1-73",
+   "round": "2020-1",
+   "number": 73,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'지역한경'→'지역환경' 오식, '종합ㆍ평가'·'연구하는' 조판 분리",
+   "changes": [
+    {
+     "old": "한",
+     "new": "환",
+     "ctx_before": "인간과 지역한경의 관계를 생태학적 시점에서 분",
+     "ctx_after": "인간과 지역환경의 관계를 생태학적 시점에서 분",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "관계를 생태학적 시점에서 분석ㆍ종 합ㆍ평가하여 바람직한 지역환경의 ",
+     "ctx_after": "관계를 생태학적 시점에서 분석ㆍ종합ㆍ평가하여 바람직한 지역환경의 ",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "한 지역환경의 보전ㆍ창출을 연구하 는 학문이다.",
+     "ctx_after": "한 지역환경의 보전ㆍ창출을 연구하는 학문이다.",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2020-1-84",
+   "round": "2020-1",
+   "number": 84,
+   "field": "text",
+   "kind": "typo",
+   "note": "'환경부장관' 조판 분리, 'ㆍ 원상회복' 뒤 공백 제거, '대채자연'→'대체자연' 오식",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "ㆍ도지사는 위임업무에 대한 환경부 장관 보고사항 중 생태ㆍ경관보전지",
+     "ctx_after": "ㆍ도지사는 위임업무에 대한 환경부장관 보고사항 중 생태ㆍ경관보전지",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "ㆍ경관보전지역 안에서의 행위중지ㆍ 원상회복 또는 대채자연의 조성 등",
+     "ctx_after": "ㆍ경관보전지역 안에서의 행위중지ㆍ원상회복 또는 대체자연의 조성 등",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "채",
+     "new": "체",
+     "ctx_before": "서의 행위중지ㆍ 원상회복 또는 대채자연의 조성 등의 명령 실적의 보",
+     "ctx_after": "에서의 행위중지ㆍ원상회복 또는 대체자연의 조성 등의 명령 실적의 보",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2020-1-86",
+   "round": "2020-1",
+   "number": 86,
+   "field": "text",
+   "kind": "symbol",
+   "note": "'음이온' 조판 분리, '사람의' 조판 분리, 닫는 따옴표가 곧은따옴표(\")로 깨짐 → 곡선따옴표(”)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 수질 및 수생태계기준 중 “음이 온 계면활성제(ABS)\" 기준값(",
+     "ctx_after": " 수질 및 수생태계기준 중 “음이온 계면활성제(ABS)” 기준값(",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "\"",
+     "new": "”",
+     "ctx_before": "중 “음이 온 계면활성제(ABS)\" 기준값(mg/L)으로 옳은 것은",
+     "ctx_after": " 중 “음이온 계면활성제(ABS)” 기준값(mg/L)으로 옳은 것은",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "/L)으로 옳은 것은? (단, 사 람의 건강보호기준으로 한다.)",
+     "ctx_after": "/L)으로 옳은 것은? (단, 사람의 건강보호기준으로 한다.)",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2020-1-88",
+   "round": "2020-1",
+   "number": 88,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'산림청정은'→'산림청장은' 오식, '도지사'가 갈라짐",
+   "changes": [
+    {
+     "old": "정",
+     "new": "장",
+     "ctx_before": "산림청정은 기본계획을 수립하거나 변경할 ",
+     "ctx_after": "산림청장은 기본계획을 수립하거나 변경할 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "장 및 기본계획과 관련이 있는 도 지사와 협의하여야 한다.",
+     "ctx_after": "장 및 기본계획과 관련이 있는 도지사와 협의하여야 한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2020-1-90",
+   "round": "2020-1",
+   "number": 90,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'지구단위계획국역'→'지구단위계획구역' 오식, '2퍼센트'가 갈라짐",
+   "changes": [
+    {
+     "old": "국",
+     "new": "구",
+     "ctx_before": "지구단위계획국역 안의 나대지면적이 구역면적의 ",
+     "ctx_after": "지구단위계획구역 안의 나대지면적이 구역면적의 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "의 나대지면적이 구역면적의 2퍼센 트에 미달하는 경우 기초조사를 실",
+     "ctx_after": "의 나대지면적이 구역면적의 2퍼센트에 미달하는 경우 기초조사를 실",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2020-1-91",
+   "round": "2020-1",
+   "number": 91,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'기본에'→'기존에' 오식 (법 조문상 '기존에 하던 영농행위')",
+   "changes": [
+    {
+     "old": "본",
+     "new": "존",
+     "ctx_before": "기본에 하던 영농행위를 지속하기 위하",
+     "ctx_after": "기존에 하던 영농행위를 지속하기 위하",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2020-1-92",
+   "round": "2020-1",
+   "number": 92,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'이전되는'→'인정되는' 오식(선지 4와 대구), '경우'가 갈라짐",
+   "changes": [
+    {
+     "old": "이전",
+     "new": "인정",
+     "ctx_before": "가 심하게 파괴될 우려가 있다고 이전되는 경 우",
+     "ctx_after": "가 심하게 파괴될 우려가 있다고 인정되는 경우",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "파괴될 우려가 있다고 이전되는 경 우",
+     "ctx_after": "파괴될 우려가 있다고 인정되는 경우",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  }
+ ]
+}

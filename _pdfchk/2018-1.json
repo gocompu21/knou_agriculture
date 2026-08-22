@@ -1,0 +1,31 @@
+{
+ "round": "2018-1",
+ "items": [
+  {
+   "ref": "2018-1-97",
+   "round": "2018-1",
+   "number": 97,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'증권역' → '중권역' (같은 선지 뒷부분에 '중권역위원회'로 나옴). '30명 이내 의' → '30명 이내의'",
+   "changes": [
+    {
+     "old": "증",
+     "new": "중",
+     "ctx_before": "증권역환경관리위원회는 위원장 1명을",
+     "ctx_after": "중권역환경관리위원회는 위원장 1명을",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "위원장 1명을 포함한 30명 이내 의 위원으로 구성하고, 중권역위원",
+     "ctx_after": "위원장 1명을 포함한 30명 이내의 위원으로 구성하고, 중권역위원",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  }
+ ]
+}

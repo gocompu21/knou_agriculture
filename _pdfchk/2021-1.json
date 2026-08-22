@@ -1,0 +1,171 @@
+{
+ "round": "2021-1",
+ "items": [
+  {
+   "ref": "2021-1-5",
+   "round": "2021-1",
+   "number": 5,
+   "field": "choice_4",
+   "kind": "symbol",
+   "note": "'밀도는/단위'의 '/'는 파싱 손상(공백이 슬래시로 인식됨), '표시된다'가 갈라짐",
+   "changes": [
+    {
+     "old": "/",
+     "new": " ",
+     "ctx_before": "개체군 밀도는/단위 면적당 개체수 혹은 생물체량",
+     "ctx_after": "개체군 밀도는 단위 면적당 개체수 혹은 생물체량",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "적당 개체수 혹은 생물체량으로 표 시된다.",
+     "ctx_after": "적당 개체수 혹은 생물체량으로 표시된다.",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2021-1-52",
+   "round": "2021-1",
+   "number": 52,
+   "field": "text",
+   "kind": "typo",
+   "note": "'비달면'→'비탈면' 문자 오인식",
+   "changes": [
+    {
+     "old": "달",
+     "new": "탈",
+     "ctx_before": "비달면 녹화에 이용되는 식물 중 콩과",
+     "ctx_after": "비탈면 녹화에 이용되는 식물 중 콩과",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-1-53",
+   "round": "2021-1",
+   "number": 53,
+   "field": "text",
+   "kind": "typo",
+   "note": "'일반적인으로'→'일반적으로' 오식",
+   "changes": [
+    {
+     "old": "인",
+     "new": "",
+     "ctx_before": " 초기 배수효과는 좋으나, 일반적인으로 수명은 짧지만 공사비가 관 ",
+     "ctx_after": " 초기 배수효과는 좋으나, 일반적으로 수명은 짧지만 공사비가 관 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-1-79",
+   "round": "2021-1",
+   "number": 79,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'만들어진'·'최소한도로'가 갈라짐, '회귀한'→'희귀한', '회수'→'횟수' 오식",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "하여, 인위적인 영향에 의해 만들 어진 회귀한 비오톱에서의 자연적 ",
+     "ctx_after": "하여, 인위적인 영향에 의해 만들어진 희귀한 비오톱에서의 자연적 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "회",
+     "new": "희",
+     "ctx_before": "인위적인 영향에 의해 만들 어진 회귀한 비오톱에서의 자연적 천이는 ",
+     "ctx_after": " 인위적인 영향에 의해 만들어진 희귀한 비오톱에서의 자연적 천이는 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "회",
+     "new": "횟",
+     "ctx_before": " 에너지의 투입과 인위적 간섭의 회수를 최소한 도로 하는 것이 중요",
+     "ctx_after": " 에너지의 투입과 인위적 간섭의 횟수를 최소한도로 하는 것이 중요하",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "입과 인위적 간섭의 회수를 최소한 도로 하는 것이 중요하다.",
+     "ctx_after": "입과 인위적 간섭의 횟수를 최소한도로 하는 것이 중요하다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-1-87",
+   "round": "2021-1",
+   "number": 87,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'라 합은'→'이라 함은' 오식, '種內) ㆍ종간' 사이 불필요 공백",
+   "changes": [
+    {
+     "old": "합",
+     "new": "함",
+     "ctx_before": "\"생물다양성\"이라 합은 육상생태계 및 수생생태계(해양",
+     "ctx_after": "\"생물다양성\"이라 함은 육상생태계 및 수생생태계(해양",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "의 다양성을 말하며, 종내(種內) ㆍ종간(種間) 및 생태계의 다양성",
+     "ctx_after": "의 다양성을 말하며, 종내(種內)ㆍ종간(種間) 및 생태계의 다양성",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2021-1-88",
+   "round": "2021-1",
+   "number": 88,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'Sibynohis'→'Sibynophis' 학명 오식 ('p' 누락)",
+   "changes": [
+    {
+     "old": "",
+     "new": "p",
+     "ctx_before": "비바리뱀(Sibynohis chinensis)",
+     "ctx_after": "비바리뱀(Sibynophis chinensis)",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-1-98",
+   "round": "2021-1",
+   "number": 98,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'덧'→'덫' 오식 (포획도구 '덫')",
+   "changes": [
+    {
+     "old": "덧",
+     "new": "덫",
+     "ctx_before": "야생동물을 잡기 위하여 화약류ㆍ덧ㆍ올무 또는 함정을 설치하거나 유",
+     "ctx_after": "야생동물을 잡기 위하여 화약류ㆍ덫ㆍ올무 또는 함정을 설치하거나 유",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  }
+ ]
+}

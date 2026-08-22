@@ -1,0 +1,599 @@
+{
+ "round": "2016-3",
+ "items": [
+  {
+   "ref": "2016-3-4",
+   "round": "2016-3",
+   "number": 4,
+   "field": "text",
+   "kind": "typo",
+   "note": "'것음' → '것을' (OCR 글자 깨짐)",
+   "changes": [
+    {
+     "old": "음",
+     "new": "을",
+     "ctx_before": "갖기도 하며 종다양도가 커지는 것음 ( ㉡ )라고 한다.[/box]",
+     "ctx_after": "갖기도 하며 종다양도가 커지는 것을 ( ㉡ )라고 한다.[/box]",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-6",
+   "round": "2016-3",
+   "number": 6,
+   "field": "text",
+   "kind": "typo",
+   "note": "'오차 생산자' → '1차 생산자'(OCR 깨짐), 'I차' → '1차'(로마자 I가 숫자 1로), '10% 라면' → '10%라면', '생물량 (' → '생물량('",
+   "changes": [
+    {
+     "old": "오",
+     "new": "1",
+     "ctx_before": "산량은 1.7gc/m3/일이다. 오차 생산자에서 1차 소비자로 전달",
+     "ctx_after": "산량은 1.7gc/m3/일이다. 1차 생산자에서 1차 소비자로 전달",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "로 전달되는 에너지 효율이 10% 라면 I차 소비자로 전달된 생물량",
+     "ctx_after": "로 전달되는 에너지 효율이 10%라면 1차 소비자로 전달된 생물량",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "I",
+     "new": "1",
+     "ctx_before": "되는 에너지 효율이 10% 라면 I차 소비자로 전달된 생물량 (gc",
+     "ctx_after": "달되는 에너지 효율이 10%라면 1차 소비자로 전달된 생물량(gc/",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "라면 I차 소비자로 전달된 생물량 (gc/m3/일)은?",
+     "ctx_after": "라면 1차 소비자로 전달된 생물량(gc/m3/일)은?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-9",
+   "round": "2016-3",
+   "number": 9,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'용해도룔' → '용해도를' (OCR 글자 깨짐)",
+   "changes": [
+    {
+     "old": "룔",
+     "new": "를",
+     "ctx_before": "지방이나 지질에 높은 용해도룔 가진다.",
+     "ctx_after": "지방이나 지질에 높은 용해도를 가진다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-12",
+   "round": "2016-3",
+   "number": 12,
+   "field": "text",
+   "kind": "typo",
+   "note": "'식들에' → '식물에' (OCR 글자 깨짐)",
+   "changes": [
+    {
+     "old": "들",
+     "new": "물",
+     "ctx_before": "iation)의 처리원리 중 '식들에 의한 추출'에 의하여 중금속류",
+     "ctx_after": "iation)의 처리원리 중 '식물에 의한 추출'에 의하여 중금속류",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-18",
+   "round": "2016-3",
+   "number": 18,
+   "field": "choice_1",
+   "kind": "typo",
+   "note": "'중가' → '증가' (OCR 글자 깨짐)",
+   "changes": [
+    {
+     "old": "중",
+     "new": "증",
+     "ctx_before": "토양침식의 중가",
+     "ctx_after": "토양침식의 증가",
+     "in_pdf_old": null,
+     "in_pdf_new": null
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-18",
+   "round": "2016-3",
+   "number": 18,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'중가' → '증가' (OCR 글자 깨짐)",
+   "changes": [
+    {
+     "old": "중",
+     "new": "증",
+     "ctx_before": "류 축적으로 인한 토양의 비옥도 중가",
+     "ctx_after": "류 축적으로 인한 토양의 비옥도 증가",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-29",
+   "round": "2016-3",
+   "number": 29,
+   "field": "text",
+   "kind": "typo",
+   "note": "'둥으로써' → '등으로써'(OCR 깨짐), 낫표 뒤 불필요 공백 제거",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "지역에 속하지 아니하는 「농지법」 에 따른 농업진흥지역 또는 「산지",
+     "ctx_after": "지역에 속하지 아니하는 「농지법」에 따른 농업진흥지역 또는 「산지",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 농업진흥지역 또는 「산지관리법」 에 따른 보전산지 둥으로써 농림업",
+     "ctx_after": " 농업진흥지역 또는 「산지관리법」에 따른 보전산지 등으로써 농림업",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    },
+    {
+     "old": "둥",
+     "new": "등",
+     "ctx_before": "「산지관리법」 에 따른 보전산지 둥으로써 농림업을 진흥시키고 산림을",
+     "ctx_after": " 「산지관리법」에 따른 보전산지 등으로써 농림업을 진흥시키고 산림을",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-41",
+   "round": "2016-3",
+   "number": 41,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'중대시킬' → '증대시킬'(OCR 깨짐), '지역 만으로도' → '지역만으로도', '나 갈' → '나갈'",
+   "changes": [
+    {
+     "old": "중",
+     "new": "증",
+     "ctx_before": "보호받는 지역을 중대시킬 필요가 있으며 보호받는 지",
+     "ctx_after": "보호받는 지역을 증대시킬 필요가 있으며 보호받는 지",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "시킬 필요가 있으며 보호받는 지역 만으로도 장기적인 관점에서 생물의",
+     "ctx_after": "시킬 필요가 있으며 보호받는 지역만으로도 장기적인 관점에서 생물의",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "점에서 생물의 다양성을 유지해 나 갈 수 있다.",
+     "ctx_after": "점에서 생물의 다양성을 유지해 나갈 수 있다.",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-41",
+   "round": "2016-3",
+   "number": 41,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'반지연' → '반자연' (OCR 글자 깨짐)",
+   "changes": [
+    {
+     "old": "지",
+     "new": "자",
+     "ctx_before": "게 일어나는 지역에 자연 또는 반지연 지역을 증대시킬 필요성이 있다",
+     "ctx_after": "게 일어나는 지역에 자연 또는 반자연 지역을 증대시킬 필요성이 있다",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-45",
+   "round": "2016-3",
+   "number": 45,
+   "field": "choice_2",
+   "kind": "symbol",
+   "note": "불필요한 마침표 제거 (OCR 잡음)",
+   "changes": [
+    {
+     "old": ".",
+     "new": "",
+     "ctx_before": "녹색마대. 공법",
+     "ctx_after": "녹색마대 공법",
+     "in_pdf_old": null,
+     "in_pdf_new": null
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-53",
+   "round": "2016-3",
+   "number": 53,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'생몰종' → '생물종' (OCR 글자 깨짐)",
+   "changes": [
+    {
+     "old": "몰",
+     "new": "물",
+     "ctx_before": "생몰종의 다양성",
+     "ctx_after": "생물종의 다양성",
+     "in_pdf_old": null,
+     "in_pdf_new": null
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-56",
+   "round": "2016-3",
+   "number": 56,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'목본유' → '목본류'(OCR 깨짐, 보기1의 '초본류'와 대응), '형성 하여' → '형성하여'",
+   "changes": [
+    {
+     "old": "유",
+     "new": "류",
+     "ctx_before": "목본유의 뿌리는 대손지에 깊게 침투하고",
+     "ctx_after": "목본류의 뿌리는 대손지에 깊게 침투하고",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "지에 깊게 침투하고, 근계를 형성 하여 비탈면의 안정에 효과적이다.",
+     "ctx_after": "지에 깊게 침투하고, 근계를 형성하여 비탈면의 안정에 효과적이다.",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-59",
+   "round": "2016-3",
+   "number": 59,
+   "field": "choice_3",
+   "kind": "symbol",
+   "note": "'부엽식물ᅳ→'의 한글 낱자 'ᅳ' 잡음 제거",
+   "changes": [
+    {
+     "old": "ᅳ",
+     "new": " ",
+     "ctx_before": "수)식물 → 침수식물 → 부엽식물ᅳ→ 부수식물",
+     "ctx_after": "수)식물 → 침수식물 → 부엽식물 → 부수식물",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-70",
+   "round": "2016-3",
+   "number": 70,
+   "field": "choice_1",
+   "kind": "typo",
+   "note": "'생물상율' → '생물상을' (OCR 글자 깨짐)",
+   "changes": [
+    {
+     "old": "율",
+     "new": "을",
+     "ctx_before": "도심에 적응하는 생물상율 고려한다.",
+     "ctx_after": "도심에 적응하는 생물상을 고려한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-70",
+   "round": "2016-3",
+   "number": 70,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'생물다양성율' → '생물다양성을' (OCR 글자 깨짐)",
+   "changes": [
+    {
+     "old": "율",
+     "new": "을",
+     "ctx_before": "생물다양성율 높이기 위해 특정 외래수종을 도",
+     "ctx_after": "생물다양성을 높이기 위해 특정 외래수종을 도",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-71",
+   "round": "2016-3",
+   "number": 71,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'둥' → '등'(OCR 깨짐), '따 른' → '따른'",
+   "changes": [
+    {
+     "old": "둥",
+     "new": "등",
+     "ctx_before": "석산개발, 스키장 건설, 송전탑 둥 인간의 다양한 경제적 욕구에 따",
+     "ctx_after": "석산개발, 스키장 건설, 송전탑 등 인간의 다양한 경제적 욕구에 따",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 인간의 다양한 경제적 욕구에 따 른 광범위한 개발행위로 그 경관구",
+     "ctx_after": " 인간의 다양한 경제적 욕구에 따른 광범위한 개발행위로 그 경관구",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-72",
+   "round": "2016-3",
+   "number": 72,
+   "field": "text",
+   "kind": "split",
+   "note": "'인접지역 으로' → '인접지역으로', '환경친화 적인' → '환경친화적인', '위해 ,가장' → '위해 가장'(쉼표 잡음)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "택지개발 예정지역이 산림 인접지역 으로 결정되었다. 환경영향평가 조",
+     "ctx_after": "택지개발 예정지역이 산림 인접지역으로 결정되었다. 환경영향평가 조",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "식하는 것으로 나타났다. 환경친화 적인 계획수립을 위해 ,가장 적합",
+     "ctx_after": "식하는 것으로 나타났다. 환경친화적인 계획수립을 위해 가장 적합한",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": ",",
+     "new": "",
+     "ctx_before": " 환경친화 적인 계획수립을 위해 ,가장 적합한 저감 방안은?",
+     "ctx_after": ". 환경친화적인 계획수립을 위해 가장 적합한 저감 방안은?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-76",
+   "round": "2016-3",
+   "number": 76,
+   "field": "choice_1",
+   "kind": "symbol",
+   "note": "전각 쉼표 '，'(U+FF0C) → 일반 쉼표",
+   "changes": [
+    {
+     "old": "，",
+     "new": ",",
+     "ctx_before": "단위인 경관요소는 패치, 매트릭스， 코리더로 이루어져 있다.",
+     "ctx_after": "단위인 경관요소는 패치, 매트릭스, 코리더로 이루어져 있다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-80",
+   "round": "2016-3",
+   "number": 80,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'톡별한' → '특별한'(OCR 깨짐), '도시에 만' → '도시에만'",
+   "changes": [
+    {
+     "old": "톡",
+     "new": "특",
+     "ctx_before": "환경인자의 조합과 톡별한 도시유입의 결과로서 도시에 ",
+     "ctx_after": "환경인자의 조합과 특별한 도시유입의 결과로서 도시에만",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "톡별한 도시유입의 결과로서 도시에 만 나타나는 생물군집",
+     "ctx_after": "특별한 도시유입의 결과로서 도시에만 나타나는 생물군집",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-81",
+   "round": "2016-3",
+   "number": 81,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'수위선 과' → '수위선과', '경재선' → '경계선'(OCR 깨짐)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "면의 경계선으로부터 간조때 수위선 과 지면의 경재선까지의 지역을 말",
+     "ctx_after": "면의 경계선으로부터 간조때 수위선과 지면의 경계선까지의 지역을 말",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "재",
+     "new": "계",
+     "ctx_before": "부터 간조때 수위선 과 지면의 경재선까지의 지역을 말한다.",
+     "ctx_after": "로부터 간조때 수위선과 지면의 경계선까지의 지역을 말한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-83",
+   "round": "2016-3",
+   "number": 83,
+   "field": "text",
+   "kind": "typo",
+   "note": "'수집'은 '수질'의 오식(법령명 '수질 및 수생태계'), '사람 의' → '사람의'",
+   "changes": [
+    {
+     "old": "집",
+     "new": "질",
+     "ctx_before": "환경정책기본법령상 수집 및 수생태계 기준 중 하천의 사",
+     "ctx_after": "환경정책기본법령상 수질 및 수생태계 기준 중 하천의 사",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "및 수생태계 기준 중 하천의 사람 의 건강보호기준으로 옳지 않은 것",
+     "ctx_after": "및 수생태계 기준 중 하천의 사람의 건강보호기준으로 옳지 않은 것",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-86",
+   "round": "2016-3",
+   "number": 86,
+   "field": "text",
+   "kind": "typo",
+   "note": "'둥에게' → '등에게'(OCR 깨짐), '반납 하여야' → '반납하여야'",
+   "changes": [
+    {
+     "old": "둥",
+     "new": "등",
+     "ctx_before": " 이내에 그 등록증을 환경부장관 둥에게 반납 하여야 하는가?",
+     "ctx_after": " 이내에 그 등록증을 환경부장관 등에게 반납하여야 하는가?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 등록증을 환경부장관 둥에게 반납 하여야 하는가?",
+     "ctx_after": " 등록증을 환경부장관 등에게 반납하여야 하는가?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-93",
+   "round": "2016-3",
+   "number": 93,
+   "field": "choice_2",
+   "kind": "symbol",
+   "note": "닫는 큰따옴표가 작은따옴표 두 개(''  )로 깨짐",
+   "changes": [
+    {
+     "old": "''",
+     "new": "\"",
+     "ctx_before": "\"환경훼손''이란 야생 동ㆍ식물의 남획 및 그",
+     "ctx_after": "\"환경훼손\"이란 야생 동ㆍ식물의 남획 및 그",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-96",
+   "round": "2016-3",
+   "number": 96,
+   "field": "choice_1",
+   "kind": "symbol",
+   "note": "전각 쉼표 '，'(U+FF0C) → 일반 쉼표",
+   "changes": [
+    {
+     "old": "，",
+     "new": ",",
+     "ctx_before": "표석재료는 강화플라스틱(FRP)， 표석의 색은 녹색으로 한다.",
+     "ctx_after": "표석재료는 강화플라스틱(FRP), 표석의 색은 녹색으로 한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-3-99",
+   "round": "2016-3",
+   "number": 99,
+   "field": "text",
+   "kind": "typo",
+   "note": "'습지보 호에' → '습지보호에', '환경부장 관 둥에게' → '환경부장관 등에게'(둥→등 OCR 깨짐), '거리 가' → '거리가'",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "변관리지역에서 규정에 의한 습지보 호에 위해를 줄 수 있는 행위를 ",
+     "ctx_after": "변관리지역에서 규정에 의한 습지보호에 위해를 줄 수 있는 행위를 ",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "행위를 하고자 하는 자가 환경부장 관 둥에게 승인 또는 협의를 얻어",
+     "ctx_after": "행위를 하고자 하는 자가 환경부장관 등에게 승인 또는 협의를 얻어",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "둥",
+     "new": "등",
+     "ctx_before": " 하고자 하는 자가 환경부장 관 둥에게 승인 또는 협의를 얻어야 하",
+     "ctx_after": "를 하고자 하는 자가 환경부장관 등에게 승인 또는 협의를 얻어야 하",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "를 얻어야 하는 대상 행위로 거리 가 먼 것은?",
+     "ctx_after": "를 얻어야 하는 대상 행위로 거리가 먼 것은?",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  }
+ ]
+}

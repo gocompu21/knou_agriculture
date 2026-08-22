@@ -1,0 +1,59 @@
+{
+ "round": "2013-1",
+ "items": [
+  {
+   "ref": "2013-1-51",
+   "round": "2013-1",
+   "number": 51,
+   "field": "choice_3",
+   "kind": "symbol",
+   "note": "'노출괴지' → '노출되지'. 글자 깨짐(PDF 파싱 손상, '되'→'괴')",
+   "changes": [
+    {
+     "old": "괴",
+     "new": "되",
+     "ctx_before": "급수구나 퇴수구는 노출괴지 않게 설치한다.",
+     "ctx_after": "급수구나 퇴수구는 노출되지 않게 설치한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2013-1-89",
+   "round": "2013-1",
+   "number": 89,
+   "field": "choice_1",
+   "kind": "symbol",
+   "note": "'검출괴어서는' → '검출되어서는'. 글자 깨짐(PDF 파싱 손상, '되'→'괴')",
+   "changes": [
+    {
+     "old": "괴",
+     "new": "되",
+     "ctx_before": "검출괴어서는 안됨(검출한계 0.0005",
+     "ctx_after": "검출되어서는 안됨(검출한계 0.0005",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2013-1-90",
+   "round": "2013-1",
+   "number": 90,
+   "field": "text",
+   "kind": "typo",
+   "note": "'거리거 먼' → '거리가 먼'. 명백한 오식",
+   "changes": [
+    {
+     "old": "거",
+     "new": "가",
+     "ctx_before": "구역의 지정대상 지역기준으로 거리거 먼 것은?",
+     "ctx_after": "구역의 지정대상 지역기준으로 거리가 먼 것은?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  }
+ ]
+}

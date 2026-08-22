@@ -1,0 +1,39 @@
+{
+ "round": "2015-1",
+ "items": [
+  {
+   "ref": "2015-1-100",
+   "round": "2015-1",
+   "number": 100,
+   "field": "text",
+   "kind": "split",
+   "note": "조판 줄바꿈: '자연환경영향평 가' → '자연환경영향평가'. ASCII 큰따옴표를 한글 따옴표로 통일(confidence low 요소 포함)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 공원계획 변경시의 자연환경영향평 가 대상에 관한 사항이다. ( )",
+     "ctx_after": " 공원계획 변경시의 자연환경영향평가 대상에 관한 사항이다. ( )",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "\"",
+     "new": "“",
+     "ctx_before": " 이를 반영해야 하는데, 여기서 \"환경부령으로 정하는 중요사항을 변",
+     "ctx_after": " 이를 반영해야 하는데, 여기서 “환경부령으로 정하는 중요사항을 변",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    },
+    {
+     "old": "\"",
+     "new": "”",
+     "ctx_before": " 정하는 중요사항을 변경하는 경우\"란 다음의 경우이다.\n1. 부지면",
+     "ctx_after": " 정하는 중요사항을 변경하는 경우”란 다음의 경우이다.\n1. 부지면",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    }
+   ]
+  }
+ ]
+}

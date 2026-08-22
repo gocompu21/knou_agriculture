@@ -1,0 +1,31 @@
+{
+ "round": "2014-2",
+ "items": [
+  {
+   "ref": "2014-2-98",
+   "round": "2014-2",
+   "number": 98,
+   "field": "text",
+   "kind": "symbol",
+   "note": "조판 줄바꿈: '음 이온' → '음이온'. 닫는 따옴표가 ASCII 큰따옴표(\")로 깨져 있어 여는 따옴표(“)와 짝이 되는 ”로 교정",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 수질 및 수생태계 기준 중 “음 이온 계면활성제(ABS)\" 기준값",
+     "ctx_after": " 수질 및 수생태계 기준 중 “음이온 계면활성제(ABS)” 기준값",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "\"",
+     "new": "”",
+     "ctx_before": "중 “음 이온 계면활성제(ABS)\" 기준값(mg/L)으로 옳은 것은",
+     "ctx_after": " 중 “음이온 계면활성제(ABS)” 기준값(mg/L)으로 옳은 것은",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  }
+ ]
+}

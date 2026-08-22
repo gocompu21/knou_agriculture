@@ -1,0 +1,637 @@
+{
+ "round": "2018-3",
+ "items": [
+  {
+   "ref": "2018-3-3",
+   "round": "2018-3",
+   "number": 3,
+   "field": "text",
+   "kind": "split",
+   "note": "'원 리는' → '원리는'. '관소' → '과소' 는 Allee 원리의 '과소(過疎)' 로 명백한 글자 깨짐",
+   "changes": [
+    {
+     "old": "관",
+     "new": "과",
+     "ctx_before": " 생존을 보장하는 밀도가 있다. 관소 및 과밀은 제한요인으로 작용한",
+     "ctx_after": " 생존을 보장하는 밀도가 있다. 과소 및 과밀은 제한요인으로 작용한",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 작용한다.'가 설명하고 있는 원 리는?",
+     "ctx_after": " 작용한다.'가 설명하고 있는 원리는?",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-8",
+   "round": "2018-3",
+   "number": 8,
+   "field": "choice_1",
+   "kind": "typo",
+   "note": "'낯다' → '낮다' 명백한 글자 깨짐",
+   "changes": [
+    {
+     "old": "낯",
+     "new": "낮",
+     "ctx_before": "성숙단계로 갈수록 순군집생산량이 낯다.",
+     "ctx_after": "성숙단계로 갈수록 순군집생산량이 낮다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-12",
+   "round": "2018-3",
+   "number": 12,
+   "field": "choice_1",
+   "kind": "typo",
+   "note": "'잘산이온' → '질산이온' 명백한 글자 깨짐",
+   "changes": [
+    {
+     "old": "잘",
+     "new": "질",
+     "ctx_before": "산성비의 원인은 황산이온, 잘산이온, 염소이온 등이다.",
+     "ctx_after": "산성비의 원인은 황산이온, 질산이온, 염소이온 등이다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-14",
+   "round": "2018-3",
+   "number": 14,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'저수증' → '저수층' 글자 깨짐. 괄호 앞 공백도 제거",
+   "changes": [
+    {
+     "old": "증 ",
+     "new": "층",
+     "ctx_before": "저수증 (Bottom)",
+     "ctx_after": "저수층(Bottom)",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-24",
+   "round": "2018-3",
+   "number": 24,
+   "field": "text",
+   "kind": "symbol",
+   "note": "전각 물음표 '？' → 반각 '?' (다른 문항과 표기 불일치)",
+   "changes": [
+    {
+     "old": "？",
+     "new": "?",
+     "ctx_before": "때 수도(abundance) 값은？",
+     "ctx_after": "때 수도(abundance) 값은?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-31",
+   "round": "2018-3",
+   "number": 31,
+   "field": "choice_2",
+   "kind": "split",
+   "note": "'방 지' → '방지'. 전각 쉼표 '，' → 반각 ', ' 로 통일",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "탈면 침식의 방지, 토사유출의 방 지, 수질정화，수자원 보전을 포함",
+     "ctx_after": "탈면 침식의 방지, 토사유출의 방지, 수질정화, 수자원 보전을 포",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "，",
+     "new": ", ",
+     "ctx_before": "지, 토사유출의 방 지, 수질정화，수자원 보전을 포함하고 있다.",
+     "ctx_after": "방지, 토사유출의 방지, 수질정화, 수자원 보전을 포함하고 있다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-37",
+   "round": "2018-3",
+   "number": 37,
+   "field": "choice_3",
+   "kind": "split",
+   "note": "'시 민들만이' → '시민들만이'. '•' → 'ㆍ' 도 함께 정리",
+   "changes": [
+    {
+     "old": "•",
+     "new": "ㆍ",
+     "ctx_before": "시민참여는 환경계획에 직•간접으로 이해관계가 있는 시 민들",
+     "ctx_after": "시민참여는 환경계획에 직ㆍ간접으로 이해관계가 있는 시민들만",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 직•간접으로 이해관계가 있는 시 민들만이 참여하는 방법이다.",
+     "ctx_after": " 직ㆍ간접으로 이해관계가 있는 시민들만이 참여하는 방법이다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-38",
+   "round": "2018-3",
+   "number": 38,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'친절 히' → '친절히'. '자관' → '기관' 은 명백한 글자 깨짐",
+   "changes": [
+    {
+     "old": "자",
+     "new": "기",
+     "ctx_before": "다른 자관에서 처리해야 할 성격의 민원에",
+     "ctx_after": "다른 기관에서 처리해야 할 성격의 민원에",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "야 할 성격의 민원에 대해서 친절 히 안내하는 기능을 한다.",
+     "ctx_after": "야 할 성격의 민원에 대해서 친절히 안내하는 기능을 한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-39",
+   "round": "2018-3",
+   "number": 39,
+   "field": "text",
+   "kind": "split",
+   "note": "'기후 변화' → '기후변화'. 전각 쉼표 '，' → 반각 ', '",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "과 환경위협에 관심을 가지며 기후 변화 방지, 원시림 보존, 해양보",
+     "ctx_after": "과 환경위협에 관심을 가지며 기후변화 방지, 원시림 보존, 해양보",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "，",
+     "new": ",",
+     "ctx_before": ", 해양보존, 유전공학연구의 제한， 핵확산 금지 등을 위해 활동하는",
+     "ctx_after": ", 해양보존, 유전공학연구의 제한, 핵확산 금지 등을 위해 활동하는",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-62",
+   "round": "2018-3",
+   "number": 62,
+   "field": "choice_3",
+   "kind": "split",
+   "note": "'인 접한' → '인접한'. 전각 쉼표 '，' → 반각 ', '",
+   "changes": [
+    {
+     "old": "，",
+     "new": ", ",
+     "ctx_before": "농경지, 산림, 호수，하천 등의 다양한 생태계가 서로 ",
+     "ctx_after": "농경지, 산림, 호수, 하천 등의 다양한 생태계가 서로 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "천 등의 다양한 생태계가 서로 인 접한 지역으로서 이들 생태계 사이",
+     "ctx_after": "천 등의 다양한 생태계가 서로 인접한 지역으로서 이들 생태계 사이",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-63",
+   "round": "2018-3",
+   "number": 63,
+   "field": "choice_1",
+   "kind": "symbol",
+   "note": "전각 쉼표 '，' → 반각 ', '",
+   "changes": [
+    {
+     "old": "，",
+     "new": ", ",
+     "ctx_before": "광역성，동시성, 단발성",
+     "ctx_after": "광역성, 동시성, 단발성",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-63",
+   "round": "2018-3",
+   "number": 63,
+   "field": "choice_2",
+   "kind": "symbol",
+   "note": "전각 쉼표 '，' → 반각 ', '",
+   "changes": [
+    {
+     "old": "，",
+     "new": ", ",
+     "ctx_before": "동시성，주기성, 표현성",
+     "ctx_after": "동시성, 주기성, 표현성",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-63",
+   "round": "2018-3",
+   "number": 63,
+   "field": "choice_3",
+   "kind": "symbol",
+   "note": "전각 쉼표 '，' → 반각 ', '",
+   "changes": [
+    {
+     "old": "，",
+     "new": ", ",
+     "ctx_before": "주기성, 개방성，표현성",
+     "ctx_after": "주기성, 개방성, 표현성",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-63",
+   "round": "2018-3",
+   "number": 63,
+   "field": "choice_4",
+   "kind": "symbol",
+   "note": "전각 쉼표 '，' → 반각 ', '",
+   "changes": [
+    {
+     "old": "，",
+     "new": ", ",
+     "ctx_before": "동시성, 광역성，주기성",
+     "ctx_after": "동시성, 광역성, 주기성",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-82",
+   "round": "2018-3",
+   "number": 82,
+   "field": "text",
+   "kind": "split",
+   "note": "'따 른' → '따른'. 전각 쉼표 '，' → 반각 ', '",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 계획 및 이용에 관한 법률에 따 른 주거지역 중 전용주거지역의 밤",
+     "ctx_after": " 계획 및 이용에 관한 법률에 따른 주거지역 중 전용주거지역의 밤",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "，",
+     "new": ", ",
+     "ctx_before": "음환경기준은? (단, 일반지역이며，단위는 Leq dB(A))",
+     "ctx_after": "음환경기준은? (단, 일반지역이며, 단위는 Leq dB(A))",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-84",
+   "round": "2018-3",
+   "number": 84,
+   "field": "choice_1",
+   "kind": "split",
+   "note": "'연안습지 를' → '연안습지를'. '•' → 'ㆍ'",
+   "changes": [
+    {
+     "old": "•",
+     "new": "ㆍ",
+     "ctx_before": "\"습지\"란 담수•기수 또는 염수가 영구적 또는 일",
+     "ctx_after": "\"습지\"란 담수ㆍ기수 또는 염수가 영구적 또는 일",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 지역으로서 내륙습지 및 연안습지 를 말한다.",
+     "ctx_after": " 지역으로서 내륙습지 및 연안습지를 말한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-87",
+   "round": "2018-3",
+   "number": 87,
+   "field": "choice_2",
+   "kind": "split",
+   "note": "'5년 마다' → '5년마다'. '생태 • 자연도' → '생태ㆍ자연도'",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "행정기관의 장과 협조하여 매 5년 마다 생태 • 자연도에서 1등급 ",
+     "ctx_after": "행정기관의 장과 협조하여 매 5년마다 생태ㆍ자연도에서 1등급 권역",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " • ",
+     "new": "ㆍ",
+     "ctx_before": "장과 협조하여 매 5년 마다 생태 • 자연도에서 1등급 권역으로 분류된",
+     "ctx_after": " 장과 협조하여 매 5년마다 생태ㆍ자연도에서 1등급 권역으로 분류된",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-87",
+   "round": "2018-3",
+   "number": 87,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'둥이' → '등이' 명백한 글자 깨짐. '하 여금' → '하여금', '또 는' → '또는'. 전각 쉼표·불릿 정리",
+   "changes": [
+    {
+     "old": "둥",
+     "new": "등",
+     "ctx_before": "환경부장관 둥이 자연환경조사를 위하여 조사원으",
+     "ctx_after": "환경부장관 등이 자연환경조사를 위하여 조사원으",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "연환경조사를 위하여 조사원으로 하 여금 타인의 토지에 출입하고자 하",
+     "ctx_after": "연환경조사를 위하여 조사원으로 하여금 타인의 토지에 출입하고자 하",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "，",
+     "new": ", ",
+     "ctx_before": "인의 토지에 출입하고자 하는 경우，그 조사원은 출입할 날의 3일 전",
+     "ctx_after": "인의 토지에 출입하고자 하는 경우, 그 조사원은 출입할 날의 3일 전",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " • ",
+     "new": "ㆍ",
+     "ctx_before": "의 3일 전까지 그 토지의 소유자 • 점유자 또 는 관리인에게 그 뜻을",
+     "ctx_after": "의 3일 전까지 그 토지의 소유자ㆍ점유자 또는 관리인에게 그 뜻을 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 그 토지의 소유자 • 점유자 또 는 관리인에게 그 뜻을 통지하여야",
+     "ctx_after": "까지 그 토지의 소유자ㆍ점유자 또는 관리인에게 그 뜻을 통지하여야",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-88",
+   "round": "2018-3",
+   "number": 88,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'매몰지 는' → '매몰지는'. 'lm'(소문자 L) → '1m'(숫자 1) 명백한 OCR 오인식",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "지하수가 나타나지 않는 곳(매몰지 는 지하수위에서 lm 이상 높은 ",
+     "ctx_after": "지하수가 나타나지 않는 곳(매몰지는 지하수위에서 1m 이상 높은 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "l",
+     "new": "1",
+     "ctx_before": "않는 곳(매몰지 는 지하수위에서 lm 이상 높은 곳에 있어야 한다)",
+     "ctx_after": " 않는 곳(매몰지는 지하수위에서 1m 이상 높은 곳에 있어야 한다)",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-90",
+   "round": "2018-3",
+   "number": 90,
+   "field": "text",
+   "kind": "split",
+   "note": "'특정도서 에서' → '특정도서에서', '벌칙기준 으로' → '벌칙기준으로', '필요하다 고' → '필요하다고'. '•' → 'ㆍ'",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "계 보전에 관한 특별법상 특정도서 에서 입목•대나무의 벌채 또는 훼",
+     "ctx_after": "계 보전에 관한 특별법상 특정도서에서 입목ㆍ대나무의 벌채 또는 훼",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "•",
+     "new": "ㆍ",
+     "ctx_before": "관한 특별법상 특정도서 에서 입목•대나무의 벌채 또는 훼손한 자에 ",
+     "ctx_after": " 관한 특별법상 특정도서에서 입목ㆍ대나무의 벌채 또는 훼손한 자에 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 또는 훼손한 자에 대한 벌칙기준 으로 옳은 것은? (단, 군사•항",
+     "ctx_after": " 또는 훼손한 자에 대한 벌칙기준으로 옳은 것은? (단, 군사ㆍ항",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "•",
+     "new": "ㆍ",
+     "ctx_before": "준 으로 옳은 것은? (단, 군사•항해•조난구호행위 등 필요하다 고",
+     "ctx_after": "기준으로 옳은 것은? (단, 군사ㆍ항해ㆍ조난구호행위 등 필요하다고 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "•",
+     "new": "ㆍ",
+     "ctx_before": "로 옳은 것은? (단, 군사•항해•조난구호행위 등 필요하다 고 인정",
+     "ctx_after": "로 옳은 것은? (단, 군사ㆍ항해ㆍ조난구호행위 등 필요하다고 인정하",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "사•항해•조난구호행위 등 필요하다 고 인정하는 행위 등은 제외)",
+     "ctx_after": "사ㆍ항해ㆍ조난구호행위 등 필요하다고 인정하는 행위 등은 제외)",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-92",
+   "round": "2018-3",
+   "number": 92,
+   "field": "choice_2",
+   "kind": "split",
+   "note": "'습지개발 을' → '습지개발을'. 전각 쉼표 '，' → 반각 ', '",
+   "changes": [
+    {
+     "old": "，",
+     "new": ", ",
+     "ctx_before": " 따른 국민건강의 위해를 예방하고，습지개발 을 통하여 국민으로 하여",
+     "ctx_after": " 따른 국민건강의 위해를 예방하고, 습지개발을 통하여 국민으로 하여금",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "민건강의 위해를 예방하고，습지개발 을 통하여 국민으로 하여금 그 혜",
+     "ctx_after": "건강의 위해를 예방하고, 습지개발을 통하여 국민으로 하여금 그 혜",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-94",
+   "round": "2018-3",
+   "number": 94,
+   "field": "choice_2",
+   "kind": "split",
+   "note": "'사 용한다' → '사용한다'. '•' → 'ㆍ'",
+   "changes": [
+    {
+     "old": "•",
+     "new": "ㆍ",
+     "ctx_before": "주변의 소음•불빛•오염물질 등 인위적 영향을 ",
+     "ctx_after": "주변의 소음ㆍ불빛ㆍ오염물질 등 인위적 영향을 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "•",
+     "new": "ㆍ",
+     "ctx_before": "주변의 소음•불빛•오염물질 등 인위적 영향을 최소화",
+     "ctx_after": "주변의 소음ㆍ불빛ㆍ오염물질 등 인위적 영향을 최소화",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "고 주변환경에 친화적인 소재를 사 용한다.",
+     "ctx_after": "고 주변환경에 친화적인 소재를 사용한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-97",
+   "round": "2018-3",
+   "number": 97,
+   "field": "text",
+   "kind": "symbol",
+   "note": "'분 류' → '분류'. 여는 큰따옴표 “ 에 대응하는 닫는 따옴표가 작은따옴표 ' 로 깨짐",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "관한 법률 시행령상 기반시설의 분 류 중 “방재시설'에 해당하는 것",
+     "ctx_after": "관한 법률 시행령상 기반시설의 분류 중 “방재시설”에 해당하는 것",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "'",
+     "new": "”",
+     "ctx_before": " 기반시설의 분 류 중 “방재시설'에 해당하는 것은?",
+     "ctx_after": "상 기반시설의 분류 중 “방재시설”에 해당하는 것은?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2018-3-100",
+   "round": "2018-3",
+   "number": 100,
+   "field": "choice_3",
+   "kind": "split",
+   "note": "'가치 가' → '가치가', '해 당하는' → '해당하는'. '•' → 'ㆍ'",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "양성의 보전을 위하여 보호할 가치 가 높은 생물자원으로서 대통령령으",
+     "ctx_after": "양성의 보전을 위하여 보호할 가치가 높은 생물자원으로서 대통령령으",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "서 대통령령으로 정하는 기준에 해 당하는 생물자원을 관계 중앙행정기",
+     "ctx_after": "서 대통령령으로 정하는 기준에 해당하는 생물자원을 관계 중앙행정기",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "•",
+     "new": "ㆍ",
+     "ctx_before": "국외반출승인대상 생물자원으로 지정•고시할 수 있다.",
+     "ctx_after": "국외반출승인대상 생물자원으로 지정ㆍ고시할 수 있다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  }
+ ]
+}

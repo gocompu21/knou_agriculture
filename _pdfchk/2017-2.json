@@ -1,0 +1,833 @@
+{
+ "round": "2017-2",
+ "items": [
+  {
+   "ref": "2017-2-11",
+   "round": "2017-2",
+   "number": 11,
+   "field": "text",
+   "kind": "typo",
+   "note": "'블렌 바이더' → '블렌바이더'(인명), '부류' → '분류'(OCR 깨짐)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 판정하는 기준으로 사용하는 블렌 바이더의 영양상태 부류 방법 중 ",
+     "ctx_after": " 판정하는 기준으로 사용하는 블렌바이더의 영양상태 분류 방법 중 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "부",
+     "new": "분",
+     "ctx_before": "사용하는 블렌 바이더의 영양상태 부류 방법 중 극빈영양상태를 나타내",
+     "ctx_after": " 사용하는 블렌바이더의 영양상태 분류 방법 중 극빈영양상태를 나타내",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-24",
+   "round": "2017-2",
+   "number": 24,
+   "field": "text",
+   "kind": "typo",
+   "note": "'해당 하는' → '해당하는', '국가로,' 쉼표 잡음 제거, '현제는' → '현재는', '주개자' → '중개자', '양가잔에' → '양자간에' (모두 OCR 깨짐)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "창설한 것으로서 다음 설명에 해당 하는 것은?\n[box]초기에는 의",
+     "ctx_after": "창설한 것으로서 다음 설명에 해당하는 것은?\n[box]초기에는 의",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    },
+    {
+     "old": ",",
+     "new": "",
+     "ctx_before": "는 역할을 하였으나, 다른 국가로, 전파되며, 국민의 대리인 성격을",
+     "ctx_after": "는 역할을 하였으나, 다른 국가로 전파되며, 국민의 대리인 성격을",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    },
+    {
+     "old": "제",
+     "new": "재",
+     "ctx_before": "성격을 강하게 띠게 되었으며, 현제는 국민의 대리자로서 국민과 행정",
+     "ctx_after": "성격을 강하게 띠게 되었으며, 현재는 국민의 대리자로서 국민과 행정",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    },
+    {
+     "old": "주",
+     "new": "중",
+     "ctx_before": "국민의 대리자로서 국민과 행정의 주개자로서 양가잔에 발생하는 문제를",
+     "ctx_after": "국민의 대리자로서 국민과 행정의 중개자로서 양자간에 발생하는 문제를",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    },
+    {
+     "old": "가잔",
+     "new": "자간",
+     "ctx_before": "로서 국민과 행정의 주개자로서 양가잔에 발생하는 문제를 형식에 머물지",
+     "ctx_after": "로서 국민과 행정의 중개자로서 양자간에 발생하는 문제를 형식에 머물지",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-31",
+   "round": "2017-2",
+   "number": 31,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'육불화항' → '육불화황'(OCR 깨짐), 화학식 소문자 → 대문자",
+   "changes": [
+    {
+     "old": "pfc",
+     "new": "PFC",
+     "ctx_before": "과불화탄소(pfcs), 육불화항(sf6)",
+     "ctx_after": "과불화탄소(PFCs), 육불화황(SF6)",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "항",
+     "new": "황",
+     "ctx_before": "과불화탄소(pfcs), 육불화항(sf6)",
+     "ctx_after": "과불화탄소(PFCs), 육불화황(SF6)",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "sf",
+     "new": "SF",
+     "ctx_before": "과불화탄소(pfcs), 육불화항(sf6)",
+     "ctx_after": "과불화탄소(PFCs), 육불화황(SF6)",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-31",
+   "round": "2017-2",
+   "number": 31,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'이산화항' → '이산화황'(OCR 깨짐), 화학식 소문자 → 대문자",
+   "changes": [
+    {
+     "old": "co",
+     "new": "CO",
+     "ctx_before": "일산화탄소(co), 이산화항(so2)",
+     "ctx_after": "일산화탄소(CO), 이산화황(SO2)",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "항",
+     "new": "황",
+     "ctx_before": "일산화탄소(co), 이산화항(so2)",
+     "ctx_after": "일산화탄소(CO), 이산화황(SO2)",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "so",
+     "new": "SO",
+     "ctx_before": "일산화탄소(co), 이산화항(so2)",
+     "ctx_after": "일산화탄소(CO), 이산화황(SO2)",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-35",
+   "round": "2017-2",
+   "number": 35,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'축적' → '축척(縮尺)', '1:50,000 이며' → '1:50,000이며'",
+   "changes": [
+    {
+     "old": "적",
+     "new": "척",
+     "ctx_before": "도 등급을 평가하기 위한 기본 축적은 1:50,000 이며, 최소면",
+     "ctx_after": "도 등급을 평가하기 위한 기본 축척은 1:50,000이며, 최소면적",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "위한 기본 축적은 1:50,000 이며, 최소면적은 62,500m2",
+     "ctx_after": "위한 기본 축척은 1:50,000이며, 최소면적은 62,500m2",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-40",
+   "round": "2017-2",
+   "number": 40,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'관광갱' → '관광객' (OCR 글자 깨짐)",
+   "changes": [
+    {
+     "old": "갱",
+     "new": "객",
+     "ctx_before": "관광갱의 환경인식 제고",
+     "ctx_after": "관광객의 환경인식 제고",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-50",
+   "round": "2017-2",
+   "number": 50,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'CaCo3' → 'CaCO3' (탄산칼슘 화학식 대소문자)",
+   "changes": [
+    {
+     "old": "o",
+     "new": "O",
+     "ctx_before": "B층 : CaCo3와 CaSO4가 축적된 층이다.",
+     "ctx_after": "B층 : CaCO3와 CaSO4가 축적된 층이다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-52",
+   "round": "2017-2",
+   "number": 52,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'ectone' → 'ecotone' (철자 누락)",
+   "changes": [
+    {
+     "old": "",
+     "new": "o",
+     "ctx_before": "에코톤(ectone)",
+     "ctx_after": "에코톤(ecotone)",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-54",
+   "round": "2017-2",
+   "number": 54,
+   "field": "choice_1",
+   "kind": "typo",
+   "note": "'투양' → '토양' (OCR 글자 깨짐)",
+   "changes": [
+    {
+     "old": "투",
+     "new": "토",
+     "ctx_before": "토양 대공극에 있는 물은 투양에 보유되는 힘이 약하며 중력에",
+     "ctx_after": "토양 대공극에 있는 물은 토양에 보유되는 힘이 약하며 중력에",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-54",
+   "round": "2017-2",
+   "number": 54,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'토양수 분 량을' → '토양수분량을', '포장용수량이 한다' → '포장용수량이라 한다'(글자 누락)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "거의 정지한 시점에 있어서 토양수 분 량을 포장용수량이 한다.",
+     "ctx_after": "거의 정지한 시점에 있어서 토양수분량을 포장용수량이라 한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 정지한 시점에 있어서 토양수 분 량을 포장용수량이 한다.",
+     "ctx_after": "의 정지한 시점에 있어서 토양수분량을 포장용수량이라 한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "",
+     "new": "라",
+     "ctx_before": "어서 토양수 분 량을 포장용수량이 한다.",
+     "ctx_after": " 있어서 토양수분량을 포장용수량이라 한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-58",
+   "round": "2017-2",
+   "number": 58,
+   "field": "choice_1",
+   "kind": "typo",
+   "note": "'입잡들' → '입자들' (OCR 글자 깨짐)",
+   "changes": [
+    {
+     "old": "잡",
+     "new": "자",
+     "ctx_before": "점토는 수화반경이 작아 입잡들의 엉킴현상을 증진시킨다.",
+     "ctx_after": "점토는 수화반경이 작아 입자들의 엉킴현상을 증진시킨다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-60",
+   "round": "2017-2",
+   "number": 60,
+   "field": "choice_1",
+   "kind": "typo",
+   "note": "'성터부' → '성토부'(절토부와 대응하는 토목 용어, OCR 깨짐), '적합 하다' → '적합하다'",
+   "changes": [
+    {
+     "old": "터",
+     "new": "토",
+     "ctx_before": "상 육교형은 절토부, 터널형은 성터부에 적합 하다.",
+     "ctx_after": "상 육교형은 절토부, 터널형은 성토부에 적합하다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 절토부, 터널형은 성터부에 적합 하다.",
+     "ctx_after": " 절토부, 터널형은 성토부에 적합하다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-62",
+   "round": "2017-2",
+   "number": 62,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'합쳐저' → '합쳐져' (OCR 글자 깨짐)",
+   "changes": [
+    {
+     "old": "저",
+     "new": "져",
+     "ctx_before": "두 종이 합쳐저 더 강한 종이 되어 살아남는다.",
+     "ctx_after": "두 종이 합쳐져 더 강한 종이 되어 살아남는다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-68",
+   "round": "2017-2",
+   "number": 68,
+   "field": "text",
+   "kind": "typo",
+   "note": "'서식하는 좀' → '서식하는 종' (2017-1-67 보기4의 동일 문구와 대조)",
+   "changes": [
+    {
+     "old": "좀",
+     "new": "종",
+     "ctx_before": "\n㉡ 채석장, 동굴에만 서식하는 좀\n㉢ 1년생 초본군락\n㉣ 빈영양수",
+     "ctx_after": "\n㉡ 채석장, 동굴에만 서식하는 종\n㉢ 1년생 초본군락\n㉣ 빈영양수",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-70",
+   "round": "2017-2",
+   "number": 70,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'천 적으로부터' → '천적으로부터', '매을' → '매일'(OCR 깨짐)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "물이 먹이를 구하기 위해 혹은 천 적으로부터 자신을 방어하기 위해 ",
+     "ctx_after": "물이 먹이를 구하기 위해 혹은 천적으로부터 자신을 방어하기 위해 ",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "을",
+     "new": "일",
+     "ctx_before": "으로부터 자신을 방어하기 위해 매을 혹은 주기적으로 이동하면서 서식",
+     "ctx_after": "으로부터 자신을 방어하기 위해 매일 혹은 주기적으로 이동하면서 서식",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-71",
+   "round": "2017-2",
+   "number": 71,
+   "field": "choice_1",
+   "kind": "typo",
+   "note": "'침투되 는' → '침투되는', '빗불' → '빗물'(OCR 깨짐)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "토지이용과 도시화는 지하로 침투되 는 빗불의 양을 감소시킨다.",
+     "ctx_after": "토지이용과 도시화는 지하로 침투되는 빗물의 양을 감소시킨다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "불",
+     "new": "물",
+     "ctx_before": "과 도시화는 지하로 침투되 는 빗불의 양을 감소시킨다.",
+     "ctx_after": "용과 도시화는 지하로 침투되는 빗물의 양을 감소시킨다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-73",
+   "round": "2017-2",
+   "number": 73,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'self-oranized' → 'self-organized' (철자 누락)",
+   "changes": [
+    {
+     "old": "",
+     "new": "g",
+     "ctx_before": "자기조직임계(self-oranized criticality",
+     "ctx_after": "자기조직임계(self-organized criticality",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-80",
+   "round": "2017-2",
+   "number": 80,
+   "field": "choice_1",
+   "kind": "typo",
+   "note": "'괘적한' → '쾌적한' (OCR 글자 깨짐)",
+   "changes": [
+    {
+     "old": "괘",
+     "new": "쾌",
+     "ctx_before": "종 다양성의 보호, 환경보호림, 괘적한 전원공간",
+     "ctx_after": "종 다양성의 보호, 환경보호림, 쾌적한 전원공간",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-81",
+   "round": "2017-2",
+   "number": 81,
+   "field": "text",
+   "kind": "typo",
+   "note": "'해양 생태계' → '해양생태계', '법률에 다른' → '법률에 따른'(OCR 깨짐), '위 한' → '위한', '관하 사항' → '관한 사항', '옳 지' → '옳지'",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "에 관한 법률상 환경부장관은 해양 생태계의 보전 및 관리에 관한 법",
+     "ctx_after": "에 관한 법률상 환경부장관은 해양생태계의 보전 및 관리에 관한 법",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "다",
+     "new": "따",
+     "ctx_before": "의 보전 및 관리에 관한 법률에 다른 해양생물로서 해양에만 서식하는",
+     "ctx_after": "의 보전 및 관리에 관한 법률에 따른 해양생물로서 해양에만 서식하는",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "생물을 제외한 외래생물 관리를 위 한 기본계획을 수립하여야 하는데,",
+     "ctx_after": "생물을 제외한 외래생물 관리를 위한 기본계획을 수립하여야 하는데,",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "하",
+     "new": "한",
+     "ctx_before": "획을 수립하여야 하는데, 이에 관하 사항으로 옳 지 않은 것은?",
+     "ctx_after": "획을 수립하여야 하는데, 이에 관한 사항으로 옳지 않은 것은?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 하는데, 이에 관하 사항으로 옳 지 않은 것은?",
+     "ctx_after": " 하는데, 이에 관한 사항으로 옳지 않은 것은?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-82",
+   "round": "2017-2",
+   "number": 82,
+   "field": "text",
+   "kind": "typo",
+   "note": "'항목 의' → '항목의', '기 비 용의' → '그 비용의'(OCR 깨짐 + split)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "에 관한 법률상 국가는 아래 항목 의 사업을 시행하는 지방자치단체 ",
+     "ctx_after": "에 관한 법률상 국가는 아래 항목의 사업을 시행하는 지방자치단체 ",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "기",
+     "new": "그",
+     "ctx_before": " 지방자치단체 또는 관련 단체에 기 비 용의 전부 또는 일부를 국고",
+     "ctx_after": " 지방자치단체 또는 관련 단체에 그 비용의 전부 또는 일부를 국고로",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "자치단체 또는 관련 단체에 기 비 용의 전부 또는 일부를 국고로 보",
+     "ctx_after": "자치단체 또는 관련 단체에 그 비용의 전부 또는 일부를 국고로 보",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-83",
+   "round": "2017-2",
+   "number": 83,
+   "field": "text",
+   "kind": "typo",
+   "note": "'야 생동물' → '야생동물', '돌아 다니는' → '돌아다니는', '장에 대한' → '자에 대한'(OCR 깨짐)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "관한 법률상 이 법을 위반하여 야 생동물을 포획할 목적으로 총기와 ",
+     "ctx_after": "관한 법률상 이 법을 위반하여 야생동물을 포획할 목적으로 총기와 ",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 총기와 실탄을 같이 지니고 돌아 다니는 장에 대한 벌칙 기준은?",
+     "ctx_after": " 총기와 실탄을 같이 지니고 돌아다니는 자에 대한 벌칙 기준은?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "장",
+     "new": "자",
+     "ctx_before": "실탄을 같이 지니고 돌아 다니는 장에 대한 벌칙 기준은?",
+     "ctx_after": " 실탄을 같이 지니고 돌아다니는 자에 대한 벌칙 기준은?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-83",
+   "round": "2017-2",
+   "number": 83,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'이항의' → '이하의' (OCR 글자 깨짐)",
+   "changes": [
+    {
+     "old": "항",
+     "new": "하",
+     "ctx_before": "년 이하의 징역 또는 2천만원 이항의 벌금",
+     "ctx_after": "년 이하의 징역 또는 2천만원 이하의 벌금",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-84",
+   "round": "2017-2",
+   "number": 84,
+   "field": "choice_1",
+   "kind": "typo",
+   "note": "'공처회' → '공청회', '개체 7일' → '개최 7일'(모두 OCR 깨짐), '공 고하여야' → '공고하여야'",
+   "changes": [
+    {
+     "old": "처",
+     "new": "청",
+     "ctx_before": "으로부터 의견을 들어야 하며, 공처회를 개최하고자 하는 때에는 공청",
+     "ctx_after": "으로부터 의견을 들어야 하며, 공청회를 개최하고자 하는 때에는 공청",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "체",
+     "new": "최",
+     "ctx_before": "개최하고자 하는 때에는 공청회 개체 7일 전까지 개최에 필요한 사항",
+     "ctx_after": "개최하고자 하는 때에는 공청회 개최 7일 전까지 개최에 필요한 사항",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "에 필요한 사항을 일간 신문에 공 고하여야 한다.",
+     "ctx_after": "에 필요한 사항을 일간 신문에 공고하여야 한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-84",
+   "round": "2017-2",
+   "number": 84,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'구토종합계획' → '국토종합계획'(OCR 깨짐), '계 획을' → '계획을', '할때에는' → '할 때에는', '거친후' → '거친 후', '받아야한다' → '받아야 한다'",
+   "changes": [
+    {
+     "old": "구",
+     "new": "국",
+     "ctx_before": "국토교통부장관은 구토종합계획을 수립하거나 확정된 계",
+     "ctx_after": "국토교통부장관은 국토종합계획을 수립하거나 확정된 계",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "토종합계획을 수립하거나 확정된 계 획을 변경하고자 할때에는 국토정책",
+     "ctx_after": "토종합계획을 수립하거나 확정된 계획을 변경하고자 할 때에는 국토정",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "",
+     "new": " ",
+     "ctx_before": "나 확정된 계 획을 변경하고자 할때에는 국토정책위원회와 국무회의의",
+     "ctx_after": "거나 확정된 계획을 변경하고자 할 때에는 국토정책위원회와 국무회의의",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "",
+     "new": " ",
+     "ctx_before": "책위원회와 국무회의의 심의를 거친후 대통령의 승인을 받아야한다.",
+     "ctx_after": "책위원회와 국무회의의 심의를 거친 후 대통령의 승인을 받아야 한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "",
+     "new": " ",
+     "ctx_before": "를 거친후 대통령의 승인을 받아야한다.",
+     "ctx_after": " 거친 후 대통령의 승인을 받아야 한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-88",
+   "round": "2017-2",
+   "number": 88,
+   "field": "text",
+   "kind": "typo",
+   "note": "'화경정책기본법' → '환경정책기본법'(OCR 깨짐), '중권역환경관리위원' → '중권역환경관리위원회'(글자 누락), '사항 이다' → '사항이다', '구성 하고' → '구성하고'",
+   "changes": [
+    {
+     "old": "화",
+     "new": "환",
+     "ctx_before": "다음은 화경정책기본법상 중권역환경관리위원에",
+     "ctx_after": "다음은 환경정책기본법상 중권역환경관리위원회",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "",
+     "new": "회",
+     "ctx_before": "화경정책기본법상 중권역환경관리위원에 관한 사항 이다. ( )안에 ",
+     "ctx_after": "환경정책기본법상 중권역환경관리위원회에 관한 사항이다. ( )안에 알",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "상 중권역환경관리위원에 관한 사항 이다. ( )안에 알맞은 것은?\n",
+     "ctx_after": " 중권역환경관리위원회에 관한 사항이다. ( )안에 알맞은 것은?\n",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "포함한 ( ㉠ )의 위원으로 구성 하고, 위원장은 ( ㉡ )이 된다",
+     "ctx_after": "포함한 ( ㉠ )의 위원으로 구성하고, 위원장은 ( ㉡ )이 된다",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-88",
+   "round": "2017-2",
+   "number": 88,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'도는' → '또는' (OCR 글자 깨짐, 보기2와 대조)",
+   "changes": [
+    {
+     "old": "도",
+     "new": "또",
+     "ctx_before": " 30명 이내, ㉡ 유역환경청장 도는 지방환경청장",
+     "ctx_after": " 30명 이내, ㉡ 유역환경청장 또는 지방환경청장",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-90",
+   "round": "2017-2",
+   "number": 90,
+   "field": "text",
+   "kind": "typo",
+   "note": "'과한' → '관한'(법률명, OCR 깨짐), '허 용되지' → '허용되지'",
+   "changes": [
+    {
+     "old": "과",
+     "new": "관",
+     "ctx_before": "백두대간 보호에 과한 법률상 보호지역 중 완충구역에",
+     "ctx_after": "백두대간 보호에 관한 법률상 보호지역 중 완충구역에",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "률상 보호지역 중 완충구역에서 허 용되지 아니하는 행위를 한 자에 ",
+     "ctx_after": "률상 보호지역 중 완충구역에서 허용되지 아니하는 행위를 한 자에 ",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-92",
+   "round": "2017-2",
+   "number": 92,
+   "field": "text",
+   "kind": "typo",
+   "note": "'1,2 디클로로에탄' → '1,2-디클로로에탄'(하이픈 소실), '기준갑' → '기준값'(OCR 깨짐)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "-",
+     "ctx_before": "질 및 수생태계 기준 중 “1,2 디클로로에탄”의 기준갑(㎎/L)으",
+     "ctx_after": "질 및 수생태계 기준 중 “1,2-디클로로에탄”의 기준값(㎎/L)으",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "갑",
+     "new": "값",
+     "ctx_before": "중 “1,2 디클로로에탄”의 기준갑(㎎/L)으로 옳은 것은?",
+     "ctx_after": "중 “1,2-디클로로에탄”의 기준값(㎎/L)으로 옳은 것은?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-93",
+   "round": "2017-2",
+   "number": 93,
+   "field": "text",
+   "kind": "typo",
+   "note": "'기 초로' → '기초로', '자역환경' → '자연환경'(OCR 깨짐)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "위하여 자연환경 조사결과 등을 기 초로 하여 전국의 자역환경을 1등",
+     "ctx_after": "위하여 자연환경 조사결과 등을 기초로 하여 전국의 자연환경을 1등",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "역",
+     "new": "연",
+     "ctx_before": "과 등을 기 초로 하여 전국의 자역환경을 1등급, 2등급, 3등급 ",
+     "ctx_after": "결과 등을 기초로 하여 전국의 자연환경을 1등급, 2등급, 3등급 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2017-2-95",
+   "round": "2017-2",
+   "number": 95,
+   "field": "text",
+   "kind": "symbol",
+   "note": "여는 큰따옴표 누락 복원, '지역중' → '지역 중'",
+   "changes": [
+    {
+     "old": "",
+     "new": "\"",
+     "ctx_before": " )안에 알맞은 것은?\n[box]자연유보지역\"이라 함은 사람의 접",
+     "ctx_after": " )안에 알맞은 것은?\n[box]\"자연유보지역\"이라 함은 사람의 접",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    },
+    {
+     "old": "",
+     "new": " ",
+     "ctx_before": "태계의 훼손이 방지되고 있는 지역중 군사상의 목적으로 이용되는 외",
+     "ctx_after": "태계의 훼손이 방지되고 있는 지역 중 군사상의 목적으로 이용되는 외",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    }
+   ]
+  }
+ ]
+}

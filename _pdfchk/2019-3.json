@@ -1,0 +1,453 @@
+{
+ "round": "2019-3",
+ "items": [
+  {
+   "ref": "2019-3-19",
+   "round": "2019-3",
+   "number": 19,
+   "field": "text",
+   "kind": "typo",
+   "note": "'관게는' → '관계는' 명백한 글자 깨짐",
+   "changes": [
+    {
+     "old": "게",
+     "new": "계",
+     "ctx_before": " 하지 않으면 생존하지 못하는 관게는?",
+     "ctx_after": " 하지 않으면 생존하지 못하는 관계는?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2019-3-28",
+   "round": "2019-3",
+   "number": 28,
+   "field": "text",
+   "kind": "split",
+   "note": "'정하 는' → '정하는', '인정하 여' → '인정하여'. '계획적.단계적'의 마침표는 가운뎃점 'ㆍ'이 깨진 것",
+   "changes": [
+    {
+     "old": ".",
+     "new": "ㆍ",
+     "ctx_before": "무질서한 시가화를 방지하고 계획적.단계적인 개발을 도모하기 위하여 ",
+     "ctx_after": "무질서한 시가화를 방지하고 계획적ㆍ단계적인 개발을 도모하기 위하여 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 도모하기 위하여 대통령령이 정하 는 일정기간동안 시가화를 유보할 ",
+     "ctx_after": " 도모하기 위하여 대통령령이 정하는 일정기간동안 시가화를 유보할 ",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "화를 유보할 필요가 있다고 인정하 여 지정하는 구역은?",
+     "ctx_after": "화를 유보할 필요가 있다고 인정하여 지정하는 구역은?",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2019-3-38",
+   "round": "2019-3",
+   "number": 38,
+   "field": "choice_3",
+   "kind": "split",
+   "note": "'토지이 용으로의' → '토지이용으로의'. '·' → 'ㆍ'",
+   "changes": [
+    {
+     "old": "·",
+     "new": "ㆍ",
+     "ctx_before": "입지규제 : 자연적·농업적 토지이용에서 도시적 토지이",
+     "ctx_after": "입지규제 : 자연적ㆍ농업적 토지이용에서 도시적 토지이",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "농업적 토지이용에서 도시적 토지이 용으로의 토지전용을 가능하게 해야",
+     "ctx_after": "농업적 토지이용에서 도시적 토지이용으로의 토지전용을 가능하게 해야",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2019-3-39",
+   "round": "2019-3",
+   "number": 39,
+   "field": "choice_1",
+   "kind": "split",
+   "note": "'최대화함으로 써' → '최대화함으로써'. '·' → 'ㆍ'",
+   "changes": [
+    {
+     "old": "·",
+     "new": "ㆍ",
+     "ctx_before": "기존의 식생·자연지형·수로 등의 변경을 최대화",
+     "ctx_after": "기존의 식생ㆍ자연지형ㆍ수로 등의 변경을 최대화",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "·",
+     "new": "ㆍ",
+     "ctx_before": "기존의 식생·자연지형·수로 등의 변경을 최대화함으로 써",
+     "ctx_after": "기존의 식생ㆍ자연지형ㆍ수로 등의 변경을 최대화함으로써 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "형·수로 등의 변경을 최대화함으로 써 환경부하를 줄일 수 있도록 유",
+     "ctx_after": "형ㆍ수로 등의 변경을 최대화함으로써 환경부하를 줄일 수 있도록 유",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2019-3-39",
+   "round": "2019-3",
+   "number": 39,
+   "field": "choice_3",
+   "kind": "split",
+   "note": "'소생물권 을' → '소생물권을'. '·' → 'ㆍ'",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 수 있도록 일정 규모의 소생물권 을 조성하여 훼손되어 가고 있는 ",
+     "ctx_after": " 수 있도록 일정 규모의 소생물권을 조성하여 훼손되어 가고 있는 ",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "·",
+     "new": "ㆍ",
+     "ctx_before": "손되어 가고 있는 소생물권을 유지·복원할 수 있도록 계획 한다.",
+     "ctx_after": "손되어 가고 있는 소생물권을 유지ㆍ복원할 수 있도록 계획 한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2019-3-45",
+   "round": "2019-3",
+   "number": 45,
+   "field": "text",
+   "kind": "typo",
+   "note": "'수분 함량' → '수분함량'. '건토증' → '건토중(乾土重)' 명백한 글자 깨짐",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "처리 및 적용기준에서 볼 때 수분 함량은 건토증의 몇 %가 존재하는",
+     "ctx_after": "처리 및 적용기준에서 볼 때 수분함량은 건토중의 몇 %가 존재하는",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "증",
+     "new": "중",
+     "ctx_before": "기준에서 볼 때 수분 함량은 건토증의 몇 %가 존재하는 것이 가장 ",
+     "ctx_after": "용기준에서 볼 때 수분함량은 건토중의 몇 %가 존재하는 것이 가장 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2019-3-49",
+   "round": "2019-3",
+   "number": 49,
+   "field": "choice_3",
+   "kind": "split",
+   "note": "'경관 형' → '경관형', '구 분한다' → '구분한다'. '방재형, 등으로'의 군더더기 쉼표도 정리",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "발휘의 측면에서 생활환경형, 경관 형, 휴양형, 생태계보전형, 교육",
+     "ctx_after": "발휘의 측면에서 생활환경형, 경관형, 휴양형, 생태계보전형, 교육",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": ",",
+     "new": "",
+     "ctx_before": ", 생태계보전형, 교육형, 방재형, 등으로 구 분한다.",
+     "ctx_after": ", 생태계보전형, 교육형, 방재형 등으로 구분한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "형, 교육형, 방재형, 등으로 구 분한다.",
+     "ctx_after": "전형, 교육형, 방재형 등으로 구분한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2019-3-73",
+   "round": "2019-3",
+   "number": 73,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'침시과' → '침식과' 명백한 글자 깨짐",
+   "changes": [
+    {
+     "old": "시",
+     "new": "식",
+     "ctx_before": "침시과 퇴적, 빙하 등의 지형학적 요",
+     "ctx_after": "침식과 퇴적, 빙하 등의 지형학적 요",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2019-3-75",
+   "round": "2019-3",
+   "number": 75,
+   "field": "text",
+   "kind": "typo",
+   "note": "'가지가' → '가치가' 명백한 글자 깨짐. '학술적연구' → '학술적 연구' 공백 누락도 정리",
+   "changes": [
+    {
+     "old": "",
+     "new": " ",
+     "ctx_before": " 있으며 생물다양성이 높고 학술적연구 가지가 큰 지역으로서 전문가",
+     "ctx_after": " 있으며 생물다양성이 높고 학술적 연구 가치가 큰 지역으로서 전문가",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    },
+    {
+     "old": "지",
+     "new": "치",
+     "ctx_before": " 생물다양성이 높고 학술적연구 가지가 큰 지역으로서 전문가에 의한 ",
+     "ctx_after": "생물다양성이 높고 학술적 연구 가치가 큰 지역으로서 전문가에 의한 ",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2019-3-75",
+   "round": "2019-3",
+   "number": 75,
+   "field": "choice_3",
+   "kind": "symbol",
+   "note": "닫는 괄호 누락",
+   "changes": [
+    {
+     "old": "",
+     "new": ")",
+     "ctx_before": "지역(Transition Area",
+     "ctx_after": "지역(Transition Area)",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2019-3-81",
+   "round": "2019-3",
+   "number": 81,
+   "field": "text",
+   "kind": "symbol",
+   "note": "'지정. 고시' → '지정ㆍ고시'. 마침표는 가운뎃점이 깨진 것",
+   "changes": [
+    {
+     "old": ". ",
+     "new": "ㆍ",
+     "ctx_before": " 법률상 백두대간 보호지역을 지정. 고시하는 행정기관장은?",
+     "ctx_after": " 법률상 백두대간 보호지역을 지정ㆍ고시하는 행정기관장은?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2019-3-84",
+   "round": "2019-3",
+   "number": 84,
+   "field": "text",
+   "kind": "typo",
+   "note": "'특정도 서' → '특정도서', '도 지사' → '도지사'. '특별자치도서지사' → '특별자치도지사' 는 명백한 글자 중복",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "태계 보전에 관한 특별법상 특정도 서 지정대상으로 가장 거리가 먼 ",
+     "ctx_after": "태계 보전에 관한 특별법상 특정도서 지정대상으로 가장 거리가 먼 ",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 먼 것은? (단, 광역시장, 도 지사 또는 특별자치도서지사가 추천",
+     "ctx_after": " 먼 것은? (단, 광역시장, 도지사 또는 특별자치도지사가 추천하",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "서",
+     "new": "",
+     "ctx_before": "역시장, 도 지사 또는 특별자치도서지사가 추천하는 도서는 제외)",
+     "ctx_after": "광역시장, 도지사 또는 특별자치도지사가 추천하는 도서는 제외)",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2019-3-84",
+   "round": "2019-3",
+   "number": 84,
+   "field": "choice_3",
+   "kind": "typo",
+   "note": "'있 다고' → '있다고'. '가지가' → '가치가' 명백한 글자 깨짐",
+   "changes": [
+    {
+     "old": "지",
+     "new": "치",
+     "ctx_before": "서식지 또는 도래지로서 보전할 가지가 있 다고 인정되는 도서",
+     "ctx_after": "서식지 또는 도래지로서 보전할 가치가 있다고 인정되는 도서",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "또는 도래지로서 보전할 가지가 있 다고 인정되는 도서",
+     "ctx_after": "또는 도래지로서 보전할 가치가 있다고 인정되는 도서",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2019-3-92",
+   "round": "2019-3",
+   "number": 92,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'싫어하 는' → '싫어하는', '계단 형의' → '계단형의', '설치 한다' → '설치한다'. '도량' → '도랑' 은 2018-3-94 선지4와 대조되는 글자 깨짐",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "설치된 박스형 암거는 물을 싫어하 는 동물도 이동할 수 있도록 양쪽",
+     "ctx_after": "설치된 박스형 암거는 물을 싫어하는 동물도 이동할 수 있도록 양쪽",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 있도록 양쪽에 선반형 또는 계단 형의 구조물을 설치하며, 작은 배",
+     "ctx_after": " 있도록 양쪽에 선반형 또는 계단형의 구조물을 설치하며, 작은 배",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "량",
+     "new": "랑",
+     "ctx_before": "물을 설치하며, 작은 배수로나 도량을 설치 한다.",
+     "ctx_after": "물을 설치하며, 작은 배수로나 도랑을 설치한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "하며, 작은 배수로나 도량을 설치 한다.",
+     "ctx_after": "하며, 작은 배수로나 도랑을 설치한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2019-3-95",
+   "round": "2019-3",
+   "number": 95,
+   "field": "choice_3",
+   "kind": "split",
+   "note": "'여건 에' → '여건에'. '·' → 'ㆍ'",
+   "changes": [
+    {
+     "old": "·",
+     "new": "ㆍ",
+     "ctx_before": "인구·산업·경제·토지 및 해양의 이용 ",
+     "ctx_after": "인구ㆍ산업ㆍ경제ㆍ토지 및 해양의 이용 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "·",
+     "new": "ㆍ",
+     "ctx_before": "인구·산업·경제·토지 및 해양의 이용 등 환",
+     "ctx_after": "인구ㆍ산업ㆍ경제ㆍ토지 및 해양의 이용 등 환",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "·",
+     "new": "ㆍ",
+     "ctx_before": "인구·산업·경제·토지 및 해양의 이용 등 환경변화",
+     "ctx_after": "인구ㆍ산업ㆍ경제ㆍ토지 및 해양의 이용 등 환경변화",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "및 해양의 이용 등 환경변화 여건 에 관한 사항",
+     "ctx_after": "및 해양의 이용 등 환경변화 여건에 관한 사항",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2019-3-97",
+   "round": "2019-3",
+   "number": 97,
+   "field": "text",
+   "kind": "split",
+   "note": "'거 리가' → '거리가'. '분류.보전'의 마침표는 가운뎃점 'ㆍ'이 깨진 것",
+   "changes": [
+    {
+     "old": ".",
+     "new": "ㆍ",
+     "ctx_before": "한 법률 시행령상 생물자원의 분류.보전 등에 관한 관련 전문가에 해",
+     "ctx_after": "한 법률 시행령상 생물자원의 분류ㆍ보전 등에 관한 관련 전문가에 해",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "련 전문가에 해당하는 사람으로 거 리가 먼 것은?",
+     "ctx_after": "련 전문가에 해당하는 사람으로 거리가 먼 것은?",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  }
+ ]
+}

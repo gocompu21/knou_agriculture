@@ -1,0 +1,57 @@
+{
+ "round": "2015-2",
+ "items": [
+  {
+   "ref": "2015-2-92",
+   "round": "2015-2",
+   "number": 92,
+   "field": "text",
+   "kind": "split",
+   "note": "조판 줄바꿈: '완충구역 에서의' → '완충구역에서의'. ASCII 큰따옴표를 한글 따옴표로 통일",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "법률 시행령상 보호지역중 완충구역 에서의 허용행위에 관한 기준이다.",
+     "ctx_after": "법률 시행령상 보호지역중 완충구역에서의 허용행위에 관한 기준이다.",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "\"",
+     "new": "“",
+     "ctx_before": "또는 개축은 허용되는데, 여기서 \"대통령령으로 정하는 규모이하\"는\n",
+     "ctx_after": "또는 개축은 허용되는데, 여기서 “대통령령으로 정하는 규모이하”는\n",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    },
+    {
+     "old": "\"",
+     "new": "”",
+     "ctx_before": "서 \"대통령령으로 정하는 규모이하\"는\n1. 증축의 경우 : 종전 것",
+     "ctx_after": "서 “대통령령으로 정하는 규모이하”는\n1. 증축의 경우 : 종전 것",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2015-2-100",
+   "round": "2015-2",
+   "number": 100,
+   "field": "text",
+   "kind": "symbol",
+   "note": "문두에 불필요한 마침표('.')가 붙어 있음 — 파싱 잔재로 판단",
+   "changes": [
+    {
+     "old": ".",
+     "new": "",
+     "ctx_before": ".산지관리법상 보전산지 중 공익용산",
+     "ctx_after": "산지관리법상 보전산지 중 공익용산",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  }
+ ]
+}

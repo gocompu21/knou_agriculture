@@ -1,0 +1,325 @@
+{
+ "round": "2021-2",
+ "items": [
+  {
+   "ref": "2021-2-6",
+   "round": "2021-2",
+   "number": 6,
+   "field": "choice_1",
+   "kind": "typo",
+   "note": "'실물체'→'식물체' 문자 오인식",
+   "changes": [
+    {
+     "old": "실",
+     "new": "식",
+     "ctx_before": "소는 대기 중 다량으로 존재하며 실물체에 직접 이용된다.",
+     "ctx_after": "소는 대기 중 다량으로 존재하며 식물체에 직접 이용된다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-2-7",
+   "round": "2021-2",
+   "number": 7,
+   "field": "text",
+   "kind": "typo",
+   "note": "'열역한'→'열역학' 문자 오인식",
+   "changes": [
+    {
+     "old": "한",
+     "new": "학",
+     "ctx_before": "열역한 제2법칙에 대한 설명으로 틀린 ",
+     "ctx_after": "열역학 제2법칙에 대한 설명으로 틀린 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-2-28",
+   "round": "2021-2",
+   "number": 28,
+   "field": "choice_1",
+   "kind": "typo",
+   "note": "'자원환경'→'자연환경' 오식(법 조문), '상수원'·'위하여'가 갈라짐",
+   "changes": [
+    {
+     "old": "원",
+     "new": "연",
+     "ctx_before": "자연환경보전지역- 자원환경, 수자원, 해안, 생태계, ",
+     "ctx_after": "자연환경보전지역- 자연환경, 수자원, 해안, 생태계, ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "경, 수자원, 해안, 생태계, 상 수원 및 문화재의 보전과 수산 자",
+     "ctx_after": "경, 수자원, 해안, 생태계, 상수원 및 문화재의 보전과 수산 자",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 수산 자원의 보호∙육성 등을 위 하여 필요한 지역",
+     "ctx_after": " 수산 자원의 보호∙육성 등을 위하여 필요한 지역",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2021-2-41",
+   "round": "2021-2",
+   "number": 41,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'복원하렸을'→'복원하였을' 오식, '5∙ 10' 사이 불필요 공백",
+   "changes": [
+    {
+     "old": "렸",
+     "new": "였",
+     "ctx_before": "버드나무를 식재하여 하안을 복원하렸을 시는 5∙ 10∙15년 주기로",
+     "ctx_after": "버드나무를 식재하여 하안을 복원하였을 시는 5∙10∙15년 주기로 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "하여 하안을 복원하렸을 시는 5∙ 10∙15년 주기로 정기적으로 버",
+     "ctx_after": "하여 하안을 복원하였을 시는 5∙10∙15년 주기로 정기적으로 버",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-2-46",
+   "round": "2021-2",
+   "number": 46,
+   "field": "text",
+   "kind": "typo",
+   "note": "'설계에'·'관목'이 갈라짐, '식재하고.'→'식재하고,' 마침표 오식, '접합한'→'적합한' 오식",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "주는 방법들 중 미리 결정된 설계 에 온전한 경관을 포함하는 것으로",
+     "ctx_after": "주는 방법들 중 미리 결정된 설계에 온전한 경관을 포함하는 것으로",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": ".",
+     "new": ",",
+     "ctx_before": "포함하는 것으로서 나무를 식재하고. 관 목 숲을 형성하는 등의 방법",
+     "ctx_after": "포함하는 것으로서 나무를 식재하고, 관목 숲을 형성하는 등의 방법으",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "는 것으로서 나무를 식재하고. 관 목 숲을 형성하는 등의 방법으로 ",
+     "ctx_after": "는 것으로서 나무를 식재하고, 관목 숲을 형성하는 등의 방법으로 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "접",
+     "new": "적",
+     "ctx_before": "을 형성하는 등의 방법으로 가장 접합한 것은?",
+     "ctx_after": "을 형성하는 등의 방법으로 가장 적합한 것은?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-2-51",
+   "round": "2021-2",
+   "number": 51,
+   "field": "text",
+   "kind": "typo",
+   "note": "'먹이을'→'먹이를' 조사 오식",
+   "changes": [
+    {
+     "old": "을",
+     "new": "를",
+     "ctx_before": " 경계의 자세를 취하지 않고 먹이을 계속 먹거나 휴식을 계속할 수 ",
+     "ctx_after": " 경계의 자세를 취하지 않고 먹이를 계속 먹거나 휴식을 계속할 수 ",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-2-56",
+   "round": "2021-2",
+   "number": 56,
+   "field": "text",
+   "kind": "typo",
+   "note": "'원할히'→'원활히' 오식",
+   "changes": [
+    {
+     "old": "할",
+     "new": "활",
+     "ctx_before": "양토, 자갈 등을 넣어 배수를 원할히 하는 공법은?",
+     "ctx_after": "양토, 자갈 등을 넣어 배수를 원활히 하는 공법은?",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-2-79",
+   "round": "2021-2",
+   "number": 79,
+   "field": "choice_4",
+   "kind": "typo",
+   "note": "'미련하는'→'마련하는' 문자 오인식",
+   "changes": [
+    {
+     "old": "미",
+     "new": "마",
+     "ctx_before": " 철거도 디딤돌 비오톱을 새롭게 미련하는 기능과 동일하다.",
+     "ctx_after": " 철거도 디딤돌 비오톱을 새롭게 마련하는 기능과 동일하다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-2-93",
+   "round": "2021-2",
+   "number": 93,
+   "field": "choice_2",
+   "kind": "symbol",
+   "note": "'5년마다'·'자연환경을'이 갈라짐, '생태*자연도'의 '*'는 가운뎃점 파싱 손상",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "앙행정기관의 장과 협조하여 5년마 다 생태*자연도에서 1등급 권역으",
+     "ctx_after": "앙행정기관의 장과 협조하여 5년마다 생태ㆍ자연도에서 1등급 권역으",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "*",
+     "new": "ㆍ",
+     "ctx_before": "의 장과 협조하여 5년마 다 생태*자연도에서 1등급 권역으로 분류된",
+     "ctx_after": "관의 장과 협조하여 5년마다 생태ㆍ자연도에서 1등급 권역으로 분류된",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "등급 권역으로 분류된 지역의 자연 환경을 조사하여야 한다",
+     "ctx_after": "등급 권역으로 분류된 지역의 자연환경을 조사하여야 한다",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2021-2-93",
+   "round": "2021-2",
+   "number": 93,
+   "field": "choice_3",
+   "kind": "symbol",
+   "note": "'공무원'·'소유자'가 갈라짐, '경우.'→'경우,' 오식, '소유자*점유자'의 '*'는 가운뎃점 파싱 손상",
+   "changes": [
+    {
+     "old": ".",
+     "new": ",",
+     "ctx_before": "인의 토지에 출입하고자 하는 경우. 소속 공무 원 또는 조사원은 출",
+     "ctx_after": "인의 토지에 출입하고자 하는 경우, 소속 공무원 또는 조사원은 출입",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "출입하고자 하는 경우. 소속 공무 원 또는 조사원은 출입할 날의 3",
+     "ctx_after": "출입하고자 하는 경우, 소속 공무원 또는 조사원은 출입할 날의 3",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 날의 3일 전까지 그 토지의 소 유자*점유자 또는 관리인에게 그 ",
+     "ctx_after": " 날의 3일 전까지 그 토지의 소유자ㆍ점유자 또는 관리인에게 그 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "*",
+     "new": "ㆍ",
+     "ctx_before": " 3일 전까지 그 토지의 소 유자*점유자 또는 관리인에게 그 뜻을 ",
+     "ctx_after": "의 3일 전까지 그 토지의 소유자ㆍ점유자 또는 관리인에게 그 뜻을 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-2-98",
+   "round": "2021-2",
+   "number": 98,
+   "field": "choice_1",
+   "kind": "typo",
+   "note": "'한천'→'하천' 오식. '30m이상' 공백 누락도 보완",
+   "changes": [
+    {
+     "old": "한",
+     "new": "하",
+     "ctx_before": "한천, 수원지, 도로와 30m이상 ",
+     "ctx_after": "하천, 수원지, 도로와 30m 이상",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": "",
+     "new": " ",
+     "ctx_before": "한천, 수원지, 도로와 30m이상 떨어진 곳",
+     "ctx_after": "하천, 수원지, 도로와 30m 이상 떨어진 곳",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2021-2-99",
+   "round": "2021-2",
+   "number": 99,
+   "field": "text",
+   "kind": "typo",
+   "note": "'지형도에'가 갈라짐, '생태·경관보전역'→'생태·경관보전지역' ('지' 누락)",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "∙경관보전지역 지정에 사용하는 지 형도에 관한 설명이다. ( )에 ",
+     "ctx_after": "∙경관보전지역 지정에 사용하는 지형도에 관한 설명이다. ( )에 ",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "",
+     "new": "지",
+     "ctx_before": "지형도라 함은 당해 생태·경관보전역의 구역별 범위 및 면적을 표시",
+     "ctx_after": "지형도라 함은 당해 생태·경관보전지역의 구역별 범위 및 면적을 표시",
+     "in_pdf_old": false,
+     "in_pdf_new": false
+    }
+   ]
+  }
+ ]
+}

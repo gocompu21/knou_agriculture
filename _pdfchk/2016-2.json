@@ -1,0 +1,99 @@
+{
+ "round": "2016-2",
+ "items": [
+  {
+   "ref": "2016-2-37",
+   "round": "2016-2",
+   "number": 37,
+   "field": "text",
+   "kind": "split",
+   "note": "'이용 실태' → '이용실태', '용도지 역으로' → '용도지역으로', '다음중' → '다음 중'. '법류'는 '법률'의 오식(low)",
+   "changes": [
+    {
+     "old": "류",
+     "new": "률",
+     "ctx_before": "국토의 계획 및 이용에 관한 법류에서 국토는 토지의 이용 실태 및",
+     "ctx_after": "국토의 계획 및 이용에 관한 법률에서 국토는 토지의 이용실태 및 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "관한 법류에서 국토는 토지의 이용 실태 및 특징, 장래의 토지이용방",
+     "ctx_after": "관한 법률에서 국토는 토지의 이용실태 및 특징, 장래의 토지이용방",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "토지이용방향 등을 고려하여 용도지 역으로 지정하는 데 다음중 그 구",
+     "ctx_after": "토지이용방향 등을 고려하여 용도지역으로 지정하는 데 다음 중 그 ",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "",
+     "new": " ",
+     "ctx_before": " 용도지 역으로 지정하는 데 다음중 그 구분에 해당하지 않는 것은",
+     "ctx_after": "여 용도지역으로 지정하는 데 다음 중 그 구분에 해당하지 않는 것은",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2016-2-45",
+   "round": "2016-2",
+   "number": 45,
+   "field": "choice_3",
+   "kind": "symbol",
+   "note": "'H+rk'는 한글 '가'가 영문 입력으로 깨진 것(rk=가). 'NO3 -'는 'NO3-' 이온 표기",
+   "changes": [
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "비료는 질산화 작용에 의해 NO3 - 이온이 생성되는 과정에서 H+",
+     "ctx_after": "비료는 질산화 작용에 의해 NO3- 이온이 생성되는 과정에서 H+",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    },
+    {
+     "old": "rk",
+     "new": "가",
+     "ctx_before": "- 이온이 생성되는 과정에서 H+rk 증가되어 토양을 산성화 시킨다.",
+     "ctx_after": "- 이온이 생성되는 과정에서 H+가 증가되어 토양을 산성화 시킨다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2016-2-85",
+   "round": "2016-2",
+   "number": 85,
+   "field": "choice_1",
+   "kind": "split",
+   "note": "'5천분 의' → '5천분의'. '축적'은 '축척(縮尺)'의 오식(typo)",
+   "changes": [
+    {
+     "old": "적",
+     "new": "척",
+     "ctx_before": "지역의 범위 및 면적을 표시한 축적 2만 5천분 의 1 이상의 도면",
+     "ctx_after": "지역의 범위 및 면적을 표시한 축척 2만 5천분의 1 이상의 도면",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": " 면적을 표시한 축적 2만 5천분 의 1 이상의 도면",
+     "ctx_after": " 면적을 표시한 축척 2만 5천분의 1 이상의 도면",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  }
+ ]
+}

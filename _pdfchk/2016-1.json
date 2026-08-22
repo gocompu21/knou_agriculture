@@ -1,0 +1,31 @@
+{
+ "round": "2016-1",
+ "items": [
+  {
+   "ref": "2016-1-87",
+   "round": "2016-1",
+   "number": 87,
+   "field": "choice_2",
+   "kind": "typo",
+   "note": "'높'은 '늪'의 오식(법률 원문 '늪'), '또 는' → '또는'",
+   "changes": [
+    {
+     "old": "높",
+     "new": "늪",
+     "ctx_before": "지 또는 섬에 있는 호수, 못, 높 또 는 하구 등의 지역을 말한다",
+     "ctx_after": "지 또는 섬에 있는 호수, 못, 늪 또는 하구 등의 지역을 말한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "는 섬에 있는 호수, 못, 높 또 는 하구 등의 지역을 말한다.",
+     "ctx_after": "는 섬에 있는 호수, 못, 늪 또는 하구 등의 지역을 말한다.",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  }
+ ]
+}

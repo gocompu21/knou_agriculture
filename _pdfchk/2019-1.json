@@ -1,0 +1,83 @@
+{
+ "round": "2019-1",
+ "items": [
+  {
+   "ref": "2019-1-55",
+   "round": "2019-1",
+   "number": 55,
+   "field": "text",
+   "kind": "typo",
+   "note": "'지능' → '기능' 명백한 글자 깨짐 (생태통로의 '기능')",
+   "changes": [
+    {
+     "old": "지",
+     "new": "기",
+     "ctx_before": "생태통로의 지능과 조성에 대한 설명 중 틀린 ",
+     "ctx_after": "생태통로의 기능과 조성에 대한 설명 중 틀린 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    }
+   ]
+  },
+  {
+   "ref": "2019-1-85",
+   "round": "2019-1",
+   "number": 85,
+   "field": "text",
+   "kind": "typo",
+   "note": "'저당한' → '정당한' 명백한 글자 깨짐. '모래 ㆍ자갈' → '모래ㆍ자갈', '원상 회복명령' → '원상회복명령'",
+   "changes": [
+    {
+     "old": "저",
+     "new": "정",
+     "ctx_before": "습지보전법상 습지보호지역에서 저당한 사유없이 흙ㆍ모래 ㆍ자갈 또",
+     "ctx_after": "습지보전법상 습지보호지역에서 정당한 사유없이 흙ㆍ모래ㆍ자갈 또는",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "지역에서 저당한 사유없이 흙ㆍ모래 ㆍ자갈 또는 돌 등을 채취하는 행",
+     "ctx_after": "지역에서 정당한 사유없이 흙ㆍ모래ㆍ자갈 또는 돌 등을 채취하는 행",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "하는 행위로 받은 중지명령, 원상 회복명령 또는 조치명령을 위반한 ",
+     "ctx_after": "하는 행위로 받은 중지명령, 원상회복명령 또는 조치명령을 위반한 ",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  },
+  {
+   "ref": "2019-1-87",
+   "round": "2019-1",
+   "number": 87,
+   "field": "text",
+   "kind": "typo",
+   "note": "'지방환경관성' → '지방환경관서' 글자 깨짐. '생태 마을' → '생태마을'",
+   "changes": [
+    {
+     "old": "성",
+     "new": "서",
+     "ctx_before": "법규상 시ㆍ도지사 또는 지방환경관성의 장이 환경부장관에게 보고해야 ",
+     "ctx_after": "법규상 시ㆍ도지사 또는 지방환경관서의 장이 환경부장관에게 보고해야 ",
+     "in_pdf_old": true,
+     "in_pdf_new": false
+    },
+    {
+     "old": " ",
+     "new": "",
+     "ctx_before": "할 위임 업무 보고사항 중 “생태 마을의 지정 실적”보고 횟수 기준",
+     "ctx_after": "할 위임 업무 보고사항 중 “생태마을의 지정 실적”보고 횟수 기준",
+     "in_pdf_old": true,
+     "in_pdf_new": true
+    }
+   ]
+  }
+ ]
+}
