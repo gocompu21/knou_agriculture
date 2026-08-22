@@ -1,0 +1,86 @@
+{
+ "round": "2025-2",
+ "fixes": [
+  {
+   "ref": "2025-2-2",
+   "field": "choice_1",
+   "before": "인순환은 암석의 풍화되어 토양, 식물, 동물을 거쳐 대기 중으로 순환한다.",
+   "after": "인순환은 암석이 풍화되어 토양, 식물, 동물을 거쳐 대기 중으로 순환한다.",
+   "kind": "typo",
+   "confidence": "high",
+   "note": "'암석의 풍화되어' → '암석이 풍화되어'. 주격조사 자리에 관형격 '의'가 들어감."
+  },
+  {
+   "ref": "2025-2-2",
+   "field": "choice_3",
+   "before": "토양 체적당 평균탄소량은 열대지방에서 가장 낮고 한 대림과 동토대의 극지방 쪽으로 갈수록 증가한다.",
+   "after": "토양 체적당 평균탄소량은 열대지방에서 가장 낮고 한대림과 동토대의 극지방 쪽으로 갈수록 증가한다.",
+   "kind": "split",
+   "confidence": "high",
+   "note": "'한 대림' → '한대림(寒帶林)'. '한'이 홀로 의미를 갖지 못하므로 조판 줄바꿈 흔적."
+  },
+  {
+   "ref": "2025-2-42",
+   "field": "text",
+   "before": "다음중 도시생태축 유형이 아닌 것은?",
+   "after": "다음 중 도시생태축 유형이 아닌 것은?",
+   "kind": "split",
+   "confidence": "low",
+   "note": "'다음중' → '다음 중'. 같은 회차 다른 문항은 모두 '다음 중'으로 띄어 씀. 다만 원문 오식일 수 있어 low."
+  },
+  {
+   "ref": "2025-2-45",
+   "field": "choice_3",
+   "before": "Zoysia mottrella(금잔디)",
+   "after": "Zoysia matrella(금잔디)",
+   "kind": "typo",
+   "confidence": "high",
+   "note": "금잔디의 정명 학명은 Zoysia matrella. 'mottrella'는 존재하지 않는 철자로 판독 오류."
+  },
+  {
+   "ref": "2025-2-50",
+   "field": "text",
+   "before": "황폐한 산간계곡의 유역연적이 10ha인 곳에서 강우강도가 100mm/hr일 때, 최대유량(m³/s)은? (단, 유역의 유출계수 = 0.8, 감수계수가 고려된 합리식을 사용한다.)",
+   "after": "황폐한 산간계곡의 유역면적이 10ha인 곳에서 강우강도가 100mm/hr일 때, 최대유량(m³/s)은? (단, 유역의 유출계수 = 0.8, 감수계수가 고려된 합리식을 사용한다.)",
+   "kind": "typo",
+   "confidence": "high",
+   "note": "'유역연적' → '유역면적'. ha 단위가 붙는 값이므로 면적이 맞음."
+  },
+  {
+   "ref": "2025-2-59",
+   "field": "choice_4",
+   "before": "칡(Puerarial lobata)",
+   "after": "칡(Pueraria lobata)",
+   "kind": "typo",
+   "confidence": "high",
+   "note": "칡의 속명은 Pueraria. 'Puerarial'은 뒤에 l 이 잘못 붙은 판독 오류."
+  },
+  {
+   "ref": "2025-2-67",
+   "field": "text",
+   "before": "습지보전법에 따라 습지호보지역으로 지정요건에 해당하지 않는 것은?",
+   "after": "습지보전법에 따라 습지보호지역으로 지정요건에 해당하지 않는 것은?",
+   "kind": "typo",
+   "confidence": "high",
+   "note": "'습지호보지역' → '습지보호지역'. '보호'의 글자 순서가 뒤바뀐 판독 오류."
+  },
+  {
+   "ref": "2025-2-60",
+   "field": "choice_2",
+   "before": "돌나무(Sedum sarmentosum)",
+   "after": "돌나물(Sedum sarmentosum)",
+   "kind": "typo",
+   "confidence": "low",
+   "note": "Sedum sarmentosum 의 국명은 '돌나물'. '돌나무'는 오기이나 원문 문제집이 그렇게 인쇄했을 가능성이 있어 low."
+  },
+  {
+   "ref": "2025-2-66",
+   "field": "text",
+   "before": "산지보전법에서 공익용산지가 아닌 것은?",
+   "after": "산지관리법에서 공익용산지가 아닌 것은?",
+   "kind": "typo",
+   "confidence": "low",
+   "note": "공익용산지는 「산지관리법」이 규정하며 '산지보전법'이라는 법률은 존재하지 않음. 동일 취지 문항인 2024-3-67 은 '산지관리법'으로 표기됨. 다만 원문 오식일 수 있어 low."
+  }
+ ]
+}
