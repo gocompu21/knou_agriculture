@@ -30,7 +30,10 @@ for r in rows:
     if cur == tgt:
         same += 1
         continue
-    if cur.replace(" ", "") != tgt.replace(" ", ""):
+    #  은 줄바꿈 형식 차이일 뿐이라 비교에서 제외한다
+    def norm(x):
+        return x.replace(" ", "").replace("", "")
+    if norm(cur) != norm(tgt):
         blocked += 1
         print("  [차단] %s %s — 글자가 다름" % (r["ref"], r["field"]))
         continue
