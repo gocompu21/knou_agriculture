@@ -1523,11 +1523,56 @@ function escHtml(s) {
     if (!s) return '';
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+// 마크다운 표 -> HTML 표. 서버쪽 gisa_filters._md_table 과 같은 규칙이다.
+// (검색 결과는 API가 원문을 그대로 내려주므로 여기서 렌더링해야 한다)
+function mdTable(block) {
+    var raw = block.split('\n'), rows = [], tail = [], ended = false;
+    for (var i = 0; i < raw.length; i++) {
+        var ln = raw[i].trim();
+        if (ended) { tail.push(raw[i]); continue; }
+        if (!ln) { if (rows.length) ended = true; continue; }
+        if (ln.charAt(0) === '|') { rows.push(ln); }
+        else if (rows.length) {
+            // 셀 안 줄바꿈 - 직전 행 마지막 셀에 이어붙인다
+            var base = rows[rows.length-1].replace(/\s+$/,'');
+            if (base.slice(-1) === '|') base = base.slice(0,-1).replace(/\s+$/,'');
+            rows[rows.length-1] = base + '<br>' + ln + ' |';
+        } else { return null; }
+    }
+    if (rows.length < 2) return null;
+    if (!/^\|[\s:\-|]+\|$/.test(rows[1])) return null;
+    function cells(ln){ return ln.replace(/^\||\|$/g,'').split('|').map(function(c){return c.trim();}); }
+    var TS = 'border-collapse:collapse;width:auto;max-width:100%;margin:4px 0;font-size:0.92em;line-height:1.5;';
+    var CS = 'border:1px solid #999;padding:3px 10px;text-align:left;';
+    var HS = CS + 'background:#f2f2f2;font-weight:600;white-space:nowrap;';
+    var head = cells(rows[0]), n = head.length;
+    var out = '<table style="' + TS + '"><thead><tr>';
+    head.forEach(function(h){ out += '<th style="' + HS + '">' + h + '</th>'; });
+    out += '</tr></thead><tbody>';
+    for (var r = 2; r < rows.length; r++) {
+        var cs = cells(rows[r]);
+        while (cs.length < n) cs.push('');
+        out += '<tr>';
+        for (var c = 0; c < n; c++) out += '<td style="' + CS + '">' + cs[c] + '</td>';
+        out += '</tr>';
+    }
+    out += '</tbody></table>';
+    var note = tail.join('\n').trim();
+    if (note) out += '<div style="margin-top:6px;font-size:0.92em;line-height:1.6;">' + note.replace(/\n/g,'<br>') + '</div>';
+    return out;
+}
+
 function fmtQtext(s) {
     var t = escHtml(s);
     t = t.replace(/&lt;u&gt;/g,'<u>').replace(/&lt;\/u&gt;/g,'</u>');
     t = t.replace(/\[box\]([\s\S]*?)\[\/box\]/gi, function(m,inner){
-        return '<div class="q-box" style="border:2px solid #333;border-radius:4px;padding:6px 12px;margin:6px 0;background:#fff;line-height:1.7;text-indent:0;font-weight:normal;display:block">' + inner.trim() + '</div>';
+        var body = inner.trim();
+        var tbl = mdTable(body);
+        if (tbl) {
+            // 표만 있는 박스는 테두리가 이중이 되므로 박스 테두리를 뺀다
+            return '<div class="q-box q-box-table" style="margin:6px 0;text-indent:0;font-weight:normal;display:block;max-width:100%;overflow-x:auto">' + tbl + '</div>';
+        }
+        return '<div class="q-box" style="border:2px solid #333;border-radius:4px;padding:6px 12px;margin:6px 0;background:#fff;line-height:1.7;text-indent:0;font-weight:normal;display:block">' + body + '</div>';
     });
     t = t.replace(/\^\{([^}]+)\}/g,'<sup>$1</sup>');
     t = t.replace(/_\{([^}]+)\}/g,'<sub>$1</sub>');
