@@ -30,9 +30,11 @@ for r in rows:
     if cur == tgt:
         same += 1
         continue
-    #  은 줄바꿈 형식 차이일 뿐이라 비교에서 제외한다
+    # 캐리지리턴은 줄바꿈 형식(CRLF/LF) 차이일 뿐이라 비교에서 제외한다.
+    # chr(13) 으로 쓴다 - 이스케이프 리터럴은 셸/편집 과정에서 실제 문자로
+    # 치환돼 파일이 깨진 적이 있다.
     def norm(x):
-        return x.replace(" ", "").replace("", "")
+        return x.replace(chr(32), "").replace(chr(13), "")
     if norm(cur) != norm(tgt):
         blocked += 1
         print("  [차단] %s %s — 글자가 다름" % (r["ref"], r["field"]))
