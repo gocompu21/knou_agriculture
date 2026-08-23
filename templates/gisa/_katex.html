@@ -1,5 +1,19 @@
 {# KaTeX — 쪽집게 노트·해설의 LaTeX 수식($$...$$, $...$) 렌더링 #}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+<style>
+/* 수식 스타일 — 본문 글자 크기에 맞추고(기본 1.21em → 1em), 블록 수식은 가운데 정렬 대신 왼쪽 정렬 박스로 */
+.katex { font-size: 1em; }
+.katex-display {
+    margin: 6px 0 8px; text-align: left;
+    overflow-x: auto; overflow-y: hidden; padding-bottom: 2px;
+}
+.katex-display > .katex {
+    display: inline-block; text-align: left; font-size: 1.04em;
+    background: #f4f7f5; border: 1px solid #d9e4dc; border-left: 3px solid #2d6a4f;
+    border-radius: 5px; padding: 7px 14px 6px; color: #1b3a2a;
+}
+.katex-display + .katex-display { margin-top: -2px; }
+</style>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="window.renderMath(document.body)"></script>
 <script>
