@@ -3,6 +3,7 @@
 
 {% block title %}{{ cert.name }} | 기사시험{% endblock %}
 
+{% block extra_css_links %}{% include "gisa/_katex.html" %}{% endblock %}
 {% block extra_css %}
 <style>
     /* ── 기출검색 결과 ── */
@@ -1601,7 +1602,7 @@ function toggleChapter(el) {
         .then(function(data) {
             body.innerHTML = data.html;
             body.dataset.loaded = '1';
-            formatBadges(body);
+            formatBadges(body); renderMath(body);
         });
 }
 
@@ -1653,7 +1654,7 @@ function autoLoadAllChapters() {
         body.innerHTML = '<div style="padding:16px;color:#888;text-align:center;">로딩 중...</div>';
         fetch('{% url "gisa:textbook_chapter_api" cert.pk %}?subject=' + encodeURIComponent(subject) + '&ch=' + chIdx)
             .then(function(r) { return r.json(); })
-            .then(function(data) { body.innerHTML = data.html; body.dataset.loaded = '1'; formatBadges(body); });
+            .then(function(data) { body.innerHTML = data.html; body.dataset.loaded = '1'; formatBadges(body); renderMath(body); });
     });
 }
 if ('{{ active_tab }}' === 'textbook') { autoLoadAllChapters(); }
@@ -1703,7 +1704,7 @@ function scrollToWithOffset(el, offset) {
         .then(function(data) {
             body.innerHTML = data.html;
             body.dataset.loaded = '1';
-            formatBadges(body);
+            formatBadges(body); renderMath(body);
             setTimeout(_openAndScroll, 150);
         });
 })();
@@ -2028,7 +2029,7 @@ var _wrongQNotes = {{ wrong_q_notes_json|safe }};
                 html += '</div>';
                 html += '<button type="button" class="wq-note-toggle" onclick="toggleWrongNoteMore(this)">관련 노트 ' + (notes.length - 1) + '건 더보기</button>';
             }
-            el.innerHTML = html;
+            el.innerHTML = html; renderMath(el);
         } else {
             el.remove();
         }

@@ -3,6 +3,7 @@
 
 {% block title %}오답노트 - {{ cert.name }} | 기사시험{% endblock %}
 
+{% block extra_css_links %}{% include "gisa/_katex.html" %}{% endblock %}
 {% block extra_css %}
 <style>
     .site-header,

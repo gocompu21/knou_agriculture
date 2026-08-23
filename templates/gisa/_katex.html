@@ -1,0 +1,21 @@
+{# KaTeX — 쪽집게 노트·해설의 LaTeX 수식($$...$$, $...$) 렌더링 #}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="window.renderMath(document.body)"></script>
+<script>
+/* AJAX 로 삽입한 요소는 renderMath(el) 을 호출한다. 라이브러리 로드 전이면 건너뛰며,
+   로드 완료 시 document.body 전체를 한 번 렌더링하므로 누락되지 않는다. */
+window.renderMath = function (el) {
+    if (typeof renderMathInElement !== 'function') return;
+    renderMathInElement(el || document.body, {
+        delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '\\[', right: '\\]', display: true },
+            { left: '\\(', right: '\\)', display: false },
+            { left: '$', right: '$', display: false }
+        ],
+        throwOnError: false,
+        ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option', 'input', 'select']
+    });
+};
+</script>
