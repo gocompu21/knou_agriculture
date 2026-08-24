@@ -206,6 +206,19 @@
         transition: background 0.15s;
     }
     .subject-link:hover { background: #e8eaf6; }
+    .subject-link { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .subject-link-all { font-weight: 700; background: #1b4332; color: #fff; }
+    .subject-link-all:hover { background: #2d6a4f; }
+    /* 기출학습 진도율 배지 (학습기록 수 ÷ 문항 수, 여러 번 학습하면 100% 초과) */
+    .sl-prog {
+        flex-shrink: 0; font-size: 0.76rem; font-weight: 700;
+        padding: 2px 9px; border-radius: 10px;
+        background: #e8f5e9; color: #2e7d32; font-variant-numeric: tabular-nums;
+    }
+    .sl-prog.zero { background: #eee; color: #999; }
+    .sl-prog.done { background: #2e7d32; color: #fff; }
+    .sl-prog-inv { background: rgba(255,255,255,0.18); color: #fff; }
+    .sl-prog-inv.done { background: #ffc107; color: #1b4332; }
 
     /* Session Cards */
     #tab-history { background: #fff; border-radius: 10px; padding: 24px 20px; }
@@ -1052,10 +1065,12 @@
                 <div class="exam-card-title">{{ ec.exam }}</div>
                 <div class="exam-card-info">{{ ec.count }}문제</div>
                 <div class="subject-list">
-                    <a href="{% url 'gisa:study_mode_all' cert.pk ec.exam.pk %}" class="subject-link" style="font-weight:bold;background:#1b4332;color:#fff;">전체보기 ({{ ec.count }}문제)</a>
+                    <a href="{% url 'gisa:study_mode_all' cert.pk ec.exam.pk %}" class="subject-link subject-link-all">
+                        <span>전체보기 ({{ ec.count }}문제)</span>{% if ec.progress is not None %}<span class="sl-prog sl-prog-inv{% if ec.progress >= 100 %} done{% endif %}">{{ ec.progress }}%</span>{% endif %}
+                    </a>
                     {% for subj in ec.subjects %}
                     <a href="{% url 'gisa:study_mode' cert.pk ec.exam.pk subj.pk %}" class="subject-link">
-                        {{ forloop.counter }}과목: {{ subj.name }}
+                        <span>{{ forloop.counter }}과목: {{ subj.name }}</span>{% if subj.progress is not None %}<span class="sl-prog{% if subj.progress >= 100 %} done{% elif subj.progress == 0 %} zero{% endif %}">{{ subj.progress }}%</span>{% endif %}
                     </a>
                     {% endfor %}
                 </div>

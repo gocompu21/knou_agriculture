@@ -172,6 +172,28 @@ class GisaAttempt(models.Model):
         return f"{self.user} - {self.question} ({'O' if self.is_correct else 'X'})"
 
 
+class GisaStudyLog(models.Model):
+    """학습모드(기출학습)에서 문항을 풀어본 기록. 진도율 산출용.
+
+    선지를 고른 시점에 1건 기록한다(같은 페이지에서 같은 문항은 1회).
+    여러 번 학습하면 누적되므로 진도율이 100%를 넘을 수 있다.
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='사용자')
+    question = models.ForeignKey(GisaQuestion, on_delete=models.CASCADE, verbose_name='문제')
+    created_at = models.DateTimeField('학습시각', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '학습기록'
+        verbose_name_plural = '학습기록'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'question']),
+        ]
+
+    def __str__(self):
+        return f"{self.user} - {self.question} @ {self.created_at:%Y-%m-%d %H:%M}"
+
+
 class MockGeneration(models.Model):
     """사용자·과목별 모의고사 세대 추적.
     한 과목의 모든 문제를 모의고사로 다 풀면 generation +1 후 다시 시작.

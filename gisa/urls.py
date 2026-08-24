@@ -20,6 +20,7 @@ urlpatterns = [
     # 학습모드
     path("<int:cert_id>/study/<int:exam_id>/", views.study_mode, name="study_mode_all"),
     path("<int:cert_id>/study/<int:exam_id>/<int:subject_id>/", views.study_mode, name="study_mode"),
+    path("<int:cert_id>/study/log/<int:question_id>/", views.study_log, name="study_log"),
     # 풀이모드
     path("<int:cert_id>/take/<int:exam_id>/", views.exam_take, name="exam_take"),
     path("<int:cert_id>/submit/<int:exam_id>/", views.exam_submit, name="exam_submit"),

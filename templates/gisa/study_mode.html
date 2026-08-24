@@ -795,6 +795,15 @@
         var correctAnswers = answerStr.split(',').map(function (s) { return s.trim(); });
         var selectedChoice = String(choiceNum);
         var isCorrect = correctAnswers.indexOf(selectedChoice) !== -1;
+
+        // 학습기록(진도율): 같은 문항은 페이지당 1회만 기록
+        {% if request.user.is_authenticated and cert %}
+        if (!card.dataset.studyLogged) {
+            card.dataset.studyLogged = '1';
+            var logUrl = '{% url "gisa:study_log" cert.pk 0 %}'.replace('/log/0/', '/log/' + card.getAttribute('data-qid') + '/');
+            fetch(logUrl, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } }).catch(function () {});
+        }
+        {% endif %}
         parent.querySelectorAll('.choice-num').forEach(function (cn) {
             cn.classList.remove('correct');
             if (!isCorrect && correctAnswers.indexOf(cn.getAttribute('data-choice')) !== -1) cn.classList.add('correct');

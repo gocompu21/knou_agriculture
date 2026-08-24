@@ -14,7 +14,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from .models import Certification, GisaAttempt, GisaExam, GisaGlossary, GisaQuestion, GisaSubject, GisaTextbook
+from .models import Certification, GisaAttempt, GisaExam, GisaGlossary, GisaQuestion, GisaStudyLog, GisaSubject, GisaTextbook
 
 
 ## ══════════ 쪽집게 노트 과목 통합 ══════════ ##
@@ -417,14 +417,34 @@ def certification_detail(request, cert_id):
                 "name": row["subject__name"],
                 "count": row["cnt"],
             })
-        exam_cards = [
-            {
+        # 기출학습 진도율: 학습기록 수 ÷ 문항 수 (여러 번 학습하면 100% 초과)
+        _prog = {}      # (exam_pk, subject_pk) -> 기록 수
+        show_prog = active_tab == "study" and request.user.is_authenticated
+        if show_prog:
+            for row in (
+                GisaStudyLog.objects.filter(user=request.user, question__exam__in=_exam_list)
+                .values("question__exam_id", "question__subject_id")
+                .annotate(c=Count("id"))
+            ):
+                _prog[(row["question__exam_id"], row["question__subject_id"])] = row["c"]
+
+        def _pct(done, total):
+            return int(round(done * 100 / total)) if total else 0
+
+        exam_cards = []
+        for e in _exam_list:
+            card_subjs = _card_subjects.get(e.pk, [])
+            done_all = 0
+            for cs in card_subjs:
+                d = _prog.get((e.pk, cs["pk"]), 0)
+                done_all += d
+                cs["progress"] = _pct(d, cs["count"]) if show_prog else None
+            exam_cards.append({
                 "exam": e,
                 "count": e.q_count,
-                "subjects": _card_subjects.get(e.pk, []),
-            }
-            for e in _exam_list
-        ]
+                "subjects": card_subjs,
+                "progress": _pct(done_all, e.q_count) if show_prog else None,
+            })
 
     wrong_results = []
     if active_tab == "wrong" and request.user.is_authenticated:
@@ -1802,6 +1822,17 @@ def wrong_dismiss(request, cert_id, question_id):
     if referer:
         return redirect(referer)
     return redirect("gisa:wrong_answers", cert_id=cert_id)
+
+
+@login_required
+@require_POST
+def study_log(request, cert_id, question_id):
+    """학습모드에서 선지를 고른 문항을 학습기록(GisaStudyLog)에 남긴다. 진도율 산출용."""
+    question = get_object_or_404(
+        GisaQuestion, pk=question_id, exam__certification_id=cert_id
+    )
+    GisaStudyLog.objects.create(user=request.user, question=question)
+    return JsonResponse({"ok": True})
 
 
 @login_required
