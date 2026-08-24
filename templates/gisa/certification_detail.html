@@ -223,6 +223,19 @@
     .study-prog-wrap { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 16px 18px; margin-bottom: 16px; }
     .study-prog-title { font-weight: 700; color: #1b4332; margin-bottom: 12px; font-size: 0.95rem; }
     .study-prog-title span { font-size: 0.78em; color: #888; font-weight: 500; }
+    .sl-badges { display: inline-flex; gap: 4px; align-items: center; flex-shrink: 0; }
+    /* 오답율 배지: 오답노트에 남아 있는 문항 수 ÷ 문항 수 */
+    .sl-wrong {
+        flex-shrink: 0; font-size: 0.72rem; font-weight: 600;
+        padding: 2px 8px; border-radius: 10px;
+        background: #fdecea; color: #c62828; font-variant-numeric: tabular-nums; white-space: nowrap;
+    }
+    .sl-wrong.zero { background: #eee; color: #999; }
+    .sl-wrong-inv { background: rgba(255,255,255,0.18); color: #ffcdd2; }
+    .sl-wrong-inv.zero { color: rgba(255,255,255,0.6); }
+    .spc-foot { display: flex; justify-content: space-between; gap: 8px; }
+    .spc-wrong { color: #c62828; font-weight: 600; }
+    .spc-wrong.zero { color: #999; font-weight: 500; }
     .study-prog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
     .study-prog-card { padding: 11px 13px; background: #f5f9f6; border-left: 3px solid #2d6a4f; border-radius: 4px; }
     .study-prog-card.done { border-left-color: #ffc107; }
@@ -1090,7 +1103,7 @@
                         <span class="spc-pct">{{ s.pct }}%</span>
                     </div>
                     <div class="spc-bar"><div class="spc-fill" style="width:{{ s.bar }}%;"></div></div>
-                    <div class="spc-foot"><span>{{ s.done }} / {{ s.total }}문제</span></div>
+                    <div class="spc-foot"><span>{{ s.done }} / {{ s.total }}문제</span><span class="spc-wrong{% if s.wrong == 0 %} zero{% endif %}">오답 {{ s.wrong }}문제 · {{ s.wrong_pct }}%</span></div>
                 </div>
                 {% endfor %}
             </div>
@@ -1104,11 +1117,11 @@
                 <div class="exam-card-info">{{ ec.count }}문제</div>
                 <div class="subject-list">
                     <a href="{% url 'gisa:study_mode_all' cert.pk ec.exam.pk %}" class="subject-link subject-link-all">
-                        <span>전체보기 ({{ ec.count }}문제)</span>{% if ec.progress is not None %}<span class="sl-prog sl-prog-inv{% if ec.progress >= 100 %} done{% endif %}">{{ ec.progress }}%</span>{% endif %}
+                        <span>전체보기 ({{ ec.count }}문제)</span>{% if ec.progress is not None %}<span class="sl-badges"><span class="sl-prog sl-prog-inv{% if ec.progress >= 100 %} done{% endif %}">{{ ec.progress }}%</span><span class="sl-wrong sl-wrong-inv{% if ec.wrong_pct == 0 %} zero{% endif %}">오답 {{ ec.wrong_pct }}%</span></span>{% endif %}
                     </a>
                     {% for subj in ec.subjects %}
                     <a href="{% url 'gisa:study_mode' cert.pk ec.exam.pk subj.pk %}" class="subject-link">
-                        <span>{{ forloop.counter }}과목: {{ subj.name }}</span>{% if subj.progress is not None %}<span class="sl-prog{% if subj.progress >= 100 %} done{% elif subj.progress == 0 %} zero{% endif %}">{{ subj.progress }}%</span>{% endif %}
+                        <span>{{ forloop.counter }}과목: {{ subj.name }}</span>{% if subj.progress is not None %}<span class="sl-badges"><span class="sl-prog{% if subj.progress >= 100 %} done{% elif subj.progress == 0 %} zero{% endif %}">{{ subj.progress }}%</span><span class="sl-wrong{% if subj.wrong_pct == 0 %} zero{% endif %}">오답 {{ subj.wrong_pct }}%</span></span>{% endif %}
                     </a>
                     {% endfor %}
                 </div>

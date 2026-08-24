@@ -432,19 +432,42 @@ def certification_detail(request, cert_id):
         def _pct(done, total):
             return int(round(done * 100 / total)) if total else 0
 
+        # 오답율: 오답노트와 같은 기준 (wrong_review 제외 최신 시도가 오답인 문항 수) ÷ 문항 수
+        _wrong = {}     # (exam_pk, subject_pk) -> 오답 문항 수
+        if show_prog:
+            _latest_ids = (
+                GisaAttempt.objects.filter(user=request.user, question__exam__in=_exam_list)
+                .exclude(mode="wrong_review")
+                .values("question")
+                .annotate(latest_id=Max("id"))
+                .values_list("latest_id", flat=True)
+            )
+            for row in (
+                GisaAttempt.objects.filter(pk__in=_latest_ids, is_correct=False)
+                .exclude(selected="0")
+                .values("question__exam_id", "question__subject_id")
+                .annotate(c=Count("id"))
+            ):
+                _wrong[(row["question__exam_id"], row["question__subject_id"])] = row["c"]
+
         exam_cards = []
         for e in _exam_list:
             card_subjs = _card_subjects.get(e.pk, [])
             done_all = 0
+            wrong_all = 0
             for cs in card_subjs:
                 d = _prog.get((e.pk, cs["pk"]), 0)
+                w = _wrong.get((e.pk, cs["pk"]), 0)
                 done_all += d
+                wrong_all += w
                 cs["progress"] = _pct(d, cs["count"]) if show_prog else None
+                cs["wrong_pct"] = _pct(w, cs["count"]) if show_prog else None
             exam_cards.append({
                 "exam": e,
                 "count": e.q_count,
                 "subjects": card_subjs,
                 "progress": _pct(done_all, e.q_count) if show_prog else None,
+                "wrong_pct": _pct(wrong_all, e.q_count) if show_prog else None,
             })
 
         # 과목별 진도 (회차 합산): 학습기록 수 ÷ 과목 전체 문항 수
@@ -453,12 +476,14 @@ def certification_detail(request, cert_id):
             for e in _exam_list:
                 for cs in _card_subjects.get(e.pk, []):
                     t = _subj_tot.setdefault(cs["pk"], {
-                        "name": cs["name"], "order": cs["order"], "total": 0, "done": 0})
+                        "name": cs["name"], "order": cs["order"], "total": 0, "done": 0, "wrong": 0})
                     t["total"] += cs["count"]
                     t["done"] += _prog.get((e.pk, cs["pk"]), 0)
+                    t["wrong"] += _wrong.get((e.pk, cs["pk"]), 0)
             for t in _subj_tot.values():
                 t["pct"] = _pct(t["done"], t["total"])
                 t["bar"] = min(t["pct"], 100)
+                t["wrong_pct"] = _pct(t["wrong"], t["total"])
             study_subject_stats = sorted(_subj_tot.values(), key=lambda t: (t["order"], t["name"]))
 
     wrong_results = []
