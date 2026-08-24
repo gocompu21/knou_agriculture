@@ -219,10 +219,6 @@
     .sl-prog.done { background: #2e7d32; color: #fff; }
     .sl-prog-inv { background: rgba(255,255,255,0.18); color: #fff; }
     .sl-prog-inv.done { background: #ffc107; color: #1b4332; }
-    /* 과목별 기출학습 진도 (회차 합산) */
-    .study-prog-wrap { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 16px 18px; margin-bottom: 16px; }
-    .study-prog-title { font-weight: 700; color: #1b4332; margin-bottom: 12px; font-size: 0.95rem; }
-    .study-prog-title span { font-size: 0.78em; color: #888; font-weight: 500; }
     .sl-badges { display: inline-flex; gap: 4px; align-items: center; flex-shrink: 0; }
     /* 오답율 배지: 오답노트에 남아 있는 문항 수 ÷ 문항 수 */
     .sl-wrong {
@@ -233,26 +229,6 @@
     .sl-wrong.zero { background: #eee; color: #999; }
     .sl-wrong-inv { background: rgba(255,255,255,0.18); color: #ffcdd2; }
     .sl-wrong-inv.zero { color: rgba(255,255,255,0.6); }
-    .spc-foot { display: flex; justify-content: space-between; gap: 8px; }
-    .spc-wrong { color: #c62828; font-weight: 600; }
-    .spc-wrong.zero { color: #999; font-weight: 500; }
-    .study-prog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
-    .study-prog-card { padding: 11px 13px; background: #f5f9f6; border-left: 3px solid #2d6a4f; border-radius: 4px; }
-    .study-prog-card.done { border-left-color: #ffc107; }
-    .spc-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
-    .spc-name { font-weight: 700; color: #1b4332; font-size: 0.88rem; }
-    .spc-pct { font-weight: 800; color: #2e7d32; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
-    .study-prog-card.done .spc-pct { color: #e65100; }
-    .spc-bar { background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
-    .spc-fill { background: linear-gradient(90deg, #1b4332, #40916c); height: 100%; transition: width 0.3s; }
-    .study-prog-card.done .spc-fill { background: linear-gradient(90deg, #e65100, #ffc107); }
-    .spc-foot { font-size: 0.76rem; color: #666; }
-    @media (max-width: 768px) {
-        .study-prog-wrap { padding: 12px; }
-        .study-prog-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-        .study-prog-card { padding: 9px 10px; }
-        .spc-name { font-size: 0.8rem; }
-    }
 
     /* Session Cards */
     #tab-history { background: #fff; border-radius: 10px; padding: 24px 20px; }
@@ -1092,23 +1068,6 @@
             <div id="search-summary" style="font-size:0.85rem;color:#666;margin-bottom:8px;"></div>
             <div id="search-list"></div>
         </div>
-        {% if study_subject_stats %}
-        <div class="study-prog-wrap">
-            <div class="study-prog-title">📈 과목별 기출학습 진도 <span>(전 회차 합산 · 학습한 문항 수 ÷ 과목 문항 수, 여러 번 학습하면 100% 초과)</span></div>
-            <div class="study-prog-grid">
-                {% for s in study_subject_stats %}
-                <div class="study-prog-card{% if s.pct >= 100 %} done{% endif %}">
-                    <div class="spc-head">
-                        <span class="spc-name">{{ s.order }}과목 · {{ s.name }}</span>
-                        <span class="spc-pct">{{ s.pct }}%</span>
-                    </div>
-                    <div class="spc-bar"><div class="spc-fill" style="width:{{ s.bar }}%;"></div></div>
-                    <div class="spc-foot"><span>{{ s.done }} / {{ s.total }}문제</span><span class="spc-wrong{% if s.wrong == 0 %} zero{% endif %}">오답 {{ s.wrong }}문제 · {{ s.wrong_pct }}%</span></div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
         {% if exam_cards %}
         <div class="exam-grid" id="exam-grid-study">
             {% for ec in exam_cards %}

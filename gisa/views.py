@@ -391,7 +391,6 @@ def certification_detail(request, cert_id):
 
     # 교재 탭이 아닐 때만 시험/세션 데이터 로드 (switchTab은 페이지 리로드)
     exam_cards = []
-    study_subject_stats = []
     wrong_count = 0
     exam_sessions = []
 
@@ -469,22 +468,6 @@ def certification_detail(request, cert_id):
                 "progress": _pct(done_all, e.q_count) if show_prog else None,
                 "wrong_pct": _pct(wrong_all, e.q_count) if show_prog else None,
             })
-
-        # 과목별 진도 (회차 합산): 학습기록 수 ÷ 과목 전체 문항 수
-        if show_prog:
-            _subj_tot = {}      # subject_pk -> {"name","order","total","done"}
-            for e in _exam_list:
-                for cs in _card_subjects.get(e.pk, []):
-                    t = _subj_tot.setdefault(cs["pk"], {
-                        "name": cs["name"], "order": cs["order"], "total": 0, "done": 0, "wrong": 0})
-                    t["total"] += cs["count"]
-                    t["done"] += _prog.get((e.pk, cs["pk"]), 0)
-                    t["wrong"] += _wrong.get((e.pk, cs["pk"]), 0)
-            for t in _subj_tot.values():
-                t["pct"] = _pct(t["done"], t["total"])
-                t["bar"] = min(t["pct"], 100)
-                t["wrong_pct"] = _pct(t["wrong"], t["total"])
-            study_subject_stats = sorted(_subj_tot.values(), key=lambda t: (t["order"], t["name"]))
 
     wrong_results = []
     if active_tab == "wrong" and request.user.is_authenticated:
@@ -687,7 +670,6 @@ def certification_detail(request, cert_id):
             "subjects": subjects,
             "mock_subjects": mock_subjects,
             "exam_cards": exam_cards,
-            "study_subject_stats": study_subject_stats,
             "wrong_count": wrong_count,
             "wrong_results": wrong_results,
             "wrong_q_notes_json": wrong_q_notes_json,
