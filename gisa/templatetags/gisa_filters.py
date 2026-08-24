@@ -142,6 +142,8 @@ def _render_qtext(value):
         return ""
     text = escape(value)
     text = text.replace("&lt;u&gt;", "<u>").replace("&lt;/u&gt;", "</u>")
+    # 빈칸 괄호 ( ) 가 너무 좁아 보기 흉하므로 넓혀서 표시한다 (데이터는 그대로)
+    text = re.sub(r"\(\s{1,3}\)", "(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)", text)
     text = re.sub(
         r"\[box\](.*?)\[/box\]",
         lambda m: _render_box(m.group(1)),
