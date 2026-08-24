@@ -2042,6 +2042,18 @@ GisaAttempt.objects.filter(user=u).exclude(mode='study').aggregate(
 
 저장 가치가 있는 건 **분석 방법론과 판정 기준**뿐.
 
+## 기출학습 진도율 (gisa)
+
+`certification_detail ?tab=study`의 시험 카드에서 "전체보기"와 과목별 버튼 우측에 진도율 배지를 표시한다.
+
+- 모델: `GisaStudyLog(user, question, created_at)` — 학습모드(study_mode.html)에서 **선지를 고른 시점**에 문항당 1건 기록 (같은 페이지에서 같은 문항은 1회, `card.dataset.studyLogged` 가드)
+- API: `POST /gisa/<cert_id>/study/log/<question_id>/` → `study_log` 뷰 (login_required)
+- 진도율 = **학습기록 수 ÷ 문항 수** (시험 전체 / 시험×과목). 전부 한 번 풀면 100%, 여러 번 학습하면 100%를 넘는다
+- 배지 CSS: `.sl-prog` (0% 회색 `.zero`, 100% 이상 진녹색 `.done`, 전체보기 바 안은 `.sl-prog-inv`, 100% 이상이면 노란색)
+- 비로그인 사용자에게는 배지를 표시하지 않음 (`progress=None`)
+- 마이그레이션 `0015_backfill_studylog`: 기존 `GisaAttempt(mode='study')`(학습모드 오답 기록 10,819건)를 초기값으로 이관. 학습모드는 그동안 오답만 기록했으므로 실제 학습량보다 낮은 하한값에서 출발한다
+- `GisaAttempt`는 건드리지 않는다 — 학습모드의 정답 선택을 Attempt로 남기면 오답노트의 "최근 시도가 오답" 판정이 바뀌기 때문에 별도 모델로 분리했다
+
 ## 모의고사 세대(Round) 시스템 (gisa)
 
 같은 라운드 내에서 모의고사 출제 시 중복 문제를 피하고, 풀이 풀이 사이클을 라운드(R) 단위로 추적한다.
