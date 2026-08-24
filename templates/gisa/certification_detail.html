@@ -1297,12 +1297,12 @@
                                 <form method="post" action="{% url 'gisa:gisa_latest_delete' cert.pk q.pk %}" onsubmit="return confirm('이 문제를 삭제하시겠습니까?');" style="margin:0;">{% csrf_token %}<button type="submit" class="latest-del-btn">삭제</button></form>
                             </div>
                         </div>
-                        <div class="latest-text">{{ q.text }}</div>
+                        <div class="latest-text">{{ q.text|qtext }}</div>
                         <div class="latest-choices">
-                            <div class="latest-choice{% if '1' in q.answer %} correct{% endif %}">① {{ q.choice_1 }}</div>
-                            <div class="latest-choice{% if '2' in q.answer %} correct{% endif %}">② {{ q.choice_2 }}</div>
-                            <div class="latest-choice{% if '3' in q.answer %} correct{% endif %}">③ {{ q.choice_3 }}</div>
-                            <div class="latest-choice{% if '4' in q.answer %} correct{% endif %}">④ {{ q.choice_4 }}</div>
+                            <div class="latest-choice{% if '1' in q.answer %} correct{% endif %}">① {{ q.choice_1|qtext }}</div>
+                            <div class="latest-choice{% if '2' in q.answer %} correct{% endif %}">② {{ q.choice_2|qtext }}</div>
+                            <div class="latest-choice{% if '3' in q.answer %} correct{% endif %}">③ {{ q.choice_3|qtext }}</div>
+                            <div class="latest-choice{% if '4' in q.answer %} correct{% endif %}">④ {{ q.choice_4|qtext }}</div>
                         </div>
                         {% if q.explanation %}<div class="latest-explanation">{{ q.explanation|qtext }}</div>{% endif %}
                     </div>
