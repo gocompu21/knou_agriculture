@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>종간 상호작용 — 두 종이 받는 영향에 따른 분류</title>
+  <desc>종 A와 종 B가 받는 영향의 부호 조합으로 다섯 가지 상호작용을 배치한 격자</desc>
+
+  <defs>
+    <pattern id="benefit" width="7" height="7" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#eef4ef"/>
+      <circle cx="2" cy="2" r="1.1" fill="#4f7259"/>
+    </pattern>
+    <pattern id="harm" width="7" height="7" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#f7f1ee"/>
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#a1651a" stroke-width="1.2"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .ttl   { font-size: 19px; font-weight: 700; fill: #1b4332; }
+    .axis  { font-size: 15px; font-weight: 700; fill: #33513c; }
+    .sign  { font-size: 20px; font-weight: 700; fill: #222; text-anchor: middle; }
+    .name  { font-size: 15px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .ex    { font-size: 12.5px; fill: #555; text-anchor: middle; }
+    .cell  { stroke: #b9c6bd; stroke-width: 1.2; }
+    .note  { font-size: 13.5px; fill: #555; }
+  </style>
+
+  <text class="ttl" x="24" y="30">두 종이 받는 영향의 부호로 갈리는 다섯 가지 상호작용</text>
+
+  <!-- 축 라벨. 세로 라벨은 격자 왼쪽 여백 안에 둔다 -->
+  <text class="axis" x="230" y="72">종 B가 받는 영향 →</text>
+  <text class="axis" x="46" y="240" transform="rotate(-90 46 240)">종 A가 받는 영향 →</text>
+
+  <!-- 열 머리 (종 B) -->
+  <text class="sign" x="230" y="94">＋</text>
+  <text class="sign" x="380" y="94">０</text>
+  <text class="sign" x="530" y="94">－</text>
+  <!-- 행 머리 (종 A) -->
+  <text class="sign" x="118" y="148">＋</text>
+  <text class="sign" x="118" y="238">０</text>
+  <text class="sign" x="118" y="328">－</text>
+
+  <!-- ── 1행 : A가 이익 ── -->
+  <g>
+    <rect class="cell" x="160" y="106" width="140" height="76" fill="url(#benefit)"/>
+    <text class="name" x="230" y="134">상리공생</text>
+    <text class="ex"   x="230" y="154">두 종 모두 이익</text>
+    <text class="ex"   x="230" y="171">콩과식물–뿌리혹균</text>
+  </g>
+  <g>
+    <rect class="cell" x="310" y="106" width="140" height="76" fill="url(#benefit)"/>
+    <text class="name" x="380" y="134">편리공생</text>
+    <text class="ex"   x="380" y="154">한쪽만 이익</text>
+    <text class="ex"   x="380" y="171">착생식물–지지목</text>
+  </g>
+  <g>
+    <rect class="cell" x="460" y="106" width="140" height="76" fill="url(#benefit)"/>
+    <text class="name" x="530" y="134">포식 · 기생</text>
+    <text class="ex"   x="530" y="154">한쪽 이익, 상대는 손해</text>
+    <text class="ex"   x="530" y="171">사자–얼룩말 / 진드기–개</text>
+  </g>
+
+  <!-- ── 2행 : A가 영향 없음 ── -->
+  <g>
+    <rect class="cell" x="160" y="196" width="140" height="76" fill="url(#benefit)"/>
+    <text class="name" x="230" y="232">편리공생</text>
+    <text class="ex"   x="230" y="252">(A와 B를 바꾼 경우)</text>
+  </g>
+  <rect class="cell" x="310" y="196" width="140" height="76" fill="#fafbfa"/>
+  <text class="ex" x="380" y="240">중립 (서로 영향 없음)</text>
+  <g>
+    <rect class="cell" x="460" y="196" width="140" height="76" fill="url(#harm)"/>
+    <text class="name" x="530" y="232">편해공생</text>
+    <text class="ex"   x="530" y="252">한쪽만 손해</text>
+  </g>
+
+  <!-- ── 3행 : A가 손해 ── -->
+  <g>
+    <rect class="cell" x="160" y="286" width="140" height="76" fill="url(#harm)"/>
+    <text class="name" x="230" y="316">포식 · 기생</text>
+    <text class="ex"   x="230" y="336">(A와 B를 바꾼 경우)</text>
+  </g>
+  <g>
+    <rect class="cell" x="310" y="286" width="140" height="76" fill="url(#harm)"/>
+    <text class="name" x="380" y="322">편해공생</text>
+  </g>
+  <g>
+    <rect class="cell" x="460" y="286" width="140" height="76" fill="url(#harm)"/>
+    <text class="name" x="530" y="316">경쟁</text>
+    <text class="ex"   x="530" y="336">두 종 모두 손해</text>
+    <text class="ex"   x="530" y="352">같은 먹이를 두고 다툼</text>
+  </g>
+
+  <!-- 범례 -->
+  <g transform="translate(630,110)">
+    <rect x="0" y="0" width="18" height="18" fill="url(#benefit)" stroke="#b9c6bd"/>
+    <text class="note" x="26" y="14">이익을 얻는 쪽이 있는 관계</text>
+    <rect x="0" y="30" width="18" height="18" fill="url(#harm)" stroke="#b9c6bd"/>
+    <text class="note" x="26" y="44">손해를 보는 쪽이 있는 관계</text>
+
+    <text class="note" x="0" y="86" style="font-weight:700;fill:#1b4332">부호 읽는 법</text>
+    <text class="note" x="0" y="108">＋ 이익을 얻는다</text>
+    <text class="note" x="0" y="128">０ 영향을 받지 않는다</text>
+    <text class="note" x="0" y="148">－ 손해를 본다</text>
+
+    <text class="note" x="0" y="184" style="font-weight:700;fill:#1b4332">포식과 기생의 차이</text>
+    <text class="note" x="0" y="204">부호는 (＋,－)로 같으나</text>
+    <text class="note" x="0" y="222">포식은 잡아먹어 곧바로 죽이고</text>
+    <text class="note" x="0" y="240">기생은 붙어살며 서서히 해친다</text>
+  </g>
+</svg>

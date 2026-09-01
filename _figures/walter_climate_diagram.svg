@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 440" width="900" height="440"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>월터의 기후도 — 각 부분이 나타내는 것</title>
+  <desc>가로축 12개월, 왼쪽 기온축과 오른쪽 강수축(2배 축척)에 기온곡선과 강수곡선을 그려 건조기와 습윤기를 판정하는 기후도</desc>
+
+  <defs>
+    <marker id="pt" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+    <!-- 건조기 : 성긴 세로선 -->
+    <pattern id="dry" width="7" height="7" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#fdf6ee"/>
+      <line x1="3" y1="0" x2="3" y2="7" stroke="#d8a45c" stroke-width="1.1"/>
+    </pattern>
+    <!-- 습윤기 : 촘촘한 점 -->
+    <pattern id="wet" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#eef3f7"/>
+      <circle cx="2" cy="2" r="1.1" fill="#5b7f9c"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 19px; font-weight: 700; fill: #1b4332; }
+    .ax   { stroke: #222; stroke-width: 1.8; fill: none; }
+    .grid { stroke: #e3e8e4; stroke-width: 1; }
+    .tempC{ stroke: #c0392b; stroke-width: 2.6; fill: none; }
+    .rainC{ stroke: #2b6a9c; stroke-width: 2.6; fill: none; stroke-dasharray: 9 5; }
+    .tick { font-size: 12px; fill: #555; }
+    .axl  { font-size: 13.5px; font-weight: 700; }
+    .cal  { font-size: 13.5px; fill: #555; text-anchor: middle; }
+    .note { font-size: 13.5px; fill: #444; }
+    .head { font-size: 14px; font-weight: 700; fill: #1b4332; }
+    .lead { stroke: #a1651a; stroke-width: 1.3; fill: none; stroke-dasharray: 4 3; }
+    .num  { font-size: 12.5px; font-weight: 700; fill: #fff; }
+    .numc { fill: #a1651a; }
+  </style>
+
+  <text class="ttl" x="24" y="30">월터의 기후도 — 기온곡선과 강수곡선의 상하 관계로 건조·습윤을 읽는다</text>
+
+  <!-- ① 상단 표기 -->
+  <g>
+    <rect x="86" y="48" width="440" height="34" fill="#f4f7f5" stroke="#cdd8d1"/>
+    <text class="note" x="98" y="70" style="font-weight:700;fill:#1b4332">서울 (해발 86m, 30년 관측)</text>
+    <text class="note" x="300" y="70">연평균기온 12.5℃ · 연강수량 1,417mm</text>
+    <circle class="numc" cx="74" cy="65" r="11"/>
+    <text class="num" x="74" y="70" text-anchor="middle">1</text>
+  </g>
+
+  <!-- 그래프 영역 -->
+  <!-- 좌 세로축(기온) -->
+  <path class="ax" d="M 110,330 L 110,100"/>
+  <!-- 우 세로축(강수) -->
+  <path class="ax" d="M 530,330 L 530,100"/>
+  <!-- 가로축 -->
+  <path class="ax" d="M 110,330 L 530,330"/>
+
+  <!-- 눈금 : 기온 0/10/20/30, 강수는 2배 축척 0/20/40/60 -->
+  <g>
+    <line class="grid" x1="110" y1="330" x2="530" y2="330"/>
+    <line class="grid" x1="110" y1="253" x2="530" y2="253"/>
+    <line class="grid" x1="110" y1="176" x2="530" y2="176"/>
+    <line class="grid" x1="110" y1="110" x2="530" y2="110"/>
+    <text class="tick" x="98"  y="335" text-anchor="end">0</text>
+    <text class="tick" x="98"  y="258" text-anchor="end">10</text>
+    <text class="tick" x="98"  y="181" text-anchor="end">20</text>
+    <text class="tick" x="98"  y="115" text-anchor="end">30</text>
+    <text class="tick" x="542" y="335">0</text>
+    <text class="tick" x="542" y="258">20</text>
+    <text class="tick" x="542" y="181">40</text>
+    <text class="tick" x="542" y="115">60</text>
+  </g>
+
+  <!-- 축 이름 -->
+  <text class="axl" x="60" y="200" transform="rotate(-90 60 200)" fill="#c0392b">월평균기온 (℃)</text>
+  <text class="axl" x="584" y="205" transform="rotate(90 584 205)" fill="#2b6a9c">월평균강수량 (mm)</text>
+
+  <!-- 월 눈금 -->
+  <g>
+    <text class="cal" x="127" y="350">1</text>
+    <text class="cal" x="162" y="350">2</text>
+    <text class="cal" x="197" y="350">3</text>
+    <text class="cal" x="232" y="350">4</text>
+    <text class="cal" x="267" y="350">5</text>
+    <text class="cal" x="302" y="350">6</text>
+    <text class="cal" x="337" y="350">7</text>
+    <text class="cal" x="372" y="350">8</text>
+    <text class="cal" x="407" y="350">9</text>
+    <text class="cal" x="442" y="350">10</text>
+    <text class="cal" x="477" y="350">11</text>
+    <text class="cal" x="512" y="350">12</text>
+    <circle class="numc" cx="320" cy="372" r="11"/>
+    <text class="num" x="320" y="377" text-anchor="middle">2</text>
+    <text class="note" x="338" y="377">가로축 : 1년 12개월</text>
+  </g>
+
+  <!-- 건조기 / 습윤기 구간 -->
+  <rect x="110" y="100" width="145" height="230" fill="url(#dry)" opacity="0.75"/>
+  <rect x="255" y="100" width="180" height="230" fill="url(#wet)" opacity="0.7"/>
+  <rect x="435" y="100" width="95"  height="230" fill="url(#dry)" opacity="0.75"/>
+
+  <!-- 강수곡선 (2배 축척) -->
+  <path class="rainC" d="M 127,315 L 162,310 L 197,296 L 232,270 L 267,240
+                         L 302,206 L 337,124 L 372,150 L 407,258 L 442,292
+                         L 477,304 L 512,312"/>
+  <!-- 기온곡선 -->
+  <path class="tempC" d="M 127,322 L 162,315 L 197,283 L 232,238 L 267,196
+                         L 302,163 L 337,140 L 372,143 L 407,180 L 442,224
+                         L 477,272 L 512,312"/>
+
+  <!-- 곡선 라벨 -->
+  <text class="axl" x="130" y="300" fill="#c0392b">기온곡선</text>
+  <text class="axl" x="130" y="286" fill="#2b6a9c">강수곡선</text>
+
+  <!-- 구간 라벨 -->
+  <text class="note" x="182" y="122" text-anchor="middle" fill="#a1651a" style="font-weight:700">건조기</text>
+  <text class="note" x="345" y="122" text-anchor="middle" fill="#2b6a9c" style="font-weight:700">습윤기</text>
+  <text class="note" x="482" y="122" text-anchor="middle" fill="#a1651a" style="font-weight:700">건조기</text>
+
+  <!-- 번호 표시 -->
+  <circle class="numc" cx="88" cy="270" r="11"/>
+  <text class="num" x="88" y="275" text-anchor="middle">3</text>
+  <circle class="numc" cx="556" cy="270" r="11"/>
+  <text class="num" x="556" y="275" text-anchor="middle">4</text>
+
+  <!-- 오른쪽 설명 -->
+  <g transform="translate(626,96)">
+    <text class="head" x="0" y="0">읽는 법</text>
+
+    <circle class="numc" cx="10" cy="26" r="11"/>
+    <text class="num" x="10" y="31" text-anchor="middle">1</text>
+    <text class="note" x="28" y="31">관측지점·고도·관측연수와</text>
+    <text class="note" x="28" y="49">연평균기온·연강수량</text>
+
+    <circle class="numc" cx="10" cy="76" r="11"/>
+    <text class="num" x="10" y="81" text-anchor="middle">2</text>
+    <text class="note" x="28" y="81">가로축은 1년 12개월</text>
+
+    <circle class="numc" cx="10" cy="110" r="11"/>
+    <text class="num" x="10" y="115" text-anchor="middle">3</text>
+    <text class="note" x="28" y="115">왼쪽 축은 월평균기온(℃)</text>
+
+    <circle class="numc" cx="10" cy="144" r="11"/>
+    <text class="num" x="10" y="149" text-anchor="middle">4</text>
+    <text class="note" x="28" y="149">오른쪽 축은 월평균강수량(mm)</text>
+    <text class="note" x="28" y="167" style="font-weight:700">기온의 2배 축척 (10℃ : 20mm)</text>
+
+    <circle class="numc" cx="10" cy="200" r="11"/>
+    <text class="num" x="10" y="205" text-anchor="middle">5</text>
+    <text class="note" x="28" y="205">두 곡선의 상하 관계로 판정</text>
+
+    <rect x="28" y="220" width="16" height="13" fill="url(#dry)" stroke="#d8a45c"/>
+    <text class="note" x="52" y="232">강수곡선이 아래 → 건조기</text>
+    <rect x="28" y="244" width="16" height="13" fill="url(#wet)" stroke="#5b7f9c"/>
+    <text class="note" x="52" y="256">강수곡선이 위 → 습윤기</text>
+
+    <text class="note" x="0" y="290" style="fill:#666">2배 축척을 쓰는 까닭은</text>
+    <text class="note" x="0" y="308" style="fill:#666">기온 10℃당 강수 20mm가</text>
+    <text class="note" x="0" y="326" style="fill:#666">증발산으로 상쇄되는 양에</text>
+    <text class="note" x="0" y="344" style="fill:#666">대응하기 때문이다.</text>
+  </g>
+</svg>

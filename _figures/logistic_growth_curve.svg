@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" width="900" height="420"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>로지스틱 곡선 — 환경저항을 고려한 개체군 성장</title>
+  <desc>시간에 따른 개체수가 S자 모양으로 증가해 환경수용력에 수렴하는 곡선과, 환경저항이 없을 때의 지수성장 곡선을 함께 나타낸 그래프</desc>
+
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+    <pattern id="resist" width="8" height="8" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#f7f1ee"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#c8a888" stroke-width="1.1"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .ttl   { font-size: 19px; font-weight: 700; fill: #1b4332; }
+    .ax    { stroke: #222; stroke-width: 2; fill: none; }
+    .axl   { font-size: 15px; font-weight: 700; fill: #222; }
+    .curve { stroke: #1b4332; stroke-width: 3; fill: none; }
+    .expo  { stroke: #999; stroke-width: 2; fill: none; stroke-dasharray: 8 6; }
+    .kline { stroke: #a1651a; stroke-width: 1.8; fill: none; stroke-dasharray: 6 5; }
+    .lab   { font-size: 14px; fill: #333; }
+    .labb  { font-size: 14px; font-weight: 700; fill: #1b4332; }
+    .ko    { font-size: 14px; font-weight: 700; fill: #a1651a; }
+    .phase { font-size: 13px; fill: #555; text-anchor: middle; }
+    .eq    { font-size: 15px; fill: #1b4332; }
+  </style>
+
+  <text class="ttl" x="24" y="32">로지스틱 곡선 — 환경저항이 커지면서 수용력에 수렴한다</text>
+
+  <!-- 축 -->
+  <path class="ax" d="M 90,330 L 620,330" marker-end="url(#ah)"/>
+  <path class="ax" d="M 90,330 L 90,66"  marker-end="url(#ah)"/>
+  <text class="axl" x="560" y="356">시간</text>
+  <text class="axl" x="34"  y="150" transform="rotate(-90 34 150)">개체수 (N)</text>
+
+  <!-- 환경수용력 K -->
+  <line class="kline" x1="90" y1="110" x2="600" y2="110"/>
+  <text class="ko" x="606" y="106">K</text>
+  <text class="ko" x="606" y="124">환경수용력</text>
+
+  <!-- 환경저항 영역 : 지수곡선과 실제 곡선 사이 -->
+  <path d="M 90,320 C 190,300 250,240 300,180 C 340,132 380,120 470,114 L 470,114
+           C 400,60 330,44 300,40 C 250,80 180,220 90,320 Z"
+        fill="url(#resist)" opacity="0.55"/>
+
+  <!-- 환경저항이 없을 때 (지수성장) -->
+  <path class="expo" d="M 90,320 C 180,300 250,230 290,150 C 315,100 330,68 340,44"/>
+  <text class="lab" x="348" y="52">환경저항이 없다면 (지수성장)</text>
+
+  <!-- 로지스틱 곡선 -->
+  <path class="curve" d="M 90,322 C 160,316 215,300 255,262
+                         C 290,228 310,170 350,140
+                         C 400,104 480,112 600,110"/>
+
+  <!-- 변곡점 K/2 -->
+  <circle cx="303" cy="200" r="5" fill="#1b4332"/>
+  <line class="kline" x1="90" y1="200" x2="303" y2="200"/>
+  <line class="kline" x1="303" y1="200" x2="303" y2="330"/>
+  <text class="ko" x="52" y="205">K/2</text>
+  <text class="labb" x="312" y="196">변곡점</text>
+  <text class="lab"  x="312" y="214">성장속도가 가장 빠른 지점</text>
+
+  <!-- 단계 구분 -->
+  <line x1="180" y1="330" x2="180" y2="342" stroke="#999"/>
+  <line x1="303" y1="330" x2="303" y2="342" stroke="#999"/>
+  <line x1="430" y1="330" x2="430" y2="342" stroke="#999"/>
+  <text class="phase" x="135" y="360">① 지체기</text>
+  <text class="phase" x="135" y="376">적응 단계</text>
+  <text class="phase" x="242" y="360">② 대수기</text>
+  <text class="phase" x="242" y="376">자원이 넉넉해</text>
+  <text class="phase" x="242" y="392">빠르게 증가</text>
+  <text class="phase" x="366" y="360">③ 감속기</text>
+  <text class="phase" x="366" y="376">환경저항 커짐</text>
+  <text class="phase" x="510" y="360">④ 정체기</text>
+  <text class="phase" x="510" y="376">K 부근에서 평형</text>
+
+  <!-- 식과 설명 -->
+  <g transform="translate(650,150)">
+    <text class="eq" x="0" y="0" style="font-weight:700">dN/dt = rN (K−N)/K</text>
+    <text class="lab" x="0" y="26">r : 내적자연증가율</text>
+    <text class="lab" x="0" y="46">K : 환경수용력</text>
+    <text class="lab" x="0" y="66">N : 현재 개체수</text>
+
+    <text class="labb" x="0" y="102">(K−N)/K 가 환경저항이다.</text>
+    <text class="lab"  x="0" y="124">N이 작으면 1에 가까워</text>
+    <text class="lab"  x="0" y="142">지수성장처럼 빠르고,</text>
+    <text class="lab"  x="0" y="160">N이 K에 가까워지면 0에 가까워</text>
+    <text class="lab"  x="0" y="178">성장이 멎는다.</text>
+
+    <rect x="0" y="200" width="18" height="14" fill="url(#resist)" stroke="#c8a888"/>
+    <text class="lab" x="26" y="212">환경저항으로 줄어든 몫</text>
+  </g>
+</svg>

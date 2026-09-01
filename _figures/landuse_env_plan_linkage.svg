@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430" width="900" height="430"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>국토계획과 자연환경보전계획의 연계</title>
+  <desc>따로 수립되던 두 계획이 같은 국토를 대상으로 하므로 단계별로 맞물려야 한다는 것을 나타낸 체계도</desc>
+
+  <defs>
+    <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#40624f"/>
+    </marker>
+    <marker id="arwG" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#999"/>
+    </marker>
+    <pattern id="land" width="7" height="7" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#f3f5f8"/>
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#8ba0b8" stroke-width="1.1"/>
+    </pattern>
+    <pattern id="envp" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#eff4f0"/>
+      <circle cx="2" cy="2" r="1.1" fill="#4f7259"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 19px; font-weight: 700; fill: #1b4332; }
+    .col  { font-size: 15px; font-weight: 700; text-anchor: middle; }
+    .box  { stroke: #8f9c94; stroke-width: 1.3; }
+    .bt   { font-size: 13.5px; fill: #222; text-anchor: middle; }
+    .lv   { font-size: 12.5px; fill: #777; text-anchor: end; }
+    .link { stroke: #40624f; stroke-width: 1.8; fill: none; stroke-dasharray: 7 4; }
+    .note { font-size: 13px; fill: #444; }
+    .head { font-size: 14px; font-weight: 700; fill: #1b4332; }
+    .warn { font-size: 13px; fill: #a1651a; }
+  </style>
+
+  <text class="ttl" x="24" y="30">두 계획은 같은 국토를 대상으로 하므로 단계마다 맞물려야 한다</text>
+
+  <!-- 열 제목 -->
+  <text class="col" x="215" y="66" fill="#3b5b7d">국토계획</text>
+  <text class="col" x="215" y="84" style="font-size:12.5px;font-weight:400;fill:#777">국토의 계획 및 이용에 관한 법률</text>
+  <text class="col" x="600" y="66" fill="#2f5c40">자연환경보전계획</text>
+  <text class="col" x="600" y="84" style="font-size:12.5px;font-weight:400;fill:#777">자연환경보전법</text>
+
+  <!-- 단계 라벨 -->
+  <text class="lv" x="96" y="128">전국</text>
+  <text class="lv" x="96" y="196">광역</text>
+  <text class="lv" x="96" y="264">시·군</text>
+  <text class="lv" x="96" y="332">지구</text>
+
+  <!-- 국토계획 열 -->
+  <g>
+    <rect class="box" x="110" y="106" width="210" height="34" rx="4" fill="url(#land)"/>
+    <text class="bt" x="215" y="128">국토종합계획</text>
+
+    <rect class="box" x="110" y="174" width="210" height="34" rx="4" fill="url(#land)"/>
+    <text class="bt" x="215" y="196">도종합계획 · 광역도시계획</text>
+
+    <rect class="box" x="110" y="242" width="210" height="34" rx="4" fill="url(#land)"/>
+    <text class="bt" x="215" y="264">도시·군 기본계획</text>
+
+    <rect class="box" x="110" y="310" width="210" height="34" rx="4" fill="url(#land)"/>
+    <text class="bt" x="215" y="332">도시·군 관리계획 · 지구단위</text>
+
+    <path class="link" style="stroke:#8ba0b8" d="M 215,140 L 215,174" marker-end="url(#arwG)"/>
+    <path class="link" style="stroke:#8ba0b8" d="M 215,208 L 215,242" marker-end="url(#arwG)"/>
+    <path class="link" style="stroke:#8ba0b8" d="M 215,276 L 215,310" marker-end="url(#arwG)"/>
+  </g>
+
+  <!-- 자연환경보전계획 열 -->
+  <g>
+    <rect class="box" x="495" y="106" width="210" height="34" rx="4" fill="url(#envp)"/>
+    <text class="bt" x="600" y="128">국가환경종합계획</text>
+
+    <rect class="box" x="495" y="174" width="210" height="34" rx="4" fill="url(#envp)"/>
+    <text class="bt" x="600" y="196">자연환경보전기본계획</text>
+
+    <rect class="box" x="495" y="242" width="210" height="34" rx="4" fill="url(#envp)"/>
+    <text class="bt" x="600" y="264">시·도 자연환경보전실천계획</text>
+
+    <rect class="box" x="495" y="310" width="210" height="34" rx="4" fill="url(#envp)"/>
+    <text class="bt" x="600" y="332">생태·경관보전지역 관리계획</text>
+
+    <path class="link" style="stroke:#7d9c88" d="M 600,140 L 600,174" marker-end="url(#arwG)"/>
+    <path class="link" style="stroke:#7d9c88" d="M 600,208 L 600,242" marker-end="url(#arwG)"/>
+    <path class="link" style="stroke:#7d9c88" d="M 600,276 L 600,310" marker-end="url(#arwG)"/>
+  </g>
+
+  <!-- 단계별 연계 (가로 양방향) -->
+  <g>
+    <path class="link" d="M 326,123 L 489,123" marker-end="url(#arw)" marker-start="url(#arw)"/>
+    <path class="link" d="M 326,191 L 489,191" marker-end="url(#arw)" marker-start="url(#arw)"/>
+    <path class="link" d="M 326,259 L 489,259" marker-end="url(#arw)" marker-start="url(#arw)"/>
+    <path class="link" d="M 326,327 L 489,327" marker-end="url(#arw)" marker-start="url(#arw)"/>
+    <text class="note" x="407" y="116" text-anchor="middle" fill="#40624f">연계</text>
+  </g>
+
+  <!-- 아래 : 연계가 끊겼을 때의 문제 -->
+  <g transform="translate(110,362)">
+    <rect x="0" y="0" width="595" height="52" rx="5" fill="#fdf6ee" stroke="#e3cfae"/>
+    <text class="warn" x="14" y="21" style="font-weight:700">연계가 끊기면</text>
+    <text class="warn" x="112" y="21">개발 편중 · 사전예방 절차 미흡 · 보전 정보와 기술 부족</text>
+    <text class="warn" x="14" y="42">→ 난개발과 환경훼손이 이어져 지속가능한 발전이 어렵다</text>
+  </g>
+
+  <!-- 오른쪽 설명 -->
+  <g transform="translate(730,106)">
+    <text class="head" x="0" y="0">왜 연계해야 하는가</text>
+    <text class="note" x="0" y="24">두 계획 모두 같은 국토를</text>
+    <text class="note" x="0" y="42">대상으로 인간활동을 규정한다.</text>
+    <text class="note" x="0" y="60">동전의 양면과 같다.</text>
+
+    <text class="note" x="0" y="94">· 계획 단계부터 환경기초조사</text>
+    <text class="note" x="0" y="112">· 상위계획의 보전 방침을</text>
+    <text class="note" x="0" y="130">  하위 개발계획이 이어받기</text>
+    <text class="note" x="0" y="148">· 전략환경영향평가로 검증</text>
+
+    <rect x="0" y="176" width="16" height="13" fill="url(#land)" stroke="#8ba0b8"/>
+    <text class="note" x="24" y="188">국토계획 계열</text>
+    <rect x="0" y="200" width="16" height="13" fill="url(#envp)" stroke="#7d9c88"/>
+    <text class="note" x="24" y="212">환경계획 계열</text>
+  </g>
+</svg>
