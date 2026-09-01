@@ -21,6 +21,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -180,6 +181,109 @@ def essay_submit(request, cert_id, session_id):
     session.save(update_fields=['status'])
     grade_session(session)
     return redirect('gisa:essay_result', cert_id=cert_id, session_id=session.pk)
+
+
+@login_required
+@require_POST
+def essay_save(request, cert_id, session_id):
+    """답안만 저장한다 (채점 전). 진행률 채점의 1단계."""
+    cert = get_object_or_404(Certification, pk=cert_id)
+    session = get_object_or_404(GisaEssaySession, pk=session_id,
+                                user=request.user, certification=cert)
+    if session.status == 'done':
+        return JsonResponse({'ok': False, 'error': '이미 채점된 세션입니다.'}, status=400)
+
+    limit = getattr(settings, 'ESSAY_DAILY_GRADE_LIMIT', 20)
+    if _daily_count(request.user, 'grade') >= limit:
+        return JsonResponse(
+            {'ok': False,
+             'error': f'하루 채점 한도({limit}회)를 초과했습니다. 내일 다시 시도해 주세요.'},
+            status=429)
+
+    saved = []
+    for qid in request.POST.getlist('question_id'):
+        q = GisaEssayQuestion.objects.filter(pk=qid, certification=cert).first()
+        if not q:
+            continue
+        GisaEssayAttempt.objects.update_or_create(
+            session=session, question=q,
+            defaults={'answer_text': request.POST.get(f'answer_{qid}', '').strip()},
+        )
+        saved.append({'question_id': q.pk, 'number': q.number})
+
+    session.status = 'grading'
+    session.save(update_fields=['status'])
+    saved.sort(key=lambda x: x['number'])
+    return JsonResponse({'ok': True, 'questions': saved})
+
+
+@login_required
+@require_POST
+def essay_grade_step(request, cert_id, session_id, question_id):
+    """문항 하나를 채점하고 결과를 저장한다.
+
+    브라우저가 문항 수만큼(동시 3개씩) 호출하며 진행률을 갱신한다.
+    한 문항이 실패해도 나머지는 계속 채점된다.
+    """
+    from django.utils import timezone
+
+    cert = get_object_or_404(Certification, pk=cert_id)
+    session = get_object_or_404(GisaEssaySession, pk=session_id,
+                                user=request.user, certification=cert)
+    attempt = get_object_or_404(GisaEssayAttempt,
+                                session=session, question_id=question_id)
+
+    # 이미 채점됐으면 다시 호출하지 않는다 (새로고침·중복 요청 대비)
+    if attempt.graded_at:
+        return JsonResponse({'ok': True, 'cached': True,
+                             'number': attempt.question.number,
+                             'score': attempt.score,
+                             'max': float(attempt.question.points)})
+
+    try:
+        result = grade_answer(attempt.question, attempt.answer_text)
+    except Exception as e:
+        return JsonResponse({'ok': False, 'number': attempt.question.number,
+                             'error': str(e)}, status=500)
+
+    attempt.ai_score = result['score']
+    attempt.feedback = result
+    attempt.graded_at = timezone.now()
+    attempt.save(update_fields=['ai_score', 'feedback', 'graded_at'])
+
+    return JsonResponse({
+        'ok': True,
+        'number': attempt.question.number,
+        'score': result['score'],
+        'max': result['max'],
+        'engine': result['engine'],
+    })
+
+
+@login_required
+@require_POST
+def essay_finish(request, cert_id, session_id):
+    """모든 문항 채점 후 총점을 확정한다."""
+    from django.utils import timezone
+
+    cert = get_object_or_404(Certification, pk=cert_id)
+    session = get_object_or_404(GisaEssaySession, pk=session_id,
+                                user=request.user, certification=cert)
+
+    total = sum(a.score for a in session.attempts.all())
+    session.score = round(total, 2)
+    session.status = 'done'
+    session.submitted_at = session.submitted_at or timezone.now()
+    session.save(update_fields=['score', 'status', 'submitted_at'])
+
+    return JsonResponse({
+        'ok': True,
+        'score': session.score,
+        'total_points': session.total_points,
+        'percent': session.percent,
+        'redirect': reverse('gisa:essay_result',
+                            args=[cert_id, session.pk]),
+    })
 
 
 # ------------------------------------------------------------------ 결과
