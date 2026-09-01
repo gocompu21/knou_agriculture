@@ -1,32 +1,31 @@
 # -*- coding: utf-8 -*-
 """실기 필답형 채점 엔진.
 
-채점 전략은 문항 유형에 따라 둘로 나뉜다.
+**채점은 LLM이 한다.** 채점 기준표(rubric)의 포인트마다 "사용자 답안이 이
+내용을 담고 있는가"를 판정시킨다. 자유 채점이 아니라 기준표 대조이므로
+결과가 비교적 일정하다.
 
-1) 규칙 채점 (단답·빈칸·계산)
-   정답 문자열이 거의 확정적이라 정규화 후 비교하면 된다. LLM 호출이 없어
-   즉시·무료이고 판정이 매번 같다. 규칙으로 애매하면 LLM으로 넘긴다.
+한때 단답·빈칸을 문자열 비교로 채점했으나 걷어냈다. 모범답안이
+"야생절멸(EW)"일 때 "야생절멸"만 쓴 정답을 0점 처리하는 사고가 났고,
+이런 예외(동의어·표기 변형·괄호 부연·띄어쓰기)는 규칙으로 끝이 없다.
+절약되는 비용은 세션당 1원 미만이라 정확도와 바꿀 가치가 없다.
 
-2) LLM 채점 (열거·서술·표그림)
-   채점 기준표(rubric)의 포인트마다 "사용자 답안이 이 내용을 담고 있는가"를
-   판정시킨다. 자유 채점이 아니라 기준표 대조이므로 결과가 비교적 일정하다.
+계산형만 예외다. 최종 답 수치가 정확히 일치하면 규칙으로 만점을 준다
+(LLM이 산수를 틀릴 여지를 없앤다). 어긋나면 계산 전용 LLM이 판단한다.
 
-어느 쪽이든 반환 형식은 같다:
+반환 형식은 어느 경로든 같다:
     {
       "score": 3.0,
       "max": 4.0,
       "points": [{"point": "...", "matched": true, "comment": "..."}],
       "summary": "빠진 항목: ...",
-      "engine": "rule" | "llm",
+      "engine": "rule" | "llm" | "llm-calc",
     }
 """
 import re
 import unicodedata
 
 from django.conf import settings
-
-# 규칙 채점을 시도할 유형
-RULE_TYPES = {'단답', '빈칸', '계산'}
 
 # 숫자 허용 오차 (상대)
 NUM_TOLERANCE = 0.02
@@ -131,79 +130,31 @@ def build_rubric(question):
     return [{'point': it, 'score': round(base, 2)} for it in items]
 
 
-# ---------------------------------------------------------------- 규칙 채점
+# ---------------------------------------------------------------- 규칙 채점 (계산형만)
 
-def grade_by_rule(question, user_answer):
-    """단답·빈칸·계산 유형을 규칙으로 채점한다.
+def grade_calc_by_rule(question, user_answer):
+    """계산형에서 최종 답 수치가 전부 맞으면 만점을 준다.
 
-    판정이 애매하면 None을 반환해 LLM 채점으로 넘긴다.
+    교재 풀이는 계산 과정을 통째로 적어 두어 "어디까지가 최종 답인지"를
+    기계적으로 100% 가려내기 어렵다. 그래서 확실히 맞은 경우에만 여기서
+    끝내고, 하나라도 어긋나면 None을 반환해 계산 전용 LLM이 판단하게 한다.
     """
-    rubric = build_rubric(question)
-    max_score = float(question.points)
-    u_norm = normalize(user_answer)
-
-    if not u_norm:
-        return {
-            'score': 0.0, 'max': max_score, 'engine': 'rule',
-            'points': [{'point': r['point'], 'matched': False, 'comment': '답안 없음'}
-                       for r in rubric],
-            'summary': '답안이 비어 있습니다.',
-        }
-
-    # 계산형: 최종 답의 수치가 모두 들어 있으면 규칙으로 만점 처리.
-    #
-    # 교재 풀이는 계산 과정을 통째로 적어 두어 "어디까지가 최종 답인지"를
-    # 기계적으로 100% 가려내기 어렵다. 그래서 확실히 맞은 경우에만 규칙으로
-    # 끝내고, 하나라도 어긋나면 LLM(계산 전용 프롬프트)에 넘긴다.
-    if question.qtype == '계산':
-        targets = final_answer_numbers(question)
-        if not targets:
-            return None
-        u_nums = extract_numbers(user_answer)
-        hit = [a for a in targets
-               if any(abs(u - a) <= max(abs(a) * NUM_TOLERANCE, 1e-9) for u in u_nums)]
-        if len(hit) == len(targets):
-            return {
-                'score': max_score, 'max': max_score, 'engine': 'rule',
-                'points': [{'point': f'{a:,g}', 'matched': True, 'comment': ''}
-                           for a in targets],
-                'summary': '정답입니다.',
-            }
-        return None                      # 일부만 맞거나 틀리면 LLM이 판단
-
-    # 단답·빈칸: 포인트별 부분 문자열 포함 여부
-    results, got = [], 0.0
-    uncertain = 0
-    for r in rubric:
-        point = str(r['point'])
-        # "① 사업목표" → 핵심어만 남기기 위해 콜론 앞뒤 분리
-        core = point.split(':')[-1] if ':' in point else point
-        p_norm = normalize(core)
-        if not p_norm:
-            uncertain += 1
-            continue
-        matched = p_norm in u_norm or (len(p_norm) >= 2 and u_norm in p_norm and len(u_norm) >= len(p_norm) * 0.7)
-        if matched:
-            got += float(r.get('score', 0))
-        else:
-            # 짧은 정답이 아닌데 못 찾았으면 LLM 판정이 필요할 수 있다
-            if len(p_norm) > 12:
-                uncertain += 1
-        results.append({'point': point, 'matched': matched,
-                        'comment': '' if matched else '답안에서 찾지 못했습니다'})
-
-    # 긴 서술이 섞여 규칙으로 확신이 어려우면 LLM에 맡긴다
-    if uncertain and uncertain >= len(rubric) / 2:
+    targets = final_answer_numbers(question)
+    if not targets:
         return None
-
-    missed = [r['point'] for r in results if not r['matched']]
-    if results and not missed:
-        got = max_score          # 균등 배분 반올림 오차 보정
+    u_nums = extract_numbers(user_answer)
+    if not u_nums:
+        return None
+    hit = [a for a in targets
+           if any(abs(u - a) <= max(abs(a) * NUM_TOLERANCE, 1e-9) for u in u_nums)]
+    if len(hit) != len(targets):
+        return None
+    max_score = float(question.points)
     return {
-        'score': round(min(got, max_score), 2), 'max': max_score, 'engine': 'rule',
-        'points': results,
-        'summary': ('모두 맞았습니다.' if not missed
-                    else '빠진 내용: ' + ' / '.join(m[:40] for m in missed[:5])),
+        'score': max_score, 'max': max_score, 'engine': 'rule',
+        'points': [{'point': f'{a:,g}', 'matched': True, 'comment': ''}
+                   for a in targets],
+        'summary': '정답입니다.',
     }
 
 
@@ -214,6 +165,11 @@ GRADE_SYSTEM = (
     "채점 기준표의 각 포인트에 대해, 수험자 답안이 그 내용을 담고 있는지만 판정한다.\n\n"
     "판정 원칙:\n"
     "- 표현이 달라도 의미가 같으면 인정한다 (동의어·줄임말·순서 바뀜 허용).\n"
+    "- **괄호 안의 부연은 선택 사항이다.** 기준이 '야생절멸(EW)'이면 '야생절멸'만\n"
+    "  써도 정답이고, 'EW'만 써도 정답이다. 한자·영문 병기도 마찬가지다.\n"
+    "- 띄어쓰기·맞춤법 차이는 감점하지 않는다 ('매트이식'='매트 이식').\n"
+    "- 단답형에서 정답 용어를 맞혔다면, 부연 설명이 없어도 인정한다.\n"
+    "- 빈칸형은 각 빈칸의 값이 맞는지만 본다. 순서 표기(①②)는 무시한다.\n"
     "- 핵심 용어가 빠졌거나 뜻이 달라지면 인정하지 않는다.\n"
     "- 기준표에 없는 내용을 썼다고 감점하지 않는다.\n"
     "- 부분적으로만 맞으면 matched=false로 하되 comment에 무엇이 부족한지 적는다.\n"
@@ -369,11 +325,11 @@ def grade_by_llm(question, user_answer, model=None):
 # ---------------------------------------------------------------- 진입점
 
 def grade_answer(question, user_answer, model=None):
-    """문항 하나를 채점한다. 규칙으로 가능하면 규칙, 아니면 LLM."""
-    if question.qtype in RULE_TYPES:
-        result = grade_by_rule(question, user_answer)
-        if result is not None:
-            return result
+    """문항 하나를 채점한다.
+
+    빈 답안은 호출 없이 0점, 계산형은 수치가 다 맞으면 규칙으로 만점,
+    나머지는 모두 LLM이 기준표와 대조해 채점한다.
+    """
     if not (user_answer or '').strip():
         rubric = build_rubric(question)
         return {
@@ -383,6 +339,9 @@ def grade_answer(question, user_answer, model=None):
             'summary': '답안이 비어 있습니다.',
         }
     if question.qtype == '계산':
+        result = grade_calc_by_rule(question, user_answer)
+        if result is not None:
+            return result
         return grade_calc_by_llm(question, user_answer, model=model)
     return grade_by_llm(question, user_answer, model=model)
 
