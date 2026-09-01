@@ -51,9 +51,10 @@ def essay_list(request, cert_id):
     cert = get_object_or_404(Certification, pk=cert_id)
     qs = GisaEssayQuestion.objects.filter(certification=cert)
 
+    from django.db.models import Sum
     rounds = (qs.filter(source='기출')
               .values('year', 'round')
-              .annotate(c=Count('id'))
+              .annotate(c=Count('id'), p=Sum('points'))
               .order_by('-year', '-round'))
 
     sections = (qs.filter(source='예상')
@@ -72,11 +73,17 @@ def essay_list(request, cert_id):
         if key not in best or s.score > best[key]:
             best[key] = s.score
 
+    # 실제 시험은 15문항 안팎 45점이다. 복원이 일부만 된 회차는
+    # 문항 수와 배점이 그에 못 미치므로 카드에 그 사실을 알린다.
+    FULL_POINTS = 45
     round_cards = []
     for r in rounds:
         key = (r['year'], r['round'])
+        pts = round(float(r['p'] or 0), 1)
         round_cards.append({
             'year': r['year'], 'round': r['round'], 'count': r['c'],
+            'points': pts,
+            'partial': pts < FULL_POINTS - 1,
             'best': best.get(key),
         })
 

@@ -43,6 +43,10 @@
     .ec-best { display: inline-block; font-size: 0.75rem; padding: 2px 8px;
         border-radius: 10px; background: #e8f5e9; color: #1b5e20; font-weight: 600; }
     .ec-best.none { background: #f2f2f2; color: #999; font-weight: 400; }
+    /* 문항이 일부만 복원된 회차 — 45점 실전과 다르다는 것을 알린다 */
+    .ec-partial { display: inline-block; font-size: 0.72rem; padding: 2px 7px;
+        border-radius: 9px; background: #fff4e5; color: #a1651a;
+        margin-left: 4px; }
     .ec-actions { display: flex; gap: 5px; margin-top: 10px; }
     .ec-btn { flex: 1; text-align: center; padding: 7px 0; border-radius: 6px;
         font-size: 0.8rem; text-decoration: none; font-weight: 600;
@@ -106,13 +110,14 @@
         <div class="ec">
             <div class="ec-head">
                 <span class="ec-title">{{ r.year }}년 {{ r.round }}회</span>
-                <span class="ec-meta">{{ r.count }}문항</span>
+                <span class="ec-meta">{{ r.count }}문항 · {{ r.points }}점</span>
             </div>
             {% if r.best is not None %}
             <span class="ec-best">최고 {{ r.best }}점</span>
             {% else %}
             <span class="ec-best none">미응시</span>
             {% endif %}
+            {% if r.partial %}<span class="ec-partial">일부 복원</span>{% endif %}
             <div class="ec-actions">
                 <a class="ec-btn primary" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}">풀기</a>
                 <a class="ec-btn sub" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}&mode=paper">시험지</a>

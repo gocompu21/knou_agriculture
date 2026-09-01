@@ -61,9 +61,19 @@ def guess_type(q):
     return '서술'
 
 
+# 문항이 이보다 적으면 부분 복원으로 보고 45점 정규화를 하지 않는다.
+# 6문항짜리를 45점으로 부풀리면 문항당 7.5점이 되어 실제 배점과 어긋난다.
+MIN_FULL_ROUND = 10
+
+
 def normalize_points(rows):
-    """회차 합계를 45점으로 맞춘다 (배점이 큰 문항부터 0.5씩 가감)."""
+    """회차 합계를 45점으로 맞춘다 (배점이 큰 문항부터 0.5씩 가감).
+
+    문항 수가 너무 적은 부분 복원 회차는 유형별 기본 배점을 그대로 둔다.
+    """
     pts = {i: float(POINTS_BY_TYPE.get(r['_type'], 3)) for i, r in enumerate(rows)}
+    if len(rows) < MIN_FULL_ROUND:
+        return pts
     diff = TARGET_POINTS - sum(pts.values())
     order = sorted(range(len(rows)), key=lambda i: (-pts[i], rows[i]['number']))
     guard = 0
