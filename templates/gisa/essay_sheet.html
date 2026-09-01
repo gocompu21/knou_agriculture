@@ -45,21 +45,50 @@
         padding-left: 32px; margin-bottom: 6px; }
     .sq-img { display: block; max-width: min(100%, 340px); margin: 6px 0 6px 32px; }
 
-    /* 답안 박스 — 굵은 테두리가 판독 시 문항 경계 인식에 결정적 */
-    .sq-box { margin: 0 0 18px 32px; border: 1.5px solid #333; border-radius: 3px;
-        background: repeating-linear-gradient(
-            to bottom, transparent, transparent 27px, #e8e8e8 27px, #e8e8e8 28px); }
-    .sq-box.h1 { height: 84px; }
-    .sq-box.h2 { height: 140px; }
-    .sq-box.h3 { height: 196px; }
+    /* 답안 박스
+     *
+     * 굵은 검은 테두리가 판독 시 문항 경계 인식에 결정적이다.
+     *
+     * 안쪽 줄은 손글씨를 가지런히 쓰게 돕되 판독을 방해하면 안 된다.
+     *  - 간격 38px(≈10mm): 성인 한글 손글씨가 7~9mm라 이 정도면 글자가
+     *    줄에 눌리지 않는다. 종전 28px은 좁아서 글자가 줄과 겹쳤다.
+     *  - 연한 청회색 점선: 검은 볼펜과 색상·형태가 모두 달라 모델이
+     *    글자 획과 구분하기 쉽다. 실선 회색은 획으로 오인될 수 있다.
+     *  - 좌우 여백을 두어 줄이 테두리에 닿지 않게 한다(획과 겹침 방지).
+     */
+    .sq-box { position: relative; margin: 0 0 18px 32px;
+        border: 1.5px solid #333; border-radius: 3px; }
+    .sq-box::before {
+        content: ''; position: absolute; left: 10px; right: 10px;
+        top: 0; bottom: 0;
+        background-image: repeating-linear-gradient(
+            to bottom,
+            transparent, transparent 37px,
+            #b9c6d4 37px, #b9c6d4 38px);
+        /* 점선 효과 — 가로로 잘라 실선이 아닌 파선으로 만든다 */
+        -webkit-mask-image: repeating-linear-gradient(
+            to right, #000 0 6px, transparent 6px 11px);
+        mask-image: repeating-linear-gradient(
+            to right, #000 0 6px, transparent 6px 11px);
+    }
+    /* 높이 = 38px × 줄수 + 14px.
+     * 줄 위에 글씨를 얹어 쓰므로 마지막 줄 아래에도 글자 높이만큼
+     * 여유가 있어야 한다. 딱 배수로 맞추면 마지막 줄이 테두리에 붙는다. */
+    .sq-box.h1 { height: 90px; }    /* 2줄 — 단답·빈칸 */
+    .sq-box.h2 { height: 166px; }   /* 4줄 — 열거·표그림 */
+    .sq-box.h3 { height: 242px; }   /* 6줄 — 서술·계산 */
 
     @media print {
         .sheet-bar, .sheet-tip { display: none !important; }
         body { background: #fff !important; }
         .sheet { box-shadow: none; margin: 0; padding: 0 6mm; max-width: none; }
         @page { size: A4; margin: 12mm 10mm; }
-        .sq-box { background: repeating-linear-gradient(
-            to bottom, transparent, transparent 27px, #ddd 27px, #ddd 28px); }
+        /* 브라우저는 기본적으로 배경을 인쇄하지 않는다.
+         * 이 선언이 없으면 답안 줄이 아예 찍히지 않는다. */
+        .sq-box::before {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
     }
     @media (max-width: 600px) {
         .sq-text, .sq-box, .sq-img { padding-left: 0; margin-left: 0; }
@@ -91,7 +120,8 @@
         </div>
     </div>
     <div class="sh-guide">
-        답안은 각 문항의 테두리 안에 작성하십시오. 항목을 나눌 때는 ① ② ③ 으로 구분합니다.
+        답안은 각 문항의 테두리 안, 점선 위에 작성하십시오.
+        항목을 나눌 때는 ① ② ③ 으로 구분합니다.
     </div>
 
     {% for q in questions %}
