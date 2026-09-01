@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>Braun-Blanquet 우점도 등급 — 방형구 내 피도</title>
+  <desc>방형구 7개를 등급 5부터 r까지 나란히 놓고, 각 방형구의 피복 상태와 피도 범위를 함께 표시한 도해</desc>
+
+  <defs>
+    <!-- 식생 피복: 사선 해칭 — 흑백 인쇄에서도 농도 차이가 보인다 -->
+    <pattern id="cv" width="6" height="6" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="6" height="6" fill="#e6efe7"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#4f7259" stroke-width="3"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .ttl { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .sm  { font-size: 13.5px; fill: #4a4a4a; }
+  </style>
+
+  <text class="ttl" x="18" y="30">Braun-Blanquet 우점도 등급 — 방형구 안 식생의 피도(被度)로 매긴다</text>
+  <text class="sm" x="18" y="54">각 사각형은 하나의 방형구이고, 빗금 부분이 그 종이 덮은 면적이다.</text>
+
+  <!-- 방형구 7개: x = 24, 148, 272, 396, 520, 644, 768 (폭 108, y = 74~182) -->
+
+  <!-- 등급 5 : 75~100% — 거의 전면 피복 -->
+  <g transform="translate(24,74)">
+    <rect x="0" y="0" width="108" height="108" fill="#fcfdfc" stroke="#1b4332" stroke-width="2"/>
+    <rect x="4" y="4" width="100" height="100" fill="url(#cv)" stroke="#2a5140" stroke-width="1.4"/>
+  </g>
+
+  <!-- 등급 4 : 50~75% -->
+  <g transform="translate(148,74)">
+    <rect x="0" y="0" width="108" height="108" fill="#fcfdfc" stroke="#1b4332" stroke-width="2"/>
+    <path d="M 4,4 L 104,4 L 104,104 L 4,104 Z
+             M 26,26 L 26,52 L 54,52 L 54,26 Z
+             M 68,60 L 68,92 L 96,92 L 96,60 Z"
+          fill="url(#cv)" fill-rule="evenodd" stroke="#2a5140" stroke-width="1.4"/>
+  </g>
+
+  <!-- 등급 3 : 25~50% — 큰 덩어리 몇 개 -->
+  <g transform="translate(272,74)">
+    <rect x="0" y="0" width="108" height="108" fill="#fcfdfc" stroke="#1b4332" stroke-width="2"/>
+    <g fill="url(#cv)" stroke="#2a5140" stroke-width="1.4">
+      <ellipse cx="34" cy="32" rx="21" ry="18"/>
+      <ellipse cx="80" cy="30" rx="19" ry="16"/>
+      <ellipse cx="32" cy="82" rx="20" ry="17"/>
+      <ellipse cx="80" cy="80" rx="18" ry="15"/>
+    </g>
+  </g>
+
+  <!-- 등급 2 : 5~25% — 중간 크기 다수 -->
+  <g transform="translate(396,74)">
+    <rect x="0" y="0" width="108" height="108" fill="#fcfdfc" stroke="#1b4332" stroke-width="2"/>
+    <g fill="url(#cv)" stroke="#2a5140" stroke-width="1.2">
+      <circle cx="28" cy="26" r="10"/>
+      <circle cx="62" cy="20" r="8"/>
+      <circle cx="88" cy="34" r="10"/>
+      <circle cx="42" cy="56" r="9"/>
+      <circle cx="76" cy="62" r="8"/>
+      <circle cx="24" cy="86" r="9"/>
+      <circle cx="58" cy="90" r="8"/>
+      <circle cx="90" cy="84" r="7"/>
+    </g>
+  </g>
+
+  <!-- 등급 1 : 1~5% -->
+  <g transform="translate(520,74)">
+    <rect x="0" y="0" width="108" height="108" fill="#fcfdfc" stroke="#1b4332" stroke-width="2"/>
+    <g fill="url(#cv)" stroke="#2a5140" stroke-width="1.2">
+      <circle cx="32" cy="30" r="5"/>
+      <circle cx="74" cy="48" r="5"/>
+      <circle cx="46" cy="82" r="5"/>
+      <circle cx="86" cy="86" r="4"/>
+    </g>
+  </g>
+
+  <!-- 등급 + : 피도가 낮고 산재 (정답 ㄱ) -->
+  <g transform="translate(644,74)">
+    <rect x="0" y="0" width="108" height="108" fill="#fcfdfc" stroke="#a1651a" stroke-width="3"/>
+    <g fill="url(#cv)" stroke="#2a5140" stroke-width="1.2">
+      <circle cx="36" cy="34" r="4"/>
+      <circle cx="78" cy="66" r="4"/>
+      <circle cx="44" cy="88" r="4"/>
+    </g>
+  </g>
+
+  <!-- 등급 r : 고립되어 드물게 (정답 ㄴ) -->
+  <g transform="translate(768,74)">
+    <rect x="0" y="0" width="108" height="108" fill="#fcfdfc" stroke="#a1651a" stroke-width="3"/>
+    <circle cx="56" cy="56" r="4" fill="url(#cv)" stroke="#2a5140" stroke-width="1.2"/>
+  </g>
+
+  <line x1="24" y1="200" x2="876" y2="200" stroke="#ccd5ce" stroke-width="1.2"/>
+
+  <!-- 등급 라벨 — 각 방형구 아래 중앙. text-anchor 를 속성으로 직접 지정한다 -->
+  <g text-anchor="middle">
+    <!-- 5 -->
+    <text x="78" y="234" font-size="22" font-weight="700" fill="#1b4332">5</text>
+    <text x="78" y="258" font-size="14" fill="#333">75~100%</text>
+    <text x="78" y="280" font-size="13" fill="#4a4a4a">거의 전면 피복</text>
+    <!-- 4 -->
+    <text x="202" y="234" font-size="22" font-weight="700" fill="#1b4332">4</text>
+    <text x="202" y="258" font-size="14" fill="#333">50~75%</text>
+    <text x="202" y="280" font-size="13" fill="#4a4a4a">절반 이상 피복</text>
+    <!-- 3 -->
+    <text x="326" y="234" font-size="22" font-weight="700" fill="#1b4332">3</text>
+    <text x="326" y="258" font-size="14" fill="#333">25~50%</text>
+    <text x="326" y="280" font-size="13" fill="#4a4a4a">큰 개체가</text>
+    <text x="326" y="298" font-size="13" fill="#4a4a4a">군데군데</text>
+    <!-- 2 -->
+    <text x="450" y="234" font-size="22" font-weight="700" fill="#1b4332">2</text>
+    <text x="450" y="258" font-size="14" fill="#333">5~25%</text>
+    <text x="450" y="280" font-size="13" fill="#4a4a4a">개체수 많고</text>
+    <text x="450" y="298" font-size="13" fill="#4a4a4a">피도 낮음</text>
+    <!-- 1 -->
+    <text x="574" y="234" font-size="22" font-weight="700" fill="#1b4332">1</text>
+    <text x="574" y="258" font-size="14" fill="#333">1~5%</text>
+    <text x="574" y="280" font-size="13" fill="#4a4a4a">개체는 있으나</text>
+    <text x="574" y="298" font-size="13" fill="#4a4a4a">피도 매우 낮음</text>
+    <!-- + (정답 ㄱ) -->
+    <text x="698" y="234" font-size="22" font-weight="700" fill="#a1651a">+</text>
+    <text x="698" y="258" font-size="14" fill="#333">1% 미만</text>
+    <text x="698" y="280" font-size="13" font-weight="700" fill="#a1651a">피도가 낮고</text>
+    <text x="698" y="298" font-size="13" font-weight="700" fill="#a1651a">산재</text>
+    <!-- r (정답 ㄴ) -->
+    <text x="822" y="234" font-size="22" font-weight="700" fill="#a1651a">r</text>
+    <text x="822" y="258" font-size="14" fill="#333">극히 미미</text>
+    <text x="822" y="280" font-size="13" font-weight="700" fill="#a1651a">고립되어</text>
+    <text x="822" y="298" font-size="13" font-weight="700" fill="#a1651a">드물게 출현</text>
+  </g>
+
+  <!-- 왼쪽에서 오른쪽으로 갈수록 피도가 낮아진다 -->
+  <line x1="24" y1="326" x2="876" y2="326" stroke="#ccd5ce" stroke-width="1.2"/>
+  <text class="sm" x="24" y="352">← 피도가 높다 (우점)</text>
+  <text class="sm" x="742" y="352">피도가 낮다 (드묾) →</text>
+  <text class="sm" x="24" y="382">등급 5·4는 피복 면적으로, 3 이하는 개체의 크기와 흩어진 정도로 구분한다. + 와 r 은 피도가 거의 없어 출현 양상으로만 나눈다.</text>
+</svg>

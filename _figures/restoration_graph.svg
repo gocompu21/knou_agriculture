@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" width="900" height="420"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>복원·복구·대체의 도달 위치 비교</title>
+  <desc>가로축 생태계 구조, 세로축 생태계 기능의 좌표평면에서 훼손된 생태계로부터 세 가지 사업이 도달하는 지점을 화살표로 나타낸 그래프</desc>
+
+  <defs>
+    <marker id="hd" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b4332"/>
+    </marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+  </defs>
+
+  <style>
+    .axT  { font-size: 16px; font-weight: 700; fill: #222; }
+    .tick { font-size: 12.5px; fill: #777; }
+    .grid { stroke: #e6ece7; stroke-width: 1; }
+    .ref  { stroke: #b9c7bc; stroke-width: 1.3; stroke-dasharray: 6 5; }
+    .nodeT{ font-size: 15px; font-weight: 700; fill: #fff; text-anchor: middle; }
+    .lgT  { font-size: 15.5px; fill: #333; }
+    .lgB  { font-size: 15.5px; font-weight: 700; fill: #1b4332; }
+    .cap  { font-size: 13.5px; fill: #555; }
+  </style>
+
+  <!-- 플롯 영역 -->
+  <rect x="96" y="34" width="470" height="300" fill="#fbfcfb" stroke="#dfe6e0" stroke-width="1"/>
+  <g class="grid">
+    <line x1="96"  y1="94"  x2="566" y2="94"/>
+    <line x1="96"  y1="154" x2="566" y2="154"/>
+    <line x1="96"  y1="214" x2="566" y2="214"/>
+    <line x1="96"  y1="274" x2="566" y2="274"/>
+    <line x1="190" y1="34" x2="190" y2="334"/>
+    <line x1="284" y1="34" x2="284" y2="334"/>
+    <line x1="378" y1="34" x2="378" y2="334"/>
+    <line x1="472" y1="34" x2="472" y2="334"/>
+  </g>
+
+  <!-- 축 -->
+  <line x1="96" y1="334" x2="596" y2="334" stroke="#222" stroke-width="2" marker-end="url(#ax)"/>
+  <line x1="96" y1="334" x2="96"  y2="22"  stroke="#222" stroke-width="2" marker-end="url(#ax)"/>
+  <text class="axT" x="360" y="366" text-anchor="middle">생태계 구조 (종 조성·복잡성) →</text>
+  <text class="axT" x="0" y="0" transform="translate(62,196) rotate(-90)" text-anchor="middle">생태계 기능 →</text>
+  <text class="tick" x="86" y="340" text-anchor="end">낮음</text>
+  <text class="tick" x="86" y="52"  text-anchor="end">높음</text>
+  <text class="tick" x="104" y="352">낮음</text>
+  <text class="tick" x="556" y="352" text-anchor="end">원생태계 수준</text>
+
+  <!-- 원생태계 기준선 -->
+  <line class="ref" x1="96"  y1="76"  x2="500" y2="76"/>
+  <line class="ref" x1="500" y1="76"  x2="500" y2="334"/>
+
+  <!-- 출발점: 훼손된 생태계 -->
+  <circle cx="150" cy="292" r="13" fill="#3a3a3a"/>
+  <text x="150" y="322" font-size="14.5" font-weight="700" fill="#333" text-anchor="middle">훼손된 생태계</text>
+
+  <!-- ① 복원: 원생태계 지점까지 곧장 -->
+  <line x1="163" y1="282" x2="486" y2="88" stroke="#1b4332" stroke-width="3.2"
+        marker-end="url(#hd)"/>
+  <rect x="462" y="52" width="76" height="34" rx="4"
+        fill="#1b4332" stroke="#1b4332" stroke-width="2"/>
+  <text class="nodeT" x="500" y="75">원생태계</text>
+  <text x="392" y="150" font-size="15" font-weight="700" fill="#1b4332"
+        transform="rotate(-31 392 150)">① 복원</text>
+
+  <!-- ② 복구: 같은 방향이나 못 미침 -->
+  <line x1="160" y1="286" x2="352" y2="176" stroke="#4f7259" stroke-width="3.2"
+        stroke-dasharray="11 6" marker-end="url(#hd)"/>
+  <rect x="330" y="140" width="62" height="32" rx="4"
+        fill="#4f7259" stroke="#4f7259" stroke-width="2"/>
+  <text class="nodeT" x="361" y="162">복구</text>
+  <text x="252" y="216" font-size="15" font-weight="700" fill="#4f7259"
+        transform="rotate(-30 252 216)">② 복구</text>
+
+  <!-- ③ 대체: 구조는 다른 쪽, 기능은 비슷한 높이 -->
+  <line x1="146" y1="278" x2="212" y2="124" stroke="#a1651a" stroke-width="3.2"
+        stroke-dasharray="3 5" marker-end="url(#hd)"/>
+  <rect x="186" y="86" width="62" height="32" rx="4"
+        fill="#a1651a" stroke="#a1651a" stroke-width="2"/>
+  <text class="nodeT" x="217" y="108">대체</text>
+  <text x="120" y="176" font-size="15" font-weight="700" fill="#a1651a">③ 대체</text>
+
+  <!-- 대체의 기능 수준이 원생태계에 근접함을 보이는 보조선 -->
+  <line class="ref" x1="248" y1="102" x2="462" y2="76" stroke="#a1651a" stroke-dasharray="3 5"/>
+  <text class="cap" x="300" y="118" fill="#a1651a">기능은 비슷하나 구조는 다른 유형</text>
+
+  <!-- 범례 -->
+  <g transform="translate(614,60)">
+    <rect x="0" y="0" width="272" height="234" rx="6"
+          fill="#f2f5f1" stroke="#ccd5ce" stroke-width="1.2"/>
+
+    <line x1="16" y1="34" x2="46" y2="34" stroke="#1b4332" stroke-width="3.2"/>
+    <text class="lgB" x="54" y="39">① 복원 restoration</text>
+    <text class="lgT" x="16" y="62" font-size="14">원생태계와 같은 상태로</text>
+    <text class="lgT" x="16" y="82" font-size="14">구조·기능을 온전히 되돌림</text>
+
+    <line x1="16" y1="112" x2="46" y2="112" stroke="#4f7259" stroke-width="3.2"
+          stroke-dasharray="11 6"/>
+    <text class="lgB" x="54" y="117">② 복구 rehabilitation</text>
+    <text class="lgT" x="16" y="140" font-size="14">완전히 같게는 못 만들고</text>
+    <text class="lgT" x="16" y="160" font-size="14">일부만 원래에 가깝게 끌어올림</text>
+
+    <line x1="16" y1="190" x2="46" y2="190" stroke="#a1651a" stroke-width="3.2"
+          stroke-dasharray="3 5"/>
+    <text class="lgB" x="54" y="195">③ 대체 replacement</text>
+    <text class="lgT" x="16" y="218" font-size="14">다른 유형의 생태계를 조성해</text>
+    <text class="lgT" x="16" y="238" font-size="14">잃은 기능을 대신 수행하게 함</text>
+  </g>
+</svg>

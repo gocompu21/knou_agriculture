@@ -1,0 +1,168 @@
+[
+ {
+  "pk": 440,
+  "label": "2023년 1회",
+  "number": 9,
+  "qtype": "서술",
+  "text": "생물의 분포유형 3가지를 서술하고 그에 대하여 설명하시오.",
+  "answer_items": [],
+  "answer_text": "| 구분 | 임의분포 | 균일분포 | 군생분포 |\n|---|---|---|---|\n| 배치 | 개체가 아무런 규칙 없이 흩어져 있다 | 개체가 서로 일정한 간격을 두고 고르게 놓인다 | 개체가 여러 무리로 뭉쳐 놓인다 |\n| 원인 | 자원이 고르게 퍼져 있고 개체 사이의 상호작용이 뚜렷하지 않다 | 자원 경쟁이나 세력권 다툼이 심해 최소거리를 유지한다 | 자원이 특정 장소에 몰려 있거나 사회적 무리를 이룬다 |\n| 사례 | 풀밭의 민들레 | 사막의 건조지 식물 | 무성생식으로 번지는 식물 |",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/기출/E-2023-1-09_answer_1.png"
+   }
+  ],
+  "svg_name": "dispersion_pattern",
+  "done": true
+ },
+ {
+  "pk": 446,
+  "label": "2023년 1회",
+  "number": 15,
+  "qtype": "표그림",
+  "text": "개발사업으로 인하여 자연환경이 훼손되는 것을 방지하기 위하여 보전, 회피, 저감, 대체 등의 방법으로 훼손을 저감할 수 있다. 다음 그림에서 회피의 개념을 설명하고 아래 그림에서 회피의 방법으로 도로를 재설계하시오.\n\n(그림) 생물서식지(회색 영역) 안에 보전지역(진한 회색)이 있고, 직선 도로선(중앙 점선 포함)이 서식지와 보전지역을 관통함. 도로를 가로지르는 이동통로 3곳이 양방향 화살표로 표시됨. 라벨: 이동통로, 생물서식지, 보전지역, 도로선",
+  "answer_items": [
+   "① 회피의 개념 : 개발행위가 보전가치가 높은 지역에 아예 미치지 않도록 사업 위치나 노선을 옮겨 훼손 자체를 발생시키지 않는 미티게이션 방법이다.",
+   "② 재설계 방향 : 보전지역을 관통하던 직선 도로선을 지우고, 보전지역 경계 바깥을 따라 우회하는 곡선 선형으로 다시 그린다.",
+   "③ 재설계 시 유의점 : 우회한 노선이 생물서식지를 가로지르는 구간에는 기존 이동통로를 그대로 두어 서식지 사이의 연결성이 끊기지 않게 한다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "text_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/기출/E-2023-1-15_question_1.png"
+   },
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/기출/E-2023-1-15_answer_2.png"
+   },
+   {
+    "field": "reference_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/기출/E-2023-1-15_reference_3.png"
+   }
+  ],
+  "svg_name": "road_avoidance_redesign",
+  "done": true
+ },
+ {
+  "pk": 417,
+  "label": "2022년 2회",
+  "number": 10,
+  "qtype": "표그림",
+  "text": "복원, 복구, 대체를 그래프로 표현하고 설명하시오.",
+  "answer_items": [
+   "① 복원(restoration) : 훼손 이전의 원생태계와 같은 상태로 구조와 기능을 온전히 되돌리는 것이다.",
+   "② 복구(rehabilitation) : 원생태계와 완전히 같게 만들지는 못하고, 구조와 기능의 일부를 원래에 가깝게 끌어올리는 것이다.",
+   "③ 대체(replacement) : 원생태계와는 다른 유형의 생태계를 조성하되 잃어버린 기능을 대신 수행하도록 하는 것이다."
+  ],
+  "answer_text": "가로축을 생태계의 구조(종 조성·복잡성), 세로축을 생태계의 기능으로 잡고 훼손된 생태계를 원점 부근에, 원생태계를 오른쪽 위 끝에 둔다. 훼손 지점에서 원생태계 지점까지 곧장 올라가는 화살표가 복원, 그보다 낮은 위치에서 멈추되 원생태계 방향으로 향하는 화살표가 복구, 구조는 원생태계와 다른 쪽으로 벗어나면서 기능만 비슷한 높이까지 올라가는 화살표가 대체이다.",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/기출/E-2022-2-10_answer_1.png"
+   }
+  ],
+  "svg_name": "restoration_graph",
+  "done": true
+ },
+ {
+  "pk": 121,
+  "label": "법규",
+  "number": 3,
+  "qtype": "서술",
+  "text": "국토환경성평가지도의 목적과 등급을 설명하시오.",
+  "answer_items": [
+   "① 목적 : 개발이 가능한 땅과 지켜야 할 땅을 미리 갈라 보여 줌으로써 난개발을 막고, 국토를 지속가능하고 친환경적으로 이용·관리하도록 유도하는 데 있다.",
+   "② 등급 : 환경·생태적 가치가 높은 순으로 1등급부터 5등급까지 나누며, 1등급은 개발을 허용하지 않고 5등급으로 갈수록 개발 여지가 넓어진다.\n| 등급 | 내용 |\n|---|---|\n| 1등급 | 개발 불허 |\n| 2등급 | 소규모 예외적 개발 허용 |\n| 3등급 | 완충 |\n| 4등급 | 친환경 개발 허용 |\n| 5등급 | 개발 허용 |"
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-법규-3_answer_1.png"
+   }
+  ],
+  "svg_name": "land_env_grade_map",
+  "done": true
+ },
+ {
+  "pk": 124,
+  "label": "법규",
+  "number": 6,
+  "qtype": "서술",
+  "text": "OECD 환경지표 기본구조(PSR)을 설명하시오.",
+  "answer_items": [
+   "① P(Pressure, 압력) : 인간의 활동이 환경에 가하는 부하를 뜻한다.",
+   "② S(State, 상태) : 그 부하를 받은 환경과 자연자원이 현재 어떤 상태에 놓여 있는지를 가리킨다.",
+   "③ R(Response, 대응) : 악화된 상태를 되돌리기 위해 사회·경제 주체가 취하는 환경적 조치를 말한다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-법규-6_answer_1.png"
+   }
+  ],
+  "svg_name": "oecd_psr",
+  "done": true
+ },
+ {
+  "pk": 135,
+  "label": "법규",
+  "number": 17,
+  "qtype": "서술",
+  "text": "식생보전등급의 평가항목과 등급을 설명하시오.",
+  "answer_items": [
+   "① 평가항목 : 분포희귀성, 식생복원 잠재성, 구성식물종 온전성, 중요종 서식, 식재림 흉고직경의 다섯 가지를 종합해 판정한다.",
+   "② 등급 : 인위적 간섭을 덜 받아 자연성이 높을수록 상위 등급을 부여하며, 1·2등급은 핵심지역, 3·4등급은 완충지역, 5등급은 전이지역에 대응한다.\n| 구분 | 분류기준 |\n|---|---|\n| 1등급 | 극상림, 자연림, 자연성 |\n| 2등급 | 2차 천이 후 회복식생 |\n| 3등급 | 교란 후 2차 천이 초기식생 |\n| 4등급 | 조림지 |\n| 5등급 | 초원, 경작지, 주거지 |"
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-법규-17_answer_1.png"
+   }
+  ],
+  "svg_name": "vegetation_conservation_grade",
+  "done": true
+ },
+ {
+  "pk": 136,
+  "label": "법규",
+  "number": 18,
+  "qtype": "서술",
+  "text": "녹지자연도 등급, 내용",
+  "answer_items": [
+   "① 개념 : 녹지가 인간에 의해 얼마나 이용·교란되었는지를 등급으로 나타낸 지표이다.",
+   "② 분류기준 : 녹피율을 기준으로 삼는다.",
+   "③ 등급 : 시가지에서 고산초원에 이르기까지 자연성이 높아지는 순으로 1~10등급을 매기고, 수공간은 별도로 0등급으로 둔다. 8~10등급은 핵심, 4~7등급은 완충, 1~3등급은 전이에 해당한다.\n| 등급 구분 | 분류 기준 |\n|---|---|\n| 1등급 | 시가지 |\n| 2등급 | 경작지 |\n| 3등급 | 과수원 |\n| 4등급 | 1차초원 |\n| 5등급 | 2차초원 |\n| 6등급 | 조림지 |\n| 7등급 | 유령림 |\n| 8등급 | 장령림 |\n| 9등급 | 원시림 |\n| 10등급 | 고산초원 |\n| 0등급 | 수공간 |"
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-법규-18_answer_1.png"
+   }
+  ],
+  "svg_name": "greenery_naturality_grade",
+  "done": true
+ },
+ {
+  "pk": 143,
+  "label": "법규",
+  "number": 25,
+  "qtype": "표그림",
+  "text": "생태자연도 등급화된 권역",
+  "answer_items": [],
+  "answer_text": "생태자연도는 전국자연환경조사 자료를 바탕으로 국토의 생태적·자연적·경관적 가치를 등급으로 나타낸 지도이다. 1등급을 중심으로 2등급이 이를 감싸고 3등급이 바깥에 놓이는 동심원 구조이며, 다른 법률로 관리되는 곳은 별도관리지역으로 따로 표시한다.\n\n| 등급 | 내용 |\n|---|---|\n| 1등급 | • 멸종위기 야생동식물 서식지, 도래지 주요생태축, 생태통로\\n• 생물다양성, 생물자원 풍부지역\\n• 생태계, 경관우수지역\\n• 주요식생대표지역, 생물의 지리적 분포한계지역\\n• 기타 생태적 가치가 있는 지역 |\n| 2등급 | 1등급보호지역 |\n| 3등급 | 개발이용대상지역 |\n| 별도관리지역 | 타 법률에 의해 관리되는 지역 |",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-법규-25_answer_1.png"
+   }
+  ],
+  "svg_name": "eco_nature_map_zones",
+  "done": true
+ }
+]

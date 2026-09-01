@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" width="900" height="480"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>우리나라 람사르습지 — 유형별 분포</title>
+  <desc>국내 람사르 등록습지를 내륙습지·고층습원·해안(갯벌)습지·도서 습지의 네 유형으로 나누어 대표 사례와 함께 정리한 모식도</desc>
+
+  <defs>
+    <!-- 내륙 담수습지: 물결 -->
+    <pattern id="wIn" width="12" height="8" patternUnits="userSpaceOnUse">
+      <rect width="12" height="8" fill="#eef3ef"/>
+      <path d="M0,5 Q3,2 6,5 T12,5" fill="none" stroke="#4f7259" stroke-width="1.5"/>
+    </pattern>
+    <!-- 고층습원: 세로 빗금 -->
+    <pattern id="wMoor" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#eef3ef"/>
+      <line x1="4" y1="0" x2="4" y2="8" stroke="#1b4332" stroke-width="2"/>
+    </pattern>
+    <!-- 갯벌: 성긴 점 -->
+    <pattern id="wTid" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#eef3ef"/>
+      <circle cx="2.5" cy="2.5" r="1.4" fill="#6f8a76"/>
+    </pattern>
+    <!-- 도서: 사선 -->
+    <pattern id="wIsl" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#eef3ef"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#a1651a" stroke-width="2.2"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .hd    { font-size:20px; font-weight:700; fill:#1b4332; }
+    .colH  { font-size:15.5px; font-weight:700; fill:#fff; text-anchor:middle; }
+    .frm   { fill:#fcfdfc; stroke:#ccd5ce; stroke-width:1.4; }
+    .item  { font-size:15px; fill:#222; }
+    .itemB { font-size:15px; font-weight:700; fill:#1b4332; }
+    .cap   { font-size:13.5px; fill:#555; }
+    .note  { font-size:15.5px; fill:#333; }
+  </style>
+
+  <text class="hd" x="26" y="32">우리나라의 람사르습지 (2024년 7월 기준 26곳)</text>
+  <text class="cap" x="26" y="54">※ 습지의 입지 유형별로 나누어 정리한 것이다</text>
+
+  <!-- ═══ 4개 유형 열 ═══ -->
+  <!-- ① 내륙 담수습지 -->
+  <g transform="translate(26,70)">
+    <rect x="0" y="0" width="200" height="34" rx="4" fill="#1b4332"/>
+    <text class="colH" x="100" y="23">① 내륙 담수습지</text>
+    <rect class="frm" x="0" y="34" width="200" height="212"/>
+    <rect x="16" y="48" width="168" height="34" fill="url(#wIn)" stroke="#4f7259" stroke-width="1.5"/>
+
+    <text class="itemB" x="16" y="106">창녕 우포늪</text>
+    <text class="cap" x="16" y="126">국내 최대의 자연 내륙습지</text>
+    <text class="cap" x="16" y="144">수생식물·철새가 찾아든다</text>
+
+    <text class="item" x="16" y="176">영월 한반도습지</text>
+    <text class="item" x="16" y="198">문경 돌리네습지</text>
+    <text class="item" x="16" y="220">한강 밤섬 · 두웅습지</text>
+    <text class="item" x="16" y="242">순천 동천하구</text>
+  </g>
+
+  <!-- ② 고층습원 -->
+  <g transform="translate(240,70)">
+    <rect x="0" y="0" width="200" height="34" rx="4" fill="#1b4332"/>
+    <text class="colH" x="100" y="23">② 산지 고층습원</text>
+    <rect class="frm" x="0" y="34" width="200" height="212"/>
+    <rect x="16" y="48" width="168" height="34" fill="url(#wMoor)" stroke="#1b4332" stroke-width="1.5"/>
+
+    <text class="itemB" x="16" y="106">대암산 용늪</text>
+    <text class="cap" x="16" y="126">우리나라 최초로 람사르</text>
+    <text class="cap" x="16" y="144">목록에 오른 고층습원</text>
+
+    <text class="item" x="16" y="176">울산 무제치늪</text>
+    <text class="item" x="16" y="198">오대산 국립공원습지</text>
+    <text class="item" x="16" y="220">고창 운곡습지</text>
+    <text class="item" x="16" y="242">무등산 평두메습지</text>
+  </g>
+
+  <!-- ③ 해안 갯벌 -->
+  <g transform="translate(454,70)">
+    <rect x="0" y="0" width="200" height="34" rx="4" fill="#1b4332"/>
+    <text class="colH" x="100" y="23">③ 해안 갯벌습지</text>
+    <rect class="frm" x="0" y="34" width="200" height="212"/>
+    <rect x="16" y="48" width="168" height="34" fill="url(#wTid)" stroke="#4f7259" stroke-width="1.5"/>
+
+    <text class="itemB" x="16" y="106">순천 보성갯벌</text>
+    <text class="cap" x="16" y="126">흑두루미 등 국제적</text>
+    <text class="cap" x="16" y="144">멸종위기 조류가 월동</text>
+
+    <text class="item" x="16" y="176">서천 갯벌 · 무안갯벌</text>
+    <text class="item" x="16" y="198">고창 부안갯벌</text>
+    <text class="item" x="16" y="220">송도갯벌 · 대부도갯벌</text>
+    <text class="item" x="16" y="242">장항습지</text>
+  </g>
+
+  <!-- ④ 도서(제주·신안) -->
+  <g transform="translate(668,70)">
+    <rect x="0" y="0" width="206" height="34" rx="4" fill="#1b4332"/>
+    <text class="colH" x="103" y="23">④ 도서지역 습지</text>
+    <rect class="frm" x="0" y="34" width="206" height="212"/>
+    <rect x="16" y="48" width="174" height="34" fill="url(#wIsl)" stroke="#a1651a" stroke-width="1.5"/>
+
+    <text class="itemB" x="16" y="106">제주 · 신안 일원</text>
+    <text class="cap" x="16" y="126">화산지형 산정 습지와</text>
+    <text class="cap" x="16" y="144">섬 습지가 분포한다</text>
+
+    <text class="item" x="16" y="176">물영아리 · 물장오리습지</text>
+    <text class="item" x="16" y="198">1100고지습지 · 동백동산</text>
+    <text class="item" x="16" y="220">제주 숨은물뱅듸</text>
+    <text class="item" x="16" y="242">신안 장도습지 · 증도습지</text>
+  </g>
+
+  <!-- ═══ 하단 요약 ═══ -->
+  <g transform="translate(0,336)">
+    <rect x="26" y="0" width="848" height="122" rx="6" fill="#f2f5f1" stroke="#ccd5ce"/>
+    <text class="note" x="46" y="30" style="font-weight:700; fill:#1b4332;">대표 3곳 (답안 우선 서술 대상)</text>
+    <text class="note" x="46" y="58">
+      ① <tspan style="font-weight:700;">창녕 우포늪</tspan> — 국내 최대의 자연 내륙습지로 다양한 수생식물과 철새가 찾아드는 곳
+    </text>
+    <text class="note" x="46" y="82">
+      ② <tspan style="font-weight:700;">대암산 용늪</tspan> — 우리나라 최초로 람사르 목록에 오른 고층습원
+    </text>
+    <text class="note" x="46" y="106">
+      ③ <tspan style="font-weight:700;">순천 보성갯벌</tspan> — 흑두루미 등 국제적 멸종위기 조류가 월동하는 대표적 해안습지
+    </text>
+  </g>
+</svg>

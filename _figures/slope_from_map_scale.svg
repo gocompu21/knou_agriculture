@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>축척 1/500 지도에서 경사도 구하기</title>
+  <desc>왼쪽은 등고선이 그려진 지도 평면도에서 도상거리 10cm를 실제거리 50m로 환산하는 과정, 오른쪽은 그 값으로 경사도 20%를 계산하는 과정</desc>
+
+  <defs>
+    <marker id="d1" viewBox="0 0 10 10" refX="5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+    <marker id="d2" viewBox="0 0 10 10" refX="5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M10,0 L0,5 L10,10 z" fill="#a1651a"/>
+    </marker>
+    <marker id="g1" viewBox="0 0 10 10" refX="6" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b4332"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .lab  { font-size: 15px; font-weight: 700; fill: #1b4332; }
+    .sm   { font-size: 13.5px; fill: #4a4a4a; }
+    .eq   { font-size: 16px; fill: #222; }
+  </style>
+
+  <text class="ttl" x="18" y="30">축척 1/500 지도 — 도상거리를 실제거리로 바꾼 뒤 경사도를 구한다</text>
+
+  <!-- ───────── 왼쪽: 지도 평면도(시점을 단면 → 평면으로 바꿈) ───────── -->
+  <g transform="translate(18,52)">
+    <rect x="0" y="0" width="392" height="272" rx="6" fill="#f6f8f5"
+          stroke="#8fa596" stroke-width="1.6"/>
+    <text class="lab" x="14" y="26">지도 (축척 1 : 500)</text>
+
+    <!-- 등고선 — 위로 갈수록 높다. 문제에 나온 두 개만 굵게 강조 -->
+    <g fill="none" stroke="#6f8a76" stroke-width="1.8" opacity=".55">
+      <path d="M 20,238 C 110,230 250,244 374,232"/>
+      <path d="M 20,208 C 110,198 250,214 374,200"/>
+      <path d="M 20,140 C 110,132 250,148 374,134"/>
+      <path d="M 20,108 C 110,100 250,116 374,102"/>
+    </g>
+    <g fill="none" stroke="#1b4332" stroke-width="2.8">
+      <path d="M 20,176 C 100,167 200,178 288,174"/>
+      <path d="M 20,74 C 100,65 200,76 288,74"/>
+    </g>
+
+    <!-- 등고선 표고 라벨 — 등고선을 라벨 앞에서 끊어 겹치지 않게 했다 -->
+    <text class="lab" x="298" y="180">10m</text>
+    <text class="lab" x="298" y="80">110m</text>
+
+    <!-- 두 등고선 사이 도상거리 10cm -->
+    <line x1="150" y1="172" x2="150" y2="72" stroke="#1b4332" stroke-width="2"
+          stroke-dasharray="7 5"/>
+    <circle cx="150" cy="172" r="5" fill="#1b4332"/>
+    <circle cx="150" cy="72"  r="5" fill="#1b4332"/>
+    <path d="M 104,172 L 104,72" fill="none" stroke="#a1651a" stroke-width="1.6"
+          marker-start="url(#d2)" marker-end="url(#d1)"/>
+    <text class="lab" x="22" y="128" fill="#a1651a">도상거리</text>
+    <text class="lab" x="34" y="150" fill="#a1651a">10cm</text>
+
+    <text class="sm" x="14" y="260">등고선 10m와 110m 사이를 지도 위에서 잰 길이</text>
+  </g>
+
+  <!-- 변환 화살표 -->
+  <g transform="translate(422,52)">
+    <path d="M 6,150 L 46,150" fill="none" stroke="#1b4332" stroke-width="3"
+          marker-end="url(#g1)"/>
+    <text class="sm" x="8" y="134">환산</text>
+  </g>
+
+  <!-- ───────── 오른쪽: 계산 ───────── -->
+  <g transform="translate(486,52)">
+    <rect x="0" y="0" width="396" height="272" rx="6" fill="#fcfdfc"
+          stroke="#ccd5ce" stroke-width="1.2"/>
+
+    <text class="lab" x="18" y="30">① 수평거리(실제거리) 구하기</text>
+    <text class="eq"  x="30" y="60">1 : 500 = 10cm : x</text>
+    <text class="eq"  x="30" y="88">x = 10cm × 500 = 5,000cm</text>
+    <text class="eq"  x="30" y="116">  = <tspan font-weight="700" fill="#1b4332">50m</tspan></text>
+
+    <line x1="18" y1="134" x2="378" y2="134" stroke="#ccd5ce" stroke-width="1.2"/>
+
+    <text class="lab" x="18" y="162">② 경사도 구하기</text>
+
+    <!-- 수직·수평 관계를 작은 직각삼각형으로 보조 표시 -->
+    <g transform="translate(30,180)">
+      <path d="M 10,68 L 10,40 L 116,68 Z"
+            fill="#f2f5f1" stroke="#4f7259" stroke-width="1.8"/>
+      <text class="sm" x="-30" y="30" fill="#a1651a">수직거리 10</text>
+      <text class="sm" x="22" y="88" fill="#a1651a">수평거리 50m</text>
+    </g>
+
+    <text class="eq" x="190" y="206">경사도 = 수직거리 ÷ 수평거리</text>
+    <text class="eq" x="190" y="236">= 10 / 50 × 100%</text>
+    <text class="eq" x="190" y="266" font-weight="700" fill="#1b4332">= 20%</text>
+  </g>
+
+  <text class="sm" x="18" y="350">※ 도상거리 10cm는 지도 위에서 잰 길이이고, 축척을 곱해 얻은 50m가 현장의 수평거리이다.</text>
+  <text class="sm" x="18" y="374">※ 경사도 = (수직거리 ÷ 수평거리) × 100%. 표준 답안은 수직거리를 10으로 두고 10 / 50 × 100% = 20%로 계산한다.</text>
+</svg>

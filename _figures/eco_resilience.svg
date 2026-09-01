@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" width="900" height="420"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>생태회복력 — 교란 후 회복과 한계 초과</title>
+  <desc>시간에 따른 생태계 기능 변화. 회복력 한계 안의 교란은 원래 수준으로 되돌아오지만, 한계를 넘는 교란은 다른 안정 상태로 전이되어 복귀하지 못함을 두 선으로 나타냈다</desc>
+
+  <defs>
+    <marker id="rax" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+    <marker id="rdn" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+    <!-- 회복력 한계 아래 영역: 성긴 점 -->
+    <pattern id="belowP" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#f8f6f2"/>
+      <circle cx="2" cy="2" r="1" fill="#d9cdb8"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .ax    { stroke: #222; stroke-width: 2.2; fill: none; }
+    .axT   { font-size: 16px; font-weight: 700; fill: #222; }
+    .c1    { stroke: #1b4332; stroke-width: 3.4; fill: none; }
+    .c2    { stroke: #a1651a; stroke-width: 3.4; fill: none; stroke-dasharray: 11 6; }
+    .lim   { stroke: #7a4c11; stroke-width: 2; fill: none; stroke-dasharray: 4 4; }
+    .base  { stroke: #6f8a76; stroke-width: 1.6; fill: none; stroke-dasharray: 3 5; }
+    .dis   { stroke: #222; stroke-width: 2.6; fill: none; }
+    .disT  { font-size: 14.5px; font-weight: 700; fill: #222; text-anchor: middle; }
+    .lab   { font-size: 15px; font-weight: 700; }
+    .note  { font-size: 15.5px; fill: #333; }
+  </style>
+
+  <!-- 회복력 한계 아래 영역 -->
+  <rect x="120" y="212" width="700" height="90" fill="url(#belowP)"/>
+
+  <!-- 축 -->
+  <path class="ax" d="M 120,302 L 830,302" marker-end="url(#rax)"/>
+  <path class="ax" d="M 120,302 L 120,52" marker-end="url(#rax)"/>
+  <text class="axT" transform="translate(102,190) rotate(-90)">생태계 기능</text>
+  <text class="axT" x="790" y="330" text-anchor="end">시간 →</text>
+
+  <!-- 원래 평형 수준 -->
+  <path class="base" d="M 120,96 L 820,96"/>
+  <text class="lab" x="126" y="88" fill="#4f7259">원래 평형 수준</text>
+
+  <!-- 회복력 한계선 -->
+  <path class="lim" d="M 120,212 L 820,212"/>
+  <text class="lab" x="700" y="205" fill="#7a4c11">회복력의 한계</text>
+
+  <!-- 교란 1: 한계 안 → 복귀 -->
+  <path class="c1"
+        d="M 128,96 L 235,96
+           C 258,96 262,168 285,180
+           C 308,192 330,140 360,104
+           C 380,98 400,96 470,96"/>
+
+  <!-- 교란 2: 한계 안 → 복귀 (두 번째, 조금 더 깊게) -->
+  <path class="c1"
+        d="M 470,96
+           C 494,96 498,178 520,192
+           C 544,206 566,142 596,106
+           C 614,99 634,96 700,96
+           L 820,96"/>
+
+  <!-- 교란 3: 한계 초과 → 다른 안정 상태 -->
+  <path class="c2"
+        d="M 596,106 C 626,120 640,236 668,258
+           C 694,278 720,268 748,264
+           L 820,264"/>
+
+  <!-- 교란 화살표 -->
+  <g>
+    <path class="dis" d="M 262,44 L 262,128" marker-end="url(#rax)"/>
+    <text class="disT" x="262" y="36">교란</text>
+  </g>
+  <g>
+    <path class="dis" d="M 500,44 L 500,138" marker-end="url(#rax)"/>
+    <text class="disT" x="500" y="36">교란</text>
+  </g>
+  <g>
+    <path d="M 630,44 L 630,150" stroke="#a1651a" stroke-width="3" fill="none"
+          marker-end="url(#rdn)"/>
+    <text class="disT" x="630" y="36" fill="#a1651a">강한 교란</text>
+  </g>
+
+  <!-- 결과 라벨 -->
+  <text class="lab" x="352" y="86" fill="#1b4332">복귀</text>
+  <text class="lab" x="758" y="256" fill="#a1651a">다른 안정 상태</text>
+  <path d="M 786,262 L 820,262" stroke="#a1651a" stroke-width="2" fill="none"/>
+
+  <!-- 하단 정리 -->
+  <text class="note" x="120" y="366">· 교란의 강도·빈도가 <tspan font-weight="700">한계 안</tspan>이면 종전 구조로 되돌아온다 (실선)</text>
+  <text class="note" x="120" y="392">· 한계를 <tspan font-weight="700">넘어서면</tspan> 다른 상태로 전이되어 원래 상태로 복귀하지 못한다 (점선)</text>
+</svg>

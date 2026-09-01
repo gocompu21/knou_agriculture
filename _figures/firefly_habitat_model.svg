@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 470" width="900" height="470"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>반딧불이 서식처 공간모형 — 생활단계별 공간 배치</title>
+  <desc>산림·수로·논이 나란히 놓인 평면 배치도 위에 산란장소, 유충 생활장소, 용화장소, 교미장소, 휴식 및 비상공간을 표시하고 알에서 성충까지의 생활사 순환을 겹쳐 나타낸 그림</desc>
+
+  <defs>
+    <pattern id="forest" width="9" height="9" patternUnits="userSpaceOnUse">
+      <rect width="9" height="9" fill="#eef3ef"/>
+      <circle cx="3" cy="3" r="1.5" fill="#4f7259"/>
+    </pattern>
+    <pattern id="paddy" width="10" height="10" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="10" height="10" fill="#f5f8f5"/>
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#8fa397" stroke-width="1.7"/>
+    </pattern>
+    <pattern id="water" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#eaf0ee"/>
+      <path d="M0,4 q2,-2 4,0 t4,0" stroke="#6f8a76" stroke-width="1.2" fill="none"/>
+    </pattern>
+    <marker id="a7" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8a5415"/>
+    </marker>
+    <marker id="a7b" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .land { font-size: 15px; font-weight: 700; fill: #22402c; }
+    .stg  { font-size: 14.5px; font-weight: 700; fill: #8a5415; text-anchor: middle; }
+    .dsc  { font-size: 14px; fill: #333; }
+    .sm   { font-size: 13px; fill: #444; }
+    .cyc  { font-size: 14.5px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+  </style>
+
+  <text class="ttl" x="20" y="30">반딧불이 서식처 공간모형 — 수로를 사이에 두고 산림과 논이 마주 본다</text>
+
+  <!-- ── 평면 배치도 ── -->
+  <rect x="20" y="46" width="560" height="300" fill="#fcfdfc" stroke="#ccd5ce" stroke-width="1.2" rx="6"/>
+
+  <!-- 산림 (위) -->
+  <rect x="26" y="52" width="548" height="76" fill="url(#forest)" stroke="#4f7259" stroke-width="1.6"/>
+  <rect x="32" y="58" width="350" height="64" fill="#fff" opacity=".86"/>
+  <text class="land" x="38" y="76">산림 — 휴식 및 비상공간</text>
+  <text class="sm"   x="38" y="96">인공조명·소음이 미치지 않아야 한다</text>
+  <text class="sm"   x="38" y="116">성충 비상거리 100m 정도의 개방공간 확보</text>
+
+  <!-- 수로변 풀숲 (위쪽 가장자리) -->
+  <rect x="26" y="128" width="548" height="34" fill="#f2f5f1" stroke="#6f8a76" stroke-width="1.4"/>
+  <text class="land" x="38" y="150">수로변 풀·나뭇잎 — 교미장소 / 산란장소</text>
+
+  <!-- 수로(작은 개울) -->
+  <rect x="26" y="162" width="548" height="60" fill="url(#water)" stroke="#1b4332" stroke-width="2.2"/>
+  <rect x="32" y="168" width="470" height="50" fill="#fff" opacity=".86"/>
+  <text class="land" x="38" y="185">작은 개울 — 유충 생활장소</text>
+  <text class="sm"   x="38" y="203">폭 3m 내외 · 수심 15~30cm · 유속 느림 · 다슬기·달팽이 먹이 풍부</text>
+  <text class="sm"   x="38" y="217" style="font-size:12.5px">하상 : 크기가 제각각인 돌·자갈·모래·점토</text>
+
+  <!-- 논둑 (용화장소) -->
+  <rect x="26" y="222" width="548" height="30" fill="#efeee9" stroke="#a1651a" stroke-width="2"/>
+  <text class="land" x="38" y="242" style="fill:#8a5415">논둑·제방 — 용화장소 (번데기 방)</text>
+
+  <!-- 논 / 휴경지 / 못 -->
+  <rect x="26" y="252" width="548" height="88" fill="url(#paddy)" stroke="#4f7259" stroke-width="1.6"/>
+  <rect x="32" y="258" width="430" height="78" fill="#fff" opacity=".86"/>
+  <text class="land" x="38" y="276">논 · 휴경지 · 못 — 유충 생활장소</text>
+  <text class="sm"   x="38" y="296">논 : 농한기에도 토양수분 유지, 농약 규제, 자연형 농수로</text>
+  <text class="sm"   x="38" y="314">휴경지 : 묵혀져 습지 상태를 유지하는 땅</text>
+  <text class="sm"   x="38" y="332">못 : 수심 5~40cm, 흐름이 느린 곳</text>
+
+  <!-- 배치 요지 -->
+  <text class="sm" x="20" y="364" style="font-weight:700;fill:#1b4332">수로를 사이에 두고 한쪽은 산림, 다른 한쪽은 논·습지로 두는 토지 배치가 유리하다.</text>
+
+  <!-- ── 오른쪽: 생활사 순환 ── -->
+  <rect x="600" y="46" width="280" height="300" fill="#f7faf8" stroke="#4f7259" stroke-width="1.6" rx="6"/>
+  <text class="cyc" x="740" y="72">생활단계 ↔ 공간</text>
+
+  <!-- 알 -->
+  <rect x="626" y="88" width="228" height="58" fill="#fff" stroke="#8a5415" stroke-width="2" rx="5"/>
+  <text class="stg" x="740" y="108">알 → 산란장소</text>
+  <text class="sm"  x="638" y="126" style="font-size:12.5px">유충 생활장소 가까이의 부드러운</text>
+  <text class="sm"  x="638" y="140" style="font-size:12.5px">흙·이끼·풀 위 (부화 즉시 입수)</text>
+  <line x1="740" y1="146" x2="740" y2="158" stroke="#333" stroke-width="2" marker-end="url(#a7b)"/>
+
+  <!-- 유충 -->
+  <rect x="626" y="158" width="228" height="46" fill="#fff" stroke="#8a5415" stroke-width="2" rx="5"/>
+  <text class="stg" x="740" y="178">유충 → 생활장소</text>
+  <text class="sm"  x="638" y="197" style="font-size:12.5px">개울 · 논 · 휴경지 · 못 (물속)</text>
+  <line x1="740" y1="204" x2="740" y2="216" stroke="#333" stroke-width="2" marker-end="url(#a7b)"/>
+
+  <!-- 번데기 -->
+  <rect x="626" y="216" width="228" height="46" fill="#fff" stroke="#8a5415" stroke-width="2" rx="5"/>
+  <text class="stg" x="740" y="236">번데기 → 용화장소</text>
+  <text class="sm"  x="638" y="255" style="font-size:12.5px">습기 남은 논둑·제방 흙, 풀뿌리 사이</text>
+  <line x1="740" y1="262" x2="740" y2="274" stroke="#333" stroke-width="2" marker-end="url(#a7b)"/>
+
+  <!-- 성충 -->
+  <rect x="626" y="274" width="228" height="56" fill="#fff" stroke="#8a5415" stroke-width="2" rx="5"/>
+  <text class="stg" x="740" y="294" style="font-size:13.5px">성충 → 교미장소 · 휴식/비상공간</text>
+  <text class="sm"  x="638" y="313" style="font-size:12.5px">수로변 풀·나뭇잎에서 짝짓기,</text>
+  <text class="sm"  x="638" y="326" style="font-size:12.5px">볏잎 뒷면·풀숲·바위 이끼에서 휴식</text>
+
+  <!-- 성충 → 알 되돌아가는 순환 -->
+  <path d="M 622,302 L 596,302 L 596,114 L 622,114"
+        stroke="#8a5415" stroke-width="2.4" fill="none"
+        stroke-dasharray="9 5" marker-end="url(#a7)"/>
+  <text class="sm" x="596" y="212" style="fill:#8a5415;font-weight:700;font-size:12.5px"
+        transform="rotate(-90 596 212)" text-anchor="middle">산란</text>
+
+  <!-- 공간 ↔ 단계 연결 표시 -->
+  <text class="sm" x="596" y="364" style="font-size:12.5px">한 단계라도 공간이 끊기면 개체군이 유지되지 않는다.</text>
+</svg>

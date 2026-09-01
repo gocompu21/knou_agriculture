@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 440" width="900" height="440"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>남생이 서식지 복원 — 공간 배치 평면도</title>
+  <desc>주변 산림·초지 경작지에 둘러싸인 저수지를 위에서 내려다본 평면도로, 모래톱·수초대·일광욕 바위·통나무·동면 진흙바닥의 배치와 수질 조건을 나타냄</desc>
+
+  <defs>
+    <pattern id="tForest" width="9" height="9" patternUnits="userSpaceOnUse">
+      <rect width="9" height="9" fill="#f2f5f1"/>
+      <circle cx="3" cy="3" r="1.5" fill="#4f7259"/>
+      <circle cx="7" cy="7" r="1" fill="#7d9b85"/>
+    </pattern>
+    <pattern id="tGrass" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#f7faf6"/>
+      <path d="M1,7 L1,3 M4,7 L4,2 M7,7 L7,4" stroke="#7d9b85" stroke-width="1"/>
+    </pattern>
+    <pattern id="tSand" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#fbf7ef"/>
+      <circle cx="1.6" cy="1.6" r="0.8" fill="#a1651a"/>
+      <circle cx="4.4" cy="4.2" r="0.6" fill="#c08b46"/>
+    </pattern>
+    <pattern id="tWater" width="10" height="10" patternUnits="userSpaceOnUse">
+      <rect width="10" height="10" fill="#eef3f5"/>
+      <path d="M0,5 Q2.5,2.5 5,5 T10,5" stroke="#8fa9b3" stroke-width="0.9" fill="none"/>
+    </pattern>
+    <pattern id="tMud" width="7" height="7" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#e6e3dc"/>
+      <path d="M0,7 L7,0" stroke="#8a8375" stroke-width="1"/>
+    </pattern>
+    <marker id="lead" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .zt   { font-size: 15px; font-weight: 700; fill: #1b4332; }
+    .zc   { font-size: 15px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .lab  { font-size: 14px; fill: #222; }
+    .labc { font-size: 14px; fill: #222; text-anchor: middle; }
+    .spec { font-size: 14.5px; fill: #333; }
+    .lead { stroke: #333; stroke-width: 1.3; fill: none; }
+    .box  { fill: #fcfdfc; stroke: #ccd5ce; stroke-width: 1.2; }
+    .note { font-size: 15px; fill: #333; text-anchor: middle; }
+  </style>
+
+  <text class="ttl" x="450" y="28">남생이 서식지 복원 — 공간 배치 (평면도, 위에서 내려다본 모습)</text>
+
+  <!-- ── 평면 전체 틀 ── -->
+  <rect x="30" y="46" width="560" height="330" rx="6" fill="url(#tGrass)" stroke="#9aa89d" stroke-width="1.4"/>
+
+  <!-- 주변 산림 : 좌상 -->
+  <path d="M30,46 L330,46 C300,110 200,140 130,160 C90,172 52,166 30,150 Z"
+        fill="url(#tForest)" stroke="#4f7259" stroke-width="1.8"/>
+  <text class="zt" x="76" y="84">주변 산림</text>
+  <text class="lab" x="76" y="106">(육상 은신 · 이동)</text>
+
+  <!-- 초지 경작지 : 우하 -->
+  <path d="M590,376 L590,238 C520,262 460,318 430,376 Z"
+        fill="url(#tGrass)" stroke="#7d9b85" stroke-width="1.8" stroke-dasharray="7 4"/>
+  <text class="zt" x="470" y="352">초지 경작지</text>
+
+  <!-- 저수지 (유속이 느린 담수) -->
+  <path d="M 150,176 C 220,146 320,150 400,178 C 470,202 500,250 470,296
+           C 434,346 320,362 244,338 C 168,314 118,236 150,176 Z"
+        fill="url(#tWater)" stroke="#5d7f8c" stroke-width="2.2"/>
+  <text class="zc" x="306" y="212">저수지 (유속이 느린 담수)</text>
+
+  <!-- 동면 진흙·세사 바닥 : 저수지 중앙 깊은 곳 -->
+  <path d="M 250,236 C 300,220 372,228 400,258 C 418,290 372,318 316,318
+           C 262,318 226,272 250,236 Z"
+        fill="url(#tMud)" stroke="#8a8375" stroke-width="1.6" stroke-dasharray="6 3"/>
+  <text class="labc" x="326" y="272">진흙 · 세사 바닥</text>
+  <text class="labc" x="326" y="292">(겨울 동면)</text>
+
+  <!-- 모래톱 : 물가 산란지 -->
+  <path d="M 158,168 C 210,138 276,140 318,152 C 300,166 250,170 210,182
+           C 182,190 164,182 158,168 Z"
+        fill="url(#tSand)" stroke="#a1651a" stroke-width="1.8"/>
+  <text class="zt" x="176" y="132">모래톱</text>
+  <text class="lab" x="176" y="150" style="font-size:13px">산란기 구덩이 산란 (6~7월)</text>
+
+  <!-- 수초대 : 좌하 물가 -->
+  <g stroke="#4f7259" stroke-width="1.6" fill="none">
+    <path d="M164,268 L160,246 M172,272 L172,248 M180,276 L186,252 M190,282 L190,258 M200,288 L206,264"/>
+  </g>
+  <text class="lab" x="128" y="306">수초대</text>
+  <path class="lead" d="M 152,300 L 178,282" marker-end="url(#lead)"/>
+
+  <!-- 일광욕 바위 0~5개 -->
+  <g fill="#d9d5cc" stroke="#6f6a60" stroke-width="1.5">
+    <ellipse cx="404" cy="206" rx="14" ry="9"/>
+    <ellipse cx="428" cy="216" rx="10" ry="7"/>
+    <ellipse cx="412" cy="226" rx="8" ry="6"/>
+  </g>
+  <text class="lab" x="452" y="182">바위 0~5개</text>
+  <text class="lab" x="452" y="199" style="font-size:13px">(여름 일광욕 · 기생충 제거)</text>
+  <path class="lead" d="M 448,192 L 418,202" marker-end="url(#lead)"/>
+
+  <!-- 통나무 0~18개 : 은신처 -->
+  <g stroke="#6f6a60" stroke-width="1.5" fill="#e4e0d6">
+    <rect x="238" y="326" width="58" height="11" rx="5" transform="rotate(-9 267 331)"/>
+    <rect x="304" y="332" width="50" height="10" rx="5" transform="rotate(6 329 337)"/>
+  </g>
+  <text class="lab" x="230" y="366">통나무 0~18개 (은신처 · 일광욕대)</text>
+
+  <!-- 이동 방향(산림↔물가) -->
+  <path d="M 118,158 C 132,176 140,196 142,218" stroke="#1b4332" stroke-width="1.8"
+        fill="none" stroke-dasharray="7 5" marker-end="url(#lead)"/>
+
+  <!-- ── 우측 조건 카드 ── -->
+  <g>
+    <rect class="box" x="610" y="46" width="260" height="152" rx="6"/>
+    <text class="zt" x="626" y="72">수질 · 수리 조건</text>
+    <line x1="626" y1="80" x2="854" y2="80" stroke="#ccd5ce" stroke-width="1.2"/>
+    <text class="spec" x="626" y="104">DO  7.81 ~ 11.57 ppm</text>
+    <text class="spec" x="626" y="128">pH  6.85 ~ 9.71</text>
+    <text class="spec" x="626" y="152">수온  3 ~ 28 ℃</text>
+    <text class="spec" x="626" y="176">수심  0 ~ 3 m</text>
+  </g>
+
+  <g>
+    <rect class="box" x="610" y="212" width="260" height="164" rx="6"/>
+    <text class="zt" x="626" y="238">복원 요건</text>
+    <line x1="626" y1="246" x2="854" y2="246" stroke="#ccd5ce" stroke-width="1.2"/>
+    <text class="lab" x="626" y="270">· 멸종위기 야생생물 Ⅱ급</text>
+    <text class="lab" x="626" y="294">· 유속이 느린 담수와 이어진</text>
+    <text class="lab" x="638" y="315">모래톱 · 은신처 · 초지를</text>
+    <text class="lab" x="638" y="336">한 공간에 갖출 것</text>
+    <text class="lab" x="626" y="360">· 강 중·하류, 호수, 늪, 관개수로</text>
+  </g>
+
+  <text class="note" x="450" y="410">산림(육상 은신) — 모래톱(산란) — 저수지(먹이·동면) — 초지(완충)가 끊기지 않고 이어지도록 배치한다</text>
+  <text class="note" x="450" y="432">가장 큰 위협은 지역 개발과 담수 형태의 변형이므로, 수면 형상과 물가 경계를 자연 상태로 유지한다</text>
+</svg>

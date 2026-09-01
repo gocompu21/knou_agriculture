@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>생물권보전지역의 세 가지 기능 — 보전·지원·발전</title>
+  <desc>생물권보전지역을 떠받치는 세 기둥으로 표현했다. 왼쪽 보전(A)과 오른쪽 발전(C)이 양 끝을 이루고, 가운데 지원(B)이 그 두 기능을 뒷받침한다</desc>
+
+  <defs>
+    <pattern id="pA" width="6" height="6" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="6" height="6" fill="#e6efe8"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#1b4332" stroke-width="1.8"/>
+    </pattern>
+    <pattern id="pB" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#f3f6f2"/>
+      <circle cx="4" cy="4" r="1.3" fill="#4f7259"/>
+    </pattern>
+    <pattern id="pC" width="8" height="8" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(-45)">
+      <rect width="8" height="8" fill="#f7f4ee"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#a1651a" stroke-width="1.6"/>
+    </pattern>
+    <marker id="up" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4f7259"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .cd  { font-size: 22px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .fn  { font-size: 17px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .dsc { font-size: 14px; fill: #333; text-anchor: middle; }
+    .base{ font-size: 18px; font-weight: 700; fill: #fff; text-anchor: middle; }
+    .sm  { font-size: 13.5px; fill: #555; text-anchor: middle; }
+  </style>
+
+  <text class="ttl" x="20" y="30">생물권보전지역을 떠받치는 세 기능</text>
+
+  <!-- ─── 기둥 A : 보전 ─── -->
+  <g transform="translate(52,60)">
+    <rect x="0" y="0" width="220" height="196" rx="6"
+          fill="url(#pA)" stroke="#1b4332" stroke-width="2.6"/>
+    <rect x="0" y="0" width="220" height="46" fill="#1b4332"/>
+    <rect x="93" y="10" width="34" height="28" rx="4" fill="#ffffff"/><text class="cd" x="110" y="32" fill="#1b4332">A</text>
+    <!-- 본문은 흰 판 위에 올려 패턴 위에서도 읽히게 한다 -->
+    <rect x="12" y="58" width="196" height="126" rx="4" fill="#ffffff"
+          stroke="#1b4332" stroke-width="1.2"/>
+    <text class="fn" x="110" y="86">보　전</text>
+    <line x1="34" y1="100" x2="186" y2="100" stroke="#1b4332" stroke-width="1.4"/>
+    <text class="dsc" x="110" y="128">경관</text>
+    <text class="dsc" x="110" y="152">생태계</text>
+    <text class="dsc" x="110" y="176">종 · 유전적 변이</text>
+  </g>
+  <text class="sm" x="162" y="284">지켜야 할 대상</text>
+
+  <!-- ─── 기둥 C : 발전 ─── -->
+  <g transform="translate(628,60)">
+    <rect x="0" y="0" width="220" height="196" rx="6"
+          fill="url(#pC)" stroke="#a1651a" stroke-width="2.6"/>
+    <rect x="0" y="0" width="220" height="46" fill="#a1651a"/>
+    <rect x="93" y="10" width="34" height="28" rx="4" fill="#ffffff"/><text class="cd" x="110" y="32" fill="#7d4d13">C</text>
+    <rect x="12" y="58" width="196" height="126" rx="4" fill="#ffffff"
+          stroke="#a1651a" stroke-width="1.2"/>
+    <text class="fn" x="110" y="86" fill="#7d4d13">발　전</text>
+    <line x1="34" y1="100" x2="186" y2="100" stroke="#a1651a" stroke-width="1.4"/>
+    <text class="dsc" x="110" y="128">사회적 · 문화적 · 생태적으로</text>
+    <text class="dsc" x="110" y="152">지속가능한</text>
+    <text class="dsc" x="110" y="176">경제와 인간</text>
+  </g>
+  <text class="sm" x="738" y="284">이루어야 할 목표</text>
+
+  <!-- ─── 기둥 B : 지원 (가운데, 위 두 기능을 받쳐 준다) ─── -->
+  <g transform="translate(330,60)">
+    <rect x="0" y="0" width="240" height="196" rx="6"
+          fill="url(#pB)" stroke="#4f7259" stroke-width="2.6" stroke-dasharray="9 5"/>
+    <rect x="0" y="0" width="240" height="46" fill="#4f7259"/>
+    <rect x="103" y="10" width="34" height="28" rx="4" fill="#ffffff"/><text class="cd" x="120" y="32" fill="#2f5c40">B</text>
+    <rect x="12" y="58" width="216" height="126" rx="4" fill="#ffffff"
+          stroke="#4f7259" stroke-width="1.2"/>
+    <text class="fn" x="120" y="86" fill="#2f5c40">지　원</text>
+    <line x1="38" y1="100" x2="202" y2="100" stroke="#4f7259" stroke-width="1.4"/>
+    <text class="dsc" x="120" y="128">시범사업 · 환경교육</text>
+    <text class="dsc" x="120" y="152">연구 및 모니터링</text>
+    <text class="dsc" x="120" y="176">위 두 기능을 용이하게 수행</text>
+  </g>
+  <text class="sm" x="450" y="284">둘을 잇는 수단</text>
+
+  <!-- B가 A·C를 받쳐 준다는 관계 -->
+  <path d="M 330,158 L 286,158" stroke="#4f7259" stroke-width="2.2"
+        fill="none" stroke-dasharray="7 5" marker-end="url(#up)"/>
+  <path d="M 570,158 L 614,158" stroke="#4f7259" stroke-width="2.2"
+        fill="none" stroke-dasharray="7 5" marker-end="url(#up)"/>
+
+  <!-- ─── 토대 : 생물권보전지역 ─── -->
+  <rect x="52" y="302" width="796" height="56" rx="8"
+        fill="#1b4332" stroke="#123024" stroke-width="2"/>
+  <text class="base" x="450" y="337">생 물 권 보 전 지 역</text>
+
+  <!-- 기둥과 토대를 잇는 짧은 다리 -->
+  <g fill="#1b4332">
+    <rect x="150" y="290" width="24" height="12"/>
+    <rect x="438" y="290" width="24" height="12"/>
+    <rect x="726" y="290" width="24" height="12"/>
+  </g>
+
+  <text class="sm" x="450" y="382" style="font-size:14.5px; fill:#333">세 기능을 모두 만족해야 생물권보전지역으로 인정된다</text>
+</svg>

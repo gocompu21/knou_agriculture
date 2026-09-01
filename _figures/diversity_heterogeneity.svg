@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>이질성과 종다양성의 관계</title>
+  <desc>경관 이질성이 중간 수준일 때 종다양성이 최대가 되는 종 모양 곡선. 낮음·중간·높음 세 구간을 배경 띠로 나누고 각 구간의 이유를 아래에 적었다</desc>
+
+  <defs>
+    <marker id="dax" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+    <!-- 구간 1: 성긴 세로선 -->
+    <pattern id="z1" width="10" height="10" patternUnits="userSpaceOnUse">
+      <rect width="10" height="10" fill="#fbfcfb"/>
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#d5ded7" stroke-width="1.2"/>
+    </pattern>
+    <!-- 구간 3: 촘촘한 격자 (과도한 세분) -->
+    <pattern id="z3" width="7" height="7" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#fbfcfb"/>
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#d5ded7" stroke-width="1"/>
+      <line x1="0" y1="0" x2="7" y2="0" stroke="#d5ded7" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .ax    { stroke: #222; stroke-width: 2.2; fill: none; }
+    .axT   { font-size: 16px; font-weight: 700; fill: #222; }
+    .curve { stroke: #1b4332; stroke-width: 3.4; fill: none; }
+    .guide { stroke: #a1651a; stroke-width: 1.8; fill: none; stroke-dasharray: 7 5; }
+    .zt    { font-size: 15px; font-weight: 700; fill: #33513c; text-anchor: middle; }
+    .note  { font-size: 15.5px; fill: #333; text-anchor: middle; }
+    .peak  { font-size: 15px; font-weight: 700; fill: #a1651a; }
+  </style>
+
+  <!-- 축: 원본은 세로축 왼쪽 라벨 + 가로축 오른쪽 라벨.
+       여기서는 축 제목을 축 위쪽/축 끝단에 회전 배치하고 구간 띠를 넣어 구도를 바꾼다. -->
+
+  <!-- 구간 배경 띠 (흑백에서도 구분되도록 패턴 사용) -->
+  <rect x="120" y="60" width="200" height="212" fill="url(#z1)"/>
+  <rect x="320" y="60" width="220" height="212" fill="#eef3ef"/>
+  <rect x="540" y="60" width="240" height="212" fill="url(#z3)"/>
+  <line x1="320" y1="60" x2="320" y2="272" stroke="#c3cfc6" stroke-width="1.4"/>
+  <line x1="540" y1="60" x2="540" y2="272" stroke="#c3cfc6" stroke-width="1.4"/>
+
+  <!-- 축 -->
+  <path class="ax" d="M 120,272 L 800,272" marker-end="url(#dax)"/>
+  <path class="ax" d="M 120,272 L 120,54" marker-end="url(#dax)"/>
+
+  <!-- 축 제목: 세로축은 축을 따라 회전, 가로축은 축 아래 가운데 -->
+  <text class="axT" transform="translate(102,200) rotate(-90)">종다양성</text>
+  <text class="axT" x="455" y="300" text-anchor="middle">경관 이질성 (경관요소의 다양한 정도)</text>
+
+  <!-- 종 모양 곡선: 낮음에서 상승 → 중간에서 최대 → 높음에서 하강 -->
+  <path class="curve"
+        d="M 128,266 C 200,262 250,232 300,178
+           C 340,136 390,108 430,108
+           C 470,108 520,134 560,178
+           C 610,232 680,262 792,268"/>
+
+  <!-- 최대점 지시 -->
+  <circle cx="430" cy="108" r="6" fill="#a1651a"/>
+  <path class="guide" d="M 120,108 L 424,108"/>
+  <path class="guide" d="M 430,114 L 430,272"/>
+  <text class="peak" x="444" y="96">최대 종다양성</text>
+  <text class="peak" x="430" y="264" style="font-size:14px;text-anchor:middle">중간 이질성</text>
+
+  <!-- 구간 라벨 -->
+  <text class="zt" x="220" y="82">① 이질성 낮음</text>
+  <text class="zt" x="430" y="82">② 중간</text>
+  <text class="zt" x="660" y="82">③ 이질성 지나침</text>
+
+  <!-- 구간별 설명 -->
+  <text class="note" x="220" y="336">경관요소가 단조로워</text>
+  <text class="note" x="220" y="358">서식처 유형이 적다</text>
+
+  <text class="note" x="430" y="336">서식처 유형이 다양하고</text>
+  <text class="note" x="430" y="358">면적도 확보된다</text>
+
+  <text class="note" x="660" y="336">과도하게 세분되어 각 서식처</text>
+  <text class="note" x="660" y="358">면적이 좁아 오히려 감소</text>
+</svg>

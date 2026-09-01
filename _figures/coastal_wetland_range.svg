@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" width="900" height="360"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>연안습지(습지보전법)와 해안습지(람사르협약)의 범위 비교</title>
+  <desc>바다에서 육지로 이어지는 구간을 띠 모양으로 펼쳐, 조간대만 포함하는 연안습지와 간조 시 수심 6m 이내까지 포함하는 해안습지의 범위 차이를 나타낸 모식도</desc>
+
+  <defs>
+    <!-- 조간대: 빗금 -->
+    <pattern id="tidal" width="8" height="8" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#eef3ef"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#4f7259" stroke-width="2.4"/>
+    </pattern>
+    <!-- 얕은 바다(수심 6m 이내): 점 -->
+    <pattern id="shallow" width="7" height="7" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#f4f7f4"/>
+      <circle cx="2" cy="2" r="1.1" fill="#7b9483"/>
+    </pattern>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .zone { font-size: 15px; font-weight: 700; fill: #22402c; text-anchor: middle; }
+    .sub  { font-size: 13.5px; fill: #444; text-anchor: middle; }
+    .rng  { font-size: 15.5px; font-weight: 700; fill: #1b4332; }
+    .note { font-size: 15.5px; fill: #333; }
+    .tick { stroke: #333; stroke-width: 1.4; }
+  </style>
+
+  <text class="ttl" x="20" y="30">연안습지와 해안습지 — 어디까지를 습지로 보는가</text>
+
+  <!-- 방향 축: 바다 → 육지 -->
+  <line x1="40" y1="60" x2="860" y2="60" stroke="#666" stroke-width="1.4"
+        marker-end="url(#a2)"/>
+  <text class="sub" x="70" y="52" style="text-anchor:start">← 바다 쪽</text>
+  <text class="sub" x="830" y="52" style="text-anchor:end">육지 쪽 →</text>
+
+  <!-- ── 구역 띠 ── -->
+  <!-- 깊은 바다 -->
+  <rect x="40" y="76" width="150" height="76" fill="#e3e8e4" stroke="#9aa79e" stroke-width="1.4"/>
+  <text class="zone" x="115" y="108">깊은 바다</text>
+  <text class="sub"  x="115" y="130">수심 6m 초과</text>
+
+  <!-- 얕은 바다 -->
+  <rect x="190" y="76" width="230" height="76" fill="url(#shallow)" stroke="#4f7259" stroke-width="1.8"/>
+  <rect x="206" y="92" width="198" height="44" fill="#fff" opacity=".82"/>
+  <text class="zone" x="305" y="110">얕은 바다</text>
+  <text class="sub"  x="305" y="130">간조 시 수심 6m 이내</text>
+
+  <!-- 조간대 -->
+  <rect x="420" y="76" width="270" height="76" fill="url(#tidal)" stroke="#1b4332" stroke-width="2.2"/>
+  <rect x="438" y="84" width="234" height="62" fill="#fff" opacity=".82"/>
+  <text class="zone" x="555" y="104">조간대(갯벌)</text>
+  <text class="sub"  x="555" y="126">간조위 ~ 만조위 사이</text>
+  <text class="sub"  x="555" y="145">조석이 드나드는 범위</text>
+
+  <!-- 육지 -->
+  <rect x="690" y="76" width="170" height="76" fill="#e3e8e4" stroke="#9aa79e" stroke-width="1.4"/>
+  <text class="zone" x="775" y="108">육지</text>
+  <text class="sub"  x="775" y="130">만조위 위쪽</text>
+
+  <!-- 경계 눈금 -->
+  <line class="tick" x1="190" y1="70" x2="190" y2="162"/>
+  <line class="tick" x1="420" y1="70" x2="420" y2="220"/>
+  <line class="tick" x1="690" y1="70" x2="690" y2="260"/>
+  <text class="sub" x="420" y="172">간조위</text>
+  <text class="sub" x="690" y="172">만조위</text>
+
+  <!-- ── 범위 막대 ── -->
+  <!-- 연안습지 -->
+  <g>
+    <line x1="420" y1="200" x2="690" y2="200" stroke="#1b4332" stroke-width="4"
+          marker-start="url(#a2)" marker-end="url(#a2)"/>
+    <text class="rng" x="430" y="224">연안습지 — 「습지보전법」</text>
+    <text class="note" x="430" y="246" style="font-size:14px">조간대만 포함 (좁은 범위)</text>
+  </g>
+
+  <!-- 해안습지 -->
+  <g>
+    <line x1="190" y1="284" x2="690" y2="284" stroke="#a1651a" stroke-width="4"
+          stroke-dasharray="12 6"
+          marker-start="url(#a2)" marker-end="url(#a2)"/>
+    <text class="rng" x="430" y="308" fill="#8a5415">해안습지 — 람사르협약</text>
+    <text class="note" x="430" y="330" style="font-size:14px">조간대 + 간조 시 수심 6m 이내 얕은 바다 (넓은 범위)</text>
+  </g>
+
+  <!-- 차이 강조 -->
+  <rect x="192" y="272" width="226" height="24" fill="none"
+        stroke="#a1651a" stroke-width="1.6" stroke-dasharray="4 3"/>
+  <text x="305" y="266" class="sub" fill="#8a5415" style="font-weight:700">해안습지에만 더 들어가는 구간</text>
+</svg>

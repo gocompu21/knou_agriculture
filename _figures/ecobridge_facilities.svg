@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 470" width="900" height="470"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>생태통로 설치 주요내용 — 통로 시설·유도울타리·보조시설</title>
+  <desc>도로를 가로지르는 육교형·터널형 생태통로와 이를 보조하는 유도울타리, 탈출시설·암거·도로횡단 기둥을 하나의 도로 구간 모식도로 정리한 그림</desc>
+
+  <defs>
+    <pattern id="veg" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#f2f5f1"/>
+      <circle cx="2" cy="2" r="1.15" fill="#6f8a76"/>
+    </pattern>
+    <pattern id="soil" width="7" height="7" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="7" height="7" fill="#eef1ed"/>
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#9aa79e" stroke-width="1.6"/>
+    </pattern>
+    <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .grp  { font-size: 16px; font-weight: 700; fill: #1b4332; }
+    .nm   { font-size: 15px; font-weight: 700; fill: #22402c; }
+    .dsc  { font-size: 14px; fill: #333; }
+    .num  { font-size: 14px; font-weight: 700; fill: #8a5415; }
+    .road { stroke: #3a3a3a; stroke-width: 16; fill: none; }
+    .rl   { stroke: #fff; stroke-width: 2; stroke-dasharray: 10 8; fill: none; }
+    .fence{ stroke: #1b4332; stroke-width: 2.2; fill: none; }
+  </style>
+
+  <text class="ttl" x="20" y="30">생태통로 설치 주요내용 — 도로 한 구간에 놓이는 시설들</text>
+
+  <!-- ───── 상단: 도로 평면 + 시설 배치 ───── -->
+  <rect x="20" y="46" width="860" height="196" fill="#fcfdfc" stroke="#ccd5ce" stroke-width="1.2" rx="6"/>
+
+  <!-- 양쪽 서식지 -->
+  <rect x="26" y="52" width="848" height="46" fill="url(#veg)" stroke="#4f7259" stroke-width="1.4"/>
+  <rect x="26" y="190" width="848" height="46" fill="url(#veg)" stroke="#4f7259" stroke-width="1.4"/>
+  <text class="nm" x="36" y="80">서식지 (산림)</text>
+  <text class="nm" x="36" y="218">서식지 (산림)</text>
+
+  <!-- 도로 -->
+  <line class="road" x1="26" y1="144" x2="874" y2="144"/>
+  <line class="rl"   x1="26" y1="144" x2="874" y2="144"/>
+
+  <!-- 유도울타리: 도로 양쪽을 따라 이어짐 -->
+  <path class="fence" d="M 30,104 L 300,104" stroke-dasharray="3 4"/>
+  <path class="fence" d="M 420,104 L 874,104" stroke-dasharray="3 4"/>
+  <path class="fence" d="M 30,184 L 300,184" stroke-dasharray="3 4"/>
+  <path class="fence" d="M 420,184 L 874,184" stroke-dasharray="3 4"/>
+
+  <!-- 육교형 생태통로 -->
+  <rect x="300" y="98" width="120" height="92" fill="url(#soil)" stroke="#1b4332" stroke-width="2.8"/>
+  <text class="nm" x="360" y="120" style="text-anchor:middle">육교형</text>
+  <text class="dsc" x="360" y="140" style="text-anchor:middle;font-size:13px">도로 위로 건넘</text>
+  <!-- 폭 치수선 -->
+  <line x1="300" y1="252" x2="420" y2="252" stroke="#8a5415" stroke-width="2"
+        marker-start="url(#a4)" marker-end="url(#a4)"/>
+  <text class="num" x="360" y="270" style="text-anchor:middle">폭 10m 이상 / 주요 생태축 30m 이상</text>
+
+  <!-- 터널형 -->
+  <rect x="640" y="128" width="96" height="32" fill="#fff" stroke="#1b4332" stroke-width="2.6"/>
+  <text class="nm" x="688" y="150" style="text-anchor:middle">터널형</text>
+  <line x1="688" y1="160" x2="688" y2="176" stroke="#8a5415" stroke-width="1.6"/>
+  <rect x="614" y="176" width="148" height="20" fill="#fff" opacity=".9"/>
+  <text class="num" x="688" y="191" style="text-anchor:middle">개방도 0.7 이상</text>
+  <text class="dsc" x="688" y="120" style="text-anchor:middle;font-size:13px">도로 아래로 지남</text>
+
+  <!-- 동물 이동 방향: 아래쪽 서식지에서 울타리를 따라 육교 입구로 -->
+  <path d="M 120,182 C 190,178 250,170 296,150" stroke="#8a5415" stroke-width="2"
+        fill="none" stroke-dasharray="7 5" marker-end="url(#a4)"/>
+  <path d="M 840,112 C 790,116 750,124 740,138" stroke="#8a5415" stroke-width="2"
+        fill="none" stroke-dasharray="7 5" marker-end="url(#a4)"/>
+  <rect x="36" y="118" width="252" height="20" fill="#fff" opacity=".92"/>
+  <text class="num" x="40" y="133">울타리가 동물을 통로 입구로 몰아 준다</text>
+
+  <!-- ───── 하단: 규격·부대시설 3칸 ───── -->
+  <!-- ① 생태통로 시설 -->
+  <rect x="20" y="290" width="278" height="166" fill="#f7faf8" stroke="#4f7259" stroke-width="1.6" rx="6"/>
+  <text class="grp" x="34" y="314">① 생태통로 시설</text>
+  <text class="dsc" x="34" y="338">육교형 : 폭 10m 이상,</text>
+  <text class="dsc" x="34" y="357">　주요 생태축 30m 이상</text>
+  <text class="dsc" x="34" y="376">진·출입로 경사 1:2 이하</text>
+  <text class="dsc" x="34" y="395">보행로 병설 시 차단벽 설치</text>
+  <text class="dsc" x="34" y="414">경관연결·개착터널 상부형 100m 이상</text>
+  <text class="dsc" x="34" y="433">터널형 : 개방도 0.7 이상</text>
+  <text class="dsc" x="34" y="450" style="font-size:13px;fill:#555">개방도 = 입구단면적 ÷ 길이</text>
+
+  <!-- ② 유도울타리 -->
+  <rect x="311" y="290" width="278" height="166" fill="#f7faf8" stroke="#4f7259" stroke-width="1.6" rx="6"/>
+  <text class="grp" x="325" y="314">② 유도울타리</text>
+  <text class="dsc" x="325" y="338">높이 1.5m (고라니 도약 고려)</text>
+  <text class="dsc" x="325" y="357">망 간격 : ~50cm 5cm 미만,</text>
+  <text class="dsc" x="325" y="376">　50~100cm 10cm, 100cm~ 20cm</text>
+  <text class="dsc" x="325" y="395">육교형 기준 상·하행 각 1km 이상</text>
+  <text class="dsc" x="325" y="414">양서·파충류용 : 매설 10cm +</text>
+  <text class="dsc" x="325" y="433">　지상 40cm, 망 1×1cm 이내</text>
+  <text class="dsc" x="325" y="450" style="font-size:13px;fill:#555">부대 : 탈출구·출입문·노면진입방지·안내판</text>
+
+  <!-- ③ 보조시설 -->
+  <rect x="602" y="290" width="278" height="166" fill="#f7faf8" stroke="#4f7259" stroke-width="1.6" rx="6"/>
+  <text class="grp" x="616" y="314">③ 보조시설</text>
+  <text class="dsc" x="616" y="338">수로 탈출시설 : 배수로·농수로에</text>
+  <text class="dsc" x="616" y="357">　빠진 소동물이 스스로 탈출</text>
+  <text class="dsc" x="616" y="376">암거수로 부대시설 : 수로박스 등</text>
+  <text class="dsc" x="616" y="395">　기존 암거를 통로로 활용</text>
+  <text class="dsc" x="616" y="414">도로횡단 부대시설 : 하늘다람쥐·</text>
+  <text class="dsc" x="616" y="433">　청설모용 기둥</text>
+  <text class="dsc" x="616" y="450" style="font-size:13px;fill:#555">관리시설 : 점검로(세굴 방지)·출입문</text>
+</svg>

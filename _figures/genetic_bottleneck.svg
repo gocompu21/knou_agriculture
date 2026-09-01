@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 468" width="900" height="468"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>유전자 병목현상</title>
+  <desc>개체군이 병목(급격한 교란)을 지나며 소수만 살아남고, 개체수가 회복되어도 유전자형의 종류는 되돌아오지 않음을 깔때기 모양 통로와 유전자형 구성 막대로 나타냈다</desc>
+
+  <defs>
+    <marker id="bar" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+  </defs>
+
+  <style>
+    .stg   { font-size: 17px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .cnt   { font-size: 14px; fill: #5b6a5f; text-anchor: middle; }
+    .funn  { fill: #f2f5f1; stroke: #4f7259; stroke-width: 2.2; }
+    .neckT { font-size: 15px; font-weight: 700; fill: #a1651a; text-anchor: middle; }
+    .barT  { font-size: 14px; font-weight: 700; fill: #222; }
+    .note  { font-size: 15.5px; fill: #333; }
+    .lost  { font-size: 14.5px; font-weight: 700; fill: #a1651a; }
+  </style>
+
+  <!-- 유전자형 4종을 형태로 구분 (흑백 인쇄 대응) -->
+  <defs>
+    <g id="gA"><circle r="8" fill="#1b4332"/></g>                                  <!-- A: 채운 원 -->
+    <g id="gB"><circle r="8" fill="#fff" stroke="#1b4332" stroke-width="2.2"/></g> <!-- B: 빈 원 -->
+    <g id="gC"><rect x="-7.5" y="-7.5" width="15" height="15" fill="#4f7259"/></g> <!-- C: 채운 사각 -->
+    <g id="gD"><path d="M0,-9 L8.5,6 L-8.5,6 Z" fill="#fff" stroke="#a1651a" stroke-width="2.2"/></g> <!-- D: 빈 삼각 -->
+  </defs>
+
+  <!-- 깔때기 통로 : 넓음 → 좁은 목 → 다시 넓음 -->
+  <path class="funn"
+        d="M 60,74 L 320,74 C 372,74 372,150 400,150 L 470,150
+           C 498,150 498,74 550,74 L 830,74
+           L 830,286 L 550,286 C 498,286 498,210 470,210 L 400,210
+           C 372,210 372,286 320,286 L 60,286 Z"/>
+
+  <!-- 목 강조 -->
+  <rect x="398" y="146" width="74" height="68" fill="#fdf4e8" stroke="#a1651a"
+        stroke-width="2.2" stroke-dasharray="6 4"/>
+  <text class="neckT" x="435" y="52">병목</text>
+  <text class="neckT" x="435" y="70" style="font-size:13.5px;fill:#7a4c11">(급격한 교란)</text>
+  <path d="M 435,80 L 435,140" stroke="#a1651a" stroke-width="2.4" fill="none"
+        marker-end="url(#bar)"/>
+
+  <!-- ① 원래 개체군 : 4가지 유전자형이 고루 -->
+  <g>
+    <use href="#gA" x="110" y="122"/><use href="#gB" x="150" y="122"/>
+    <use href="#gC" x="190" y="122"/><use href="#gD" x="230" y="122"/>
+    <use href="#gB" x="270" y="122"/><use href="#gA" x="310" y="122"/>
+
+    <use href="#gC" x="110" y="164"/><use href="#gD" x="150" y="164"/>
+    <use href="#gA" x="190" y="164"/><use href="#gB" x="230" y="164"/>
+    <use href="#gC" x="270" y="164"/><use href="#gD" x="310" y="164"/>
+
+    <use href="#gD" x="110" y="206"/><use href="#gA" x="150" y="206"/>
+    <use href="#gB" x="190" y="206"/><use href="#gC" x="230" y="206"/>
+    <use href="#gA" x="270" y="206"/><use href="#gB" x="310" y="206"/>
+
+    <use href="#gB" x="130" y="248"/><use href="#gC" x="170" y="248"/>
+    <use href="#gD" x="210" y="248"/><use href="#gA" x="250" y="248"/>
+  </g>
+  <text class="stg" x="205" y="318">① 원래 개체군</text>
+  <text class="cnt" x="205" y="340">개체수 많음 · 유전자형 4종</text>
+
+  <!-- ② 목을 통과한 소수 : 2종만 -->
+  <use href="#gA" x="422" y="166"/>
+  <use href="#gC" x="450" y="166"/>
+  <use href="#gA" x="436" y="194"/>
+  <text class="stg" x="435" y="318" style="font-size:15.5px">② 생존 개체</text>
+  <text class="cnt" x="435" y="340">소수만 생존 · 2종</text>
+
+  <!-- ③ 회복된 개체군 : 개체수는 많으나 2종뿐 -->
+  <g>
+    <use href="#gA" x="600" y="122"/><use href="#gC" x="640" y="122"/>
+    <use href="#gA" x="680" y="122"/><use href="#gA" x="720" y="122"/>
+    <use href="#gC" x="760" y="122"/><use href="#gA" x="800" y="122"/>
+
+    <use href="#gC" x="600" y="164"/><use href="#gA" x="640" y="164"/>
+    <use href="#gA" x="680" y="164"/><use href="#gC" x="720" y="164"/>
+    <use href="#gA" x="760" y="164"/><use href="#gC" x="800" y="164"/>
+
+    <use href="#gA" x="600" y="206"/><use href="#gA" x="640" y="206"/>
+    <use href="#gC" x="680" y="206"/><use href="#gA" x="720" y="206"/>
+    <use href="#gC" x="760" y="206"/><use href="#gA" x="800" y="206"/>
+
+    <use href="#gC" x="620" y="248"/><use href="#gA" x="660" y="248"/>
+    <use href="#gA" x="700" y="248"/><use href="#gC" x="740" y="248"/>
+  </g>
+  <text class="stg" x="700" y="318">③ 회복된 개체군</text>
+  <text class="cnt" x="700" y="340">개체수는 회복 · 유전자형은 2종뿐</text>
+
+  <!-- 범례 + 잃어버린 유전자형 : 캡션과 겹치지 않도록 한 줄 아래로 -->
+  <g transform="translate(60,382)">
+    <text class="barT" x="0" y="0">유전자형</text>
+    <use href="#gA" x="86" y="-5"/><text x="98" y="0" style="font-size:14px;fill:#333">A</text>
+    <use href="#gB" x="130" y="-5"/><text x="142" y="0" style="font-size:14px;fill:#333">B</text>
+    <use href="#gC" x="174" y="-5"/><text x="186" y="0" style="font-size:14px;fill:#333">C</text>
+    <use href="#gD" x="218" y="-5"/><text x="230" y="0" style="font-size:14px;fill:#333">D</text>
+  </g>
+
+  <g transform="translate(560,382)">
+    <text class="lost" x="0" y="0">잃어버린 유전자형</text>
+    <use href="#gB" x="140" y="-5"/>
+    <use href="#gD" x="176" y="-5"/>
+    <line x1="126" y1="-18" x2="192" y2="8" stroke="#a1651a" stroke-width="2.2"/>
+  </g>
+
+  <!-- 하단 정리 -->
+  <text class="note" x="60" y="424">살아남은 소수가 원래 개체군의 유전자 구성을 대표하지 못해 <tspan font-weight="700">유전적 다양성이 급감</tspan>한다.</text>
+  <text class="note" x="60" y="450">개체수가 회복되어도 <tspan font-weight="700" fill="#a1651a">잃어버린 유전자형은 되돌아오지 않는다</tspan> — 근친약세·적응력 저하.</text>
+</svg>

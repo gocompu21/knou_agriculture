@@ -1,0 +1,166 @@
+[
+ {
+  "pk": 372,
+  "label": "생태복원",
+  "number": 92,
+  "qtype": "서술",
+  "text": "성토법과 객토치환법에 대해 설명하시오.",
+  "answer_items": [
+   "① 성토법 : 기존 지반 위에 양질토를 쌓아 마운딩함으로써 수목이 뿌리를 뻗을 생육 토심을 충분히 확보하는 방법이다.",
+   "② 객토치환법 : 매립지 토양의 일부 또는 전부를 걷어내고 그 자리를 산흙 등 양질토로 바꿔 넣는 방법이다."
+  ],
+  "answer_text": "(그림) 성토법은 기존 기층 위에 성토층을 마운딩하고 그 위에 수목을 식재한 단면, 그리고 G.L 위로 성토층을 쌓아 올린 단면으로 나타낸다. 객토치환법은 G.L 아래 매립토를 굴착해 낸 자리를 객토로 채워 넣은 단면으로 나타낸다.",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태복원-92_answer_1.png"
+   }
+  ],
+  "svg_name": "seongto_gaekto",
+  "done": true
+ },
+ {
+  "pk": 374,
+  "label": "생태복원",
+  "number": 94,
+  "qtype": "표그림",
+  "text": "현황조사",
+  "answer_items": [],
+  "answer_text": "도로비탈면 녹화의 현황조사는 녹화지역 구분, 비탈면 유형구분, 토질, 토양경도, 경사도를 항목으로 삼아 다음과 같이 정리한다.\n\n| 녹화지역 구분 | 토질 | 토양경도 | 경사도 |\n|------|------|------|------|\n| 국토핵심생태축 | 경암 | 27mm 이상 | 60° 이상 |\n| 해양생태계 | 연암 | 23~27mm | 45~60° |\n| 내륙생태계 | 점질토 | 10~23mm | 30~45° |\n| 녹지자연도·생태자연도 | 마사토 | 10mm 이하 | 30° 이하 |\n\n(그림) 유형구분 항목은 절토 비탈면과 성토 비탈면을 구분한 단면 개념도로 나타낸다.",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태복원-94_answer_1.png"
+   }
+  ],
+  "svg_name": "slope_cut_fill",
+  "done": true
+ },
+ {
+  "pk": 63,
+  "label": "생태조사방법",
+  "number": 3,
+  "qtype": "서술",
+  "text": "야생동물 이동방법에 대하여 기술하시오.",
+  "answer_items": [
+   "① 이동의 개념 : 야생동물이 먹이·번식·안전 등의 요구를 충족하기 위해 서식 공간을 옮기는 행동을 말한다.",
+   "② 목적에 따른 구분 : 먹이와 쉼터를 확보하는 일상적 이동, 영역을 넓히고 근친교배를 피하는 분산 이동, 월동과 번식을 위한 계절 이동, 천적이나 위험을 벗어나는 단기 회피 이동, 홍수·산불 같은 환경교란에 대응하는 이동으로 나뉜다.",
+   "③ 이동 매체에 따른 구분 : 땅 위를 걷거나 기어 옮기는 육상이동(포유류·파충류·양서류), 날개로 옮기는 공중이동(조류·곤충류·일부 포유류), 물속을 헤엄쳐 옮기는 수중이동(어류·양서류·수생곤충·일부 포유류)으로 구분된다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태조사방법-3_answer_1.png"
+   }
+  ],
+  "svg_name": "wildlife_movement",
+  "done": true
+ },
+ {
+  "pk": 65,
+  "label": "생태조사방법",
+  "number": 5,
+  "qtype": "서술",
+  "text": "동물의 영역성의 개념과 영역성 분석이 필요한 이유를 기술하시오.",
+  "answer_items": [
+   "① 영역성의 개념 : 동물이 생존과 번식에 필요한 일정 공간을 차지하고 이용하는 성질로, 행동권과 세력권으로 구분된다.",
+   "② 행동권과 세력권 : 행동권은 개체가 생활하면서 돌아다니는 서식 범위 전체를 말하고, 세력권은 그 안에서 타개체의 침입을 적대적으로 배척하며 독점하는 좁은 영역을 말한다.",
+   "③ 분석이 필요한 이유(1) : 종별로 필요한 서식 공간의 규모를 산출할 수 있어 보호지역 면적 설정과 서식지 조성 설계의 근거가 된다.",
+   "④ 분석이 필요한 이유(2) : 세력권 다툼은 밀도가 높아질수록 강해지므로, 영역성을 통해 밀도의존적인 개체군 조절 양상을 파악할 수 있다."
+  ],
+  "answer_text": "▼ 행동권과 세력권\n| 구분 | 행동권 | 세력권 |\n|---|---|---|\n| 개념 | 개체가 생활하는 데 필요한 포괄적 서식 범위 | 방어를 위해 점유하며 독점적으로 쓰는 고유 영역(텃세권) |\n| 공간 관계 | 큰 타원인 행동권 안에 작은 타원인 세력권이 포함된다 | |\n| 타개체와의 관계 | 다른 개체와 겹쳐 쓰거나 서로 간섭하지 않음 | 다른 개체가 들어오면 방어행위를 함 |",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태조사방법-5_answer_1.png"
+   }
+  ],
+  "svg_name": "home_range_territory",
+  "done": true
+ },
+ {
+  "pk": 85,
+  "label": "생태조사방법",
+  "number": 25,
+  "qtype": "서술",
+  "text": "임연군락에 대하여 설명하시오.",
+  "answer_items": [
+   "① 정의 : 숲과 인접 공간이 맞닿는 숲 가장자리에 발달하는 식생을 임연군락이라 한다.",
+   "② 구성 : 위쪽의 관목·덩굴성 식물로 이루어진 망토군락과, 그 아래 지표부의 초본으로 이루어진 소매군락이 층을 이루어 함께 나타난다.",
+   "③ 기능 : 숲 내부로 들어오는 광선과 바람을 걸러 임내 환경을 안정시키고, 다양한 생물의 은신처와 먹이 공급처가 된다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태조사방법-25_answer_1.png"
+   }
+  ],
+  "svg_name": "forest_edge_mantle",
+  "done": true
+ },
+ {
+  "pk": 101,
+  "label": "생태조사방법",
+  "number": 41,
+  "qtype": "서술",
+  "text": "대양에서 식물플랑크톤은 적은데 어류의 종다양성이 풍부한 이유에 대하여 설명하시오.",
+  "answer_items": [
+   "① 생산자의 회전율이 빠름 : 식물플랑크톤은 세포분열 주기가 매우 짧아 한 번에 존재하는 양은 적어도 짧은 기간에 계속 새로 생산된다.",
+   "② 현존량보다 생산량이 큼 : 어느 시점에 관찰되는 생산자의 수는 적지만 일정 기간 누적된 생산량은 매우 많다.",
+   "③ 상위 영양단계 부양 : 그 결과 적은 현존량의 생산자가 자기보다 훨씬 큰 규모의 1차 소비자를 지속적으로 먹여 살릴 수 있고, 이 먹이사슬을 기반으로 어류의 종다양성이 유지된다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태조사방법-41_answer_1.png"
+   }
+  ],
+  "svg_name": "ocean_inverted_pyramid",
+  "done": true
+ },
+ {
+  "pk": 104,
+  "label": "생태조사방법",
+  "number": 44,
+  "qtype": "서술",
+  "text": "북반구 호소에서 일어나는 역전현상에 대하여 설명하시오.",
+  "answer_items": [
+   "① 호소의 수직 층위 : 위에서부터 수온이 높고 밀도가 낮은 표수층, 수온이 급격히 변하는 수온약층, 수온이 낮고 밀도가 높은 심수층으로 나뉜다.",
+   "② 역전현상의 정의 : 봄과 가을에 표층과 심층의 수온 차가 사라지면서 수온약층이 소멸하고 수체 전체가 위아래로 뒤섞이는 현상이다.",
+   "③ 발생 원인 : 물은 4℃에서 밀도가 가장 크므로, 표층 수온이 이 값에 가까워지면 층간 밀도 차가 없어져 바람만으로도 전 수심이 순환하게 된다.",
+   "④ 생태적 의의 : 표층의 용존산소가 심층으로, 심층의 영양염류가 표층으로 옮겨져 호소 전체의 물질순환이 회복된다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태조사방법-44_answer_1.png"
+   }
+  ],
+  "svg_name": "lake_turnover",
+  "done": true
+ },
+ {
+  "pk": 118,
+  "label": "생태조사방법",
+  "number": 58,
+  "qtype": "계산",
+  "text": "아래 그림과 같은 방형구의 습지식물을 조사하였다. 그림을 보고 방형구에 나타난 식물의 종과 개체수(밀도), 종이 출현한 방형구의 수(빈도)를 구하고, 상대밀도와 상대빈도를 구하시오.",
+  "answer_items": [
+   "① 밀도와 빈도\n| 구분 | 종A | 종B | 종C | 종D |\n|---|---|---|---|---|\n| 밀도 | 12 | 7 | 6 | 20 |\n| 빈도(%) | 9 | 5 | 6 | 15 |",
+   "② 상대밀도와 상대빈도\n| 구분 | 종A | 종B | 종C | 종D |\n|---|---|---|---|---|\n| 상대밀도(%) | 26.7 | 15.6 | 13.3 | 44.4 |\n| 상대빈도(%) | 25.7 | 14.3 | 17.1 | 42.9 |"
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "text_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태조사방법-58_question_1.png"
+   }
+  ],
+  "svg_name": "quadrat_density_freq",
+  "done": true
+ }
+]

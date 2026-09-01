@@ -1,0 +1,167 @@
+[
+ {
+  "pk": 4,
+  "label": "생태학",
+  "number": 4,
+  "qtype": "서술",
+  "text": "질소순환에 대하여 쓰시오.",
+  "answer_items": [
+   "① 질소순환 : 질소가 비생물환경에서 생산자와 소비자를 거친 뒤 다시 비생물환경으로 돌아오는 물질순환을 말한다.",
+   "② 순환 경로 : 대기 중 N₂가 질소고정으로 NH₄⁺가 되고, 질화작용으로 NO₂⁻·NO₃⁻로 산화된 뒤, 탈질작용을 거쳐 다시 N₂로 대기에 환원된다.",
+   "③ 생물의 이용 : 식물은 NH₄⁺·NO₃⁻ 형태로 질소를 흡수해 단백질을 합성하고, 소비자는 이를 섭취하며, 분해자가 사체를 무기화해 순환을 잇는다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태학-4_answer_1.png"
+   }
+  ],
+  "svg_name": "nitrogen_cycle",
+  "done": true
+ },
+ {
+  "pk": 7,
+  "label": "생태학",
+  "number": 7,
+  "qtype": "서술",
+  "text": "종 다양성과 이질성의 관계에 대하여 쓰시오.",
+  "answer_items": [
+   "① 관계의 형태 : 경관의 종다양성은 이질성이 커질수록 계속 높아지는 것이 아니라, 이질성이 중간 수준일 때 최대가 되는 종 모양 관계를 보인다.",
+   "② 이질성이 낮을 때 : 경관요소가 단조로워 서식처 유형이 적으므로 수용할 수 있는 종의 수도 제한된다.",
+   "③ 이질성이 지나칠 때 : 경관요소가 과도하게 세분되어 각 서식처의 면적이 좁아지고 구조가 복잡해지므로 오히려 종다양성이 감소한다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태학-7_answer_1.png"
+   }
+  ],
+  "svg_name": "diversity_heterogeneity",
+  "done": true
+ },
+ {
+  "pk": 8,
+  "label": "생태학",
+  "number": 8,
+  "qtype": "서술",
+  "text": "생태회복력에 대하여 설명하시오.",
+  "answer_items": [
+   "① 생태회복력(Resilience) : 군집이나 생태계가 교란을 받은 뒤 원래 상태로 되돌아가거나 또 다른 안정 상태로 옮겨가 평형을 회복하는 능력이다.",
+   "② 교란과의 관계 : 교란의 강도와 빈도가 회복력의 한계 안에 있으면 생태계는 종전 구조로 복귀하지만, 한계를 넘어서면 다른 상태로 전이되어 되돌아오지 못한다.",
+   "③ 활용 의의 : 복원 목표를 세울 때 대상 생태계의 회복력 수준을 판단해야 자연회복에 맡길지 인위적 복원을 도입할지 결정할 수 있다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태학-8_answer_1.png"
+   }
+  ],
+  "svg_name": "eco_resilience",
+  "done": true
+ },
+ {
+  "pk": 9,
+  "label": "생태학",
+  "number": 9,
+  "qtype": "서술",
+  "text": "생태계 구조에 대하여 설명하시오.",
+  "answer_items": [
+   "① 생태계 구조 : 생태계는 생물요소와 비생물환경이 서로 영향을 주고받는 하나의 기능 단위로 구성된다.",
+   "② 생물요소 : 광합성으로 유기물을 만드는 생산자, 이를 섭취하는 소비자, 사체와 배설물을 무기물로 되돌리는 분해자로 나뉜다.",
+   "③ 비생물환경 : 대기환경·수환경·토양환경 등 생물의 생육 조건을 이루는 물리·화학적 요소이다.",
+   "④ 상호작용 : 비생물환경은 생물요소에 서식조건과 무기양분을 공급하고, 생물요소는 물질순환과 에너지흐름을 통해 다시 비생물환경을 변화시킨다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태학-9_answer_1.png"
+   }
+  ],
+  "svg_name": "ecosystem_structure",
+  "done": true
+ },
+ {
+  "pk": 14,
+  "label": "생태학",
+  "number": 14,
+  "qtype": "서술",
+  "text": "Liebig의 최소량의 법칙에 대하여 설명하시오.",
+  "answer_items": [
+   "① 최소량의 법칙 : 식물의 생육은 공급이 넉넉한 양분이 아니라 가장 부족한 필수 영양소의 양에 의해 제한된다는 법칙이다.",
+   "② 작용 원리 : 다른 영양소가 100%씩 공급되더라도 어느 하나가 10%뿐이면 나머지 영양소도 그 10% 수준까지만 이용되므로 생육량이 결정된다.",
+   "③ 적용 의의 : 복원지의 토양 개량이나 시비 계획에서는 총량을 늘리기보다 제한요인이 되는 결핍 양분을 먼저 보충해야 효과가 나타난다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태학-14_answer_1.png"
+   }
+  ],
+  "svg_name": "liebig_minimum",
+  "done": true
+ },
+ {
+  "pk": 19,
+  "label": "생태학",
+  "number": 19,
+  "qtype": "서술",
+  "text": "유전자 병목현상에 대하여 설명하시오.",
+  "answer_items": [
+   "① 병목현상(Bottleneck Effect) : 급격한 교란으로 개체군 크기가 크게 줄어 소수의 개체만 살아남는 현상이다.",
+   "② 유전적 결과 : 살아남은 소수가 원래 개체군의 유전자 구성을 대표하지 못하므로 유전적 다양성이 급감하고 유전자 구성이 단순해진다.",
+   "③ 보전상 의미 : 개체수가 회복되어도 잃어버린 유전적 다양성은 되돌아오지 않아 근친약세와 환경변화 적응력 저하로 이어진다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태학-19_answer_1.png"
+   }
+  ],
+  "svg_name": "genetic_bottleneck",
+  "done": true
+ },
+ {
+  "pk": 22,
+  "label": "생태학",
+  "number": 22,
+  "qtype": "표그림",
+  "text": "개체군 분포유형에 대하여 설명하시오.",
+  "answer_items": [],
+  "answer_text": "| 구분 | 임의분포 | 균일분포 | 군생분포 |\n|---|---|---|---|\n| 배열 형태 | 개체가 규칙성 없이 흩어져 있음 | 개체가 일정 간격을 두고 격자처럼 배열됨 | 개체가 여러 무리로 뭉쳐 분포함 |\n| 원인 | 자원이 고르게 분포하고 개체 간 상호작용이 중립적임 | 자원 경쟁이나 세력권 확보로 최소 이격거리를 유지함 | 자원이 국지적으로 밀집하거나 무성생식·사회적 집단을 형성함 |\n| 사례 | 풀밭의 민들레 | 사막의 건생식물 | 무성생식으로 번지는 식물 |",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태학-22_answer_1.png"
+   }
+  ],
+  "svg_name": "population_dispersion",
+  "done": true
+ },
+ {
+  "pk": 29,
+  "label": "생태학",
+  "number": 29,
+  "qtype": "서술",
+  "text": "알리효과에 대하여 설명하시오.",
+  "answer_items": [
+   "① 알리효과(Allee Effect) : 개체군 밀도가 지나치게 낮아지면 오히려 출생률과 생존율이 떨어지는 현상을 말한다.",
+   "② 발생 원인 : 개체가 흩어져 있어 짝을 찾을 확률이 낮아지고, 교배·먹이획득·방어를 함께 수행하던 협동적 사회구조가 무너지기 때문이다.",
+   "③ 보전상 의미 : 소규모로 남은 개체군은 밀도가 임계점 아래로 떨어지면 스스로 회복하지 못하고 멸종으로 향하므로, 조기의 개체군 보강이 필요하다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태학-29_answer_1.png"
+   }
+  ],
+  "svg_name": "allee_effect",
+  "done": true
+ }
+]

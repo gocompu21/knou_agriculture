@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>토양의 삼상분포 — 용적 비율과 깊이에 따른 변화</title>
+  <desc>고상 50퍼센트 액상 25퍼센트 기상 25퍼센트를 가로 100퍼센트 누적 막대로 나타내고, 표층에서 하층으로 갈수록 고상과 액상은 커지고 기상은 작아지는 변화를 함께 보인 도표</desc>
+
+  <defs>
+    <!-- 고상 : 촘촘한 점 (무기물 + 유기물 입자) -->
+    <pattern id="sSolid" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#e9e4d9"/>
+      <circle cx="1.6" cy="1.6" r="1.3" fill="#6b6357"/>
+      <circle cx="4.4" cy="4.4" r="1.1" fill="#8a8375"/>
+    </pattern>
+    <!-- 액상 : 물결 -->
+    <pattern id="sLiquid" width="10" height="8" patternUnits="userSpaceOnUse">
+      <rect width="10" height="8" fill="#eef3f5"/>
+      <path d="M0,4 Q2.5,1.5 5,4 T10,4" stroke="#5d7f8c" stroke-width="1.2" fill="none"/>
+    </pattern>
+    <!-- 기상 : 빈 공극 (성긴 원, 흰 바탕) -->
+    <pattern id="sGas" width="10" height="10" patternUnits="userSpaceOnUse">
+      <rect width="10" height="10" fill="#fbfcfa"/>
+      <circle cx="5" cy="5" r="2.6" fill="none" stroke="#8fa08f" stroke-width="1.1"/>
+    </pattern>
+    <marker id="up" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b4332"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .sub  { font-size: 15.5px; font-weight: 700; fill: #1b4332; }
+    .ph   { font-size: 16px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .pct  { font-size: 18px; font-weight: 700; fill: #222; text-anchor: middle; }
+    .lab  { font-size: 14px; fill: #333; text-anchor: middle; }
+    .labl { font-size: 14.5px; fill: #333; }
+    .tick { font-size: 13px; fill: #777; text-anchor: middle; }
+    .note { font-size: 15px; fill: #333; text-anchor: middle; }
+    .box  { fill: #fcfdfc; stroke: #ccd5ce; stroke-width: 1.2; }
+  </style>
+
+  <text class="ttl" x="450" y="28">토양의 삼상분포 — 용적 기준 비율과 깊이에 따른 변화</text>
+
+  <!-- ───── 1. 100% 누적 막대 ───── -->
+  <text class="sub" x="40" y="66">① 일반적인 용적 비율 (100% 기준)</text>
+
+  <!-- 눈금 -->
+  <g class="tick">
+    <text x="40"  y="86">0%</text><text x="245" y="86">25%</text>
+    <text x="450" y="86">50%</text><text x="655" y="86">75%</text>
+    <text x="860" y="86">100%</text>
+  </g>
+  <g stroke="#c8d0c9" stroke-width="1">
+    <line x1="40" y1="92" x2="40" y2="98"/><line x1="245" y1="92" x2="245" y2="98"/>
+    <line x1="450" y1="92" x2="450" y2="98"/><line x1="655" y1="92" x2="655" y2="98"/>
+    <line x1="860" y1="92" x2="860" y2="98"/>
+  </g>
+
+  <!-- 막대 : 고상 50 (40~450), 액상 25 (450~655), 기상 25 (655~860) -->
+  <rect x="40"  y="100" width="410" height="72" fill="url(#sSolid)"  stroke="#5b5347" stroke-width="2"/>
+  <rect x="450" y="100" width="205" height="72" fill="url(#sLiquid)" stroke="#41616e" stroke-width="2"/>
+  <rect x="655" y="100" width="205" height="72" fill="url(#sGas)"    stroke="#6f8a76" stroke-width="2"/>
+
+  <text class="ph"  x="245" y="128">고상 (固相)</text>
+  <text class="pct" x="245" y="156">50%</text>
+  <text class="ph"  x="552" y="128">액상 (液相)</text>
+  <text class="pct" x="552" y="156">25%</text>
+  <text class="ph"  x="757" y="128">기상 (氣相)</text>
+  <text class="pct" x="757" y="156">25%</text>
+
+  <text class="lab" x="245" y="192">무기물(암석 풍화물) + 유기물(동식물 유체·배설물)</text>
+  <text class="lab" x="552" y="192">입자 사이 공극을 채운 물</text>
+  <text class="lab" x="757" y="192">공극을 채운 공기</text>
+
+  <!-- 고상 구성 세분 (막대 아래 얇은 띠) -->
+  <line x1="40" y1="204" x2="450" y2="204" stroke="#8a8375" stroke-width="1.2" stroke-dasharray="5 4"/>
+  <text class="lab" x="245" y="222" style="font-size:13.5px;fill:#666">고체입자가 골격을 이루고, 그 사이 공극(액상 + 기상 = 50%)을 물과 공기가 나누어 차지한다</text>
+
+  <!-- ───── 2. 깊이에 따른 변화 ───── -->
+  <text class="sub" x="40" y="262">② 깊이에 따른 변화</text>
+
+  <!-- 축 -->
+  <line x1="150" y1="278" x2="150" y2="368" stroke="#999" stroke-width="1.4"/>
+  <text class="labl" x="46" y="288" style="font-weight:700">표층</text>
+  <text class="labl" x="46" y="366" style="font-weight:700">하층</text>
+  <path d="M 150,282 L 150,364" stroke="#999" stroke-width="1.4" fill="none" marker-end="url(#up)"/>
+
+  <!-- 고상 : 표층 작음 → 하층 큼 (오른쪽으로 넓어지는 쐐기) -->
+  <g>
+    <path d="M 176,282 L 236,282 L 268,364 L 176,364 Z"
+          fill="url(#sSolid)" stroke="#5b5347" stroke-width="1.8"/>
+    <text class="lab" x="222" y="386">고상 ↑ 커진다</text>
+  </g>
+  <!-- 액상 : 표층 작음 → 하층 큼 -->
+  <g>
+    <path d="M 330,282 L 390,282 L 422,364 L 330,364 Z"
+          fill="url(#sLiquid)" stroke="#41616e" stroke-width="1.8"/>
+    <text class="lab" x="376" y="386">액상 ↑ 커진다</text>
+  </g>
+  <!-- 기상 : 표층 큼 → 하층 작음 (좁아지는 쐐기) -->
+  <g>
+    <path d="M 484,282 L 576,282 L 544,364 L 484,364 Z"
+          fill="url(#sGas)" stroke="#6f8a76" stroke-width="1.8"/>
+    <text class="lab" x="530" y="386">기상 ↓ 작아진다</text>
+  </g>
+
+  <!-- 설명 카드 -->
+  <rect class="box" x="620" y="272" width="240" height="100" rx="6"/>
+  <text class="labl" x="636" y="298" style="font-weight:700;fill:#1b4332">읽는 법</text>
+  <text class="labl" x="636" y="322" style="font-size:14px">하층으로 갈수록 다져져</text>
+  <text class="labl" x="636" y="342" style="font-size:14px">공극이 줄고, 남은 공극도</text>
+  <text class="labl" x="636" y="362" style="font-size:14px">물이 차지해 공기가 밀린다</text>
+</svg>

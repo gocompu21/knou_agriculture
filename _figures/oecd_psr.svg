@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" width="900" height="340"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>OECD 환경지표 기본구조 — PSR</title>
+  <desc>인간 활동이 환경에 가하는 압력(P), 그 부하를 받은 환경의 상태(S), 상태를 되돌리기 위한 대응(R)을 좌에서 우로 흐르는 인과 흐름으로 배치하고, 대응이 다시 압력을 줄이는 되먹임을 아래 곡선으로 나타낸 그림</desc>
+
+  <defs>
+    <marker id="fw" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b4332"/>
+    </marker>
+    <marker id="fb" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+  </defs>
+
+  <style>
+    .key  { font-size: 30px; font-weight: 700; fill: #ffffff; text-anchor: middle; }
+    .kko  { font-size: 17px; font-weight: 700; fill: #ffffff; text-anchor: middle; }
+    .ken  { font-size: 13px; fill: #e4ece6; text-anchor: middle; }
+    .desc { font-size: 15.5px; fill: #333; text-anchor: middle; }
+    .ind  { font-size: 14px; fill: #4f7259; text-anchor: middle; }
+    .fbT  { font-size: 14.5px; font-weight: 700; fill: #a1651a; text-anchor: middle; }
+  </style>
+
+  <!-- 발단: 인간 활동 -->
+  <rect x="20" y="96" width="126" height="76" rx="6"
+        fill="#f2f5f1" stroke="#4f7259" stroke-width="1.6" stroke-dasharray="6 4"/>
+  <text x="83" y="130" font-size="15.5" font-weight="700" fill="#1b4332" text-anchor="middle">인간의</text>
+  <text x="83" y="152" font-size="15.5" font-weight="700" fill="#1b4332" text-anchor="middle">사회·경제 활동</text>
+
+  <line x1="150" y1="134" x2="192" y2="134" stroke="#1b4332" stroke-width="3"
+        marker-end="url(#fw)"/>
+
+  <!-- P -->
+  <rect x="198" y="86" width="176" height="96" rx="8" fill="#1b4332"/>
+  <text class="key" x="286" y="124">P</text>
+  <text class="kko" x="286" y="150">압력</text>
+  <text class="ken" x="286" y="170">Pressure</text>
+  <text class="desc" x="286" y="212">인간의 활동이</text>
+  <text class="desc" x="286" y="234">환경에 가하는 부하</text>
+  <text class="ind"  x="286" y="262">예) 오염물질 배출량,</text>
+  <text class="ind"  x="286" y="282">자원 채취량</text>
+
+  <line x1="382" y1="134" x2="428" y2="134" stroke="#1b4332" stroke-width="3"
+        marker-end="url(#fw)"/>
+
+  <!-- S -->
+  <rect x="434" y="86" width="176" height="96" rx="8" fill="#3d6350"/>
+  <text class="key" x="522" y="124">S</text>
+  <text class="kko" x="522" y="150">상태</text>
+  <text class="ken" x="522" y="170">State</text>
+  <text class="desc" x="522" y="212">부하를 받은 환경과</text>
+  <text class="desc" x="522" y="234">자연자원의 현재 상태</text>
+  <text class="ind"  x="522" y="262">예) 대기·수질 농도,</text>
+  <text class="ind"  x="522" y="282">생물다양성 수준</text>
+
+  <line x1="618" y1="134" x2="664" y2="134" stroke="#1b4332" stroke-width="3"
+        marker-end="url(#fw)"/>
+
+  <!-- R -->
+  <rect x="670" y="86" width="176" height="96" rx="8" fill="#4f7259"/>
+  <text class="key" x="758" y="124">R</text>
+  <text class="kko" x="758" y="150">대응</text>
+  <text class="ken" x="758" y="170">Response</text>
+  <text class="desc" x="758" y="212">악화된 상태를 되돌리려</text>
+  <text class="desc" x="758" y="234">사회·경제 주체가 취하는 조치</text>
+  <text class="ind"  x="758" y="262">예) 규제·투자,</text>
+  <text class="ind"  x="758" y="282">저감시설 설치</text>
+
+  <!-- 되먹임: R → P -->
+  <path d="M 758,64 C 758,34 640,26 522,26 C 400,26 300,34 286,64"
+        fill="none" stroke="#a1651a" stroke-width="2.6"
+        stroke-dasharray="10 6" marker-end="url(#fb)"/>
+  <text class="fbT" x="522" y="18">대응이 다시 압력을 줄인다 (되먹임)</text>
+
+  <text x="450" y="316" font-size="14.5" fill="#555" text-anchor="middle">
+    OECD 환경지표는 이 세 축으로 환경 문제의 원인·현황·해결 노력을 한 틀에서 파악한다.
+  </text>
+</svg>

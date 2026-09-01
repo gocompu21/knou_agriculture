@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" width="900" height="420"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>생태계 구조 — 생물요소와 비생물환경</title>
+  <desc>비생물환경(대기·수·토양)을 아래 기반층으로, 생물요소(생산자·소비자·분해자)를 위층으로 배치하고 두 층 사이의 상호작용을 서식조건·무기양분 공급과 물질순환·에너지흐름 두 방향으로 나타낸 구조도</desc>
+
+  <defs>
+    <marker id="eu" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b4332"/>
+    </marker>
+    <marker id="ed" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+    <pattern id="abio" width="8" height="8" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#eef2f6"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#c4d2de" stroke-width="1.4"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .layT { font-size: 18px; font-weight: 700; fill: #1b4332; }
+    .layA { font-size: 18px; font-weight: 700; fill: #2f4d66; }
+    .role { font-size: 16.5px; font-weight: 700; fill: #14331f; text-anchor: middle; }
+    .sub  { font-size: 13.5px; fill: #3d5545; text-anchor: middle; }
+    .item { font-size: 15.5px; font-weight: 700; fill: #2f4d66; text-anchor: middle; }
+    .itemS{ font-size: 13px; fill: #5b7186; text-anchor: middle; }
+    .flowT{ font-size: 15px; font-weight: 700; }
+    .rbox { fill: #f2f5f1; stroke: #4f7259; stroke-width: 2.2; }
+    .abox { fill: #ffffff; stroke: #7d99b0; stroke-width: 1.8; }
+    .frame{ fill: none; stroke: #b9c6bd; stroke-width: 1.4; stroke-dasharray: 6 5; }
+  </style>
+
+  <!-- 상위: 생물요소 -->
+  <rect class="frame" x="34" y="46" width="600" height="150" rx="10"/>
+  <text class="layT" x="46" y="36">생물요소</text>
+
+  <rect class="rbox" x="58" y="74" width="170" height="96" rx="9"/>
+  <text class="role" x="143" y="112">생산자</text>
+  <text class="sub"  x="143" y="136">광합성으로</text>
+  <text class="sub"  x="143" y="154">유기물을 만든다</text>
+
+  <rect class="rbox" x="248" y="74" width="170" height="96" rx="9"/>
+  <text class="role" x="333" y="112">소비자</text>
+  <text class="sub"  x="333" y="136">생산자·다른 소비자를</text>
+  <text class="sub"  x="333" y="154">섭취한다</text>
+
+  <rect class="rbox" x="438" y="74" width="176" height="96" rx="9"/>
+  <text class="role" x="526" y="112">분해자</text>
+  <text class="sub"  x="526" y="136">사체·배설물을</text>
+  <text class="sub"  x="526" y="154">무기물로 되돌린다</text>
+
+  <!-- 생물요소 내부 순서 -->
+  <path d="M 228,122 L 242,122" stroke="#4f7259" stroke-width="2.4" fill="none" marker-end="url(#eu)"/>
+  <path d="M 418,122 L 432,122" stroke="#4f7259" stroke-width="2.4" fill="none" marker-end="url(#eu)"/>
+
+  <!-- 하위: 비생물환경 기반층 -->
+  <rect x="34" y="272" width="600" height="112" rx="10" fill="url(#abio)"
+        stroke="#7d99b0" stroke-width="2.2"/>
+  <text class="layA" x="46" y="262">비생물환경</text>
+
+  <rect class="abox" x="62" y="298" width="160" height="62" rx="8"/>
+  <text class="item"  x="142" y="326">대기환경</text>
+  <text class="itemS" x="142" y="346">빛 · 온도 · CO₂</text>
+
+  <rect class="abox" x="248" y="298" width="160" height="62" rx="8"/>
+  <text class="item"  x="328" y="326">수환경</text>
+  <text class="itemS" x="328" y="346">수분 · 수질</text>
+
+  <rect class="abox" x="434" y="298" width="176" height="62" rx="8"/>
+  <text class="item"  x="522" y="326">토양환경</text>
+  <text class="itemS" x="522" y="346">토성 · 무기양분</text>
+
+  <!-- 두 층 사이 상호작용 : 위로 / 아래로 -->
+  <path d="M 180,268 L 180,200" stroke="#a1651a" stroke-width="3.2" fill="none"
+        marker-end="url(#ed)"/>
+  <text class="flowT" x="196" y="228" fill="#a1651a">서식조건 · 무기양분 공급</text>
+
+  <path d="M 470,200 L 470,268" stroke="#1b4332" stroke-width="3.2" fill="none"
+        marker-end="url(#eu)"/>
+  <text class="flowT" x="486" y="252" fill="#1b4332">물질순환 · 에너지흐름</text>
+
+  <!-- 우측 정리 -->
+  <rect x="664" y="46" width="208" height="338" rx="10"
+        fill="#fbfcfb" stroke="#ccd5ce" stroke-width="1.4"/>
+  <text x="678" y="82" style="font-size:16px;font-weight:700;fill:#1b4332">하나의 기능 단위</text>
+  <text x="678" y="122" style="font-size:15px;fill:#333">생물요소와 비생물환경이</text>
+  <text x="678" y="146" style="font-size:15px;fill:#333">서로 영향을 주고받으며</text>
+  <text x="678" y="170" style="font-size:15px;fill:#333">하나의 생태계를 이룬다.</text>
+
+  <line x1="678" y1="196" x2="858" y2="196" stroke="#dde5df" stroke-width="1.4"/>
+
+  <text x="678" y="228" style="font-size:15px;fill:#333">· 비생물환경 → 생물요소</text>
+  <text x="692" y="252" style="font-size:13.5px;fill:#5b6a5f">서식조건·무기양분을 준다</text>
+  <text x="678" y="290" style="font-size:15px;fill:#333">· 생물요소 → 비생물환경</text>
+  <text x="692" y="314" style="font-size:14px;fill:#5b6a5f">물질순환·에너지흐름으로</text>
+  <text x="692" y="336" style="font-size:14px;fill:#5b6a5f">환경 자체를 변화시킨다</text>
+</svg>

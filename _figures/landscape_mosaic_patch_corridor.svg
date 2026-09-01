@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430" width="900" height="430"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>토지모자이크 — 바탕·조각(패치)·통로(코리더)</title>
+  <desc>하나의 경관 평면도에 바탕 위 여러 조각과 이를 잇는 선형 통로를 배치하고 각 요소를 지시선으로 설명</desc>
+
+  <defs>
+    <!-- 바탕(matrix): 가장 넓은 배경, 성긴 격자 -->
+    <pattern id="mtx" width="14" height="14" patternUnits="userSpaceOnUse">
+      <rect width="14" height="14" fill="#f7f9f7"/>
+      <path d="M14 0 L0 0 0 14" fill="none" stroke="#dde5df" stroke-width="1"/>
+    </pattern>
+    <!-- 조각 유형 1: 가로 빗금 (활엽수림) -->
+    <pattern id="p1" width="7" height="7" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#eef3ef"/>
+      <line x1="0" y1="3.5" x2="7" y2="3.5" stroke="#4f7259" stroke-width="2"/>
+    </pattern>
+    <!-- 조각 유형 2: 사선 빗금 (초지) -->
+    <pattern id="p2" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#eef3ef"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#1b4332" stroke-width="2.2"/>
+    </pattern>
+    <!-- 조각 유형 3: 점 (습지) -->
+    <pattern id="p3" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#eef3ef"/>
+      <circle cx="2.5" cy="2.5" r="1.5" fill="#4f7259"/>
+    </pattern>
+    <!-- 조각 유형 4: 격자 (농경지) -->
+    <pattern id="p4" width="9" height="9" patternUnits="userSpaceOnUse">
+      <rect width="9" height="9" fill="#eef3ef"/>
+      <path d="M9 0 L0 0 0 9" fill="none" stroke="#4f7259" stroke-width="1.6"/>
+    </pattern>
+    <marker id="lar" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+  </defs>
+
+  <style>
+    .hd   { font-size:20px; font-weight:700; fill:#1b4332; }
+    .lead { stroke:#a1651a; stroke-width:1.8; fill:none; }
+    .cal  { font-size:15px; font-weight:700; fill:#a1651a; }
+    .calx { font-size:14.5px; fill:#333; }
+    .inl  { font-size:14px; font-weight:700; fill:#1b4332; text-anchor:middle; }
+    .pch  { stroke:#1b4332; stroke-width:2; }
+  </style>
+
+  <text class="hd" x="30" y="32">토지모자이크의 세 구성요소</text>
+
+  <!-- ── 경관 평면도(왼쪽 큰 사각) ── -->
+  <g>
+    <rect x="30" y="48" width="470" height="330" rx="4"
+          fill="url(#mtx)" stroke="#1b4332" stroke-width="2.4"/>
+
+    <!-- 통로(코리더): 하천형 — 바탕을 가로지르는 선형 요소 -->
+    <path d="M 30,300 C 120,286 150,214 226,196 C 300,178 330,110 372,48"
+          stroke="#4f7259" stroke-width="20" fill="none" opacity="0.45"/>
+    <path d="M 30,300 C 120,286 150,214 226,196 C 300,178 330,110 372,48"
+          stroke="#1b4332" stroke-width="1.8" fill="none" stroke-dasharray="10 6"/>
+
+    <!-- 통로(코리더): 수림대형 — 두 조각을 잇는다 -->
+    <path d="M 152,124 C 210,132 246,124 300,108"
+          stroke="#4f7259" stroke-width="14" fill="none" opacity="0.55"/>
+    <path d="M 152,124 C 210,132 246,124 300,108"
+          stroke="#1b4332" stroke-width="1.6" fill="none" stroke-dasharray="8 5"/>
+
+    <!-- 조각들: 비선형, 서로 다른 유형 -->
+    <path class="pch" d="M 78,80 C 128,64 176,84 172,120 C 168,158 106,166 82,144
+                         C 60,124 58,92 78,80 Z" fill="url(#p1)"/>
+    <text class="inl" x="118" y="120">활엽수림</text>
+
+    <path class="pch" d="M 306,72 C 356,58 410,80 406,116 C 402,152 342,162 316,142
+                         C 292,124 290,84 306,72 Z" fill="url(#p2)"/>
+    <text class="inl" x="348" y="114" fill="#fff">초지</text>
+
+    <path class="pch" d="M 246,214 C 300,202 344,226 336,258 C 328,292 268,300 244,278
+                         C 224,258 228,224 246,214 Z" fill="url(#p3)"/>
+    <text class="inl" x="286" y="252">습지</text>
+
+    <path class="pch" d="M 88,236 C 138,224 178,248 172,280 C 166,314 110,322 86,300
+                         C 66,282 70,246 88,236 Z" fill="url(#p4)"/>
+    <text class="inl" x="126" y="276">농경지</text>
+
+    <path class="pch" d="M 376,216 C 424,206 462,230 456,262 C 450,296 396,304 376,282
+                         C 358,262 360,226 376,216 Z" fill="url(#p1)"/>
+    <text class="inl" x="414" y="256">침엽수림</text>
+
+    <!-- 바탕 라벨: 조각이 없는 넓은 자리에 -->
+    <text class="inl" x="220" y="352" style="font-size:15px;">바탕(matrix)</text>
+  </g>
+
+  <!-- ── 오른쪽 설명 ── -->
+  <g transform="translate(520,0)">
+    <!-- ① 모자이크 -->
+    <rect x="0" y="52" width="352" height="92" rx="6" fill="#f2f5f1" stroke="#ccd5ce"/>
+    <text class="cal" x="16" y="76">① 토지모자이크</text>
+    <text class="calx" x="16" y="100">구조가 서로 다른 경관요소들이 조각보처럼</text>
+    <text class="calx" x="16" y="122">짜여 이루어진 경관 전체의 공간구조</text>
+    <text class="calx" x="16" y="140" style="font-size:13.5px; fill:#555;">→ 이 그림 전체가 하나의 모자이크다</text>
+
+    <!-- ② 패치 -->
+    <rect x="0" y="158" width="352" height="82" rx="6" fill="#f2f5f1" stroke="#ccd5ce"/>
+    <text class="cal" x="16" y="182">② 패치(조각)</text>
+    <text class="calx" x="16" y="206">생태적·시각적 특성이 주변 바탕과 구별되는</text>
+    <text class="calx" x="16" y="228">비선형의 경관요소</text>
+
+    <!-- ③ 코리더 -->
+    <rect x="0" y="254" width="352" height="82" rx="6" fill="#f2f5f1" stroke="#ccd5ce"/>
+    <text class="cal" x="16" y="278">③ 코리더(통로)</text>
+    <text class="calx" x="16" y="302">바탕 위에 놓인 선형 요소로 떨어진 조각들을</text>
+    <text class="calx" x="16" y="324">이어 생물의 이동 경로가 된다</text>
+  </g>
+
+  <!-- 지시선: 그림 → 설명 -->
+  <path class="lead" d="M 348,114 C 420,100 460,98 516,98" marker-end="url(#lar)"/>
+  <path class="lead" d="M 414,256 C 460,220 484,200 516,196" marker-end="url(#lar)"/>
+  <path class="lead" d="M 226,196 C 300,250 420,286 516,292" marker-end="url(#lar)"/>
+
+  <text class="calx" x="30" y="404" style="font-size:15px; fill:#1b4332; font-weight:700;">
+    바탕 + 조각 + 통로가 짜여 하나의 토지모자이크를 이룬다
+  </text>
+</svg>

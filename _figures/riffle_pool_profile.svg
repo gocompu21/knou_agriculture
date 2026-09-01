@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430" width="900" height="430"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>여울과 소 — 하천 종단 하상 형상과 유속·수심·용존산소의 교대</title>
+  <desc>하천을 상류에서 하류로 따라간 종단면 위에 여울과 소가 번갈아 나타나는 모습을 그리고, 그 아래에 유속·수심·용존산소가 구간마다 반대로 오르내리는 것을 지표선으로 나타낸 도표</desc>
+
+  <defs>
+    <pattern id="rBed" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#efeae0"/>
+      <circle cx="1.7" cy="1.7" r="1.1" fill="#8a8375"/>
+      <circle cx="4.4" cy="4.4" r="0.8" fill="#a49c8c"/>
+    </pattern>
+    <pattern id="rWater" width="10" height="10" patternUnits="userSpaceOnUse">
+      <rect width="10" height="10" fill="#eef3f5"/>
+      <path d="M0,5 Q2.5,2.5 5,5 T10,5" stroke="#8fa9b3" stroke-width="0.9" fill="none"/>
+    </pattern>
+    <marker id="rf" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b4332"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .rt   { font-size: 15px; font-weight: 700; fill: #a1651a; text-anchor: middle; }
+    .pt   { font-size: 15px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .lab  { font-size: 14px; fill: #333; }
+    .labc { font-size: 14px; fill: #333; text-anchor: middle; }
+    .axl  { font-size: 14px; font-weight: 700; fill: #333; text-anchor: end; }
+    .note { font-size: 15px; fill: #333; }
+    .box  { fill: #fcfdfc; stroke: #ccd5ce; stroke-width: 1.2; }
+  </style>
+
+  <text class="ttl" x="450" y="28">여울(riffle)과 소(pool) — 하천을 따라 교대로 나타나는 두 구간</text>
+
+  <!-- ───── 상단 : 종단면 ───── -->
+  <!-- 수면 (완만하게 하류로 낮아짐) -->
+  <rect x="120" y="66" width="740" height="8" fill="none"/>
+  <path d="M 120,102 L 860,132" stroke="#5d7f8c" stroke-width="1.6" stroke-dasharray="8 5" fill="none"/>
+  <text class="lab" x="126" y="94" style="fill:#5d7f8c;font-weight:700">수면</text>
+
+  <!-- 하상 : 여울(높고 얕음) - 소(깊게 파임) 교대 -->
+  <path d="M 120,120 L 176,120
+           C 200,120 208,158 236,160 C 268,162 280,124 306,122
+           L 344,124
+           C 372,124 380,168 412,170 C 446,172 456,132 484,130
+           L 520,132
+           C 550,132 558,176 592,178 C 626,180 636,140 664,138
+           L 704,140
+           C 734,140 742,182 776,184 C 810,186 820,148 848,146
+           L 860,146
+           L 860,238 L 120,238 Z"
+        fill="url(#rBed)" stroke="#8a8375" stroke-width="1.8"/>
+
+  <!-- 물기둥(수면과 하상 사이) 채움 -->
+  <path d="M 120,102 L 860,132 L 860,146
+           C 820,148 810,186 776,184 C 742,182 734,140 704,140
+           L 664,138 C 636,140 626,180 592,178 C 558,176 550,132 520,132
+           L 484,130 C 456,132 446,172 412,170 C 380,168 372,124 344,124
+           L 306,122 C 280,124 268,162 236,160 C 208,158 200,120 176,120
+           L 120,120 Z"
+        fill="url(#rWater)" opacity="0.85"/>
+
+  <!-- 여울 위치의 자갈 표시 -->
+  <g fill="#c9c2b2" stroke="#6f6a60" stroke-width="1.1">
+    <circle cx="146" cy="115" r="4.5"/><circle cx="158" cy="119" r="4"/><circle cx="168" cy="114" r="3.6"/>
+    <circle cx="318" cy="119" r="4.5"/><circle cx="330" cy="123" r="4"/><circle cx="342" cy="118" r="3.6"/>
+    <circle cx="496" cy="127" r="4.5"/><circle cx="508" cy="131" r="4"/><circle cx="520" cy="126" r="3.6"/>
+    <circle cx="676" cy="135" r="4.5"/><circle cx="688" cy="139" r="4"/><circle cx="700" cy="134" r="3.6"/>
+    <circle cx="836" cy="143" r="4.5"/><circle cx="848" cy="147" r="4"/>
+  </g>
+
+  <!-- 구간 라벨 -->
+  <text class="rt" x="152" y="100">여울</text>
+  <text class="pt" x="240" y="184">소</text>
+  <text class="rt" x="328" y="104">여울</text>
+  <text class="pt" x="416" y="194">소</text>
+  <text class="rt" x="506" y="112">여울</text>
+  <text class="pt" x="596" y="202">소</text>
+  <text class="rt" x="686" y="120">여울</text>
+  <text class="pt" x="780" y="208">소</text>
+  <text class="rt" x="846" y="128">여울</text>
+
+  <!-- 흐름 방향 -->
+  <path d="M 140,254 L 300,254" stroke="#1b4332" stroke-width="2" fill="none" marker-end="url(#rf)"/>
+  <text class="lab" x="308" y="259" style="font-weight:700;fill:#1b4332">하류 방향 (종단)</text>
+
+  <!-- ───── 하단 : 지표 교대 그래프 ───── -->
+  <line x1="120" y1="290" x2="860" y2="290" stroke="#bbb" stroke-width="1"/>
+  <line x1="120" y1="290" x2="120" y2="378" stroke="#999" stroke-width="1.2"/>
+  <text class="lab" x="126" y="286" style="fill:#777;font-size:13px">↑ 큼 / ↓ 작음</text>
+
+  <!-- 유속·용존산소 : 여울에서 높다 (실선) -->
+  <path d="M 120,300 C 176,300 200,352 236,352 C 272,352 292,300 328,300
+           C 372,300 380,352 416,352 C 452,352 464,302 506,302
+           C 552,302 558,354 596,354 C 634,354 644,306 686,306
+           C 736,306 742,356 780,356 C 816,356 826,310 860,310"
+        stroke="#a1651a" stroke-width="2.6" fill="none"/>
+  <text class="lab" x="118" y="304" text-anchor="end" style="fill:#a1651a;font-weight:700">유속 · DO</text>
+
+  <!-- 수심 : 소에서 깊다 (파선) -->
+  <path d="M 120,352 C 176,352 200,300 236,300 C 272,300 292,352 328,352
+           C 372,352 380,300 416,300 C 452,300 464,354 506,354
+           C 552,354 558,302 596,302 C 634,302 644,354 686,354
+           C 736,354 742,304 780,304 C 816,304 826,356 860,356"
+        stroke="#1b4332" stroke-width="2.6" fill="none" stroke-dasharray="9 6"/>
+  <text class="lab" x="118" y="358" text-anchor="end" style="fill:#1b4332;font-weight:700">수심 · 침전</text>
+
+  <text class="labc" x="490" y="378" style="font-size:13.5px;fill:#666">두 지표는 서로 반대로 오르내리며, 여울과 소가 짝을 이루어 반복된다</text>
+
+  <!-- ───── 하단 설명 카드 2장 ───── -->
+  <g>
+    <rect class="box" x="30" y="392" width="410" height="0" rx="6"/>
+  </g>
+  <text class="note" x="40" y="402" style="fill:#a1651a;font-weight:700">여울</text>
+  <text class="note" x="86" y="402">하상이 얕고 물살이 세다. 폭기로 용존산소가 높아지고 부착조류가 자라며,</text>
+  <text class="note" x="86" y="422">경사에 따라 급여울과 평여울로 나뉜다.</text>
+  <text class="note" x="470" y="402" style="fill:#1b4332;font-weight:700">소</text>
+  <text class="note" x="500" y="402">유속이 느려 부유물·오염물이 침전·흡착·산화분해된다. 영양물질이</text>
+  <text class="note" x="500" y="422">풍부해 어류의 서식처가 되고, 홍수 때는 피난처가 된다.</text>
+</svg>

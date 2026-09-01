@@ -1,0 +1,164 @@
+[
+ {
+  "pk": 508,
+  "label": "2025년 2회",
+  "number": 1,
+  "qtype": "단답",
+  "text": "하천의 규모를 구분하기 위한 일종의 계급으로서 하천의 유역 및 하천의 크기를 파악하는 인자로서, 아래 그림과 같이 하천 지류의 많은 정도를 나타내는 지도를 무엇이라 하는가?",
+  "answer_items": [
+   "하천차수도"
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "text_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/기출/E-2025-2-01_question_1.png"
+   }
+  ],
+  "svg_name": "stream_order_map",
+  "done": true
+ },
+ {
+  "pk": 521,
+  "label": "2025년 2회",
+  "number": 14,
+  "qtype": "서술",
+  "text": "중규모교란설에서 교란의 정도가 중간보다 낮거나 높을 때 종풍부도의 변화를 설명하시오.",
+  "answer_items": [
+   "① 교란이 중간보다 낮을 때 : 천이가 방해 없이 진행되어 경쟁에 강한 천이 후기종이 우점하고 약한 종은 배제되므로, 종풍부도가 중간 교란일 때보다 낮아진다.",
+   "② 교란이 중간보다 높을 때 : 잦고 강한 교란을 견디는 소수의 내성종·선구종만 남고 나머지는 정착하지 못하므로, 종풍부도가 중간 교란일 때보다 낮아진다.",
+   "③ 종합 : 두 극단 모두에서 종풍부도가 떨어지고 중간 교란에서 최고가 되므로, 종풍부도 곡선은 위로 볼록한 형태를 보인다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "reference_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/기출/E-2025-2-14_reference_1.png"
+   }
+  ],
+  "svg_name": "intermediate_disturbance",
+  "done": true
+ },
+ {
+  "pk": 481,
+  "label": "2024년 2회",
+  "number": 4,
+  "qtype": "표그림",
+  "text": "하천 습지 복원 과정을 순서대로 나열하시오.\n[box]\n㉠ 현황조사 및 분석\n㉡ 복원목표 및 목표, 대안 설정\n㉢ 복원 계획 및 모니터링·평가\n㉣ 다른 대상지에 적용\n㉤ 유지관리\n[/box]\n대상지 선정 → (   ) → (   ) → (   ) → (   ) → (   )",
+  "answer_items": [],
+  "answer_text": "대상지 선정 → ㉠ 현황조사 및 분석 → ㉡ 복원목표 및 목표, 대안 설정 → ㉢ 복원 계획 및 모니터링·평가 → ㉤ 유지관리 → ㉣ 다른 대상지에 적용\n\n| 순서 | 단계 |\n|------|------|\n| 1 | 대상지 선정 |\n| 2 | ㉠ 현황조사 및 분석 |\n| 3 | ㉡ 복원목표 및 목표, 대안 설정 |\n| 4 | ㉢ 복원 계획 및 모니터링·평가 |\n| 5 | ㉤ 유지관리 |\n| 6 | ㉣ 다른 대상지에 적용 |\n\n대상지를 고른 뒤 현황을 파악하고, 그 결과로 목표와 대안을 세운 다음 계획을 실행하며 모니터링·평가한다. 조성 이후에는 유지관리로 성과를 지키고, 축적된 경험을 다른 대상지에 확대 적용한다.",
+  "images": [
+   {
+    "field": "text_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/기출/E-2024-2-04_question_1.png"
+   }
+  ],
+  "svg_name": "",
+  "to_table": true,
+  "done": true
+ },
+ {
+  "pk": 468,
+  "label": "2024년 1회",
+  "number": 6,
+  "qtype": "서술",
+  "text": "자연교란에 대하여 쓰고 자연교란과 생물종의 생존관계에 대하여 설명하시오.",
+  "answer_items": [
+   "① 자연교란의 정의 : 산불·홍수·태풍처럼 인위적 개입 없이 발생하여 생물을 사멸시키거나 생물량을 일시적으로 감소시키는 사건으로, 교란 이후 그 자리에서 2차 천이가 진행된다.",
+   "② 교란 빈도가 높은 경우 : 군집이 회복될 시간을 얻지 못하므로 천이 후기종이 자리를 잡기 어렵고 선구종 위주의 구조가 유지된다.",
+   "③ 교란 빈도가 낮은 경우 : 천이가 방해 없이 진행되어 천이 후기종이 빠르게 우점하고 경쟁에 약한 종은 배제된다.",
+   "④ 중규모 교란설 : 교란의 빈도와 강도가 중간 수준일 때 선구종과 후기종이 공존하여 종다양성이 가장 높아진다는 이론이다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/기출/E-2024-1-06_answer_1.png"
+   }
+  ],
+  "svg_name": "natural_disturbance_frequency",
+  "done": true
+ },
+ {
+  "pk": 471,
+  "label": "2024년 1회",
+  "number": 9,
+  "qtype": "계산",
+  "text": "축적 1/500 지도에서 등고선 10m, 110m 간 수평거리 10cm일 때 경사도를 구하시오.",
+  "answer_items": [
+   "① 수평거리 구하기\n1 : 500 = 100 : x\nx = 50,000 = 50m",
+   "② 경사도 구하기\n10/50 × 100% = 20%"
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/기출/E-2024-1-09_answer_1.png"
+   }
+  ],
+  "svg_name": "slope_from_map_scale",
+  "done": true
+ },
+ {
+  "pk": 473,
+  "label": "2024년 1회",
+  "number": 11,
+  "qtype": "열거",
+  "text": "Davies(1996)가 말한 경관생태학에서 패치형태 정량화지표 3가지를 쓰시오.",
+  "answer_items": [
+   "① 신장(elongation) : 패치가 한 방향으로 길게 늘어난 정도를 나타내는 지표이다.",
+   "② 굴곡(convolution) : 패치 경계선이 얼마나 복잡하게 휘어져 있는지를 나타내는 지표이다.",
+   "③ 내부와 주연부(interior and edge) : 패치 전체 면적 중 가장자리를 뺀 내부 면적이 차지하는 비율을 나타내는 지표이다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "reference_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/기출/E-2024-1-11_reference_1.png"
+   }
+  ],
+  "svg_name": "patch_shape_metrics",
+  "done": true
+ },
+ {
+  "pk": 432,
+  "label": "2023년 1회",
+  "number": 1,
+  "qtype": "빈칸",
+  "text": "Braun-Blanquet(식물사회학적)방법에 따른 우점도등급 5, 4, 3, 2, 1, +, r 중 다음에 해당하는 등급을 쓰시오.\n\n| 구분 | 등급 |\n|---|---|\n| 피도가 낮고 산재되어 나타나는 개체 | ( ㄱ ) |\n| 고립되어 드물게 나타나는 개체 | ( ㄴ ) |",
+  "answer_items": [
+   "① ㄱ : +",
+   "② ㄴ : r"
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "reference_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/기출/E-2023-1-01_reference_1.png"
+   }
+  ],
+  "svg_name": "braun_blanquet_cover",
+  "done": true
+ },
+ {
+  "pk": 433,
+  "label": "2023년 1회",
+  "number": 2,
+  "qtype": "열거",
+  "text": "도시열섬현상의 저감방법 3가지를 쓰시오.",
+  "answer_items": [
+   "① 인공열 발생 억제 : 건물 냉난방과 자동차에 쓰이는 화석연료 사용을 줄이고 친환경 에너지로 전환한다.",
+   "② 바람길 확보와 알베도 개선 : 건축물을 배치할 때 도심으로 찬바람이 들어올 통로를 남기고, 지붕·포장면의 반사율을 높여 축열을 줄인다.",
+   "③ 불투수면 축소와 녹지 확충 : 포장면을 줄이고 생태면적률을 높여 증발산과 자연 침투를 통한 냉각 효과를 회복한다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "reference_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/기출/E-2023-1-02_reference_1.png"
+   }
+  ],
+  "svg_name": "urban_heat_island_mitigation",
+  "done": true
+ }
+]

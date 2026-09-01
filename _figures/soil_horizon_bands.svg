@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>토양층위 모식도 — O·A·E·B·C층</title>
+  <desc>지표에서 모재까지의 다섯 층위를 왼쪽에서 오른쪽으로 진행하는 가로 띠로 배열하고, 층 사이의 용탈과 집적 물질 이동을 화살표로 나타낸 모식도</desc>
+
+  <defs>
+    <!-- O층 : 낙엽·낙지 (겹친 나뭇잎 모양) -->
+    <pattern id="hO" width="12" height="9" patternUnits="userSpaceOnUse">
+      <rect width="12" height="9" fill="#f3f1e6"/>
+      <path d="M1,6 Q4,1.5 8,5 Q5,8.5 1,6 Z" fill="none" stroke="#6f7a4a" stroke-width="1.1"/>
+    </pattern>
+    <!-- A층 : 부식 + 무기물 (촘촘한 점, 어두움) -->
+    <pattern id="hA" width="5" height="5" patternUnits="userSpaceOnUse">
+      <rect width="5" height="5" fill="#ddd6c6"/>
+      <circle cx="1.4" cy="1.4" r="1.2" fill="#4a4436"/>
+      <circle cx="3.6" cy="3.6" r="1" fill="#66604f"/>
+    </pattern>
+    <!-- E층 : 용탈되어 옅음 (성긴 가로선) -->
+    <pattern id="hE" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#fbfaf5"/>
+      <path d="M0,4 L8,4" stroke="#c3bda9" stroke-width="0.9"/>
+    </pattern>
+    <!-- B층 : 집적 (사선 조밀) -->
+    <pattern id="hB" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#e6dccb"/>
+      <path d="M0,6 L6,0" stroke="#8a6f45" stroke-width="1.4"/>
+    </pattern>
+    <!-- C층 : 모재 (자갈·돌) -->
+    <pattern id="hC" width="14" height="14" patternUnits="userSpaceOnUse">
+      <rect width="14" height="14" fill="#eeebe3"/>
+      <ellipse cx="4" cy="4" rx="3" ry="2.2" fill="none" stroke="#6f6a60" stroke-width="1.1"/>
+      <ellipse cx="10.5" cy="10" rx="2.4" ry="1.8" fill="none" stroke="#6f6a60" stroke-width="1.1"/>
+      <circle cx="11" cy="3" r="0.9" fill="#8a8375"/>
+      <circle cx="3" cy="11" r="0.8" fill="#8a8375"/>
+    </pattern>
+    <marker id="dn" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+    <marker id="sm" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b4332"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .hn   { font-size: 18px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .hk   { font-size: 14px; font-weight: 700; fill: #444; text-anchor: middle; }
+    .lab  { font-size: 14.5px; fill: #222; text-anchor: middle; }
+    .ax   { font-size: 14px; font-weight: 700; fill: #333; }
+    .mv   { font-size: 14px; font-weight: 700; fill: #a1651a; text-anchor: middle; }
+    .note { font-size: 15px; fill: #333; text-anchor: middle; }
+  </style>
+
+  <text class="ttl" x="450" y="28">토양층위 모식도 — 지표에서 모재까지 다섯 층위</text>
+
+  <!-- 진행 축 : 지표(왼쪽) → 심부(오른쪽) -->
+  <line x1="40" y1="58" x2="864" y2="58" stroke="#999" stroke-width="1.2"/>
+  <path d="M 40,58 L 856,58" stroke="#1b4332" stroke-width="1.8" fill="none" marker-end="url(#sm)"/>
+  <text class="ax" x="40" y="50">지표 (식생)</text>
+  <text class="ax" x="864" y="50" text-anchor="end">깊어짐 → 기반암</text>
+
+  <!-- 식생 (왼쪽 끝, 지표 표시) -->
+  <g stroke="#4f7259" stroke-width="1.8" fill="none">
+    <path d="M48,96 L48,74 M56,96 L52,72 M64,96 L64,70 M72,96 L76,73 M80,96 L80,75"/>
+  </g>
+
+  <!-- 다섯 띠 (세로 막대, 왼→오른) 폭은 층 두께 비중을 반영 -->
+  <!-- O -->
+  <rect x="94"  y="76" width="86"  height="146" fill="url(#hO)" stroke="#6f7a4a" stroke-width="2"/>
+  <text class="hn" x="137" y="248">O층</text>
+  <text class="hk" x="137" y="270">유기물층</text>
+  <text class="lab" x="137" y="296" style="font-size:13.5px">Organic</text>
+  <text class="lab" x="137" y="316" style="font-size:13.5px">Horizon</text>
+  <text class="lab" x="137" y="344">낙엽·낙지가 부분</text>
+  <text class="lab" x="137" y="364">분해되어 쌓인 최상부</text>
+
+  <!-- A -->
+  <rect x="180" y="76" width="128" height="146" fill="url(#hA)" stroke="#4a4436" stroke-width="2"/>
+  <text class="hn" x="244" y="248">A층</text>
+  <text class="hk" x="244" y="270">무기물표층</text>
+  <text class="lab" x="244" y="296" style="font-size:13.5px">Topmost Mineral</text>
+  <text class="lab" x="244" y="316" style="font-size:13.5px">Horizon</text>
+  <text class="lab" x="244" y="344">부식화된 유기물이 무기물과</text>
+  <text class="lab" x="244" y="364">섞여 입단구조가 잘 발달</text>
+
+  <!-- E -->
+  <rect x="308" y="76" width="134" height="146" fill="url(#hE)" stroke="#b0a992" stroke-width="2"/>
+  <text class="hn" x="375" y="248">E층</text>
+  <text class="hk" x="375" y="270">최대용탈층</text>
+  <text class="lab" x="375" y="296" style="font-size:13.5px">Eluvial</text>
+  <text class="lab" x="375" y="316" style="font-size:13.5px">Horizon</text>
+  <text class="lab" x="375" y="344">점토와 Al·Fe 산화물이</text>
+  <text class="lab" x="375" y="364">씻겨 내려가 가장 심하게 용탈</text>
+
+  <!-- B -->
+  <rect x="442" y="76" width="130" height="146" fill="url(#hB)" stroke="#8a6f45" stroke-width="2"/>
+  <text class="hn" x="507" y="248">B층</text>
+  <text class="hk" x="507" y="270">집적층</text>
+  <text class="lab" x="507" y="296" style="font-size:13.5px">Illuvial</text>
+  <text class="lab" x="507" y="316" style="font-size:13.5px">Horizon</text>
+  <text class="lab" x="507" y="344">위층에서 용탈된 미세점토와</text>
+  <text class="lab" x="507" y="364">Al·Fe 산화물이 내려와 쌓임</text>
+
+  <!-- C -->
+  <rect x="572" y="76" width="180" height="146" fill="url(#hC)" stroke="#6f6a60" stroke-width="2"/>
+  <text class="hn" x="662" y="248">C층</text>
+  <text class="hk" x="662" y="270">모재층</text>
+  <text class="lab" x="662" y="296" style="font-size:13.5px">Parent Material Layer</text>
+  <text class="lab" x="662" y="344">토양 생성의 바탕이 되는</text>
+  <text class="lab" x="662" y="364">풍화 중인 모재 (자갈·돌 포함)</text>
+
+  <!-- 기반암 (참고) -->
+  <rect x="752" y="76" width="112" height="146" fill="#cfcabf" stroke="#5b564d" stroke-width="2"/>
+  <text class="hk" x="808" y="152" style="fill:#333">기반암</text>
+  <text class="lab" x="808" y="176" style="font-size:13px;fill:#555">(모암)</text>
+
+  <!-- 용탈 → 집적 이동 화살표 (E → B) -->
+  <path d="M 375,64 C 420,44 466,44 505,64" stroke="#a1651a" stroke-width="2.2"
+        fill="none" marker-end="url(#dn)"/>
+  <text class="mv" x="440" y="38">용탈된 점토 · Al · Fe 산화물이 아래층에 집적</text>
+
+  <!-- 하단 요약 -->
+  <text class="note" x="450" y="392">층위 순서 O → A → E → B → C 는 지표에서 아래로 내려가는 고정 순서이며, 실제 단면에서는 위에서 아래로 쌓여 있다</text>
+</svg>

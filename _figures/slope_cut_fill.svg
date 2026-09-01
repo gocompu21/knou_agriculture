@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>도로비탈면 유형구분 — 절토 비탈면과 성토 비탈면</title>
+  <desc>산허리를 지나는 도로의 횡단면. 원지반선을 기준으로 왼쪽은 깎아낸 절토 비탈면, 오른쪽은 쌓아 올린 성토 비탈면이 되는 것을 한 장면에 나타냈다</desc>
+
+  <defs>
+    <pattern id="native" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="10" height="10" fill="#ebe8e1"/>
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#8a8577" stroke-width="2.4"/>
+    </pattern>
+    <pattern id="fillp" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#eef4ef"/>
+      <circle cx="2" cy="2" r="1.3" fill="#4f7259"/>
+      <circle cx="6" cy="6" r="1.3" fill="#4f7259"/>
+    </pattern>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .lab  { font-size: 16px; font-weight: 700; fill: #1b4332; }
+    .lab2 { font-size: 14.5px; fill: #3a3a3a; }
+    .note { font-size: 15.5px; fill: #333; }
+    .cline{ stroke: #fff; stroke-width: 2.4; stroke-dasharray: 10 9; }
+    .orig { stroke: #a1651a; stroke-width: 2.6; fill: none; stroke-dasharray: 10 6; }
+    .edge { stroke: #1b4332; stroke-width: 3.2; fill: none; }
+    .lead { stroke: #333; stroke-width: 1.4; fill: none; }
+  </style>
+
+  <text class="ttl" x="450" y="30">도로비탈면 유형구분 — 도로 횡단면</text>
+
+  <rect x="24" y="44" width="852" height="242" fill="#fcfdfc" stroke="#ccd5ce" stroke-width="1.2" rx="6"/>
+
+  <!-- ① 시공 후 지반 전체(원지반 + 성토체가 이어진 하나의 몸통) -->
+  <!-- 왼쪽 계단식 절토면 → 도로 노체 → 오른쪽 성토 사면 -->
+  <path d="M 36,116 L 128,116 L 128,164 L 216,164 L 216,212 L 300,212
+           L 300,232 L 600,232 L 864,278 L 864,286 L 36,286 Z"
+        fill="url(#native)" stroke="none"/>
+
+  <!-- ② 성토체 : 원지반선 바깥쪽(아래)에 쌓은 부분만 별도 채움 -->
+  <path d="M 600,232 L 864,278 L 864,286 L 600,286 Z
+           M 600,232 L 600,286" fill="none"/>
+  <path d="M 600,232 L 864,278 L 864,286 L 610,286
+           C 606,272 602,252 600,232 Z" fill="url(#fillp)" stroke="none"/>
+  <!-- 원지반선 아래로 내려간 자연 지반이 성토체 밑에 있음 -->
+  <path d="M 600,232 C 640,250 720,268 864,278" fill="none" stroke="#8a8577"
+        stroke-width="1.6" stroke-dasharray="4 4"/>
+
+  <!-- ③ 지반 외곽선 -->
+  <path d="M 36,116 L 128,116 L 128,164 L 216,164 L 216,212 L 300,212
+           L 300,232 L 600,232 L 864,278 L 864,286 L 36,286 Z"
+        fill="none" stroke="#8a8577" stroke-width="1.4"/>
+
+  <!-- ④ 절토 비탈면(깎아낸 면) 강조 -->
+  <path class="edge" d="M 36,116 L 128,116 L 128,164 L 216,164 L 216,212 L 300,212"/>
+  <!-- ⑤ 성토 비탈면(쌓아 만든 면) 강조 -->
+  <path class="edge" d="M 600,232 L 864,278"/>
+
+  <!-- ⑥ 원지반선(시공 전 자연 지형) — 도로 위를 지나 오른쪽으로 내려간다 -->
+  <path class="orig" d="M 36,74 C 128,80 196,116 262,152 C 340,196 430,220 512,228
+                        C 546,231 574,232 600,232"/>
+
+  <!-- ⑦ 도로 노면 -->
+  <rect x="300" y="216" width="300" height="16" rx="2" fill="#4a4a4a"/>
+  <line class="cline" x1="316" y1="224" x2="584" y2="224"/>
+  <text class="lab" x="414" y="208">도 로</text>
+
+  <!-- 라벨 -->
+  <text class="lab2" x="122" y="76" fill="#a1651a">원지반선(시공 전 지형)</text>
+
+  <text class="lab" x="46" y="204">절토 비탈면</text>
+  <text class="lab2" x="46" y="224">원지반을 깎아낸 면</text>
+  <path class="lead" d="M 148,198 L 186,178"/>
+
+  <text class="lab" x="694" y="152">성토 비탈면</text>
+  <text class="lab2" x="694" y="172">흙을 쌓아 만든 면</text>
+  <path class="lead" d="M 748,182 L 730,246"/>
+
+  <text class="lab2" x="654" y="262" fill="#3f5c48">성토체</text>
+  <text class="lab2" x="60" y="272" fill="#5c5a52">원지반(자연 지반)</text>
+
+  <!-- 흙의 이동 -->
+  <path d="M 262,120 C 380,92 500,100 606,158" stroke="#a1651a" stroke-width="2.4"
+        fill="none" stroke-dasharray="8 6" marker-end="url(#a2)"/>
+  <text class="lab2" x="432" y="98" fill="#a1651a" text-anchor="middle">깎아낸 흙을 쌓는 쪽으로 옮긴다</text>
+
+  <!-- 설명 -->
+  <text class="note" x="24" y="322">· <tspan font-weight="700" fill="#1b4332">절토 비탈면</tspan> — 원지반선보다 안쪽. 지반을 깎아내 토양층이 얕고 암반(경암·연암)이 드러나기 쉽다.</text>
+  <text class="note" x="24" y="348">· <tspan font-weight="700" fill="#1b4332">성토 비탈면</tspan> — 원지반선보다 바깥쪽. 다져 쌓은 흙이라 토양경도가 높고 침식에 약하다.</text>
+
+  <!-- 범례 -->
+  <g transform="translate(24,378)">
+    <rect x="0" y="-11" width="24" height="14" fill="url(#native)" stroke="#8a8577" stroke-width="1.2"/>
+    <text class="lab2" x="30" y="1">원지반</text>
+    <rect x="100" y="-11" width="24" height="14" fill="url(#fillp)" stroke="#4f7259" stroke-width="1.2"/>
+    <text class="lab2" x="130" y="1">성토체</text>
+    <line x1="216" y1="-4" x2="252" y2="-4" stroke="#a1651a" stroke-width="2.6" stroke-dasharray="10 6"/>
+    <text class="lab2" x="258" y="1">원지반선</text>
+    <line x1="352" y1="-4" x2="388" y2="-4" stroke="#1b4332" stroke-width="3.2"/>
+    <text class="lab2" x="394" y="1">비탈면(시공면)</text>
+  </g>
+</svg>

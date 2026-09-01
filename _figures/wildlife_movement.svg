@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 448" width="900" height="448"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>야생동물의 이동 — 매체별 구분과 목적별 구분</title>
+  <desc>공중·육상·수중 세 층으로 나눈 경관 단면에 매체별 이동을 배치하고, 아래에 목적에 따른 이동 구분을 띠로 정리했다</desc>
+
+  <defs>
+    <marker id="mv" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b4332"/>
+    </marker>
+    <pattern id="water" width="10" height="10" patternUnits="userSpaceOnUse">
+      <rect width="10" height="10" fill="#eef3f4"/>
+      <path d="M0,6 q2.5,-3 5,0 q2.5,3 5,0" stroke="#7d97a0" stroke-width="1.2" fill="none"/>
+    </pattern>
+    <pattern id="ground" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="9" height="9" fill="#f1efe9"/>
+      <line x1="0" y1="0" x2="0" y2="9" stroke="#a39d8e" stroke-width="1.8"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .ttl   { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .strat { font-size: 17px; font-weight: 700; fill: #1b4332; }
+    .taxa  { font-size: 14.5px; fill: #333; }
+    .cap   { font-size: 15px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .body  { font-size: 14.5px; fill: #333; text-anchor: middle; }
+    .path  { stroke: #1b4332; stroke-width: 2.4; fill: none; }
+  </style>
+
+  <text class="ttl" x="24" y="28">① 이동 매체에 따른 구분 — 경관 단면</text>
+
+  <!-- ───────── 공중층 ───────── -->
+  <rect x="24" y="42" width="852" height="104" fill="#f7faf8" stroke="#ccd5ce" stroke-width="1.2"/>
+  <text class="strat" x="40" y="68">공중이동</text>
+  <text class="taxa"  x="40" y="90">조류 · 곤충류 · 일부 포유류(박쥐)</text>
+  <!-- 파선 = 공중 경로 -->
+  <path class="path" d="M 250,124 C 330,60 430,60 512,110 C 580,150 660,138 736,96"
+        stroke-dasharray="10 7" marker-end="url(#mv)"/>
+  <text class="taxa" x="470" y="52" text-anchor="middle">장거리 계절이동(도래·귀소)이 가능하다</text>
+
+  <!-- ───────── 지표(육상) ───────── -->
+  <rect x="24" y="146" width="852" height="96" fill="url(#ground)" stroke="#a39d8e" stroke-width="1.2"/>
+  <text class="strat" x="40" y="172">육상이동</text>
+  <text class="taxa"  x="40" y="194">포유류 · 파충류 · 양서류</text>
+  <!-- 실선 = 지표 경로, 장애물에 끊긴다 -->
+  <path class="path" d="M 250,214 L 402,214" marker-end="url(#mv)"/>
+  <rect x="414" y="188" width="12" height="46" fill="#4a4a4a"/>
+  <text class="taxa" x="420" y="182" text-anchor="middle">단절</text>
+  <path class="path" d="M 440,214 L 736,214" marker-end="url(#mv)"/>
+  <text class="taxa" x="600" y="204" text-anchor="middle">지표를 걷거나 기어 옮기므로 도로·제방에 쉽게 끊긴다</text>
+
+  <!-- ───────── 수중 ───────── -->
+  <rect x="24" y="242" width="852" height="96" fill="url(#water)" stroke="#7d97a0" stroke-width="1.2"/>
+  <text class="strat" x="40" y="268">수중이동</text>
+  <text class="taxa"  x="40" y="290">어류 · 양서류 · 수생곤충 · 일부 포유류(수달)</text>
+  <!-- 점선 = 수로 경로 -->
+  <path class="path" d="M 250,314 C 340,286 430,336 520,306 C 600,280 668,320 736,300"
+        stroke-dasharray="3 5" marker-end="url(#mv)"/>
+  <text class="taxa" x="500" y="332" text-anchor="middle">물길을 따라 오르내리므로 보·낙차공이 이동을 막는다</text>
+
+  <!-- 층 사이를 오가는 종이 있음(양서류·수달 등)을 세로 화살표로 -->
+  <path class="path" d="M 806,236 L 806,264" marker-end="url(#mv)" marker-start="url(#mv)"/>
+  <text class="taxa" x="820" y="256" style="font-size:13px">양서류·수달은
+    <tspan x="820" dy="15">두 층을 오간다</tspan></text>
+
+  <!-- ───────── 목적별 구분 ───────── -->
+  <text class="ttl" x="24" y="372">② 목적에 따른 구분</text>
+
+  <g transform="translate(24,382)">
+    <g transform="translate(0,0)">
+      <rect x="0" y="0" width="164" height="32" rx="4" fill="#f2f5f1" stroke="#4f7259" stroke-width="1.6"/>
+      <text class="cap" x="82" y="21">일상적 이동</text>
+    </g>
+    <g transform="translate(174,0)">
+      <rect x="0" y="0" width="164" height="32" rx="4" fill="#f2f5f1" stroke="#4f7259" stroke-width="1.6"/>
+      <text class="cap" x="82" y="21">분산 이동</text>
+    </g>
+    <g transform="translate(348,0)">
+      <rect x="0" y="0" width="164" height="32" rx="4" fill="#f2f5f1" stroke="#4f7259" stroke-width="1.6"/>
+      <text class="cap" x="82" y="21">계절 이동</text>
+    </g>
+    <g transform="translate(522,0)">
+      <rect x="0" y="0" width="164" height="32" rx="4" fill="#f2f5f1" stroke="#4f7259" stroke-width="1.6"/>
+      <text class="cap" x="82" y="21">회피 이동</text>
+    </g>
+    <g transform="translate(696,0)">
+      <rect x="0" y="0" width="156" height="32" rx="4" fill="#f2f5f1" stroke="#4f7259" stroke-width="1.6"/>
+      <text class="cap" x="78" y="21">교란 대응 이동</text>
+    </g>
+  </g>
+  <text class="body" x="106" y="432">먹이·쉼터 확보</text>
+  <text class="body" x="280" y="432">영역 확대·근친교배 회피</text>
+  <text class="body" x="454" y="432">월동·번식</text>
+  <text class="body" x="628" y="432">천적·위험 회피</text>
+  <text class="body" x="798" y="432">홍수·산불 대응</text>
+</svg>

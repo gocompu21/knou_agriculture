@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" width="900" height="420"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>질소순환</title>
+  <desc>대기와 토양을 지표선으로 나누고, 대기 중 N2가 질소고정·질화작용·탈질작용을 거쳐 다시 대기로 돌아오는 경로와 생산자·소비자·분해자의 이용 경로를 나타낸 순환도</desc>
+
+  <defs>
+    <marker id="nar" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b4332"/>
+    </marker>
+    <marker id="nar2" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+    <!-- 토양대: 옅은 사선 -->
+    <pattern id="soil" width="8" height="8" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(35)">
+      <rect width="8" height="8" fill="#f7f5f0"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#d8cfbe" stroke-width="1.4"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .zone  { font-size: 15px; font-weight: 700; fill: #6b6252; }
+    .pool  { font-size: 17px; font-weight: 700; fill: #14331f; text-anchor: middle; }
+    .poolS { font-size: 13.5px; fill: #3d5545; text-anchor: middle; }
+    .proc  { font-size: 15px; font-weight: 700; fill: #7a4c11; text-anchor: middle; }
+    .bio   { font-size: 15px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .cap   { font-size: 15.5px; fill: #333; }
+    .box   { fill: #f2f5f1; stroke: #4f7259; stroke-width: 2; }
+    .boxA  { fill: #eef2f6; stroke: #3c5a72; stroke-width: 2.2; }
+    .flow  { stroke: #1b4332; stroke-width: 2.4; fill: none; }
+    .flowO { stroke: #a1651a; stroke-width: 2.4; fill: none; stroke-dasharray: 8 5; }
+  </style>
+
+  <!-- 대기 / 토양 구분 -->
+  <rect x="0" y="0" width="900" height="126" fill="#f4f8fb"/>
+  <rect x="0" y="126" width="900" height="294" fill="url(#soil)"/>
+  <line x1="0" y1="126" x2="900" y2="126" stroke="#8a7f6c" stroke-width="2.6"/>
+  <text class="zone" x="16" y="24">대기</text>
+  <text class="zone" x="16" y="150">토양·수중</text>
+
+  <!-- 대기 질소 저장고 -->
+  <rect class="boxA" x="330" y="34" width="250" height="62" rx="8"/>
+  <text class="pool" x="455" y="62">N₂</text>
+  <text class="poolS" x="455" y="82">대기 중 질소 (약 78%)</text>
+
+  <!-- 질소고정 (내려오는 경로, 왼쪽) -->
+  <path class="flow" d="M 352,96 L 250,96 L 250,168" marker-end="url(#nar)"/>
+  <text class="proc" x="250" y="118">질소고정</text>
+
+  <!-- 탈질작용 (올라가는 경로, 오른쪽) -->
+  <path class="flow" d="M 690,168 L 690,96 L 560,96" marker-end="url(#nar)"/>
+  <text class="proc" x="690" y="118">탈질작용</text>
+
+  <!-- 무기질소 3형태 : 가로 사슬 -->
+  <rect class="box" x="176" y="168" width="148" height="54" rx="8"/>
+  <text class="pool" x="250" y="194">NH₄⁺</text>
+  <text class="poolS" x="250" y="213">암모늄</text>
+
+  <rect class="box" x="396" y="168" width="148" height="54" rx="8"/>
+  <text class="pool" x="470" y="194">NO₂⁻</text>
+  <text class="poolS" x="470" y="213">아질산</text>
+
+  <rect class="box" x="616" y="168" width="148" height="54" rx="8"/>
+  <text class="pool" x="690" y="194">NO₃⁻</text>
+  <text class="poolS" x="690" y="213">질산</text>
+
+  <path class="flow" d="M 324,195 L 390,195" marker-end="url(#nar)"/>
+  <path class="flow" d="M 544,195 L 610,195" marker-end="url(#nar)"/>
+  <text class="proc" x="360" y="160">질화작용</text>
+  <text class="proc" x="580" y="160">질화작용</text>
+
+  <!-- 생물 이용 경로 -->
+  <rect class="box" x="176" y="290" width="168" height="52" rx="8" stroke-dasharray="0"/>
+  <text class="bio" x="260" y="322">생산자(식물)</text>
+
+  <rect class="box" x="396" y="290" width="148" height="52" rx="8"/>
+  <text class="bio" x="470" y="322">소비자</text>
+
+  <rect class="box" x="596" y="290" width="168" height="52" rx="8"/>
+  <text class="bio" x="680" y="322">분해자</text>
+
+  <!-- 흡수: NH4+, NO3- → 생산자 -->
+  <path class="flowO" d="M 250,222 L 250,284" marker-end="url(#nar2)"/>
+  <path class="flowO" d="M 690,222 C 690,252 700,258 620,262 L 300,262 L 280,284"
+        marker-end="url(#nar2)"/>
+  <text class="proc" x="382" y="255">흡수 → 단백질 합성</text>
+
+  <!-- 섭취 -->
+  <path class="flow" d="M 344,316 L 390,316" marker-end="url(#nar)"/>
+  <text class="cap" x="349" y="304" style="font-size:13.5px;fill:#3d5545">섭취</text>
+
+  <!-- 사체·배설물 → 분해자 -->
+  <path class="flow" d="M 544,316 L 590,316" marker-end="url(#nar)"/>
+  <text class="cap" x="546" y="304" style="font-size:13.5px;fill:#3d5545">사체</text>
+
+  <!-- 분해자 → NH4+ 무기화 (아래를 크게 돌아 되돌림) -->
+  <path class="flow" d="M 680,342 L 680,382 L 190,382 L 190,222" marker-end="url(#nar)"/>
+  <text class="proc" x="435" y="402">무기화 — 사체·배설물이 다시 무기질소로 돌아온다</text>
+
+  <!-- 탈질 경로가 NO3-에서 출발함을 명시 -->
+  <text class="cap" x="772" y="196" style="font-size:13px;fill:#7a4c11">→ 탈질</text>
+</svg>

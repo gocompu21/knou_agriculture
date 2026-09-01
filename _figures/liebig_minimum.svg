@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 456" width="900" height="456"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>Liebig의 최소량의 법칙</title>
+  <desc>필수 영양소별 공급 수준을 막대로 나타내고, 가장 부족한 영양소의 높이에서 그은 수평선이 실제 생육량의 상한이 됨을 보인 그래프. 넉넉한 양분은 그 선 위로 이용되지 못하고 남는다</desc>
+
+  <defs>
+    <marker id="lax" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+    <!-- 이용되지 못하고 남는 부분: 성긴 사선 -->
+    <pattern id="unused" width="8" height="8" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#f6f7f5"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#c9d2cb" stroke-width="1.5"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .ax   { stroke: #222; stroke-width: 2.2; fill: none; }
+    .axT  { font-size: 16px; font-weight: 700; fill: #222; }
+    .grid { stroke: #e3e8e4; stroke-width: 1.2; }
+    .gridT{ font-size: 13px; fill: #7a857c; text-anchor: end; }
+    .used { fill: #4f7259; stroke: #1b4332; stroke-width: 1.6; }
+    .un   { fill: url(#unused); stroke: #9fada4; stroke-width: 1.4; }
+    .minB { fill: #a1651a; stroke: #7a4c11; stroke-width: 1.8; }
+    .nut  { font-size: 15px; font-weight: 700; fill: #222; text-anchor: middle; }
+    .limL { stroke: #a1651a; stroke-width: 2.6; fill: none; stroke-dasharray: 10 6; }
+    .limT { font-size: 15.5px; font-weight: 700; fill: #a1651a; }
+    .note { font-size: 15.5px; fill: #333; }
+  </style>
+
+  <!-- 축 : 세로 = 공급 수준(%), 가로 = 필수 영양소 -->
+  <path class="ax" d="M 118,300 L 700,300"/>
+  <path class="ax" d="M 118,300 L 118,52" marker-end="url(#lax)"/>
+  <text class="axT" transform="translate(52,208) rotate(-90)">공급 수준 (%)</text>
+  <text class="axT" x="409" y="372" text-anchor="middle">필수 영양소</text>
+
+  <!-- 눈금 : 0 / 50 / 100 -->
+  <line class="grid" x1="118" y1="300" x2="700" y2="300"/>
+  <line class="grid" x1="118" y1="180" x2="700" y2="180"/>
+  <line class="grid" x1="118" y1="60"  x2="700" y2="60"/>
+  <text class="gridT" x="108" y="305">0</text>
+  <text class="gridT" x="108" y="185">50</text>
+  <text class="gridT" x="108" y="65">100</text>
+
+  <!-- 최소량 수준 : 10% → y = 300 - 2.4*10 = 276 -->
+  <!-- 막대 : x축 100% = 240px 높이 (y=60), 1% = 2.4px -->
+
+  <!-- 질소 100% -->
+  <rect class="un"   x="150" y="60"  width="70" height="216"/>
+  <rect class="used" x="150" y="276" width="70" height="24"/>
+  <text class="nut"  x="185" y="326">질소</text>
+
+  <!-- 인산 90% → y=84 -->
+  <rect class="un"   x="248" y="84"  width="70" height="192"/>
+  <rect class="used" x="248" y="276" width="70" height="24"/>
+  <text class="nut"  x="283" y="326">인산</text>
+
+  <!-- 칼륨 10% (최소량 인자) -->
+  <rect class="minB" x="346" y="276" width="70" height="24"/>
+  <text class="nut"  x="381" y="326" fill="#7a4c11">칼륨</text>
+  <text x="381" y="348" style="font-size:13.5px;font-weight:700;fill:#7a4c11;text-anchor:middle">최소량 인자</text>
+
+  <!-- 칼슘 80% → y=108 -->
+  <rect class="un"   x="444" y="108" width="70" height="168"/>
+  <rect class="used" x="444" y="276" width="70" height="24"/>
+  <text class="nut"  x="479" y="326">칼슘</text>
+
+  <!-- 마그네슘 95% → y=72 -->
+  <rect class="un"   x="542" y="72"  width="70" height="204"/>
+  <rect class="used" x="542" y="276" width="70" height="24"/>
+  <text class="nut"  x="577" y="326">마그네슘</text>
+
+  <!-- 제한선 -->
+  <path class="limL" d="M 118,276 L 700,276"/>
+  <text class="limT" x="628" y="268">생육량의 상한</text>
+
+  <!-- 화살표로 '남는 부분' 지시 -->
+  <path d="M 232,150 L 300,150" stroke="#6b7a70" stroke-width="1.8" fill="none"
+        stroke-dasharray="6 4"/>
+  <text x="238" y="140" style="font-size:14px;fill:#5b6a5f">공급은 넉넉하나</text>
+  <text x="238" y="164" style="font-size:14px;fill:#5b6a5f">이 선 위로는 이용되지 못한다</text>
+
+  <!-- 범례 -->
+  <g transform="translate(724,64)">
+    <rect x="0" y="0" width="150" height="24" class="used"/>
+    <text x="0" y="44" style="font-size:14px;fill:#333">실제 이용되는 양</text>
+    <rect x="0" y="64" width="150" height="24" class="un"/>
+    <text x="0" y="108" style="font-size:14px;fill:#333">남아 이용되지 않는 양</text>
+    <rect x="0" y="128" width="150" height="24" class="minB"/>
+    <text x="0" y="172" style="font-size:14px;fill:#333">가장 부족한 양분</text>
+  </g>
+
+  <!-- 하단 정리 -->
+  <text class="note" x="118" y="412">생육은 넉넉한 양분이 아니라 <tspan font-weight="700" fill="#a1651a">가장 부족한 양분(10%)</tspan>의 수준에서 결정된다.</text>
+  <text class="note" x="118" y="436">따라서 총량을 늘리기보다 <tspan font-weight="700">결핍 양분을 먼저 보충</tspan>해야 효과가 나타난다.</text>
+</svg>

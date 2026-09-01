@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 460" width="900" height="460"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>생태적 지위 — 기본니치·실현니치와 니치중복·니치분화</title>
+  <desc>자원축 위에 각 종이 차지하는 범위를 띠로 나타내어, 단독일 때의 기본니치와 경쟁 후 좁아진 실현니치, 겹침 구간(니치중복)과 축을 달리하는 니치분화를 보여줌</desc>
+
+  <defs>
+    <!-- 기본니치: 빗금(단독 가능 범위) -->
+    <pattern id="fundP" width="8" height="8" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#f2f5f1"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#8fa896" stroke-width="2.4"/>
+    </pattern>
+    <marker id="nar" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+    <marker id="narS" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+  </defs>
+
+  <style>
+    .hd    { font-size:17px; font-weight:700; fill:#1b4332; }
+    .lab   { font-size:15px; fill:#222; }
+    .labB  { font-size:15px; font-weight:700; fill:#1b4332; }
+    .note  { font-size:15.5px; fill:#333; }
+    .axis  { stroke:#222; stroke-width:2; fill:none; }
+    .band  { stroke:#4f7259; stroke-width:1.6; }
+    .real  { fill:#1b4332; }
+    .frame { fill:#fcfdfc; stroke:#ccd5ce; stroke-width:1.2; }
+    .cap   { font-size:14px; fill:#555; }
+  </style>
+
+  <!-- ══════ 왼쪽: 기본니치 → 실현니치 (자원축 1개) ══════ -->
+  <g transform="translate(0,0)">
+    <text class="hd" x="30" y="30">기본니치와 실현니치 — 자원축 ⓐ 먹이 크기</text>
+    <rect class="frame" x="24" y="44" width="500" height="250" rx="6"/>
+
+    <!-- 자원축 -->
+    <path class="axis" d="M 62,264 L 496,264" marker-end="url(#nar)"/>
+    <text class="lab" x="66" y="286">작음</text>
+    <text class="lab" x="440" y="286">큼</text>
+
+    <!-- 종 A -->
+    <text class="labB" x="34" y="96">종 A</text>
+    <g>
+      <!-- 기본니치 띠 -->
+      <rect class="band" x="86" y="80" width="250" height="26" fill="url(#fundP)"/>
+      <!-- 실현니치 (경쟁으로 왼쪽만 남음) -->
+      <rect class="band real" x="86" y="80" width="150" height="26"/>
+      <text class="cap" x="96" y="98" fill="#fff">실현니치</text>
+      <text class="cap" x="252" y="98">기본니치</text>
+    </g>
+
+    <!-- 종 B -->
+    <text class="labB" x="34" y="160">종 B</text>
+    <g>
+      <rect class="band" x="216" y="144" width="252" height="26" fill="url(#fundP)"/>
+      <rect class="band real" x="336" y="144" width="132" height="26"/>
+      <text class="cap" x="348" y="162" fill="#fff">실현니치</text>
+      <text class="cap" x="228" y="162">기본니치</text>
+    </g>
+
+    <!-- 겹침 구간 표시 -->
+    <rect x="216" y="72" width="120" height="106" fill="none"
+          stroke="#a1651a" stroke-width="2" stroke-dasharray="6 4"/>
+    <path d="M 276,178 L 276,206" stroke="#a1651a" stroke-width="1.8"
+          fill="none" marker-end="url(#narS)"/>
+    <text class="labB" x="276" y="226" fill="#a1651a" text-anchor="middle">니치중복 구간</text>
+    <text class="note" x="276" y="248" text-anchor="middle" style="font-size:14.5px;">
+      경쟁이 일어나 서로 밀려나 실현니치가 좁아진다
+    </text>
+  </g>
+
+  <!-- ══════ 오른쪽: 다차원니치와 니치분화 ══════ -->
+  <g transform="translate(0,0)">
+    <text class="hd" x="556" y="30">다차원니치 — 축이 달라지면 공존한다</text>
+    <rect class="frame" x="550" y="44" width="326" height="250" rx="6"/>
+
+    <!-- 두 축(먹이크기 × 섭식높이) 좌표평면 -->
+    <path class="axis" d="M 600,262 L 600,80" marker-end="url(#nar)"/>
+    <path class="axis" d="M 600,262 L 856,262" marker-end="url(#nar)"/>
+    <text class="lab" x="560" y="72">섭식 높이</text>
+    <text class="lab" x="756" y="286">먹이 크기</text>
+
+    <!-- 종 A 영역: 먹이 작음 + 높은 층 -->
+    <ellipse cx="672" cy="130" rx="56" ry="34"
+             fill="url(#fundP)" stroke="#1b4332" stroke-width="2"/>
+    <text class="labB" x="672" y="136" text-anchor="middle">종 A</text>
+
+    <!-- 종 B 영역: 먹이 큼 + 낮은 층 -->
+    <ellipse cx="786" cy="214" rx="56" ry="34"
+             fill="#dfe8e1" stroke="#1b4332" stroke-width="2" stroke-dasharray="7 4"/>
+    <text class="labB" x="786" y="220" text-anchor="middle">종 B</text>
+
+    <text class="note" x="713" y="292" text-anchor="middle" style="font-size:14.5px;">
+      한 축이 겹쳐도 다른 축에서 갈라지면 공존
+    </text>
+  </g>
+
+  <!-- ══════ 하단 요약 띠 ══════ -->
+  <g transform="translate(0,318)">
+    <rect x="24" y="0" width="852" height="120" rx="6" fill="#f2f5f1" stroke="#ccd5ce"/>
+    <text class="note" x="46" y="30">
+      <tspan class="labB">기본니치</tspan> : 다른 종의 간섭이 없을 때 생존·생식할 수 있는 자원과 환경조건의 전체 범위
+    </text>
+    <text class="note" x="46" y="58">
+      <tspan class="labB">실현니치</tspan> : 경쟁 등 종간 상호작용의 결과 실제로 차지하는 그 일부
+    </text>
+    <text class="note" x="46" y="86">
+      <tspan class="labB">니치중복</tspan> : 같은 자원을 동시에 이용하는 상태 ·
+      <tspan class="labB">니치분화</tspan> : 이용자원이나 내성범위를 달리해 경쟁을 피하는 것
+    </text>
+    <text class="note" x="46" y="110" style="font-size:14.5px; fill:#555;">
+      ※ 니치는 먹이·섭식장소·은신처·공간 등 여러 자원 축으로 이루어진 다차원 개념이다
+    </text>
+  </g>
+</svg>

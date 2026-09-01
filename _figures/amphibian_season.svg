@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>양서류 서식공간의 계절별 요구조건</title>
+  <desc>1년 달력 띠 위에 산란기·성장기·동면기 세 구간을 놓고 각 구간에 필요한 서식공간과 이동을 나타낸 도표</desc>
+
+  <defs>
+    <pattern id="pSpawn" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#f2f5f1"/>
+      <path d="M0,6 L6,0" stroke="#4f7259" stroke-width="1.1"/>
+    </pattern>
+    <pattern id="pGrow" width="7" height="7" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#f2f5f1"/>
+      <circle cx="2" cy="2" r="1.15" fill="#4f7259"/>
+    </pattern>
+    <pattern id="pHib" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#f2f5f1"/>
+      <path d="M0,0 L6,6" stroke="#7a7a7a" stroke-width="1.1"/>
+      <path d="M0,6 L6,0" stroke="#7a7a7a" stroke-width="1.1"/>
+    </pattern>
+    <marker id="mv" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b4332"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .mon  { font-size: 13px; fill: #555; text-anchor: middle; }
+    .seg  { font-size: 16px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .lab  { font-size: 15px; fill: #222; }
+    .labb { font-size: 15px; font-weight: 700; fill: #1b4332; }
+    .note { font-size: 15px; fill: #333; text-anchor: middle; }
+    .mvT  { font-size: 14px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .box  { fill: #fcfdfc; stroke: #ccd5ce; stroke-width: 1.2; }
+  </style>
+
+  <text class="ttl" x="450" y="28">양서류 서식공간 — 한 해의 이동과 계절별 요구조건</text>
+
+  <!-- ── 월 눈금 (12개월, x 60~840) ── -->
+  <g>
+    <line x1="60" y1="58" x2="840" y2="58" stroke="#999" stroke-width="1"/>
+    <g class="mon">
+      <text x="92"  y="52">1</text><text x="157" y="52">2</text><text x="222" y="52">3</text>
+      <text x="287" y="52">4</text><text x="352" y="52">5</text><text x="417" y="52">6</text>
+      <text x="482" y="52">7</text><text x="547" y="52">8</text><text x="612" y="52">9</text>
+      <text x="677" y="52">10</text><text x="742" y="52">11</text><text x="807" y="52">12</text>
+    </g>
+    <g stroke="#c8d0c9" stroke-width="1">
+      <line x1="60" y1="58" x2="60" y2="64"/><line x1="125" y1="58" x2="125" y2="64"/>
+      <line x1="190" y1="58" x2="190" y2="64"/><line x1="255" y1="58" x2="255" y2="64"/>
+      <line x1="320" y1="58" x2="320" y2="64"/><line x1="385" y1="58" x2="385" y2="64"/>
+      <line x1="450" y1="58" x2="450" y2="64"/><line x1="515" y1="58" x2="515" y2="64"/>
+      <line x1="580" y1="58" x2="580" y2="64"/><line x1="645" y1="58" x2="645" y2="64"/>
+      <line x1="710" y1="58" x2="710" y2="64"/><line x1="775" y1="58" x2="775" y2="64"/>
+      <line x1="840" y1="58" x2="840" y2="64"/>
+    </g>
+  </g>
+
+  <!-- ── 계절 띠 : 1~2월 동면 / 3~5월 산란 / 6~8월 성장 / 9~10월 이동 / 11~12월 동면 ── -->
+  <!-- 동면(1~2) -->
+  <rect x="60" y="66" width="130" height="46" fill="url(#pHib)" stroke="#5b5b5b" stroke-width="1.6"/>
+  <!-- 산란(3~5) -->
+  <rect x="190" y="66" width="195" height="46" fill="url(#pSpawn)" stroke="#1b4332" stroke-width="2"/>
+  <!-- 성장(6~8) : 여름·가을 -->
+  <rect x="385" y="66" width="325" height="46" fill="url(#pGrow)" stroke="#4f7259" stroke-width="2"/>
+  <!-- 동면(11~12) -->
+  <rect x="710" y="66" width="130" height="46" fill="url(#pHib)" stroke="#5b5b5b" stroke-width="1.6"/>
+
+  <text class="seg" x="125" y="95">동면기</text>
+  <text class="seg" x="287" y="95">산란기</text>
+  <text class="seg" x="547" y="95">성장기</text>
+  <text class="seg" x="775" y="95">동면기</text>
+
+  <!-- ── 이동 화살표 (띠 아래) ── -->
+  <path d="M 168,124 L 250,124" stroke="#1b4332" stroke-width="2" fill="none" marker-end="url(#mv)"/>
+  <text class="mvT" x="209" y="145">봄 3~5월</text>
+  <text class="mvT" x="209" y="162" style="font-weight:400;fill:#444;font-size:13px">동면장소 → 산란장소</text>
+
+  <path d="M 348,124 L 430,124" stroke="#1b4332" stroke-width="2" fill="none" marker-end="url(#mv)"/>
+  <text class="mvT" x="389" y="145">산란 후</text>
+  <text class="mvT" x="389" y="162" style="font-weight:400;fill:#444;font-size:13px">산란장소 → 하기 생활장소</text>
+
+  <path d="M 636,124 L 730,124" stroke="#1b4332" stroke-width="2" fill="none" marker-end="url(#mv)"/>
+  <text class="mvT" x="683" y="145">가을 9~10월</text>
+  <text class="mvT" x="683" y="162" style="font-weight:400;fill:#444;font-size:13px">생활장소 → 동면장소</text>
+
+  <!-- ── 계절별 요구조건 카드 3장 ── -->
+  <g>
+    <rect class="box" x="60" y="182" width="252" height="150" rx="6"/>
+    <rect x="60" y="182" width="252" height="30" rx="6" fill="url(#pSpawn)" stroke="#1b4332" stroke-width="1.6"/>
+    <text class="labb" x="74" y="203">① 봄 (산란기)</text>
+    <text class="lab" x="74" y="234">· 수심 10cm 내외의 습지</text>
+    <text class="lab" x="74" y="258">· 그늘이 지지 않아 물이</text>
+    <text class="lab" x="86" y="279">따뜻하게 데워질 것</text>
+    <text class="lab" x="74" y="303">· 산란장소까지 오가는</text>
+    <text class="lab" x="86" y="324">이동통로 확보</text>
+  </g>
+
+  <g>
+    <rect class="box" x="324" y="182" width="252" height="150" rx="6"/>
+    <rect x="324" y="182" width="252" height="30" rx="6" fill="url(#pGrow)" stroke="#4f7259" stroke-width="1.6"/>
+    <text class="labb" x="338" y="203">② 여름·가을 (성장기)</text>
+    <text class="lab" x="338" y="234">· 곤충 등을 잡아먹는</text>
+    <text class="lab" x="350" y="255">먹이터로서의 초지</text>
+    <text class="lab" x="338" y="279">· 초지로 이어지는</text>
+    <text class="lab" x="350" y="300">이동통로 필요</text>
+  </g>
+
+  <g>
+    <rect class="box" x="588" y="182" width="252" height="150" rx="6"/>
+    <rect x="588" y="182" width="252" height="30" rx="6" fill="url(#pHib)" stroke="#5b5b5b" stroke-width="1.6"/>
+    <text class="labb" x="602" y="203">③ 겨울 (동면기)</text>
+    <text class="lab" x="602" y="234">· 산림 · 하천 · 들판 등지에</text>
+    <text class="lab" x="614" y="255">겨울을 날 동면장소 제공</text>
+    <text class="lab" x="602" y="279">· 얼지 않는 낙엽층 · 토양</text>
+    <text class="lab" x="614" y="300">아래 은신 공간</text>
+  </g>
+
+  <text class="note" x="450" y="366">세 공간(산란장소 · 하기 생활장소 · 동면장소)이 이동통로로 이어져 있어야</text>
+  <text class="note" x="450" y="388">한 해의 생활사가 끊기지 않는다</text>
+</svg>

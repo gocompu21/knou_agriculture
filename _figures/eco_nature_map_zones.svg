@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>생태자연도 등급 권역 배치</title>
+  <desc>국토 일부를 잘라 낸 평면도 위에 1등급 권역을 중심으로 2등급이 이를 감싸고 3등급이 바깥에 놓이는 권역 배치를 그리고, 다른 법률로 관리되는 곳을 별도관리지역으로 따로 표시한 그림</desc>
+
+  <defs>
+    <!-- 1등급: 촘촘한 격자 -->
+    <pattern id="e1" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#1b4332"/>
+      <path d="M0,0 L6,0 M0,0 L0,6" stroke="#ffffff" stroke-width="0.7" opacity=".4"/>
+    </pattern>
+    <!-- 2등급: 사선 -->
+    <pattern id="e2" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#7d9a86"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#ffffff" stroke-width="1.5" opacity=".5"/>
+    </pattern>
+    <!-- 3등급: 성긴 점 -->
+    <pattern id="e3" width="9" height="9" patternUnits="userSpaceOnUse">
+      <rect width="9" height="9" fill="#eef3ef"/>
+      <circle cx="3" cy="3" r="1.1" fill="#9db4a3"/>
+    </pattern>
+    <!-- 별도관리지역: 굵은 교차 해칭 -->
+    <pattern id="es" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
+      <rect width="10" height="10" fill="#f6ecdd"/>
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#a1651a" stroke-width="2"/>
+    </pattern>
+    <marker id="em" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+  </defs>
+
+  <style>
+    .h    { font-size: 19px; font-weight: 700; fill: #1b4332; }
+    .lead { stroke: #333; stroke-width: 1.4; fill: none; }
+    .lab  { font-size: 15px; font-weight: 700; fill: #222; }
+    .lgT  { font-size: 14.5px; fill: #333; }
+    .lgB  { font-size: 15px; font-weight: 700; fill: #1b4332; }
+    .sc   { font-size: 13.5px; fill: #555; }
+  </style>
+
+  <text class="h" x="20" y="28">생태자연도 — 전국자연환경조사를 바탕으로 등급화한 권역</text>
+
+  <!-- 지도 틀 -->
+  <rect x="20" y="44" width="472" height="304" rx="4"
+        fill="#fbfcfb" stroke="#b9c7bc" stroke-width="1.6"/>
+
+  <!-- 3등급: 바깥 전체 -->
+  <path d="M 34,110 C 70,66 150,52 230,60 C 320,68 400,58 452,88
+           C 482,116 476,192 456,246 C 434,306 356,338 272,332
+           C 190,326 96,330 56,296 C 22,264 18,152 34,110 Z"
+        fill="url(#e3)" stroke="#4f7259" stroke-width="1.8"/>
+
+  <!-- 2등급: 1등급을 감싼다 -->
+  <path d="M 96,136 C 130,102 196,92 254,102 C 324,114 372,124 392,164
+           C 408,204 392,258 340,282 C 286,306 202,300 156,276
+           C 108,250 76,172 96,136 Z"
+        fill="url(#e2)" stroke="#1b4332" stroke-width="2"/>
+
+  <!-- 1등급: 중심 -->
+  <path d="M 168,168 C 194,142 252,138 296,154 C 336,170 344,208 322,236
+           C 298,264 232,268 198,250 C 166,232 152,190 168,168 Z"
+        fill="url(#e1)" stroke="#1b4332" stroke-width="2.4"/>
+
+  <!-- 별도관리지역: 등급 서열과 무관하게 겹쳐 놓인 별도 패치 -->
+  <path d="M 372,196 C 404,182 442,192 448,216 C 454,242 428,264 398,262
+           C 370,260 352,214 372,196 Z"
+        fill="url(#es)" stroke="#a1651a" stroke-width="2.4" stroke-dasharray="8 4"/>
+
+  <!-- 라벨: 도형 밖 지시선 -->
+  <text class="lab" x="246" y="206" text-anchor="middle" fill="#ffffff">1등급</text>
+  <text class="lab" x="140" y="216" text-anchor="middle" fill="#ffffff">2등급</text>
+  <text class="lab" x="86"  y="90"  text-anchor="middle" fill="#1b4332">3등급</text>
+
+  <text class="lab" x="470" y="164" text-anchor="end" fill="#a1651a">별도관리지역</text>
+  <path class="lead" d="M 452,172 L 420,200" marker-end="url(#em)" stroke="#a1651a"/>
+
+  <text class="sc" x="30" y="336">국토를 생태적·자연적·경관적 가치에 따라 구분한 권역 배치</text>
+
+  <!-- ── 범례 ── -->
+  <g transform="translate(516,44)">
+    <rect x="0" y="0" width="364" height="304" rx="6"
+          fill="#f2f5f1" stroke="#ccd5ce" stroke-width="1.2"/>
+
+    <rect x="18" y="20" width="34" height="26" fill="url(#e1)" stroke="#1b4332" stroke-width="1.6"/>
+    <text class="lgB" x="62" y="39">1등급</text>
+    <text class="lgT" x="18" y="66">멸종위기 야생동식물 서식지·도래지, 주요생태축·생태통로</text>
+    <text class="lgT" x="18" y="88">생물다양성·생물자원 풍부지역, 생태계·경관 우수지역</text>
+    <text class="lgT" x="18" y="110">주요식생 대표지역, 생물의 지리적 분포한계지역</text>
+    <text class="lgT" x="18" y="132">그 밖에 생태적 가치가 있는 지역</text>
+
+    <rect x="18" y="150" width="34" height="26" fill="url(#e2)" stroke="#1b4332" stroke-width="1.6"/>
+    <text class="lgB" x="62" y="169">2등급</text>
+    <text class="lgT" x="18" y="196">1등급 보호지역 — 1등급 권역을 감싸 완충한다</text>
+
+    <rect x="18" y="212" width="34" height="26" fill="url(#e3)" stroke="#4f7259" stroke-width="1.6"/>
+    <text class="lgB" x="62" y="231">3등급</text>
+    <text class="lgT" x="18" y="258">개발·이용 대상지역 — 가장 바깥에 놓인다</text>
+
+    <rect x="230" y="212" width="34" height="26" fill="url(#es)" stroke="#a1651a" stroke-width="1.8"/>
+    <text class="lgB" x="274" y="231" fill="#a1651a">별도관리</text>
+    <text class="lgT" x="18" y="284">별도관리지역 : 다른 법률에 따라 관리되는 지역을 따로 표시</text>
+  </g>
+
+  <text class="sc" x="20" y="378">
+    ※ 1등급을 중심으로 2등급이 이를 감싸고 3등급이 바깥에 놓이는 구조이며, 별도관리지역은 등급 서열과 별개로 표시한다.
+  </text>
+</svg>

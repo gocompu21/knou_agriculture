@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 470" width="900" height="470"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>전략환경영향평가·환경영향평가 절차 비교</title>
+  <desc>다섯 개의 절차 단계를 세로 열로 고정하고 네 가지 평가 유형을 가로 레인에 배치해, 어느 유형이 어느 단계를 거치고 건너뛰는지 한눈에 비교되도록 한 흐름도</desc>
+
+  <defs>
+    <marker id="ea" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b4332"/>
+    </marker>
+    <!-- 건너뛰는 구간 표시용 -->
+    <pattern id="skip" width="8" height="8" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#f4f4f4"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9c9" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .colh { font-size: 13.5px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .grp  { font-size: 15.5px; font-weight: 700; fill: #fff; }
+    .lane { font-size: 14.5px; font-weight: 700; fill: #1b4332; }
+    .stp  { font-size: 13px; fill: #222; text-anchor: middle; }
+    .box  { fill: #f2f5f1; stroke: #1b4332; stroke-width: 1.8; }
+    .arw  { stroke: #1b4332; stroke-width: 2.2; fill: none; }
+    .note { font-size: 14.5px; fill: #7d4d13; }
+  </style>
+
+  <text class="ttl" x="20" y="28">전략환경영향평가 · 환경영향평가 절차 — 단계별 비교</text>
+
+  <!-- ═══ 단계 열 머리 ═══ -->
+  <g>
+    <line x1="176" y1="46" x2="884" y2="46" stroke="#c3d2c7" stroke-width="1.2"/>
+    <text class="colh" x="240" y="66">1단계</text>
+    <text class="colh" x="240" y="84">계획 구상</text>
+    <text class="colh" x="392" y="66">2단계</text>
+    <text class="colh" x="392" y="84">평가협의회 심의</text>
+    <text class="colh" x="562" y="66">3단계</text>
+    <text class="colh" x="562" y="84">초안작성·주민의견</text>
+    <text class="colh" x="724" y="66">4단계</text>
+    <text class="colh" x="724" y="84">평가서 작성·협의</text>
+    <text class="colh" x="850" y="66">5단계</text>
+    <text class="colh" x="850" y="84">관리</text>
+    <line x1="176" y1="94" x2="884" y2="94" stroke="#c3d2c7" stroke-width="1.2"/>
+  </g>
+
+  <!-- 열 구분 세로 안내선 -->
+  <g stroke="#e2e9e3" stroke-width="1">
+    <line x1="318" y1="94" x2="318" y2="404"/>
+    <line x1="470" y1="94" x2="470" y2="404"/>
+    <line x1="654" y1="94" x2="654" y2="404"/>
+    <line x1="798" y1="94" x2="798" y2="404"/>
+  </g>
+
+  <!-- ═══ 그룹 1 : 전략환경영향평가 ═══ -->
+  <rect x="16" y="130" width="148" height="130" rx="6" fill="#1b4332"/>
+  <text class="grp" x="30" y="186">전략환경</text>
+  <text class="grp" x="30" y="208">영향평가</text>
+
+  <!-- 레인 1-1 : 정책계획 -->
+  <g transform="translate(0,124)">
+    <text class="lane" x="176" y="24">정책계획</text>
+    <rect class="box" x="176" y="34" width="128" height="34" rx="5"/>
+    <text class="stp" x="240" y="56">정책계획 구상</text>
+    <rect class="box" x="330" y="34" width="124" height="34" rx="5"/>
+    <text class="stp" x="392" y="56">협의회 심의</text>
+    <!-- 3단계 건너뜀 -->
+    <rect x="486" y="34" width="152" height="34" rx="5"
+          fill="url(#skip)" stroke="#bdbdbd" stroke-width="1.4" stroke-dasharray="6 4"/>
+    <text class="stp" x="562" y="56" fill="#8a8a8a">거치지 않음</text>
+    <rect class="box" x="666" y="34" width="120" height="34" rx="5"/>
+    <text class="stp" x="726" y="56">평가서 작성·협의</text>
+
+    <path class="arw" d="M 306,51 L 326,51" marker-end="url(#ea)"/>
+    <path class="arw" d="M 456,51 C 470,51 470,51 482,51" marker-end="url(#ea)"
+          stroke-dasharray="6 4" stroke="#9a9a9a"/>
+    <path class="arw" d="M 640,51 L 662,51" marker-end="url(#ea)"/>
+  </g>
+
+  <!-- 레인 1-2 : 개발기본계획 -->
+  <g transform="translate(0,190)">
+    <text class="lane" x="176" y="24">개발기본계획</text>
+    <rect class="box" x="176" y="34" width="128" height="34" rx="5"/>
+    <text class="stp" x="240" y="56">개발기본계획 구상</text>
+    <rect class="box" x="330" y="34" width="124" height="34" rx="5"/>
+    <text class="stp" x="392" y="56">협의회 심의</text>
+    <rect class="box" x="486" y="34" width="152" height="34" rx="5"/>
+    <text class="stp" x="562" y="56">초안작성·주민의견 수렴</text>
+    <rect class="box" x="666" y="34" width="120" height="34" rx="5"/>
+    <text class="stp" x="726" y="56">평가서 작성·협의</text>
+
+    <path class="arw" d="M 306,51 L 326,51" marker-end="url(#ea)"/>
+    <path class="arw" d="M 456,51 L 482,51" marker-end="url(#ea)"/>
+    <path class="arw" d="M 640,51 L 662,51" marker-end="url(#ea)"/>
+  </g>
+
+  <!-- ═══ 그룹 2 : 환경영향평가 ═══ -->
+  <rect x="16" y="266" width="148" height="130" rx="6" fill="#4f7259"/>
+  <text class="grp" x="30" y="337">환경영향평가</text>
+
+  <!-- 레인 2-1 : 환경영향평가 -->
+  <g transform="translate(0,258)">
+    <text class="lane" x="176" y="24">환경영향평가</text>
+    <!-- 1단계 없음 -->
+    <rect x="176" y="34" width="128" height="34" rx="5"
+          fill="url(#skip)" stroke="#bdbdbd" stroke-width="1.4" stroke-dasharray="6 4"/>
+    <text class="stp" x="240" y="56" fill="#8a8a8a">해당 없음</text>
+    <rect class="box" x="330" y="34" width="124" height="34" rx="5"/>
+    <text class="stp" x="392" y="56">협의회 심의</text>
+    <rect class="box" x="486" y="34" width="152" height="34" rx="5"/>
+    <text class="stp" x="562" y="56">초안작성·주민의견 수렴</text>
+    <rect class="box" x="666" y="34" width="120" height="34" rx="5"/>
+    <text class="stp" x="726" y="56">평가서 작성·협의</text>
+    <rect class="box" x="810" y="34" width="74" height="34" rx="5"/>
+    <text class="stp" x="847" y="56">관리</text>
+
+    <path class="arw" d="M 456,51 L 482,51" marker-end="url(#ea)"/>
+    <path class="arw" d="M 640,51 L 662,51" marker-end="url(#ea)"/>
+    <path class="arw" d="M 788,51 L 806,51" marker-end="url(#ea)"/>
+  </g>
+
+  <!-- 레인 2-2 : 소규모 환경영향평가 -->
+  <g transform="translate(0,324)">
+    <text class="lane" x="176" y="24">소규모 환경영향평가</text>
+    <rect x="176" y="34" width="462" height="34" rx="5"
+          fill="url(#skip)" stroke="#bdbdbd" stroke-width="1.4" stroke-dasharray="6 4"/>
+    <text class="stp" x="407" y="56" fill="#8a8a8a">구상 · 협의회 심의 · 주민의견 수렴 단계를 모두 거치지 않음</text>
+    <rect class="box" x="666" y="34" width="120" height="34" rx="5"/>
+    <text class="stp" x="726" y="56">평가서 작성·협의</text>
+    <rect class="box" x="810" y="34" width="74" height="34" rx="5"/>
+    <text class="stp" x="847" y="56">관리</text>
+
+    <path class="arw" d="M 640,51 L 662,51" marker-end="url(#ea)" stroke-dasharray="6 4" stroke="#9a9a9a"/>
+    <path class="arw" d="M 788,51 L 806,51" marker-end="url(#ea)"/>
+  </g>
+
+  <!-- ═══ 요점 ═══ -->
+  <line x1="16" y1="424" x2="884" y2="424" stroke="#c3d2c7" stroke-width="1.2"/>
+  <text class="note" x="16" y="450">※ 정책계획과 소규모 환경영향평가는 주민의견 수렴 단계를 거치지 않는 점이 나머지 두 유형과 구분된다.</text>
+</svg>

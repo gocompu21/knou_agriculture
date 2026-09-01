@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620" width="900" height="620"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>방형구 습지식물 분포도 (10 x 10)</title>
+  <desc>한 변 1m인 소방형구 100개에 나타난 네 종의 분포. 기호 하나가 개체 하나를 뜻한다</desc>
+  <style>
+    .gl   { stroke: #9aa39c; stroke-width: 1.1; }
+    .gb   { stroke: #1b4332; stroke-width: 2.2; fill: none; }
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .ax   { font-size: 13.5px; fill: #555; text-anchor: middle; }
+    .lg   { font-size: 15px; fill: #333; }
+    .lgT  { font-size: 16px; font-weight: 700; fill: #1b4332; }
+    .dim  { font-size: 14px; fill: #333; text-anchor: middle; }
+  </style>
+
+  <text class="ttl" x="24" y="34">방형구 습지식물 분포도 — 소방형구 10 × 10 = 100개</text>
+
+  <rect x="60" y="66" width="460" height="460" fill="#fcfdfc"/>
+  <line class="gl" x1="60" y1="66" x2="60" y2="526"/>
+  <line class="gl" x1="60" y1="66" x2="520" y2="66"/>
+  <line class="gl" x1="106" y1="66" x2="106" y2="526"/>
+  <line class="gl" x1="60" y1="112" x2="520" y2="112"/>
+  <line class="gl" x1="152" y1="66" x2="152" y2="526"/>
+  <line class="gl" x1="60" y1="158" x2="520" y2="158"/>
+  <line class="gl" x1="198" y1="66" x2="198" y2="526"/>
+  <line class="gl" x1="60" y1="204" x2="520" y2="204"/>
+  <line class="gl" x1="244" y1="66" x2="244" y2="526"/>
+  <line class="gl" x1="60" y1="250" x2="520" y2="250"/>
+  <line class="gl" x1="290" y1="66" x2="290" y2="526"/>
+  <line class="gl" x1="60" y1="296" x2="520" y2="296"/>
+  <line class="gl" x1="336" y1="66" x2="336" y2="526"/>
+  <line class="gl" x1="60" y1="342" x2="520" y2="342"/>
+  <line class="gl" x1="382" y1="66" x2="382" y2="526"/>
+  <line class="gl" x1="60" y1="388" x2="520" y2="388"/>
+  <line class="gl" x1="428" y1="66" x2="428" y2="526"/>
+  <line class="gl" x1="60" y1="434" x2="520" y2="434"/>
+  <line class="gl" x1="474" y1="66" x2="474" y2="526"/>
+  <line class="gl" x1="60" y1="480" x2="520" y2="480"/>
+  <line class="gl" x1="520" y1="66" x2="520" y2="526"/>
+  <line class="gl" x1="60" y1="526" x2="520" y2="526"/>
+  <rect class="gb" x="60" y="66" width="460" height="460"/>
+  <text class="ax" x="83.0" y="58">1</text>
+  <text class="ax" x="44" y="94.0">1</text>
+  <text class="ax" x="129.0" y="58">2</text>
+  <text class="ax" x="44" y="140.0">2</text>
+  <text class="ax" x="175.0" y="58">3</text>
+  <text class="ax" x="44" y="186.0">3</text>
+  <text class="ax" x="221.0" y="58">4</text>
+  <text class="ax" x="44" y="232.0">4</text>
+  <text class="ax" x="267.0" y="58">5</text>
+  <text class="ax" x="44" y="278.0">5</text>
+  <text class="ax" x="313.0" y="58">6</text>
+  <text class="ax" x="44" y="324.0">6</text>
+  <text class="ax" x="359.0" y="58">7</text>
+  <text class="ax" x="44" y="370.0">7</text>
+  <text class="ax" x="405.0" y="58">8</text>
+  <text class="ax" x="44" y="416.0">8</text>
+  <text class="ax" x="451.0" y="58">9</text>
+  <text class="ax" x="44" y="462.0">9</text>
+  <text class="ax" x="497.0" y="58">10</text>
+  <text class="ax" x="44" y="508.0">10</text>
+  <g>
+    <line x1="60" y1="36" x2="106" y2="36" stroke="#1b4332" stroke-width="1.6"/>
+    <line x1="60" y1="31" x2="60" y2="41" stroke="#1b4332" stroke-width="1.6"/>
+    <line x1="106" y1="31" x2="106" y2="41" stroke="#1b4332" stroke-width="1.6"/>
+    <text class="dim" x="136" y="41">1m</text>
+  </g>
+  <rect x="112.0" y="74.0" width="16.0" height="16.0" fill="#ffffff" stroke="#1b4332" stroke-width="2.2"/>
+  <rect x="130.0" y="88.0" width="16.0" height="16.0" fill="#ffffff" stroke="#1b4332" stroke-width="2.2"/>
+  <rect x="351.0" y="127.0" width="16.0" height="16.0" fill="#ffffff" stroke="#1b4332" stroke-width="2.2"/>
+  <rect x="213.0" y="173.0" width="16.0" height="16.0" fill="#ffffff" stroke="#1b4332" stroke-width="2.2"/>
+  <rect x="250.0" y="166.0" width="16.0" height="16.0" fill="#ffffff" stroke="#1b4332" stroke-width="2.2"/>
+  <rect x="268.0" y="180.0" width="16.0" height="16.0" fill="#ffffff" stroke="#1b4332" stroke-width="2.2"/>
+  <rect x="121.0" y="219.0" width="16.0" height="16.0" fill="#ffffff" stroke="#1b4332" stroke-width="2.2"/>
+  <rect x="121.0" y="357.0" width="16.0" height="16.0" fill="#ffffff" stroke="#1b4332" stroke-width="2.2"/>
+  <rect x="342.0" y="350.0" width="16.0" height="16.0" fill="#ffffff" stroke="#1b4332" stroke-width="2.2"/>
+  <rect x="360.0" y="364.0" width="16.0" height="16.0" fill="#ffffff" stroke="#1b4332" stroke-width="2.2"/>
+  <rect x="443.0" y="495.0" width="16.0" height="16.0" fill="#ffffff" stroke="#1b4332" stroke-width="2.2"/>
+  <rect x="305.0" y="495.0" width="16.0" height="16.0" fill="#ffffff" stroke="#1b4332" stroke-width="2.2"/>
+  <path d="M 212.0,210.5 L 220.7,226.8 L 203.3,226.8 Z" fill="#1b4332" stroke="#1b4332" stroke-width="1.4"/>
+  <path d="M 230.0,224.5 L 238.7,240.8 L 221.3,240.8 Z" fill="#1b4332" stroke="#1b4332" stroke-width="1.4"/>
+  <path d="M 304.0,348.5 L 312.7,364.8 L 295.3,364.8 Z" fill="#1b4332" stroke="#1b4332" stroke-width="1.4"/>
+  <path d="M 322.0,362.5 L 330.7,378.8 L 313.3,378.8 Z" fill="#1b4332" stroke="#1b4332" stroke-width="1.4"/>
+  <path d="M 267.0,401.5 L 275.7,417.8 L 258.3,417.8 Z" fill="#1b4332" stroke="#1b4332" stroke-width="1.4"/>
+  <path d="M 221.0,447.5 L 229.7,463.8 L 212.3,463.8 Z" fill="#1b4332" stroke="#1b4332" stroke-width="1.4"/>
+  <path d="M 497.0,493.5 L 505.7,509.8 L 488.3,509.8 Z" fill="#1b4332" stroke="#1b4332" stroke-width="1.4"/>
+  <g stroke="#1b4332" stroke-width="3" stroke-linecap="round"><line x1="488.5" y1="89.0" x2="505.5" y2="89.0"/><line x1="497.0" y1="80.5" x2="497.0" y2="97.5"/></g>
+  <g stroke="#1b4332" stroke-width="3" stroke-linecap="round"><line x1="74.5" y1="135.0" x2="91.5" y2="135.0"/><line x1="83.0" y1="126.5" x2="83.0" y2="143.5"/></g>
+  <g stroke="#1b4332" stroke-width="3" stroke-linecap="round"><line x1="258.5" y1="227.0" x2="275.5" y2="227.0"/><line x1="267.0" y1="218.5" x2="267.0" y2="235.5"/></g>
+  <g stroke="#1b4332" stroke-width="3" stroke-linecap="round"><line x1="74.5" y1="411.0" x2="91.5" y2="411.0"/><line x1="83.0" y1="402.5" x2="83.0" y2="419.5"/></g>
+  <g stroke="#1b4332" stroke-width="3" stroke-linecap="round"><line x1="166.5" y1="411.0" x2="183.5" y2="411.0"/><line x1="175.0" y1="402.5" x2="175.0" y2="419.5"/></g>
+  <g stroke="#1b4332" stroke-width="3" stroke-linecap="round"><line x1="212.5" y1="503.0" x2="229.5" y2="503.0"/><line x1="221.0" y1="494.5" x2="221.0" y2="511.5"/></g>
+  <circle cx="451.0" cy="135.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="129.0" cy="181.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="488.0" cy="174.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="506.0" cy="188.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="405.0" cy="227.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="258.0" cy="266.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="276.0" cy="280.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="350.0" cy="266.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="368.0" cy="280.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="175.0" cy="365.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="258.0" cy="358.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="276.0" cy="372.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="405.0" cy="365.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="83.0" cy="457.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="451.0" cy="457.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="488.0" cy="450.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="506.0" cy="464.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="313.0" cy="457.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="359.0" cy="503.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <circle cx="175.0" cy="273.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <text class="lgT" x="554" y="76">범례</text>
+  <rect x="560.0" y="100.0" width="16.0" height="16.0" fill="#ffffff" stroke="#1b4332" stroke-width="2.2"/>
+  <text class="lg" x="590" y="114">종A</text>
+  <path d="M 568.0,140.5 L 576.7,156.8 L 559.3,156.8 Z" fill="#1b4332" stroke="#1b4332" stroke-width="1.4"/>
+  <text class="lg" x="590" y="156">종B</text>
+  <g stroke="#1b4332" stroke-width="3" stroke-linecap="round"><line x1="559.5" y1="192.0" x2="576.5" y2="192.0"/><line x1="568.0" y1="183.5" x2="568.0" y2="200.5"/></g>
+  <text class="lg" x="590" y="198">종C</text>
+  <circle cx="568.0" cy="234.0" r="8.0" fill="#4f7259" stroke="#1b4332" stroke-width="1.6"/>
+  <text class="lg" x="590" y="240">종D</text>
+  <text class="lg" x="552" y="284" style="font-size:13px">기호 1개</text>
+  <text class="lg" x="552" y="302" style="font-size:13px">= 개체 1개</text>
+
+  <!-- 읽는 법 -->
+  <g transform="translate(552,330)">
+    <rect x="0" y="0" width="322" height="192" rx="6" fill="#f2f5f1" stroke="#4f7259" stroke-width="1.6"/>
+    <text class="lgT" x="16" y="28">읽는 법</text>
+    <text class="lg" x="16" y="56" style="font-size:14px"><tspan font-weight="700">밀도</tspan> = 그 종의 기호(개체) 총 개수</text>
+    <text class="lg" x="16" y="80" style="font-size:14px"><tspan font-weight="700">빈도</tspan> = 그 종이 나타난 소방형구 수</text>
+    <text class="lg" x="16" y="102" style="font-size:13px" fill="#a1651a">한 칸에 2개가 있어도 빈도는 1칸</text>
+    <text class="lg" x="16" y="132" style="font-size:14px"><tspan font-weight="700">상대밀도</tspan> = 종 밀도 ÷ 전체 밀도 × 100</text>
+    <text class="lg" x="16" y="156" style="font-size:14px"><tspan font-weight="700">상대빈도</tspan> = 종 빈도 ÷ 전체 빈도 × 100</text>
+    <text class="lg" x="16" y="180" style="font-size:13px" fill="#1b4332">전체 소방형구 100개 (한 변 1m)</text>
+  </g>
+</svg>

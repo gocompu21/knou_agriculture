@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" width="900" height="420"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>도시열섬현상 저감방법 3가지</title>
+  <desc>도심 한 구역을 세 장면으로 나누어 인공열 억제, 바람길 확보와 알베도 개선, 불투수면 축소와 녹지 확충을 각각 나타낸 도해</desc>
+
+  <defs>
+    <!-- 불투수 포장면: 촘촘한 격자 -->
+    <pattern id="pave" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#ded9d1"/>
+      <path d="M0,0 L8,0 M0,0 L0,8" stroke="#b3aca2" stroke-width="1"/>
+    </pattern>
+    <!-- 투수·녹지면: 성긴 점 -->
+    <pattern id="green" width="7" height="7" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#e6efe7"/>
+      <circle cx="2" cy="2" r="1.2" fill="#4f7259"/>
+    </pattern>
+    <marker id="wind" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2a5140"/>
+    </marker>
+    <marker id="heat" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .hd   { font-size: 16.5px; font-weight: 700; fill: #1b4332; }
+    .note { font-size: 15px; fill: #333; }
+    .sm   { font-size: 13.5px; fill: #4a4a4a; }
+    .tag  { font-size: 13px; fill: #333; }
+    .card { fill: #fcfdfc; stroke: #ccd5ce; stroke-width: 1.2; }
+    .bld  { fill: #cfd6cf; stroke: #4a5a4d; stroke-width: 1.6; }
+    .no   { stroke: #a1651a; stroke-width: 2.6; fill: none; }
+  </style>
+
+  <text class="ttl" x="18" y="30">도시열섬현상 저감방법 — 열을 덜 내고, 빠져나가게 하고, 땅이 식게 한다</text>
+  <text class="sm" x="18" y="52" text-anchor="start">도시지역의 기온이 주변 비도시지역보다 높아지는 현상을 완화하는 세 갈래 대책이다.</text>
+
+  <!-- ─────────── ① 인공열 발생 억제 ─────────── -->
+  <g transform="translate(14,66)" text-anchor="middle">
+    <rect class="card" x="0" y="0" width="286" height="252" rx="8"/>
+    <text class="hd" x="143" y="30">① 인공열 발생 억제</text>
+
+    <!-- 건물에서 나오던 배열을 줄인다 -->
+    <rect class="bld" x="34" y="60" width="72" height="104"/>
+    <g stroke="#4a5a4d" stroke-width="1" opacity=".7">
+      <line x1="34" y1="86"  x2="106" y2="86"/>
+      <line x1="34" y1="112" x2="106" y2="112"/>
+      <line x1="34" y1="138" x2="106" y2="138"/>
+    </g>
+    <!-- 실외기 배열: 화살표 위에 금지선 -->
+    <path d="M 110,88 L 148,80" stroke="#a1651a" stroke-width="2.2"
+          marker-end="url(#heat)" fill="none" opacity=".55"/>
+    <path d="M 110,112 L 148,112" stroke="#a1651a" stroke-width="2.2"
+          marker-end="url(#heat)" fill="none" opacity=".55"/>
+    <circle cx="146" cy="96" r="17" fill="none" stroke="#a1651a" stroke-width="2.6"/>
+    <line class="no" x1="134" y1="108" x2="158" y2="84"/>
+
+    <!-- 자동차 배기도 줄인다 -->
+    <rect class="bld" x="180" y="120" width="56" height="26" rx="6" fill="#e2e6e1"/>
+    <circle cx="194" cy="150" r="6" fill="#4a5a4d"/>
+    <circle cx="222" cy="150" r="6" fill="#4a5a4d"/>
+    <path d="M 178,134 L 156,138" stroke="#a1651a" stroke-width="2.2"
+          marker-end="url(#heat)" fill="none" opacity=".55"/>
+    <text class="tag" text-anchor="start" x="180" y="176">화석연료 →</text>
+    <text class="tag" text-anchor="start" x="180" y="194" fill="#1b4332" font-weight="700">친환경 에너지</text>
+
+    <text class="note" x="143" y="224">건물 냉난방·자동차의</text>
+    <text class="note" x="143" y="244">화석연료 사용을 줄인다</text>
+  </g>
+
+  <!-- ─────────── ② 바람길 확보와 알베도 개선 ─────────── -->
+  <g transform="translate(307,66)" text-anchor="middle">
+    <rect class="card" x="0" y="0" width="286" height="252" rx="8"/>
+    <text class="hd" x="143" y="30">② 바람길 확보 · 알베도 개선</text>
+
+    <!-- 건물을 나란히 배치하되 가운데를 비워 통로를 만든다 -->
+    <rect class="bld" x="26"  y="96" width="44" height="80"/>
+    <rect class="bld" x="80"  y="76" width="40" height="100"/>
+    <!-- 바람길(빈 통로) -->
+    <rect x="126" y="66" width="46" height="110" fill="#eef4f6" stroke="#8fa596"
+          stroke-width="1.4" stroke-dasharray="7 5"/>
+    <rect class="bld" x="180" y="82" width="40" height="94"/>
+    <rect class="bld" x="230" y="100" width="40" height="76"/>
+
+    <!-- 찬바람이 통로를 따라 도심으로 들어온다 -->
+    <path d="M 149,196 L 149,60" stroke="#2a5140" stroke-width="3"
+          marker-end="url(#wind)" fill="none"/>
+    <text class="tag" text-anchor="start" x="112" y="212" fill="#2a5140" font-weight="700">찬바람</text>
+
+    <!-- 지붕 반사율(알베도)을 높인다 — 밝은 지붕 + 반사 화살표 -->
+    <rect x="80" y="68" width="40" height="10" fill="#ffffff" stroke="#1b4332" stroke-width="1.6"/>
+    <rect x="180" y="74" width="40" height="10" fill="#ffffff" stroke="#1b4332" stroke-width="1.6"/>
+    <path d="M 100,66 L 88,48"  stroke="#a1651a" stroke-width="2" marker-end="url(#heat)" fill="none"/>
+    <path d="M 200,72 L 212,52" stroke="#a1651a" stroke-width="2" marker-end="url(#heat)" fill="none"/>
+    <text class="tag" text-anchor="start" x="222" y="48" fill="#a1651a">반사</text>
+
+    <text class="note" x="143" y="230">도심으로 찬바람이 들 통로를 남기고</text>
+    <text class="note" x="143" y="248">지붕·포장면 반사율을 높여 축열을 줄인다</text>
+  </g>
+
+  <!-- ─────────── ③ 불투수면 축소와 녹지 확충 ─────────── -->
+  <g transform="translate(600,66)" text-anchor="middle">
+    <rect class="card" x="0" y="0" width="286" height="252" rx="8"/>
+    <text class="hd" x="143" y="30">③ 불투수면 축소 · 녹지 확충</text>
+
+    <!-- 왼쪽: 포장면 위주 / 오른쪽: 녹지로 전환 -->
+    <rect x="22" y="58" width="112" height="112" fill="url(#pave)"
+          stroke="#8a8378" stroke-width="1.6"/>
+    <text class="sm" x="78" y="188">포장면(불투수)</text>
+    <path d="M 78,50 L 78,34" stroke="#a1651a" stroke-width="2"
+          marker-end="url(#heat)" fill="none"/>
+
+    <path d="M 142,114 L 168,114" stroke="#1b4332" stroke-width="3"
+          marker-end="url(#wind)" fill="none"/>
+
+    <rect x="176" y="58" width="88" height="112" fill="url(#green)"
+          stroke="#2a5140" stroke-width="1.8"/>
+    <!-- 나무 몇 그루 -->
+    <g fill="#4f7259" stroke="#1b4332" stroke-width="1.2">
+      <path d="M 194,110 L 206,80 L 218,110 Z"/>
+      <path d="M 226,140 L 238,112 L 250,140 Z"/>
+    </g>
+    <!-- 증발산: 위로 향하는 점선 -->
+    <path d="M 206,74 L 206,50" stroke="#2a5140" stroke-width="2"
+          stroke-dasharray="5 4" marker-end="url(#wind)" fill="none"/>
+    <text class="sm" x="220" y="188">녹지(투수)</text>
+    <text class="tag" text-anchor="start" x="216" y="62" fill="#2a5140" font-weight="700">증발산</text>
+
+    <text class="note" x="143" y="226">포장면을 줄이고 생태면적률을 높여</text>
+    <text class="note" x="143" y="246">증발산·자연침투의 냉각 효과를 되살린다</text>
+  </g>
+
+  <text x="450" y="392" style="font-size:14.5px" fill="#4a4a4a" text-anchor="middle">세 대책은 각각 <tspan font-weight="700" fill="#1b4332">열의 발생</tspan> · <tspan font-weight="700" fill="#1b4332">열의 배출</tspan> · <tspan font-weight="700" fill="#1b4332">지표면의 축열</tspan>을 겨냥하므로 함께 적용해야 효과가 크다.</text>
+</svg>

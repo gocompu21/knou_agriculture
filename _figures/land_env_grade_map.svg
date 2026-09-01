@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" width="900" height="360"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>국토환경성평가지도 — 목적과 1~5등급</title>
+  <desc>환경·생태적 가치가 높은 순으로 1등급부터 5등급까지를 가로 띠로 배열하여, 1등급 개발 불허에서 5등급 개발 허용까지 개발 여지가 넓어지는 스펙트럼을 나타낸 그림</desc>
+
+  <defs>
+    <!-- 1등급: 촘촘한 격자(보전 강도 최대) -->
+    <pattern id="g1" width="5" height="5" patternUnits="userSpaceOnUse">
+      <rect width="5" height="5" fill="#1b4332"/>
+      <path d="M0,0 L5,0 M0,0 L0,5" stroke="#ffffff" stroke-width="0.7" opacity=".45"/>
+    </pattern>
+    <!-- 2등급: 사선 -->
+    <pattern id="g2" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="7" height="7" fill="#3d6350"/>
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#ffffff" stroke-width="1.4" opacity=".4"/>
+    </pattern>
+    <!-- 3등급: 점 -->
+    <pattern id="g3" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#7d9a86"/>
+      <circle cx="2.5" cy="2.5" r="1.3" fill="#ffffff" opacity=".55"/>
+    </pattern>
+    <marker id="lm" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+  </defs>
+
+  <style>
+    .h    { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .gn   { font-size: 17px; font-weight: 700; text-anchor: middle; }
+    .gd   { font-size: 15px; text-anchor: middle; }
+    .sc   { font-size: 14px; fill: #555; }
+    .obj  { font-size: 15.5px; fill: #333; }
+  </style>
+
+  <!-- 목적 -->
+  <text class="h" x="20" y="30">목적</text>
+  <rect x="20" y="42" width="860" height="62" rx="6"
+        fill="#f2f5f1" stroke="#ccd5ce" stroke-width="1.2"/>
+  <text class="obj" x="38" y="68">개발이 가능한 땅과 지켜야 할 땅을 미리 갈라 보여 줌으로써 난개발을 막고,</text>
+  <text class="obj" x="38" y="92">국토를 지속가능하고 친환경적으로 이용·관리하도록 유도한다.</text>
+
+  <!-- 등급 -->
+  <text class="h" x="20" y="146">등급 — 환경·생태적 가치가 높은 순</text>
+
+  <!-- 스케일 화살표 -->
+  <line x1="30" y1="172" x2="870" y2="172" stroke="#a1651a" stroke-width="2"
+        marker-end="url(#lm)"/>
+  <text class="sc" x="30" y="166" fill="#a1651a">보전 강함</text>
+  <text class="sc" x="866" y="166" fill="#a1651a" text-anchor="end">개발 여지 넓음</text>
+
+  <!-- 5단 띠 -->
+  <g>
+    <!-- 1등급 -->
+    <rect x="20"  y="184" width="168" height="96" fill="url(#g1)" stroke="#1b4332" stroke-width="2"/>
+    <text class="gn" x="104" y="216" fill="#ffffff">1등급</text>
+    <text class="gd" x="104" y="244" fill="#ffffff">개발 불허</text>
+
+    <!-- 2등급 -->
+    <rect x="194" y="184" width="168" height="96" fill="url(#g2)" stroke="#1b4332" stroke-width="2"/>
+    <text class="gn" x="278" y="216" fill="#ffffff">2등급</text>
+    <text class="gd" x="278" y="240" fill="#ffffff">소규모</text>
+    <text class="gd" x="278" y="260" fill="#ffffff">예외적 개발 허용</text>
+
+    <!-- 3등급 -->
+    <rect x="368" y="184" width="168" height="96" fill="url(#g3)" stroke="#1b4332" stroke-width="2"/>
+    <text class="gn" x="452" y="216" fill="#ffffff">3등급</text>
+    <text class="gd" x="452" y="244" fill="#ffffff">완충</text>
+
+    <!-- 4등급 -->
+    <rect x="542" y="184" width="168" height="96" fill="#dae5dc" stroke="#1b4332" stroke-width="2"/>
+    <text class="gn" x="626" y="216" fill="#1b4332">4등급</text>
+    <text class="gd" x="626" y="244" fill="#1b4332">친환경 개발 허용</text>
+
+    <!-- 5등급 -->
+    <rect x="716" y="184" width="164" height="96" fill="#ffffff" stroke="#1b4332" stroke-width="2"/>
+    <text class="gn" x="798" y="216" fill="#1b4332">5등급</text>
+    <text class="gd" x="798" y="244" fill="#1b4332">개발 허용</text>
+  </g>
+
+  <!-- 채움 밀도가 곧 보전 강도임을 밝힌다 -->
+  <text class="sc" x="20" y="306">※ 채움이 촘촘할수록 보전 강도가 높다. 1등급에서 5등급으로 갈수록 개발 여지가 넓어진다.</text>
+  <text class="sc" x="20" y="330">※ 등급은 환경·생태적 가치가 높은 순서이며, 지도 위에 5단계로 구분해 표시한다.</text>
+</svg>

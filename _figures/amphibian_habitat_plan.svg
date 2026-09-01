@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 470" width="900" height="470"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>양서류 서식처 배치 — 산림·초지·저습지·구릉의 평면 배열</title>
+  <desc>주변 산림에서 초지, 큰 저습지, 구릉, 작은 저습지를 거쳐 주변 초지로 이어지는 공간 배열을 위에서 내려다본 평면도로 나타내고, 각 공간의 구성 요소와 수심 조건을 표기한 그림</desc>
+
+  <defs>
+    <pattern id="fst" width="9" height="9" patternUnits="userSpaceOnUse">
+      <rect width="9" height="9" fill="#eef3ef"/>
+      <circle cx="3" cy="3" r="1.5" fill="#4f7259"/>
+    </pattern>
+    <pattern id="mdw" width="10" height="10" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="10" height="10" fill="#f5f8f5"/>
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#8fa397" stroke-width="1.7"/>
+    </pattern>
+    <pattern id="wet" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#e9eff0"/>
+      <path d="M0,4 q2,-2 4,0 t4,0" stroke="#5f7f8a" stroke-width="1.2" fill="none"/>
+    </pattern>
+    <pattern id="hill" width="7" height="7" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(-45)">
+      <rect width="7" height="7" fill="#f3f1ec"/>
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#a1651a" stroke-width="1.5"/>
+    </pattern>
+    <marker id="a9" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .zn  { font-size: 15.5px; font-weight: 700; fill: #1b4332; }
+    .dsc { font-size: 14px; fill: #333; }
+    .sm  { font-size: 13px; fill: #444; }
+    .num { font-size: 13.5px; font-weight: 700; fill: #8a5415; }
+  </style>
+
+  <text class="ttl" x="20" y="30">양서류 서식처 배치 — 산림에서 저습지까지 이어지는 공간 배열</text>
+  <text class="sm"  x="20" y="52">위에서 내려다본 평면 배치. 왼쪽 산림에서 오른쪽 초지까지 순서대로 놓인다.</text>
+
+  <!-- 배치 순서 축 -->
+  <line x1="30" y1="70" x2="870" y2="70" stroke="#666" stroke-width="1.4" marker-end="url(#a9)"/>
+
+  <!-- ① 주변 산림 -->
+  <rect x="24" y="80" width="150" height="200" fill="url(#fst)" stroke="#4f7259" stroke-width="2"/>
+  <rect x="30" y="86" width="138" height="140" fill="#fff" opacity=".88"/>
+  <text class="zn"  x="34" y="104">① 주변 산림</text>
+  <text class="dsc" x="34" y="130">먹이식물</text>
+  <text class="sm"  x="34" y="150">제비꽃·진달래·팽나무 등</text>
+  <text class="dsc" x="34" y="176">다공질 공간</text>
+  <text class="sm"  x="34" y="196">돌무더기·통나무 쌓기</text>
+  <text class="sm"  x="34" y="214">고목 배치</text>
+
+  <!-- ② 초지 -->
+  <rect x="174" y="80" width="124" height="200" fill="url(#mdw)" stroke="#8fa397" stroke-width="2"/>
+  <rect x="180" y="86" width="112" height="80" fill="#fff" opacity=".88"/>
+  <text class="zn"  x="184" y="104">② 초지</text>
+  <text class="dsc" x="184" y="130">맑은 습지</text>
+  <text class="dsc" x="184" y="154">산란장</text>
+
+  <!-- ③ 큰 저습지 -->
+  <rect x="298" y="80" width="176" height="200" fill="url(#wet)" stroke="#1b4332" stroke-width="2.4"/>
+  <rect x="304" y="86" width="164" height="98" fill="#fff" opacity=".88"/>
+  <text class="zn"  x="308" y="104">③ 큰 저습지</text>
+  <text class="dsc" x="308" y="130">양서류의 휴식처</text>
+  <text class="sm"  x="308" y="154">금개구리 · 참개구리</text>
+  <text class="sm"  x="308" y="172">청개구리 · 맹꽁이</text>
+
+  <!-- ④ 구릉 -->
+  <rect x="474" y="80" width="150" height="200" fill="url(#hill)" stroke="#a1651a" stroke-width="2.4"/>
+  <rect x="480" y="86" width="138" height="140" fill="#fff" opacity=".88"/>
+  <text class="zn"  x="484" y="104" style="fill:#8a5415">④ 구릉</text>
+  <text class="num" x="484" y="130">최저수심 0~30cm</text>
+  <text class="num" x="484" y="150">최대수심 150~200cm</text>
+  <text class="dsc" x="484" y="176">침수식물 도입</text>
+  <text class="sm"  x="484" y="196">수질정화 및 수생생물의</text>
+  <text class="sm"  x="484" y="214">서식장소</text>
+
+  <!-- ⑤ 작은 저습지 -->
+  <rect x="624" y="80" width="116" height="200" fill="url(#wet)" stroke="#1b4332" stroke-width="2.4"/>
+  <rect x="630" y="86" width="104" height="136" fill="#fff" opacity=".88"/>
+  <text class="zn"  x="634" y="104">⑤ 작은</text>
+  <text class="zn"  x="634" y="124">　저습지</text>
+  <text class="dsc" x="634" y="150">구릉 옆에 배치</text>
+  <!-- 수면 표시 -->
+  <line x1="634" y1="192" x2="730" y2="192" stroke="#1b4332" stroke-width="1.8"/>
+  <path d="M 648,182 L 660,182 L 654,192 Z" fill="#1b4332"/>
+  <text class="num" x="666" y="190">W.L</text>
+  <text class="sm"  x="634" y="216" style="font-size:12.5px">수면 표시</text>
+
+  <!-- ⑥ 주변 초지 -->
+  <rect x="740" y="80" width="136" height="200" fill="url(#mdw)" stroke="#8fa397" stroke-width="2"/>
+  <rect x="746" y="86" width="124" height="158" fill="#fff" opacity=".88"/>
+  <text class="zn"  x="750" y="104">⑥ 주변 초지</text>
+  <text class="dsc" x="750" y="130">먹이식물</text>
+  <text class="sm"  x="750" y="150">제비꽃·진달래·</text>
+  <text class="sm"  x="750" y="168">팽나무 등</text>
+  <text class="dsc" x="750" y="194">다공질 공간</text>
+  <text class="sm"  x="750" y="214">돌무더기·통나무</text>
+  <text class="sm"  x="750" y="232">쌓기, 고목 배치</text>
+
+  <!-- ── 하단: 수심 단면 보조도 ── -->
+  <text class="zn" x="20" y="318">구릉의 수심 조건 (단면 보조)</text>
+  <rect x="24" y="330" width="600" height="106" fill="#fcfdfc" stroke="#ccd5ce" stroke-width="1.2" rx="6"/>
+  <!-- 수면선 -->
+  <line x1="44" y1="352" x2="604" y2="352" stroke="#1b4332" stroke-width="2"/>
+  <path d="M 60,344 L 72,344 L 66,352 Z" fill="#1b4332"/>
+  <text class="num" x="78" y="348">W.L</text>
+  <!-- 바닥 단면: 얕은 가장자리 → 깊은 가운데 -->
+  <path d="M 44,360 C 130,362 170,404 260,412 C 350,420 420,392 500,372 C 545,362 580,360 604,360"
+        stroke="#a1651a" stroke-width="2.6" fill="none"/>
+  <line x1="120" y1="352" x2="120" y2="374" stroke="#8a5415" stroke-width="1.6"/>
+  <text class="num" x="128" y="368">0~30cm (얕은 가장자리)</text>
+  <line x1="300" y1="352" x2="300" y2="414" stroke="#8a5415" stroke-width="1.6"/>
+  <text class="num" x="308" y="392">150~200cm (깊은 곳)</text>
+  <text class="sm"  x="44" y="430" style="font-size:12.5px">수심에 단차를 두어 얕은 산란·유생 구간과 깊은 월동·피난 구간을 함께 확보한다.</text>
+
+  <!-- 오른쪽 요지 -->
+  <rect x="640" y="330" width="236" height="106" fill="#f7faf8" stroke="#4f7259" stroke-width="1.6" rx="6"/>
+  <text class="sm" x="654" y="354" style="font-weight:700;fill:#1b4332">배치의 요지</text>
+  <text class="sm" x="654" y="378">산란·유생기의 물(저습지)과</text>
+  <text class="sm" x="654" y="398">성체의 뭍(산림·초지)이</text>
+  <text class="sm" x="654" y="418">끊기지 않고 이어져야 한다.</text>
+</svg>

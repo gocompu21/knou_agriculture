@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" width="900" height="360"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>생물의 분포유형 — 임의·균일·군생</title>
+  <desc>조사 방형구를 격자로 나눈 평면에 개체 위치를 찍어 세 가지 분포유형을 비교한 그림. 각 방형구 아래에 칸별 개체수의 편차를 막대로 나타내어 유형 차이를 수치로 보인다.</desc>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .lab  { font-size: 15px; fill: #333; text-anchor: middle; }
+    .labb { font-size: 15px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .cap  { font-size: 14px; fill: #555; text-anchor: middle; }
+    .plot { fill: #f2f5f1; stroke: #4f7259; stroke-width: 2; }
+    .grid { stroke: #c3d1c6; stroke-width: 1; stroke-dasharray: 4 4; }
+    .ind  { fill: #1b4332; }
+    .bar  { fill: #4f7259; }
+    .base { stroke: #888; stroke-width: 1.2; }
+  </style>
+
+  <!-- ══════════ ① 임의분포 ══════════ -->
+  <g transform="translate(20,0)">
+    <text class="ttl" x="130" y="28">① 임의분포</text>
+
+    <rect class="plot" x="20" y="44" width="220" height="170"/>
+    <line class="grid" x1="75"  y1="44" x2="75"  y2="214"/>
+    <line class="grid" x1="130" y1="44" x2="130" y2="214"/>
+    <line class="grid" x1="185" y1="44" x2="185" y2="214"/>
+    <line class="grid" x1="20" y1="101" x2="240" y2="101"/>
+    <line class="grid" x1="20" y1="158" x2="240" y2="158"/>
+
+    <!-- 규칙 없이 흩어진 위치 -->
+    <g class="ind">
+      <circle cx="42"  cy="66"  r="4.6"/>
+      <circle cx="98"  cy="58"  r="4.6"/>
+      <circle cx="63"  cy="93"  r="4.6"/>
+      <circle cx="150" cy="76"  r="4.6"/>
+      <circle cx="212" cy="62"  r="4.6"/>
+      <circle cx="118" cy="118" r="4.6"/>
+      <circle cx="196" cy="112" r="4.6"/>
+      <circle cx="36"  cy="140" r="4.6"/>
+      <circle cx="88"  cy="163" r="4.6"/>
+      <circle cx="167" cy="150" r="4.6"/>
+      <circle cx="226" cy="176" r="4.6"/>
+      <circle cx="130" cy="196" r="4.6"/>
+      <circle cx="58"  cy="200" r="4.6"/>
+      <circle cx="205" cy="204" r="4.6"/>
+    </g>
+
+    <!-- 칸별 개체수: 들쭉날쭉 -->
+    <line class="base" x1="20" y1="262" x2="240" y2="262"/>
+    <g class="bar">
+      <rect x="30"  y="240" width="26" height="22"/>
+      <rect x="85"  y="232" width="26" height="30"/>
+      <rect x="140" y="248" width="26" height="14"/>
+      <rect x="195" y="238" width="26" height="24"/>
+    </g>
+    <text class="cap" x="130" y="282">칸마다 개체수가 들쭉날쭉하다</text>
+
+    <text class="labb" x="130" y="312">규칙 없이 흩어짐</text>
+    <text class="lab"  x="130" y="334">자원이 고르고 개체 간섭 약함</text>
+    <text class="cap"  x="130" y="352">예) 풀밭의 민들레</text>
+  </g>
+
+  <!-- ══════════ ② 균일분포 ══════════ -->
+  <g transform="translate(320,0)">
+    <text class="ttl" x="130" y="28">② 균일분포</text>
+
+    <rect class="plot" x="20" y="44" width="220" height="170"/>
+    <line class="grid" x1="75"  y1="44" x2="75"  y2="214"/>
+    <line class="grid" x1="130" y1="44" x2="130" y2="214"/>
+    <line class="grid" x1="185" y1="44" x2="185" y2="214"/>
+    <line class="grid" x1="20" y1="101" x2="240" y2="101"/>
+    <line class="grid" x1="20" y1="158" x2="240" y2="158"/>
+
+    <!-- 최소거리를 유지한 격자 배열 + 세력권 원 -->
+    <g>
+      <g fill="none" stroke="#7d9a86" stroke-width="1.2" stroke-dasharray="3 3">
+        <circle cx="57"  cy="72"  r="20"/><circle cx="130" cy="72"  r="20"/><circle cx="203" cy="72"  r="20"/>
+        <circle cx="57"  cy="129" r="20"/><circle cx="130" cy="129" r="20"/><circle cx="203" cy="129" r="20"/>
+        <circle cx="57"  cy="186" r="20"/><circle cx="130" cy="186" r="20"/><circle cx="203" cy="186" r="20"/>
+      </g>
+      <g class="ind">
+        <circle cx="57"  cy="72"  r="4.6"/><circle cx="130" cy="72"  r="4.6"/><circle cx="203" cy="72"  r="4.6"/>
+        <circle cx="57"  cy="129" r="4.6"/><circle cx="130" cy="129" r="4.6"/><circle cx="203" cy="129" r="4.6"/>
+        <circle cx="57"  cy="186" r="4.6"/><circle cx="130" cy="186" r="4.6"/><circle cx="203" cy="186" r="4.6"/>
+      </g>
+      <!-- 최소거리 표시 -->
+      <line x1="57" y1="102" x2="130" y2="102" stroke="#a1651a" stroke-width="1.6"/>
+      <line x1="57" y1="98"  x2="57"  y2="106" stroke="#a1651a" stroke-width="1.6"/>
+      <line x1="130" y1="98" x2="130" y2="106" stroke="#a1651a" stroke-width="1.6"/>
+      <text x="93" y="95" font-size="12.5" fill="#a1651a" text-anchor="middle">최소거리</text>
+    </g>
+
+    <line class="base" x1="20" y1="262" x2="240" y2="262"/>
+    <g class="bar">
+      <rect x="30"  y="240" width="26" height="22"/>
+      <rect x="85"  y="240" width="26" height="22"/>
+      <rect x="140" y="240" width="26" height="22"/>
+      <rect x="195" y="240" width="26" height="22"/>
+    </g>
+    <text class="cap" x="130" y="282">칸마다 개체수가 거의 같다</text>
+
+    <text class="labb" x="130" y="312">일정 간격을 두고 고름</text>
+    <text class="lab"  x="130" y="334">경쟁·세력권으로 최소거리 유지</text>
+    <text class="cap"  x="130" y="352">예) 사막의 건조지 식물</text>
+  </g>
+
+  <!-- ══════════ ③ 군생분포 ══════════ -->
+  <g transform="translate(620,0)">
+    <text class="ttl" x="130" y="28">③ 군생분포</text>
+
+    <rect class="plot" x="20" y="44" width="220" height="170"/>
+    <line class="grid" x1="75"  y1="44" x2="75"  y2="214"/>
+    <line class="grid" x1="130" y1="44" x2="130" y2="214"/>
+    <line class="grid" x1="185" y1="44" x2="185" y2="214"/>
+    <line class="grid" x1="20" y1="101" x2="240" y2="101"/>
+    <line class="grid" x1="20" y1="158" x2="240" y2="158"/>
+
+    <!-- 자원이 몰린 자리(옅은 얼룩) 위에 개체가 뭉침 -->
+    <g fill="#dfe9e0" stroke="#9fb6a5" stroke-width="1.2" stroke-dasharray="5 4">
+      <ellipse cx="66"  cy="80"  rx="34" ry="27"/>
+      <ellipse cx="176" cy="112" rx="38" ry="29"/>
+      <ellipse cx="96"  cy="182" rx="35" ry="25"/>
+    </g>
+    <g class="ind">
+      <circle cx="54"  cy="70"  r="4.6"/><circle cx="72"  cy="66"  r="4.6"/>
+      <circle cx="62"  cy="86"  r="4.6"/><circle cx="82"  cy="88"  r="4.6"/>
+      <circle cx="48"  cy="92"  r="4.6"/>
+      <circle cx="164" cy="100" r="4.6"/><circle cx="184" cy="98"  r="4.6"/>
+      <circle cx="172" cy="118" r="4.6"/><circle cx="194" cy="120" r="4.6"/>
+      <circle cx="156" cy="122" r="4.6"/>
+      <circle cx="86"  cy="172" r="4.6"/><circle cx="104" cy="176" r="4.6"/>
+      <circle cx="94"  cy="192" r="4.6"/><circle cx="112" cy="190" r="4.6"/>
+    </g>
+    <text x="176" y="152" font-size="12.5" fill="#4f7259" text-anchor="middle">자원이 몰린 곳</text>
+
+    <line class="base" x1="20" y1="262" x2="240" y2="262"/>
+    <g class="bar">
+      <rect x="30"  y="228" width="26" height="34"/>
+      <rect x="85"  y="256" width="26" height="6"/>
+      <rect x="140" y="234" width="26" height="28"/>
+      <rect x="195" y="258" width="26" height="4"/>
+    </g>
+    <text class="cap" x="130" y="282">빈 칸과 몰린 칸의 차가 크다</text>
+
+    <text class="labb" x="130" y="312">여러 무리로 뭉침</text>
+    <text class="lab"  x="130" y="334">자원 편중·사회적 무리 형성</text>
+    <text class="cap"  x="130" y="352">예) 무성생식으로 번지는 식물</text>
+  </g>
+</svg>

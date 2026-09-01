@@ -1,0 +1,128 @@
+[
+ {
+  "pk": 252,
+  "label": "환경계획B",
+  "number": 7,
+  "qtype": "서술",
+  "text": "생태축",
+  "answer_items": [
+   "① 개념 : 산과 하천, 바다를 하나로 잇는 통합 생태망을 말한다.",
+   "② 백두대간 생태축 : 한반도 생태계를 남북으로 잇는 중추로, 생태자연도 1등급이자 녹지자연도 8등급 이상의 천연림·원시림이 이어져 있으며 백두대간 기본계획을 세워 체계적으로 보전하고 끊긴 구간을 복원한다.",
+   "③ DMZ 생태축 : 한반도를 동서로 가로지르는 축으로, 남북이 함께 유네스코 생물권보전지역 지정을 추진하고 현재의 자연유보지역을 생태·경관보전지역으로 전환해 관리체계를 갖춘다.",
+   "④ 도서연안 생태축 : 육상생태계와 해양생태계를 이어 주는 축으로, 개발 수요를 일정 부분 받아들이면서도 보전 관리가 가능하도록 도서·연안의 통합관리체계를 세운다.",
+   "⑤ 5대 환경관리 대권역 : 한강 수도권, 금강 충청권, 영산강 호남권, 낙동강 영남권, 태백 강원권으로 나누어 관리한다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-환경계획B-7_answer_1.png"
+   }
+  ],
+  "svg_name": "eco_axis_korea",
+  "done": true
+ },
+ {
+  "pk": 262,
+  "label": "환경계획B",
+  "number": 17,
+  "qtype": "표그림",
+  "text": "미티게이션의 개념을 그림으로 설명하시오.(단, 회피, 저감, 대체 3가지로 나누어 그릴 것)",
+  "answer_items": [
+   "① 회피 : 보호지역에는 손을 대지 않고 그 바깥만 개발하도록 계획을 비껴 세우는 단계이다. 그림은 보호지역을 온전히 남겨 두고 개발지를 그 옆에 배치해 그린다.",
+   "② 저감 : 보호지역을 일부 건드릴 수밖에 없을 때 교량 설치 등으로 훼손 면적을 최소한으로 줄이는 단계이다. 그림은 보호지역 위를 교량이 가로지르며 지면 훼손이 좁게 그려지도록 표현한다.",
+   "③ 대체 : 훼손을 피할 수 없는 경우 잃은 면적 이상으로 다른 곳에 대체서식지를 만들어 보상하는 단계이다. 그림은 훼손된 보호지역과 그에 대응해 새로 조성한 대체서식지를 함께 그린다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-환경계획B-17_answer_1.png"
+   }
+  ],
+  "svg_name": "mitigation_3step",
+  "reuse": true,
+  "note": "SPEC 완성 예시(mitigation_3step.svg)와 내용이 동일한 문항이라 그대로 재사용",
+  "done": true
+ },
+ {
+  "pk": 270,
+  "label": "환경계획B",
+  "number": 25,
+  "qtype": "서술",
+  "text": "우수순환체계에서 각각의 조성방법 및 특징",
+  "answer_items": [
+   "① 집수 : 지붕과 포장면에 떨어진 빗물을 한곳으로 모아 뒤이은 처리 단계로 보낸다.",
+   "② 쇄석여과층 : 오염물질이 많이 섞인 초기 빗물을 자갈층에 통과시켜 걸러 낸다.",
+   "③ 저류연못 : 모인 물을 일차로 가두어 유출을 늦추는 동시에 생물이 살 수 있는 수변 환경을 만든다.",
+   "④ 침투연못 : 물을 담아 두면서 땅속으로 스며들게 하여 저류·정수·서식공간의 기능을 함께 수행한다.",
+   "⑤ 2차 저류 : 남은 빗물을 따로 저장해 두었다가 화장실 용수, 정원 관수, 세차, 연못 보충수 등으로 다시 쓴다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-환경계획B-25_answer_1.png"
+   }
+  ],
+  "svg_name": "stormwater_cycle",
+  "done": true
+ },
+ {
+  "pk": 272,
+  "label": "환경계획B",
+  "number": 27,
+  "qtype": "표그림",
+  "text": "생물권보전지역의 개념은 1971년 설립된 인간과 생물권(MAB : Man And the Biosphere) 프로그램을 실행하는 한 방안으로 고안되었다. 생물권보전지역은 오늘날 세계가 당면한 가장 중요한 과제의 하나인 '생물다양성과 생물자원의 보전을 지속가능한 이용과 어떻게 조화시킬 수 있는가'라는 문제를 다루고 있다. 따라서 생물권보전지역의 목적을 달성하기 위해서는 참여적 관리 방식과 뚜렷한 지리적 구획이 필요하다. 생물권보전지역의 세 가지 구역을 도식화하고 그에 대한 내용을 기술하시오.",
+  "answer_items": [],
+  "answer_text": "| 구역 | 내용 |\n|---|---|\n| 핵심구역 | 생태계를 있는 그대로 지키는 보호 구역으로, 장기적인 보전과 학술 조사만 허용된다 |\n| 완충구역 | 핵심구역을 둘러싸 외부의 교란이 안으로 미치지 않게 막는 구역이다 |\n| 협력구역 | 지역 주민이 자원을 지속 가능한 방식으로 이용하며 살아가는 구역이다 |\n\n도식 : 핵심구역을 한가운데 두고 그 바깥을 완충구역이, 다시 그 바깥을 협력구역이 감싸는 동심원 구조로 그린다.",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-환경계획B-27_answer_1.png"
+   }
+  ],
+  "svg_name": "biosphere_zones_map",
+  "done": true
+ },
+ {
+  "pk": 273,
+  "label": "환경계획B",
+  "number": 28,
+  "qtype": "빈칸",
+  "text": "생물권보전지역의 개념은 1971년 설립된 인간과 생물권(MAB : Man And the Biosphere) 프로그램을 실행하는 한 방안으로 고안되었다. 생물권보전지역은 오늘날 세계가 당면한 가장 중요한 과제의 하나인 '생물다양성과 생물자원의 보전을 지속가능한 이용과 어떻게 조화시킬 수 있는가'라는 문제를 다루고 있다. 따라서 생물권보전지역은 국제적 협약이나 협정의 적용을 받지 않으나 다음의 세 가지 기능을 적절히 수행하는 데 필요한 기준들을 만족시켜야 한다. 그림의 A~C에 알맞은 말을 쓰시오.\n\n(그림 : 중앙 '생물권보전지역' 원을 A·B·C 세 기능이 순환하며 둘러쌈)\n• A : 경관, 생태계, 종, 유전적 변이\n• B : 시범사업, 환경교육, 연구 및 모니터링을 통해 위 두 가지 기능을 용이하게 수행\n• C : 사회적·문화적·생태적으로 지속가능한 경제와 인간",
+  "answer_items": [
+   "A : 보전",
+   "B : 지원",
+   "C : 발전"
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "text_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-환경계획B-28_question_1.png"
+   }
+  ],
+  "svg_name": "mab_three_functions",
+  "note": "문제용 그림(text_image). A·B·C 빈칸 표기를 유지한 채 순환 도식을 3기둥 구도로 교체",
+  "done": true
+ },
+ {
+  "pk": 185,
+  "label": "환경영향평가",
+  "number": 3,
+  "qtype": "표그림",
+  "text": "순서 (전략환경영향평가·환경영향평가 절차 흐름도)",
+  "answer_items": [],
+  "answer_text": "[전략환경영향평가]\n• 정책계획 : 정책계획 구상 → 환경영향평가협의회 심의 → 평가서 작성 및 협의\n• 개발기본계획 : 개발기본계획 구상 → 환경영향평가협의회 심의 → 초안 작성 및 주민의견 수렴 → 평가서 작성 및 협의\n\n[환경영향평가]\n• 환경영향평가 : 환경영향평가협의회 심의 → 초안 작성 및 주민의견 수렴 → 평가서 작성 및 협의 → 관리\n• 소규모 환경영향평가 : 평가서 작성 및 협의 → 관리\n\n※ 정책계획과 소규모 환경영향평가는 주민의견 수렴 단계를 거치지 않는 점이 다른 두 유형과 구분되는 특징이다.",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-환경영향평가-3_answer_1.png"
+   }
+  ],
+  "svg_name": "eia_procedure_lanes",
+  "note": "원본은 4개 열 각각의 세로 박스 나열. 단계를 세로 열로 고정한 가로 레인 비교표로 구도 변경(생략 단계가 보이게)",
+  "done": true
+ }
+]

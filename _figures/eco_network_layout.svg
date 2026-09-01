@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 450" width="900" height="450"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>생태네트워크 구성요소와 배치계획</title>
+  <desc>핵심지역·완충지역·복원지역·코리더를 평면 배치도로 나타내고, 핵심과 복원지역을 코리더로 잇고 둘레에 완충지역을 두는 조성원칙을 보여줌</desc>
+
+  <defs>
+    <!-- 핵심지역: 촘촘한 점 (보전가치 최고) -->
+    <pattern id="core" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#dfeae2"/>
+      <circle cx="2" cy="2" r="1.4" fill="#1b4332"/>
+    </pattern>
+    <!-- 완충지역: 사선 빗금 -->
+    <pattern id="buf" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="9" height="9" fill="#f2f5f1"/>
+      <line x1="0" y1="0" x2="0" y2="9" stroke="#8fa896" stroke-width="2.2"/>
+    </pattern>
+    <!-- 복원지역: 가로 파선 (회복 중) -->
+    <pattern id="rest" width="10" height="8" patternUnits="userSpaceOnUse">
+      <rect width="10" height="8" fill="#f6f1e8"/>
+      <line x1="0" y1="4" x2="6" y2="4" stroke="#a1651a" stroke-width="2"/>
+    </pattern>
+    <marker id="ear" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+  </defs>
+
+  <style>
+    .hd   { font-size:20px; font-weight:700; fill:#1b4332; }
+    .inT  { font-size:15px; font-weight:700; fill:#1b4332; text-anchor:middle; }
+    .lead { stroke:#333; stroke-width:1.5; fill:none; stroke-dasharray:5 4; }
+    .lg   { font-size:15px; font-weight:700; fill:#1b4332; }
+    .lgx  { font-size:14.5px; fill:#333; }
+    .cor  { stroke:#4f7259; stroke-width:16; fill:none; opacity:.6; stroke-linecap:round; }
+    .corE { stroke:#1b4332; stroke-width:1.5; fill:none; }
+    .note { font-size:15.5px; fill:#333; }
+  </style>
+
+  <text class="hd" x="26" y="30">생태네트워크의 구성요소와 배치</text>
+
+  <!-- ══════ 평면 배치도 ══════ -->
+  <g>
+    <!-- 완충지역: 핵심·복원을 감싸는 바깥 영역 -->
+    <path d="M 60,66 L 470,66 L 470,352 L 60,352 Z"
+          fill="url(#buf)" stroke="#4f7259" stroke-width="2.2"/>
+    <text class="inT" x="118" y="90" style="font-size:14px;">완충지역</text>
+
+    <!-- 코리더: 핵심①–핵심② (면적형, 넓은 띠) -->
+    <path class="cor" d="M 168,150 L 356,214"/>
+    <path class="corE" d="M 168,142 L 356,206"/>
+    <path class="corE" d="M 168,158 L 356,222"/>
+
+    <!-- 코리더: 핵심① – 복원지역 (선형, 좁은 띠) -->
+    <path d="M 160,180 C 152,232 168,272 196,296"
+          stroke="#4f7259" stroke-width="9" fill="none" opacity=".6" stroke-linecap="round"/>
+    <path d="M 160,180 C 152,232 168,272 196,296"
+          stroke="#1b4332" stroke-width="1.4" fill="none" stroke-dasharray="7 5"/>
+
+    <!-- 코리더: 핵심② – 복원지역 (징검다리형, 점점이) -->
+    <g fill="url(#core)" stroke="#1b4332" stroke-width="1.4">
+      <circle cx="330" cy="272" r="9"/>
+      <circle cx="304" cy="292" r="8"/>
+      <circle cx="278" cy="306" r="9"/>
+      <circle cx="252" cy="300" r="7"/>
+    </g>
+
+    <!-- 핵심지역 ① -->
+    <circle cx="152" cy="150" r="52" fill="url(#core)" stroke="#1b4332" stroke-width="2.6"/>
+    <text class="inT" x="152" y="156">핵심지역</text>
+
+    <!-- 핵심지역 ② -->
+    <circle cx="372" cy="220" r="48" fill="url(#core)" stroke="#1b4332" stroke-width="2.6"/>
+    <text class="inT" x="372" y="226">핵심지역</text>
+
+    <!-- 복원지역 -->
+    <circle cx="214" cy="308" r="42" fill="url(#rest)" stroke="#a1651a" stroke-width="2.6"/>
+    <text class="inT" x="214" y="314" fill="#a1651a">복원지역</text>
+  </g>
+
+  <!-- 코리더 라벨(도형 밖 + 지시선) -->
+  <path class="lead" d="M 262,182 L 300,132" marker-end="url(#ear)"/>
+  <text class="lgx" x="252" y="122" style="font-weight:700;">면적형 코리더</text>
+
+  <path class="lead" d="M 154,240 L 92,262" marker-end="url(#ear)"/>
+  <text class="lgx" x="62" y="286" style="font-weight:700;">선형 코리더</text>
+
+  <path class="lead" d="M 300,292 L 356,318" marker-end="url(#ear)"/>
+  <text class="lgx" x="344" y="340" style="font-weight:700;">징검다리형 코리더</text>
+
+  <!-- ══════ 오른쪽 범례·설명 ══════ -->
+  <g transform="translate(500,58)">
+    <!-- 핵심 -->
+    <rect x="0" y="0" width="30" height="24" fill="url(#core)" stroke="#1b4332" stroke-width="1.8"/>
+    <text class="lg" x="42" y="18">① 핵심지역</text>
+    <text class="lgx" x="42" y="40">보전가치가 높은 생물의 서식 기반으로</text>
+    <text class="lgx" x="42" y="60">네트워크의 중심을 이룬다</text>
+
+    <!-- 완충 -->
+    <rect x="0" y="82" width="30" height="24" fill="url(#buf)" stroke="#4f7259" stroke-width="1.8"/>
+    <text class="lg" x="42" y="100">② 완충지역</text>
+    <text class="lgx" x="42" y="122">핵심지역을 감싸며 외부의 개발 압력과</text>
+    <text class="lgx" x="42" y="142">교란이 안쪽으로 밀려들지 않게 막는다</text>
+
+    <!-- 복원 -->
+    <rect x="0" y="164" width="30" height="24" fill="url(#rest)" stroke="#a1651a" stroke-width="1.8"/>
+    <text class="lg" x="42" y="182">③ 복원지역</text>
+    <text class="lgx" x="42" y="204">훼손되었으나 되살릴 여지가 있어</text>
+    <text class="lgx" x="42" y="224">핵심지역의 기능을 보완하도록 회복시킨다</text>
+
+    <!-- 코리더 -->
+    <g>
+      <path d="M 2,254 L 28,254" stroke="#4f7259" stroke-width="12" opacity=".6" stroke-linecap="round"/>
+      <path d="M 2,254 L 28,254" stroke="#1b4332" stroke-width="1.2" stroke-dasharray="5 4"/>
+    </g>
+    <text class="lg" x="42" y="260">④ 코리더</text>
+    <text class="lgx" x="42" y="282">떨어져 있는 핵심지역과 복원지역을 이어</text>
+    <text class="lgx" x="42" y="302">이동과 유전자 교류를 가능하게 한다</text>
+  </g>
+
+  <!-- ══════ 하단 조성원칙 ══════ -->
+  <g transform="translate(0,380)">
+    <rect x="26" y="0" width="848" height="56" rx="6" fill="#f2f5f1" stroke="#ccd5ce"/>
+    <text class="note" x="46" y="24">
+      <tspan style="font-weight:700; fill:#1b4332;">⑤ 조성원칙</tspan> —
+      핵심지역과 복원지역을 코리더로 빠짐없이 이어 <tspan style="font-weight:700;">연결성</tspan>을 확보하고,
+    </text>
+    <text class="note" x="46" y="46">
+      그 둘레에 <tspan style="font-weight:700;">완충지역</tspan>을 두어 외부 교란으로부터 지키도록 배치한다.
+    </text>
+  </g>
+</svg>

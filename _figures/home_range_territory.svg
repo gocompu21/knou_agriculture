@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>행동권과 세력권 — 개체 세 마리의 공간 이용 평면도</title>
+  <desc>같은 서식지에 사는 개체 A·B·C의 행동권은 서로 겹치지만, 그 안의 세력권은 겹치지 않고 방어된다는 것을 평면 지도로 나타냈다</desc>
+
+  <defs>
+    <pattern id="terrA" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="7" height="7" fill="#e8efe9"/>
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#1b4332" stroke-width="2"/>
+    </pattern>
+    <pattern id="terrB" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+      <rect width="7" height="7" fill="#e8efe9"/>
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#1b4332" stroke-width="2"/>
+    </pattern>
+    <pattern id="terrC" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#e8efe9"/>
+      <circle cx="2.5" cy="2.5" r="1.4" fill="#1b4332"/>
+    </pattern>
+    <marker id="def" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .hr   { fill: none; stroke: #4f7259; stroke-width: 2.4; stroke-dasharray: 11 7; }
+    .tr   { stroke: #1b4332; stroke-width: 2.6; }
+    .id   { font-size: 16px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .lab  { font-size: 14.5px; fill: #333; }
+    .note { font-size: 15.5px; fill: #333; }
+    .lead { stroke: #333; stroke-width: 1.5; fill: none; }
+  </style>
+
+  <text class="ttl" x="24" y="28">행동권과 세력권 — 개체 세 마리의 공간 이용</text>
+
+  <!-- 서식지 배경 -->
+  <rect x="24" y="42" width="560" height="292" fill="#fcfdfc" stroke="#ccd5ce" stroke-width="1.2" rx="6"/>
+
+  <!-- 행동권(파선 큰 타원) : 서로 겹친다 -->
+  <ellipse class="hr" cx="188" cy="140" rx="132" ry="86"/>
+  <ellipse class="hr" cx="396" cy="142" rx="130" ry="84"/>
+  <ellipse class="hr" cx="288" cy="256" rx="136" ry="68"/>
+
+  <!-- 겹침 표시 -->
+  <text class="lab" x="292" y="122" text-anchor="middle">행동권은 서로 겹친다</text>
+
+  <!-- 세력권(실선 작은 영역) : 겹치지 않는다 -->
+  <ellipse class="tr" cx="164" cy="136" rx="52" ry="38" fill="url(#terrA)"/>
+  <text class="id" x="164" y="142">A</text>
+
+  <ellipse class="tr" cx="424" cy="136" rx="52" ry="38" fill="url(#terrB)"/>
+  <text class="id" x="424" y="142">B</text>
+
+  <ellipse class="tr" cx="290" cy="268" rx="52" ry="36" fill="url(#terrC)"/>
+  <text class="id" x="290" y="274">C</text>
+
+  <!-- 경계에서의 방어행위 -->
+  <path d="M 222,152 L 268,190" stroke="#a1651a" stroke-width="2.2" fill="none"
+        marker-start="url(#def)" marker-end="url(#def)"/>
+  <path d="M 366,152 L 322,190" stroke="#a1651a" stroke-width="2.2" fill="none"
+        marker-start="url(#def)" marker-end="url(#def)"/>
+  <text class="lab" x="292" y="212" text-anchor="middle" fill="#a1651a">경계에서 방어행위(다툼)</text>
+
+  <text class="lab" x="42" y="196">세력권은 겹치지 않는다</text>
+  <path class="lead" d="M 130,190 L 142,172"/>
+
+  <!-- 범례 -->
+  <g transform="translate(40,308)">
+    <line x1="0" y1="0" x2="34" y2="0" stroke="#4f7259" stroke-width="2.4" stroke-dasharray="11 7"/>
+    <text class="lab" x="42" y="5">행동권(파선)</text>
+    <ellipse cx="200" cy="0" rx="17" ry="9" fill="url(#terrA)" stroke="#1b4332" stroke-width="2"/>
+    <text class="lab" x="224" y="5">세력권(실선·채움)</text>
+  </g>
+
+  <!-- ───── 오른쪽 대비 설명 ───── -->
+  <g transform="translate(608,0)">
+    <rect x="0" y="42" width="268" height="130" rx="6" fill="#f2f5f1" stroke="#4f7259" stroke-width="1.8"/>
+    <text class="ttl" x="16" y="70" style="font-size:17px">행동권</text>
+    <text class="note" x="16" y="96" style="font-size:14.5px">개체가 생활하며 돌아다니는</text>
+    <text class="note" x="16" y="116" style="font-size:14.5px">포괄적 서식 범위 전체</text>
+    <text class="note" x="16" y="142" style="font-size:14.5px">다른 개체와 겹쳐 쓰거나</text>
+    <text class="note" x="16" y="162" style="font-size:14.5px">서로 간섭하지 않는다</text>
+
+    <rect x="0" y="188" width="268" height="146" rx="6" fill="#e8efe9" stroke="#1b4332" stroke-width="2.2"/>
+    <text class="ttl" x="16" y="216" style="font-size:17px">세력권(텃세권)</text>
+    <text class="note" x="16" y="242" style="font-size:14.5px">행동권 안에서 타개체의 침입을</text>
+    <text class="note" x="16" y="262" style="font-size:14.5px">배척하며 독점하는 좁은 영역</text>
+    <text class="note" x="16" y="288" style="font-size:14.5px">다른 개체가 들어오면</text>
+    <text class="note" x="16" y="308" style="font-size:14.5px">방어행위를 한다</text>
+    <text class="note" x="16" y="328" style="font-size:13.5px" fill="#a1651a">밀도가 높을수록 다툼이 강해진다</text>
+  </g>
+
+  <!-- 하단 요지 -->
+  <text class="note" x="24" y="368">· 종별 서식공간 규모를 산출해 <tspan font-weight="700" fill="#1b4332">보호지역 면적 설정과 서식지 조성 설계</tspan>의 근거로 삼는다.</text>
+  <text class="note" x="24" y="392">· 세력권 다툼의 세기로 <tspan font-weight="700" fill="#1b4332">밀도의존적 개체군 조절</tspan> 양상을 파악한다.</text>
+</svg>

@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 440" width="900" height="440"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>종–면적 관계 S = cA&#8319; — 곡선과 상수의 의미</title>
+  <desc>면적이 늘수록 종수가 늘되 증가가 완만해지는 멱함수 곡선과, 양변에 로그를 취하면 기울기 z의 직선이 됨을 나란히 보여줌</desc>
+
+  <defs>
+    <marker id="sar" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+    <marker id="sarO" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+    <pattern id="frag" width="7" height="7" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#eef3ef"/>
+      <line x1="0" y1="3.5" x2="7" y2="3.5" stroke="#4f7259" stroke-width="2"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .hd   { font-size:17px; font-weight:700; fill:#1b4332; }
+    .ax   { stroke:#222; stroke-width:2; fill:none; }
+    .grid { stroke:#e3e9e4; stroke-width:1; }
+    .curve{ stroke:#1b4332; stroke-width:3.2; fill:none; }
+    .line { stroke:#a1651a; stroke-width:3.2; fill:none; }
+    .lab  { font-size:14.5px; fill:#222; }
+    .labB { font-size:14.5px; font-weight:700; fill:#1b4332; }
+    .frm  { fill:#fcfdfc; stroke:#ccd5ce; stroke-width:1.2; }
+    .note { font-size:15.5px; fill:#333; }
+    .cap  { font-size:13.5px; fill:#555; }
+    .tick { font-size:13px; fill:#444; text-anchor:middle; }
+  </style>
+
+  <!-- ═══ 왼쪽: 산술 눈금 곡선 ═══ -->
+  <g>
+    <text class="hd" x="26" y="28">① 곡선의 형태 (산술 눈금)</text>
+    <rect class="frm" x="20" y="40" width="410" height="268" rx="6"/>
+
+    <!-- 격자 -->
+    <g class="grid">
+      <line x1="72" y1="252" x2="404" y2="252"/>
+      <line x1="72" y1="204" x2="404" y2="204"/>
+      <line x1="72" y1="156" x2="404" y2="156"/>
+      <line x1="72" y1="108" x2="404" y2="108"/>
+    </g>
+
+    <path class="ax" d="M 72,282 L 72,64" marker-end="url(#sar)"/>
+    <path class="ax" d="M 72,282 L 412,282" marker-end="url(#sar)"/>
+    <text class="labB" x="30" y="58">종수 S</text>
+    <text class="labB" x="336" y="304">면적 A</text>
+
+    <!-- S = cA^z 곡선: 초기 급증 → 완만 -->
+    <path class="curve"
+          d="M 72,282 C 92,206 116,170 152,148 C 200,120 250,106 300,96
+             C 340,88 372,84 400,82"/>
+
+    <!-- 구간 주석 -->
+    <path d="M 120,120 L 96,168" stroke="#a1651a" stroke-width="1.6"
+          fill="none" marker-end="url(#sarO)"/>
+    <text class="cap" x="124" y="114" style="fill:#a1651a; font-weight:700;">초기엔 급격히 증가</text>
+
+    <path d="M 300,148 L 330,102" stroke="#a1651a" stroke-width="1.6"
+          fill="none" marker-end="url(#sarO)"/>
+    <text class="cap" x="238" y="166" style="fill:#a1651a; font-weight:700;">일정 수준 넘으면 완만해져 수렴</text>
+
+    <text class="tick" x="72" y="300">0</text>
+  </g>
+
+  <!-- ═══ 오른쪽: 로그–로그 직선 ═══ -->
+  <g>
+    <text class="hd" x="470" y="28">② 양변에 로그를 취하면 직선</text>
+    <rect class="frm" x="464" y="40" width="410" height="268" rx="6"/>
+
+    <g class="grid">
+      <line x1="522" y1="252" x2="848" y2="252"/>
+      <line x1="522" y1="204" x2="848" y2="204"/>
+      <line x1="522" y1="156" x2="848" y2="156"/>
+      <line x1="522" y1="108" x2="848" y2="108"/>
+    </g>
+
+    <path class="ax" d="M 522,282 L 522,64" marker-end="url(#sar)"/>
+    <path class="ax" d="M 522,282 L 856,282" marker-end="url(#sar)"/>
+    <text class="labB" x="472" y="58">log S</text>
+    <text class="labB" x="782" y="304">log A</text>
+
+    <!-- 직선 -->
+    <path class="line" d="M 534,244 L 838,96"/>
+
+    <!-- 기울기 z 삼각형 -->
+    <g stroke="#1b4332" stroke-width="1.6" fill="none" stroke-dasharray="5 4">
+      <path d="M 640,192 L 760,192 L 760,144"/>
+    </g>
+    <text class="labB" x="784" y="172">기울기 = z</text>
+
+    <!-- 절편 c -->
+    <circle cx="534" cy="244" r="5" fill="#1b4332"/>
+    <text class="labB" x="542" y="266">절편 = log c</text>
+
+    <text class="cap" x="470" y="330" style="font-size:0px;"> </text>
+  </g>
+
+  <!-- ═══ 하단: 공식과 의미 ═══ -->
+  <g transform="translate(0,318)">
+    <rect x="20" y="0" width="854" height="112" rx="6" fill="#f2f5f1" stroke="#ccd5ce"/>
+
+    <!-- 공식 -->
+    <text x="44" y="42" style="font-size:26px; font-weight:700; fill:#1b4332;">
+      S = cA<tspan dy="-9" style="font-size:17px;">z</tspan>
+    </text>
+    <text class="note" x="176" y="38">
+      S : 종수 &#160;·&#160; A : 면적 &#160;·&#160; c, z : 양의 상수
+    </text>
+
+    <line x1="44" y1="56" x2="850" y2="56" stroke="#d6ded8" stroke-width="1"/>
+
+    <text class="note" x="44" y="80">
+      <tspan style="font-weight:700; fill:#a1651a;">z</tspan> = 면적이 늘 때 종수가 증가하는 기울기 &#160;&#160;
+      <tspan style="font-weight:700; fill:#1b4332;">c</tspan> = 조사지역의 종풍부도 수준
+    </text>
+    <text class="note" x="44" y="104">
+      <tspan style="font-weight:700;">적용</tspan> : 숲 조각의 면적이 클수록 수용 가능한 종수가 많으므로,
+      보호지역 면적 산정과 단편화 영향 예측의 근거가 된다
+    </text>
+  </g>
+</svg>

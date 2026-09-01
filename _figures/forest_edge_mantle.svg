@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>임연군락 — 숲 가장자리의 식생 높이 단면과 기능</title>
+  <desc>도로에서 숲 내부로 가면서 식생 높이가 계단식으로 올라가는 것을 높이축이 있는 단면 그래프로 나타내고, 소매군락·망토군락의 구간과 임연군락의 범위를 아래에 띠로 표시했다</desc>
+
+  <defs>
+    <!-- 소매군락(초본) -->
+    <pattern id="herb" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#f4f8f3"/>
+      <line x1="4" y1="8" x2="4" y2="2" stroke="#6f8a76" stroke-width="1.4"/>
+    </pattern>
+    <!-- 망토군락(관목·덩굴) -->
+    <pattern id="shrub" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="9" height="9" fill="#e9f0ea"/>
+      <line x1="0" y1="0" x2="0" y2="9" stroke="#4f7259" stroke-width="2.2"/>
+    </pattern>
+    <!-- 숲 내부(교목) -->
+    <pattern id="tree" width="9" height="9" patternUnits="userSpaceOnUse">
+      <rect width="9" height="9" fill="#dde8de"/>
+      <circle cx="3" cy="3" r="1.7" fill="#1b4332"/>
+      <circle cx="7.5" cy="7.5" r="1.7" fill="#1b4332"/>
+    </pattern>
+    <marker id="fw" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+    <marker id="dm" viewBox="0 0 10 10" refX="5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b4332"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .ax   { stroke: #333; stroke-width: 1.8; }
+    .axT  { font-size: 14px; fill: #333; }
+    .zone { font-size: 16px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .lab  { font-size: 14.5px; fill: #333; text-anchor: middle; }
+    .note { font-size: 15.5px; fill: #333; }
+    .env  { stroke: #1b4332; stroke-width: 3; fill: none; }
+    .dimL { stroke: #1b4332; stroke-width: 1.6; fill: none; }
+  </style>
+
+  <text class="ttl" x="24" y="28">임연군락 — 숲 가장자리 식생 높이 단면</text>
+
+  <!-- 높이축 -->
+  <line class="ax" x1="96" y1="52" x2="96" y2="268"/>
+  <line class="ax" x1="96" y1="268" x2="856" y2="268"/>
+  <text class="axT" x="30" y="58">높이(m)</text>
+  <g class="axT" text-anchor="end">
+    <line x1="90" y1="268" x2="96" y2="268" stroke="#333" stroke-width="1.5"/><text x="86" y="273">0</text>
+    <line x1="90" y1="232" x2="96" y2="232" stroke="#333" stroke-width="1.5"/><text x="86" y="237">1</text>
+    <line x1="90" y1="196" x2="96" y2="196" stroke="#333" stroke-width="1.5"/><text x="86" y="201">3</text>
+    <line x1="90" y1="124" x2="96" y2="124" stroke="#333" stroke-width="1.5"/><text x="86" y="129">10</text>
+    <line x1="90" y1="70"  x2="96" y2="70"  stroke="#333" stroke-width="1.5"/><text x="86" y="75">20</text>
+  </g>
+
+  <!-- 구간 채움 : 계단식으로 높아진다 -->
+  <rect x="96"  y="256" width="112" height="12"  fill="#f0f0ee" stroke="#b9b9b2" stroke-width="1.2"/>
+  <rect x="208" y="232" width="128" height="36"  fill="url(#herb)"  stroke="#6f8a76" stroke-width="1.6"/>
+  <rect x="336" y="180" width="188" height="88"  fill="url(#shrub)" stroke="#4f7259" stroke-width="1.8"/>
+  <rect x="524" y="76"  width="332" height="192" fill="url(#tree)"  stroke="#1b4332" stroke-width="2"/>
+
+  <!-- 식생 높이 포락선 -->
+  <path class="env" d="M 96,256 L 208,256 L 208,232 L 336,232 L 336,180 L 524,180 L 524,76 L 856,76"/>
+
+  <!-- 구간 이름(도형 안쪽 여백에) -->
+  <text class="zone" x="152" y="248" style="font-size:15px">도로</text>
+  <text class="zone" x="272" y="256">소매군락</text>
+  <text class="lab"  x="272" y="222">초본층</text>
+  <text class="zone" x="430" y="256">망토군락</text>
+  <text class="lab"  x="430" y="206">관목·덩굴성 식물</text>
+  <text class="zone" x="690" y="256">숲 내부</text>
+  <text class="lab"  x="690" y="112">교목층(임내)</text>
+
+  <!-- 구간 경계 -->
+  <g stroke="#8fa394" stroke-width="1.2" stroke-dasharray="5 5">
+    <line x1="208" y1="52" x2="208" y2="268"/>
+    <line x1="336" y1="52" x2="336" y2="268"/>
+    <line x1="524" y1="52" x2="524" y2="268"/>
+  </g>
+
+  <!-- 임연군락 범위 띠 -->
+  <line class="dimL" x1="208" y1="288" x2="524" y2="288" marker-start="url(#dm)" marker-end="url(#dm)"/>
+  <text class="zone" x="366" y="308">임연군락 (소매군락 + 망토군락)</text>
+
+  <!-- 광선·바람이 걸러진다 -->
+  <path d="M 150,92 C 250,96 320,116 396,146" stroke="#a1651a" stroke-width="2.4"
+        fill="none" marker-end="url(#fw)"/>
+  <path d="M 150,116 C 240,124 306,146 372,168" stroke="#a1651a" stroke-width="2.4"
+        fill="none" stroke-dasharray="8 5" marker-end="url(#fw)"/>
+  <text class="lab" x="200" y="82" fill="#a1651a">광선·바람</text>
+  <text class="lab" x="470" y="140" fill="#a1651a">여기서 걸러져</text>
+  <text class="lab" x="470" y="158" fill="#a1651a">임내가 안정된다</text>
+
+  <!-- 설명 -->
+  <text class="note" x="24" y="344">· <tspan font-weight="700" fill="#1b4332">정의</tspan> — 숲과 인접 공간(도로·경작지 등)이 맞닿는 숲 가장자리에 발달하는 식생을 임연군락이라 한다.</text>
+  <text class="note" x="24" y="368">· <tspan font-weight="700" fill="#1b4332">구성</tspan> — 위쪽 관목·덩굴성의 망토군락과 그 아래 지표부 초본의 소매군락이 층을 이루어 함께 나타난다.</text>
+  <text class="note" x="24" y="392">· <tspan font-weight="700" fill="#1b4332">기능</tspan> — 광선·바람을 걸러 임내 환경을 안정시키고, 다양한 생물의 은신처와 먹이 공급처가 된다.</text>
+</svg>

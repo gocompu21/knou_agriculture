@@ -1,0 +1,177 @@
+[
+ {
+  "pk": 32,
+  "label": "생태학",
+  "number": 32,
+  "qtype": "서술",
+  "text": "중규모교란설의 정의와 사례를 쓰시오.",
+  "answer_items": [
+   "① 중규모교란설 : 교란의 강도와 빈도가 중간 수준일 때 종다양도가 가장 높아진다는 이론이다.",
+   "② 성립 원리 : 교란이 없으면 소수 우점종이 자리를 독점하고, 교란이 지나치면 내성이 강한 종만 남으므로 중간 수준의 교란이 초기종과 후기종의 공존기간을 늘린다.",
+   "③ 사례 : 산림에 생긴 숲틈은 천이초기종과 후기종이 함께 머무는 과도기를 만들어 다양성을 높이고, 습지에서는 번식력이 강한 수생식물이 우점하지 않도록 적절한 관리(교란)를 하면 수생식물의 다양성이 유지된다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태학-32_answer_1.png"
+   }
+  ],
+  "svg_name": "intermediate_disturbance",
+  "done": true
+ },
+ {
+  "pk": 43,
+  "label": "생태학",
+  "number": 43,
+  "qtype": "서술",
+  "text": "생태적 지위에 대하여 설명하시오.",
+  "answer_items": [
+   "① 생태적 지위(Ecological Niche) : 특정 종이 이용하는 자원의 범위와 견딜 수 있는 환경조건의 총합을 말한다.",
+   "② 다차원니치 : 니치는 먹이·섭식장소·은신처·공간 등 여러 자원 축으로 이루어지므로, 두 종이 어느 한 축에서는 겹쳐도 다른 축에서는 갈라질 수 있다.",
+   "③ 기본니치와 실현니치 : 기본니치는 다른 종의 간섭이 없을 때 생존·생식할 수 있는 전체 범위이고, 실현니치는 경쟁 등 종간 상호작용의 결과 실제로 차지하는 그 일부이다.",
+   "④ 니치중복과 니치분화 : 둘 이상의 종이 같은 자원을 동시에 이용하면 니치중복이 일어나고, 경쟁을 피해 이용자원이나 내성범위를 서로 달리하면 니치분화가 일어난다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태학-43_answer_1.png"
+   }
+  ],
+  "svg_name": "niche_fundamental_realized",
+  "done": true
+ },
+ {
+  "pk": 44,
+  "label": "생태학",
+  "number": 44,
+  "qtype": "서술",
+  "text": "모자이크, 패치, 코리더의 개념을 설명하시오.",
+  "answer_items": [
+   "① 토지모자이크 : 물리적·생물적 구조가 서로 다른 경관요소들이 조각보처럼 짜여 이루어진 경관 전체의 공간구조로, 바탕 위에 조각과 통로가 박혀 있는 모습으로 나타난다.",
+   "② 패치(조각) : 생태적·시각적 특성이 주변 바탕과 구별되는 비선형의 경관요소이다.",
+   "③ 코리더(통로) : 바탕 위에 놓인 선형의 경관요소로, 서로 떨어진 조각들을 이어 생물의 이동 경로가 된다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태학-44_answer_1.png"
+   }
+  ],
+  "svg_name": "landscape_mosaic_patch_corridor",
+  "done": true
+ },
+ {
+  "pk": 51,
+  "label": "생태학",
+  "number": 51,
+  "qtype": "서술",
+  "text": "도서생물지리설을 설명하시오.",
+  "answer_items": [
+   "① 도서생물지리설 : 섬에 서식하는 종수는 새로운 종의 정착률과 기존 종의 소멸률이 균형을 이루는 지점에서 동적 평형을 유지한다는 이론이다.",
+   "② 이입률의 결정요인 : 종의 이입률은 육지와의 거리에 좌우되어, 육지에 가까운 섬일수록 높다.",
+   "③ 멸종률의 결정요인 : 종의 멸종률은 섬의 크기에 좌우되어, 면적이 넓은 섬일수록 낮다.",
+   "④ 귀결 : 따라서 면적이 크고 육지에 가까운 섬에서 평형 종수가 가장 많으며, 이 원리가 보호지역 설계의 근거로 활용된다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태학-51_answer_1.png"
+   }
+  ],
+  "svg_name": "island_biogeography",
+  "done": true
+ },
+ {
+  "pk": 52,
+  "label": "생태학",
+  "number": 52,
+  "qtype": "서술",
+  "text": "종–면적 관계를 공식을 이용하여 설명하시오.",
+  "answer_items": [
+   "① 공식 : S = cAᶻ (S는 종수, A는 면적, c와 z는 양의 상수)로 나타내며, 면적이 커질수록 종수도 늘어나는 관계를 나타낸다.",
+   "② 상수의 의미 : z는 면적이 늘 때 종수가 증가하는 기울기를, c는 조사지역의 종풍부도 수준을 반영한다.",
+   "③ 곡선의 형태 : 면적이 늘어나는 초기에는 종수가 급격히 증가하지만 일정 수준을 넘으면 완만해져 거의 일정한 값에 수렴한다.",
+   "④ 적용 : 숲 조각의 면적이 클수록 수용 가능한 종수가 많으므로, 보호지역 면적 산정과 단편화 영향 예측의 근거가 된다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-생태학-52_answer_1.png"
+   }
+  ],
+  "svg_name": "species_area_relation",
+  "done": true
+ },
+ {
+  "pk": 238,
+  "label": "환경계획A",
+  "number": 6,
+  "qtype": "열거",
+  "text": "우리나라의 람사르습지를 3곳 이상 쓰시오.",
+  "answer_items": [
+   "① 창녕 우포늪 : 국내 최대의 자연 내륙습지로 다양한 수생식물과 철새가 찾아드는 곳이다.",
+   "② 대암산 용늪 : 우리나라 최초로 람사르 목록에 오른 고층습원이다.",
+   "③ 순천 보성갯벌 : 흑두루미 등 국제적 멸종위기 조류가 월동하는 대표적 해안습지이다."
+  ],
+  "answer_text": "그 밖의 등록 습지(2024년 7월 기준 26곳) : 장항습지, 강화 매화마름군락지, 한강 밤섬, 송도갯벌, 대부도갯벌, 두웅습지, 서천 갯벌, 고창 부안갯벌, 고창 운곡습지, 무등산 평두메습지, 무안갯벌, 신안 장도습지, 증도습지, 순천 동천하구, 영월 한반도습지, 오대산 국립공원습지, 문경 돌리네습지, 울산 무제치늪, 제주 숨은물뱅듸, 물장오리습지, 동백동산습지, 물영아리습지, 1100고지습지",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-환경계획A-6_answer_1.png"
+   }
+  ],
+  "svg_name": "ramsar_wetlands_kr",
+  "done": true
+ },
+ {
+  "pk": 239,
+  "label": "환경계획A",
+  "number": 7,
+  "qtype": "열거",
+  "text": "IUCN 경관요소의 공간적 배열원칙을 3가지 이상 쓰시오.",
+  "answer_items": [
+   "① 면적 : 보호지구는 좁은 것보다 넓은 편이 내부 서식 환경을 안정적으로 유지하는 데 유리하다.",
+   "② 분할 여부 : 같은 면적이라면 여러 조각으로 흩어진 것보다 하나의 큰 덩어리로 두는 편이 낫다.",
+   "③ 거리 : 조각으로 나뉘었다면 서로 멀리 떨어진 것보다 가까이 모여 있어야 개체군 교류가 이루어진다.",
+   "④ 연결성 : 조각 사이를 생태통로로 이어 주면 통로가 없는 경우보다 이동과 유전자 교류가 원활해진다.",
+   "⑤ 형태 : 길쭉한 선형보다 원형에 가까운 형태가 가장자리 효과를 줄여 내부 서식지를 넓게 확보한다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-환경계획A-7_answer_1.png"
+   }
+  ],
+  "svg_name": "iucn_reserve_design",
+  "done": true
+ },
+ {
+  "pk": 246,
+  "label": "환경계획B",
+  "number": 1,
+  "qtype": "서술",
+  "text": "생태네트워크 구성요소 구분 및 이들의 배치계획과 관련한 조성원칙을 서술하시오.",
+  "answer_items": [
+   "① 핵심지역 : 보전가치가 높은 생물의 서식 기반이 되는 곳으로 네트워크의 중심을 이룬다.",
+   "② 완충지역 : 핵심지역을 감싸며 외부의 개발 압력과 교란이 안쪽으로 밀려들지 않게 막는다.",
+   "③ 복원지역 : 훼손되었으나 되살릴 여지가 있어 핵심지역의 기능을 보완하도록 회복시키는 곳이다.",
+   "④ 코리더 : 떨어져 있는 핵심지역과 복원지역을 이어 생물의 이동과 유전자 교류를 가능하게 하는 선형 공간이다.",
+   "⑤ 조성원칙 : 핵심지역과 복원지역을 코리더로 빠짐없이 이어 연결성을 확보하고, 그 둘레에 완충지역을 두어 외부 교란으로부터 지키도록 배치한다."
+  ],
+  "answer_text": "",
+  "images": [
+   {
+    "field": "answer_image",
+    "path": "C:/Users/gocom/Documents/Antigravity/Django_BaseCamp/knou_agriculture/media/gisa/essay/c6/예상/P-환경계획B-1_answer_1.png"
+   }
+  ],
+  "svg_name": "eco_network_layout",
+  "done": true
+ }
+]

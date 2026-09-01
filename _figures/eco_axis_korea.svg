@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 460" width="900" height="460"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>한반도 3대 생태축과 5대 환경관리 대권역</title>
+  <desc>국토를 모식화한 사각 틀 위에 백두대간(남북축), DMZ(동서축), 도서연안(해안 테두리축)을 나타내고 오른쪽에 5대 환경관리 대권역을 정리한 개념도</desc>
+
+  <defs>
+    <!-- 육지 바탕: 옅은 격자 -->
+    <pattern id="land" width="10" height="10" patternUnits="userSpaceOnUse">
+      <rect width="10" height="10" fill="#f2f5f1"/>
+      <path d="M0,10 L10,10 M10,0 L10,10" stroke="#dbe4dc" stroke-width="1"/>
+    </pattern>
+    <!-- 백두대간 축: 촘촘한 사선 (천연림·원시림) -->
+    <pattern id="ridge" width="6" height="6" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="6" height="6" fill="#e3ece5"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#1b4332" stroke-width="2.4"/>
+    </pattern>
+    <!-- 도서연안 축: 물결 점 -->
+    <pattern id="coast" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#eef2f4"/>
+      <circle cx="4" cy="4" r="1.3" fill="#4f7259"/>
+    </pattern>
+    <marker id="tip" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b4332"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .axT  { font-size: 15px; font-weight: 700; fill: #1b4332; }
+    .sub  { font-size: 13.5px; fill: #444; }
+    .note { font-size: 15.5px; fill: #333; }
+    .lead { stroke: #333; stroke-width: 1.4; fill: none; }
+    .rgn  { font-size: 14.5px; fill: #222; }
+  </style>
+
+  <text class="ttl" x="20" y="30">생태축 — 산·하천·바다를 하나로 잇는 통합 생태망</text>
+
+  <!-- ══════ 왼쪽 : 국토 모식도 ══════ -->
+  <g transform="translate(20,50)">
+    <!-- 국토를 사각 틀로 단순화. 위=북, 아래=남 -->
+    <rect x="60" y="8" width="230" height="330" rx="14"
+          fill="url(#land)" stroke="#9fb3a4" stroke-width="1.6"/>
+    <text class="sub" x="68" y="30" style="font-weight:700">북</text>
+    <text class="sub" x="68" y="300" style="font-weight:700">남</text>
+
+    <!-- ① 백두대간 생태축 : 남북 세로 띠 -->
+    <path d="M 168,16 L 196,16 L 214,150 L 200,260 L 176,330 L 152,330 L 172,250 L 184,150 Z"
+          fill="url(#ridge)" stroke="#1b4332" stroke-width="2"/>
+    <text class="axT" x="330" y="86">① 백두대간 생태축</text>
+    <text class="sub" x="330" y="106">남북 중추 · 생태자연도 1등급</text>
+    <text class="sub" x="330" y="124">녹지자연도 8등급 이상 천연림</text>
+    <text class="sub" x="330" y="142">기본계획 수립 · 단절구간 복원</text>
+    <path class="lead" d="M 322,92 C 290,92 250,84 208,90" marker-end="url(#tip)"/>
+
+    <!-- ② DMZ 생태축 : 동서 가로 이중선 -->
+    <line x1="62" y1="112" x2="288" y2="98" stroke="#1b4332"
+          stroke-width="3.2" stroke-dasharray="14 6"/>
+    <line x1="62" y1="126" x2="288" y2="112" stroke="#1b4332"
+          stroke-width="3.2" stroke-dasharray="14 6"/>
+    <text class="axT" x="330" y="192">② DMZ 생태축</text>
+    <text class="sub" x="330" y="212">동서 횡단축 · 남북 공동 생물권보전지역 추진</text>
+    <text class="sub" x="330" y="230">자연유보지역 → 생태·경관보전지역 전환</text>
+    <path class="lead" d="M 322,198 C 270,198 200,170 148,124" marker-end="url(#tip)"/>
+
+    <!-- ③ 도서연안 생태축 : 국토 아래쪽 테두리를 따라 도는 연안 띠 + 섬 -->
+    <path d="M 62,266 L 288,266 L 288,336 C 288,338 286,338 284,338
+             L 66,338 C 64,338 62,338 62,336 Z"
+          fill="url(#coast)" stroke="#4f7259" stroke-width="2" stroke-dasharray="7 4"/>
+    <circle cx="104" cy="360" r="10" fill="url(#coast)" stroke="#4f7259" stroke-width="1.8"/>
+    <circle cx="150" cy="370" r="8"  fill="url(#coast)" stroke="#4f7259" stroke-width="1.8"/>
+    <circle cx="196" cy="362" r="7"  fill="url(#coast)" stroke="#4f7259" stroke-width="1.8"/>
+    <circle cx="242" cy="368" r="9"  fill="url(#coast)" stroke="#4f7259" stroke-width="1.8"/>
+    <text class="sub" x="60" y="392" style="font-size:12.5px">섬(도서)</text>
+    <text class="axT" x="330" y="286">③ 도서연안 생태축</text>
+    <text class="sub" x="330" y="306">육상생태계와 해양생태계를 잇는 축</text>
+    <text class="sub" x="330" y="324">개발수요를 수용하되 도서·연안 통합관리체계 수립</text>
+    <path class="lead" d="M 322,292 C 300,300 292,308 292,300" marker-end="url(#tip)"/>
+    <!-- 백두대간 축이 연안 띠 위로 이어지는 것이 보이도록 다시 그린다 -->
+    <path d="M 200,260 L 176,330 L 152,330 L 172,250 Z"
+          fill="url(#ridge)" stroke="#1b4332" stroke-width="2"/>
+  </g>
+
+  <!-- ══════ 오른쪽 : 5대 환경관리 대권역 ══════ -->
+  <g transform="translate(636,64)">
+    <rect x="0" y="0" width="244" height="196" rx="8"
+          fill="#f7faf8" stroke="#9fb3a4" stroke-width="1.4"/>
+    <text class="axT" x="14" y="26">5대 환경관리 대권역</text>
+    <line x1="14" y1="36" x2="230" y2="36" stroke="#c3d2c7" stroke-width="1.2"/>
+    <text class="rgn" x="14" y="62">한강 — 수도권</text>
+    <text class="rgn" x="14" y="88">금강 — 충청권</text>
+    <text class="rgn" x="14" y="114">영산강 — 호남권</text>
+    <text class="rgn" x="14" y="140">낙동강 — 영남권</text>
+    <text class="rgn" x="14" y="166">태백 — 강원권</text>
+  </g>
+
+  <text class="note" x="636" y="300">축은 끊긴 곳을 잇는 선이고,</text>
+  <text class="note" x="636" y="322">권역은 그 안을 나누어</text>
+  <text class="note" x="636" y="344">관리하는 면이다.</text>
+</svg>

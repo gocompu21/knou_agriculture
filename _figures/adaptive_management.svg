@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>순응적 관리 — 유지관리·모니터링 두 갈래와 되먹임</title>
+  <desc>계획에서 실시, 평가·분석으로 내려가는 두 갈래 세로 흐름이 생태복원사업 평가로 모이고, 그 결과가 다시 계획 단계로 되돌아가 관리 방식을 다듬는 구조</desc>
+
+  <defs>
+    <marker id="a5" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+    <marker id="a5o" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8a5415"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .hdr  { font-size: 16.5px; font-weight: 700; fill: #fff; text-anchor: middle; }
+    .stp  { font-size: 15.5px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .ev   { font-size: 17px; font-weight: 700; fill: #fff; text-anchor: middle; }
+    .fb   { font-size: 14.5px; font-weight: 700; fill: #8a5415; }
+    .note { font-size: 14.5px; fill: #444; }
+    .box  { fill: #f2f5f1; stroke: #4f7259; stroke-width: 2; }
+    .flow { stroke: #333; stroke-width: 2.2; fill: none; }
+  </style>
+
+  <text class="ttl" x="20" y="30">순응적 관리 — 결과를 다시 계획에 되먹이는 순환형 관리</text>
+
+  <!-- 두 갈래 헤더 -->
+  <rect x="90" y="52" width="250" height="32" fill="#1b4332" rx="4"/>
+  <text class="hdr" x="215" y="74">유지관리</text>
+  <rect x="470" y="52" width="250" height="32" fill="#4f7259" rx="4"/>
+  <text class="hdr" x="595" y="74">모니터링</text>
+
+  <!-- 유지관리 3단계 (실선 테두리) -->
+  <rect class="box" x="130" y="104" width="170" height="46" rx="5"/>
+  <text class="stp" x="215" y="133">유지관리 계획</text>
+  <line class="flow" x1="215" y1="150" x2="215" y2="176" marker-end="url(#a5)"/>
+
+  <rect class="box" x="130" y="176" width="170" height="46" rx="5"/>
+  <text class="stp" x="215" y="205">유지관리 실시</text>
+  <line class="flow" x1="215" y1="222" x2="215" y2="248" marker-end="url(#a5)"/>
+
+  <rect class="box" x="130" y="248" width="170" height="46" rx="5"/>
+  <text class="stp" x="215" y="277">유지관리 평가·분석</text>
+
+  <!-- 모니터링 3단계 (점선 테두리로 갈래를 구분 - 흑백 인쇄 대응) -->
+  <rect class="box" x="510" y="104" width="170" height="46" rx="5" stroke-dasharray="7 4"/>
+  <text class="stp" x="595" y="133">모니터링 계획</text>
+  <line class="flow" x1="595" y1="150" x2="595" y2="176" marker-end="url(#a5)" stroke-dasharray="7 4"/>
+
+  <rect class="box" x="510" y="176" width="170" height="46" rx="5" stroke-dasharray="7 4"/>
+  <text class="stp" x="595" y="205">모니터링 실시</text>
+  <line class="flow" x1="595" y1="222" x2="595" y2="248" marker-end="url(#a5)" stroke-dasharray="7 4"/>
+
+  <rect class="box" x="510" y="248" width="170" height="46" rx="5" stroke-dasharray="7 4"/>
+  <text class="stp" x="595" y="277">모니터링 분석</text>
+
+  <!-- 두 결과가 가운데 평가로 모임 -->
+  <rect x="330" y="316" width="250" height="46" fill="#1b4332" rx="5"/>
+  <text class="ev" x="455" y="345">생태복원사업 평가</text>
+
+  <path class="flow" d="M 215,294 L 215,339 L 326,339" marker-end="url(#a5)"/>
+  <path class="flow" d="M 595,294 L 595,339 L 584,339" marker-end="url(#a5)" stroke-dasharray="7 4"/>
+
+  <!-- 되먹임: 평가 결과가 계획 단계로 -->
+  <path d="M 330,330 L 60,330 L 60,127 L 126,127"
+        stroke="#8a5415" stroke-width="2.6" fill="none"
+        stroke-dasharray="10 6" marker-end="url(#a5o)"/>
+  <path d="M 580,330 L 750,330 L 750,127 L 684,127"
+        stroke="#8a5415" stroke-width="2.6" fill="none"
+        stroke-dasharray="10 6" marker-end="url(#a5o)"/>
+  <text class="fb" x="62" y="316">되먹임(feedback)</text>
+  <text class="fb" x="700" y="316" style="text-anchor:end">되먹임(feedback)</text>
+
+  <!-- 설명 -->
+  <text class="note" x="762" y="180">평가 결과가 다시</text>
+  <text class="note" x="762" y="200">계획을 수정하므로</text>
+  <text class="note" x="762" y="220">불확실한 생태계</text>
+  <text class="note" x="762" y="240">반응에 유연하게</text>
+  <text class="note" x="762" y="260">대응할 수 있다</text>
+</svg>

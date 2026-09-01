@@ -468,9 +468,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/기출/E-2022-2-10_answer_1.png"
+    "answer_image": "gisa/essay/c6/기출/E-2022-2-10_answer_1_b64yQh6.png"
    }
   },
   {
@@ -801,9 +801,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "문제 표는 원문에 헤더가 없어 '구분 | 등급' 헤더를 임의로 붙임. 참고 표의 계급 1 행은 원문에서 3줄로 나뉜 병합 셀.",
+   "notes": "문제 표는 원문에 헤더가 없어 '구분 | 등급' 헤더를 임의로 붙임. 참고 표의 계급 1 행은 원문에서 3줄로 나뉜 병합 셀. [도해 자체제작]",
    "images": {
-    "reference_image": "gisa/essay/c6/기출/E-2023-1-01_reference_1.png"
+    "reference_image": "gisa/essay/c6/기출/E-2023-1-01_reference_1_yEPg6l5.png"
    }
   },
   {
@@ -825,9 +825,9 @@
    "rubric": [],
    "std_major": 2,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "reference_image": "gisa/essay/c6/기출/E-2023-1-02_reference_1.png"
+    "reference_image": "gisa/essay/c6/기출/E-2023-1-02_reference_1_6yY1K26.png"
    }
   },
   {
@@ -976,9 +976,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "풀이가 표 형식이라 answer_text에 마크다운 표로 옮김. 원문 표의 '그림' 행(점 패턴)은 '배치' 행의 문장 설명으로 대체함. [재서술]",
+   "notes": "풀이가 표 형식이라 answer_text에 마크다운 표로 옮김. 원문 표의 '그림' 행(점 패턴)은 '배치' 행의 문장 설명으로 대체함. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/기출/E-2023-1-09_answer_1.png"
+    "answer_image": "gisa/essay/c6/기출/E-2023-1-09_answer_1_PB4jwVq.png"
    }
   },
   {
@@ -1110,10 +1110,10 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "지문 그림(p153)과 풀이 재설계 그림(p153), 참고 미티게이션 개념도(p154)를 images에 플래그. 재설계 답은 그림이므로 answer_items ②③에 그려야 할 내용을 문장으로 서술함. [재서술]",
+   "notes": "지문 그림(p153)과 풀이 재설계 그림(p153), 참고 미티게이션 개념도(p154)를 images에 플래그. 재설계 답은 그림이므로 answer_items ②③에 그려야 할 내용을 문장으로 서술함. [재서술] [도해 자체제작]",
    "images": {
     "text_image": "gisa/essay/c6/기출/E-2023-1-15_question_1.png",
-    "answer_image": "gisa/essay/c6/기출/E-2023-1-15_answer_2.png",
+    "answer_image": "gisa/essay/c6/기출/E-2023-1-15_answer_2_hqiMK4m.png",
     "reference_image": "gisa/essay/c6/기출/E-2023-1-15_reference_3.png"
    }
   },
@@ -1573,9 +1573,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/기출/E-2024-1-06_answer_1.png"
+    "answer_image": "gisa/essay/c6/기출/E-2024-1-06_answer_1_JrxQnYd.png"
    }
   },
   {
@@ -1640,9 +1640,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "문제문의 '축적'은 원문 표기(축척의 오식으로 보임). 수평거리 계산에서 x=50,000(cm)=50m로 단위 생략된 채 인쇄됨. 원문대로 보존.",
+   "notes": "문제문의 '축적'은 원문 표기(축척의 오식으로 보임). 수평거리 계산에서 x=50,000(cm)=50m로 단위 생략된 채 인쇄됨. 원문대로 보존. [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/기출/E-2024-1-09_answer_1.png"
+    "answer_image": "gisa/essay/c6/기출/E-2024-1-09_answer_1_IGVY97P.png"
    }
   },
   {
@@ -1682,9 +1682,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "참고는 p165~p166에 걸침. p166 첫 문장이 '원의 경우에는…'으로 시작하여 앞부분(예: '3) 조각모양' 소제목 또는 도입 문장)이 페이지 경계에서 누락된 것으로 보임. 판독 가능한 범위만 옮김. [재서술]",
+   "notes": "참고는 p165~p166에 걸침. p166 첫 문장이 '원의 경우에는…'으로 시작하여 앞부분(예: '3) 조각모양' 소제목 또는 도입 문장)이 페이지 경계에서 누락된 것으로 보임. 판독 가능한 범위만 옮김. [재서술] [도해 자체제작]",
    "images": {
-    "reference_image": "gisa/essay/c6/기출/E-2024-1-11_reference_1.png"
+    "reference_image": "gisa/essay/c6/기출/E-2024-1-11_reference_1_TStXUnw.png"
    }
   },
   {
@@ -1842,10 +1842,8 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "지문 박스 원문은 2열 배치(㉠·㉡ / ㉢·㉤ / ㉣)이며 기호 순서대로 재배열함. 흐름도는 빈 박스라 images로 플래그하고 text에는 화살표 흐름으로 표기. [재서술]",
-   "images": {
-    "text_image": "gisa/essay/c6/기출/E-2024-2-04_question_1.png"
-   }
+   "notes": "지문 박스 원문은 2열 배치(㉠·㉡ / ㉢·㉤ / ㉣)이며 기호 순서대로 재배열함. 흐름도는 빈 박스라 images로 플래그하고 text에는 화살표 흐름으로 표기. [재서술] [도해 삭제 — 보기가 본문에 있어 그림 불필요]",
+   "images": {}
   },
   {
    "source": "기출",
@@ -2415,9 +2413,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "",
+   "notes": "[도해 자체제작]",
    "images": {
-    "text_image": "gisa/essay/c6/기출/E-2025-2-01_question_1.png"
+    "text_image": "gisa/essay/c6/기출/E-2025-2-01_question_1_rn5EwRU.png"
    }
   },
   {
@@ -2695,9 +2693,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "기존 풀이는 두 경우 모두 '낮아진다'로만 적어 감소 이유가 구분되지 않았으므로, 각 경우의 기작을 나누어 서술함. [재서술]",
+   "notes": "기존 풀이는 두 경우 모두 '낮아진다'로만 적어 감소 이유가 구분되지 않았으므로, 각 경우의 기작을 나누어 서술함. [재서술] [도해 자체제작]",
    "images": {
-    "reference_image": "gisa/essay/c6/기출/E-2025-2-14_reference_1.png"
+    "reference_image": "gisa/essay/c6/기출/E-2025-2-14_reference_1_TakgMR0.png"
    }
   },
   {
@@ -3094,9 +3092,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-법규-3_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-법규-3_answer_1_hmcfIGf.png"
    }
   },
   {
@@ -3158,9 +3156,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "원문 풀이는 P를 'Press'로 표기하였으나 Pressure의 약기로 보아 정식 명칭으로 서술함. [재서술]",
+   "notes": "원문 풀이는 P를 'Press'로 표기하였으나 Pressure의 약기로 보아 정식 명칭으로 서술함. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-법규-6_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-법규-6_answer_1_pJwfy7D.png"
    }
   },
   {
@@ -3373,9 +3371,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "풀이 ②(등급 표)는 p043 상단으로 이어짐. [재서술]",
+   "notes": "풀이 ②(등급 표)는 p043 상단으로 이어짐. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-법규-17_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-법규-17_answer_1_JGwROX3.png"
    }
   },
   {
@@ -3397,9 +3395,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "문제문이 제목형으로만 인쇄됨. [재서술]",
+   "notes": "문제문이 제목형으로만 인쇄됨. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-법규-18_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-법규-18_answer_1_t9MDRSy.png"
    }
   },
   {
@@ -3545,9 +3543,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "문제문이 제목형으로만 인쇄됨. [재서술]",
+   "notes": "문제문이 제목형으로만 인쇄됨. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-법규-25_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-법규-25_answer_1_lcwhlEk.png"
    }
   },
   {
@@ -3677,9 +3675,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "문제문이 제목형으로만 인쇄됨. [재서술]",
+   "notes": "문제문이 제목형으로만 인쇄됨. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-법규-31_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-법규-31_answer_1_kyPHd7c.png"
    }
   },
   {
@@ -3742,9 +3740,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "문제문이 제목형으로만 인쇄됨. '자연공원보존지구' 표기 원문 그대로. [재서술]",
+   "notes": "문제문이 제목형으로만 인쇄됨. '자연공원보존지구' 표기 원문 그대로. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-법규-34_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-법규-34_answer_1_hby1WFu.png"
    }
   },
   {
@@ -4029,9 +4027,9 @@
    "rubric": [],
    "std_major": 5,
    "std_sub": 0,
-   "notes": "원문 풀이는 3개의 표(생태통로·유도울타리·보조시설)로 p053~p055에 걸쳐 있었으며, 표의 '형태' 열은 삽화라 images로 분리되어 텍스트에서는 제외됨. 서술형 답안으로 재구성함. [재서술]",
+   "notes": "원문 풀이는 3개의 표(생태통로·유도울타리·보조시설)로 p053~p055에 걸쳐 있었으며, 표의 '형태' 열은 삽화라 images로 분리되어 텍스트에서는 제외됨. 서술형 답안으로 재구성함. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-법규-47_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-법규-47_answer_1_M1pagND.png"
    }
   },
   {
@@ -4437,9 +4435,9 @@
    "rubric": [],
    "std_major": 3,
    "std_sub": 0,
-   "notes": "원문 풀이는 문장 없이 개념도(유지관리·모니터링 이중 순환)만 제시되어, 그림의 흐름을 문장으로 풀어 서술함. [재서술]",
+   "notes": "원문 풀이는 문장 없이 개념도(유지관리·모니터링 이중 순환)만 제시되어, 그림의 흐름을 문장으로 풀어 서술함. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태복원-1_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태복원-1_answer_1_vOyanPr.png"
    }
   },
   {
@@ -4461,9 +4459,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태복원-2_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태복원-2_answer_1_UfUaQsX.png"
    }
   },
   {
@@ -4933,9 +4931,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "원문 표에서 세로 병합되어 있던 '성충' 단계를 교미장소·휴식 및 비상공간 두 행에 각각 표기함. [재서술]",
+   "notes": "원문 표에서 세로 병합되어 있던 '성충' 단계를 교미장소·휴식 및 비상공간 두 행에 각각 표기함. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태복원-23_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태복원-23_answer_1_3UCCm7G.png"
    }
   },
   {
@@ -5086,9 +5084,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "원문 ④ 항목은 텍스트 없이 순환 그림만 있어 그림의 흐름을 문장으로 옮김. [재서술]",
+   "notes": "원문 ④ 항목은 텍스트 없이 순환 그림만 있어 그림의 흐름을 문장으로 옮김. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태복원-30_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태복원-30_answer_1_kbjsptb.png"
    }
   },
   {
@@ -5212,9 +5210,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "원문 풀이가 단면도 그림뿐이라 라벨 내용을 공간 순서대로 문장과 표로 옮김. 그림상 라벨과 공간 구분선의 대응이 다소 모호한 부분이 있음. [재서술]",
+   "notes": "원문 풀이가 단면도 그림뿐이라 라벨 내용을 공간 순서대로 문장과 표로 옮김. 그림상 라벨과 공간 구분선의 대응이 다소 모호한 부분이 있음. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태복원-36_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태복원-36_answer_1_ov3srRe.png"
    }
   },
   {
@@ -5236,9 +5234,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태복원-37_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태복원-37_answer_1_1FBNz9I.png"
    }
   },
   {
@@ -5259,9 +5257,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "원문의 '면연력'은 '면역력'의 오식으로 판단하여 정정함. 원문 표에서 '기타'로 묶여 있던 항목은 내용상 위협 요인에 해당하여 구분명을 바꿈. [재서술]",
+   "notes": "원문의 '면연력'은 '면역력'의 오식으로 판단하여 정정함. 원문 표에서 '기타'로 묶여 있던 항목은 내용상 위협 요인에 해당하여 구분명을 바꿈. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태복원-38_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태복원-38_answer_1_MT6Y79N.png"
    }
   },
   {
@@ -5284,9 +5282,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태복원-39_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태복원-39_answer_1_31hwrFl.png"
    }
   },
   {
@@ -5984,9 +5982,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태복원-71_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태복원-71_answer_1_kT7Sl8a.png"
    }
   },
   {
@@ -6008,9 +6006,9 @@
    "rubric": [],
    "std_major": 2,
    "std_sub": 0,
-   "notes": "문제문이 제목형으로 인쇄됨. [재서술]",
+   "notes": "문제문이 제목형으로 인쇄됨. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태복원-72_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태복원-72_answer_1_2zZonna.png"
    }
   },
   {
@@ -6092,9 +6090,9 @@
    "rubric": [],
    "std_major": 2,
    "std_sub": 0,
-   "notes": "원문의 E층 영문 'Leahing'은 Leaching의 오식이며, B층을 '용탈층'으로 적은 것도 오식이므로 집적층으로 바로잡아 서술함. [재서술]",
+   "notes": "원문의 E층 영문 'Leahing'은 Leaching의 오식이며, B층을 '용탈층'으로 적은 것도 오식이므로 집적층으로 바로잡아 서술함. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태복원-76_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태복원-76_answer_1_WVEpEHO.png"
    }
   },
   {
@@ -6112,9 +6110,9 @@
    "rubric": [],
    "std_major": 2,
    "std_sub": 0,
-   "notes": "문제문이 제목형으로 인쇄됨. [재서술]",
+   "notes": "문제문이 제목형으로 인쇄됨. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태복원-77_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태복원-77_answer_1_ZYw5zjt.png"
    }
   },
   {
@@ -6393,9 +6391,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "문제문이 제목형으로 인쇄됨. [재서술]",
+   "notes": "문제문이 제목형으로 인쇄됨. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태복원-90_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태복원-90_answer_1_1h9WwjB.png"
    }
   },
   {
@@ -6439,9 +6437,9 @@
    "rubric": [],
    "std_major": 2,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태복원-92_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태복원-92_answer_1_ZkPeqPE.png"
    }
   },
   {
@@ -6477,9 +6475,9 @@
    "rubric": [],
    "std_major": 2,
    "std_sub": 0,
-   "notes": "문제문이 제목형으로 인쇄됨(도로비탈면 녹화과정 중 현황조사 단계). 원문의 유형구분 칸은 표 안에 삽입된 그림이므로 표 밖에 서술로 옮김. [재서술]",
+   "notes": "문제문이 제목형으로 인쇄됨(도로비탈면 녹화과정 중 현황조사 단계). 원문의 유형구분 칸은 표 안에 삽입된 그림이므로 표 밖에 서술로 옮김. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태복원-94_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태복원-94_answer_1_EQFB27D.png"
    }
   },
   {
@@ -6969,9 +6967,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "풀이 그림(캡션 '동물의 이동 유형')은 p022 상단에 위치 [재서술]",
+   "notes": "풀이 그림(캡션 '동물의 이동 유형')은 p022 상단에 위치 [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태조사방법-3_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태조사방법-3_answer_1_IndvbII.png"
    }
   },
   {
@@ -7012,9 +7010,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "표 '행동권과 세력권'은 p023 상단에 이어지며 ①과 ② 사이에 위치 [재서술]",
+   "notes": "표 '행동권과 세력권'은 p023 상단에 이어지며 ①과 ② 사이에 위치 [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태조사방법-5_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태조사방법-5_answer_1_S1Dthi5.png"
    }
   },
   {
@@ -7451,9 +7449,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태조사방법-25_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태조사방법-25_answer_1_1PWiqHu.png"
    }
   },
   {
@@ -7789,9 +7787,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태조사방법-41_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태조사방법-41_answer_1_YmCo0Kx.png"
    }
   },
   {
@@ -7860,9 +7858,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태조사방법-44_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태조사방법-44_answer_1_8ylYLwF.png"
    }
   },
   {
@@ -8163,9 +8161,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "빈도 행 라벨이 '빈도(%)'로 인쇄되었으나 값(9·5·6·15)은 출현 방형구 수(칸 수)임 — 원문 그대로 보존. 상대빈도는 빈도 합 35 기준(9/35=25.7% 등)",
+   "notes": "빈도 행 라벨이 '빈도(%)'로 인쇄되었으나 값(9·5·6·15)은 출현 방형구 수(칸 수)임 — 원문 그대로 보존. 상대빈도는 빈도 합 35 기준(9/35=25.7% 등) [도해 자체제작]",
    "images": {
-    "text_image": "gisa/essay/c6/예상/P-생태조사방법-58_question_1.png"
+    "text_image": "gisa/essay/c6/예상/P-생태조사방법-58_question_1_Y48ZkmM.png"
    }
   },
   {
@@ -8254,9 +8252,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "②의 순환 과정은 개념도(그림)를 텍스트 흐름으로 옮긴 것 [재서술]",
+   "notes": "②의 순환 과정은 개념도(그림)를 텍스트 흐름으로 옮긴 것 [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태학-4_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태학-4_answer_1_5g8FOel.png"
    }
   },
   {
@@ -8322,9 +8320,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태학-7_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태학-7_answer_1_ngusb2P.png"
    }
   },
   {
@@ -8346,9 +8344,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태학-8_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태학-8_answer_1_CmTk4qu.png"
    }
   },
   {
@@ -8371,9 +8369,9 @@
    "rubric": [],
    "std_major": 2,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태학-9_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태학-9_answer_1_N9wv9lc.png"
    }
   },
   {
@@ -8484,9 +8482,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태학-14_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태학-14_answer_1_knOFSAW.png"
    }
   },
   {
@@ -8584,9 +8582,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태학-19_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태학-19_answer_1_dQYjWvu.png"
    }
   },
   {
@@ -8648,9 +8646,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태학-22_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태학-22_answer_1_1ipYacd.png"
    }
   },
   {
@@ -8793,9 +8791,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태학-29_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태학-29_answer_1_eHelQxv.png"
    }
   },
   {
@@ -8857,9 +8855,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태학-32_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태학-32_answer_1_BydYLqY.png"
    }
   },
   {
@@ -9089,9 +9087,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태학-43_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태학-43_answer_1_17hJE5x.png"
    }
   },
   {
@@ -9113,9 +9111,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태학-44_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태학-44_answer_1_6woapBq.png"
    }
   },
   {
@@ -9273,9 +9271,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태학-51_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태학-51_answer_1_ApLM7du.png"
    }
   },
   {
@@ -9298,9 +9296,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "풀이의 그래프가 p019 상단에 이어짐. 공식의 지수 z를 유니코드 위첨자 ᶻ로 표기 [재서술]",
+   "notes": "풀이의 그래프가 p019 상단에 이어짐. 공식의 지수 z를 유니코드 위첨자 ᶻ로 표기 [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-생태학-52_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-생태학-52_answer_1_ZLajOkj.png"
    }
   },
   {
@@ -9604,9 +9602,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "원문 풀이는 항목 없이 지도 한 장으로 제시됨. 문제가 3곳 이상을 요구하므로 대표 3곳을 answer_items로 세우고 나머지 등록지는 answer_text에 참고로 남김. [재서술]",
+   "notes": "원문 풀이는 항목 없이 지도 한 장으로 제시됨. 문제가 3곳 이상을 요구하므로 대표 3곳을 answer_items로 세우고 나머지 등록지는 answer_text에 참고로 남김. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-환경계획A-6_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-환경계획A-6_answer_1_ICgyBFe.png"
    }
   },
   {
@@ -9630,9 +9628,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "원문 풀이는 다이아몬드 이론 개념도가 포함된 '더 좋음/더 나쁨' 대비표로 제시됨. 대비 내용을 원칙 항목으로 재구성함. [재서술]",
+   "notes": "원문 풀이는 다이아몬드 이론 개념도가 포함된 '더 좋음/더 나쁨' 대비표로 제시됨. 대비 내용을 원칙 항목으로 재구성함. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-환경계획A-7_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-환경계획A-7_answer_1_ixJhdeA.png"
    }
   },
   {
@@ -9776,9 +9774,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-환경계획B-1_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-환경계획B-1_answer_1_yed8lh1.png"
    }
   },
   {
@@ -9915,9 +9913,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "풀이가 p084~p085에 걸쳐 이어짐. 원문의 1)·2)·3) 중첩 번호 체계를 한 항목에 한 개념이 오도록 ①~⑤로 평탄화함. [재서술]",
+   "notes": "풀이가 p084~p085에 걸쳐 이어짐. 원문의 1)·2)·3) 중첩 번호 체계를 한 항목에 한 개념이 오도록 ①~⑤로 평탄화함. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-환경계획B-7_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-환경계획B-7_answer_1_UBIpdj4.png"
    }
   },
   {
@@ -10120,9 +10118,9 @@
    "rubric": [],
    "std_major": 4,
    "std_sub": 0,
-   "notes": "그림 문항. 원문 그림 아래 설명문을 항목으로 삼되, 무엇을 그려야 하는지까지 문장으로 덧붙임. 그림 3장은 images로 플래그. [재서술]",
+   "notes": "그림 문항. 원문 그림 아래 설명문을 항목으로 삼되, 무엇을 그려야 하는지까지 문장으로 덧붙임. 그림 3장은 images로 플래그. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-환경계획B-17_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-환경계획B-17_answer_1_U02lKLs.png"
    }
   },
   {
@@ -10290,9 +10288,9 @@
    "rubric": [],
    "std_major": 2,
    "std_sub": 0,
-   "notes": "[재서술]",
+   "notes": "[재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-환경계획B-25_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-환경계획B-25_answer_1_s1RU61R.png"
    }
   },
   {
@@ -10335,9 +10333,9 @@
    "rubric": [],
    "std_major": 1,
    "std_sub": 0,
-   "notes": "도식화 문항. 표는 마크다운으로, 동심원 도식은 images로 플래그. [재서술]",
+   "notes": "도식화 문항. 표는 마크다운으로, 동심원 도식은 images로 플래그. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-환경계획B-27_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-환경계획B-27_answer_1_sNpI2rK.png"
    }
   },
   {
@@ -10359,9 +10357,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "그림 안의 A·B·C 설명 라벨은 text에 옮기고 그림 자체는 question 이미지로 플래그.",
+   "notes": "그림 안의 A·B·C 설명 라벨은 text에 옮기고 그림 자체는 question 이미지로 플래그. [도해 자체제작]",
    "images": {
-    "text_image": "gisa/essay/c6/예상/P-환경계획B-28_question_1.png"
+    "text_image": "gisa/essay/c6/예상/P-환경계획B-28_question_1_iJ0MwK8.png"
    }
   },
   {
@@ -10564,9 +10562,9 @@
    "rubric": [],
    "std_major": 8,
    "std_sub": 0,
-   "notes": "원문은 흐름도(박스+화살표). 텍스트로 옮기고 그림도 함께 플래그. [재서술]",
+   "notes": "원문은 흐름도(박스+화살표). 텍스트로 옮기고 그림도 함께 플래그. [재서술] [도해 자체제작]",
    "images": {
-    "answer_image": "gisa/essay/c6/예상/P-환경영향평가-3_answer_1.png"
+    "answer_image": "gisa/essay/c6/예상/P-환경영향평가-3_answer_1_YY6WdhV.png"
    }
   },
   {

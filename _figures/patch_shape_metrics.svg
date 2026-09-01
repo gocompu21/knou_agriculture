@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>패치 형태 정량화 지표 3가지 — 신장·굴곡·내부와 주연부</title>
+  <desc>패치를 세 가지 지표로 비교하는 도해. 각 지표마다 값이 작은 패치와 큰 패치를 나란히 놓아 형태 차이를 보인다</desc>
+
+  <defs>
+    <!-- 패치 내부: 성긴 점 채움 -->
+    <pattern id="pcore" width="7" height="7" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#e6efe7"/>
+      <circle cx="2" cy="2" r="1.1" fill="#6f8a76"/>
+    </pattern>
+    <!-- 주연부: 사선 해칭 -->
+    <pattern id="pedge" width="8" height="8" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#f7f3ec"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#a1651a" stroke-width="2"/>
+    </pattern>
+    <marker id="dm" viewBox="0 0 10 10" refX="5" refY="5"
+            markerWidth="5.5" markerHeight="5.5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+    <marker id="dm2" viewBox="0 0 10 10" refX="5" refY="5"
+            markerWidth="5.5" markerHeight="5.5" orient="auto">
+      <path d="M10,0 L0,5 L10,10 z" fill="#333"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .hd   { font-size: 16px; font-weight: 700; fill: #1b4332; }
+    .sm   { font-size: 13px; fill: #4a4a4a; }
+    .cap  { font-size: 13.5px; fill: #333; font-weight: 700; }
+  </style>
+  <!-- text-anchor 는 클래스가 아니라 그룹 속성으로 준다.
+       CSS 를 해석하지 않는 렌더러에서도 가운데 정렬이 유지된다. -->
+
+  <text class="ttl" x="18" y="30">Davies(1996) 패치 형태 정량화 지표 — 같은 면적이라도 형태가 다르면 값이 다르다</text>
+
+  <!-- ─────────── ① 신장 (elongation) ─────────── -->
+  <g transform="translate(14,50)" text-anchor="middle">
+    <rect x="0" y="0" width="286" height="286" rx="8"
+          fill="#fcfdfc" stroke="#ccd5ce" stroke-width="1.2"/>
+    <text class="hd" x="143" y="30">① 신장 (elongation)</text>
+    <text class="sm" x="143" y="52">한 방향으로 늘어난 정도</text>
+    <!-- 부제가 치수선에 가리지 않도록 치수선은 y=88 부터 시작한다 -->
+
+    <!-- 작은 값: 원에 가까움 -->
+    <ellipse cx="76" cy="120" rx="46" ry="42"
+             fill="url(#pcore)" stroke="#1b4332" stroke-width="2"/>
+    <g fill="none" stroke="#333" stroke-width="1.4">
+      <path d="M 30,174 L 122,174" marker-start="url(#dm2)" marker-end="url(#dm)"/>
+      <path d="M 132,88 L 132,158" marker-start="url(#dm2)" marker-end="url(#dm)"/>
+    </g>
+    <text class="cap" x="76" y="200">신장 작음</text>
+    <text class="sm" x="76" y="220">장축 ≒ 단축</text>
+
+    <!-- 큰 값: 가늘고 긺 -->
+    <ellipse cx="208" cy="118" rx="24" ry="76"
+             fill="url(#pcore)" stroke="#1b4332" stroke-width="2"/>
+    <g fill="none" stroke="#333" stroke-width="1.4">
+      <path d="M 184,206 L 232,206" marker-start="url(#dm2)" marker-end="url(#dm)"/>
+      <path d="M 248,52 L 248,190" marker-start="url(#dm2)" marker-end="url(#dm)"/>
+    </g>
+    <text class="cap" x="208" y="232">신장 큼</text>
+    <text class="sm" x="208" y="252">장축 ≫ 단축</text>
+
+    <text class="sm" x="143" y="276">장축 ÷ 단축의 비로 나타낸다</text>
+  </g>
+
+  <!-- ─────────── ② 굴곡 (convolution) ─────────── -->
+  <g transform="translate(307,50)" text-anchor="middle">
+    <rect x="0" y="0" width="286" height="286" rx="8"
+          fill="#fcfdfc" stroke="#ccd5ce" stroke-width="1.2"/>
+    <text class="hd" x="143" y="30">② 굴곡 (convolution)</text>
+    <text class="sm" x="143" y="52">경계선이 휘어진 복잡한 정도</text>
+
+    <!-- 단순한 경계 -->
+    <path d="M 76,76 C 118,76 130,106 128,128
+             C 126,154 106,170 76,170
+             C 46,170 26,154 24,128
+             C 22,106 34,76 76,76 Z"
+          fill="url(#pcore)" stroke="#1b4332" stroke-width="2"/>
+    <text class="cap" x="76" y="198">굴곡 작음</text>
+    <text class="sm" x="76" y="218">경계가 매끈함</text>
+
+    <!-- 복잡한 경계: 만입과 돌출이 반복 -->
+    <path d="M 208,62
+             C 226,60 224,78 238,80 C 254,82 258,66 264,80
+             C 270,94 250,98 254,112 C 258,126 276,122 272,138
+             C 268,154 246,144 240,158 C 234,172 250,184 234,190
+             C 218,196 216,176 202,178 C 188,180 190,198 176,192
+             C 162,186 174,170 164,160 C 154,150 138,160 140,144
+             C 142,128 160,132 160,118 C 160,104 142,102 150,88
+             C 158,74 174,86 184,78 C 194,70 192,64 208,62 Z"
+          fill="url(#pcore)" stroke="#1b4332" stroke-width="2"/>
+    <text class="cap" x="208" y="218">굴곡 큼</text>
+    <text class="sm" x="208" y="238">둘레가 길고 복잡함</text>
+
+    <text class="sm" x="143" y="272">면적이 같아도 둘레가 길면 굴곡이 크다</text>
+  </g>
+
+  <!-- ─────────── ③ 내부와 주연부 ─────────── -->
+  <g transform="translate(600,50)" text-anchor="middle">
+    <rect x="0" y="0" width="286" height="286" rx="8"
+          fill="#fcfdfc" stroke="#ccd5ce" stroke-width="1.2"/>
+    <text class="hd" x="143" y="30">③ 내부와 주연부</text>
+    <text class="sm" x="143" y="52">전체 중 내부가 차지하는 비율</text>
+
+    <!-- 작은 패치: 주연부가 대부분 -->
+    <circle cx="74" cy="122" r="48" fill="url(#pedge)" stroke="#1b4332" stroke-width="2"/>
+    <circle cx="74" cy="122" r="20" fill="url(#pcore)" stroke="#4f7259"
+            stroke-width="1.6" stroke-dasharray="5 4"/>
+    <text class="cap" x="74" y="192">작은 패치</text>
+    <text class="sm" x="74" y="212">내부 비율 낮음</text>
+
+    <!-- 큰 패치: 주연부 폭은 같지만 내부가 넓다 -->
+    <circle cx="206" cy="122" r="70" fill="url(#pedge)" stroke="#1b4332" stroke-width="2"/>
+    <circle cx="206" cy="122" r="42" fill="url(#pcore)" stroke="#4f7259"
+            stroke-width="1.6" stroke-dasharray="5 4"/>
+    <text class="cap" x="206" y="214">큰 패치</text>
+    <text class="sm" x="206" y="234">내부 비율 높음</text>
+
+    <!-- 범례 -->
+    <rect x="20" y="246" width="16" height="14" fill="url(#pedge)"
+          stroke="#1b4332" stroke-width="1.2"/>
+    <text x="42" y="258" style="font-size:12.5px" fill="#4a4a4a" text-anchor="start">주연부(가장자리)</text>
+    <rect x="150" y="246" width="16" height="14" fill="url(#pcore)"
+          stroke="#4f7259" stroke-width="1.2"/>
+    <text x="172" y="258" style="font-size:12.5px" fill="#4a4a4a" text-anchor="start">내부</text>
+
+    <text class="sm" x="143" y="278">패치가 클수록 내부 면적이 급히 는다</text>
+  </g>
+
+  <text x="450" y="362" style="font-size:14.5px" fill="#4a4a4a" text-anchor="middle">세 지표 모두 <tspan font-weight="700" fill="#1b4332">면적이 아니라 형태</tspan>를 수치로 나타낸다.</text>
+  <text x="450" y="384" style="font-size:14.5px" fill="#4a4a4a" text-anchor="middle">패치의 서식 기능(내부종 수용력·가장자리 효과)을 판단하는 근거가 된다.</text>
+</svg>

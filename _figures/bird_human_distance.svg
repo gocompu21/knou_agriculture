@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" width="900" height="360"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>조류와 인간의 거리 — 접근에 따른 4단계 반응</title>
+  <desc>조류를 기준으로 사람이 가까이 다가올수록 나타나는 도피·회피·경계·비간섭 거리를 하나의 수평 거리축 위에 단계로 배열한 도표</desc>
+
+  <defs>
+    <pattern id="d1" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#f2f5f1"/>
+      <path d="M0,6 L6,0" stroke="#7d9b85" stroke-width="1"/>
+    </pattern>
+    <pattern id="d2" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#eef2ec"/>
+      <path d="M0,6 L6,0 M-3,3 L3,-3 M3,9 L9,3" stroke="#4f7259" stroke-width="1.1"/>
+    </pattern>
+    <pattern id="d3" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#f5efe6"/>
+      <path d="M0,0 L6,6 M0,6 L6,0" stroke="#a1651a" stroke-width="1.1"/>
+    </pattern>
+    <pattern id="d4" width="5" height="5" patternUnits="userSpaceOnUse">
+      <rect width="5" height="5" fill="#f0e6da"/>
+      <path d="M0,0 L5,5 M0,5 L5,0" stroke="#8a4b12" stroke-width="1.5"/>
+    </pattern>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b4332"/>
+    </marker>
+    <marker id="ahs" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .zn   { font-size: 15.5px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .lab  { font-size: 14.5px; fill: #222; text-anchor: middle; }
+    .end  { font-size: 15px; font-weight: 700; fill: #222; text-anchor: middle; }
+    .ax   { font-size: 14px; fill: #555; }
+    .note { font-size: 15px; fill: #333; text-anchor: middle; }
+  </style>
+
+  <text class="ttl" x="450" y="30">조류와 인간의 거리 — 접근할수록 강해지는 4단계 반응</text>
+
+  <!-- 거리축 : 오른쪽(멀다) → 왼쪽(가깝다) -->
+  <line x1="70" y1="94" x2="852" y2="94" stroke="#666" stroke-width="1.4"/>
+  <path d="M 852,94 L 96,94" stroke="#1b4332" stroke-width="2" fill="none" marker-end="url(#ah)"/>
+  <text class="ax" x="70" y="80">가까움</text>
+  <text class="ax" x="800" y="80">멀어짐</text>
+  <text class="ax" x="392" y="80" style="font-weight:700;fill:#1b4332">사람이 다가오는 방향</text>
+
+  <!-- 조류 위치(왼쪽 기준점) -->
+  <g transform="translate(70,168)">
+    <ellipse cx="0" cy="0" rx="20" ry="14" fill="#fff" stroke="#1b4332" stroke-width="2"/>
+    <circle cx="-11" cy="-9" r="8" fill="#fff" stroke="#1b4332" stroke-width="2"/>
+    <path d="M-19,-10 L-27,-7 L-19,-5" fill="#1b4332"/>
+    <circle cx="-13" cy="-11" r="1.6" fill="#1b4332"/>
+    <path d="M18,2 L34,-4 L30,6 Z" fill="#fff" stroke="#1b4332" stroke-width="1.6"/>
+  </g>
+  <text class="end" x="70" y="206">조류</text>
+  <line x1="70" y1="106" x2="70" y2="150" stroke="#1b4332" stroke-width="1.4" stroke-dasharray="4 3"/>
+
+  <!-- 4개 구간 띠 : 도피(가장 가까움) → 회피 → 경계 → 비간섭(가장 멂) -->
+  <!-- 도피거리 108~268 -->
+  <rect x="108" y="112" width="160" height="52" fill="url(#d4)" stroke="#8a4b12" stroke-width="2"/>
+  <text class="zn" x="188" y="143">④ 도피거리</text>
+
+  <!-- 회피거리 268~448 -->
+  <rect x="268" y="112" width="180" height="52" fill="url(#d3)" stroke="#a1651a" stroke-width="2"/>
+  <text class="zn" x="358" y="143">③ 회피거리</text>
+
+  <!-- 경계거리 448~640 -->
+  <rect x="448" y="112" width="192" height="52" fill="url(#d2)" stroke="#4f7259" stroke-width="2"/>
+  <text class="zn" x="544" y="143">② 경계거리</text>
+
+  <!-- 비간섭거리 640~852 -->
+  <rect x="640" y="112" width="212" height="52" fill="url(#d1)" stroke="#7d9b85" stroke-width="2"/>
+  <text class="zn" x="746" y="143">① 비간섭거리</text>
+
+  <!-- 구간별 반응 서술 -->
+  <g>
+    <line x1="188" y1="166" x2="188" y2="192" stroke="#8a4b12" stroke-width="1.2"/>
+    <text class="lab" x="188" y="212">단숨에 장거리를</text>
+    <text class="lab" x="188" y="232">날아 달아나기</text>
+    <text class="lab" x="188" y="252">시작한다</text>
+  </g>
+  <g>
+    <line x1="358" y1="166" x2="358" y2="192" stroke="#a1651a" stroke-width="1.2"/>
+    <text class="lab" x="358" y="212">수십 cm ~ 수 m를</text>
+    <text class="lab" x="358" y="232">걷거나 가볍게 뛰어</text>
+    <text class="lab" x="358" y="252">간격을 유지한다</text>
+  </g>
+  <g>
+    <line x1="544" y1="166" x2="544" y2="192" stroke="#4f7259" stroke-width="1.2"/>
+    <text class="lab" x="544" y="212">행동을 멈추고 사람을</text>
+    <text class="lab" x="544" y="232">바라보며, 경계음을 내고</text>
+    <text class="lab" x="544" y="252">꽁지·깃을 흔든다</text>
+  </g>
+  <g>
+    <line x1="746" y1="166" x2="746" y2="192" stroke="#7d9b85" stroke-width="1.2"/>
+    <text class="lab" x="746" y="212">사람의 존재는 알지만</text>
+    <text class="lab" x="746" y="232">달아나거나 경계하지 않고</text>
+    <text class="lab" x="746" y="252">먹이·휴식을 이어 간다</text>
+  </g>
+
+  <!-- 사람 아이콘 (오른쪽 끝) -->
+  <g transform="translate(866,150)">
+    <circle cx="0" cy="-24" r="8" fill="#fff" stroke="#333" stroke-width="1.8"/>
+    <path d="M0,-16 L0,4 M-10,-8 L10,-8 M0,4 L-8,20 M0,4 L8,20"
+          stroke="#333" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  </g>
+  <text class="end" x="866" y="194" style="font-size:14px">인간</text>
+
+  <!-- 관찰시설 설계 시사점 -->
+  <path d="M 746,278 L 210,278" stroke="#333" stroke-width="1.4" fill="none"
+        stroke-dasharray="6 4" marker-end="url(#ahs)"/>
+  <text class="note" x="478" y="270" style="font-size:14px;fill:#555">거리가 좁아질수록 반응 강도가 커진다</text>
+
+  <text class="note" x="450" y="312">탐조대·관찰로는 최소한 ① 비간섭거리 바깥에 두어야 조류의 먹이활동과 휴식을 방해하지 않는다</text>
+  <text class="note" x="450" y="336">거리는 종·계절·서식지 개방도에 따라 달라지므로 대상종별로 실측해 적용한다</text>
+</svg>

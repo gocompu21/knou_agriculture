@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 380" width="900" height="380"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>개체군 분포유형 — 임의·균일·군생</title>
+  <desc>같은 개체수를 같은 크기의 방형구에 배치해 세 가지 분포유형을 비교한 그림. 임의분포는 규칙 없이 흩어지고, 균일분포는 일정 간격을 유지하며, 군생분포는 여러 무리로 뭉쳐 있다</desc>
+
+  <defs>
+    <!-- 방형구 눈금 : 간격 비교의 기준 -->
+    <pattern id="quad" width="30" height="30" patternUnits="userSpaceOnUse">
+      <rect width="30" height="30" fill="#fbfcfb"/>
+      <line x1="0" y1="0" x2="0" y2="30" stroke="#e6ece7" stroke-width="1"/>
+      <line x1="0" y1="0" x2="30" y2="0" stroke="#e6ece7" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 18px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .plot { fill: url(#quad); stroke: #4f7259; stroke-width: 2; }
+    .ind  { fill: #1b4332; }
+    .cl   { fill: none; stroke: #a1651a; stroke-width: 1.8; stroke-dasharray: 5 4; }
+    .gap  { stroke: #a1651a; stroke-width: 1.6; }
+    .cap  { font-size: 15px; fill: #333; text-anchor: middle; }
+    .capB { font-size: 15px; font-weight: 700; fill: #33513c; text-anchor: middle; }
+    .ex   { font-size: 14px; fill: #5b6a5f; text-anchor: middle; }
+  </style>
+
+  <!-- ── 임의분포 ── -->
+  <g transform="translate(30,0)">
+    <text class="ttl" x="130" y="32">임의분포</text>
+    <rect class="plot" x="10" y="46" width="240" height="180" rx="4"/>
+    <g class="ind">
+      <circle cx="46"  cy="76"  r="6"/><circle cx="128" cy="66"  r="6"/>
+      <circle cx="212" cy="88"  r="6"/><circle cx="72"  cy="122" r="6"/>
+      <circle cx="164" cy="110" r="6"/><circle cx="228" cy="146" r="6"/>
+      <circle cx="34"  cy="176" r="6"/><circle cx="104" cy="164" r="6"/>
+      <circle cx="150" cy="200" r="6"/><circle cx="196" cy="182" r="6"/>
+      <circle cx="88"  cy="208" r="6"/><circle cx="240" cy="204" r="6"/>
+    </g>
+    <text class="capB" x="130" y="262">규칙성 없이 흩어짐</text>
+    <text class="cap"  x="130" y="290">자원이 고르게 분포하고</text>
+    <text class="cap"  x="130" y="312">개체 간 상호작용이 중립적</text>
+    <text class="ex"   x="130" y="346">예) 풀밭의 민들레</text>
+  </g>
+
+  <!-- ── 균일분포 ── -->
+  <g transform="translate(320,0)">
+    <text class="ttl" x="130" y="32">균일분포</text>
+    <rect class="plot" x="10" y="46" width="240" height="180" rx="4"/>
+    <g class="ind">
+      <circle cx="52"  cy="82"  r="6"/><circle cx="118" cy="82"  r="6"/>
+      <circle cx="184" cy="82"  r="6"/><circle cx="52"  cy="136" r="6"/>
+      <circle cx="118" cy="136" r="6"/><circle cx="184" cy="136" r="6"/>
+      <circle cx="52"  cy="190" r="6"/><circle cx="118" cy="190" r="6"/>
+      <circle cx="184" cy="190" r="6"/><circle cx="218" cy="109" r="6"/>
+      <circle cx="218" cy="163" r="6"/><circle cx="86"  cy="109" r="6"/>
+    </g>
+    <!-- 최소 이격거리 표시 -->
+    <g class="gap">
+      <line x1="52" y1="216" x2="118" y2="216"/>
+      <line x1="52" y1="211" x2="52" y2="221"/>
+      <line x1="118" y1="211" x2="118" y2="221"/>
+    </g>
+    <text x="85" y="238" style="font-size:13px;fill:#7a4c11;text-anchor:middle">최소 이격거리</text>
+    <text class="capB" x="130" y="262">일정 간격을 두고 배열</text>
+    <text class="cap"  x="130" y="290">자원 경쟁·세력권 확보로</text>
+    <text class="cap"  x="130" y="312">최소 이격거리를 유지</text>
+    <text class="ex"   x="130" y="346">예) 사막의 건생식물</text>
+  </g>
+
+  <!-- ── 군생분포 ── -->
+  <g transform="translate(610,0)">
+    <text class="ttl" x="130" y="32">군생분포</text>
+    <rect class="plot" x="10" y="46" width="240" height="180" rx="4"/>
+    <!-- 무리 경계 -->
+    <ellipse class="cl" cx="66"  cy="92"  rx="42" ry="32"/>
+    <ellipse class="cl" cx="186" cy="118" rx="48" ry="34"/>
+    <ellipse class="cl" cx="104" cy="186" rx="46" ry="30"/>
+    <g class="ind">
+      <circle cx="48"  cy="82"  r="6"/><circle cx="72"  cy="76"  r="6"/>
+      <circle cx="62"  cy="102" r="6"/><circle cx="86"  cy="100" r="6"/>
+
+      <circle cx="166" cy="106" r="6"/><circle cx="192" cy="100" r="6"/>
+      <circle cx="178" cy="128" r="6"/><circle cx="206" cy="126" r="6"/>
+
+      <circle cx="86"  cy="178" r="6"/><circle cx="110" cy="172" r="6"/>
+      <circle cx="98"  cy="196" r="6"/><circle cx="124" cy="194" r="6"/>
+    </g>
+    <text class="capB" x="130" y="262">여러 무리로 뭉쳐 분포</text>
+    <text class="cap"  x="130" y="290">자원이 국지적으로 밀집하거나</text>
+    <text class="cap"  x="130" y="312">무성생식·사회적 집단 형성</text>
+    <text class="ex"   x="130" y="346">예) 무성생식으로 번지는 식물</text>
+  </g>
+</svg>

@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>식물의 생존 최소토심과 생육 최적토심</title>
+  <desc>지피부터 심근성 교목까지 다섯 식재 유형의 생존 최소토심과 생육 최적토심을 지표선에서 오른쪽으로 뻗는 가로 막대로 비교한 도표</desc>
+
+  <defs>
+    <!-- 생존 최소토심 : 성긴 사선 -->
+    <pattern id="dMin" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#f2f5f1"/>
+      <path d="M0,8 L8,0" stroke="#4f7259" stroke-width="1.4"/>
+    </pattern>
+    <!-- 생육 최적토심 : 촘촘한 격자점 -->
+    <pattern id="dOpt" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#f7f2e8"/>
+      <circle cx="1.6" cy="1.6" r="1.2" fill="#a1651a"/>
+      <circle cx="4.4" cy="4.4" r="1" fill="#c08b46"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .cat  { font-size: 15.5px; font-weight: 700; fill: #1b4332; text-anchor: end; }
+    .val  { font-size: 14.5px; font-weight: 700; fill: #222; }
+    .tick { font-size: 13px; fill: #777; text-anchor: middle; }
+    .lg   { font-size: 15px; fill: #222; }
+    .ax   { font-size: 14.5px; font-weight: 700; fill: #333; }
+    .note { font-size: 15px; fill: #333; text-anchor: middle; }
+  </style>
+
+  <text class="ttl" x="450" y="28">식물의 생존 최소토심 · 생육 최적토심 (단위 : cm)</text>
+
+  <!-- ── 눈금 (0~150cm, x=210 기준 1cm = 4.2px → 150cm = 840) ── -->
+  <g class="tick">
+    <text x="210" y="70">0</text>
+    <text x="336" y="70">30</text>
+    <text x="462" y="70">60</text>
+    <text x="588" y="70">90</text>
+    <text x="714" y="70">120</text>
+    <text x="840" y="70">150</text>
+  </g>
+  <g stroke="#dfe4de" stroke-width="1">
+    <line x1="336" y1="78" x2="336" y2="318"/>
+    <line x1="462" y1="78" x2="462" y2="318"/>
+    <line x1="588" y1="78" x2="588" y2="318"/>
+    <line x1="714" y1="78" x2="714" y2="318"/>
+    <line x1="840" y1="78" x2="840" y2="318"/>
+  </g>
+
+  <!-- G.L 기준선 -->
+  <line x1="210" y1="74" x2="210" y2="322" stroke="#333" stroke-width="2.4"/>
+  <text class="ax" x="210" y="342" text-anchor="middle">G.L (지표면) — 여기서부터 아래로 파 내려간 깊이</text>
+  <path d="M203,66 L217,66 L210,76 Z" fill="#333"/>
+  <text class="ax" x="196" y="62" text-anchor="end">G.L</text>
+
+  <!-- ── 5개 유형 : 각 행에 최소(위)·최적(아래) 막대 ── -->
+  <!-- 지피 : 15 / 30 -->
+  <g>
+    <text class="cat" x="196" y="102">지피</text>
+    <rect x="210" y="86"  width="63"  height="17" fill="url(#dMin)" stroke="#4f7259" stroke-width="1.6"/>
+    <rect x="210" y="105" width="126" height="17" fill="url(#dOpt)" stroke="#a1651a" stroke-width="1.6"/>
+    <text class="val" x="281" y="100" style="fill:#2f5c40">15</text>
+    <text class="val" x="344" y="119" style="fill:#8a4b12">30</text>
+  </g>
+
+  <!-- 소관목 : 30 / 45 -->
+  <g>
+    <text class="cat" x="196" y="150">소관목</text>
+    <rect x="210" y="134" width="126" height="17" fill="url(#dMin)" stroke="#4f7259" stroke-width="1.6"/>
+    <rect x="210" y="153" width="189" height="17" fill="url(#dOpt)" stroke="#a1651a" stroke-width="1.6"/>
+    <text class="val" x="344" y="148" style="fill:#2f5c40">30</text>
+    <text class="val" x="407" y="167" style="fill:#8a4b12">45</text>
+  </g>
+
+  <!-- 대관목 : 45 / 60 -->
+  <g>
+    <text class="cat" x="196" y="198">대관목</text>
+    <rect x="210" y="182" width="189" height="17" fill="url(#dMin)" stroke="#4f7259" stroke-width="1.6"/>
+    <rect x="210" y="201" width="252" height="17" fill="url(#dOpt)" stroke="#a1651a" stroke-width="1.6"/>
+    <text class="val" x="407" y="196" style="fill:#2f5c40">45</text>
+    <text class="val" x="470" y="215" style="fill:#8a4b12">60</text>
+  </g>
+
+  <!-- 천근성 교목 : 60 / 90 -->
+  <g>
+    <text class="cat" x="196" y="246">천근성 교목</text>
+    <rect x="210" y="230" width="252" height="17" fill="url(#dMin)" stroke="#4f7259" stroke-width="1.6"/>
+    <rect x="210" y="249" width="378" height="17" fill="url(#dOpt)" stroke="#a1651a" stroke-width="1.6"/>
+    <text class="val" x="470" y="244" style="fill:#2f5c40">60</text>
+    <text class="val" x="596" y="263" style="fill:#8a4b12">90</text>
+  </g>
+
+  <!-- 심근성 교목 : 90 / 150 -->
+  <g>
+    <text class="cat" x="196" y="294">심근성 교목</text>
+    <rect x="210" y="278" width="378" height="17" fill="url(#dMin)" stroke="#4f7259" stroke-width="1.6"/>
+    <rect x="210" y="297" width="630" height="17" fill="url(#dOpt)" stroke="#a1651a" stroke-width="1.6"/>
+    <text class="val" x="596" y="292" style="fill:#2f5c40">90</text>
+    <text class="val" x="848" y="311" style="fill:#8a4b12">150</text>
+  </g>
+
+  <!-- ── 범례 ── -->
+  <g>
+    <rect x="210" y="352" width="34" height="16" fill="url(#dMin)" stroke="#4f7259" stroke-width="1.6"/>
+    <text class="lg" x="252" y="365">생존 최소토심 — 이보다 얕으면 살지 못한다</text>
+    <rect x="560" y="352" width="34" height="16" fill="url(#dOpt)" stroke="#a1651a" stroke-width="1.6"/>
+    <text class="lg" x="602" y="365">생육 최적토심 — 정상 생육에 필요한 깊이</text>
+  </g>
+
+  <text class="note" x="450" y="392">뿌리가 깊은 유형일수록 두 값이 함께 커지며, 심근성 교목은 최적토심이 최소토심의 약 1.7배에 이른다</text>
+</svg>

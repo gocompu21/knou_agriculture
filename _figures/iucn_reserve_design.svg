@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="900" height="520"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>IUCN 경관요소의 공간적 배열원칙</title>
+  <desc>면적·분할여부·거리·연결성·형태의 다섯 원칙을 원칙별 가로 카드로 정리하고 권장안과 비권장안을 나란히 배치</desc>
+
+  <defs>
+    <!-- 권장(내부 서식지 확보): 촘촘한 점 -->
+    <pattern id="good" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#e6efe8"/>
+      <circle cx="2" cy="2" r="1.3" fill="#1b4332"/>
+    </pattern>
+    <!-- 비권장: 성긴 점 -->
+    <pattern id="bad" width="9" height="9" patternUnits="userSpaceOnUse">
+      <rect width="9" height="9" fill="#f4f4f2"/>
+      <circle cx="2.5" cy="2.5" r="1.1" fill="#9aa79d"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .hd   { font-size:20px; font-weight:700; fill:#1b4332; }
+    .pn   { font-size:15.5px; font-weight:700; fill:#1b4332; }
+    .row  { fill:#fcfdfc; stroke:#dfe6e0; stroke-width:1.2; }
+    .rowA { fill:#f7faf8; stroke:#dfe6e0; stroke-width:1.2; }
+    .gh   { font-size:14px; font-weight:700; fill:#1b4332; text-anchor:middle; }
+    .bh   { font-size:14px; font-weight:700; fill:#8a8f89; text-anchor:middle; }
+    .why  { font-size:14.5px; fill:#333; }
+    .pg   { fill:url(#good); stroke:#1b4332; stroke-width:1.8; }
+    .pb   { fill:url(#bad); stroke:#9aa79d; stroke-width:1.6; }
+    .cor  { stroke:#1b4332; stroke-width:7; fill:none; opacity:.55; }
+    .corE { stroke:#1b4332; stroke-width:1.2; fill:none; stroke-dasharray:5 4; }
+    .xm   { stroke:#b03a2e; stroke-width:2.2; }
+  </style>
+
+  <text class="hd" x="26" y="30">IUCN 경관요소의 공간적 배열원칙</text>
+
+  <!-- 열 머리 -->
+  <text class="gh" x="352" y="56">권장 (더 좋음)</text>
+  <text class="bh" x="576" y="56">비권장 (더 나쁨)</text>
+  <line x1="240" y1="62" x2="464" y2="62" stroke="#1b4332" stroke-width="2"/>
+  <line x1="472" y1="62" x2="680" y2="62" stroke="#c9cec9" stroke-width="2"/>
+
+  <!-- ───────── ① 면적 ───────── -->
+  <g transform="translate(0,70)">
+    <rect class="rowA" x="26" y="0" width="848" height="80" rx="5"/>
+    <text class="pn" x="42" y="30">① 면적</text>
+    <text class="why" x="42" y="54">넓을수록 유리</text>
+
+    <!-- 권장: 큰 하나 -->
+    <ellipse class="pg" cx="352" cy="40" rx="52" ry="30"/>
+    <!-- 비권장: 작은 하나 -->
+    <ellipse class="pb" cx="576" cy="40" rx="22" ry="14"/>
+
+    <text class="why" x="700" y="34">내부 서식 환경을 안정적으로</text>
+    <text class="why" x="700" y="56">유지하는 데 유리하다</text>
+  </g>
+
+  <!-- ───────── ② 분할 여부 ───────── -->
+  <g transform="translate(0,158)">
+    <rect class="row" x="26" y="0" width="848" height="80" rx="5"/>
+    <text class="pn" x="42" y="30">② 분할 여부</text>
+    <text class="why" x="42" y="54">한 덩어리로</text>
+
+    <ellipse class="pg" cx="352" cy="40" rx="50" ry="29"/>
+    <g>
+      <ellipse class="pb" cx="540" cy="26" rx="18" ry="12"/>
+      <ellipse class="pb" cx="586" cy="22" rx="16" ry="11"/>
+      <ellipse class="pb" cx="546" cy="58" rx="16" ry="11"/>
+      <ellipse class="pb" cx="600" cy="56" rx="17" ry="11"/>
+    </g>
+
+    <text class="why" x="700" y="34">같은 면적이라면 흩어진 여러</text>
+    <text class="why" x="700" y="56">조각보다 하나의 큰 덩어리가 낫다</text>
+  </g>
+
+  <!-- ───────── ③ 거리 ───────── -->
+  <g transform="translate(0,246)">
+    <rect class="rowA" x="26" y="0" width="848" height="80" rx="5"/>
+    <text class="pn" x="42" y="30">③ 거리</text>
+    <text class="why" x="42" y="54">가까이 모이게</text>
+
+    <!-- 권장: 가까이 -->
+    <g>
+      <ellipse class="pg" cx="330" cy="30" rx="19" ry="13"/>
+      <ellipse class="pg" cx="374" cy="28" rx="18" ry="12"/>
+      <ellipse class="pg" cx="352" cy="58" rx="19" ry="12"/>
+    </g>
+    <!-- 비권장: 멀리 -->
+    <g>
+      <ellipse class="pb" cx="506" cy="26" rx="17" ry="12"/>
+      <ellipse class="pb" cx="646" cy="28" rx="17" ry="12"/>
+      <ellipse class="pb" cx="576" cy="62" rx="17" ry="12"/>
+    </g>
+
+    <text class="why" x="700" y="34">가까이 모여 있어야 개체군</text>
+    <text class="why" x="700" y="56">교류가 이루어진다</text>
+  </g>
+
+  <!-- ───────── ④ 연결성 ───────── -->
+  <g transform="translate(0,334)">
+    <rect class="row" x="26" y="0" width="848" height="80" rx="5"/>
+    <text class="pn" x="42" y="30">④ 연결성</text>
+    <text class="why" x="42" y="54">생태통로로 연결</text>
+
+    <!-- 권장: 코리더로 이어짐 -->
+    <g>
+      <path class="cor" d="M 316,32 L 356,56 L 396,26"/>
+      <path class="corE" d="M 316,32 L 356,56 L 396,26"/>
+      <ellipse class="pg" cx="312" cy="30" rx="19" ry="13"/>
+      <ellipse class="pg" cx="358" cy="60" rx="18" ry="12"/>
+      <ellipse class="pg" cx="400" cy="24" rx="18" ry="12"/>
+    </g>
+    <!-- 비권장: 통로 없음 (연결 위치에 X) -->
+    <g>
+      <ellipse class="pb" cx="534" cy="28" rx="17" ry="12"/>
+      <ellipse class="pb" cx="578" cy="60" rx="17" ry="12"/>
+      <ellipse class="pb" cx="620" cy="26" rx="17" ry="12"/>
+      <g class="xm">
+        <line x1="548" y1="40" x2="564" y2="52"/><line x1="564" y1="40" x2="548" y2="52"/>
+        <line x1="594" y1="40" x2="610" y2="52"/><line x1="610" y1="40" x2="594" y2="52"/>
+      </g>
+    </g>
+
+    <text class="why" x="700" y="34">통로가 있으면 이동과 유전자</text>
+    <text class="why" x="700" y="56">교류가 원활해진다</text>
+  </g>
+
+  <!-- ───────── ⑤ 형태 ───────── -->
+  <g transform="translate(0,422)">
+    <rect class="rowA" x="26" y="0" width="848" height="80" rx="5"/>
+    <text class="pn" x="42" y="30">⑤ 형태</text>
+    <text class="why" x="42" y="54">원형에 가깝게</text>
+
+    <!-- 권장: 원형 (내부 서식지 넓음) -->
+    <g>
+      <circle class="pg" cx="352" cy="40" r="30"/>
+      <circle cx="352" cy="40" r="17" fill="none" stroke="#1b4332"
+              stroke-width="1.4" stroke-dasharray="4 3"/>
+      <text x="352" y="86" class="gh" style="font-size:12.5px;">내부 서식지 넓음</text>
+    </g>
+    <!-- 비권장: 길쭉한 선형 (내부 거의 없음) -->
+    <g>
+      <ellipse class="pb" cx="576" cy="40" rx="76" ry="14"/>
+      <ellipse cx="576" cy="40" rx="62" ry="3" fill="none" stroke="#9aa79d"
+               stroke-width="1.3" stroke-dasharray="4 3"/>
+      <text x="576" y="86" class="bh" style="font-size:12.5px;">가장자리 효과 큼</text>
+    </g>
+
+    <text class="why" x="700" y="34">원형이 가장자리 효과를 줄여</text>
+    <text class="why" x="700" y="56">내부 서식지를 넓게 확보한다</text>
+  </g>
+</svg>

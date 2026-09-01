@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 496" width="900" height="496"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>중규모교란설 — 교란 정도에 따른 종풍부도</title>
+  <desc>종풍부도 곡선 아래에 세 구간의 군집 구성을 띠로 나란히 두어, 양 극단에서 종풍부도가 낮아지는 이유를 함께 보인 그림</desc>
+
+  <defs>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .axT  { font-size: 15px; font-weight: 700; fill: #222; }
+    .tick { font-size: 15px; fill: #222; text-anchor: middle; }
+    .note { font-size: 15.5px; fill: #333; }
+    .zoneT{ font-size: 15px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .sm   { font-size: 13px; fill: #444; text-anchor: middle; }
+  </style>
+
+  <text class="ttl" x="18" y="30">중규모교란설 — 종풍부도는 중간 교란에서 최고, 양 극단에서 낮다</text>
+
+  <!-- 세 구간 배경 — 색만이 아니라 경계선으로도 구분된다 -->
+  <rect x="96"  y="66" width="196" height="234" fill="#f6f8f5"/>
+  <rect x="292" y="66" width="196" height="234" fill="#e8efe8"/>
+  <rect x="488" y="66" width="196" height="234" fill="#f6f8f5"/>
+  <g stroke="#b7c6ba" stroke-width="1.2">
+    <line x1="292" y1="66" x2="292" y2="300"/>
+    <line x1="488" y1="66" x2="488" y2="300"/>
+  </g>
+
+  <!-- 축: 세로축 라벨을 축을 따라 회전시켜 그래프 폭을 넓게 쓴다 -->
+  <g fill="none" stroke="#222" stroke-width="2">
+    <path d="M 96,300 L 96,60" marker-end="url(#ax)"/>
+    <path d="M 96,300 L 700,300" marker-end="url(#ax)"/>
+  </g>
+  <text class="axT" transform="translate(60,236) rotate(-90)">종풍부도(종수)</text>
+  <text class="axT" x="600" y="352">교란의 정도 →</text>
+
+  <!-- 눈금선: 정점과 양 끝 높이를 대조시킨다 -->
+  <g fill="none" stroke="#7a8f80" stroke-width="1.4" stroke-dasharray="6 5">
+    <path d="M 390,120 L 390,300"/>
+    <path d="M 96,120 L 390,120"/>
+    <path d="M 96,264 L 650,264"/>
+  </g>
+
+  <!-- 위로 볼록한 곡선(사실) — 정점이 중간 구간 한가운데 -->
+  <path d="M 126,264 C 210,238 280,132 390,120 C 500,132 570,238 654,264"
+        fill="none" stroke="#1b4332" stroke-width="3.4"/>
+
+  <circle cx="390" cy="120" r="5.5" fill="#1b4332"/>
+  <circle cx="126" cy="264" r="5"   fill="#a1651a"/>
+  <circle cx="654" cy="264" r="5"   fill="#a1651a"/>
+  <text class="note" x="404" y="108" fill="#1b4332" font-weight="700">최대</text>
+  <text class="sm" x="66" y="124">높음</text>
+  <text class="sm" x="66" y="268">낮음</text>
+
+  <!-- 가로축 눈금 -->
+  <g stroke="#222" stroke-width="2">
+    <line x1="126" y1="300" x2="126" y2="308"/>
+    <line x1="390" y1="300" x2="390" y2="308"/>
+    <line x1="654" y1="300" x2="654" y2="308"/>
+  </g>
+  <text class="tick" x="126" y="326">약(낮음)</text>
+  <text class="tick" x="390" y="326">중간</text>
+  <text class="tick" x="654" y="326">강(높음)</text>
+
+  <!-- ───── 아래 띠: 각 구간의 군집 구성 — 곡선이 왜 그 높이인지 설명한다 ───── -->
+  <g transform="translate(0,372)">
+    <!-- 약한 교란: 큰 나무(천이 후기종) 몇 그루가 자리를 다 차지 -->
+    <rect x="96" y="0" width="196" height="102" rx="6"
+          fill="#fcfdfc" stroke="#ccd5ce" stroke-width="1.2"/>
+    <text class="zoneT" x="194" y="22">교란이 낮을 때</text>
+    <g fill="#4f7259" stroke="#1b4332" stroke-width="1.2">
+      <path d="M 128,74 L 144,38 L 160,74 Z"/>
+      <path d="M 170,74 L 188,32 L 206,74 Z"/>
+      <path d="M 216,74 L 232,40 L 248,74 Z"/>
+    </g>
+    <line x1="112" y1="74" x2="276" y2="74" stroke="#666" stroke-width="1.4"/>
+    <text class="sm" x="194" y="93">천이 후기종이 우점</text>
+
+    <!-- 중간 교란: 큰 것과 작은 것이 섞여 있다 -->
+    <rect x="292" y="0" width="196" height="102" rx="6"
+          fill="#f4f8f4" stroke="#4f7259" stroke-width="1.8"/>
+    <text class="zoneT" x="390" y="22">중간 교란</text>
+    <g fill="#4f7259" stroke="#1b4332" stroke-width="1.2">
+      <path d="M 314,74 L 328,42 L 342,74 Z"/>
+      <path d="M 392,74 L 406,44 L 420,74 Z"/>
+    </g>
+    <g fill="#a1651a" stroke="#7d4d12" stroke-width="1">
+      <circle cx="358" cy="66" r="7"/>
+      <circle cx="376" cy="69" r="5"/>
+      <circle cx="436" cy="66" r="7"/>
+      <circle cx="454" cy="69" r="5"/>
+      <circle cx="468" cy="65" r="6"/>
+    </g>
+    <line x1="308" y1="74" x2="472" y2="74" stroke="#666" stroke-width="1.4"/>
+    <text class="sm" x="390" y="93">선구종·후기종 공존</text>
+
+    <!-- 강한 교란: 작은 내성종·선구종만 드문드문 -->
+    <rect x="488" y="0" width="196" height="102" rx="6"
+          fill="#fcfdfc" stroke="#ccd5ce" stroke-width="1.2"/>
+    <text class="zoneT" x="586" y="22">교란이 높을 때</text>
+    <g fill="#a1651a" stroke="#7d4d12" stroke-width="1">
+      <circle cx="532" cy="68" r="6"/>
+      <circle cx="586" cy="68" r="6"/>
+      <circle cx="640" cy="68" r="6"/>
+    </g>
+    <line x1="504" y1="74" x2="668" y2="74" stroke="#666" stroke-width="1.4"/>
+    <text class="sm" x="586" y="93">내성종·선구종만 잔존</text>
+  </g>
+
+  <!-- 오른쪽: 결론 -->
+  <g transform="translate(716,0)">
+    <rect x="0" y="66" width="168" height="234" rx="8"
+          fill="#fcfdfc" stroke="#ccd5ce" stroke-width="1.2"/>
+    <text class="note" x="20" y="102" font-weight="700" fill="#1b4332">양 극단 모두</text>
+    <text class="note" x="20" y="134">종풍부도가</text>
+    <text class="note" x="20" y="158">낮아지므로</text>
+    <text class="note" x="20" y="190">곡선은 위로</text>
+    <text class="note" x="20" y="214">볼록한 형태를</text>
+    <text class="note" x="20" y="238">보인다.</text>
+    <!-- 결론을 작은 곡선으로 한 번 더 -->
+    <path d="M 28,278 C 60,246 108,246 140,278"
+          fill="none" stroke="#1b4332" stroke-width="2.6"/>
+  </g>
+</svg>

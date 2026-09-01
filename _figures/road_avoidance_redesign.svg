@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>회피(avoidance)에 따른 도로 노선 재설계</title>
+  <desc>좌측은 보전지역을 관통하는 당초 직선 노선, 우측은 보전지역 경계 밖으로 돌린 회피 노선. 서식지를 지나는 구간에는 이동통로를 유지한다.</desc>
+
+  <defs>
+    <!-- 생물서식지: 성긴 사선 -->
+    <pattern id="habD" width="8" height="8" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#f2f5f1"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#9db4a3" stroke-width="1.4"/>
+    </pattern>
+    <!-- 보전지역: 촘촘한 격자 -->
+    <pattern id="coreD" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#dae5dc"/>
+      <path d="M0,0 L6,0 M0,0 L0,6" stroke="#4f7259" stroke-width="1.1"/>
+    </pattern>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b1b1b"/>
+    </marker>
+    <marker id="a2s" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl   { font-size: 20px; font-weight: 700; text-anchor: middle; }
+    .ttlA  { fill: #7a2b2b; }
+    .ttlB  { fill: #1b4332; }
+    .lab   { font-size: 14px; fill: #222; }
+    .labc  { font-size: 14px; fill: #222; text-anchor: middle; }
+    .note  { font-size: 15.5px; fill: #333; text-anchor: middle; }
+    .frame { fill: #fcfdfc; stroke: #ccd5ce; stroke-width: 1.2; }
+    .gridl { stroke: #e3eae4; stroke-width: 1; }
+    .rdB   { stroke: #3a3a3a; stroke-width: 14; fill: none; stroke-linecap: butt; }
+    .rdC   { stroke: #fff; stroke-width: 2; fill: none; stroke-dasharray: 9 8; }
+    .lead  { stroke: #555; stroke-width: 1.2; fill: none; }
+  </style>
+
+  <!-- ══════════ (가) 당초 노선 ══════════ -->
+  <g transform="translate(12,0)">
+    <text class="ttl ttlA" x="215" y="26">(가) 당초 노선 — 보전지역 관통</text>
+    <rect class="frame" x="14" y="40" width="402" height="238" rx="6"/>
+    <g class="gridl">
+      <line x1="14" y1="100" x2="416" y2="100"/><line x1="14" y1="160" x2="416" y2="160"/>
+      <line x1="14" y1="220" x2="416" y2="220"/>
+      <line x1="94"  y1="40" x2="94"  y2="278"/><line x1="174" y1="40" x2="174" y2="278"/>
+      <line x1="254" y1="40" x2="254" y2="278"/><line x1="334" y1="40" x2="334" y2="278"/>
+    </g>
+
+    <!-- 생물서식지 -->
+    <path d="M 74,96 C 118,62 196,62 244,80 C 300,60 358,86 356,128
+             C 366,182 306,236 240,228 C 182,252 108,236 84,196
+             C 52,168 50,116 74,96 Z"
+          fill="url(#habD)" stroke="#4f7259" stroke-width="2"/>
+    <!-- 보전지역 -->
+    <ellipse cx="242" cy="150" rx="66" ry="42"
+             fill="url(#coreD)" stroke="#1b4332" stroke-width="2.4"/>
+
+    <!-- 직선 도로가 서식지·보전지역을 그대로 통과 -->
+    <path class="rdB" d="M 14,150 L 416,150"/>
+    <path class="rdC" d="M 14,150 L 416,150"/>
+
+    <!-- 이동통로 3곳 -->
+    <g stroke="#1b1b1b" stroke-width="3" marker-start="url(#a2)" marker-end="url(#a2)">
+      <line x1="124" y1="112" x2="124" y2="192"/>
+      <line x1="176" y1="112" x2="176" y2="192"/>
+      <line x1="330" y1="112" x2="330" y2="192"/>
+    </g>
+
+    <text class="lab" x="96" y="80" text-anchor="end">이동통로</text>
+    <path class="lead" d="M 100,76 L 122,106"/>
+    <text class="lab" x="300" y="216">생물서식지</text>
+    <path class="lead" d="M 306,220 L 292,206"/>
+    <text class="lab" x="242" y="150" text-anchor="middle" font-weight="700" fill="#1b4332">보전지역</text>
+    <text class="lab" x="30" y="140">도로선</text>
+
+    <text class="note" x="215" y="304">직선 선형이 보전지역 한복판을</text>
+    <text class="note" x="215" y="326">가로질러 훼손이 직접 발생한다</text>
+  </g>
+
+  <!-- 화살표 -->
+  <g transform="translate(438,0)">
+    <line x1="0" y1="160" x2="24" y2="160" stroke="#a1651a" stroke-width="3"
+          marker-end="url(#a2s)"/>
+    <text x="12" y="146" font-size="13" fill="#a1651a" text-anchor="middle">회피</text>
+  </g>
+
+  <!-- ══════════ (나) 재설계 노선 ══════════ -->
+  <g transform="translate(478,0)">
+    <text class="ttl ttlB" x="200" y="26">(나) 재설계 — 보전지역 밖으로 우회</text>
+    <rect class="frame" x="14" y="40" width="388" height="238" rx="6"/>
+    <g class="gridl">
+      <line x1="14" y1="100" x2="402" y2="100"/><line x1="14" y1="160" x2="402" y2="160"/>
+      <line x1="14" y1="220" x2="402" y2="220"/>
+      <line x1="92"  y1="40" x2="92"  y2="278"/><line x1="170" y1="40" x2="170" y2="278"/>
+      <line x1="248" y1="40" x2="248" y2="278"/><line x1="326" y1="40" x2="326" y2="278"/>
+    </g>
+
+    <path d="M 68,100 C 110,66 186,66 232,84 C 286,64 342,90 340,130
+             C 350,182 292,236 228,228 C 172,252 100,236 78,198
+             C 48,170 46,120 68,100 Z"
+          fill="url(#habD)" stroke="#4f7259" stroke-width="2"/>
+    <ellipse cx="230" cy="152" rx="64" ry="41"
+             fill="url(#coreD)" stroke="#1b4332" stroke-width="2.4"/>
+
+    <!-- 지워진 당초 노선(가는 점선) -->
+    <path d="M 14,152 L 402,152" stroke="#b0b0b0" stroke-width="1.6"
+          fill="none" stroke-dasharray="7 6"/>
+    <text x="60" y="168" font-size="12" fill="#9a9a9a">당초 노선(폐지)</text>
+
+    <!-- 우회 노선: 보전지역 위쪽 경계 밖을 지난다 -->
+    <path class="rdB" d="M 14,214 C 90,214 128,206 158,178
+                         C 190,148 200,96 230,88
+                         C 268,78 300,92 330,108
+                         C 362,124 384,128 402,128"/>
+    <path class="rdC" d="M 14,214 C 90,214 128,206 158,178
+                         C 190,148 200,96 230,88
+                         C 268,78 300,92 330,108
+                         C 362,124 384,128 402,128"/>
+
+    <!-- 서식지를 지나는 구간에는 이동통로 유지 -->
+    <g stroke="#1b1b1b" stroke-width="3" marker-start="url(#a2)" marker-end="url(#a2)">
+      <line x1="152" y1="146" x2="152" y2="216"/>
+      <line x1="300" y1="66"  x2="300" y2="136"/>
+    </g>
+    <text class="labc" x="132" y="240" font-size="13">이동통로 유지</text>
+    <path class="lead" d="M 140,230 L 150,218"/>
+
+    <text class="lab" x="230" y="157" text-anchor="middle" font-weight="700" fill="#1b4332">보전지역</text>
+    <text class="lab" x="332" y="216">생물서식지</text>
+
+    <text class="note" x="200" y="304">노선을 경계 바깥으로 돌려 훼손 자체를 없애고,</text>
+    <text class="note" x="200" y="326">서식지 통과 구간은 이동통로로 연결성을 지킨다</text>
+  </g>
+
+  <text x="450" y="376" class="note" font-size="14.5" fill="#555">
+    회피 = 보전가치가 높은 지역에 개발행위가 아예 미치지 않도록 위치·노선을 옮기는 미티게이션
+  </text>
+</svg>

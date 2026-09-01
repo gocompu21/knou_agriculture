@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430" width="900" height="430"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>생태복원 방법 — 복원·복구·대체</title>
+  <desc>훼손 생태계에서 출발해 생태계 구조와 기능이 어디까지 회복되는지를 세 갈래 경로와 회복 수준 막대로 나타낸 그림</desc>
+
+  <defs>
+    <marker id="a6" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse"
+            markerWidth="18" markerHeight="18" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b4332"/>
+    </marker>
+    <marker id="a6g" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse"
+            markerWidth="18" markerHeight="18" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4f7259"/>
+    </marker>
+    <marker id="a6o" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse"
+            markerWidth="18" markerHeight="18" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+    <pattern id="orig" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#e7efe9"/>
+      <circle cx="2" cy="2" r="1.3" fill="#1b4332"/>
+    </pattern>
+    <pattern id="dmg" width="9" height="9" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="9" height="9" fill="#f4f5f4"/>
+      <line x1="0" y1="0" x2="0" y2="9" stroke="#9aa79e" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .ttl { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .nm  { font-size: 17px; font-weight: 700; fill: #1b4332; }
+    .en  { font-size: 13px; fill: #5a6b60; }
+    .dsc { font-size: 14.5px; fill: #333; }
+    .ax  { font-size: 14.5px; font-weight: 700; fill: #444; }
+    .bl  { font-size: 13px; fill: #444; }
+  </style>
+
+  <text class="ttl" x="20" y="30">생태복원 방법 — 어디까지 되돌리는가</text>
+
+  <!-- 출발점: 훼손 생태계 -->
+  <rect x="24" y="74" width="132" height="250" fill="url(#dmg)" stroke="#9aa79e" stroke-width="2" rx="6"/>
+  <rect x="30" y="160" width="120" height="102" fill="#fff" opacity=".9"/>
+  <text class="nm" x="90" y="182" style="text-anchor:middle;fill:#555">훼손된</text>
+  <text class="nm" x="90" y="206" style="text-anchor:middle;fill:#555">생태계</text>
+  <text class="bl" x="90" y="232" style="text-anchor:middle">구조·기능이</text>
+  <text class="bl" x="90" y="250" style="text-anchor:middle">모두 낮은 상태</text>
+
+  <!-- 도착점: 원생태계 (오른쪽 기준선) -->
+  <rect x="756" y="74" width="120" height="250" fill="url(#orig)" stroke="#1b4332" stroke-width="2.4" rx="6"/>
+  <rect x="762" y="166" width="108" height="58" fill="#fff" opacity=".9"/>
+  <text class="nm" x="816" y="188" style="text-anchor:middle">원생태계</text>
+  <text class="bl" x="816" y="212" style="text-anchor:middle">(훼손 이전)</text>
+  <line x1="750" y1="66" x2="750" y2="332" stroke="#1b4332" stroke-width="1.6" stroke-dasharray="6 5"/>
+
+  <!-- ── 세 갈래 경로: 막대 길이가 곧 회복 수준 ── -->
+  <!-- ① 복원 : 원생태계까지 -->
+  <g>
+    <line x1="164" y1="98" x2="726" y2="98" stroke="#1b4332" stroke-width="9"
+          marker-end="url(#a6)"/>
+    <rect x="176" y="108" width="120" height="38" fill="#fff" stroke="#1b4332" stroke-width="2.4" rx="5"/>
+    <text class="nm" x="236" y="127" style="text-anchor:middle">① 복원</text>
+    <text class="en" x="236" y="142" style="text-anchor:middle">Restoration</text>
+    <text class="dsc" x="308" y="126">훼손 이전의 원래 생태계와 같은</text>
+    <text class="dsc" x="308" y="145">구조·기능으로 되돌린다 (가장 완전한 회복)</text>
+  </g>
+
+  <!-- ② 복구 : 원생태계에 가깝게 (조금 못 미침) -->
+  <g>
+    <line x1="164" y1="180" x2="656" y2="180" stroke="#4f7259" stroke-width="9"
+          stroke-dasharray="18 7" marker-end="url(#a6g)"/>
+    <rect x="176" y="190" width="120" height="38" fill="#fff" stroke="#4f7259" stroke-width="2.4" rx="5"/>
+    <text class="nm" x="236" y="209" style="text-anchor:middle;fill:#2f5c40">② 복구</text>
+    <text class="en" x="236" y="224" style="text-anchor:middle">Rehabilitation</text>
+    <text class="dsc" x="308" y="208">원래와 똑같이 만들지는 못하더라도</text>
+    <text class="dsc" x="308" y="227">비슷한 자연 상태에 가깝게 회복시킨다</text>
+  </g>
+
+  <!-- ③ 대체 : 도달 지점이 다른 유형의 생태계 -->
+  <g>
+    <path d="M 164,262 L 470,262" stroke="#a1651a" stroke-width="9"
+          stroke-dasharray="5 6" marker-end="url(#a6o)" fill="none"/>
+    <rect x="176" y="272" width="120" height="38" fill="#fff" stroke="#a1651a" stroke-width="2.4" rx="5"/>
+    <text class="nm" x="236" y="291" style="text-anchor:middle;fill:#8a5415">③ 대체</text>
+    <text class="en" x="236" y="306" style="text-anchor:middle">Replacement</text>
+    <text class="dsc" x="308" y="292">원래 생태계 대신 다른 유형의</text>
+    <text class="dsc" x="308" y="311">생태계를 들여와 현재 상태를 개선한다</text>
+    <!-- 도달 지점이 원생태계가 아님을 표시 -->
+    <rect x="482" y="244" width="150" height="36" fill="#fff" stroke="#a1651a"
+          stroke-width="2" stroke-dasharray="5 4" rx="5"/>
+    <text class="dsc" x="557" y="266" style="text-anchor:middle;fill:#8a5415">다른 유형의 생태계</text>
+    <text class="bl"  x="557" y="298" style="text-anchor:middle;fill:#8a5415">↑ 원생태계가 아니다</text>
+  </g>
+
+  <!-- 회복 정도 축 -->
+  <line x1="160" y1="348" x2="744" y2="348" stroke="#666" stroke-width="1.4"/>
+  <text class="ax" x="164" y="370">회복 정도 낮음</text>
+  <text class="ax" x="744" y="370" style="text-anchor:end">원생태계 수준</text>
+  <text class="bl" x="452" y="396" style="text-anchor:middle">막대가 길수록 원래의 생태계 구조·기능에 더 가깝게 회복된 것이다.</text>
+  <text class="bl" x="452" y="414" style="text-anchor:middle">대체는 도달 지점이 원생태계가 아니라 다른 유형의 생태계라는 점에서 방향 자체가 다르다.</text>
+</svg>

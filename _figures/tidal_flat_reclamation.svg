@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430" width="900" height="430"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>갯벌 매립의 문제점 — 매립 전후 대비와 영향 경로</title>
+  <desc>조수가 드나드는 갯벌과 방조제로 막아 매립한 뒤의 상태를 나란히 비교하고, 해양생태계 변화·매립지 자체의 문제·갯벌 기능 상실로 이어지는 경로를 나타낸 개념도</desc>
+
+  <defs>
+    <pattern id="gFlat" width="7" height="7" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#e8e4d8"/>
+      <circle cx="2" cy="2" r="1" fill="#8a8375"/>
+      <circle cx="5" cy="5" r="0.8" fill="#a49c8c"/>
+    </pattern>
+    <pattern id="gSea" width="10" height="9" patternUnits="userSpaceOnUse">
+      <rect width="10" height="9" fill="#eef3f5"/>
+      <path d="M0,4.5 Q2.5,2 5,4.5 T10,4.5" stroke="#5d7f8c" stroke-width="1" fill="none"/>
+    </pattern>
+    <pattern id="gFill" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#eeeae1"/>
+      <path d="M0,6 L6,0" stroke="#9b9384" stroke-width="1.2"/>
+    </pattern>
+    <pattern id="gDike" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#d8d4ca"/>
+      <path d="M0,0 L6,6 M0,6 L6,0" stroke="#5b564d" stroke-width="1.2"/>
+    </pattern>
+    <pattern id="gStag" width="9" height="9" patternUnits="userSpaceOnUse">
+      <rect width="9" height="9" fill="#e4e6e0"/>
+      <path d="M0,4.5 L9,4.5" stroke="#7d8377" stroke-width="1.1" stroke-dasharray="3 3"/>
+    </pattern>
+    <marker id="fa" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8a4b12"/>
+    </marker>
+    <marker id="tw" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5d7f8c"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .ph   { font-size: 17px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .lab  { font-size: 14px; fill: #222; }
+    .labc { font-size: 14px; fill: #222; text-anchor: middle; }
+    .tide { font-size: 13.5px; font-weight: 700; fill: #41616e; }
+    .hd   { font-size: 15px; font-weight: 700; fill: #1b4332; }
+    .it   { font-size: 14.5px; fill: #222; }
+    .box  { fill: #fcfdfc; stroke: #ccd5ce; stroke-width: 1.2; }
+    .note { font-size: 15px; fill: #333; text-anchor: middle; }
+  </style>
+
+  <text class="ttl" x="450" y="28">갯벌 매립의 문제점 — 매립 전 · 후 대비</text>
+
+  <!-- ══════ 좌 : 매립 전 ══════ -->
+  <text class="ph" x="222" y="60">매립 전 — 조수가 드나드는 갯벌</text>
+  <rect class="box" x="30" y="70" width="384" height="176" rx="6"/>
+
+  <!-- 바다 -->
+  <rect x="30" y="140" width="150" height="106" fill="url(#gSea)"/>
+  <!-- 갯벌 (완만한 경사) -->
+  <path d="M 180,140 C 250,152 320,176 414,190 L 414,246 L 180,246 Z"
+        fill="url(#gFlat)" stroke="#8a8375" stroke-width="1.6"/>
+  <!-- 육지 -->
+  <path d="M 414,190 L 414,246 L 414,246 Z" fill="none"/>
+  <line x1="30" y1="140" x2="180" y2="140" stroke="#41616e" stroke-width="1.6"/>
+  <line x1="30" y1="176" x2="240" y2="176" stroke="#41616e" stroke-width="1.4" stroke-dasharray="7 4"/>
+  <path d="M36,133 L48,133 L42,142 Z" fill="#41616e"/>
+  <path d="M36,169 L48,169 L42,178 Z" fill="#41616e"/>
+  <text class="tide" x="54" y="134">만조위</text>
+  <text class="tide" x="54" y="170">간조위</text>
+
+  <text class="labc" x="286" y="164">갯벌 (에코존)</text>
+  <!-- 조수 왕복 -->
+  <path d="M 150,206 L 236,206" stroke="#5d7f8c" stroke-width="2" fill="none" marker-end="url(#tw)"/>
+  <path d="M 236,224 L 150,224" stroke="#5d7f8c" stroke-width="2" fill="none" marker-end="url(#tw)"/>
+  <text class="labc" x="330" y="214">해수 유통 · 오염정화</text>
+  <text class="labc" x="330" y="234">저서생물 서식처</text>
+
+  <!-- ══════ 우 : 매립 후 ══════ -->
+  <text class="ph" x="678" y="60">매립 후 — 방조제로 막고 지반고까지 성토</text>
+  <rect class="box" x="486" y="70" width="384" height="176" rx="6"/>
+
+  <!-- 바다(외해) -->
+  <rect x="486" y="140" width="96" height="106" fill="url(#gSea)"/>
+  <line x1="486" y1="140" x2="582" y2="140" stroke="#41616e" stroke-width="1.6"/>
+  <line x1="486" y1="176" x2="582" y2="176" stroke="#41616e" stroke-width="1.4" stroke-dasharray="7 4"/>
+  <path d="M492,133 L504,133 L498,142 Z" fill="#41616e"/>
+  <path d="M492,169 L504,169 L498,178 Z" fill="#41616e"/>
+  <text class="tide" x="510" y="134">만조위</text>
+  <text class="tide" x="510" y="170">간조위</text>
+
+  <!-- 정체수역 (제방 앞) -->
+  <rect x="546" y="176" width="36" height="70" fill="url(#gStag)"/>
+  <text class="lab" x="500" y="206" style="font-size:12.5px;fill:#5b564d">정체</text>
+  <text class="lab" x="500" y="222" style="font-size:12.5px;fill:#5b564d">수역</text>
+
+  <!-- 방조제(호안) -->
+  <rect x="582" y="112" width="24" height="134" fill="url(#gDike)" stroke="#3f3b34" stroke-width="2"/>
+  <rect x="568" y="238" width="52" height="14" fill="url(#gDike)" stroke="#3f3b34" stroke-width="2"/>
+  <text class="lab" x="594" y="104" text-anchor="middle" style="font-weight:700">호안(방조제)</text>
+
+  <!-- 매립지 -->
+  <rect x="606" y="130" width="200" height="116" fill="url(#gFill)" stroke="#9b9384" stroke-width="1.6"/>
+  <line x1="606" y1="130" x2="806" y2="130" stroke="#5b564d" stroke-width="2"/>
+  <text class="labc" x="700" y="164">매립지</text>
+  <text class="labc" x="700" y="186" style="font-size:13px;fill:#6b6357">(성토 · 지반고까지)</text>
+  <!-- 침하 표시 -->
+  <path d="M 640,132 C 668,146 712,146 742,133" stroke="#8a4b12" stroke-width="1.8"
+        fill="none" stroke-dasharray="6 4"/>
+  <text class="lab" x="640" y="216" style="fill:#8a4b12;font-size:13px">지반 침하 · 배수 불량 · 염해</text>
+
+  <!-- 육지 -->
+  <rect x="806" y="130" width="64" height="116" fill="#f4f6f2" stroke="#ccd5ce" stroke-width="1.2"/>
+  <rect x="820" y="98" width="18" height="32" fill="#fff" stroke="#5b564d" stroke-width="1.6"/>
+  <rect x="842" y="104" width="16" height="26" fill="#fff" stroke="#5b564d" stroke-width="1.6"/>
+  <text class="lab" x="838" y="150" text-anchor="middle" style="font-size:13px">육지</text>
+
+  <!-- 매립 진행 화살표 -->
+  <path d="M 424,158 L 476,158" stroke="#8a4b12" stroke-width="2.4" fill="none" marker-end="url(#fa)"/>
+  <text class="labc" x="450" y="148" style="font-size:13px;fill:#8a4b12">매립</text>
+
+  <!-- ══════ 하단 : 문제점 3계열 ══════ -->
+  <g>
+    <rect class="box" x="30" y="264" width="272" height="128" rx="6"/>
+    <rect x="30" y="264" width="272" height="30" rx="6" fill="url(#gSea)" stroke="#5d7f8c" stroke-width="1.6"/>
+    <text class="hd" x="46" y="285">① 해양생태계 변화</text>
+    <text class="it" x="46" y="318">· 해수 유통량 감소</text>
+    <text class="it" x="46" y="342">· 정체수역 발생</text>
+    <text class="it" x="46" y="366">· 수질 악화 → 해양생물 폐사</text>
+  </g>
+
+  <g>
+    <rect class="box" x="314" y="264" width="272" height="128" rx="6"/>
+    <rect x="314" y="264" width="272" height="30" rx="6" fill="url(#gFill)" stroke="#9b9384" stroke-width="1.6"/>
+    <text class="hd" x="330" y="285">② 매립지 자체의 문제</text>
+    <text class="it" x="330" y="318">· 비산먼지 발생</text>
+    <text class="it" x="330" y="342">· 배수 불량 · 지반 침하</text>
+    <text class="it" x="330" y="366">· 염해 피해</text>
+  </g>
+
+  <g>
+    <rect class="box" x="598" y="264" width="272" height="128" rx="6"/>
+    <rect x="598" y="264" width="272" height="30" rx="6" fill="url(#gFlat)" stroke="#8a8375" stroke-width="1.6"/>
+    <text class="hd" x="614" y="285">③ 갯벌 기능 상실</text>
+    <text class="it" x="614" y="318">· 에코존 소멸 → 오염정화기능 상실</text>
+    <text class="it" x="614" y="342">· 서식처 소멸 → 생물다양성 감소</text>
+    <text class="it" x="614" y="366">· 연안경관 훼손</text>
+  </g>
+
+  <text class="note" x="450" y="420">방조제로 조수 출입을 끊는 순간 갯벌의 정화·서식·경관 기능이 함께 사라지며, 그 영향은 매립지 안팎으로 동시에 나타난다</text>
+</svg>

@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 380" width="900" height="380"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>자연공원 용도지구 — 보존 강도에 따른 배치</title>
+  <desc>공원 바깥에서 안쪽으로 들어가며 공원마을지구·공원자연환경지구·공원자연보존지구가 겹겹이 놓이고, 사찰 자리는 공원문화유산지구로 따로 지정됨을 가로 단면 띠로 나타낸 모식도</desc>
+
+  <defs>
+    <!-- 보존지구: 촘촘한 점(가장 강한 규제) -->
+    <pattern id="core" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#e7efe9"/>
+      <circle cx="2" cy="2" r="1.35" fill="#1b4332"/>
+    </pattern>
+    <!-- 환경지구: 성긴 점 -->
+    <pattern id="buf" width="9" height="9" patternUnits="userSpaceOnUse">
+      <rect width="9" height="9" fill="#f2f5f1"/>
+      <circle cx="2.5" cy="2.5" r="1.1" fill="#4f7259"/>
+    </pattern>
+    <!-- 마을지구: 성긴 빗금 -->
+    <pattern id="vil" width="10" height="10" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="10" height="10" fill="#f7f9f7"/>
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#8fa397" stroke-width="1.8"/>
+    </pattern>
+    <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .nm   { font-size: 15.5px; font-weight: 700; fill: #1b4332; }
+    .dsc  { font-size: 14px; fill: #333; }
+    .cap  { font-size: 13.5px; fill: #555; text-anchor: middle; }
+  </style>
+
+  <text class="ttl" x="20" y="30">자연공원 용도지구 — 안쪽으로 갈수록 보존 강도가 높아진다</text>
+
+  <!-- 보존 강도 축 -->
+  <line x1="60" y1="62" x2="640" y2="62" stroke="#666" stroke-width="1.4" marker-end="url(#a3)"/>
+  <text class="cap" x="120" y="55" style="text-anchor:start">공원 바깥 (이용)</text>
+  <text class="cap" x="640" y="55" style="text-anchor:end">공원 안쪽 (보존)</text>
+
+  <!-- ── 겹층 띠: 왼쪽에서 오른쪽으로 좁아지며 감싸는 구조 ── -->
+  <!-- 마을지구 (가장 바깥) -->
+  <rect x="60" y="78" width="580" height="180" fill="url(#vil)" stroke="#8fa397" stroke-width="2"/>
+  <!-- 환경지구 -->
+  <rect x="200" y="102" width="440" height="132" fill="url(#buf)" stroke="#4f7259" stroke-width="2.2"/>
+  <!-- 보존지구 -->
+  <rect x="380" y="126" width="260" height="84" fill="url(#core)" stroke="#1b4332" stroke-width="2.8"/>
+  <!-- 문화유산지구: 보존지구 안에 점으로 박힌 사찰 자리 -->
+  <rect x="470" y="150" width="88" height="36" fill="#fff" stroke="#a1651a" stroke-width="2.6"/>
+  <text x="514" y="173" style="font-size:13.5px;font-weight:700;fill:#8a5415;text-anchor:middle">卍 사찰</text>
+
+  <!-- 층 라벨: 지시선으로 오른쪽 설명란에 연결 -->
+  <line x1="120" y1="248" x2="120" y2="286" stroke="#555" stroke-width="1.4"/>
+  <line x1="120" y1="286" x2="700" y2="286" stroke="#555" stroke-width="1.4"/>
+  <line x1="250" y1="224" x2="250" y2="266" stroke="#555" stroke-width="1.4"/>
+  <line x1="250" y1="266" x2="700" y2="266" stroke="#555" stroke-width="1.4"/>
+  <line x1="420" y1="200" x2="420" y2="246" stroke="#555" stroke-width="1.4"/>
+  <line x1="420" y1="246" x2="700" y2="246" stroke="#555" stroke-width="1.4"/>
+  <line x1="514" y1="150" x2="514" y2="120" stroke="#a1651a" stroke-width="1.6"/>
+  <line x1="514" y1="120" x2="700" y2="120" stroke="#a1651a" stroke-width="1.6"/>
+
+  <!-- ── 설명란 ── -->
+  <text class="nm"  x="706" y="124" fill="#8a5415">공원문화유산지구</text>
+  <text class="dsc" x="706" y="144">지정문화재를 보유한 사찰과</text>
+  <text class="dsc" x="706" y="162">전통사찰이 있는 지역</text>
+
+  <text class="nm"  x="706" y="220">공원자연보존지구</text>
+  <text class="dsc" x="706" y="240">생물다양성이 특히 풍부하고</text>
+  <text class="dsc" x="706" y="258">원시성을 지닌 자연생태계,</text>
+  <text class="dsc" x="706" y="276">보호가치 큰 야생 동식물 서식,</text>
+  <text class="dsc" x="706" y="294">경관이 뛰어난 곳</text>
+
+  <text class="nm"  x="706" y="322">공원자연환경지구</text>
+  <text class="dsc" x="706" y="342">보존지구를 감싸 외부 간섭을</text>
+  <text class="dsc" x="706" y="360">막는 완충공간</text>
+
+  <!-- 마을지구는 그림 왼쪽 아래에 직접 표기 -->
+  <text class="nm"  x="66" y="316">공원마을지구</text>
+  <text class="dsc" x="66" y="336">공원 안에 마을이 형성된 지역</text>
+</svg>

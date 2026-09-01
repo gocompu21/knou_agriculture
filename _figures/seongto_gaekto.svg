@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>성토법과 객토치환법 — 생육토심 확보 방법 비교</title>
+  <desc>같은 지반조건을 놓고, 위로 쌓아 토심을 얻는 성토법과 아래를 파내 흙을 바꿔 넣는 객토치환법을 좌우로 비교한 단면도</desc>
+
+  <defs>
+    <!-- 기존 불량 지반(매립토): 굵은 사선 -->
+    <pattern id="bad" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="9" height="9" fill="#e7e4de"/>
+      <line x1="0" y1="0" x2="0" y2="9" stroke="#8a8577" stroke-width="2.6"/>
+    </pattern>
+    <!-- 양질토(성토층·객토): 성긴 점 -->
+    <pattern id="good" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#f2f5f1"/>
+      <circle cx="2" cy="2" r="1.15" fill="#4f7259"/>
+      <circle cx="6" cy="6" r="1.15" fill="#4f7259"/>
+    </pattern>
+    <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+    <marker id="dim" viewBox="0 0 10 10" refX="5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1b4332"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .lab  { font-size: 15px; font-weight: 700; fill: #26332a; text-anchor: middle; }
+    .lab2 { font-size: 14px; fill: #3a3a3a; }
+    .note { font-size: 15.5px; fill: #333; text-anchor: middle; }
+    .gl   { stroke: #1b1b1b; stroke-width: 2.2; }
+    .glT  { font-size: 13.5px; font-weight: 700; fill: #1b1b1b; }
+    .dimL { stroke: #1b4332; stroke-width: 1.6; fill: none; }
+    .dimT { font-size: 14px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .frame{ fill: #fcfdfc; stroke: #ccd5ce; stroke-width: 1.2; }
+    .trunk{ stroke: #4a3a28; stroke-width: 5; stroke-linecap: round; }
+  </style>
+
+  <!-- ══════════════ 성토법 ══════════════ -->
+  <g transform="translate(20,0)">
+    <text class="ttl" x="205" y="30">성토법 — 지반 위로 쌓는다</text>
+    <rect class="frame" x="10" y="44" width="390" height="250" rx="6"/>
+
+    <!-- 기존 지반(불량) -->
+    <rect x="24" y="212" width="362" height="70" fill="url(#bad)" stroke="#8a8577" stroke-width="1.4"/>
+    <text class="lab2" x="30" y="272">기존 지반(생육 부적합)</text>
+
+    <!-- G.L 선 -->
+    <line class="gl" x1="18" y1="212" x2="392" y2="212"/>
+    <text class="glT" x="352" y="228">G.L</text>
+
+    <!-- 성토 마운딩: 지반 위로 볼록하게 -->
+    <path d="M 44,212 C 100,212 118,150 205,148 C 292,146 310,212 366,212 Z"
+          fill="url(#good)" stroke="#4f7259" stroke-width="2.2"/>
+    <text class="lab" x="140" y="204">성토층(양질토)</text>
+
+    <!-- 수목 -->
+    <g>
+      <path d="M 205,178 L 205,120" class="trunk"/>
+      <path d="M 205,124 C 168,124 152,100 168,82 C 172,62 200,54 214,66
+               C 244,58 262,84 248,102 C 254,120 228,130 205,124 Z"
+            fill="#dfe9e0" stroke="#4f7259" stroke-width="2"/>
+      <!-- 뿌리분 -->
+      <ellipse cx="205" cy="181" rx="21" ry="9" fill="#cfd9cd" stroke="#4f7259" stroke-width="1.6"/>
+    </g>
+
+    <!-- 토심 치수선 -->
+    <line class="dimL" x1="284" y1="152" x2="284" y2="210" marker-start="url(#dim)" marker-end="url(#dim)"/>
+    <text class="dimT" x="330" y="178">생육토심</text>
+
+    <!-- 흙이 위에서 들어온다 -->
+    <path d="M 205,66 M 96,96 C 78,120 74,150 92,170" stroke="#a1651a" stroke-width="2.4"
+          fill="none" stroke-dasharray="7 5" marker-end="url(#arw)"/>
+    <text class="lab2" x="34" y="96" fill="#a1651a">양질토 반입</text>
+
+    <text class="note" x="205" y="322">기존 지반은 그대로 두고 그 위에 양질토를 쌓아</text>
+    <text class="note" x="205" y="344">마운딩하여 뿌리가 뻗을 토심을 확보한다</text>
+  </g>
+
+  <!-- 구분선 -->
+  <line x1="450" y1="44" x2="450" y2="294" stroke="#ccd5ce" stroke-width="1.4" stroke-dasharray="6 6"/>
+
+  <!-- ══════════════ 객토치환법 ══════════════ -->
+  <g transform="translate(480,0)">
+    <text class="ttl" x="200" y="30">객토치환법 — 지반을 파내 바꾼다</text>
+    <rect class="frame" x="8" y="44" width="386" height="250" rx="6"/>
+
+    <!-- 기존 매립토 (양옆만 남는다) -->
+    <path d="M 22,212 L 22,282 L 380,282 L 380,212 L 300,212 L 288,262
+             L 116,262 L 104,212 Z"
+          fill="url(#bad)" stroke="#8a8577" stroke-width="1.4"/>
+    <text class="lab2" x="296" y="278">기존 매립토</text>
+
+    <!-- 굴착 후 객토로 채운 부분 -->
+    <path d="M 104,212 L 116,262 L 288,262 L 300,212 Z"
+          fill="url(#good)" stroke="#4f7259" stroke-width="2.2"/>
+    <text class="lab" x="202" y="254">객토(양질토)</text>
+
+    <!-- G.L -->
+    <line class="gl" x1="16" y1="212" x2="386" y2="212"/>
+    <text class="glT" x="344" y="204">G.L</text>
+
+    <!-- 수목 -->
+    <g>
+      <path d="M 202,212 L 202,150" class="trunk"/>
+      <path d="M 202,154 C 165,154 149,130 165,112 C 169,92 197,84 211,96
+               C 241,88 259,114 245,132 C 251,150 225,160 202,154 Z"
+            fill="#dfe9e0" stroke="#4f7259" stroke-width="2"/>
+      <ellipse cx="202" cy="216" rx="21" ry="9" fill="#cfd9cd" stroke="#4f7259" stroke-width="1.6"/>
+    </g>
+
+    <!-- 굴착 흙 반출 / 객토 반입 -->
+    <path d="M 92,196 C 66,180 56,152 66,128" stroke="#a1651a" stroke-width="2.4"
+          fill="none" stroke-dasharray="7 5" marker-end="url(#arw)"/>
+    <text class="lab2" x="20" y="120" fill="#a1651a">불량토 반출</text>
+
+    <path d="M 322,128 C 334,154 328,182 306,198" stroke="#a1651a" stroke-width="2.4"
+          fill="none" stroke-dasharray="7 5" marker-end="url(#arw)"/>
+    <text class="lab2" x="300" y="120" fill="#a1651a">객토 반입</text>
+
+    <!-- 치환 깊이 -->
+    <line class="dimL" x1="146" y1="214" x2="146" y2="260" marker-start="url(#dim)" marker-end="url(#dim)"/>
+    <text class="dimT" x="112" y="240" style="font-size:13px">치환깊이</text>
+
+    <text class="note" x="200" y="322">매립지 토양의 일부 또는 전부를 걷어낸 뒤</text>
+    <text class="note" x="200" y="344">그 자리를 산흙 등 양질토로 바꿔 넣는다</text>
+  </g>
+
+  <!-- 범례 -->
+  <g transform="translate(300,364)">
+    <rect x="0" y="0" width="24" height="14" fill="url(#good)" stroke="#4f7259" stroke-width="1.4"/>
+    <text class="lab2" x="30" y="12">양질토</text>
+    <rect x="110" y="0" width="24" height="14" fill="url(#bad)" stroke="#8a8577" stroke-width="1.4"/>
+    <text class="lab2" x="140" y="12">기존 지반·매립토</text>
+  </g>
+</svg>

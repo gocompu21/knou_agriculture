@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 516" width="900" height="516"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>자연교란과 생물종의 생존관계</title>
+  <desc>시간축 위에 교란 발생 시점과 회복 곡선을 세 가지 빈도로 나란히 그려, 교란 빈도가 군집 구성과 종다양성에 미치는 영향을 나타낸 그림</desc>
+
+  <defs>
+    <marker id="tarr" viewBox="0 0 10 10" refX="8" refY="5"
+            markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+    <!-- 교란 사건: 번개 모양 -->
+    <symbol id="bolt" viewBox="0 0 20 28">
+      <path d="M11,0 L2,16 L9,16 L7,28 L18,10 L11,10 Z"
+            fill="#a1651a" stroke="#7d4d12" stroke-width="1.2"/>
+    </symbol>
+  </defs>
+
+  <style>
+    .ttl  { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .row  { font-size: 15px; font-weight: 700; fill: #1b4332; }
+    .sm   { font-size: 13.5px; fill: #4a4a4a; }
+  </style>
+
+  <text class="ttl" x="18" y="30">자연교란 — 산불·홍수·태풍 등이 반복되는 간격이 군집 구성을 결정한다</text>
+  <text class="sm" x="18" y="54">세로축은 천이 진행 정도(회복 수준), 가로축은 시간. 번개 표시는 교란 발생 시점이다.</text>
+
+  <!-- ───── ① 교란 빈도가 높은 경우 ───── -->
+  <g transform="translate(0,74)">
+    <rect x="150" y="0" width="546" height="106" rx="6"
+          fill="#f6f8f5" stroke="#ccd5ce" stroke-width="1.2"/>
+    <text class="row" x="18" y="44">① 빈도가</text>
+    <text class="row" x="18" y="66">   높을 때</text>
+    <!-- 천이 후기 수준 기준선: 세 줄에서 같은 높이 -->
+    <path d="M 150,20 L 696,20" fill="none" stroke="#8fa596"
+          stroke-width="1.2" stroke-dasharray="5 5"/>
+    <path d="M 162,94 L 686,94" fill="none" stroke="#333" stroke-width="1.8"
+          marker-end="url(#tarr)"/>
+    <!-- 회복이 시작되자마자 다시 교란되어 낮은 수준에 머문다 -->
+    <g fill="none" stroke="#1b4332" stroke-width="3">
+      <path d="M 172,94 C 190,80 204,72 214,70"/>
+      <path d="M 216,94 C 234,80 248,72 258,70"/>
+      <path d="M 260,94 C 278,80 292,72 302,70"/>
+      <path d="M 304,94 C 322,80 336,72 346,70"/>
+      <path d="M 348,94 C 366,80 380,72 390,70"/>
+      <path d="M 392,94 C 410,80 424,72 434,70"/>
+      <path d="M 436,94 C 454,80 468,72 478,70"/>
+      <path d="M 480,94 C 498,80 512,72 522,70"/>
+      <path d="M 524,94 C 542,80 556,72 566,70"/>
+      <path d="M 568,94 C 586,80 600,72 610,70"/>
+    </g>
+    <g>
+      <use href="#bolt" x="208" y="36" width="14" height="20"/>
+      <use href="#bolt" x="252" y="36" width="14" height="20"/>
+      <use href="#bolt" x="296" y="36" width="14" height="20"/>
+      <use href="#bolt" x="340" y="36" width="14" height="20"/>
+      <use href="#bolt" x="384" y="36" width="14" height="20"/>
+      <use href="#bolt" x="428" y="36" width="14" height="20"/>
+      <use href="#bolt" x="472" y="36" width="14" height="20"/>
+      <use href="#bolt" x="516" y="36" width="14" height="20"/>
+      <use href="#bolt" x="560" y="36" width="14" height="20"/>
+      <use href="#bolt" x="604" y="36" width="14" height="20"/>
+    </g>
+    <text class="sm" x="162" y="124">회복할 시간이 없어 <tspan font-weight="700" fill="#1b4332">선구종 위주</tspan>의 구조가 유지되고, 천이 후기종은 자리를 잡지 못한다.</text>
+  </g>
+
+  <!-- ───── ② 중간 빈도 ───── -->
+  <g transform="translate(0,214)">
+    <rect x="150" y="0" width="546" height="106" rx="6"
+          fill="#e8efe8" stroke="#4f7259" stroke-width="1.8"/>
+    <text class="row" x="18" y="44">② 중간</text>
+    <text class="row" x="18" y="66">   (중규모교란)</text>
+    <path d="M 150,20 L 696,20" fill="none" stroke="#8fa596"
+          stroke-width="1.2" stroke-dasharray="5 5"/>
+    <path d="M 162,94 L 686,94" fill="none" stroke="#333" stroke-width="1.8"
+          marker-end="url(#tarr)"/>
+    <!-- 후기종이 자리잡을 만큼은 회복하되, 완전 우점 전에 다시 교란된다 -->
+    <g fill="none" stroke="#1b4332" stroke-width="3">
+      <path d="M 172,94 C 216,64 250,40 296,34"/>
+      <path d="M 300,94 C 344,64 378,40 424,34"/>
+      <path d="M 428,94 C 472,64 506,40 552,34"/>
+      <path d="M 556,94 C 600,66 634,46 668,38"/>
+    </g>
+    <g>
+      <use href="#bolt" x="290" y="4" width="14" height="20"/>
+      <use href="#bolt" x="418" y="4" width="14" height="20"/>
+      <use href="#bolt" x="546" y="4" width="14" height="20"/>
+    </g>
+    <text class="sm" x="162" y="124"><tspan font-weight="700" fill="#1b4332">선구종과 후기종이 공존</tspan>하여 종다양성이 가장 높아진다 (중규모 교란설).</text>
+  </g>
+
+  <!-- ───── ③ 교란 빈도가 낮은 경우 ───── -->
+  <g transform="translate(0,354)">
+    <rect x="150" y="0" width="546" height="106" rx="6"
+          fill="#f6f8f5" stroke="#ccd5ce" stroke-width="1.2"/>
+    <text class="row" x="18" y="44">③ 빈도가</text>
+    <text class="row" x="18" y="66">   낮을 때</text>
+    <path d="M 150,20 L 696,20" fill="none" stroke="#8fa596"
+          stroke-width="1.2" stroke-dasharray="5 5"/>
+    <path d="M 162,94 L 686,94" fill="none" stroke="#333" stroke-width="1.8"
+          marker-end="url(#tarr)"/>
+    <!-- 방해 없이 끝까지 올라가 후기종이 완전히 우점한다 -->
+    <path d="M 172,94 C 260,66 340,28 466,20 L 676,20"
+          fill="none" stroke="#1b4332" stroke-width="3"/>
+    <use href="#bolt" x="166" y="62" width="14" height="20"/>
+    <text class="sm" x="640" y="86">시간 →</text>
+    <text class="sm" x="162" y="124">천이가 방해 없이 진행되어 <tspan font-weight="700" fill="#1b4332">천이 후기종이 우점</tspan>하고, 경쟁에 약한 종은 배제된다.</text>
+  </g>
+
+  <!-- 오른쪽: 각 경우의 종다양성 수준을 막대로 대응시킨다 -->
+  <g transform="translate(724,74)">
+    <rect x="0" y="0" width="158" height="386" rx="8"
+          fill="#fcfdfc" stroke="#ccd5ce" stroke-width="1.2"/>
+    <text class="row" x="18" y="30">종다양성</text>
+
+    <rect x="22" y="52" width="36" height="48" fill="#f2f5f1"
+          stroke="#4f7259" stroke-width="1.6"/>
+    <text class="sm" x="68" y="82">낮음</text>
+
+    <rect x="22" y="176" width="36" height="118" fill="#4f7259"
+          stroke="#1b4332" stroke-width="1.6"/>
+    <text class="sm" x="68" y="232" font-weight="700" fill="#1b4332">가장 높음</text>
+
+    <rect x="22" y="322" width="36" height="42" fill="#f2f5f1"
+          stroke="#4f7259" stroke-width="1.6"/>
+    <text class="sm" x="68" y="348">낮음</text>
+  </g>
+
+  <text class="sm" x="18" y="504">자연교란은 인위적 개입 없이 발생해 생물을 사멸시키거나 생물량을 일시적으로 감소시키는 사건이며, 그 자리에서 2차 천이가 진행된다.</text>
+</svg>

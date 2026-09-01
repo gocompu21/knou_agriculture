@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 440" width="900" height="440"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>양서류의 생태적 특성 — 서식환경·생태적 지위·분류·생활사</title>
+  <desc>물과 뭍의 경계를 가로선으로 나누어 유생기의 수중 아가미호흡과 성체의 육상생활을 배치하고, 먹이사슬 중간 고리로서의 위치와 유미류·무미류 분류를 함께 나타낸 그림</desc>
+
+  <defs>
+    <pattern id="wtr" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#eaf0ee"/>
+      <path d="M0,4 q2,-2 4,0 t4,0" stroke="#6f8a76" stroke-width="1.2" fill="none"/>
+    </pattern>
+    <pattern id="grs" width="9" height="9" patternUnits="userSpaceOnUse">
+      <rect width="9" height="9" fill="#f2f5f1"/>
+      <circle cx="3" cy="3" r="1.3" fill="#6f8a76"/>
+    </pattern>
+    <marker id="a8" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8a5415"/>
+    </marker>
+    <marker id="a8b" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+  </defs>
+
+  <style>
+    .ttl { font-size: 20px; font-weight: 700; fill: #1b4332; }
+    .hd  { font-size: 15.5px; font-weight: 700; fill: #1b4332; }
+    .stg { font-size: 15px; font-weight: 700; fill: #1b4332; text-anchor: middle; }
+    .dsc { font-size: 14px; fill: #333; }
+    .sm  { font-size: 13px; fill: #444; }
+    .lbl { font-size: 14px; font-weight: 700; fill: #8a5415; }
+  </style>
+
+  <text class="ttl" x="20" y="30">양서류의 생태적 특성 — 물과 뭍을 오가며 산다</text>
+
+  <!-- ── 좌: 물·뭍 경계 위의 생활사 ── -->
+  <rect x="20" y="46" width="530" height="240" fill="#fcfdfc" stroke="#ccd5ce" stroke-width="1.2" rx="6"/>
+  <!-- 육상 -->
+  <rect x="26" y="52" width="518" height="104" fill="url(#grs)" stroke="#4f7259" stroke-width="1.4"/>
+  <!-- 수중 -->
+  <rect x="26" y="156" width="518" height="124" fill="url(#wtr)" stroke="#1b4332" stroke-width="1.8"/>
+  <line x1="26" y1="156" x2="544" y2="156" stroke="#1b4332" stroke-width="3"/>
+  <rect x="32" y="58" width="336" height="20" fill="#fff" opacity=".88"/>
+  <text class="lbl" x="36" y="73">육상 — 성체는 폐·피부호흡으로 뭍 생활 가능</text>
+  <rect x="32" y="228" width="226" height="20" fill="#fff" opacity=".88"/>
+  <text class="lbl" x="36" y="243">수중 — 유생은 아가미로 호흡</text>
+
+  <!-- 성체 (육상) -->
+  <rect x="200" y="86" width="150" height="42" fill="#fff" stroke="#1b4332" stroke-width="2.4" rx="5"/>
+  <text class="stg" x="275" y="112">성체</text>
+
+  <!-- 알 (경계, 물속) -->
+  <rect x="404" y="176" width="126" height="42" fill="#fff" stroke="#1b4332" stroke-width="2.4" rx="5"/>
+  <text class="stg" x="467" y="202">알</text>
+
+  <!-- 유생 (수중) -->
+  <rect x="46" y="176" width="146" height="42" fill="#fff" stroke="#1b4332" stroke-width="2.4" rx="5"/>
+  <text class="stg" x="119" y="202">유생(올챙이)</text>
+
+  <!-- 순환 화살표: 성체 → 알 → 유생 → 성체 -->
+  <path d="M 350,110 C 430,112 470,142 467,172"
+        stroke="#8a5415" stroke-width="2.6" fill="none" marker-end="url(#a8)"/>
+  <path d="M 404,197 L 196,197"
+        stroke="#8a5415" stroke-width="2.6" fill="none" marker-end="url(#a8)"/>
+  <path d="M 119,172 C 116,140 160,112 196,108"
+        stroke="#8a5415" stroke-width="2.6" fill="none" marker-end="url(#a8)"/>
+  <text class="sm" x="404" y="140" style="fill:#8a5415;font-weight:700">산란</text>
+  <text class="sm" x="270" y="190" style="fill:#8a5415;font-weight:700">부화</text>
+  <text class="sm" x="96" y="140" style="fill:#8a5415;font-weight:700">변태</text>
+
+  <rect x="32" y="254" width="500" height="20" fill="#fff" opacity=".88"/>
+  <text class="sm" x="36" y="269">비교적 넓은 수환경과 그 둘레에 습초지가 발달한 습지를 생활 터전으로 삼는다.</text>
+
+  <!-- ── 우상: 먹이사슬 위치 ── -->
+  <rect x="566" y="46" width="314" height="156" fill="#f7faf8" stroke="#4f7259" stroke-width="1.6" rx="6"/>
+  <text class="hd" x="580" y="70">생태적 지위 — 먹이사슬의 중간 고리</text>
+
+  <rect x="596" y="82" width="112" height="30" fill="#fff" stroke="#4f7259" stroke-width="1.8" rx="4"/>
+  <text class="dsc" x="652" y="102" style="text-anchor:middle">곤충 등 먹이</text>
+  <line x1="708" y1="97" x2="742" y2="97" stroke="#333" stroke-width="2" marker-end="url(#a8b)"/>
+  <rect x="742" y="82" width="112" height="30" fill="#e7efe9" stroke="#1b4332" stroke-width="2.4" rx="4"/>
+  <text class="dsc" x="798" y="102" style="text-anchor:middle;font-weight:700">양서류</text>
+
+  <line x1="798" y1="112" x2="798" y2="134" stroke="#333" stroke-width="2" marker-end="url(#a8b)"/>
+  <rect x="700" y="134" width="154" height="30" fill="#fff" stroke="#4f7259" stroke-width="1.8" rx="4"/>
+  <text class="dsc" x="777" y="154" style="text-anchor:middle">파충류 · 조류의 먹이</text>
+  <text class="sm" x="580" y="176" style="font-size:12.5px">아래를 먹고 위에 먹히므로, 개체수가 줄면</text>
+  <text class="sm" x="580" y="192" style="font-size:12.5px">상·하위 생물이 함께 흔들린다.</text>
+
+  <!-- ── 우하 + 하단: 분류 ── -->
+  <rect x="566" y="212" width="314" height="74" fill="#f7faf8" stroke="#4f7259" stroke-width="1.6" rx="6"/>
+  <text class="hd" x="580" y="236">분류 기준 — 꼬리의 유무</text>
+  <text class="dsc" x="580" y="258">유미류 : 꼬리가 있다</text>
+  <text class="dsc" x="580" y="278">무미류 : 꼬리가 없다</text>
+
+  <!-- 하단 종 목록 -->
+  <rect x="20" y="300" width="424" height="118" fill="#fff" stroke="#1b4332" stroke-width="2" rx="6"/>
+  <text class="hd" x="34" y="324">유미류 (有尾類)</text>
+  <text class="dsc" x="34" y="350">도롱뇽</text>
+  <text class="dsc" x="34" y="374">꼬리치레도롱뇽</text>
+  <text class="dsc" x="34" y="398">고리도롱뇽</text>
+  <line x1="228" y1="312" x2="228" y2="406" stroke="#ccd5ce" stroke-width="1.4"/>
+  <text class="sm" x="244" y="350">꼬리를 가진 채 성체가 되며,</text>
+  <text class="sm" x="244" y="372">차고 맑은 계류·산지 습지에</text>
+  <text class="sm" x="244" y="394">주로 산다.</text>
+
+  <rect x="456" y="300" width="424" height="118" fill="#fff" stroke="#1b4332" stroke-width="2" rx="6"
+        stroke-dasharray="8 4"/>
+  <text class="hd" x="470" y="324">무미류 (無尾類)</text>
+  <text class="dsc" x="470" y="350">무당개구리 · 산개구리</text>
+  <text class="dsc" x="470" y="374">북방산개구리 · 한국산개구리</text>
+  <text class="dsc" x="470" y="398">맹꽁이</text>
+  <line x1="716" y1="312" x2="716" y2="406" stroke="#ccd5ce" stroke-width="1.4"/>
+  <text class="sm" x="732" y="350">변태하면서 꼬리가</text>
+  <text class="sm" x="732" y="372">없어지고, 논·습지 등</text>
+  <text class="sm" x="732" y="394">정수역을 널리 이용한다.</text>
+</svg>

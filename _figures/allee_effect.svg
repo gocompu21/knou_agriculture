@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 440" width="900" height="440"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>알리효과</title>
+  <desc>개체군 밀도에 따른 성장률 변화. 밀도가 높아질수록 성장률이 낮아지는 일반 관계(점선)와 달리, 밀도가 임계점 아래로 지나치게 낮아지면 성장률이 오히려 떨어져 음(-)이 되는 알리효과 구간을 실선으로 나타냈다</desc>
+
+  <defs>
+    <marker id="aax" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+    <marker id="aor" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a1651a"/>
+    </marker>
+    <pattern id="lowD" width="8" height="8" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#fbf4ea"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#e2c9a6" stroke-width="1.5"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .ax   { stroke: #222; stroke-width: 2.2; fill: none; }
+    .axT  { font-size: 16px; font-weight: 700; fill: #222; }
+    .cur  { stroke: #1b4332; stroke-width: 3.4; fill: none; }
+    .ref  { stroke: #8a978d; stroke-width: 2.2; fill: none; stroke-dasharray: 9 6; }
+    .zero { stroke: #666; stroke-width: 1.6; fill: none; stroke-dasharray: 3 4; }
+    .crit { stroke: #a1651a; stroke-width: 2.4; fill: none; stroke-dasharray: 6 5; }
+    .critT{ font-size: 15px; font-weight: 700; fill: #a1651a; }
+    .note { font-size: 15.5px; fill: #333; }
+  </style>
+
+  <!-- 좌표 : 가로축 x 168~800, 세로축 y 56~316, 성장률 0 = y 240 -->
+
+  <!-- 임계 밀도 이하 구간 배경 -->
+  <rect x="168" y="56" width="112" height="260" fill="url(#lowD)"/>
+
+  <!-- 축 -->
+  <path class="ax" d="M 168,316 L 812,316" marker-end="url(#aax)"/>
+  <path class="ax" d="M 168,316 L 168,48" marker-end="url(#aax)"/>
+  <text class="axT" transform="translate(118,206) rotate(-90)">개체군 성장률</text>
+  <text class="axT" x="802" y="344" text-anchor="end">개체군 밀도 →</text>
+
+  <!-- 성장률 0 기준선 -->
+  <path class="zero" d="M 168,240 L 806,240"/>
+  <text x="158" y="245" style="font-size:14px;fill:#555;text-anchor:end">0</text>
+  <text x="158" y="100" style="font-size:13.5px;fill:#555;text-anchor:end">(+)</text>
+  <text x="158" y="304" style="font-size:13.5px;fill:#555;text-anchor:end">(−)</text>
+
+  <!-- 참고선 : 알리효과가 없다면 단순 감소 -->
+  <path class="ref" d="M 180,88 L 780,290"/>
+  <text x="500" y="76" style="font-size:14px;fill:#6d7a70">알리효과가 없을 때 (단순 감소 관계)</text>
+  <path d="M 496,80 L 428,166" stroke="#8a978d" stroke-width="1.4" fill="none"/>
+
+  <!-- 실제 곡선 -->
+  <path class="cur"
+        d="M 178,296
+           C 210,290 244,268 280,240
+           C 318,212 352,124 420,110
+           C 490,96 574,134 650,188
+           C 706,228 748,262 786,282"/>
+
+  <!-- 임계 밀도선 -->
+  <path class="crit" d="M 280,56 L 280,316"/>
+  <circle cx="280" cy="240" r="6.5" fill="#a1651a"/>
+  <text class="critT" x="290" y="74">임계 밀도</text>
+
+  <!-- 알리효과 지시 : 라벨을 곡선 오른쪽 위 빈 곳에 두고 지시선을 곡선 저밀도부로 -->
+  <path d="M 360,270 C 320,278 262,284 226,290" stroke="#a1651a" stroke-width="2"
+        fill="none" marker-end="url(#aor)"/>
+  <text x="370" y="258" style="font-size:16px;font-weight:700;fill:#a1651a">알리효과</text>
+  <text x="370" y="280" style="font-size:14px;fill:#7a4c11">밀도가 지나치게 낮으면</text>
+  <text x="370" y="300" style="font-size:14px;fill:#7a4c11">출생률·생존율이 오히려 떨어진다</text>
+
+  <!-- 구간 라벨 : 축 아래, 배경 띠 폭 안 -->
+  <text x="224" y="342" style="font-size:14.5px;font-weight:700;fill:#7a4c11;text-anchor:middle">밀도 부족 구간</text>
+  <text x="224" y="362" style="font-size:13.5px;fill:#7a4c11;text-anchor:middle">성장률이 음(−)</text>
+
+  <!-- 하단 정리 -->
+  <text class="note" x="118" y="400">짝 찾기 확률이 낮아지고 교배·먹이획득·방어의 협동적 사회구조가 무너진다.</text>
+  <text class="note" x="118" y="424">임계점 아래로 떨어진 개체군은 스스로 회복하지 못하므로 <tspan font-weight="700">조기의 개체군 보강</tspan>이 필요하다.</text>
+</svg>
