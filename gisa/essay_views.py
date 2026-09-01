@@ -303,6 +303,85 @@ def essay_finish(request, cert_id, session_id):
     })
 
 
+# ------------------------------------------------------------------ 학습 전략
+
+@login_required
+def essay_strategy(request, cert_id):
+    """학습 전략 — 기출 분석 결과를 근거로 공부 순서를 안내한다.
+
+    수치는 모두 DB에서 그때그때 계산한다. 회차가 늘면 자동으로 갱신된다.
+    """
+    from django.db.models import Count, Sum
+
+    cert = get_object_or_404(Certification, pk=cert_id)
+    qs = GisaEssayQuestion.objects.filter(certification=cert)
+    exam_qs = qs.filter(source='기출')
+
+    rounds = sorted(set(exam_qs.order_by().values_list('year', 'round')))
+
+    # 빈출 단계별 주제 수 — 몇 주제를 익히면 얼마를 커버하는지 보여 준다
+    freq_steps = []
+    for lo in (4, 3, 2):
+        topics = (exam_qs.filter(freq_rounds__gte=lo)
+                  .values('topic_key').distinct().count())
+        items = exam_qs.filter(freq_rounds__gte=lo).count()
+        if topics:
+            freq_steps.append({
+                'min': lo, 'topics': topics, 'items': items,
+                # 회차당 평균 몇 문항이 이 범위에서 나오는지
+                'per_round': round(items / max(1, len(rounds)), 1),
+            })
+
+    # 유형 분포
+    types = list(exam_qs.values('qtype').annotate(c=Count('id')).order_by('-c'))
+    tot_items = exam_qs.count() or 1
+    for t in types:
+        t['pct'] = round(t['c'] / tot_items * 100)
+
+    # 출제기준 주요항목 분포
+    from .management.commands.classify_essay_std import MAJOR_NAMES
+    majors = []
+    for r in (exam_qs.values('std_major').annotate(c=Count('id')).order_by('-c')):
+        majors.append({
+            'name': MAJOR_NAMES.get(r['std_major'], '미분류'),
+            'count': r['c'],
+            'pct': round(r['c'] / tot_items * 100),
+        })
+
+    # 최상위 빈출 주제 (주제마다 대표 문항 하나)
+    top = []
+    seen = set()
+    for q in exam_qs.filter(freq_rounds__gte=3).order_by('-freq_rounds', 'topic_key',
+                                                         '-year', '-round'):
+        if q.topic_key in seen:
+            continue
+        seen.add(q.topic_key)
+        top.append(q)
+
+    # 계산 유형 — 공식만 외우면 확보되는 부분이라 따로 모은다
+    calc, cseen = [], set()
+    for q in exam_qs.filter(qtype='계산').order_by('-freq_rounds', '-year', '-round'):
+        if q.topic_key in cseen:
+            continue
+        cseen.add(q.topic_key)
+        calc.append(q)
+
+    return render(request, 'gisa/essay_strategy.html', {
+        'cert': cert,
+        'total': qs.count(),
+        'exam_count': exam_qs.count(),
+        'pred_count': qs.filter(source='예상').count(),
+        'round_count': len(rounds),
+        'year_from': rounds[0][0] if rounds else '',
+        'year_to': rounds[-1][0] if rounds else '',
+        'freq_steps': freq_steps,
+        'types': types,
+        'majors': majors,
+        'top_topics': top,
+        'calc_topics': calc[:12],
+    })
+
+
 # ------------------------------------------------------------------ 학습 모드
 
 @login_required

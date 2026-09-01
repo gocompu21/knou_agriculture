@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ cert.name }} 실기 필답 학습전략{% endblock %}
+
+{% block extra_css %}
+<style>
+    .st-wrap { max-width: 900px; margin: 0 auto; padding: 0 16px 70px; }
+
+    .st-hero { background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+        color: #fff; padding: 22px 20px; border-radius: 12px; margin: 16px 0 22px; }
+    .st-hero h1 { margin: 0 0 8px; font-size: 1.3rem; }
+    /* 히어로 안의 b 는 흰 배경 위 강조색이 아니라 흰색이어야 읽힌다 */
+    .st-hero p { margin: 0; font-size: 0.9rem; line-height: 1.7;
+        color: rgba(255,255,255,.93); }
+    .st-hero p b { color: #fff; }
+    .st-back { float: right; color: #fff; text-decoration: none; font-size: 0.82rem;
+        background: rgba(255,255,255,.18); padding: 6px 14px; border-radius: 14px;
+        font-weight: 600; }
+    .st-back:hover { background: rgba(255,255,255,.3); }
+
+    h2.st { font-size: 1.08rem; color: #1b4332; margin: 30px 0 12px;
+        padding-bottom: 7px; border-bottom: 2px solid #dfe7e2; }
+    h3.st { font-size: 0.98rem; color: #2d6a4f; margin: 20px 0 8px; }
+    .st-wrap p { font-size: 0.92rem; line-height: 1.8; color: #333; margin: 0 0 12px; }
+    .st-wrap li { font-size: 0.92rem; line-height: 1.8; color: #333; }
+
+    .kv { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; }
+    .kv div { flex: 1 1 150px; background: #f3f7f4; border-radius: 9px;
+        padding: 12px 14px; }
+    .kv .n { font-size: 1.35rem; font-weight: 700; color: #1b4332; }
+    .kv .l { font-size: 0.8rem; color: #667; margin-top: 2px; }
+
+    table.st { width: 100%; border-collapse: collapse; font-size: 0.88rem;
+        margin: 0 0 16px; }
+    table.st th { background: #1b4332; color: #fff; padding: 8px 10px;
+        text-align: left; font-weight: 600; font-size: 0.82rem; }
+    table.st td { padding: 8px 10px; border-bottom: 1px solid #eceeed; }
+    table.st tr:hover td { background: #fafcfa; }
+    table.st td.num { text-align: right; white-space: nowrap; }
+
+    .bar { height: 7px; background: #eceeed; border-radius: 4px; overflow: hidden;
+        min-width: 70px; }
+    .bar i { display: block; height: 100%; background: #2d6a4f; }
+    .bar i.warn { background: #d9a441; }
+
+    .note { background: #fffdf5; border-left: 3px solid #e8d9a0;
+        padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 0 0 16px;
+        font-size: 0.88rem; line-height: 1.75; color: #5a4d2a; }
+    .note b { color: #7a5f14; }
+
+    .go { display: inline-block; background: #1b4332; color: #fff;
+        padding: 8px 18px; border-radius: 16px; text-decoration: none;
+        font-size: 0.85rem; font-weight: 700; margin: 2px 4px 2px 0; }
+    .go:hover { background: #2d6a4f; }
+    .go.sub { background: #eef2ee; color: #40624f; }
+    .go.sub:hover { background: #dde7e0; }
+
+    .step { display: flex; gap: 12px; margin: 0 0 14px; align-items: flex-start; }
+    .step .no { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+        background: #1b4332; color: #fff; font-size: 0.82rem; font-weight: 700;
+        display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+    .step .body { flex: 1; }
+    .step .body b { color: #1b4332; }
+
+    .topic { font-size: 0.88rem; line-height: 1.7; padding: 5px 0;
+        border-bottom: 1px dashed #eee; display: flex; gap: 9px; align-items: baseline; }
+    .topic .cnt { flex-shrink: 0; font-size: 0.74rem; font-weight: 700;
+        color: #a1651a; background: #fff3e0; padding: 2px 7px; border-radius: 8px; }
+    .topic .txt { flex: 1; color: #333; }
+
+    @media (max-width: 600px) {
+        .kv div { flex: 1 1 42%; }
+        table.st { font-size: 0.83rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="st-wrap">
+    <div class="st-hero">
+        <a class="st-back" href="{% url 'gisa:essay_list' cert.pk %}">실기 목록 &rsaquo;</a>
+        <h1>필답형 학습전략</h1>
+        <p>{{ year_from }}~{{ year_to }}년 <b>{{ round_count }}개 회차 {{ exam_count|intcomma }}문항</b>을
+           분석한 결과입니다. 회차가 추가되면 이 수치도 자동으로 갱신됩니다.</p>
+    </div>
+
+    <div class="kv">
+        <div><div class="n">45점</div><div class="l">필답형 배점</div></div>
+        <div><div class="n">15문항</div><div class="l">회차당 출제</div></div>
+        <div><div class="n">90분</div><div class="l">시험시간</div></div>
+        <div><div class="n">60점</div><div class="l">합격선 (작업형 55점 합산)</div></div>
+    </div>
+
+    <h2 class="st">먼저 알아야 할 것 — 필답에서 몇 점을 목표할 것인가</h2>
+    <p>실기는 <b>필답형 45점 + 작업형 55점 = 100점 만점에 합계 60점</b>이면 합격입니다.
+       과목별 과락이 없으므로, 한쪽에서 벌어 다른 쪽을 메울 수 있습니다.</p>
+    <div class="note">
+        필답에서 <b>30점</b>을 확보하면 작업형은 55점 중 <b>30점</b>만 받으면 됩니다.<br>
+        필답은 외운 만큼 나오지만 작업형(도면)은 3시간 안에 4장을 그려야 해서 변수가 큽니다.
+        <b>필답에서 벌어 두는 편이 안전합니다.</b>
+    </div>
+    <p>채점 결과 화면에서 “작업형에서 몇 점이 필요한지”를 자동으로 계산해 보여 줍니다.</p>
+
+    <h2 class="st">핵심 — 같은 주제가 되풀이 출제된다</h2>
+    <p>문항은 매번 새로 쓰이지만 <b>주제는 돌고 돕니다.</b> {{ round_count }}개 회차를 주제 단위로
+       묶어 세어 보면 이렇습니다.</p>
+
+    <table class="st">
+        <thead><tr>
+            <th>범위</th><th class="num">주제 수</th><th class="num">해당 문항</th>
+            <th class="num">회차당</th><th>바로 가기</th>
+        </tr></thead>
+        <tbody>
+        {% for f in freq_steps %}
+        <tr>
+            <td>{{ f.min }}회 이상 출제된 주제</td>
+            <td class="num">{{ f.topics }}개</td>
+            <td class="num">{{ f.items }}문항</td>
+            <td class="num">약 {{ f.per_round }}문항</td>
+            <td><a class="go sub" href="{% url 'gisa:essay_study' cert.pk %}?mode=freq&min={{ f.min }}">학습</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="note">
+        <b>2회 이상 출제된 주제만 익혀도</b> 회차당 8~10문항에 손이 닿습니다.
+        배점으로 치면 <b>25~30점</b>입니다. 실제로 최근 회차를 대조해 보면
+        기출만 공부한 사람이 24~38점을 얻을 수 있는 구성이었습니다.
+    </div>
+
+    <h2 class="st">공부 순서</h2>
+
+    <div class="step">
+        <div class="no">1</div>
+        <div class="body">
+            <b>빈출 주제부터 훑는다</b> — 3회 이상 출제된 주제를 먼저 봅니다.
+            주제마다 대표 문항 하나씩만 모아 두어 중복 없이 빠르게 지나갈 수 있습니다.<br>
+            <a class="go" href="{% url 'gisa:essay_study' cert.pk %}?mode=freq&min=3">3회 이상 주제 학습</a>
+        </div>
+    </div>
+    <div class="step">
+        <div class="no">2</div>
+        <div class="body">
+            <b>범위를 2회 이상으로 넓힌다</b> — 여기까지가 투자 대비 효율이 가장 좋은 구간입니다.<br>
+            <a class="go" href="{% url 'gisa:essay_study' cert.pk %}?mode=freq&min=2">2회 이상 주제 학습</a>
+        </div>
+    </div>
+    <div class="step">
+        <div class="no">3</div>
+        <div class="body">
+            <b>계산 유형을 따로 정리한다</b> — 아래 표의 공식만 외우면 확보되는 점수입니다.
+            해마다 1~2문항 나오고 <b>수치까지 같은 문제가 다시 나온 적도 있습니다</b>.
+        </div>
+    </div>
+    <div class="step">
+        <div class="no">4</div>
+        <div class="body">
+            <b>최근 회차부터 거꾸로 풀어 본다</b> — 2026 → 2025 → 2024 순으로 실전처럼 90분을 재고
+            풀면 자기 점수대를 알 수 있습니다.<br>
+            <a class="go" href="{% url 'gisa:essay_list' cert.pk %}">회차 목록</a>
+        </div>
+    </div>
+    <div class="step">
+        <div class="no">5</div>
+        <div class="body">
+            <b>시험지를 인쇄해 손으로 쓴다</b> — 실제 시험은 손글씨입니다. 눈으로 아는 것과
+            제한 시간 안에 써내는 것은 다릅니다. 인쇄한 답안지에 볼펜으로 쓰고 사진을 올리면
+            그대로 채점됩니다.
+        </div>
+    </div>
+
+    <h2 class="st">가장 많이 나온 주제</h2>
+    <p>3회 이상 출제된 {{ top_topics|length }}개 주제입니다. 이것만 확실히 해도 회차당 5~7문항이 걸립니다.</p>
+    {% for q in top_topics %}
+    <div class="topic">
+        <span class="cnt">{{ q.freq_rounds }}회</span>
+        <span class="txt">{{ q.text|truncatechars:78 }}</span>
+    </div>
+    {% endfor %}
+
+    <h2 class="st">계산 유형 — 공식만 외우면 되는 점수</h2>
+    <p>전체 기출에서 계산은 {{ types|length }}개 유형 중 5%에 불과하지만, 유형이 고정돼 있어
+       <b>가장 확실하게 점수로 바뀌는 부분</b>입니다.</p>
+    {% for q in calc_topics %}
+    <div class="topic">
+        <span class="cnt">{{ q.freq_rounds }}회</span>
+        <span class="txt">{{ q.text|truncatechars:74 }}</span>
+    </div>
+    {% endfor %}
+
+    <h2 class="st">문항 유형별 비중</h2>
+    <p>서술과 열거가 <b>3분의 2</b>를 차지합니다. 답을 문장으로 길게 쓰기보다
+       <b>①②③으로 항목을 나눠 핵심어를 앞에 두는 편</b>이 채점에 유리합니다.
+       채점은 항목 단위로 이뤄지기 때문입니다.</p>
+    <table class="st">
+        <thead><tr><th>유형</th><th class="num">문항</th><th class="num">비중</th><th style="width:38%">　</th></tr></thead>
+        <tbody>
+        {% for t in types %}
+        <tr>
+            <td>{{ t.qtype }}</td>
+            <td class="num">{{ t.c }}</td>
+            <td class="num">{{ t.pct }}%</td>
+            <td><span class="bar"><i style="width:{{ t.pct }}%"></i></span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 class="st">출제기준으로 본 무게중심</h2>
+    <p>Q-net 출제기준은 8개 주요항목으로 나뉘지만, 실제 출제는 크게 쏠려 있습니다.</p>
+    <table class="st">
+        <thead><tr><th>주요항목</th><th class="num">문항</th><th class="num">비중</th><th style="width:34%">　</th></tr></thead>
+        <tbody>
+        {% for m in majors %}
+        <tr>
+            <td>{{ m.name }}</td>
+            <td class="num">{{ m.count }}</td>
+            <td class="num">{{ m.pct }}%</td>
+            <td><span class="bar"><i class="{% if m.pct < 10 %}warn{% endif %}" style="width:{{ m.pct }}%"></i></span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div class="note">
+        <b>생태계 종합평가</b>(생태학 기초·조사분석·평가지표)와 <b>서식지 복원계획</b>에
+        문항의 대부분이 몰려 있습니다. 시설물 계획·모니터링·현장관리는 거의 나오지 않으므로
+        시간을 적게 배분해도 됩니다.
+    </div>
+
+    <h2 class="st">답안 작성 요령</h2>
+    <ul>
+        <li><b>요구한 개수를 정확히 맞춘다.</b> “3가지를 쓰시오”에 4개를 쓴다고 더 받지 않습니다.
+            틀린 항목이 섞이면 오히려 깎일 수 있습니다.</li>
+        <li><b>핵심어를 앞에 둔다.</b> <code>① 회피 : 노선을 보호지역 바깥으로 돌린다</code>처럼
+            용어를 먼저 쓰고 설명을 답니다.</li>
+        <li><b>한 항목에 한 개념만 담는다.</b> 두 개를 섞으면 부분점수가 어그러집니다.</li>
+        <li><b>계산은 식과 답을 함께 쓴다.</b> 답만 맞아도 점수를 주지만, 과정이 있으면
+            계산 실수를 해도 부분점수를 받습니다.</li>
+        <li><b>법조문 수치는 그대로 외운다.</b> 5년·30일·1/25,000 같은 숫자가 곧 정답입니다.</li>
+        <li>모르는 문항도 <b>빈칸으로 두지 않습니다.</b> 관련 개념이라도 적으면 부분점수 가능성이 있습니다.</li>
+    </ul>
+
+    <h2 class="st">시험 당일</h2>
+    <ul>
+        <li>8시 30분 입실 → 9시 필답 시작(90분) → 작업형 3시간. <b>오후 2시경 종료</b>됩니다.</li>
+        <li>필답은 시작 <b>30분 뒤부터 중도 퇴실</b>할 수 있고, 나와서 작업형 준비를 할 수 있습니다.</li>
+        <li>작업형 제도판은 고사장에서 빌려주기도 하지만, 확실히 하려면 직접 챙기는 편이 낫습니다.</li>
+    </ul>
+
+    <div style="margin-top:26px">
+        <a class="go" href="{% url 'gisa:essay_study' cert.pk %}?mode=freq&min=3">빈출 주제 학습 시작</a>
+        <a class="go sub" href="{% url 'gisa:essay_list' cert.pk %}">실기 목록으로</a>
+    </div>
+</div>
+{% endblock %}
