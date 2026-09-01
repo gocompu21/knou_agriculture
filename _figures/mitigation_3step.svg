@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="'Malgun Gothic','맑은 고딕',sans-serif">
+  <title>미티게이션 3단계 — 회피·저감·대체</title>
+  <desc>보호지역과 개발지의 관계로 회피, 저감, 대체 세 방안을 나타낸 개념도</desc>
+
+  <defs>
+    <!-- 보호지역을 채우는 빗금 -->
+    <pattern id="hatch" width="9" height="9" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="9" stroke="#555" stroke-width="1.3"/>
+    </pattern>
+    <!-- 저감의 교량 구간: 성긴 빗금으로 '일부만 훼손'을 나타낸다 -->
+    <pattern id="hatchLight" width="8" height="8" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#c9c9c9"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#7a7a7a" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+  </defs>
+
+  <style>
+    .cap   { font-size: 21px; font-weight: 700; fill: #111; text-anchor: middle; }
+    .capbg { fill: #d8d8d8; stroke: #9a9a9a; stroke-width: 1; }
+    .zone  { font-size: 18px; font-weight: 700; fill: #111; text-anchor: middle; }
+    .onDark{ fill: #fff; }
+    .note  { font-size: 17px; fill: #222; text-anchor: middle; }
+    .prot  { fill: url(#hatch); stroke: #111; stroke-width: 2.2; }
+    .devel { fill: #2b2b2b; stroke: #111; stroke-width: 1.5; }
+  </style>
+
+  <!-- ================= 회피 =================
+       개발지가 보호지역 바깥을 감싼다. 둘이 겹치지 않는 것이 요점이다.  -->
+  <g transform="translate(0,0)">
+    <rect class="capbg" x="112" y="14" width="76" height="34" rx="5"/>
+    <text class="cap" x="150" y="39">회피</text>
+
+    <!-- 바깥 반지름 108, 안쪽 반지름 74 인 반달. 안쪽 원(r=72)과 닿지 않는다 -->
+    <path class="devel"
+          d="M 42,232 A 108,108 0 0 1 258,232 L 224,232 A 74,74 0 0 0 76,232 Z"/>
+    <text class="zone onDark" x="150" y="146">개발지</text>
+
+    <circle class="prot" cx="150" cy="232" r="72"/>
+    <text class="zone" x="150" y="240">보호지역</text>
+
+    <text class="note" x="150" y="348">보호지역을 훼손하지 않고,</text>
+    <text class="note" x="150" y="372">주변을 개발함</text>
+  </g>
+
+  <!-- ================= 저감 =================
+       개발지가 보호지역을 가로지르되 교량이라 훼손 폭이 좁다.  -->
+  <g transform="translate(300,0)">
+    <rect class="capbg" x="112" y="14" width="76" height="34" rx="5"/>
+    <text class="cap" x="150" y="39">저감</text>
+
+    <circle class="prot" cx="150" cy="212" r="82"/>
+
+    <!-- 원의 중심 높이(y=212)를 지나도록 띠를 얹는다 -->
+    <g>
+      <rect x="52" y="195" width="196" height="34" fill="url(#hatchLight)"
+            stroke="#111" stroke-width="1.4"/>
+      <line x1="52" y1="195" x2="248" y2="195" stroke="#111"
+            stroke-width="2.5" stroke-dasharray="7 5"/>
+      <line x1="52" y1="229" x2="248" y2="229" stroke="#111"
+            stroke-width="2.5" stroke-dasharray="7 5"/>
+      <text class="zone" x="150" y="219">개발지</text>
+    </g>
+
+    <text class="note" x="150" y="348">보호지역을 일부 훼손하지만</text>
+    <text class="note" x="150" y="372">교량건설 등 훼손 면적 최소화</text>
+  </g>
+
+  <!-- ================= 대체 =================
+       개발지가 보호지역을 관통하고, 잃은 면적을 다른 곳에 새로 만든다.  -->
+  <g transform="translate(600,0)">
+    <rect class="capbg" x="112" y="14" width="76" height="34" rx="5"/>
+    <text class="cap" x="150" y="39">대체</text>
+
+    <circle class="prot" cx="138" cy="222" r="80"/>
+
+    <!-- 원을 관통하되 양옆으로 조금만 나오게 한다 -->
+    <rect class="devel" x="44" y="205" width="196" height="34"/>
+    <text class="zone onDark" x="142" y="229">개발지</text>
+
+    <!-- 훼손분을 보상하는 대체서식지 -->
+    <circle class="prot" cx="250" cy="96" r="40"/>
+    <path d="M 200,168 Q 218,132 232,120" stroke="#222" stroke-width="2"
+          fill="none" marker-end="url(#arrow)"/>
+
+    <text class="note" x="150" y="336">보호지역을 훼손하고</text>
+    <text class="note" x="150" y="360">훼손한 면적 이상으로</text>
+    <text class="note" x="150" y="384">다른 곳에 대체서식지를 조성함</text>
+  </g>
+</svg>
