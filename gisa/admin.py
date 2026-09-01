@@ -1,6 +1,8 @@
 from django.contrib import admin
 
-from .models import Certification, GisaExam, GisaSubject, GisaQuestion, GisaAttempt, GisaTextbook, GisaGlossary, MockGeneration, CertificationViewLog
+from .models import (Certification, GisaExam, GisaSubject, GisaQuestion, GisaAttempt,
+                     GisaTextbook, GisaGlossary, MockGeneration, CertificationViewLog,
+                     GisaEssayQuestion, GisaEssaySession, GisaEssayAttempt, GisaEssayUpload)
 
 
 @admin.register(Certification)
@@ -101,3 +103,63 @@ class CertificationViewLogAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'user__first_name', 'certification__name')
     date_hierarchy = 'viewed_at'
     readonly_fields = ('certification', 'user', 'tab', 'viewed_at', 'ip', 'user_agent')
+
+
+# ════════════════════ 실기 필답형 ════════════════════
+
+@admin.register(GisaEssayQuestion)
+class GisaEssayQuestionAdmin(admin.ModelAdmin):
+    list_display = ('label_col', 'number', 'qtype', 'points', 'std_major',
+                    'text_head', 'has_note')
+    list_filter = ('certification', 'source', 'qtype', 'std_major', 'section', 'year')
+    search_fields = ('text', 'answer_text', 'notes')
+    list_per_page = 40
+    fieldsets = (
+        ('분류', {'fields': ('certification', 'source', 'section', 'year', 'round',
+                           'number', 'qtype', 'points', 'std_major', 'std_sub')}),
+        ('문제', {'fields': ('text', 'text_image')}),
+        ('답', {'fields': ('answer_items', 'answer_text', 'answer_image', 'rubric')}),
+        ('참고', {'fields': ('reference', 'reference_image')}),
+        ('메모', {'fields': ('notes',)}),
+    )
+
+    def label_col(self, obj):
+        return obj.label
+    label_col.short_description = '출처'
+
+    def text_head(self, obj):
+        return (obj.text or '')[:60]
+    text_head.short_description = '문제'
+
+    def has_note(self, obj):
+        return bool(obj.notes)
+    has_note.boolean = True
+    has_note.short_description = '메모'
+
+
+class GisaEssayAttemptInline(admin.TabularInline):
+    model = GisaEssayAttempt
+    extra = 0
+    fields = ('question', 'answer_text', 'ai_score', 'final_score', 'graded_at')
+    readonly_fields = ('question', 'graded_at')
+
+
+@admin.register(GisaEssaySession)
+class GisaEssaySessionAdmin(admin.ModelAdmin):
+    list_display = ('started_at', 'user', 'certification', 'label_col', 'mode',
+                    'status', 'score', 'total_points')
+    list_filter = ('certification', 'source', 'mode', 'status')
+    search_fields = ('user__username', 'user__first_name', 'paper_code')
+    date_hierarchy = 'started_at'
+    inlines = [GisaEssayAttemptInline]
+
+    def label_col(self, obj):
+        return obj.label
+    label_col.short_description = '범위'
+
+
+@admin.register(GisaEssayUpload)
+class GisaEssayUploadAdmin(admin.ModelAdmin):
+    list_display = ('uploaded_at', 'session', 'page_no', 'transcribed')
+    list_filter = ('transcribed',)
+    readonly_fields = ('session', 'page_no', 'image', 'uploaded_at')

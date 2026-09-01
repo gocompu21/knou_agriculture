@@ -49,6 +49,20 @@
         font-weight: 600;
         margin-bottom: 10px;
     }
+    /* 필기 / 실기 구분 배지 */
+    .cert-kind {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        margin: 0 0 10px 6px;
+    }
+    .cert-kind.k-written { background: #eceff1; color: #546e7a; }
+    .cert-kind.k-practical { background: #1b4332; color: #fff; }
+    /* 실기 카드는 필기와 한눈에 구분되도록 왼쪽 띠를 준다 */
+    .cert-practical { border-left: 4px solid #1b4332; }
+    .cert-practical .cert-name { color: #1b4332; }
     .cert-stats {
         display: flex;
         gap: 16px;
@@ -85,18 +99,24 @@
 </div>
 
 <div class="wrap">
-    {% if certifications %}
+    {% if cards %}
     <div class="cert-grid">
-        {% for cert in certifications %}
-        <a href="{% url 'gisa:certification_detail' cert.pk %}" class="cert-card fade-up delay-{{ forloop.counter0 }}">
-            <span class="cert-category">{{ cert.category }}</span>
-            <div class="cert-name">{{ cert.name }}</div>
+        {% for c in cards %}
+        <a href="{{ c.url }}" class="cert-card fade-up delay-{{ forloop.counter0 }}{% if c.kind == '실기' %} cert-practical{% endif %}">
+            <span class="cert-category">{{ c.cert.category }}</span>
+            <span class="cert-kind {% if c.kind == '실기' %}k-practical{% else %}k-written{% endif %}">{{ c.kind }}</span>
+            <div class="cert-name">{{ c.cert.name }}</div>
             <div class="cert-stats">
-                <span>시험 <strong>{{ cert.exam_count }}회</strong></span>
-                <span>문제 <strong>{{ cert.question_count|intcomma }}개</strong></span>
+                {% if c.kind == '실기' %}
+                <span>기출 <strong>{{ c.exam_count }}회차</strong></span>
+                <span>문항 <strong>{{ c.question_count|intcomma }}개</strong></span>
+                {% else %}
+                <span>시험 <strong>{{ c.exam_count }}회</strong></span>
+                <span>문제 <strong>{{ c.question_count|intcomma }}개</strong></span>
+                {% endif %}
             </div>
-            {% if cert.description %}
-            <div class="cert-desc">{{ cert.description|truncatewords:20 }}</div>
+            {% if c.description %}
+            <div class="cert-desc">{{ c.description|truncatewords:20 }}</div>
             {% endif %}
         </a>
         {% endfor %}

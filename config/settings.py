@@ -102,6 +102,16 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 
+# 실기 필답형 기능에서 쓰는 모델 (용도별 분리)
+# - 채점: 채점 기준표를 프롬프트로 주므로 판단 여지가 좁다. 최신 stable flash로 충분.
+# - 손글씨 판독: 이미지 판독 정확도가 중요하므로 상위 모델을 쓴다.
+GEMINI_ESSAY_GRADE_MODEL = os.getenv('GEMINI_ESSAY_GRADE_MODEL', 'gemini-3.7-flash')
+GEMINI_ESSAY_OCR_MODEL = os.getenv('GEMINI_ESSAY_OCR_MODEL', 'gemini-3.1-pro-preview')
+
+# 사용자당 하루 LLM 호출 한도 (채점·판독 각각)
+ESSAY_DAILY_GRADE_LIMIT = int(os.getenv('ESSAY_DAILY_GRADE_LIMIT', '20'))
+ESSAY_DAILY_OCR_LIMIT = int(os.getenv('ESSAY_DAILY_OCR_LIMIT', '40'))
+
 # Email Backend (SMTP)
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"

@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ cert.name }} 실기 필답형{% endblock %}
+
+{% block extra_css %}
+<style>
+    .essay-wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px 60px; }
+
+    .essay-hero {
+        background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+        color: #fff; padding: 22px 20px; border-radius: 12px; margin: 16px 0 20px;
+    }
+    .essay-hero h1 { margin: 0 0 6px; font-size: 1.3rem; }
+    .essay-hero p { margin: 0; font-size: 0.88rem; opacity: 0.9; line-height: 1.6; }
+    .hero-top { display: flex; align-items: flex-start; gap: 14px; }
+    .hero-top > div { flex: 1; }
+    .hero-kind { display: inline-block; background: rgba(255,255,255,0.22);
+        padding: 2px 10px; border-radius: 10px; font-size: 0.8rem;
+        vertical-align: middle; margin-left: 4px; }
+    .hero-switch { flex-shrink: 0; color: #fff; text-decoration: none;
+        background: rgba(255,255,255,0.18); padding: 6px 14px; border-radius: 14px;
+        font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+    .hero-switch:hover { background: rgba(255,255,255,0.3); }
+    .hero-stat { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; }
+    .hero-stat span { font-size: 0.85rem; background: rgba(255,255,255,0.15);
+        padding: 4px 12px; border-radius: 12px; }
+
+    .sec-title { font-size: 1.05rem; font-weight: 700; color: #1b4332;
+        margin: 26px 0 12px; display: flex; align-items: center; gap: 8px; }
+    .sec-title small { font-weight: 400; color: #777; font-size: 0.8rem; }
+
+    .card-grid { display: grid; gap: 12px;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+
+    .ec { border: 1px solid #dfe5e0; border-radius: 10px; padding: 14px 16px;
+        background: #fff; transition: box-shadow .15s, transform .15s; }
+    .ec:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.08); transform: translateY(-1px); }
+    .ec-head { display: flex; justify-content: space-between; align-items: baseline;
+        margin-bottom: 8px; }
+    .ec-title { font-weight: 700; color: #1b4332; font-size: 1rem; }
+    .ec-meta { font-size: 0.78rem; color: #888; }
+    .ec-best { display: inline-block; font-size: 0.75rem; padding: 2px 8px;
+        border-radius: 10px; background: #e8f5e9; color: #1b5e20; font-weight: 600; }
+    .ec-best.none { background: #f2f2f2; color: #999; font-weight: 400; }
+    .ec-actions { display: flex; gap: 6px; margin-top: 10px; }
+    .ec-btn { flex: 1; text-align: center; padding: 7px 0; border-radius: 6px;
+        font-size: 0.82rem; text-decoration: none; font-weight: 600; }
+    .ec-btn.primary { background: #1b4332; color: #fff; }
+    .ec-btn.primary:hover { background: #2d6a4f; }
+    .ec-btn.sub { background: #eef2ee; color: #40624f; }
+    .ec-btn.sub:hover { background: #dde7e0; }
+
+    .hist { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .hist th { background: #1b4332; color: #fff; padding: 8px 10px; text-align: left;
+        font-weight: 600; font-size: 0.8rem; }
+    .hist td { padding: 8px 10px; border-bottom: 1px solid #eee; }
+    .hist tr:hover td { background: #fafafa; }
+    .badge-mode { font-size: 0.72rem; padding: 2px 7px; border-radius: 8px;
+        background: #eef2ee; color: #40624f; }
+    .badge-mode.paper { background: #fff3e0; color: #a1651a; }
+    .score-big { font-weight: 700; color: #1b5e20; }
+    .score-big.low { color: #999; }
+
+    .empty { padding: 30px; text-align: center; color: #999; font-size: 0.9rem;
+        background: #fafafa; border-radius: 10px; }
+
+    @media (max-width: 600px) {
+        .card-grid { grid-template-columns: 1fr 1fr; }
+        .ec { padding: 12px; }
+        .hist-scroll { overflow-x: auto; }
+        .hist { min-width: 560px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="essay-wrap">
+    <div class="essay-hero">
+        <div class="hero-top">
+            <div>
+                <h1>{{ cert.name }} <span class="hero-kind">실기</span></h1>
+                <p>필답형은 45점 만점이며, 작업형 55점과 합쳐 60점 이상이면 합격입니다.<br>
+                   인쇄해서 손으로 풀고 사진을 올리거나, 화면에 직접 입력해서 채점받을 수 있습니다.</p>
+            </div>
+            <a class="hero-switch" href="/gisa/{{ cert.pk }}/">필기로 &rsaquo;</a>
+        </div>
+        <div class="hero-stat">
+            <span>총 {{ total|intcomma }}문항</span>
+            <span>기출 {{ round_cards|length }}개 회차</span>
+            <span>영역 {{ sections|length }}개</span>
+        </div>
+    </div>
+
+    <div class="sec-title">기출문제 <small>회차별 실전 · 90분 · 45점</small></div>
+    {% if round_cards %}
+    <div class="card-grid">
+        {% for r in round_cards %}
+        <div class="ec">
+            <div class="ec-head">
+                <span class="ec-title">{{ r.year }}년 {{ r.round }}회</span>
+                <span class="ec-meta">{{ r.count }}문항</span>
+            </div>
+            {% if r.best is not None %}
+            <span class="ec-best">최고 {{ r.best }}점</span>
+            {% else %}
+            <span class="ec-best none">미응시</span>
+            {% endif %}
+            <div class="ec-actions">
+                <a class="ec-btn primary" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}">풀기</a>
+                <a class="ec-btn sub" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}&mode=paper">시험지</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">등록된 기출이 없습니다.</div>
+    {% endif %}
+
+    <div class="sec-title">영역별 학습 <small>예상문제 · 10문항씩 · 시간 제한 없음</small></div>
+    {% if sections %}
+    <div class="card-grid">
+        {% for s in sections %}
+        <div class="ec">
+            <div class="ec-head">
+                <span class="ec-title">{{ s.section }}</span>
+                <span class="ec-meta">{{ s.c }}문항</span>
+            </div>
+            <div class="ec-actions">
+                <a class="ec-btn primary" href="{% url 'gisa:essay_take' cert.pk %}?source=예상&section={{ s.section|urlencode }}">학습</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">등록된 예상문제가 없습니다.</div>
+    {% endif %}
+
+    <div class="sec-title">응시 이력</div>
+    {% if sessions %}
+    <div class="hist-scroll">
+        <table class="hist">
+            <thead>
+                <tr>
+                    <th style="width:130px">범위</th>
+                    <th style="width:70px">방식</th>
+                    <th style="width:110px">점수</th>
+                    <th style="width:90px">작업형 필요</th>
+                    <th>일시</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sessions %}
+                <tr>
+                    <td>{{ s.label }}</td>
+                    <td><span class="badge-mode {% if s.mode == 'paper' %}paper{% endif %}">{{ s.get_mode_display }}</span></td>
+                    <td>
+                        {% if s.status == 'done' %}
+                        <span class="score-big {% if s.percent < 60 %}low{% endif %}">{{ s.score }}</span>
+                        <span style="color:#999">/ {{ s.total_points }}</span>
+                        {% else %}
+                        <span style="color:#bbb">{{ s.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if s.status == 'done' and s.source == '기출' %}
+                            {% if s.practical_estimate %}
+                            <span style="color:#a1651a">{{ s.practical_estimate }}점</span>
+                            {% else %}
+                            <span style="color:#1b5e20">불필요</span>
+                            {% endif %}
+                        {% else %}—{% endif %}
+                    </td>
+                    <td style="color:#888">
+                        {{ s.started_at|date:"m/d H:i" }}
+                        {% if s.status == 'done' %}
+                        · <a href="{% url 'gisa:essay_result' cert.pk s.pk %}" style="color:#1b4332">결과</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty">아직 응시 기록이 없습니다.</div>
+    {% endif %}
+</div>
+{% endblock %}

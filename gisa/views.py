@@ -14,7 +14,8 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from .models import Certification, GisaAttempt, GisaExam, GisaGlossary, GisaQuestion, GisaStudyLog, GisaSubject, GisaTextbook
+from .models import (Certification, GisaAttempt, GisaEssayQuestion, GisaExam, GisaGlossary,
+                     GisaQuestion, GisaStudyLog, GisaSubject, GisaTextbook)
 
 
 ## ══════════ 쪽집게 노트 과목 통합 ══════════ ##
@@ -353,14 +354,57 @@ def build_results(attempts):
 
 @login_required
 def certification_list(request):
+    """자격증 목록. 필기와 실기는 성격이 달라 별개 카드로 나눈다.
+
+    실기(필답형) 문항이 있는 자격증은 "○○기사 · 실기" 카드를 따로 만들어
+    필기 카드와 나란히 놓는다. 실기 카드는 essay_list로 직행한다.
+    """
     certifications = Certification.objects.annotate(
         exam_count=Count("gisaexam", distinct=True),
         question_count=Count("gisaexam__gisaquestion", distinct=True),
     )
+
+    # 실기 필답 문항 보유 자격증.
+    # 회차 수는 (year, round) 조합을 세야 한다 — round만 distinct하면
+    # 회차 번호(1·2·3)만 세어 10회차가 3으로 나온다.
+    essay_totals = dict(
+        GisaEssayQuestion.objects.values_list("certification").annotate(c=Count("id"))
+    )
+    # order_by()로 Meta.ordering을 지워야 distinct가 제대로 동작한다
+    # (정렬 필드가 SELECT에 끼어들어 중복 제거가 무력화된다)
+    essay_rounds = {}
+    for cert_id, year, rnd in (GisaEssayQuestion.objects
+                               .filter(source="기출")
+                               .order_by()
+                               .values_list("certification", "year", "round")
+                               .distinct()):
+        essay_rounds[cert_id] = essay_rounds.get(cert_id, 0) + 1
+
+    cards = []
+    for cert in certifications:
+        cards.append({
+            "cert": cert,
+            "kind": "필기",
+            "url": reverse("gisa:certification_detail", args=[cert.pk]),
+            "exam_count": cert.exam_count,
+            "question_count": cert.question_count,
+            "description": cert.description,
+        })
+        total = essay_totals.get(cert.pk)
+        if total:
+            cards.append({
+                "cert": cert,
+                "kind": "실기",
+                "url": reverse("gisa:essay_list", args=[cert.pk]),
+                "exam_count": essay_rounds.get(cert.pk, 0),
+                "question_count": total,
+                "description": "필답형 주관식 · 인쇄해서 손으로 풀고 사진으로 채점받을 수 있습니다.",
+            })
+
     return render(
         request,
         "gisa/certification_list.html",
-        {"certifications": certifications},
+        {"cards": cards},
     )
 
 

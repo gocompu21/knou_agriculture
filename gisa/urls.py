@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import essay_views, views
 
 app_name = "gisa"
 
@@ -57,4 +57,14 @@ urlpatterns = [
     path("manage/question/<int:pk>/generate-exp/", views.gisa_question_generate_exp, name="gisa_question_generate_exp"),
     # 용어집
     path("glossary/<int:pk>/delete/", views.glossary_delete, name="glossary_delete"),
+    # 실기 필답형
+    path("<int:cert_id>/essay/", essay_views.essay_list, name="essay_list"),
+    path("<int:cert_id>/essay/take/", essay_views.essay_take, name="essay_take"),
+    path("<int:cert_id>/essay/<int:session_id>/submit/", essay_views.essay_submit, name="essay_submit"),
+    path("<int:cert_id>/essay/<int:session_id>/result/", essay_views.essay_result, name="essay_result"),
+    path("<int:cert_id>/essay/<int:session_id>/sheet/", essay_views.essay_sheet, name="essay_sheet"),
+    path("<int:cert_id>/essay/<int:session_id>/upload/", essay_views.essay_upload, name="essay_upload"),
+    path("<int:cert_id>/essay/<int:session_id>/confirm/", essay_views.essay_confirm, name="essay_confirm"),
+    path("<int:cert_id>/essay/adjust/<int:attempt_id>/", essay_views.essay_adjust, name="essay_adjust"),
+    path("<int:cert_id>/essay/grade-one/<int:question_id>/", essay_views.essay_grade_one, name="essay_grade_one"),
 ]

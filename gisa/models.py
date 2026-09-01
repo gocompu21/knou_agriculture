@@ -215,6 +215,230 @@ class MockGeneration(models.Model):
         return f"{self.user.username} · {self.subject.name} (세대 {self.generation}, {len(self.seen_question_ids)}문제 누적)"
 
 
+def _essay_question_img_path(instance, filename):
+    """실기 필답형 문항 이미지 경로. 자격증·출처별로 분리."""
+    import os
+    ext = os.path.splitext(filename)[1] or '.png'
+    cert_id = instance.certification_id
+    return f'gisa/essay/c{cert_id}/{instance.source}/{filename}'
+
+
+class GisaEssayQuestion(models.Model):
+    """실기 필답형 문항 (주관식).
+
+    예상문제(source='예상')는 영역별 학습용, 기출(source='기출')은 회차별 실전용.
+    답은 채점 포인트 단위인 answer_items(리스트)로 저장하며, 표·계산식처럼
+    항목으로 쪼갤 수 없는 답은 answer_text에 둔다.
+    """
+    SOURCE_CHOICES = [
+        ('예상', '예상문제'),
+        ('기출', '기출문제'),
+    ]
+    TYPE_CHOICES = [
+        ('열거', '열거형'),
+        ('서술', '서술형'),
+        ('단답', '단답형'),
+        ('빈칸', '빈칸형'),
+        ('계산', '계산형'),
+        ('표그림', '표·그림형'),
+    ]
+
+    certification = models.ForeignKey(
+        Certification, on_delete=models.CASCADE,
+        related_name='essay_questions', verbose_name='자격증')
+    source = models.CharField('출처', max_length=10, choices=SOURCE_CHOICES, default='기출')
+    section = models.CharField('영역', max_length=30, blank=True,
+                               help_text='예상문제의 소절명(생태학·법규 등). 기출은 "기출"')
+    year = models.IntegerField('출제연도', null=True, blank=True)
+    round = models.IntegerField('회차', null=True, blank=True)
+    number = models.IntegerField('문항번호')
+
+    qtype = models.CharField('유형', max_length=10, choices=TYPE_CHOICES, default='서술')
+    text = models.TextField('문제')
+    text_image = models.ImageField('문제 이미지', upload_to=_essay_question_img_path, blank=True)
+    answer_items = models.JSONField('답 항목', default=list, blank=True,
+                                    help_text='채점 포인트 단위 리스트')
+    answer_text = models.TextField('답 서술', blank=True,
+                                   help_text='표·계산식 등 항목화하기 어려운 답')
+    answer_image = models.ImageField('답 이미지', upload_to=_essay_question_img_path, blank=True)
+    reference = models.TextField('참고자료', blank=True,
+                                 help_text='법조문·지침 등. 채점에는 쓰지 않고 학습용으로 노출')
+    reference_image = models.ImageField('참고 이미지', upload_to=_essay_question_img_path, blank=True)
+
+    points = models.FloatField('배점', default=3,
+                               help_text='기출은 회차 합계가 45점이 되도록 0.5점 단위로 정규화')
+    rubric = models.JSONField('채점 기준표', default=list, blank=True,
+                              help_text='[{point, keywords[], score}] 형식. 비어 있으면 answer_items로 자동 생성')
+    std_major = models.PositiveSmallIntegerField('출제기준 주요항목', default=0,
+                                                 help_text='1~8. 0은 미분류')
+    std_sub = models.PositiveSmallIntegerField('출제기준 세부항목', default=0)
+    notes = models.TextField('판독 메모', blank=True,
+                             help_text='원문 오식 등. 관리자만 확인')
+
+    created_at = models.DateTimeField('등록일', auto_now_add=True, null=True)
+
+    class Meta:
+        verbose_name = '실기 필답 문항'
+        verbose_name_plural = '실기 필답 문항'
+        ordering = ['source', 'section', '-year', '-round', 'number']
+        unique_together = ['certification', 'source', 'section', 'year', 'round', 'number']
+        indexes = [
+            models.Index(fields=['certification', 'source']),
+            models.Index(fields=['certification', 'year', 'round']),
+        ]
+
+    def __str__(self):
+        if self.source == '기출':
+            return f"[{self.certification.name} 실기] {self.year}-{self.round} {self.number}번"
+        return f"[{self.certification.name} 실기] {self.section} {self.number}번"
+
+    @property
+    def label(self):
+        """화면에 표시할 출처 라벨."""
+        if self.source == '기출':
+            return f"{self.year}년 {self.round}회"
+        return self.section
+
+    def build_rubric(self):
+        """저장된 rubric이 없으면 answer_items로 균등 배분 기준표를 만든다."""
+        if self.rubric:
+            return self.rubric
+        items = self.answer_items or []
+        if not items:
+            return [{'point': (self.answer_text or '')[:200], 'score': self.points}]
+        base = self.points / len(items)
+        return [{'point': it, 'score': round(base, 2)} for it in items]
+
+
+class GisaEssaySession(models.Model):
+    """필답형 응시 세션 (회차 단위 또는 영역 학습 단위)."""
+    MODE_CHOICES = [
+        ('online', '온라인 입력'),
+        ('paper', '시험지 사진'),
+    ]
+    STATUS_CHOICES = [
+        ('progress', '진행중'),
+        ('grading', '채점중'),
+        ('done', '채점완료'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                             related_name='essay_sessions', verbose_name='사용자')
+    certification = models.ForeignKey(Certification, on_delete=models.CASCADE, verbose_name='자격증')
+    source = models.CharField('출처', max_length=10, default='기출')
+    section = models.CharField('영역', max_length=30, blank=True)
+    year = models.IntegerField('출제연도', null=True, blank=True)
+    round = models.IntegerField('회차', null=True, blank=True)
+
+    mode = models.CharField('입력방식', max_length=10, choices=MODE_CHOICES, default='online')
+    status = models.CharField('상태', max_length=10, choices=STATUS_CHOICES, default='progress')
+    paper_code = models.CharField('시험지 코드', max_length=12, blank=True, db_index=True,
+                                 help_text='인쇄 시험지 QR에 담기는 세션 식별 코드')
+
+    total_points = models.PositiveSmallIntegerField('총 배점', default=45)
+    score = models.FloatField('획득 점수', default=0)
+    started_at = models.DateTimeField('시작', auto_now_add=True)
+    submitted_at = models.DateTimeField('제출', null=True, blank=True)
+
+    class Meta:
+        verbose_name = '필답 응시'
+        verbose_name_plural = '필답 응시'
+        ordering = ['-started_at']
+        indexes = [
+            models.Index(fields=['user', '-started_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} · {self.label} ({self.score}/{self.total_points})"
+
+    @property
+    def label(self):
+        if self.source == '기출':
+            return f"{self.year}년 {self.round}회"
+        return self.section or '학습'
+
+    @property
+    def percent(self):
+        if not self.total_points:
+            return 0
+        return round(self.score / self.total_points * 100, 1)
+
+    @property
+    def practical_estimate(self):
+        """필답 점수를 실기 합격선(합계 60점) 기준으로 환산.
+
+        작업형 55점 중 몇 점을 받아야 합격인지 알려준다.
+        """
+        need = 60 - self.score
+        if need <= 0:
+            return 0
+        return round(need, 1)
+
+
+class GisaEssayAttempt(models.Model):
+    """필답형 문항별 답안과 채점 결과."""
+    session = models.ForeignKey(GisaEssaySession, on_delete=models.CASCADE,
+                                related_name='attempts', verbose_name='응시')
+    question = models.ForeignKey(GisaEssayQuestion, on_delete=models.CASCADE, verbose_name='문항')
+
+    answer_text = models.TextField('제출 답안', blank=True)
+    transcribed_text = models.TextField('사진 판독 원문', blank=True,
+                                        help_text='손글씨 판독 결과. 사용자가 수정하면 answer_text에 확정본이 들어간다')
+    transcribe_confirmed = models.BooleanField('판독 확인', default=False)
+
+    ai_score = models.FloatField('AI 채점 점수', null=True, blank=True)
+    final_score = models.FloatField('최종 점수', null=True, blank=True,
+                                    help_text='사용자가 조정한 값. 없으면 ai_score를 쓴다')
+    feedback = models.JSONField('채점 상세', default=dict, blank=True,
+                                help_text='{points: [{point, matched, comment}], summary: str}')
+    graded_at = models.DateTimeField('채점 시각', null=True, blank=True)
+    created_at = models.DateTimeField('작성 시각', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '필답 답안'
+        verbose_name_plural = '필답 답안'
+        ordering = ['question__number']
+        unique_together = ['session', 'question']
+
+    def __str__(self):
+        return f"{self.session.user.username} · {self.question} ({self.score}점)"
+
+    @property
+    def score(self):
+        if self.final_score is not None:
+            return self.final_score
+        return self.ai_score or 0
+
+    @property
+    def is_perfect(self):
+        return self.score >= self.question.points
+
+
+def _essay_upload_path(instance, filename):
+    import os
+    ext = os.path.splitext(filename)[1] or '.jpg'
+    return f'gisa/essay_uploads/{instance.session.user_id}/{instance.session_id}/p{instance.page_no}{ext}'
+
+
+class GisaEssayUpload(models.Model):
+    """시험지 사진 업로드 (paper 모드)."""
+    session = models.ForeignKey(GisaEssaySession, on_delete=models.CASCADE,
+                                related_name='uploads', verbose_name='응시')
+    page_no = models.PositiveSmallIntegerField('페이지', default=1)
+    image = models.ImageField('사진', upload_to=_essay_upload_path)
+    transcribed = models.BooleanField('판독 완료', default=False)
+    uploaded_at = models.DateTimeField('업로드', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '시험지 사진'
+        verbose_name_plural = '시험지 사진'
+        ordering = ['session', 'page_no']
+        unique_together = ['session', 'page_no']
+
+    def __str__(self):
+        return f"{self.session} p{self.page_no}"
+
+
 class CertificationViewLog(models.Model):
     """자격증 상세 페이지(certification_detail) 진입 기록.
     사용자가 어느 자격증의 어느 탭을 언제 봤는지 추적.

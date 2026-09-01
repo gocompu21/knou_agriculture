@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+{% load gisa_filters %}
+
+{% block title %}{{ session.label }} 필답형{% endblock %}
+
+{% block extra_css %}
+<style>
+    .site-header, .site-footer { display: none !important; }
+    main { padding: 0 !important; }
+    body { background: #fff !important; }
+
+    .et-header {
+        position: sticky; top: 0; z-index: 100;
+        background: #1b4332; color: #fff;
+        padding: 10px 16px; display: flex; align-items: center; gap: 12px;
+    }
+    .et-title { flex: 1; font-weight: 700; font-size: 0.95rem;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .et-title small { font-weight: 400; opacity: 0.75; font-size: 0.85em; }
+    .et-timer { font-variant-numeric: tabular-nums; font-weight: 700;
+        font-size: 1rem; padding: 3px 10px; border-radius: 8px;
+        background: rgba(255,255,255,0.15); }
+    .et-timer.warn { background: #c62828; }
+    .et-btn { background: #fff; color: #1b4332; border: 0; border-radius: 14px;
+        padding: 6px 16px; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+    .et-btn:disabled { opacity: 0.5; cursor: default; }
+
+    .et-wrap { max-width: 860px; margin: 0 auto; padding: 16px 16px 80px; }
+
+    .et-notice { background: #f1f7f2; border: 1px solid #d6e5da; border-radius: 8px;
+        padding: 12px 14px; font-size: 0.85rem; color: #33574a; line-height: 1.6;
+        margin-bottom: 18px; }
+    .et-notice b { color: #1b4332; }
+
+    .eq { border-bottom: 1px solid #eee; padding: 18px 0; }
+    .eq:last-child { border-bottom: 0; }
+    .eq-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+    .eq-no { font-weight: 700; color: #1b4332; font-size: 1rem; min-width: 26px; }
+    .eq-type { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
+        background: #eef2ee; color: #40624f; }
+    .eq-pts { font-size: 0.75rem; color: #999; margin-left: auto; }
+    .eq-text { font-size: 0.95rem; line-height: 1.75; color: #222;
+        padding-left: 34px; margin-bottom: 10px; }
+    .eq-img { display: block; max-width: min(100%, 420px); margin: 8px 0 8px 34px; }
+    .eq-answer { margin-left: 34px; }
+    .eq-answer textarea {
+        width: 100%; min-height: 90px; padding: 10px 12px; font-size: 0.92rem;
+        line-height: 1.7; border: 1px solid #cfd8d2; border-radius: 8px;
+        font-family: inherit; resize: vertical; box-sizing: border-box;
+    }
+    .eq-answer textarea:focus { outline: 0; border-color: #2d6a4f;
+        box-shadow: 0 0 0 3px rgba(45,106,79,0.1); }
+    .eq-hint { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+
+    /* 학습 모드 즉시 채점 */
+    .eq-check { margin-top: 8px; display: flex; gap: 8px; align-items: center; }
+    .btn-check { background: #2d6a4f; color: #fff; border: 0; border-radius: 6px;
+        padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+    .btn-check:disabled { background: #bbb; cursor: default; }
+    .eq-result { display: none; margin-top: 10px; padding: 12px 14px;
+        background: #fafafa; border-radius: 8px; font-size: 0.87rem; line-height: 1.7; }
+    .eq-result.show { display: block; }
+    .rs-score { font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; }
+    .rs-score.ok { color: #1b5e20; }
+    .rs-score.mid { color: #a1651a; }
+    .rs-score.no { color: #c62828; }
+    .rs-pt { padding: 3px 0 3px 20px; position: relative; }
+    .rs-pt::before { position: absolute; left: 0; font-weight: 700; }
+    .rs-pt.y::before { content: '✓'; color: #1b5e20; }
+    .rs-pt.n::before { content: '✕'; color: #c62828; }
+    .rs-pt.n { color: #777; }
+    .rs-cmt { color: #999; font-size: 0.9em; }
+    .rs-ref { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd;
+        color: #666; font-size: 0.82rem; max-height: 200px; overflow-y: auto; }
+
+    /* 사진 업로드 */
+    .up-box { border: 2px dashed #cfd8d2; border-radius: 12px; padding: 24px 20px;
+        text-align: center; margin-bottom: 20px; background: #fafcfa; }
+    .up-box h3 { margin: 0 0 8px; font-size: 1rem; color: #1b4332; }
+    .up-box p { margin: 0 0 14px; font-size: 0.85rem; color: #777; line-height: 1.6; }
+    .up-file { display: none; }
+    .up-label { display: inline-block; background: #1b4332; color: #fff;
+        padding: 10px 22px; border-radius: 8px; font-weight: 600; cursor: pointer;
+        font-size: 0.9rem; }
+    .up-list { margin-top: 12px; font-size: 0.83rem; color: #666; }
+    .up-status { margin-top: 12px; font-size: 0.85rem; color: #2d6a4f; font-weight: 600; }
+
+    .et-submit-bar { position: fixed; bottom: 0; left: 0; right: 0;
+        background: #fff; border-top: 1px solid #e5e5e5; padding: 10px 16px;
+        display: flex; gap: 10px; align-items: center; justify-content: center; z-index: 90; }
+    .btn-submit { background: #1b4332; color: #fff; border: 0; border-radius: 20px;
+        padding: 11px 40px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+    .btn-submit:disabled { background: #bbb; cursor: default; }
+    .submit-note { font-size: 0.8rem; color: #999; }
+
+    @media (max-width: 600px) {
+        .eq-text, .eq-answer { padding-left: 0; margin-left: 0; }
+        .eq-img { margin-left: 0; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="et-header">
+    <div class="et-title">
+        {{ session.label }}
+        <small>· {{ questions|length }}문항 · {{ total_points }}점</small>
+    </div>
+    {% if time_limit %}<div class="et-timer" id="timer">90:00</div>{% endif %}
+</div>
+
+<div class="et-wrap">
+    {% if session.mode == 'paper' %}
+    <div class="et-notice">
+        <b>시험지 모드</b>입니다. 아래 순서로 진행하세요.<br>
+        ① <a href="{% url 'gisa:essay_sheet' cert.pk session.pk %}" target="_blank" style="color:#1b4332;font-weight:700">시험지 인쇄</a>
+        → ② 볼펜으로 풀기 → ③ 페이지별로 사진 촬영 → ④ 아래에 업로드
+    </div>
+
+    <div class="up-box">
+        <h3>답안지 사진 업로드</h3>
+        <p>페이지마다 한 장씩, 그림자 없이 정면에서 촬영하세요.<br>
+           여러 장을 한 번에 선택할 수 있습니다.</p>
+        <label class="up-label" for="upfile">사진 선택</label>
+        <input type="file" id="upfile" class="up-file" accept="image/*" capture="environment" multiple>
+        <div class="up-list" id="uplist"></div>
+        <div class="up-status" id="upstatus"></div>
+    </div>
+    {% endif %}
+
+    <form id="essayForm" method="post"
+          action="{% url 'gisa:essay_submit' cert.pk session.pk %}">
+        {% csrf_token %}
+        {% for q in questions %}
+        <div class="eq" data-qid="{{ q.pk }}">
+            <div class="eq-head">
+                <span class="eq-no">{{ q.number }}</span>
+                <span class="eq-type">{{ q.get_qtype_display }}</span>
+                <span class="eq-pts">{{ q.points }}점</span>
+            </div>
+            <div class="eq-text">{{ q.text|qtext }}</div>
+            {% if q.text_image %}<img class="eq-img" src="{{ q.text_image|vurl }}" alt="">{% endif %}
+            <div class="eq-answer">
+                <input type="hidden" name="question_id" value="{{ q.pk }}">
+                <textarea name="answer_{{ q.pk }}" id="ans_{{ q.pk }}"
+                          placeholder="답안을 입력하세요"></textarea>
+                <div class="eq-hint">항목을 나눠 쓸 때는 ① ② ③ 으로 구분하면 채점이 정확합니다.</div>
+
+                {% if not is_exam %}
+                <div class="eq-check">
+                    <button type="button" class="btn-check" data-qid="{{ q.pk }}">채점</button>
+                </div>
+                <div class="eq-result" id="res_{{ q.pk }}"></div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </form>
+</div>
+
+<div class="et-submit-bar">
+    <button class="btn-submit" id="btnSubmit">제출하고 채점받기</button>
+    <span class="submit-note" id="submitNote"></span>
+</div>
+
+<script>
+const CERT_ID = {{ cert.pk }};
+const SESSION_ID = {{ session.pk }};
+const CSRF = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+/* ---------- 타이머 ---------- */
+{% if time_limit %}
+let remain = {{ time_limit }};
+const timerEl = document.getElementById('timer');
+setInterval(() => {
+    if (remain <= 0) return;
+    remain--;
+    const m = String(Math.floor(remain / 60)).padStart(2, '0');
+    const s = String(remain % 60).padStart(2, '0');
+    timerEl.textContent = `${m}:${s}`;
+    if (remain <= 300) timerEl.classList.add('warn');
+    if (remain === 0) {
+        alert('시험 시간이 종료되었습니다. 제출합니다.');
+        document.getElementById('essayForm').submit();
+    }
+}, 1000);
+{% endif %}
+
+/* ---------- 임시 저장 (작성 중 유실 방지) ---------- */
+const DRAFT_KEY = `essay_draft_${SESSION_ID}`;
+function saveDraft() {
+    const data = {};
+    document.querySelectorAll('textarea[name^=answer_]').forEach(t => {
+        if (t.value.trim()) data[t.name] = t.value;
+    });
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(data)); } catch (e) {}
+}
+function loadDraft() {
+    try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        Object.entries(data).forEach(([k, v]) => {
+            const el = document.querySelector(`textarea[name="${k}"]`);
+            if (el && !el.value) el.value = v;
+        });
+    } catch (e) {}
+}
+loadDraft();
+document.addEventListener('input', e => {
+    if (e.target.matches('textarea[name^=answer_]')) saveDraft();
+});
+
+/* ---------- 학습 모드 즉시 채점 ---------- */
+document.querySelectorAll('.btn-check').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const qid = btn.dataset.qid;
+        const ans = document.getElementById(`ans_${qid}`).value.trim();
+        const box = document.getElementById(`res_${qid}`);
+        btn.disabled = true;
+        btn.textContent = '채점 중…';
+        try {
+            const fd = new FormData();
+            fd.append('answer', ans);
+            const r = await fetch(`/gisa/${CERT_ID}/essay/grade-one/${qid}/`, {
+                method: 'POST', headers: {'X-CSRFToken': CSRF}, body: fd
+            });
+            const d = await r.json();
+            if (!d.ok) throw new Error(d.error || '채점 실패');
+            renderResult(box, d);
+        } catch (e) {
+            box.innerHTML = `<span style="color:#c62828">채점 실패: ${e.message}</span>`;
+            box.classList.add('show');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '다시 채점';
+        }
+    });
+});
+
+function renderResult(box, d) {
+    const pct = d.max ? d.score / d.max : 0;
+    const cls = pct >= 0.999 ? 'ok' : (pct > 0 ? 'mid' : 'no');
+    let html = `<div class="rs-score ${cls}">${d.score} / ${d.max}점</div>`;
+    (d.points || []).forEach(p => {
+        html += `<div class="rs-pt ${p.matched ? 'y' : 'n'}">${escapeHtml(p.point)}`;
+        if (!p.matched && p.comment) html += ` <span class="rs-cmt">— ${escapeHtml(p.comment)}</span>`;
+        html += `</div>`;
+    });
+    if (d.summary) html += `<div style="margin-top:8px;color:#555">${escapeHtml(d.summary)}</div>`;
+    if (d.answer_text) html += `<div class="rs-ref"><b>모범답안</b><br>${escapeHtml(d.answer_text).replace(/\n/g, '<br>')}</div>`;
+    if (d.reference) html += `<div class="rs-ref"><b>참고</b><br>${escapeHtml(d.reference).slice(0, 1500).replace(/\n/g, '<br>')}</div>`;
+    box.innerHTML = html;
+    box.classList.add('show');
+}
+
+function escapeHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s == null ? '' : String(s);
+    return d.innerHTML;
+}
+
+/* ---------- 사진 업로드 ---------- */
+{% if session.mode == 'paper' %}
+document.getElementById('upfile').addEventListener('change', async e => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const list = document.getElementById('uplist');
+    const status = document.getElementById('upstatus');
+    list.textContent = files.map(f => f.name).join(', ');
+    status.textContent = '판독 중… 잠시만 기다려 주세요.';
+
+    const fd = new FormData();
+    files.forEach(f => fd.append('images', f));
+    try {
+        const r = await fetch(`/gisa/${CERT_ID}/essay/${SESSION_ID}/upload/`, {
+            method: 'POST', headers: {'X-CSRFToken': CSRF}, body: fd
+        });
+        const d = await r.json();
+        if (!d.ok) throw new Error(d.error || '판독 실패');
+        let filled = 0;
+        (d.answers || []).forEach(a => {
+            const el = document.getElementById(`ans_${a.question_id}`);
+            if (el) { el.value = a.text; filled++; }
+        });
+        saveDraft();
+        status.innerHTML = `${filled}개 문항을 읽었습니다. <b>내용을 확인하고 필요하면 고친 뒤 제출하세요.</b>`;
+    } catch (err) {
+        status.innerHTML = `<span style="color:#c62828">${err.message}</span>`;
+    }
+});
+{% endif %}
+
+/* ---------- 제출 ---------- */
+document.getElementById('btnSubmit').addEventListener('click', () => {
+    const total = document.querySelectorAll('textarea[name^=answer_]').length;
+    let filled = 0;
+    document.querySelectorAll('textarea[name^=answer_]').forEach(t => {
+        if (t.value.trim()) filled++;
+    });
+    if (filled === 0) { alert('답안을 하나 이상 입력해 주세요.'); return; }
+    if (filled < total && !confirm(`${total - filled}문항이 비어 있습니다. 제출할까요?`)) return;
+
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.textContent = '채점 중…';
+    document.getElementById('submitNote').textContent = '문항 수에 따라 10~30초 걸립니다.';
+    try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+    document.getElementById('essayForm').submit();
+});
+</script>
+{% endblock %}
