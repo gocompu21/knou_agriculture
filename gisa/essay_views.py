@@ -286,6 +286,52 @@ def essay_finish(request, cert_id, session_id):
     })
 
 
+# ------------------------------------------------------------------ 학습 모드
+
+@login_required
+def essay_study(request, cert_id):
+    """학습 모드 — 문제와 모범답안을 함께 본다.
+
+    풀지 않고 눈으로 익히는 용도다. 세션을 만들지 않으므로 응시 이력에도
+    남지 않고 채점 한도도 쓰지 않는다.
+
+    앞으로 학습 방식이 여러 개 붙을 자리다(암기 카드, 키워드 가리기 등).
+    `mode` 파라미터로 갈라 쓴다.
+    """
+    cert = get_object_or_404(Certification, pk=cert_id)
+    source = request.GET.get('source', '기출')
+    section = request.GET.get('section', '')
+    year = request.GET.get('year')
+    round_ = request.GET.get('round')
+    study_mode = request.GET.get('mode', 'answer')      # answer | (향후 확장)
+
+    qs = GisaEssayQuestion.objects.filter(certification=cert, source=source)
+    if source == '기출':
+        year = int(year) if year else None
+        round_ = int(round_) if round_ else None
+        qs = qs.filter(year=year, round=round_)
+        title = f'{year}년 {round_}회'
+    else:
+        qs = qs.filter(section=section)
+        title = section
+
+    questions = list(qs.order_by('number'))
+    if not questions:
+        return redirect('gisa:essay_list', cert_id=cert_id)
+
+    return render(request, 'gisa/essay_study.html', {
+        'cert': cert,
+        'title': title,
+        'source': source,
+        'section': section,
+        'year': year,
+        'round': round_,
+        'questions': questions,
+        'study_mode': study_mode,
+        'total_points': round(sum(float(q.points) for q in questions), 1),
+    })
+
+
 # ------------------------------------------------------------------ 결과
 
 @login_required

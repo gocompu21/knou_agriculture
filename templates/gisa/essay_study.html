@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% load gisa_filters %}
+
+{% block title %}{{ title }} 학습{% endblock %}
+
+{% block extra_css %}
+<style>
+    .site-header, .site-footer { display: none !important; }
+    main { padding: 0 !important; }
+    body { background: #fff !important; }
+
+    .es-header {
+        position: sticky; top: 0; z-index: 100;
+        background: #1b4332; color: #fff;
+        padding: 10px 16px; display: flex; align-items: center; gap: 10px;
+    }
+    .es-title { flex: 1; font-weight: 700; font-size: 0.95rem;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .es-title small { font-weight: 400; opacity: 0.75; font-size: 0.85em; }
+    .es-btn { background: rgba(255,255,255,0.18); color: #fff; border: 0;
+        border-radius: 14px; padding: 6px 14px; font-size: 0.82rem;
+        font-weight: 600; cursor: pointer; text-decoration: none;
+        white-space: nowrap; }
+    .es-btn:hover { background: rgba(255,255,255,0.3); }
+    .es-btn.on { background: #fff; color: #1b4332; }
+
+    .es-wrap { max-width: 900px; margin: 0 auto; padding: 16px 16px 70px; }
+
+    .sq { border-bottom: 1px solid #eee; padding: 18px 0; }
+    .sq:last-child { border-bottom: 0; }
+    .sq-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+    .sq-no { font-weight: 700; color: #1b4332; font-size: 1rem; min-width: 26px; }
+    .sq-type { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
+        background: #eef2ee; color: #40624f; }
+    .sq-pts { margin-left: auto; font-size: 0.78rem; color: #999; }
+    .sq-text { font-size: 0.95rem; line-height: 1.75; color: #222;
+        padding-left: 34px; margin-bottom: 10px; }
+    .sq-img { display: block; max-width: min(100%, 420px); margin: 8px 0 8px 34px; }
+
+    /* 정답 영역 */
+    .ans { margin-left: 34px; background: #f7faf8; border-left: 3px solid #2d6a4f;
+        border-radius: 0 8px 8px 0; padding: 12px 16px; }
+    .ans.hidden { display: none; }
+    .ans-item { font-size: 0.9rem; line-height: 1.8; color: #1f3d30;
+        padding: 2px 0; }
+    .ans-text { font-size: 0.88rem; line-height: 1.75; color: #333;
+        margin-top: 6px; overflow-x: auto; }
+    .ans-text table { border-collapse: collapse; font-size: 0.86em; }
+    .ans-text th, .ans-text td { border: 1px solid #ccd6cf; padding: 3px 9px; }
+    .ans-text th { background: #eaf1ec; }
+
+    .ans-ref { margin-top: 10px; }
+    .ans-ref summary { cursor: pointer; font-size: 0.8rem; color: #40624f;
+        font-weight: 600; }
+    .ans-ref .body { margin-top: 8px; font-size: 0.82rem; line-height: 1.7;
+        color: #555; max-height: 320px; overflow-y: auto;
+        background: #fff; border: 1px solid #e2e8e4; border-radius: 6px;
+        padding: 10px 12px; }
+
+    .sq-toggle { margin-left: 34px; }
+    .btn-reveal { background: #eef2ee; color: #40624f; border: 0;
+        border-radius: 6px; padding: 6px 14px; font-size: 0.82rem;
+        font-weight: 600; cursor: pointer; }
+    .btn-reveal:hover { background: #dde7e0; }
+
+    .es-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff;
+        border-top: 1px solid #e5e5e5; padding: 9px 16px; z-index: 90;
+        display: flex; gap: 10px; align-items: center; justify-content: center; }
+    .es-bar a { text-decoration: none; }
+    .bar-btn { background: #1b4332; color: #fff; border-radius: 18px;
+        padding: 9px 26px; font-size: 0.9rem; font-weight: 700; }
+    .bar-btn.sub { background: #eee; color: #555; }
+
+    @media (max-width: 600px) {
+        .sq-text, .ans, .sq-toggle { padding-left: 0; margin-left: 0; }
+        .sq-img { margin-left: 0; }
+        .ans { border-radius: 8px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="es-header">
+    <div class="es-title">
+        {{ title }} <small>· 학습 · {{ questions|length }}문항 · {{ total_points }}점</small>
+    </div>
+    <button class="es-btn on" id="btnAll">정답 모두 접기</button>
+</div>
+
+<div class="es-wrap">
+    {% for q in questions %}
+    <div class="sq">
+        <div class="sq-head">
+            <span class="sq-no">{{ q.number }}</span>
+            <span class="sq-type">{{ q.get_qtype_display }}</span>
+            <span class="sq-pts">{{ q.points }}점</span>
+        </div>
+        <div class="sq-text">{{ q.text|qtext }}</div>
+        {% if q.text_image %}<img class="sq-img" src="{{ q.text_image|vurl }}" alt="">{% endif %}
+
+        <div class="sq-toggle"><button class="btn-reveal" data-n="{{ q.number }}">정답 보기</button></div>
+
+        <div class="ans hidden" id="ans{{ q.number }}">
+            {% for it in q.answer_items %}
+            <div class="ans-item">{{ it|qtext }}</div>
+            {% endfor %}
+            {% if q.answer_text %}<div class="ans-text">{{ q.answer_text|qtext }}</div>{% endif %}
+            {% if q.answer_image %}<img class="sq-img" style="margin-left:0" src="{{ q.answer_image|vurl }}" alt="">{% endif %}
+
+            {% if q.reference or q.reference_image %}
+            <details class="ans-ref">
+                <summary>참고자료 (법조문·지침)</summary>
+                <div class="body">
+                    {% if q.reference %}{{ q.reference|qtext }}{% endif %}
+                    {% if q.reference_image %}<img class="sq-img" style="margin-left:0" src="{{ q.reference_image|vurl }}" alt="">{% endif %}
+                </div>
+            </details>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="es-bar">
+    {% if source == '기출' %}
+    <a href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ year }}&round={{ round }}"><span class="bar-btn">이 회차 풀어보기</span></a>
+    {% else %}
+    <a href="{% url 'gisa:essay_take' cert.pk %}?source=예상&section={{ section|urlencode }}"><span class="bar-btn">이 영역 풀어보기</span></a>
+    {% endif %}
+    <a href="{% url 'gisa:essay_list' cert.pk %}"><span class="bar-btn sub">목록</span></a>
+</div>
+
+<script>
+/* 정답 펼치기 — 처음에는 모두 접혀 있다. 스스로 떠올린 뒤 확인하는 흐름 */
+let allOpen = false;
+
+document.querySelectorAll('.btn-reveal').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const box = document.getElementById('ans' + btn.dataset.n);
+        const open = box.classList.toggle('hidden');
+        btn.textContent = open ? '정답 보기' : '정답 접기';
+    });
+});
+
+document.getElementById('btnAll').addEventListener('click', () => {
+    allOpen = !allOpen;
+    document.querySelectorAll('.ans').forEach(b => b.classList.toggle('hidden', !allOpen));
+    document.querySelectorAll('.btn-reveal').forEach(b => {
+        b.textContent = allOpen ? '정답 접기' : '정답 보기';
+    });
+    document.getElementById('btnAll').textContent =
+        allOpen ? '정답 모두 접기' : '정답 모두 보기';
+});
+
+/* 첫 진입은 모두 펼친 상태로 — 훑어보기 용도가 많다 */
+document.getElementById('btnAll').click();
+</script>
+{% endblock %}

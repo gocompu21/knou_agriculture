@@ -43,13 +43,18 @@
     .ec-best { display: inline-block; font-size: 0.75rem; padding: 2px 8px;
         border-radius: 10px; background: #e8f5e9; color: #1b5e20; font-weight: 600; }
     .ec-best.none { background: #f2f2f2; color: #999; font-weight: 400; }
-    .ec-actions { display: flex; gap: 6px; margin-top: 10px; }
+    .ec-actions { display: flex; gap: 5px; margin-top: 10px; }
     .ec-btn { flex: 1; text-align: center; padding: 7px 0; border-radius: 6px;
-        font-size: 0.82rem; text-decoration: none; font-weight: 600; }
+        font-size: 0.8rem; text-decoration: none; font-weight: 600;
+        white-space: nowrap; }
     .ec-btn.primary { background: #1b4332; color: #fff; }
     .ec-btn.primary:hover { background: #2d6a4f; }
     .ec-btn.sub { background: #eef2ee; color: #40624f; }
     .ec-btn.sub:hover { background: #dde7e0; }
+    /* 학습 = 정답을 보며 익히는 모드. 풀이와 구분되게 테두리형으로 둔다 */
+    .ec-btn.study { background: #fff; color: #40624f;
+        border: 1px solid #cbd8d0; }
+    .ec-btn.study:hover { background: #f2f7f4; }
 
     .hist { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
     .hist th { background: #1b4332; color: #fff; padding: 8px 10px; text-align: left;
@@ -92,7 +97,9 @@
         </div>
     </div>
 
-    <div class="sec-title">기출문제 <small>회차별 실전 · 90분 · 45점</small></div>
+    <div class="sec-title">기출문제
+        <small>풀기 = 실전 90분 · 시험지 = 인쇄해서 손으로 · 학습 = 정답 보며 익히기</small>
+    </div>
     {% if round_cards %}
     <div class="card-grid">
         {% for r in round_cards %}
@@ -109,6 +116,7 @@
             <div class="ec-actions">
                 <a class="ec-btn primary" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}">풀기</a>
                 <a class="ec-btn sub" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}&mode=paper">시험지</a>
+                <a class="ec-btn study" href="{% url 'gisa:essay_study' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}">학습</a>
             </div>
         </div>
         {% endfor %}
@@ -117,7 +125,9 @@
     <div class="empty">등록된 기출이 없습니다.</div>
     {% endif %}
 
-    <div class="sec-title">영역별 학습 <small>예상문제 · 10문항씩 · 시간 제한 없음</small></div>
+    <div class="sec-title">영역별 예상문제
+        <small>풀기 = 10문항씩 시간 제한 없이 · 학습 = 정답 보며 익히기</small>
+    </div>
     {% if sections %}
     <div class="card-grid">
         {% for s in sections %}
@@ -127,7 +137,8 @@
                 <span class="ec-meta">{{ s.c }}문항</span>
             </div>
             <div class="ec-actions">
-                <a class="ec-btn primary" href="{% url 'gisa:essay_take' cert.pk %}?source=예상&section={{ s.section|urlencode }}">학습</a>
+                <a class="ec-btn primary" href="{% url 'gisa:essay_take' cert.pk %}?source=예상&section={{ s.section|urlencode }}">풀기</a>
+                <a class="ec-btn study" href="{% url 'gisa:essay_study' cert.pk %}?source=예상&section={{ s.section|urlencode }}">학습</a>
             </div>
         </div>
         {% endfor %}

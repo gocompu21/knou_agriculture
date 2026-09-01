@@ -60,6 +60,7 @@ urlpatterns = [
     # 실기 필답형
     path("<int:cert_id>/essay/", essay_views.essay_list, name="essay_list"),
     path("<int:cert_id>/essay/take/", essay_views.essay_take, name="essay_take"),
+    path("<int:cert_id>/essay/study/", essay_views.essay_study, name="essay_study"),
     path("<int:cert_id>/essay/<int:session_id>/submit/", essay_views.essay_submit, name="essay_submit"),
     path("<int:cert_id>/essay/<int:session_id>/save/", essay_views.essay_save, name="essay_save"),
     path("<int:cert_id>/essay/<int:session_id>/grade/<int:question_id>/", essay_views.essay_grade_step, name="essay_grade_step"),
