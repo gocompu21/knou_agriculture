@@ -59,6 +59,9 @@
     .ec-btn.study { background: #fff; color: #40624f;
         border: 1px solid #cbd8d0; }
     .ec-btn.study:hover { background: #f2f7f4; }
+    /* 빈출 주제 카드 — 회차 카드와 구분되게 왼쪽에 주황 띠 */
+    .ec-freq { border-left: 4px solid #d9a441; }
+    .ec-freq .ec-title { color: #a1651a; }
 
     .hist { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
     .hist th { background: #1b4332; color: #fff; padding: 8px 10px; text-align: left;
@@ -100,6 +103,25 @@
             <span>영역 {{ sections|length }}개</span>
         </div>
     </div>
+
+    {% if freq_cards %}
+    <div class="sec-title">빈출 주제
+        <small>같은 주제가 표현만 바뀌어 되풀이 출제된다 · 정답을 보며 익히기</small>
+    </div>
+    <div class="card-grid">
+        {% for f in freq_cards %}
+        <div class="ec ec-freq">
+            <div class="ec-head">
+                <span class="ec-title">{{ f.label }} 출제</span>
+                <span class="ec-meta">{{ f.count }}주제</span>
+            </div>
+            <div class="ec-actions">
+                <a class="ec-btn primary" href="{% url 'gisa:essay_study' cert.pk %}?mode=freq&min={{ f.min }}">학습</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <div class="sec-title">기출문제
         <small>풀기 = 실전 90분 · 시험지 = 인쇄해서 손으로 · 학습 = 정답 보며 익히기</small>

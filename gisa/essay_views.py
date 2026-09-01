@@ -87,10 +87,20 @@ def essay_list(request, cert_id):
             'best': best.get(key),
         })
 
+    # 빈출 주제 현황 — 되풀이 출제된 주제가 몇 개인지 보여 준다
+    freq_cards = []
+    for lo, label in ((4, '4회 이상'), (3, '3회 이상'), (2, '2회 이상')):
+        n = (GisaEssayQuestion.objects
+             .filter(certification=cert, source='기출', freq_rounds__gte=lo)
+             .values('topic_key').distinct().count())
+        if n:
+            freq_cards.append({'min': lo, 'label': label, 'count': n})
+
     return render(request, 'gisa/essay_list.html', {
         'cert': cert,
         'round_cards': round_cards,
         'sections': sections,
+        'freq_cards': freq_cards,
         'sessions': sessions,
         'total': qs.count(),
     })
@@ -310,19 +320,36 @@ def essay_study(request, cert_id):
     section = request.GET.get('section', '')
     year = request.GET.get('year')
     round_ = request.GET.get('round')
-    study_mode = request.GET.get('mode', 'answer')      # answer | (향후 확장)
+    study_mode = request.GET.get('mode', 'answer')      # answer | freq
 
-    qs = GisaEssayQuestion.objects.filter(certification=cert, source=source)
-    if source == '기출':
-        year = int(year) if year else None
-        round_ = int(round_) if round_ else None
-        qs = qs.filter(year=year, round=round_)
-        title = f'{year}년 {round_}회'
+    if study_mode == 'freq':
+        # 빈출 학습 — 되풀이 출제된 주제만 모아 회차 수가 많은 순으로 본다.
+        # 같은 주제의 여러 문항 중 가장 최근 것 하나만 남긴다.
+        min_rounds = int(request.GET.get('min', 2))
+        pool = (GisaEssayQuestion.objects
+                .filter(certification=cert, source='기출',
+                        freq_rounds__gte=min_rounds)
+                .order_by('-freq_rounds', 'topic_key', '-year', '-round'))
+        seen, questions = set(), []
+        for q in pool:
+            if q.topic_key in seen:
+                continue
+            seen.add(q.topic_key)
+            questions.append(q)
+        title = f'빈출 주제 ({min_rounds}회 이상 출제)'
+        year = round_ = None
     else:
-        qs = qs.filter(section=section)
-        title = section
+        qs = GisaEssayQuestion.objects.filter(certification=cert, source=source)
+        if source == '기출':
+            year = int(year) if year else None
+            round_ = int(round_) if round_ else None
+            qs = qs.filter(year=year, round=round_)
+            title = f'{year}년 {round_}회'
+        else:
+            qs = qs.filter(section=section)
+            title = section
+        questions = list(qs.order_by('number'))
 
-    questions = list(qs.order_by('number'))
     if not questions:
         return redirect('gisa:essay_list', cert_id=cert_id)
 

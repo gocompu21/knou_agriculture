@@ -272,6 +272,16 @@ class GisaEssayQuestion(models.Model):
     std_major = models.PositiveSmallIntegerField('출제기준 주요항목', default=0,
                                                  help_text='1~8. 0은 미분류')
     std_sub = models.PositiveSmallIntegerField('출제기준 세부항목', default=0)
+
+    # 같은 주제가 표현만 바꿔 되풀이 출제되므로, 주제 단위로 묶어 빈도를 센다.
+    # analyze_essay_freq.py 가 군집을 만들고 tag_essay_frequency 가 여기에 쓴다.
+    topic_key = models.CharField('주제 키', max_length=64, blank=True, db_index=True,
+                                 help_text='같은 주제로 묶인 문항이 공유하는 식별자')
+    freq_rounds = models.PositiveSmallIntegerField(
+        '출제 회차 수', default=0,
+        help_text='이 주제가 출제된 회차 수. 1이면 한 번만 나온 주제')
+    freq_note = models.CharField('출제 이력', max_length=200, blank=True,
+                                 help_text='이 주제가 나온 회차 목록')
     notes = models.TextField('판독 메모', blank=True,
                              help_text='원문 오식 등. 관리자만 확인')
 
