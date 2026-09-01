@@ -61,15 +61,20 @@
     .sq-box::before {
         content: ''; position: absolute; left: 10px; right: 10px;
         top: 0; bottom: 0;
+        /* 흑백 프린터 기준 색이다.
+         * 연한 색(#ccc 이하)은 흑백 출력에서 하프톤으로 흩어져 얼룩이
+         * 되거나 아예 안 찍힌다. #9a9a9a 는 확실히 찍히면서도 검은
+         * 볼펜 글씨보다 뚜렷이 옅어 판독 시 글자와 구분된다. */
         background-image: repeating-linear-gradient(
             to bottom,
             transparent, transparent 37px,
-            #b9c6d4 37px, #b9c6d4 38px);
-        /* 점선 효과 — 가로로 잘라 실선이 아닌 파선으로 만든다 */
+            #9a9a9a 37px, #9a9a9a 38px);
+        /* 파선으로 잘라 실선을 피한다. 실선은 글자의 가로획(ㅡ, ㄴ의 밑변)과
+         * 이어져 보일 수 있다. 파선은 끊겨 있어 획으로 오인되지 않는다. */
         -webkit-mask-image: repeating-linear-gradient(
-            to right, #000 0 6px, transparent 6px 11px);
+            to right, #000 0 5px, transparent 5px 12px);
         mask-image: repeating-linear-gradient(
-            to right, #000 0 6px, transparent 6px 11px);
+            to right, #000 0 5px, transparent 5px 12px);
     }
     /* 높이 = 38px × 줄수 + 14px.
      * 줄 위에 글씨를 얹어 쓰므로 마지막 줄 아래에도 글자 높이만큼
