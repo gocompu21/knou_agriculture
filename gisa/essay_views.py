@@ -27,8 +27,8 @@ from django.views.decorators.http import require_POST
 
 from .essay_grading import grade_answer, grade_session
 from .templatetags.gisa_filters import qtext
-from .models import (Certification, GisaEssayAttempt, GisaEssayQuestion,
-                     GisaEssaySession, GisaEssayUpload)
+from .models import (Certification, GisaEssayAttempt, GisaEssayNote,
+                     GisaEssayQuestion, GisaEssaySession, GisaEssayUpload)
 
 # 영역별 학습 세션에 담을 문항 수
 STUDY_BATCH = 10
@@ -114,6 +114,7 @@ def essay_list(request, cert_id):
         'round_cards': round_cards,
         'sections': sections,
         'freq_cards': freq_cards,
+        'notes': GisaEssayNote.objects.filter(certification=cert),
         'sessions': sessions,
         'total': qs.count(),
     })
@@ -667,3 +668,49 @@ def essay_siblings(request, cert_id, question_id):
         'answer_html': str(qtext(s.answer_text)) if s.answer_text else '',
     } for s in sibs]
     return JsonResponse({'ok': True, 'items': items})
+
+
+@login_required
+def essay_note(request, cert_id, slug):
+    """실기 학습자료 (빈출 주제 정리 등).
+
+    마크다운을 그대로 렌더링한다. 주제가 58개라 한 화면에 다 펼치면 길어지므로,
+    `## N회 · 분류 · 주제` 단위로 잘라 접을 수 있게 한다.
+    """
+    import re
+    import markdown as md
+
+    cert = get_object_or_404(Certification, pk=cert_id)
+    note = get_object_or_404(GisaEssayNote, certification=cert, slug=slug)
+
+    text = note.content
+    # 목차와 머리말(첫 `## 3회 …` 앞부분)은 통째로 두고, 주제부터 카드로 나눈다.
+    # 분류명에도 가운뎃점이 들어가고(법규·제도) 주제명에도 들어가므로
+    # (복원·복구·대체) 구분자만으로는 못 가른다. 분류명을 명시해 집는다.
+    groups = '|'.join(re.escape(g) for _, g in GisaEssayQuestion.TOPIC_CHOICES)
+    parts = re.split(r'^## (\d+)회 · (%s) · (.+)$' % groups, text, flags=re.M)
+    intro_md = parts[0]
+    items = []
+    for i in range(1, len(parts), 4):
+        freq, group, title, body = parts[i:i + 4]
+        # 각 주제가 어느 회차에 나왔는지 — 본문 첫 **출제** 줄에서 뽑는다
+        m = re.search(r'\*\*출제\*\*\s*(.+)', body)
+        items.append({
+            'freq': int(freq),
+            'group': group.strip(),
+            'title': title.strip(),
+            'rounds': m.group(1).strip() if m else '',
+            'warned': '⚠️ 요구가 커진 지점' in body,
+            'html': md.markdown(body, extensions=['tables', 'nl2br']),
+        })
+
+    # 머리말의 목차는 카드 목록이 대신하므로 걷어낸다
+    intro_md = re.split(r'^## 목차', intro_md, flags=re.M)[0]
+
+    return render(request, 'gisa/essay_note.html', {
+        'cert': cert,
+        'note': note,
+        'intro': md.markdown(intro_md, extensions=['tables']),
+        'items': items,
+        'warned_count': sum(1 for x in items if x['warned']),
+    })

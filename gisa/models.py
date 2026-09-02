@@ -469,6 +469,33 @@ class GisaEssayUpload(models.Model):
         return f"{self.session} p{self.page_no}"
 
 
+class GisaEssayNote(models.Model):
+    """실기 필답 학습 자료 (빈출 주제 정리 등).
+
+    GisaTextbook 은 필기 과목(GisaSubject)에 묶여 있어 실기에는 맞지 않는다.
+    실기는 과목이 하나뿐이므로 자격증에 바로 달고, 자료 종류만 slug 로 나눈다.
+    """
+    certification = models.ForeignKey(
+        Certification, on_delete=models.CASCADE,
+        related_name='essay_notes', verbose_name='자격증')
+    slug = models.SlugField('식별자', max_length=40,
+                            help_text='freq58 처럼 자료를 구분하는 이름')
+    title = models.CharField('제목', max_length=100)
+    summary = models.CharField('한 줄 설명', max_length=200, blank=True)
+    content = models.TextField('마크다운 내용')
+    order = models.PositiveSmallIntegerField('표시 순서', default=0)
+    updated_at = models.DateTimeField('수정일', auto_now=True)
+
+    class Meta:
+        verbose_name = '실기 학습자료'
+        verbose_name_plural = '실기 학습자료'
+        ordering = ['order', 'slug']
+        unique_together = ['certification', 'slug']
+
+    def __str__(self):
+        return f"[{self.certification.name}] {self.title}"
+
+
 class CertificationViewLog(models.Model):
     """자격증 상세 페이지(certification_detail) 진입 기록.
     사용자가 어느 자격증의 어느 탭을 언제 봤는지 추적.

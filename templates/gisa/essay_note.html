@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}{{ note.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .site-header, .site-footer { display: none !important; }
+    main { padding: 0 !important; }
+    body { background: #fff !important; }
+
+    .nt-header {
+        position: sticky; top: 0; z-index: 100;
+        background: #1b4332; color: #fff;
+        padding: 10px 16px; display: flex; align-items: center; gap: 10px;
+    }
+    .nt-title { flex: 1; font-weight: 700; font-size: 0.95rem;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nt-title small { font-weight: 400; opacity: 0.75; font-size: 0.85em; }
+    .nt-btn { background: rgba(255,255,255,0.18); color: #fff; border: 0;
+        border-radius: 14px; padding: 6px 14px; font-size: 0.82rem;
+        font-weight: 600; cursor: pointer; text-decoration: none;
+        white-space: nowrap; font-family: inherit; }
+    .nt-btn:hover { background: rgba(255,255,255,0.3); }
+
+    .nt-wrap { max-width: 900px; margin: 0 auto; padding: 16px 16px 70px; }
+
+    /* 머리말 — 왜 세 층으로 나누었는지 */
+    .nt-intro { font-size: 0.88rem; line-height: 1.8; color: #444;
+        background: #f7faf8; border-left: 3px solid #2d6a4f;
+        border-radius: 0 8px 8px 0; padding: 14px 18px; margin-bottom: 18px; }
+    .nt-intro h1 { font-size: 1.15rem; color: #1b4332; margin: 0 0 10px; }
+    .nt-intro h2 { font-size: 0.98rem; color: #1b4332; margin: 14px 0 6px; }
+    .nt-intro table { border-collapse: collapse; font-size: 0.92em; margin: 8px 0; }
+    .nt-intro th, .nt-intro td { border: 1px solid #ccd6cf; padding: 4px 10px; }
+    .nt-intro th { background: #eaf1ec; }
+    .nt-intro ol, .nt-intro ul { padding-left: 20px; margin: 6px 0; }
+
+    /* 걸러 보기 */
+    .nt-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .nt-f { font-size: 0.78rem; padding: 5px 12px; border-radius: 14px;
+        border: 1px solid #d5e0d8; background: #fff; color: #40624f;
+        cursor: pointer; font-family: inherit; font-weight: 600; }
+    .nt-f:hover { background: #eef3ef; }
+    .nt-f.on { background: #1b4332; color: #fff; border-color: #1b4332; }
+
+    /* 주제 카드 */
+    .nt-item { border-bottom: 1px solid #eee; }
+    .nt-item.hide { display: none; }
+    .nt-head { display: flex; align-items: baseline; gap: 8px;
+        padding: 11px 2px; cursor: pointer; flex-wrap: wrap; }
+    .nt-head:hover { background: #fafcfa; }
+    .nt-freq { font-size: 0.72rem; font-weight: 700; padding: 2px 8px;
+        border-radius: 8px; background: #fff3e0; color: #a1651a;
+        flex-shrink: 0; }
+    .nt-freq.hi { background: #a1651a; color: #fff; }
+    .nt-group { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
+        background: #e8eef5; color: #2d4a6b; font-weight: 600; flex-shrink: 0; }
+    .nt-name { font-size: 0.92rem; font-weight: 600; color: #1f2d24; }
+    .nt-warn { font-size: 0.72rem; color: #a1651a; }
+    .nt-arrow { margin-left: auto; color: #bbb; font-size: 0.8rem; }
+    .nt-item.open .nt-arrow { transform: rotate(90deg); }
+
+    .nt-body { display: none; padding: 4px 2px 18px; }
+    .nt-item.open .nt-body { display: block; }
+    .nt-body h3 { font-size: 0.92rem; color: #1b4332; margin: 14px 0 6px;
+        padding-bottom: 3px; border-bottom: 1px solid #e5ece7; }
+    .nt-body p { font-size: 0.88rem; line-height: 1.85; color: #333; margin: 6px 0; }
+    .nt-body ul, .nt-body ol { padding-left: 20px; margin: 6px 0;
+        font-size: 0.88rem; line-height: 1.8; color: #333; }
+    .nt-body li { margin: 3px 0; }
+    .nt-body table { border-collapse: collapse; font-size: 0.84rem;
+        margin: 10px 0; display: block; overflow-x: auto; max-width: 100%; }
+    .nt-body th, .nt-body td { border: 1px solid #ccd6cf; padding: 5px 10px;
+        line-height: 1.7; vertical-align: top; }
+    .nt-body th { background: #eaf1ec; white-space: nowrap; }
+    .nt-body strong { color: #1b4332; }
+    .nt-body code { background: #f2f5f3; padding: 1px 5px; border-radius: 4px;
+        font-size: 0.92em; }
+    /* 인용구 — 회차 대조나 주의사항에 쓰인다 */
+    .nt-body blockquote { margin: 10px 0; padding: 8px 14px;
+        background: #fffdf5; border-left: 3px solid #e8d9a0;
+        font-size: 0.86rem; line-height: 1.8; color: #5a4a28; }
+    .nt-body blockquote p { margin: 3px 0; font-size: inherit; color: inherit; }
+
+    .nt-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff;
+        border-top: 1px solid #e5e5e5; padding: 9px 16px; z-index: 90;
+        display: flex; gap: 10px; align-items: center; justify-content: center; }
+    .nt-bar a { text-decoration: none; }
+    .bar-btn { background: #1b4332; color: #fff; border-radius: 18px;
+        padding: 9px 26px; font-size: 0.9rem; font-weight: 700; }
+    .bar-btn.sub { background: #eee; color: #555; }
+
+    @media (max-width: 600px) {
+        .nt-name { font-size: 0.88rem; }
+        .nt-intro { padding: 12px 14px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="nt-header">
+    <div class="nt-title">
+        {{ note.title }} <small>· {{ items|length }}주제</small>
+    </div>
+    <button class="nt-btn" id="btnAll">모두 펼치기</button>
+</div>
+
+<div class="nt-wrap">
+    <div class="nt-intro">{{ intro|safe }}</div>
+
+    <div class="nt-filters">
+        <button class="nt-f on" data-f="all">전체 {{ items|length }}</button>
+        <button class="nt-f" data-f="warn">⚠️ 요구 확장 {{ warned_count }}</button>
+        <button class="nt-f" data-f="hi">4회 이상</button>
+    </div>
+
+    {% for it in items %}
+    <div class="nt-item" data-freq="{{ it.freq }}" data-warn="{{ it.warned|yesno:'1,0' }}">
+        <div class="nt-head">
+            <span class="nt-freq {% if it.freq >= 4 %}hi{% endif %}">{{ it.freq }}회</span>
+            <span class="nt-group">{{ it.group }}</span>
+            <span class="nt-name">{{ it.title }}</span>
+            {% if it.warned %}<span class="nt-warn">⚠️</span>{% endif %}
+            <span class="nt-arrow">›</span>
+        </div>
+        <div class="nt-body">{{ it.html|safe }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="nt-bar">
+    <a href="{% url 'gisa:essay_study' cert.pk %}?mode=freq&min=3"><span class="bar-btn">빈출 문항 풀어보기</span></a>
+    <a href="{% url 'gisa:essay_list' cert.pk %}"><span class="bar-btn sub">목록</span></a>
+</div>
+
+<script>
+/* 주제 펼치기 — 58개를 한꺼번에 펼치면 너무 길어 접어 둔다 */
+document.querySelectorAll('.nt-head').forEach(h => {
+    h.addEventListener('click', () => h.parentElement.classList.toggle('open'));
+});
+
+let allOpen = false;
+document.getElementById('btnAll').addEventListener('click', () => {
+    allOpen = !allOpen;
+    document.querySelectorAll('.nt-item:not(.hide)').forEach(
+        x => x.classList.toggle('open', allOpen));
+    document.getElementById('btnAll').textContent = allOpen ? '모두 접기' : '모두 펼치기';
+});
+
+/* 걸러 보기 — 요구가 커진 주제부터 보라는 안내를 실제로 쓰게 한다 */
+document.querySelectorAll('.nt-f').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.nt-f').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+        const f = btn.dataset.f;
+        document.querySelectorAll('.nt-item').forEach(x => {
+            const show = f === 'all'
+                || (f === 'warn' && x.dataset.warn === '1')
+                || (f === 'hi' && +x.dataset.freq >= 4);
+            x.classList.toggle('hide', !show);
+        });
+    });
+});
+</script>
+{% endblock %}
