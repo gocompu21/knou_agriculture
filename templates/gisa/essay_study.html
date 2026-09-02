@@ -28,16 +28,23 @@
 
     .sq { border-bottom: 1px solid #eee; padding: 18px 0; }
     .sq:last-child { border-bottom: 0; }
-    .sq-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+    /* 빈출 문항은 회차 배지가 10개까지 붙으므로 줄바꿈을 허용한다 */
+    .sq-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;
+        flex-wrap: wrap; row-gap: 5px; }
     .sq-no { font-weight: 700; color: #1b4332; font-size: 1rem; min-width: 26px; }
     .sq-type { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
         background: #eef2ee; color: #40624f; }
     /* 문항이 주제순으로 놓이므로 어느 주제인지 배지로 알린다 */
     .sq-topic { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
         background: #e8eef5; color: #2d4a6b; font-weight: 600; }
-    /* 되풀이 출제된 주제임을 알리는 배지. 마우스를 올리면 출제 회차가 보인다 */
+    /* 되풀이 출제된 주제임을 알리는 배지 */
     .sq-freq { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
-        background: #fff3e0; color: #a1651a; font-weight: 700; cursor: help; }
+        background: #fff3e0; color: #a1651a; font-weight: 700; }
+    /* 출제 회차를 최신순으로 나열. 최신일수록 진해 학습 우선순위가 보인다 */
+    .sq-rounds { display: inline-flex; flex-wrap: wrap; gap: 3px; }
+    .fq-r { font-size: 0.66rem; padding: 1px 5px; border-radius: 5px;
+        border: 1px solid; font-weight: 600; letter-spacing: -0.01em;
+        white-space: nowrap; }
     .sq-src { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
         background: #f2f2f2; color: #777; }
     .sq-pts { margin-left: auto; font-size: 0.78rem; color: #999; }
@@ -112,7 +119,8 @@
             {% if q.topic_group %}<span class="sq-topic">{{ q.get_topic_group_display }}</span>{% endif %}
             <span class="sq-type">{{ q.get_qtype_display }}</span>
             {% if q.freq_rounds > 1 %}
-            <span class="sq-freq" title="{{ q.freq_note }}">빈출 {{ q.freq_rounds }}회</span>
+            <span class="sq-freq">빈출 {{ q.freq_rounds }}회</span>
+            <span class="sq-rounds">{{ q.freq_note|freq_badges }}</span>
             {% endif %}
             {% if study_mode == 'freq' %}<span class="sq-src">{{ q.label }}</span>{% endif %}
             <span class="sq-pts">{{ q.points }}점</span>

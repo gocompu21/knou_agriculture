@@ -294,3 +294,56 @@ def vurl(field):
         return url
     sep = "&" if "?" in url else "?"
     return "%s%sv=%d" % (url, sep, ts)
+
+
+# 빈출 주제의 출제 회차 배지 ---------------------------------------------------
+# freq_note 에 "2026-2 2025-3 2021-3 …" 형태로 최신순 회차가 들어 있다.
+# 이걸 배지로 펼쳐 어느 해에 나왔는지 한눈에 보이게 한다.
+
+# 최신일수록 진하게. 최근 출제가 눈에 먼저 들어와야 학습 우선순위가 잡힌다.
+
+def _round_tone(year, newest):
+    """출제 연도가 최신에서 얼마나 떨어졌는지로 색을 정한다."""
+    try:
+        gap = int(newest) - int(year)
+    except (TypeError, ValueError):
+        gap = 99
+    if gap <= 1:
+        return "#1b4332", "#fff", "#1b4332"      # 가장 최근 — 진한 초록 채움
+    if gap <= 3:
+        return "#40806b", "#fff", "#40806b"
+    if gap <= 6:
+        return "#dbe9e0", "#1f4d3a", "#a9c8b8"
+    if gap <= 10:
+        return "#eef3ef", "#40624f", "#cfdcd4"
+    return "#f6f7f6", "#8b968f", "#e2e6e3"       # 오래된 회차 — 흐리게
+
+
+@register.filter(name="freq_badges")
+def freq_badges(note):
+    """freq_note → 연도별 색이 다른 회차 배지들.
+
+    freq_note 는 이미 최신순으로 정렬돼 있어 그대로 쓴다.
+    """
+    if not note:
+        return ""
+    rounds = [r for r in str(note).split() if r]
+    if not rounds:
+        return ""
+
+    years = []
+    for r in rounds:
+        y = r.split("-")[0]
+        if y.isdigit():
+            years.append(int(y))
+    newest = max(years) if years else 0
+
+    out = []
+    for r in rounds:
+        y = r.split("-")[0]
+        bg, fg, bd = _round_tone(y if y.isdigit() else None, newest)
+        out.append(
+            '<span class="fq-r" style="background:%s;color:%s;border-color:%s">%s</span>'
+            % (bg, fg, bd, escape(r))
+        )
+    return mark_safe("".join(out))

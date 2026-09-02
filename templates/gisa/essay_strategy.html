@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load gisa_filters %}
 
 {% block title %}{{ cert.name }} 실기 필답 학습전략{% endblock %}
 
@@ -68,6 +69,12 @@
     .topic .cnt { flex-shrink: 0; font-size: 0.74rem; font-weight: 700;
         color: #a1651a; background: #fff3e0; padding: 2px 7px; border-radius: 8px; }
     .topic .txt { flex: 1; color: #333; }
+    /* 출제 회차를 최신순으로 나열. 최신일수록 진해 우선순위가 눈에 들어온다 */
+    .topic .rounds { display: inline-flex; flex-wrap: wrap; gap: 3px;
+        margin-left: 6px; vertical-align: middle; }
+    .fq-r { font-size: 0.66rem; padding: 1px 5px; border-radius: 5px;
+        border: 1px solid; font-weight: 600; letter-spacing: -0.01em;
+        white-space: nowrap; }
 
     @media (max-width: 600px) {
         .kv div { flex: 1 1 42%; }
@@ -176,7 +183,9 @@
     {% for q in top_topics %}
     <div class="topic">
         <span class="cnt">{{ q.freq_rounds }}회</span>
-        <span class="txt">{{ q.text|truncatechars:78 }}</span>
+        <span class="txt">{{ q.text|truncatechars:78 }}
+            <span class="rounds">{{ q.freq_note|freq_badges }}</span>
+        </span>
     </div>
     {% endfor %}
 
@@ -186,7 +195,9 @@
     {% for q in calc_topics %}
     <div class="topic">
         <span class="cnt">{{ q.freq_rounds }}회</span>
-        <span class="txt">{{ q.text|truncatechars:74 }}</span>
+        <span class="txt">{{ q.text|truncatechars:74 }}
+            <span class="rounds">{{ q.freq_note|freq_badges }}</span>
+        </span>
     </div>
     {% endfor %}
 
