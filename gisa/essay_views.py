@@ -392,7 +392,6 @@ def essay_strategy(request, cert_id):
         'cert': cert,
         'total': qs.count(),
         'exam_count': exam_qs.count(),
-        'pred_count': qs.filter(source='예상').count(),
         'round_count': len(rounds),
         'year_from': rounds[0][0] if rounds else '',
         'year_to': rounds[-1][0] if rounds else '',
