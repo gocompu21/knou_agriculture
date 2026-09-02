@@ -197,6 +197,9 @@ def _render_qtext(value):
     # 일반 ^{X}, _{X} 첨자
     text = re.sub(r"\^\{([^}]+)\}", r"<sup>\1</sup>", text)
     text = re.sub(r"_\{([^}]+)\}", r"<sub>\1</sub>", text)
+    # **강조** — 해설에서 핵심어를 짚는 데 쓴다. 문제 지문에는 거의 없으나
+    # 있어도 별표가 그대로 보이는 것보다는 강조로 처리되는 편이 낫다
+    text = re.sub(r"\*\*(?!\s)(.+?)(?<!\s)\*\*", r"<strong>\1</strong>", text)
     text = text.replace("\n", "<br>")
 
     # 빼두었던 SVG를 검사해 되돌린다. 자리표시자 앞뒤의 <br>은 그림이 제 줄을
