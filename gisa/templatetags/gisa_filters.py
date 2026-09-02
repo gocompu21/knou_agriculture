@@ -15,6 +15,10 @@ _TABLE_STYLE = (
 _CELL_STYLE = "border:1px solid #999;padding:3px 10px;text-align:left;"
 _TH_STYLE = _CELL_STYLE + "background:#f2f2f2;font-weight:600;white-space:nowrap;"
 
+# 표 셀 안의 줄바꿈. 원문이 <br> 로 적어 두는데, 셀 내용은 escape 를 거쳐
+# 들어오므로 &lt;br&gt; 형태가 된다. 표 안에서만 태그로 되돌린다.
+_CELL_BR = re.compile(r"&lt;\s*br\s*/?\s*&gt;", re.IGNORECASE)
+
 
 def _table_rows(block):
     """표 덩어리를 행 목록으로 정규화한다.
@@ -64,7 +68,10 @@ def _md_table(block):
         return None
 
     def cells(ln):
-        return [c.strip() for c in ln.strip("|").split("|")]
+        # 셀 안에서 줄을 나눌 때 원문이 <br> 을 쓴다. 이 함수는 escape 를 거친
+        # 텍스트를 받으므로 &lt;br&gt; 형태로 들어오는데, 그대로 두면 글자로
+        # 보인다. 표 안에서만 태그로 되돌린다.
+        return [_CELL_BR.sub("<br>", c.strip()) for c in ln.strip("|").split("|")]
 
     head = cells(lines[0])
     body = [cells(ln) for ln in lines[2:]]
