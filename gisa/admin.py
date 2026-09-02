@@ -109,14 +109,15 @@ class CertificationViewLogAdmin(admin.ModelAdmin):
 
 @admin.register(GisaEssayQuestion)
 class GisaEssayQuestionAdmin(admin.ModelAdmin):
-    list_display = ('label_col', 'number', 'qtype', 'points', 'std_major',
-                    'text_head', 'has_note')
-    list_filter = ('certification', 'source', 'qtype', 'std_major', 'section', 'year')
+    list_display = ('label_col', 'number', 'orig_number', 'qtype', 'points',
+                    'topic_group', 'text_head', 'has_note')
+    list_filter = ('certification', 'source', 'qtype', 'topic_group', 'section', 'year')
     search_fields = ('text', 'answer_text', 'notes')
     list_per_page = 40
     fieldsets = (
         ('분류', {'fields': ('certification', 'source', 'section', 'year', 'round',
-                           'number', 'qtype', 'points', 'std_major', 'std_sub')}),
+                           'number', 'orig_number', 'qtype', 'points',
+                           'topic_group', 'std_major', 'std_sub')}),
         ('문제', {'fields': ('text', 'text_image')}),
         ('답', {'fields': ('answer_items', 'answer_text', 'answer_image', 'rubric')}),
         ('해설', {'fields': ('reference', 'reference_image')}),

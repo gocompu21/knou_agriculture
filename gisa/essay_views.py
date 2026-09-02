@@ -361,12 +361,13 @@ def essay_strategy(request, cert_id):
     for t in types:
         t['pct'] = round(t['c'] / tot_items * 100)
 
-    # 출제기준 주요항목 분포
-    from .management.commands.classify_essay_std import MAJOR_NAMES
+    # 주제별 분포. 출제기준 8항목은 실무 수행 순서라 학술 지식을 묻는 기출과
+    # 맞지 않아, 실제로 무엇을 묻는지로 나눈 topic_group 을 쓴다
+    topic_names = dict(GisaEssayQuestion.TOPIC_CHOICES)
     majors = []
-    for r in (exam_qs.values('std_major').annotate(c=Count('id')).order_by('-c')):
+    for r in (exam_qs.values('topic_group').annotate(c=Count('id')).order_by('-c')):
         majors.append({
-            'name': MAJOR_NAMES.get(r['std_major'], '미분류'),
+            'name': topic_names.get(r['topic_group'], '미분류'),
             'count': r['c'],
             'pct': round(r['c'] / tot_items * 100),
         })
@@ -476,19 +477,19 @@ def essay_result(request, cert_id, session_id):
                                 user=request.user, certification=cert)
     attempts = list(session.attempts.select_related('question').order_by('question__number'))
 
-    # 출제기준 주요항목별 득점률 — 약한 항목 파악용
+    # 주제별 득점률 — 어느 주제가 약한지 파악용
     by_major = {}
     for a in attempts:
-        m = a.question.std_major
+        m = a.question.topic_group
         d = by_major.setdefault(m, {'got': 0.0, 'max': 0.0, 'count': 0})
         d['got'] += a.score
         d['max'] += float(a.question.points)
         d['count'] += 1
     majors = []
-    from .management.commands.classify_essay_std import MAJOR_NAMES
+    topic_names = dict(GisaEssayQuestion.TOPIC_CHOICES)
     for m, d in sorted(by_major.items()):
         majors.append({
-            'no': m, 'name': MAJOR_NAMES.get(m, '미분류'),
+            'no': m, 'name': topic_names.get(m, '미분류'),
             'got': round(d['got'], 1), 'max': round(d['max'], 1),
             'count': d['count'],
             'pct': round(d['got'] / d['max'] * 100) if d['max'] else 0,
