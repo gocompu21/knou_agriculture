@@ -13,10 +13,17 @@
         position: sticky; top: 0; z-index: 100; background: #1b4332; color: #fff;
         padding: 10px 16px; display: flex; align-items: center; gap: 12px;
     }
-    .sheet-bar .t { flex: 1; font-weight: 700; font-size: 0.95rem; }
+    .sheet-bar .t { flex: 1; font-weight: 700; font-size: 0.95rem;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sheet-bar button { background: #fff; color: #1b4332; border: 0;
         border-radius: 14px; padding: 6px 18px; font-weight: 700;
         font-size: 0.85rem; cursor: pointer; }
+    /* 이 화면은 인쇄가 목적이라 별도 창으로 열리는 경우가 많다.
+     * 돌아갈 곳이 없으면 막다른 길이 되므로 링크를 함께 둔다. */
+    .sheet-bar a { color: #fff; text-decoration: none; background: rgba(255,255,255,.2);
+        border-radius: 14px; padding: 6px 14px; font-weight: 600;
+        font-size: 0.83rem; white-space: nowrap; }
+    .sheet-bar a:hover { background: rgba(255,255,255,.32); }
 
     .sheet-tip { max-width: 780px; margin: 14px auto; padding: 12px 16px;
         background: #fff8e1; border: 1px solid #f0e2b6; border-radius: 8px;
@@ -105,12 +112,16 @@
 <div class="sheet-bar">
     <div class="t">{{ cert.name }} 실기 필답형 · {{ session.label }}</div>
     <button onclick="window.print()">인쇄</button>
+    <a href="{% url 'gisa:essay_take' cert.pk %}?resume={{ session.pk }}&source={{ session.source|urlencode }}{% if session.source == '기출' %}&year={{ session.year }}&round={{ session.round }}{% else %}&section={{ session.section|urlencode }}{% endif %}&mode=paper">답안 올리기</a>
+    <a href="{% url 'gisa:essay_list' cert.pk %}">목록</a>
 </div>
 
 <div class="sheet-tip">
     <b>촬영 안내</b> — 검은 볼펜으로 답안 박스 <b>안에</b> 쓰고, 페이지마다 한 장씩
     그림자 없이 정면에서 촬영하세요. 페이지 오른쪽 위 코드가 사진에 함께 나와야
-    어느 시험지인지 인식됩니다.
+    어느 시험지인지 인식됩니다.<br>
+    다 풀고 나면 위의 <b>[답안 올리기]</b>로 돌아와 사진을 올리면 됩니다.
+    이 창을 닫았다면 실기 목록의 <b>응시 이력</b>에서 같은 회차를 찾아 이어갈 수 있습니다.
 </div>
 
 <div class="sheet">

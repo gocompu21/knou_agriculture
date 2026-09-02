@@ -146,13 +146,23 @@ def essay_take(request, cert_id):
 
     total_points = round(sum(float(q.points) for q in questions), 1)
 
-    session = GisaEssaySession.objects.create(
-        user=request.user, certification=cert,
-        source=source, section=(section if source == '예상' else '기출'),
-        year=year, round=round_, mode=mode,
-        total_points=total_points,
-        paper_code=uuid.uuid4().hex[:10].upper() if mode == 'paper' else '',
-    )
+    # 인쇄한 시험지로 이어 오는 경우(?resume=<세션pk>)는 새로 만들지 않는다.
+    # 새 세션을 만들면 종이에 찍힌 시험지 코드와 어긋난다.
+    session = None
+    resume = request.GET.get('resume')
+    if resume:
+        session = GisaEssaySession.objects.filter(
+            pk=resume, user=request.user, certification=cert,
+            status='progress').first()
+
+    if session is None:
+        session = GisaEssaySession.objects.create(
+            user=request.user, certification=cert,
+            source=source, section=(section if source == '예상' else '기출'),
+            year=year, round=round_, mode=mode,
+            total_points=total_points,
+            paper_code=uuid.uuid4().hex[:10].upper() if mode == 'paper' else '',
+        )
 
     # 실전(기출)은 90분 타이머, 학습(예상)은 무제한
     time_limit = 90 * 60 if source == '기출' else 0
