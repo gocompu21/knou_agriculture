@@ -32,6 +32,9 @@
     .sq-no { font-weight: 700; color: #1b4332; font-size: 1rem; min-width: 26px; }
     .sq-type { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
         background: #eef2ee; color: #40624f; }
+    /* 문항이 주제순으로 놓이므로 어느 주제인지 배지로 알린다 */
+    .sq-topic { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
+        background: #e8eef5; color: #2d4a6b; font-weight: 600; }
     /* 되풀이 출제된 주제임을 알리는 배지. 마우스를 올리면 출제 회차가 보인다 */
     .sq-freq { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
         background: #fff3e0; color: #a1651a; font-weight: 700; cursor: help; }
@@ -106,6 +109,7 @@
     <div class="sq">
         <div class="sq-head">
             <span class="sq-no">{% if study_mode == 'freq' %}{{ forloop.counter }}{% else %}{{ q.number }}{% endif %}</span>
+            {% if q.topic_group %}<span class="sq-topic">{{ q.get_topic_group_display }}</span>{% endif %}
             <span class="sq-type">{{ q.get_qtype_display }}</span>
             {% if q.freq_rounds > 1 %}
             <span class="sq-freq" title="{{ q.freq_note }}">빈출 {{ q.freq_rounds }}회</span>

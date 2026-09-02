@@ -252,6 +252,9 @@ class GisaEssayQuestion(models.Model):
     year = models.IntegerField('출제연도', null=True, blank=True)
     round = models.IntegerField('회차', null=True, blank=True)
     number = models.IntegerField('문항번호')
+    # 학습 편의를 위해 number 를 주제순으로 다시 매기므로, 실제 시험지의 번호를
+    # 여기에 남긴다. 다른 수험 자료와 대조하거나 원본을 확인할 때 필요하다.
+    orig_number = models.IntegerField('원본 문항번호', null=True, blank=True)
 
     qtype = models.CharField('유형', max_length=10, choices=TYPE_CHOICES, default='서술')
     text = models.TextField('문제')
@@ -272,6 +275,23 @@ class GisaEssayQuestion(models.Model):
     std_major = models.PositiveSmallIntegerField('출제기준 주요항목', default=0,
                                                  help_text='1~8. 0은 미분류')
     std_sub = models.PositiveSmallIntegerField('출제기준 세부항목', default=0)
+
+    # 출제기준 8항목은 실무 수행 순서(구상→기반환경→…→종합평가)라, 학술 지식을
+    # 묻는 기출과 잘 맞지 않는다. 실제로 무엇을 묻는지로 따로 나눠 학습 순서를
+    # 잡는다. 번호도 이 순서로 다시 매긴다.
+    TOPIC_CHOICES = [
+        (1, '생태학 기초'),
+        (2, '경관생태'),
+        (3, '생태조사·분석'),
+        (4, '복원 계획·설계'),
+        (5, '기반환경 복원'),
+        (6, '생태시설물·현장관리'),
+        (7, '환경영향평가'),
+        (8, '법규·제도'),
+    ]
+    topic_group = models.PositiveSmallIntegerField(
+        '주제 분류', default=0, choices=TOPIC_CHOICES,
+        help_text='1~8. 0은 미분류. 회차 내 문항 순서를 이 값으로 매긴다')
 
     # 같은 주제가 표현만 바꿔 되풀이 출제되므로, 주제 단위로 묶어 빈도를 센다.
     # analyze_essay_freq.py 가 군집을 만들고 tag_essay_frequency 가 여기에 쓴다.

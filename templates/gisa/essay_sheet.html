@@ -47,6 +47,8 @@
     .sq { margin-bottom: 4px; page-break-inside: avoid; break-inside: avoid; }
     .sq-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; }
     .sq-no { font-weight: 700; font-size: 1.02rem; min-width: 24px; }
+    /* 번호를 주제순으로 다시 매겼으므로 실제 시험지 번호를 함께 적어 둔다 */
+    .sq-orig { margin-left: auto; font-size: 0.72rem; color: #999; font-weight: 400; }
     .sq-pts { margin-left: auto; font-size: 0.75rem; color: #888; }
     .sq-text { font-size: 0.9rem; line-height: 1.65; color: #111;
         padding-left: 32px; margin-bottom: 6px; }
@@ -145,6 +147,7 @@
         <div class="sq-head">
             <span class="sq-no">{{ q.number }}</span>
             <span class="sq-pts">({{ q.points }}점)</span>
+            {% if q.orig_number %}<span class="sq-orig">원본 {{ q.orig_number }}번</span>{% endif %}
         </div>
         <div class="sq-text">{{ q.text|qtext }}</div>
         {% if q.text_image %}<img class="sq-img" src="{{ q.text_image|vurl }}" alt="">{% endif %}
