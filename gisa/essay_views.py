@@ -26,6 +26,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .essay_grading import grade_answer, grade_session
+from .templatetags.gisa_filters import qtext
 from .models import (Certification, GisaEssayAttempt, GisaEssayQuestion,
                      GisaEssaySession, GisaEssayUpload)
 
@@ -629,5 +630,7 @@ def essay_grade_one(request, cert_id, question_id):
         'summary': result['summary'],
         'answer_items': q.answer_items,
         'answer_text': q.answer_text,
-        'reference': q.reference,
+        # 해설에는 표·도해가 들어가므로 서버에서 렌더링해 보낸다.
+        # 브라우저에서 escape 하면 표는 파이프 문자로, 그림은 태그 글자로 보인다
+        'reference_html': str(qtext(q.reference)) if q.reference else '',
     })

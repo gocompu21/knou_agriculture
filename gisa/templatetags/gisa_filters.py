@@ -136,10 +136,44 @@ def _tables_anywhere(text):
     return "\n".join(out)
 
 
+# 해설에 직접 그린 도해를 싣기 위한 SVG 통과 처리 --------------------------
+# escape() 를 그대로 통과시키면 태그가 글자로 보이므로, [svg]...[/svg] 로 감싼
+# 것만 따로 빼두었다가 escape 뒤에 되돌린다. 되돌리기 전에 스크립트·외부 참조를
+# 걸러 내용이 관리자 손을 거치지 않고 들어와도 위험하지 않게 한다.
+_SVG_BLOCK = re.compile(r"\[svg\](.*?)\[/svg\]", re.DOTALL | re.IGNORECASE)
+_SVG_BAD = re.compile(
+    r"<\s*(script|foreignObject|iframe|object|embed|image|use)\b"
+    r"|\bon[a-z]+\s*=" r"|javascript:" r"|<!\s*ENTITY",
+    re.IGNORECASE,
+)
+
+
+def _sanitize_svg(src):
+    """도해로 쓸 수 있는 SVG만 통과시킨다. 아니면 빈 문자열."""
+    s = (src or "").strip()
+    if not s.lower().startswith("<svg") or _SVG_BAD.search(s):
+        return ""
+    # 폭이 넘치지 않도록 감싸고, 화면 낭독기에는 그림임을 알린다
+    return (
+        '<div class="q-svg" role="img" style="margin:8px 0;max-width:100%;'
+        'overflow-x:auto">' + s + "</div>"
+    )
+
+
 def _render_qtext(value):
     """내부 공통 렌더링"""
     if value is None:
         return ""
+
+    # SVG 도해는 escape 대상에서 빼둔다 (아래에서 검사 후 되돌린다)
+    svgs = []
+
+    def _stash(m):
+        svgs.append(m.group(1))
+        return f"\x00SVG{len(svgs) - 1}\x00"
+
+    value = _SVG_BLOCK.sub(_stash, value)
+
     text = escape(value)
     text = text.replace("&lt;u&gt;", "<u>").replace("&lt;/u&gt;", "</u>")
     # 빈칸 괄호 ( ) 가 너무 좁아 보기 흉하므로 넓혀서 표시한다 (데이터는 그대로)
@@ -164,6 +198,15 @@ def _render_qtext(value):
     text = re.sub(r"\^\{([^}]+)\}", r"<sup>\1</sup>", text)
     text = re.sub(r"_\{([^}]+)\}", r"<sub>\1</sub>", text)
     text = text.replace("\n", "<br>")
+
+    # 빼두었던 SVG를 검사해 되돌린다. 자리표시자 앞뒤의 <br>은 그림이 제 줄을
+    # 차지하도록 흡수한다 (안 그러면 그림 위아래에 빈 줄이 생긴다)
+    for i, src in enumerate(svgs):
+        text = re.sub(
+            r"(?:<br>)?\x00SVG%d\x00(?:<br>)?" % i,
+            lambda m, s=src: _sanitize_svg(s),
+            text,
+        )
     return text
 
 
