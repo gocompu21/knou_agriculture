@@ -162,7 +162,7 @@
 
         {% if a.question.answer_text or a.question.reference or a.question.answer_image %}
         <details class="qr-more">
-            <summary>모범답안 · 참고자료 보기</summary>
+            <summary>모범답안 · 해설 보기</summary>
             <div class="body">
                 {% if a.question.answer_text %}{{ a.question.answer_text|qtext }}{% endif %}
                 {% if a.question.answer_image %}<img class="qr-img" src="{{ a.question.answer_image|vurl }}" alt="">{% endif %}

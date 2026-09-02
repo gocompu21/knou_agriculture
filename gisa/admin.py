@@ -119,7 +119,7 @@ class GisaEssayQuestionAdmin(admin.ModelAdmin):
                            'number', 'qtype', 'points', 'std_major', 'std_sub')}),
         ('문제', {'fields': ('text', 'text_image')}),
         ('답', {'fields': ('answer_items', 'answer_text', 'answer_image', 'rubric')}),
-        ('참고', {'fields': ('reference', 'reference_image')}),
+        ('해설', {'fields': ('reference', 'reference_image')}),
         ('메모', {'fields': ('notes',)}),
     )
 

@@ -261,9 +261,9 @@ class GisaEssayQuestion(models.Model):
     answer_text = models.TextField('답 서술', blank=True,
                                    help_text='표·계산식 등 항목화하기 어려운 답')
     answer_image = models.ImageField('답 이미지', upload_to=_essay_question_img_path, blank=True)
-    reference = models.TextField('참고자료', blank=True,
-                                 help_text='법조문·지침 등. 채점에는 쓰지 않고 학습용으로 노출')
-    reference_image = models.ImageField('참고 이미지', upload_to=_essay_question_img_path, blank=True)
+    reference = models.TextField('해설', blank=True,
+                                 help_text='법조문·지침·배경 설명 등. 채점에는 쓰지 않고 학습용으로 노출')
+    reference_image = models.ImageField('해설 이미지', upload_to=_essay_question_img_path, blank=True)
 
     points = models.FloatField('배점', default=3,
                                help_text='기출은 회차 합계가 45점이 되도록 0.5점 단위로 정규화')

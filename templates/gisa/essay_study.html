@@ -119,7 +119,7 @@
 
             {% if q.reference or q.reference_image %}
             <details class="ans-ref">
-                <summary>참고자료 (법조문·지침)</summary>
+                <summary>해설</summary>
                 <div class="body">
                     {% if q.reference %}{{ q.reference|qtext }}{% endif %}
                     {% if q.reference_image %}<img class="sq-img" style="margin-left:0" src="{{ q.reference_image|vurl }}" alt="">{% endif %}
