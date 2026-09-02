@@ -1,0 +1,5810 @@
+[
+ {
+  "year": 2005,
+  "round": 1,
+  "number": 1,
+  "topic_key": "48a7a593cb3d268c",
+  "freq_rounds": 2,
+  "freq_note": "2025-1 2005-1"
+ },
+ {
+  "year": 2005,
+  "round": 1,
+  "number": 2,
+  "topic_key": "d8f119e0256ece5d",
+  "freq_rounds": 2,
+  "freq_note": "2022-1 2005-1"
+ },
+ {
+  "year": 2005,
+  "round": 1,
+  "number": 3,
+  "topic_key": "cd4dcb6262ab356e",
+  "freq_rounds": 2,
+  "freq_note": "2013-2 2005-1"
+ },
+ {
+  "year": 2005,
+  "round": 1,
+  "number": 4,
+  "topic_key": "c0fd04248a51ac89",
+  "freq_rounds": 4,
+  "freq_note": "2015-2 2010-3 2008-4 2005-1"
+ },
+ {
+  "year": 2005,
+  "round": 1,
+  "number": 5,
+  "topic_key": "a89cf525e1d9f04d",
+  "freq_rounds": 1,
+  "freq_note": "2005-1"
+ },
+ {
+  "year": 2005,
+  "round": 1,
+  "number": 6,
+  "topic_key": "0ff30e45f4a3915c",
+  "freq_rounds": 2,
+  "freq_note": "2008-1 2005-1"
+ },
+ {
+  "year": 2005,
+  "round": 1,
+  "number": 7,
+  "topic_key": "f3859b168562f927",
+  "freq_rounds": 11,
+  "freq_note": "2022-2 2022-1 2016-1 2013-3 2012-1 2011-2 2009-4 2008-4 2005-3 2005-2 2005-1"
+ },
+ {
+  "year": 2005,
+  "round": 1,
+  "number": 8,
+  "topic_key": "cdc09ef8b7cebae6",
+  "freq_rounds": 5,
+  "freq_note": "2026-1 2020-3 2020-2 2017-3 2005-1"
+ },
+ {
+  "year": 2005,
+  "round": 1,
+  "number": 9,
+  "topic_key": "b95db1b45b4e65c7",
+  "freq_rounds": 2,
+  "freq_note": "2021-3 2005-1"
+ },
+ {
+  "year": 2005,
+  "round": 1,
+  "number": 10,
+  "topic_key": "722cb5d0d1305a10",
+  "freq_rounds": 2,
+  "freq_note": "2013-2 2005-1"
+ },
+ {
+  "year": 2005,
+  "round": 2,
+  "number": 1,
+  "topic_key": "fbd68463e8f0560d",
+  "freq_rounds": 3,
+  "freq_note": "2025-3 2024-2 2005-2"
+ },
+ {
+  "year": 2005,
+  "round": 2,
+  "number": 2,
+  "topic_key": "7ae0313746717283",
+  "freq_rounds": 4,
+  "freq_note": "2025-2 2012-3 2012-1 2005-2"
+ },
+ {
+  "year": 2005,
+  "round": 2,
+  "number": 3,
+  "topic_key": "db576a7d2453575f",
+  "freq_rounds": 1,
+  "freq_note": "2005-2"
+ },
+ {
+  "year": 2005,
+  "round": 2,
+  "number": 4,
+  "topic_key": "822cb8edcbe2a4e8",
+  "freq_rounds": 2,
+  "freq_note": "2009-1 2005-2"
+ },
+ {
+  "year": 2005,
+  "round": 2,
+  "number": 5,
+  "topic_key": "456ac9b0d15a8b7f",
+  "freq_rounds": 1,
+  "freq_note": "2005-2"
+ },
+ {
+  "year": 2005,
+  "round": 2,
+  "number": 6,
+  "topic_key": "5d77f2c6d3a030bc",
+  "freq_rounds": 8,
+  "freq_note": "2026-2 2022-2 2021-3 2018-3 2013-3 2013-2 2007-1 2005-2"
+ },
+ {
+  "year": 2005,
+  "round": 2,
+  "number": 7,
+  "topic_key": "f3859b168562f927",
+  "freq_rounds": 11,
+  "freq_note": "2022-2 2022-1 2016-1 2013-3 2012-1 2011-2 2009-4 2008-4 2005-3 2005-2 2005-1"
+ },
+ {
+  "year": 2005,
+  "round": 2,
+  "number": 8,
+  "topic_key": "b4d168b48157c623",
+  "freq_rounds": 1,
+  "freq_note": "2005-2"
+ },
+ {
+  "year": 2005,
+  "round": 2,
+  "number": 9,
+  "topic_key": "96a94f47a7b5d937",
+  "freq_rounds": 4,
+  "freq_note": "2020-3 2008-4 2006-2 2005-2"
+ },
+ {
+  "year": 2005,
+  "round": 2,
+  "number": 10,
+  "topic_key": "1e7ba6ab5d02c999",
+  "freq_rounds": 3,
+  "freq_note": "2026-2 2007-1 2005-2"
+ },
+ {
+  "year": 2005,
+  "round": 2,
+  "number": 11,
+  "topic_key": "5bb0ebf13a87af08",
+  "freq_rounds": 2,
+  "freq_note": "2009-1 2005-2"
+ },
+ {
+  "year": 2005,
+  "round": 3,
+  "number": 1,
+  "topic_key": "8dbd3f3b97be730f",
+  "freq_rounds": 3,
+  "freq_note": "2023-1 2009-1 2005-3"
+ },
+ {
+  "year": 2005,
+  "round": 3,
+  "number": 2,
+  "topic_key": "b5ef0c5b6b44c10e",
+  "freq_rounds": 2,
+  "freq_note": "2014-1 2005-3"
+ },
+ {
+  "year": 2005,
+  "round": 3,
+  "number": 3,
+  "topic_key": "3c2789d7ec7d2714",
+  "freq_rounds": 2,
+  "freq_note": "2011-3 2005-3"
+ },
+ {
+  "year": 2005,
+  "round": 3,
+  "number": 4,
+  "topic_key": "d9c2c059ceedd25b",
+  "freq_rounds": 5,
+  "freq_note": "2024-2 2020-3 2018-2 2015-1 2005-3"
+ },
+ {
+  "year": 2005,
+  "round": 3,
+  "number": 5,
+  "topic_key": "f1148499a8caeb07",
+  "freq_rounds": 3,
+  "freq_note": "2017-3 2013-2 2005-3"
+ },
+ {
+  "year": 2005,
+  "round": 3,
+  "number": 6,
+  "topic_key": "5ffbd747867fe9de",
+  "freq_rounds": 2,
+  "freq_note": "2007-4 2005-3"
+ },
+ {
+  "year": 2005,
+  "round": 3,
+  "number": 7,
+  "topic_key": "eddb904a6db77375",
+  "freq_rounds": 1,
+  "freq_note": "2005-3"
+ },
+ {
+  "year": 2005,
+  "round": 3,
+  "number": 8,
+  "topic_key": "6d70cb65d1521172",
+  "freq_rounds": 1,
+  "freq_note": "2005-3"
+ },
+ {
+  "year": 2005,
+  "round": 3,
+  "number": 9,
+  "topic_key": "537d9b6c927223c7",
+  "freq_rounds": 1,
+  "freq_note": "2005-3"
+ },
+ {
+  "year": 2005,
+  "round": 3,
+  "number": 10,
+  "topic_key": "f3859b168562f927",
+  "freq_rounds": 11,
+  "freq_note": "2022-2 2022-1 2016-1 2013-3 2012-1 2011-2 2009-4 2008-4 2005-3 2005-2 2005-1"
+ },
+ {
+  "year": 2005,
+  "round": 3,
+  "number": 11,
+  "topic_key": "8d3da8529842d332",
+  "freq_rounds": 3,
+  "freq_note": "2013-2 2012-3 2005-3"
+ },
+ {
+  "year": 2005,
+  "round": 3,
+  "number": 12,
+  "topic_key": "1579779b98ce9edb",
+  "freq_rounds": 1,
+  "freq_note": "2005-3"
+ },
+ {
+  "year": 2005,
+  "round": 3,
+  "number": 13,
+  "topic_key": "7c6ba440440b3178",
+  "freq_rounds": 4,
+  "freq_note": "2012-3 2012-2 2008-4 2005-3"
+ },
+ {
+  "year": 2005,
+  "round": 3,
+  "number": 14,
+  "topic_key": "b9141aff1412dc76",
+  "freq_rounds": 1,
+  "freq_note": "2005-3"
+ },
+ {
+  "year": 2005,
+  "round": 3,
+  "number": 15,
+  "topic_key": "3375413a9478fe59",
+  "freq_rounds": 2,
+  "freq_note": "2007-4 2005-3"
+ },
+ {
+  "year": 2006,
+  "round": 1,
+  "number": 1,
+  "topic_key": "3ba86d028125ecc1",
+  "freq_rounds": 3,
+  "freq_note": "2016-3 2006-2 2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 1,
+  "number": 2,
+  "topic_key": "2e4d9b862baf285e",
+  "freq_rounds": 4,
+  "freq_note": "2026-1 2010-3 2008-1 2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 1,
+  "number": 3,
+  "topic_key": "6a2feef8ed6a9fe7",
+  "freq_rounds": 1,
+  "freq_note": "2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 1,
+  "number": 4,
+  "topic_key": "68b1fbe7f16e4ae3",
+  "freq_rounds": 1,
+  "freq_note": "2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 1,
+  "number": 5,
+  "topic_key": "9cf0e8450a2a2918",
+  "freq_rounds": 2,
+  "freq_note": "2015-1 2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 1,
+  "number": 6,
+  "topic_key": "e212cbadb926f1ca",
+  "freq_rounds": 2,
+  "freq_note": "2008-4 2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 1,
+  "number": 7,
+  "topic_key": "8167e94d42b7ecee",
+  "freq_rounds": 2,
+  "freq_note": "2009-1 2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 1,
+  "number": 8,
+  "topic_key": "e9d9fd5e8ac9555b",
+  "freq_rounds": 3,
+  "freq_note": "2025-2 2013-2 2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 1,
+  "number": 9,
+  "topic_key": "6aa71d5597dc7551",
+  "freq_rounds": 2,
+  "freq_note": "2024-1 2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 1,
+  "number": 10,
+  "topic_key": "b1563a78ec593375",
+  "freq_rounds": 1,
+  "freq_note": "2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 1,
+  "number": 11,
+  "topic_key": "4e2545f819e67f06",
+  "freq_rounds": 1,
+  "freq_note": "2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 1,
+  "number": 12,
+  "topic_key": "a5e0ff62be0b0845",
+  "freq_rounds": 1,
+  "freq_note": "2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 1,
+  "number": 13,
+  "topic_key": "c93ce605e1ea21a6",
+  "freq_rounds": 2,
+  "freq_note": "2022-3 2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 1,
+  "number": 14,
+  "topic_key": "03f5446139179452",
+  "freq_rounds": 1,
+  "freq_note": "2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 1,
+  "number": 15,
+  "topic_key": "c0e05d1788ac597d",
+  "freq_rounds": 2,
+  "freq_note": "2015-2 2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 1,
+  "number": 16,
+  "topic_key": "8ce36dd884c52e0f",
+  "freq_rounds": 6,
+  "freq_note": "2025-1 2022-3 2019-3 2011-2 2007-4 2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 2,
+  "number": 1,
+  "topic_key": "7b394ef8bc88478c",
+  "freq_rounds": 2,
+  "freq_note": "2016-3 2006-2"
+ },
+ {
+  "year": 2006,
+  "round": 2,
+  "number": 2,
+  "topic_key": "3806734b256c27e4",
+  "freq_rounds": 1,
+  "freq_note": "2006-2"
+ },
+ {
+  "year": 2006,
+  "round": 2,
+  "number": 3,
+  "topic_key": "e515df0d202ae52f",
+  "freq_rounds": 1,
+  "freq_note": "2006-2"
+ },
+ {
+  "year": 2006,
+  "round": 2,
+  "number": 4,
+  "topic_key": "3ba86d028125ecc1",
+  "freq_rounds": 3,
+  "freq_note": "2016-3 2006-2 2006-1"
+ },
+ {
+  "year": 2006,
+  "round": 2,
+  "number": 5,
+  "topic_key": "021bbc7ee20b7113",
+  "freq_rounds": 1,
+  "freq_note": "2006-2"
+ },
+ {
+  "year": 2006,
+  "round": 2,
+  "number": 6,
+  "topic_key": "ce5140df15d046a6",
+  "freq_rounds": 1,
+  "freq_note": "2006-2"
+ },
+ {
+  "year": 2006,
+  "round": 2,
+  "number": 7,
+  "topic_key": "7b0889ce5ebc0746",
+  "freq_rounds": 2,
+  "freq_note": "2011-2 2006-2"
+ },
+ {
+  "year": 2006,
+  "round": 2,
+  "number": 8,
+  "topic_key": "4b7bc0a437343a4f",
+  "freq_rounds": 2,
+  "freq_note": "2017-3 2006-2"
+ },
+ {
+  "year": 2006,
+  "round": 2,
+  "number": 9,
+  "topic_key": "84d2004bf28a2095",
+  "freq_rounds": 1,
+  "freq_note": "2006-2"
+ },
+ {
+  "year": 2006,
+  "round": 2,
+  "number": 10,
+  "topic_key": "afdec7005cc9f143",
+  "freq_rounds": 1,
+  "freq_note": "2006-2"
+ },
+ {
+  "year": 2006,
+  "round": 2,
+  "number": 11,
+  "topic_key": "995e1fda4a2b5f55",
+  "freq_rounds": 1,
+  "freq_note": "2006-2"
+ },
+ {
+  "year": 2006,
+  "round": 2,
+  "number": 12,
+  "topic_key": "96a94f47a7b5d937",
+  "freq_rounds": 4,
+  "freq_note": "2020-3 2008-4 2006-2 2005-2"
+ },
+ {
+  "year": 2006,
+  "round": 2,
+  "number": 13,
+  "topic_key": "dc216bb9c6460ab6",
+  "freq_rounds": 2,
+  "freq_note": "2014-2 2006-2"
+ },
+ {
+  "year": 2006,
+  "round": 2,
+  "number": 14,
+  "topic_key": "e42f67af03dd2fab",
+  "freq_rounds": 2,
+  "freq_note": "2013-1 2006-2"
+ },
+ {
+  "year": 2006,
+  "round": 2,
+  "number": 15,
+  "topic_key": "bdb106a0560c4e46",
+  "freq_rounds": 1,
+  "freq_note": "2006-2"
+ },
+ {
+  "year": 2007,
+  "round": 1,
+  "number": 1,
+  "topic_key": "2387337ba1e0b024",
+  "freq_rounds": 1,
+  "freq_note": "2007-1"
+ },
+ {
+  "year": 2007,
+  "round": 1,
+  "number": 2,
+  "topic_key": "9246444d94f081e3",
+  "freq_rounds": 1,
+  "freq_note": "2007-1"
+ },
+ {
+  "year": 2007,
+  "round": 1,
+  "number": 3,
+  "topic_key": "08fe2621d8e716b0",
+  "freq_rounds": 1,
+  "freq_note": "2007-1"
+ },
+ {
+  "year": 2007,
+  "round": 1,
+  "number": 4,
+  "topic_key": "5bc24f6aa24f9b22",
+  "freq_rounds": 2,
+  "freq_note": "2023-1 2007-1"
+ },
+ {
+  "year": 2007,
+  "round": 1,
+  "number": 5,
+  "topic_key": "5d77f2c6d3a030bc",
+  "freq_rounds": 8,
+  "freq_note": "2026-2 2022-2 2021-3 2018-3 2013-3 2013-2 2007-1 2005-2"
+ },
+ {
+  "year": 2007,
+  "round": 1,
+  "number": 6,
+  "topic_key": "ef50c335cca9f340",
+  "freq_rounds": 1,
+  "freq_note": "2007-1"
+ },
+ {
+  "year": 2007,
+  "round": 1,
+  "number": 7,
+  "topic_key": "03e0704b5690a2de",
+  "freq_rounds": 1,
+  "freq_note": "2007-1"
+ },
+ {
+  "year": 2007,
+  "round": 1,
+  "number": 8,
+  "topic_key": "1e48c4420b7073bc",
+  "freq_rounds": 1,
+  "freq_note": "2007-1"
+ },
+ {
+  "year": 2007,
+  "round": 1,
+  "number": 9,
+  "topic_key": "a1602581300fb7d2",
+  "freq_rounds": 3,
+  "freq_note": "2023-3 2017-3 2007-1"
+ },
+ {
+  "year": 2007,
+  "round": 1,
+  "number": 10,
+  "topic_key": "298923c8190045e9",
+  "freq_rounds": 1,
+  "freq_note": "2007-1"
+ },
+ {
+  "year": 2007,
+  "round": 1,
+  "number": 11,
+  "topic_key": "5d616dd38211ebb5",
+  "freq_rounds": 1,
+  "freq_note": "2007-1"
+ },
+ {
+  "year": 2007,
+  "round": 1,
+  "number": 12,
+  "topic_key": "1e7ba6ab5d02c999",
+  "freq_rounds": 3,
+  "freq_note": "2026-2 2007-1 2005-2"
+ },
+ {
+  "year": 2007,
+  "round": 1,
+  "number": 13,
+  "topic_key": "31b3b31a1c2f8a37",
+  "freq_rounds": 1,
+  "freq_note": "2007-1"
+ },
+ {
+  "year": 2007,
+  "round": 1,
+  "number": 14,
+  "topic_key": "7f975a56c761db65",
+  "freq_rounds": 1,
+  "freq_note": "2007-1"
+ },
+ {
+  "year": 2007,
+  "round": 1,
+  "number": 15,
+  "topic_key": "1587965fb4d4b5af",
+  "freq_rounds": 1,
+  "freq_note": "2007-1"
+ },
+ {
+  "year": 2007,
+  "round": 4,
+  "number": 1,
+  "topic_key": "6d98d125ee99fe03",
+  "freq_rounds": 3,
+  "freq_note": "2017-1 2012-3 2007-4"
+ },
+ {
+  "year": 2007,
+  "round": 4,
+  "number": 2,
+  "topic_key": "fed33392d3a48aa1",
+  "freq_rounds": 1,
+  "freq_note": "2007-4"
+ },
+ {
+  "year": 2007,
+  "round": 4,
+  "number": 3,
+  "topic_key": "5ffbd747867fe9de",
+  "freq_rounds": 2,
+  "freq_note": "2007-4 2005-3"
+ },
+ {
+  "year": 2007,
+  "round": 4,
+  "number": 4,
+  "topic_key": "a9b7ba70783b617e",
+  "freq_rounds": 1,
+  "freq_note": "2007-4"
+ },
+ {
+  "year": 2007,
+  "round": 4,
+  "number": 5,
+  "topic_key": "6d15ae28ccf074e7",
+  "freq_rounds": 2,
+  "freq_note": "2013-1 2007-4"
+ },
+ {
+  "year": 2007,
+  "round": 4,
+  "number": 6,
+  "topic_key": "b8c37e33defde51c",
+  "freq_rounds": 1,
+  "freq_note": "2007-4"
+ },
+ {
+  "year": 2007,
+  "round": 4,
+  "number": 7,
+  "topic_key": "3375413a9478fe59",
+  "freq_rounds": 2,
+  "freq_note": "2007-4 2005-3"
+ },
+ {
+  "year": 2007,
+  "round": 4,
+  "number": 8,
+  "topic_key": "8ce36dd884c52e0f",
+  "freq_rounds": 6,
+  "freq_note": "2025-1 2022-3 2019-3 2011-2 2007-4 2006-1"
+ },
+ {
+  "year": 2007,
+  "round": 4,
+  "number": 9,
+  "topic_key": "ffa44f740615f8ca",
+  "freq_rounds": 3,
+  "freq_note": "2024-1 2009-4 2007-4"
+ },
+ {
+  "year": 2008,
+  "round": 1,
+  "number": 1,
+  "topic_key": "b05ebe7f74e662f9",
+  "freq_rounds": 3,
+  "freq_note": "2022-1 2016-3 2008-1"
+ },
+ {
+  "year": 2008,
+  "round": 1,
+  "number": 2,
+  "topic_key": "4b0234bab7d8600c",
+  "freq_rounds": 4,
+  "freq_note": "2022-2 2018-3 2009-1 2008-1"
+ },
+ {
+  "year": 2008,
+  "round": 1,
+  "number": 3,
+  "topic_key": "8060659ebc58bb80",
+  "freq_rounds": 2,
+  "freq_note": "2017-3 2008-1"
+ },
+ {
+  "year": 2008,
+  "round": 1,
+  "number": 4,
+  "topic_key": "3414941820b4330f",
+  "freq_rounds": 4,
+  "freq_note": "2020-3 2014-2 2011-3 2008-1"
+ },
+ {
+  "year": 2008,
+  "round": 1,
+  "number": 5,
+  "topic_key": "2e4d9b862baf285e",
+  "freq_rounds": 4,
+  "freq_note": "2026-1 2010-3 2008-1 2006-1"
+ },
+ {
+  "year": 2008,
+  "round": 1,
+  "number": 6,
+  "topic_key": "914f426b0808a003",
+  "freq_rounds": 2,
+  "freq_note": "2009-4 2008-1"
+ },
+ {
+  "year": 2008,
+  "round": 1,
+  "number": 7,
+  "topic_key": "7d3b74f4d9a7eb03",
+  "freq_rounds": 2,
+  "freq_note": "2021-3 2008-1"
+ },
+ {
+  "year": 2008,
+  "round": 1,
+  "number": 8,
+  "topic_key": "4fac9ba115140ac4",
+  "freq_rounds": 1,
+  "freq_note": "2008-1"
+ },
+ {
+  "year": 2008,
+  "round": 1,
+  "number": 9,
+  "topic_key": "0ff30e45f4a3915c",
+  "freq_rounds": 2,
+  "freq_note": "2008-1 2005-1"
+ },
+ {
+  "year": 2008,
+  "round": 1,
+  "number": 10,
+  "topic_key": "860320be12a1c050",
+  "freq_rounds": 1,
+  "freq_note": "2008-1"
+ },
+ {
+  "year": 2008,
+  "round": 1,
+  "number": 11,
+  "topic_key": "7b13b2203029ed80",
+  "freq_rounds": 1,
+  "freq_note": "2008-1"
+ },
+ {
+  "year": 2008,
+  "round": 1,
+  "number": 12,
+  "topic_key": "934815ad542a4a7c",
+  "freq_rounds": 1,
+  "freq_note": "2008-1"
+ },
+ {
+  "year": 2008,
+  "round": 1,
+  "number": 13,
+  "topic_key": "2bcab9d935d21964",
+  "freq_rounds": 1,
+  "freq_note": "2008-1"
+ },
+ {
+  "year": 2008,
+  "round": 1,
+  "number": 14,
+  "topic_key": "44d4acc09345505b",
+  "freq_rounds": 2,
+  "freq_note": "2019-3 2008-1"
+ },
+ {
+  "year": 2008,
+  "round": 1,
+  "number": 15,
+  "topic_key": "54a367d629152b72",
+  "freq_rounds": 1,
+  "freq_note": "2008-1"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 1,
+  "topic_key": "3bdcd3e12d43691a",
+  "freq_rounds": 4,
+  "freq_note": "2023-3 2020-3 2017-3 2008-4"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 2,
+  "topic_key": "e212cbadb926f1ca",
+  "freq_rounds": 2,
+  "freq_note": "2008-4 2006-1"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 3,
+  "topic_key": "6b2191e7a0a01215",
+  "freq_rounds": 2,
+  "freq_note": "2009-4 2008-4"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 4,
+  "topic_key": "9c01802ddb981e6b",
+  "freq_rounds": 1,
+  "freq_note": "2008-4"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 5,
+  "topic_key": "8065d07da4a77621",
+  "freq_rounds": 1,
+  "freq_note": "2008-4"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 6,
+  "topic_key": "48c7259b481673aa",
+  "freq_rounds": 2,
+  "freq_note": "2010-2 2008-4"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 7,
+  "topic_key": "c0fd04248a51ac89",
+  "freq_rounds": 4,
+  "freq_note": "2015-2 2010-3 2008-4 2005-1"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 8,
+  "topic_key": "ab86e3fe2e6d2097",
+  "freq_rounds": 2,
+  "freq_note": "2024-1 2008-4"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 9,
+  "topic_key": "e0c99748c1eafdd7",
+  "freq_rounds": 2,
+  "freq_note": "2013-3 2008-4"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 10,
+  "topic_key": "f3859b168562f927",
+  "freq_rounds": 11,
+  "freq_note": "2022-2 2022-1 2016-1 2013-3 2012-1 2011-2 2009-4 2008-4 2005-3 2005-2 2005-1"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 11,
+  "topic_key": "96a94f47a7b5d937",
+  "freq_rounds": 4,
+  "freq_note": "2020-3 2008-4 2006-2 2005-2"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 12,
+  "topic_key": "a251d292b0481820",
+  "freq_rounds": 2,
+  "freq_note": "2024-1 2008-4"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 13,
+  "topic_key": "7c6ba440440b3178",
+  "freq_rounds": 4,
+  "freq_note": "2012-3 2012-2 2008-4 2005-3"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 14,
+  "topic_key": "ca75910166da03ff",
+  "freq_rounds": 1,
+  "freq_note": "2008-4"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 15,
+  "topic_key": "d79aac075930c83c",
+  "freq_rounds": 1,
+  "freq_note": "2008-4"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 16,
+  "topic_key": "eeb69a3cb9230045",
+  "freq_rounds": 1,
+  "freq_note": "2008-4"
+ },
+ {
+  "year": 2008,
+  "round": 4,
+  "number": 17,
+  "topic_key": "2ab56412b1163ee1",
+  "freq_rounds": 1,
+  "freq_note": "2008-4"
+ },
+ {
+  "year": 2009,
+  "round": 1,
+  "number": 1,
+  "topic_key": "4b0234bab7d8600c",
+  "freq_rounds": 4,
+  "freq_note": "2022-2 2018-3 2009-1 2008-1"
+ },
+ {
+  "year": 2009,
+  "round": 1,
+  "number": 2,
+  "topic_key": "8167e94d42b7ecee",
+  "freq_rounds": 2,
+  "freq_note": "2009-1 2006-1"
+ },
+ {
+  "year": 2009,
+  "round": 1,
+  "number": 3,
+  "topic_key": "e6cb2a3c14431b55",
+  "freq_rounds": 1,
+  "freq_note": "2009-1"
+ },
+ {
+  "year": 2009,
+  "round": 1,
+  "number": 4,
+  "topic_key": "822cb8edcbe2a4e8",
+  "freq_rounds": 2,
+  "freq_note": "2009-1 2005-2"
+ },
+ {
+  "year": 2009,
+  "round": 1,
+  "number": 5,
+  "topic_key": "8dbd3f3b97be730f",
+  "freq_rounds": 3,
+  "freq_note": "2023-1 2009-1 2005-3"
+ },
+ {
+  "year": 2009,
+  "round": 1,
+  "number": 6,
+  "topic_key": "0f840be9b8db4d3f",
+  "freq_rounds": 1,
+  "freq_note": "2009-1"
+ },
+ {
+  "year": 2009,
+  "round": 1,
+  "number": 7,
+  "topic_key": "d707329bece455a4",
+  "freq_rounds": 1,
+  "freq_note": "2009-1"
+ },
+ {
+  "year": 2009,
+  "round": 1,
+  "number": 8,
+  "topic_key": "1ce927f875864094",
+  "freq_rounds": 1,
+  "freq_note": "2009-1"
+ },
+ {
+  "year": 2009,
+  "round": 1,
+  "number": 9,
+  "topic_key": "c80c3e0ccd2501b3",
+  "freq_rounds": 3,
+  "freq_note": "2015-2 2010-2 2009-1"
+ },
+ {
+  "year": 2009,
+  "round": 1,
+  "number": 10,
+  "topic_key": "d240e3d38a8882ec",
+  "freq_rounds": 1,
+  "freq_note": "2009-1"
+ },
+ {
+  "year": 2009,
+  "round": 1,
+  "number": 11,
+  "topic_key": "437d7d1d97917cd6",
+  "freq_rounds": 1,
+  "freq_note": "2009-1"
+ },
+ {
+  "year": 2009,
+  "round": 1,
+  "number": 12,
+  "topic_key": "ef4e3b775c934dad",
+  "freq_rounds": 1,
+  "freq_note": "2009-1"
+ },
+ {
+  "year": 2009,
+  "round": 1,
+  "number": 13,
+  "topic_key": "9fd64ffe77da9f23",
+  "freq_rounds": 2,
+  "freq_note": "2013-2 2009-1"
+ },
+ {
+  "year": 2009,
+  "round": 1,
+  "number": 14,
+  "topic_key": "4ab55b08b5be064f",
+  "freq_rounds": 2,
+  "freq_note": "2010-2 2009-1"
+ },
+ {
+  "year": 2009,
+  "round": 1,
+  "number": 15,
+  "topic_key": "5bb0ebf13a87af08",
+  "freq_rounds": 2,
+  "freq_note": "2009-1 2005-2"
+ },
+ {
+  "year": 2009,
+  "round": 4,
+  "number": 1,
+  "topic_key": "a39f905cb62d0448",
+  "freq_rounds": 4,
+  "freq_note": "2025-2 2021-3 2017-3 2009-4"
+ },
+ {
+  "year": 2009,
+  "round": 4,
+  "number": 2,
+  "topic_key": "914f426b0808a003",
+  "freq_rounds": 2,
+  "freq_note": "2009-4 2008-1"
+ },
+ {
+  "year": 2009,
+  "round": 4,
+  "number": 3,
+  "topic_key": "6b2191e7a0a01215",
+  "freq_rounds": 2,
+  "freq_note": "2009-4 2008-4"
+ },
+ {
+  "year": 2009,
+  "round": 4,
+  "number": 4,
+  "topic_key": "8d6dc35e506fc233",
+  "freq_rounds": 1,
+  "freq_note": "2009-4"
+ },
+ {
+  "year": 2009,
+  "round": 4,
+  "number": 5,
+  "topic_key": "4b6538a44a1dfdc2",
+  "freq_rounds": 1,
+  "freq_note": "2009-4"
+ },
+ {
+  "year": 2009,
+  "round": 4,
+  "number": 6,
+  "topic_key": "b7892fb3c2f009c6",
+  "freq_rounds": 1,
+  "freq_note": "2009-4"
+ },
+ {
+  "year": 2009,
+  "round": 4,
+  "number": 7,
+  "topic_key": "92262bf907af914b",
+  "freq_rounds": 1,
+  "freq_note": "2009-4"
+ },
+ {
+  "year": 2009,
+  "round": 4,
+  "number": 8,
+  "topic_key": "c8c41c4a18675a74",
+  "freq_rounds": 1,
+  "freq_note": "2009-4"
+ },
+ {
+  "year": 2009,
+  "round": 4,
+  "number": 9,
+  "topic_key": "e820a45f1dfc7b95",
+  "freq_rounds": 1,
+  "freq_note": "2009-4"
+ },
+ {
+  "year": 2009,
+  "round": 4,
+  "number": 10,
+  "topic_key": "f3859b168562f927",
+  "freq_rounds": 11,
+  "freq_note": "2022-2 2022-1 2016-1 2013-3 2012-1 2011-2 2009-4 2008-4 2005-3 2005-2 2005-1"
+ },
+ {
+  "year": 2009,
+  "round": 4,
+  "number": 11,
+  "topic_key": "b55ec28c52d5f620",
+  "freq_rounds": 1,
+  "freq_note": "2009-4"
+ },
+ {
+  "year": 2009,
+  "round": 4,
+  "number": 12,
+  "topic_key": "74bba22728b6185e",
+  "freq_rounds": 1,
+  "freq_note": "2009-4"
+ },
+ {
+  "year": 2009,
+  "round": 4,
+  "number": 13,
+  "topic_key": "c4b31ce7d95c75ca",
+  "freq_rounds": 1,
+  "freq_note": "2009-4"
+ },
+ {
+  "year": 2009,
+  "round": 4,
+  "number": 14,
+  "topic_key": "ffa44f740615f8ca",
+  "freq_rounds": 3,
+  "freq_note": "2024-1 2009-4 2007-4"
+ },
+ {
+  "year": 2010,
+  "round": 2,
+  "number": 1,
+  "topic_key": "8a1e808b55fde945",
+  "freq_rounds": 1,
+  "freq_note": "2010-2"
+ },
+ {
+  "year": 2010,
+  "round": 2,
+  "number": 2,
+  "topic_key": "062ddb6c727310e7",
+  "freq_rounds": 1,
+  "freq_note": "2010-2"
+ },
+ {
+  "year": 2010,
+  "round": 2,
+  "number": 3,
+  "topic_key": "36a16a2505369e0c",
+  "freq_rounds": 1,
+  "freq_note": "2010-2"
+ },
+ {
+  "year": 2010,
+  "round": 2,
+  "number": 4,
+  "topic_key": "c80c3e0ccd2501b3",
+  "freq_rounds": 3,
+  "freq_note": "2015-2 2010-2 2009-1"
+ },
+ {
+  "year": 2010,
+  "round": 2,
+  "number": 5,
+  "topic_key": "48c7259b481673aa",
+  "freq_rounds": 2,
+  "freq_note": "2010-2 2008-4"
+ },
+ {
+  "year": 2010,
+  "round": 2,
+  "number": 6,
+  "topic_key": "e5e63da79fcd2beb",
+  "freq_rounds": 1,
+  "freq_note": "2010-2"
+ },
+ {
+  "year": 2010,
+  "round": 2,
+  "number": 7,
+  "topic_key": "9f36407ead0629fc",
+  "freq_rounds": 1,
+  "freq_note": "2010-2"
+ },
+ {
+  "year": 2010,
+  "round": 2,
+  "number": 8,
+  "topic_key": "c268e47e01824cc3",
+  "freq_rounds": 2,
+  "freq_note": "2017-1 2010-2"
+ },
+ {
+  "year": 2010,
+  "round": 2,
+  "number": 9,
+  "topic_key": "46072631582fc240",
+  "freq_rounds": 1,
+  "freq_note": "2010-2"
+ },
+ {
+  "year": 2010,
+  "round": 2,
+  "number": 10,
+  "topic_key": "43baa6762fa81bb4",
+  "freq_rounds": 1,
+  "freq_note": "2010-2"
+ },
+ {
+  "year": 2010,
+  "round": 2,
+  "number": 11,
+  "topic_key": "a1519de5b5d44b31",
+  "freq_rounds": 1,
+  "freq_note": "2010-2"
+ },
+ {
+  "year": 2010,
+  "round": 2,
+  "number": 12,
+  "topic_key": "4ab55b08b5be064f",
+  "freq_rounds": 2,
+  "freq_note": "2010-2 2009-1"
+ },
+ {
+  "year": 2010,
+  "round": 2,
+  "number": 13,
+  "topic_key": "1b0114c51cc532ed",
+  "freq_rounds": 1,
+  "freq_note": "2010-2"
+ },
+ {
+  "year": 2010,
+  "round": 2,
+  "number": 14,
+  "topic_key": "731c83db8d2ff01b",
+  "freq_rounds": 1,
+  "freq_note": "2010-2"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 1,
+  "topic_key": "2e4d9b862baf285e",
+  "freq_rounds": 4,
+  "freq_note": "2026-1 2010-3 2008-1 2006-1"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 2,
+  "topic_key": "d2ed45a52bc0edfa",
+  "freq_rounds": 1,
+  "freq_note": "2010-3"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 3,
+  "topic_key": "c0fd04248a51ac89",
+  "freq_rounds": 4,
+  "freq_note": "2015-2 2010-3 2008-4 2005-1"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 4,
+  "topic_key": "1e056d2b0ebd5c87",
+  "freq_rounds": 1,
+  "freq_note": "2010-3"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 5,
+  "topic_key": "3e89ebdb49f712c7",
+  "freq_rounds": 1,
+  "freq_note": "2010-3"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 6,
+  "topic_key": "6d0f846348a85632",
+  "freq_rounds": 1,
+  "freq_note": "2010-3"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 7,
+  "topic_key": "df1ed64b2f432a0e",
+  "freq_rounds": 2,
+  "freq_note": "2025-3 2010-3"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 8,
+  "topic_key": "1f4477bad7af3616",
+  "freq_rounds": 1,
+  "freq_note": "2010-3"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 9,
+  "topic_key": "6ca194190d2e06e8",
+  "freq_rounds": 5,
+  "freq_note": "2023-1 2019-2 2018-2 2012-2 2010-3"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 10,
+  "topic_key": "c4015b7f368e6b48",
+  "freq_rounds": 1,
+  "freq_note": "2010-3"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 11,
+  "topic_key": "bea5955b308361a1",
+  "freq_rounds": 1,
+  "freq_note": "2010-3"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 12,
+  "topic_key": "0f217d03b819358d",
+  "freq_rounds": 3,
+  "freq_note": "2025-2 2011-3 2010-3"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 13,
+  "topic_key": "a2c30a62782d546f",
+  "freq_rounds": 2,
+  "freq_note": "2026-1 2010-3"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 14,
+  "topic_key": "0d0871f0806eae32",
+  "freq_rounds": 1,
+  "freq_note": "2010-3"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 15,
+  "topic_key": "783f3a4718a580ff",
+  "freq_rounds": 2,
+  "freq_note": "2017-1 2010-3"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 16,
+  "topic_key": "783f3a4718a580ff",
+  "freq_rounds": 2,
+  "freq_note": "2017-1 2010-3"
+ },
+ {
+  "year": 2010,
+  "round": 3,
+  "number": 17,
+  "topic_key": "c686a60eb57546ae",
+  "freq_rounds": 2,
+  "freq_note": "2025-3 2010-3"
+ },
+ {
+  "year": 2011,
+  "round": 2,
+  "number": 1,
+  "topic_key": "8b6dd7db9af49e67",
+  "freq_rounds": 1,
+  "freq_note": "2011-2"
+ },
+ {
+  "year": 2011,
+  "round": 2,
+  "number": 2,
+  "topic_key": "b2b1fb41a07d0252",
+  "freq_rounds": 2,
+  "freq_note": "2013-1 2011-2"
+ },
+ {
+  "year": 2011,
+  "round": 2,
+  "number": 3,
+  "topic_key": "e205ee2a5de471a7",
+  "freq_rounds": 1,
+  "freq_note": "2011-2"
+ },
+ {
+  "year": 2011,
+  "round": 2,
+  "number": 4,
+  "topic_key": "286d85ddea4c23ba",
+  "freq_rounds": 4,
+  "freq_note": "2023-3 2017-3 2014-2 2011-2"
+ },
+ {
+  "year": 2011,
+  "round": 2,
+  "number": 5,
+  "topic_key": "7b0889ce5ebc0746",
+  "freq_rounds": 2,
+  "freq_note": "2011-2 2006-2"
+ },
+ {
+  "year": 2011,
+  "round": 2,
+  "number": 6,
+  "topic_key": "f47d0ad31c4c4906",
+  "freq_rounds": 1,
+  "freq_note": "2011-2"
+ },
+ {
+  "year": 2011,
+  "round": 2,
+  "number": 7,
+  "topic_key": "f3859b168562f927",
+  "freq_rounds": 11,
+  "freq_note": "2022-2 2022-1 2016-1 2013-3 2012-1 2011-2 2009-4 2008-4 2005-3 2005-2 2005-1"
+ },
+ {
+  "year": 2011,
+  "round": 2,
+  "number": 8,
+  "topic_key": "f57a2f557b098c43",
+  "freq_rounds": 1,
+  "freq_note": "2011-2"
+ },
+ {
+  "year": 2011,
+  "round": 2,
+  "number": 9,
+  "topic_key": "9167942fb927d626",
+  "freq_rounds": 2,
+  "freq_note": "2026-2 2011-2"
+ },
+ {
+  "year": 2011,
+  "round": 2,
+  "number": 10,
+  "topic_key": "8b5040a8a5baf3e0",
+  "freq_rounds": 1,
+  "freq_note": "2011-2"
+ },
+ {
+  "year": 2011,
+  "round": 2,
+  "number": 11,
+  "topic_key": "56568a456eabaae5",
+  "freq_rounds": 4,
+  "freq_note": "2025-1 2022-2 2019-2 2011-2"
+ },
+ {
+  "year": 2011,
+  "round": 2,
+  "number": 12,
+  "topic_key": "88ab0388276251f8",
+  "freq_rounds": 2,
+  "freq_note": "2016-3 2011-2"
+ },
+ {
+  "year": 2011,
+  "round": 2,
+  "number": 13,
+  "topic_key": "40916a5c3b31e15f",
+  "freq_rounds": 3,
+  "freq_note": "2013-2 2012-3 2011-2"
+ },
+ {
+  "year": 2011,
+  "round": 2,
+  "number": 14,
+  "topic_key": "8ce36dd884c52e0f",
+  "freq_rounds": 6,
+  "freq_note": "2025-1 2022-3 2019-3 2011-2 2007-4 2006-1"
+ },
+ {
+  "year": 2011,
+  "round": 2,
+  "number": 15,
+  "topic_key": "23ce1851341ec1fa",
+  "freq_rounds": 1,
+  "freq_note": "2011-2"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 1,
+  "topic_key": "3c2789d7ec7d2714",
+  "freq_rounds": 2,
+  "freq_note": "2011-3 2005-3"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 2,
+  "topic_key": "3414941820b4330f",
+  "freq_rounds": 4,
+  "freq_note": "2020-3 2014-2 2011-3 2008-1"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 3,
+  "topic_key": "037d9ea53e01c05a",
+  "freq_rounds": 2,
+  "freq_note": "2021-3 2011-3"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 4,
+  "topic_key": "b6a1085a27ab7bff",
+  "freq_rounds": 1,
+  "freq_note": "2011-3"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 5,
+  "topic_key": "cfbce4c1d7c425ba",
+  "freq_rounds": 1,
+  "freq_note": "2011-3"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 6,
+  "topic_key": "c2aee86157b4a40b",
+  "freq_rounds": 1,
+  "freq_note": "2011-3"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 7,
+  "topic_key": "a64c94baaf368e18",
+  "freq_rounds": 1,
+  "freq_note": "2011-3"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 8,
+  "topic_key": "d56b9fc4b0f1be88",
+  "freq_rounds": 1,
+  "freq_note": "2011-3"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 9,
+  "topic_key": "4b0250793549726d",
+  "freq_rounds": 1,
+  "freq_note": "2011-3"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 10,
+  "topic_key": "5d7e36286be65ae3",
+  "freq_rounds": 2,
+  "freq_note": "2023-1 2011-3"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 11,
+  "topic_key": "0a113ef6b61820da",
+  "freq_rounds": 1,
+  "freq_note": "2011-3"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 12,
+  "topic_key": "0f217d03b819358d",
+  "freq_rounds": 3,
+  "freq_note": "2025-2 2011-3 2010-3"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 13,
+  "topic_key": "12d62db9ba43ceb8",
+  "freq_rounds": 2,
+  "freq_note": "2022-3 2011-3"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 14,
+  "topic_key": "7ce3284b743aefde",
+  "freq_rounds": 1,
+  "freq_note": "2011-3"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 15,
+  "topic_key": "024d7f84fff11dd7",
+  "freq_rounds": 1,
+  "freq_note": "2011-3"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 16,
+  "topic_key": "01882513d5fa7c32",
+  "freq_rounds": 1,
+  "freq_note": "2011-3"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 17,
+  "topic_key": "20240f33d890365c",
+  "freq_rounds": 3,
+  "freq_note": "2018-3 2018-2 2011-3"
+ },
+ {
+  "year": 2011,
+  "round": 3,
+  "number": 18,
+  "topic_key": "20240f33d890365c",
+  "freq_rounds": 3,
+  "freq_note": "2018-3 2018-2 2011-3"
+ },
+ {
+  "year": 2012,
+  "round": 1,
+  "number": 1,
+  "topic_key": "98d6f58ab0dafbb8",
+  "freq_rounds": 1,
+  "freq_note": "2012-1"
+ },
+ {
+  "year": 2012,
+  "round": 1,
+  "number": 2,
+  "topic_key": "51ef186e18dc00c2",
+  "freq_rounds": 1,
+  "freq_note": "2012-1"
+ },
+ {
+  "year": 2012,
+  "round": 1,
+  "number": 3,
+  "topic_key": "0c1a2989574d8390",
+  "freq_rounds": 2,
+  "freq_note": "2022-3 2012-1"
+ },
+ {
+  "year": 2012,
+  "round": 1,
+  "number": 4,
+  "topic_key": "d516b13671a4179d",
+  "freq_rounds": 1,
+  "freq_note": "2012-1"
+ },
+ {
+  "year": 2012,
+  "round": 1,
+  "number": 5,
+  "topic_key": "7ae0313746717283",
+  "freq_rounds": 4,
+  "freq_note": "2025-2 2012-3 2012-1 2005-2"
+ },
+ {
+  "year": 2012,
+  "round": 1,
+  "number": 6,
+  "topic_key": "aeb98edb21f6633d",
+  "freq_rounds": 3,
+  "freq_note": "2025-3 2022-2 2012-1"
+ },
+ {
+  "year": 2012,
+  "round": 1,
+  "number": 7,
+  "topic_key": "2302442630c4f1f1",
+  "freq_rounds": 3,
+  "freq_note": "2023-1 2020-1 2012-1"
+ },
+ {
+  "year": 2012,
+  "round": 1,
+  "number": 8,
+  "topic_key": "49c9adb18e44be07",
+  "freq_rounds": 1,
+  "freq_note": "2012-1"
+ },
+ {
+  "year": 2012,
+  "round": 1,
+  "number": 9,
+  "topic_key": "22fb0cee7e1f3bde",
+  "freq_rounds": 1,
+  "freq_note": "2012-1"
+ },
+ {
+  "year": 2012,
+  "round": 1,
+  "number": 10,
+  "topic_key": "67d16d00201083a2",
+  "freq_rounds": 1,
+  "freq_note": "2012-1"
+ },
+ {
+  "year": 2012,
+  "round": 1,
+  "number": 11,
+  "topic_key": "f3859b168562f927",
+  "freq_rounds": 11,
+  "freq_note": "2022-2 2022-1 2016-1 2013-3 2012-1 2011-2 2009-4 2008-4 2005-3 2005-2 2005-1"
+ },
+ {
+  "year": 2012,
+  "round": 1,
+  "number": 12,
+  "topic_key": "210f760a89db30aa",
+  "freq_rounds": 1,
+  "freq_note": "2012-1"
+ },
+ {
+  "year": 2012,
+  "round": 1,
+  "number": 13,
+  "topic_key": "170c944978496731",
+  "freq_rounds": 1,
+  "freq_note": "2012-1"
+ },
+ {
+  "year": 2012,
+  "round": 1,
+  "number": 14,
+  "topic_key": "43feaeeecd7b2fe2",
+  "freq_rounds": 1,
+  "freq_note": "2012-1"
+ },
+ {
+  "year": 2012,
+  "round": 1,
+  "number": 15,
+  "topic_key": "aeb3135b436aa553",
+  "freq_rounds": 1,
+  "freq_note": "2012-1"
+ },
+ {
+  "year": 2012,
+  "round": 1,
+  "number": 16,
+  "topic_key": "6c3cf77d52820cd0",
+  "freq_rounds": 1,
+  "freq_note": "2012-1"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 1,
+  "topic_key": "0715e092918b7c50",
+  "freq_rounds": 2,
+  "freq_note": "2016-1 2012-2"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 2,
+  "topic_key": "f9a40a4780f5e130",
+  "freq_rounds": 1,
+  "freq_note": "2012-2"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 3,
+  "topic_key": "3b3dbaf68507998a",
+  "freq_rounds": 1,
+  "freq_note": "2012-2"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 4,
+  "topic_key": "addfa9b7e234254d",
+  "freq_rounds": 1,
+  "freq_note": "2012-2"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 5,
+  "topic_key": "847cc55b7032108e",
+  "freq_rounds": 1,
+  "freq_note": "2012-2"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 6,
+  "topic_key": "22ac3c5a5bf0b520",
+  "freq_rounds": 1,
+  "freq_note": "2012-2"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 7,
+  "topic_key": "78e9a31cfff4b7eb",
+  "freq_rounds": 2,
+  "freq_note": "2025-2 2012-2"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 8,
+  "topic_key": "5ec91aac30eae62f",
+  "freq_rounds": 1,
+  "freq_note": "2012-2"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 9,
+  "topic_key": "1fc214004c9481e4",
+  "freq_rounds": 1,
+  "freq_note": "2012-2"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 10,
+  "topic_key": "f7e9050c92a851b0",
+  "freq_rounds": 1,
+  "freq_note": "2012-2"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 11,
+  "topic_key": "6ca194190d2e06e8",
+  "freq_rounds": 5,
+  "freq_note": "2023-1 2019-2 2018-2 2012-2 2010-3"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 12,
+  "topic_key": "aff1621254f7c1be",
+  "freq_rounds": 1,
+  "freq_note": "2012-2"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 13,
+  "topic_key": "a67f096809415ca1",
+  "freq_rounds": 1,
+  "freq_note": "2012-2"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 14,
+  "topic_key": "7c6ba440440b3178",
+  "freq_rounds": 4,
+  "freq_note": "2012-3 2012-2 2008-4 2005-3"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 15,
+  "topic_key": "ede7e2b6d13a41dd",
+  "freq_rounds": 1,
+  "freq_note": "2012-2"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 16,
+  "topic_key": "dd45045f8c68db9f",
+  "freq_rounds": 1,
+  "freq_note": "2012-2"
+ },
+ {
+  "year": 2012,
+  "round": 2,
+  "number": 17,
+  "topic_key": "fc49306d97602c8e",
+  "freq_rounds": 1,
+  "freq_note": "2012-2"
+ },
+ {
+  "year": 2012,
+  "round": 3,
+  "number": 1,
+  "topic_key": "7ae0313746717283",
+  "freq_rounds": 4,
+  "freq_note": "2025-2 2012-3 2012-1 2005-2"
+ },
+ {
+  "year": 2012,
+  "round": 3,
+  "number": 2,
+  "topic_key": "f9028faec74be6ec",
+  "freq_rounds": 1,
+  "freq_note": "2012-3"
+ },
+ {
+  "year": 2012,
+  "round": 3,
+  "number": 3,
+  "topic_key": "6d98d125ee99fe03",
+  "freq_rounds": 3,
+  "freq_note": "2017-1 2012-3 2007-4"
+ },
+ {
+  "year": 2012,
+  "round": 3,
+  "number": 4,
+  "topic_key": "fc3cf452d3da8402",
+  "freq_rounds": 1,
+  "freq_note": "2012-3"
+ },
+ {
+  "year": 2012,
+  "round": 3,
+  "number": 5,
+  "topic_key": "f4552671f8909587",
+  "freq_rounds": 1,
+  "freq_note": "2012-3"
+ },
+ {
+  "year": 2012,
+  "round": 3,
+  "number": 6,
+  "topic_key": "fe8c15fed5f80800",
+  "freq_rounds": 1,
+  "freq_note": "2012-3"
+ },
+ {
+  "year": 2012,
+  "round": 3,
+  "number": 7,
+  "topic_key": "c9edafd836d0cb72",
+  "freq_rounds": 3,
+  "freq_note": "2020-2 2017-1 2012-3"
+ },
+ {
+  "year": 2012,
+  "round": 3,
+  "number": 8,
+  "topic_key": "84f7e69969dea92a",
+  "freq_rounds": 1,
+  "freq_note": "2012-3"
+ },
+ {
+  "year": 2012,
+  "round": 3,
+  "number": 9,
+  "topic_key": "92fb0c6d1758261f",
+  "freq_rounds": 1,
+  "freq_note": "2012-3"
+ },
+ {
+  "year": 2012,
+  "round": 3,
+  "number": 10,
+  "topic_key": "3d8e28caf901313a",
+  "freq_rounds": 1,
+  "freq_note": "2012-3"
+ },
+ {
+  "year": 2012,
+  "round": 3,
+  "number": 11,
+  "topic_key": "b86e8d03fe992d1b",
+  "freq_rounds": 1,
+  "freq_note": "2012-3"
+ },
+ {
+  "year": 2012,
+  "round": 3,
+  "number": 12,
+  "topic_key": "8d3da8529842d332",
+  "freq_rounds": 3,
+  "freq_note": "2013-2 2012-3 2005-3"
+ },
+ {
+  "year": 2012,
+  "round": 3,
+  "number": 13,
+  "topic_key": "7c6ba440440b3178",
+  "freq_rounds": 4,
+  "freq_note": "2012-3 2012-2 2008-4 2005-3"
+ },
+ {
+  "year": 2012,
+  "round": 3,
+  "number": 14,
+  "topic_key": "40916a5c3b31e15f",
+  "freq_rounds": 3,
+  "freq_note": "2013-2 2012-3 2011-2"
+ },
+ {
+  "year": 2012,
+  "round": 3,
+  "number": 15,
+  "topic_key": "ff5a3bf388516d09",
+  "freq_rounds": 6,
+  "freq_note": "2023-3 2022-1 2019-1 2017-1 2014-2 2012-3"
+ },
+ {
+  "year": 2013,
+  "round": 1,
+  "number": 1,
+  "topic_key": "b2b1fb41a07d0252",
+  "freq_rounds": 2,
+  "freq_note": "2013-1 2011-2"
+ },
+ {
+  "year": 2013,
+  "round": 1,
+  "number": 2,
+  "topic_key": "19bc916108fc6938",
+  "freq_rounds": 1,
+  "freq_note": "2013-1"
+ },
+ {
+  "year": 2013,
+  "round": 1,
+  "number": 3,
+  "topic_key": "50c3d7614917b243",
+  "freq_rounds": 1,
+  "freq_note": "2013-1"
+ },
+ {
+  "year": 2013,
+  "round": 1,
+  "number": 4,
+  "topic_key": "aba3b6fd5d186d28",
+  "freq_rounds": 1,
+  "freq_note": "2013-1"
+ },
+ {
+  "year": 2013,
+  "round": 1,
+  "number": 5,
+  "topic_key": "d14220ee66aeec73",
+  "freq_rounds": 1,
+  "freq_note": "2013-1"
+ },
+ {
+  "year": 2013,
+  "round": 1,
+  "number": 6,
+  "topic_key": "1ecfb463472ec911",
+  "freq_rounds": 1,
+  "freq_note": "2013-1"
+ },
+ {
+  "year": 2013,
+  "round": 1,
+  "number": 7,
+  "topic_key": "e7f8a7fb0b77bcb3",
+  "freq_rounds": 1,
+  "freq_note": "2013-1"
+ },
+ {
+  "year": 2013,
+  "round": 1,
+  "number": 8,
+  "topic_key": "1677447d61038a9d",
+  "freq_rounds": 2,
+  "freq_note": "2025-2 2013-1"
+ },
+ {
+  "year": 2013,
+  "round": 1,
+  "number": 9,
+  "topic_key": "6d15ae28ccf074e7",
+  "freq_rounds": 2,
+  "freq_note": "2013-1 2007-4"
+ },
+ {
+  "year": 2013,
+  "round": 1,
+  "number": 10,
+  "topic_key": "07c5807d0d927dcd",
+  "freq_rounds": 1,
+  "freq_note": "2013-1"
+ },
+ {
+  "year": 2013,
+  "round": 1,
+  "number": 11,
+  "topic_key": "8df707a948fac1b4",
+  "freq_rounds": 1,
+  "freq_note": "2013-1"
+ },
+ {
+  "year": 2013,
+  "round": 1,
+  "number": 12,
+  "topic_key": "498df1e95a092981",
+  "freq_rounds": 3,
+  "freq_note": "2020-3 2018-1 2013-1"
+ },
+ {
+  "year": 2013,
+  "round": 1,
+  "number": 13,
+  "topic_key": "e42f67af03dd2fab",
+  "freq_rounds": 2,
+  "freq_note": "2013-1 2006-2"
+ },
+ {
+  "year": 2013,
+  "round": 2,
+  "number": 1,
+  "topic_key": "8a0e1141fd37fa5b",
+  "freq_rounds": 1,
+  "freq_note": "2013-2"
+ },
+ {
+  "year": 2013,
+  "round": 2,
+  "number": 2,
+  "topic_key": "b1eec33c726a6055",
+  "freq_rounds": 1,
+  "freq_note": "2013-2"
+ },
+ {
+  "year": 2013,
+  "round": 2,
+  "number": 3,
+  "topic_key": "f64eac11f2cd8f0e",
+  "freq_rounds": 1,
+  "freq_note": "2013-2"
+ },
+ {
+  "year": 2013,
+  "round": 2,
+  "number": 4,
+  "topic_key": "f1148499a8caeb07",
+  "freq_rounds": 3,
+  "freq_note": "2017-3 2013-2 2005-3"
+ },
+ {
+  "year": 2013,
+  "round": 2,
+  "number": 5,
+  "topic_key": "cd4dcb6262ab356e",
+  "freq_rounds": 2,
+  "freq_note": "2013-2 2005-1"
+ },
+ {
+  "year": 2013,
+  "round": 2,
+  "number": 6,
+  "topic_key": "5d77f2c6d3a030bc",
+  "freq_rounds": 8,
+  "freq_note": "2026-2 2022-2 2021-3 2018-3 2013-3 2013-2 2007-1 2005-2"
+ },
+ {
+  "year": 2013,
+  "round": 2,
+  "number": 7,
+  "topic_key": "e9d9fd5e8ac9555b",
+  "freq_rounds": 3,
+  "freq_note": "2025-2 2013-2 2006-1"
+ },
+ {
+  "year": 2013,
+  "round": 2,
+  "number": 8,
+  "topic_key": "9fd64ffe77da9f23",
+  "freq_rounds": 2,
+  "freq_note": "2013-2 2009-1"
+ },
+ {
+  "year": 2013,
+  "round": 2,
+  "number": 9,
+  "topic_key": "e5841df2166dd424",
+  "freq_rounds": 1,
+  "freq_note": "2013-2"
+ },
+ {
+  "year": 2013,
+  "round": 2,
+  "number": 10,
+  "topic_key": "8d3da8529842d332",
+  "freq_rounds": 3,
+  "freq_note": "2013-2 2012-3 2005-3"
+ },
+ {
+  "year": 2013,
+  "round": 2,
+  "number": 11,
+  "topic_key": "e4bb4c5173c2ce17",
+  "freq_rounds": 1,
+  "freq_note": "2013-2"
+ },
+ {
+  "year": 2013,
+  "round": 2,
+  "number": 12,
+  "topic_key": "722cb5d0d1305a10",
+  "freq_rounds": 2,
+  "freq_note": "2013-2 2005-1"
+ },
+ {
+  "year": 2013,
+  "round": 2,
+  "number": 13,
+  "topic_key": "99bcfcd754a98ce8",
+  "freq_rounds": 1,
+  "freq_note": "2013-2"
+ },
+ {
+  "year": 2013,
+  "round": 2,
+  "number": 14,
+  "topic_key": "afd4836712c5e775",
+  "freq_rounds": 1,
+  "freq_note": "2013-2"
+ },
+ {
+  "year": 2013,
+  "round": 2,
+  "number": 15,
+  "topic_key": "4a47d2983c8bd392",
+  "freq_rounds": 1,
+  "freq_note": "2013-2"
+ },
+ {
+  "year": 2013,
+  "round": 2,
+  "number": 16,
+  "topic_key": "40916a5c3b31e15f",
+  "freq_rounds": 3,
+  "freq_note": "2013-2 2012-3 2011-2"
+ },
+ {
+  "year": 2013,
+  "round": 3,
+  "number": 1,
+  "topic_key": "ca9c267dad0305d1",
+  "freq_rounds": 1,
+  "freq_note": "2013-3"
+ },
+ {
+  "year": 2013,
+  "round": 3,
+  "number": 2,
+  "topic_key": "83d6fe6e1451bc73",
+  "freq_rounds": 5,
+  "freq_note": "2022-2 2021-3 2019-2 2018-3 2013-3"
+ },
+ {
+  "year": 2013,
+  "round": 3,
+  "number": 3,
+  "topic_key": "dce4037199e930e9",
+  "freq_rounds": 2,
+  "freq_note": "2021-3 2013-3"
+ },
+ {
+  "year": 2013,
+  "round": 3,
+  "number": 4,
+  "topic_key": "5d77f2c6d3a030bc",
+  "freq_rounds": 8,
+  "freq_note": "2026-2 2022-2 2021-3 2018-3 2013-3 2013-2 2007-1 2005-2"
+ },
+ {
+  "year": 2013,
+  "round": 3,
+  "number": 5,
+  "topic_key": "e555ebe0ce426f7f",
+  "freq_rounds": 1,
+  "freq_note": "2013-3"
+ },
+ {
+  "year": 2013,
+  "round": 3,
+  "number": 6,
+  "topic_key": "e0c99748c1eafdd7",
+  "freq_rounds": 2,
+  "freq_note": "2013-3 2008-4"
+ },
+ {
+  "year": 2013,
+  "round": 3,
+  "number": 7,
+  "topic_key": "f3859b168562f927",
+  "freq_rounds": 11,
+  "freq_note": "2022-2 2022-1 2016-1 2013-3 2012-1 2011-2 2009-4 2008-4 2005-3 2005-2 2005-1"
+ },
+ {
+  "year": 2013,
+  "round": 3,
+  "number": 8,
+  "topic_key": "3328bdf9a4b9504b",
+  "freq_rounds": 1,
+  "freq_note": "2013-3"
+ },
+ {
+  "year": 2013,
+  "round": 3,
+  "number": 9,
+  "topic_key": "07a96b1f61097ccb",
+  "freq_rounds": 1,
+  "freq_note": "2013-3"
+ },
+ {
+  "year": 2013,
+  "round": 3,
+  "number": 10,
+  "topic_key": "9fe8593a8a330607",
+  "freq_rounds": 1,
+  "freq_note": "2013-3"
+ },
+ {
+  "year": 2013,
+  "round": 3,
+  "number": 11,
+  "topic_key": "24681928425f5a91",
+  "freq_rounds": 1,
+  "freq_note": "2013-3"
+ },
+ {
+  "year": 2013,
+  "round": 3,
+  "number": 12,
+  "topic_key": "f8dd602d131923f0",
+  "freq_rounds": 2,
+  "freq_note": "2022-2 2013-3"
+ },
+ {
+  "year": 2013,
+  "round": 3,
+  "number": 13,
+  "topic_key": "f79921bbae40a577",
+  "freq_rounds": 1,
+  "freq_note": "2013-3"
+ },
+ {
+  "year": 2013,
+  "round": 3,
+  "number": 14,
+  "topic_key": "d3c6f20142bdbe3a",
+  "freq_rounds": 2,
+  "freq_note": "2023-1 2013-3"
+ },
+ {
+  "year": 2013,
+  "round": 3,
+  "number": 15,
+  "topic_key": "10a5ab2db37feedf",
+  "freq_rounds": 1,
+  "freq_note": "2013-3"
+ },
+ {
+  "year": 2014,
+  "round": 1,
+  "number": 1,
+  "topic_key": "afda332245e2af43",
+  "freq_rounds": 1,
+  "freq_note": "2014-1"
+ },
+ {
+  "year": 2014,
+  "round": 1,
+  "number": 2,
+  "topic_key": "795c7a7a5ec6b460",
+  "freq_rounds": 1,
+  "freq_note": "2014-1"
+ },
+ {
+  "year": 2014,
+  "round": 1,
+  "number": 3,
+  "topic_key": "113eaad5528ad6e9",
+  "freq_rounds": 2,
+  "freq_note": "2017-3 2014-1"
+ },
+ {
+  "year": 2014,
+  "round": 1,
+  "number": 4,
+  "topic_key": "14537a40a77352e5",
+  "freq_rounds": 2,
+  "freq_note": "2020-2 2014-1"
+ },
+ {
+  "year": 2014,
+  "round": 1,
+  "number": 5,
+  "topic_key": "301ad0e3bd5cb162",
+  "freq_rounds": 1,
+  "freq_note": "2014-1"
+ },
+ {
+  "year": 2014,
+  "round": 1,
+  "number": 6,
+  "topic_key": "b5ef0c5b6b44c10e",
+  "freq_rounds": 2,
+  "freq_note": "2014-1 2005-3"
+ },
+ {
+  "year": 2014,
+  "round": 1,
+  "number": 7,
+  "topic_key": "697644adf300a2ef",
+  "freq_rounds": 2,
+  "freq_note": "2022-1 2014-1"
+ },
+ {
+  "year": 2014,
+  "round": 1,
+  "number": 8,
+  "topic_key": "ce78d1da254c0843",
+  "freq_rounds": 1,
+  "freq_note": "2014-1"
+ },
+ {
+  "year": 2014,
+  "round": 1,
+  "number": 9,
+  "topic_key": "e0ec453e28e061cc",
+  "freq_rounds": 1,
+  "freq_note": "2014-1"
+ },
+ {
+  "year": 2014,
+  "round": 1,
+  "number": 10,
+  "topic_key": "366baf1b08945f67",
+  "freq_rounds": 2,
+  "freq_note": "2016-3 2014-1"
+ },
+ {
+  "year": 2014,
+  "round": 1,
+  "number": 11,
+  "topic_key": "4d5b995358e7798b",
+  "freq_rounds": 1,
+  "freq_note": "2014-1"
+ },
+ {
+  "year": 2014,
+  "round": 1,
+  "number": 12,
+  "topic_key": "d554f7bb7be44a72",
+  "freq_rounds": 1,
+  "freq_note": "2014-1"
+ },
+ {
+  "year": 2014,
+  "round": 1,
+  "number": 13,
+  "topic_key": "c2626d850c80ea07",
+  "freq_rounds": 1,
+  "freq_note": "2014-1"
+ },
+ {
+  "year": 2014,
+  "round": 1,
+  "number": 14,
+  "topic_key": "7250eb93b3c18cc9",
+  "freq_rounds": 1,
+  "freq_note": "2014-1"
+ },
+ {
+  "year": 2014,
+  "round": 1,
+  "number": 15,
+  "topic_key": "677e09724f0e2df9",
+  "freq_rounds": 1,
+  "freq_note": "2014-1"
+ },
+ {
+  "year": 2014,
+  "round": 2,
+  "number": 1,
+  "topic_key": "3414941820b4330f",
+  "freq_rounds": 4,
+  "freq_note": "2020-3 2014-2 2011-3 2008-1"
+ },
+ {
+  "year": 2014,
+  "round": 2,
+  "number": 2,
+  "topic_key": "670e8a43b246801c",
+  "freq_rounds": 1,
+  "freq_note": "2014-2"
+ },
+ {
+  "year": 2014,
+  "round": 2,
+  "number": 3,
+  "topic_key": "d86adb9fbd11b8aa",
+  "freq_rounds": 3,
+  "freq_note": "2023-3 2019-2 2014-2"
+ },
+ {
+  "year": 2014,
+  "round": 2,
+  "number": 4,
+  "topic_key": "1f9669f291b79e96",
+  "freq_rounds": 5,
+  "freq_note": "2023-1 2022-3 2019-1 2018-2 2014-2"
+ },
+ {
+  "year": 2014,
+  "round": 2,
+  "number": 5,
+  "topic_key": "286d85ddea4c23ba",
+  "freq_rounds": 4,
+  "freq_note": "2023-3 2017-3 2014-2 2011-2"
+ },
+ {
+  "year": 2014,
+  "round": 2,
+  "number": 6,
+  "topic_key": "793bad2c5e44912a",
+  "freq_rounds": 2,
+  "freq_note": "2020-3 2014-2"
+ },
+ {
+  "year": 2014,
+  "round": 2,
+  "number": 7,
+  "topic_key": "71ad16ad2c4d81f3",
+  "freq_rounds": 1,
+  "freq_note": "2014-2"
+ },
+ {
+  "year": 2014,
+  "round": 2,
+  "number": 8,
+  "topic_key": "dc216bb9c6460ab6",
+  "freq_rounds": 2,
+  "freq_note": "2014-2 2006-2"
+ },
+ {
+  "year": 2014,
+  "round": 2,
+  "number": 9,
+  "topic_key": "32b30a250abd6331",
+  "freq_rounds": 1,
+  "freq_note": "2014-2"
+ },
+ {
+  "year": 2014,
+  "round": 2,
+  "number": 10,
+  "topic_key": "81e74d678581a3bb",
+  "freq_rounds": 1,
+  "freq_note": "2014-2"
+ },
+ {
+  "year": 2014,
+  "round": 2,
+  "number": 11,
+  "topic_key": "ff5a3bf388516d09",
+  "freq_rounds": 6,
+  "freq_note": "2023-3 2022-1 2019-1 2017-1 2014-2 2012-3"
+ },
+ {
+  "year": 2014,
+  "round": 2,
+  "number": 12,
+  "topic_key": "3b5dca501ee1e6d8",
+  "freq_rounds": 1,
+  "freq_note": "2014-2"
+ },
+ {
+  "year": 2014,
+  "round": 2,
+  "number": 13,
+  "topic_key": "e2a2dcc36a08a345",
+  "freq_rounds": 1,
+  "freq_note": "2014-2"
+ },
+ {
+  "year": 2015,
+  "round": 1,
+  "number": 1,
+  "topic_key": "9cf0e8450a2a2918",
+  "freq_rounds": 2,
+  "freq_note": "2015-1 2006-1"
+ },
+ {
+  "year": 2015,
+  "round": 1,
+  "number": 2,
+  "topic_key": "e70488b1ccfafeb3",
+  "freq_rounds": 2,
+  "freq_note": "2018-1 2015-1"
+ },
+ {
+  "year": 2015,
+  "round": 1,
+  "number": 3,
+  "topic_key": "28267ab848bcf807",
+  "freq_rounds": 1,
+  "freq_note": "2015-1"
+ },
+ {
+  "year": 2015,
+  "round": 1,
+  "number": 4,
+  "topic_key": "1905aedab9bf2477",
+  "freq_rounds": 1,
+  "freq_note": "2015-1"
+ },
+ {
+  "year": 2015,
+  "round": 1,
+  "number": 5,
+  "topic_key": "d9c2c059ceedd25b",
+  "freq_rounds": 5,
+  "freq_note": "2024-2 2020-3 2018-2 2015-1 2005-3"
+ },
+ {
+  "year": 2015,
+  "round": 1,
+  "number": 6,
+  "topic_key": "585b5c62fa0b47ce",
+  "freq_rounds": 2,
+  "freq_note": "2025-1 2015-1"
+ },
+ {
+  "year": 2015,
+  "round": 1,
+  "number": 7,
+  "topic_key": "a8b30a0767856c63",
+  "freq_rounds": 3,
+  "freq_note": "2023-1 2018-1 2015-1"
+ },
+ {
+  "year": 2015,
+  "round": 1,
+  "number": 8,
+  "topic_key": "9e3cfc48eccf81a0",
+  "freq_rounds": 1,
+  "freq_note": "2015-1"
+ },
+ {
+  "year": 2015,
+  "round": 1,
+  "number": 9,
+  "topic_key": "1aa48fc4880bb0c9",
+  "freq_rounds": 1,
+  "freq_note": "2015-1"
+ },
+ {
+  "year": 2015,
+  "round": 1,
+  "number": 10,
+  "topic_key": "f73967ffd2fede44",
+  "freq_rounds": 2,
+  "freq_note": "2025-2 2015-1"
+ },
+ {
+  "year": 2015,
+  "round": 1,
+  "number": 11,
+  "topic_key": "beb22fb694d513ed",
+  "freq_rounds": 1,
+  "freq_note": "2015-1"
+ },
+ {
+  "year": 2015,
+  "round": 1,
+  "number": 12,
+  "topic_key": "99323a1b054ea967",
+  "freq_rounds": 2,
+  "freq_note": "2020-1 2015-1"
+ },
+ {
+  "year": 2015,
+  "round": 1,
+  "number": 13,
+  "topic_key": "d58072be2820e868",
+  "freq_rounds": 1,
+  "freq_note": "2015-1"
+ },
+ {
+  "year": 2015,
+  "round": 1,
+  "number": 14,
+  "topic_key": "e3072feb5a726c74",
+  "freq_rounds": 2,
+  "freq_note": "2017-1 2015-1"
+ },
+ {
+  "year": 2015,
+  "round": 1,
+  "number": 15,
+  "topic_key": "7a53928fa4dd31e8",
+  "freq_rounds": 1,
+  "freq_note": "2015-1"
+ },
+ {
+  "year": 2015,
+  "round": 2,
+  "number": 1,
+  "topic_key": "67d96d458abdef21",
+  "freq_rounds": 1,
+  "freq_note": "2015-2"
+ },
+ {
+  "year": 2015,
+  "round": 2,
+  "number": 2,
+  "topic_key": "c15da1f2b5e5ed6e",
+  "freq_rounds": 1,
+  "freq_note": "2015-2"
+ },
+ {
+  "year": 2015,
+  "round": 2,
+  "number": 3,
+  "topic_key": "b8de01befddf429f",
+  "freq_rounds": 3,
+  "freq_note": "2025-3 2018-2 2015-2"
+ },
+ {
+  "year": 2015,
+  "round": 2,
+  "number": 4,
+  "topic_key": "c0fd04248a51ac89",
+  "freq_rounds": 4,
+  "freq_note": "2015-2 2010-3 2008-4 2005-1"
+ },
+ {
+  "year": 2015,
+  "round": 2,
+  "number": 5,
+  "topic_key": "2dace78f80bc92e6",
+  "freq_rounds": 1,
+  "freq_note": "2015-2"
+ },
+ {
+  "year": 2015,
+  "round": 2,
+  "number": 6,
+  "topic_key": "c80c3e0ccd2501b3",
+  "freq_rounds": 3,
+  "freq_note": "2015-2 2010-2 2009-1"
+ },
+ {
+  "year": 2015,
+  "round": 2,
+  "number": 7,
+  "topic_key": "e2afd50c42250e2f",
+  "freq_rounds": 2,
+  "freq_note": "2018-3 2015-2"
+ },
+ {
+  "year": 2015,
+  "round": 2,
+  "number": 8,
+  "topic_key": "4f1463c060a0c7bd",
+  "freq_rounds": 3,
+  "freq_note": "2025-1 2018-3 2015-2"
+ },
+ {
+  "year": 2015,
+  "round": 2,
+  "number": 9,
+  "topic_key": "a91e2b149e5b727a",
+  "freq_rounds": 3,
+  "freq_note": "2024-2 2018-1 2015-2"
+ },
+ {
+  "year": 2015,
+  "round": 2,
+  "number": 10,
+  "topic_key": "61b4a64be663682e",
+  "freq_rounds": 1,
+  "freq_note": "2015-2"
+ },
+ {
+  "year": 2015,
+  "round": 2,
+  "number": 11,
+  "topic_key": "97ada23ad892c942",
+  "freq_rounds": 3,
+  "freq_note": "2023-3 2020-2 2015-2"
+ },
+ {
+  "year": 2015,
+  "round": 2,
+  "number": 12,
+  "topic_key": "d3294de09594bf12",
+  "freq_rounds": 2,
+  "freq_note": "2024-1 2015-2"
+ },
+ {
+  "year": 2015,
+  "round": 2,
+  "number": 13,
+  "topic_key": "3621f1454cacf995",
+  "freq_rounds": 1,
+  "freq_note": "2015-2"
+ },
+ {
+  "year": 2015,
+  "round": 2,
+  "number": 14,
+  "topic_key": "68053af2923e0020",
+  "freq_rounds": 1,
+  "freq_note": "2015-2"
+ },
+ {
+  "year": 2015,
+  "round": 2,
+  "number": 15,
+  "topic_key": "c0e05d1788ac597d",
+  "freq_rounds": 2,
+  "freq_note": "2015-2 2006-1"
+ },
+ {
+  "year": 2016,
+  "round": 1,
+  "number": 1,
+  "topic_key": "5807a685d1a9ab3b",
+  "freq_rounds": 1,
+  "freq_note": "2016-1"
+ },
+ {
+  "year": 2016,
+  "round": 1,
+  "number": 2,
+  "topic_key": "0715e092918b7c50",
+  "freq_rounds": 2,
+  "freq_note": "2016-1 2012-2"
+ },
+ {
+  "year": 2016,
+  "round": 1,
+  "number": 3,
+  "topic_key": "63236c4c6c752f2b",
+  "freq_rounds": 2,
+  "freq_note": "2018-2 2016-1"
+ },
+ {
+  "year": 2016,
+  "round": 1,
+  "number": 4,
+  "topic_key": "c0f168ce8900fa56",
+  "freq_rounds": 1,
+  "freq_note": "2016-1"
+ },
+ {
+  "year": 2016,
+  "round": 1,
+  "number": 5,
+  "topic_key": "f1c1592588411002",
+  "freq_rounds": 1,
+  "freq_note": "2016-1"
+ },
+ {
+  "year": 2016,
+  "round": 1,
+  "number": 6,
+  "topic_key": "e07413354875be01",
+  "freq_rounds": 1,
+  "freq_note": "2016-1"
+ },
+ {
+  "year": 2016,
+  "round": 1,
+  "number": 7,
+  "topic_key": "8c6744c9d42ec2cb",
+  "freq_rounds": 1,
+  "freq_note": "2016-1"
+ },
+ {
+  "year": 2016,
+  "round": 1,
+  "number": 8,
+  "topic_key": "f3859b168562f927",
+  "freq_rounds": 11,
+  "freq_note": "2022-2 2022-1 2016-1 2013-3 2012-1 2011-2 2009-4 2008-4 2005-3 2005-2 2005-1"
+ },
+ {
+  "year": 2016,
+  "round": 1,
+  "number": 9,
+  "topic_key": "f3859b168562f927",
+  "freq_rounds": 11,
+  "freq_note": "2022-2 2022-1 2016-1 2013-3 2012-1 2011-2 2009-4 2008-4 2005-3 2005-2 2005-1"
+ },
+ {
+  "year": 2016,
+  "round": 1,
+  "number": 10,
+  "topic_key": "f2201f5191c4e92c",
+  "freq_rounds": 1,
+  "freq_note": "2016-1"
+ },
+ {
+  "year": 2016,
+  "round": 1,
+  "number": 11,
+  "topic_key": "3a835d3215755c43",
+  "freq_rounds": 1,
+  "freq_note": "2016-1"
+ },
+ {
+  "year": 2016,
+  "round": 1,
+  "number": 12,
+  "topic_key": "c1a37d1bd23d4fd4",
+  "freq_rounds": 2,
+  "freq_note": "2018-1 2016-1"
+ },
+ {
+  "year": 2016,
+  "round": 1,
+  "number": 13,
+  "topic_key": "b7ee6f5f9aa5cd17",
+  "freq_rounds": 1,
+  "freq_note": "2016-1"
+ },
+ {
+  "year": 2016,
+  "round": 1,
+  "number": 14,
+  "topic_key": "4e0928de075538c5",
+  "freq_rounds": 1,
+  "freq_note": "2016-1"
+ },
+ {
+  "year": 2016,
+  "round": 1,
+  "number": 15,
+  "topic_key": "233ece6e65ae46ec",
+  "freq_rounds": 3,
+  "freq_note": "2025-3 2019-3 2016-1"
+ },
+ {
+  "year": 2016,
+  "round": 3,
+  "number": 1,
+  "topic_key": "6f2268bd1d3d3eba",
+  "freq_rounds": 1,
+  "freq_note": "2016-3"
+ },
+ {
+  "year": 2016,
+  "round": 3,
+  "number": 2,
+  "topic_key": "3ba86d028125ecc1",
+  "freq_rounds": 3,
+  "freq_note": "2016-3 2006-2 2006-1"
+ },
+ {
+  "year": 2016,
+  "round": 3,
+  "number": 3,
+  "topic_key": "b05ebe7f74e662f9",
+  "freq_rounds": 3,
+  "freq_note": "2022-1 2016-3 2008-1"
+ },
+ {
+  "year": 2016,
+  "round": 3,
+  "number": 4,
+  "topic_key": "7b394ef8bc88478c",
+  "freq_rounds": 2,
+  "freq_note": "2016-3 2006-2"
+ },
+ {
+  "year": 2016,
+  "round": 3,
+  "number": 5,
+  "topic_key": "2244f147303ea73c",
+  "freq_rounds": 3,
+  "freq_note": "2018-2 2018-1 2016-3"
+ },
+ {
+  "year": 2016,
+  "round": 3,
+  "number": 6,
+  "topic_key": "fabb32bdc58b71be",
+  "freq_rounds": 2,
+  "freq_note": "2023-3 2016-3"
+ },
+ {
+  "year": 2016,
+  "round": 3,
+  "number": 7,
+  "topic_key": "2823f4797102ce1a",
+  "freq_rounds": 1,
+  "freq_note": "2016-3"
+ },
+ {
+  "year": 2016,
+  "round": 3,
+  "number": 8,
+  "topic_key": "bf62768ca46b6c3b",
+  "freq_rounds": 1,
+  "freq_note": "2016-3"
+ },
+ {
+  "year": 2016,
+  "round": 3,
+  "number": 9,
+  "topic_key": "366baf1b08945f67",
+  "freq_rounds": 2,
+  "freq_note": "2016-3 2014-1"
+ },
+ {
+  "year": 2016,
+  "round": 3,
+  "number": 10,
+  "topic_key": "872488f88d1b2db5",
+  "freq_rounds": 1,
+  "freq_note": "2016-3"
+ },
+ {
+  "year": 2016,
+  "round": 3,
+  "number": 11,
+  "topic_key": "ccb0989662211f61",
+  "freq_rounds": 1,
+  "freq_note": "2016-3"
+ },
+ {
+  "year": 2016,
+  "round": 3,
+  "number": 12,
+  "topic_key": "912d2b1c7b2826ca",
+  "freq_rounds": 1,
+  "freq_note": "2016-3"
+ },
+ {
+  "year": 2016,
+  "round": 3,
+  "number": 13,
+  "topic_key": "a1d33d0dfec820b4",
+  "freq_rounds": 1,
+  "freq_note": "2016-3"
+ },
+ {
+  "year": 2016,
+  "round": 3,
+  "number": 14,
+  "topic_key": "88ab0388276251f8",
+  "freq_rounds": 2,
+  "freq_note": "2016-3 2011-2"
+ },
+ {
+  "year": 2017,
+  "round": 1,
+  "number": 1,
+  "topic_key": "5c572eca050594c7",
+  "freq_rounds": 1,
+  "freq_note": "2017-1"
+ },
+ {
+  "year": 2017,
+  "round": 1,
+  "number": 2,
+  "topic_key": "6d98d125ee99fe03",
+  "freq_rounds": 3,
+  "freq_note": "2017-1 2012-3 2007-4"
+ },
+ {
+  "year": 2017,
+  "round": 1,
+  "number": 3,
+  "topic_key": "c9edafd836d0cb72",
+  "freq_rounds": 3,
+  "freq_note": "2020-2 2017-1 2012-3"
+ },
+ {
+  "year": 2017,
+  "round": 1,
+  "number": 4,
+  "topic_key": "a7185c8437131c95",
+  "freq_rounds": 2,
+  "freq_note": "2020-3 2017-1"
+ },
+ {
+  "year": 2017,
+  "round": 1,
+  "number": 5,
+  "topic_key": "b33d4d8084ae3a90",
+  "freq_rounds": 2,
+  "freq_note": "2017-3 2017-1"
+ },
+ {
+  "year": 2017,
+  "round": 1,
+  "number": 6,
+  "topic_key": "c268e47e01824cc3",
+  "freq_rounds": 2,
+  "freq_note": "2017-1 2010-2"
+ },
+ {
+  "year": 2017,
+  "round": 1,
+  "number": 7,
+  "topic_key": "e3072feb5a726c74",
+  "freq_rounds": 2,
+  "freq_note": "2017-1 2015-1"
+ },
+ {
+  "year": 2017,
+  "round": 1,
+  "number": 8,
+  "topic_key": "0537fb40a68c18da",
+  "freq_rounds": 1,
+  "freq_note": "2017-1"
+ },
+ {
+  "year": 2017,
+  "round": 1,
+  "number": 9,
+  "topic_key": "2e65f2f2fdaf6c69",
+  "freq_rounds": 1,
+  "freq_note": "2017-1"
+ },
+ {
+  "year": 2017,
+  "round": 1,
+  "number": 10,
+  "topic_key": "5b640788d162b075",
+  "freq_rounds": 2,
+  "freq_note": "2025-2 2017-1"
+ },
+ {
+  "year": 2017,
+  "round": 1,
+  "number": 11,
+  "topic_key": "783f3a4718a580ff",
+  "freq_rounds": 2,
+  "freq_note": "2017-1 2010-3"
+ },
+ {
+  "year": 2017,
+  "round": 1,
+  "number": 12,
+  "topic_key": "a5cdd4aa0048b187",
+  "freq_rounds": 1,
+  "freq_note": "2017-1"
+ },
+ {
+  "year": 2017,
+  "round": 1,
+  "number": 13,
+  "topic_key": "ff5a3bf388516d09",
+  "freq_rounds": 6,
+  "freq_note": "2023-3 2022-1 2019-1 2017-1 2014-2 2012-3"
+ },
+ {
+  "year": 2017,
+  "round": 3,
+  "number": 1,
+  "topic_key": "3bdcd3e12d43691a",
+  "freq_rounds": 4,
+  "freq_note": "2023-3 2020-3 2017-3 2008-4"
+ },
+ {
+  "year": 2017,
+  "round": 3,
+  "number": 2,
+  "topic_key": "113eaad5528ad6e9",
+  "freq_rounds": 2,
+  "freq_note": "2017-3 2014-1"
+ },
+ {
+  "year": 2017,
+  "round": 3,
+  "number": 3,
+  "topic_key": "f1148499a8caeb07",
+  "freq_rounds": 3,
+  "freq_note": "2017-3 2013-2 2005-3"
+ },
+ {
+  "year": 2017,
+  "round": 3,
+  "number": 4,
+  "topic_key": "8060659ebc58bb80",
+  "freq_rounds": 2,
+  "freq_note": "2017-3 2008-1"
+ },
+ {
+  "year": 2017,
+  "round": 3,
+  "number": 5,
+  "topic_key": "a39f905cb62d0448",
+  "freq_rounds": 4,
+  "freq_note": "2025-2 2021-3 2017-3 2009-4"
+ },
+ {
+  "year": 2017,
+  "round": 3,
+  "number": 6,
+  "topic_key": "bcadf15c8d42b98a",
+  "freq_rounds": 4,
+  "freq_note": "2023-3 2022-3 2020-3 2017-3"
+ },
+ {
+  "year": 2017,
+  "round": 3,
+  "number": 7,
+  "topic_key": "b33d4d8084ae3a90",
+  "freq_rounds": 2,
+  "freq_note": "2017-3 2017-1"
+ },
+ {
+  "year": 2017,
+  "round": 3,
+  "number": 8,
+  "topic_key": "ba3866600c3540f6",
+  "freq_rounds": 1,
+  "freq_note": "2017-3"
+ },
+ {
+  "year": 2017,
+  "round": 3,
+  "number": 9,
+  "topic_key": "286d85ddea4c23ba",
+  "freq_rounds": 4,
+  "freq_note": "2023-3 2017-3 2014-2 2011-2"
+ },
+ {
+  "year": 2017,
+  "round": 3,
+  "number": 10,
+  "topic_key": "be27df6a90da2374",
+  "freq_rounds": 3,
+  "freq_note": "2024-2 2021-3 2017-3"
+ },
+ {
+  "year": 2017,
+  "round": 3,
+  "number": 11,
+  "topic_key": "7f1171a78ce0780a",
+  "freq_rounds": 1,
+  "freq_note": "2017-3"
+ },
+ {
+  "year": 2017,
+  "round": 3,
+  "number": 12,
+  "topic_key": "4b7bc0a437343a4f",
+  "freq_rounds": 2,
+  "freq_note": "2017-3 2006-2"
+ },
+ {
+  "year": 2017,
+  "round": 3,
+  "number": 13,
+  "topic_key": "bd7712b33ceccc8c",
+  "freq_rounds": 3,
+  "freq_note": "2024-2 2019-1 2017-3"
+ },
+ {
+  "year": 2017,
+  "round": 3,
+  "number": 14,
+  "topic_key": "a1602581300fb7d2",
+  "freq_rounds": 3,
+  "freq_note": "2023-3 2017-3 2007-1"
+ },
+ {
+  "year": 2017,
+  "round": 3,
+  "number": 15,
+  "topic_key": "cdc09ef8b7cebae6",
+  "freq_rounds": 5,
+  "freq_note": "2026-1 2020-3 2020-2 2017-3 2005-1"
+ },
+ {
+  "year": 2018,
+  "round": 1,
+  "number": 1,
+  "topic_key": "2244f147303ea73c",
+  "freq_rounds": 3,
+  "freq_note": "2018-2 2018-1 2016-3"
+ },
+ {
+  "year": 2018,
+  "round": 1,
+  "number": 2,
+  "topic_key": "b5dc4e5d9b495d01",
+  "freq_rounds": 1,
+  "freq_note": "2018-1"
+ },
+ {
+  "year": 2018,
+  "round": 1,
+  "number": 3,
+  "topic_key": "61ece249af489bd4",
+  "freq_rounds": 2,
+  "freq_note": "2020-2 2018-1"
+ },
+ {
+  "year": 2018,
+  "round": 1,
+  "number": 4,
+  "topic_key": "5dd9db5e033da9c6",
+  "freq_rounds": 1,
+  "freq_note": "2018-1"
+ },
+ {
+  "year": 2018,
+  "round": 1,
+  "number": 5,
+  "topic_key": "e70488b1ccfafeb3",
+  "freq_rounds": 2,
+  "freq_note": "2018-1 2015-1"
+ },
+ {
+  "year": 2018,
+  "round": 1,
+  "number": 6,
+  "topic_key": "ee2395702adfcc4d",
+  "freq_rounds": 3,
+  "freq_note": "2020-2 2018-3 2018-1"
+ },
+ {
+  "year": 2018,
+  "round": 1,
+  "number": 7,
+  "topic_key": "726c001809b5e8af",
+  "freq_rounds": 3,
+  "freq_note": "2023-3 2020-2 2018-1"
+ },
+ {
+  "year": 2018,
+  "round": 1,
+  "number": 8,
+  "topic_key": "a8b30a0767856c63",
+  "freq_rounds": 3,
+  "freq_note": "2023-1 2018-1 2015-1"
+ },
+ {
+  "year": 2018,
+  "round": 1,
+  "number": 9,
+  "topic_key": "a91e2b149e5b727a",
+  "freq_rounds": 3,
+  "freq_note": "2024-2 2018-1 2015-2"
+ },
+ {
+  "year": 2018,
+  "round": 1,
+  "number": 10,
+  "topic_key": "c1a37d1bd23d4fd4",
+  "freq_rounds": 2,
+  "freq_note": "2018-1 2016-1"
+ },
+ {
+  "year": 2018,
+  "round": 1,
+  "number": 11,
+  "topic_key": "1e54cd98add8755d",
+  "freq_rounds": 2,
+  "freq_note": "2025-1 2018-1"
+ },
+ {
+  "year": 2018,
+  "round": 1,
+  "number": 12,
+  "topic_key": "498df1e95a092981",
+  "freq_rounds": 3,
+  "freq_note": "2020-3 2018-1 2013-1"
+ },
+ {
+  "year": 2018,
+  "round": 1,
+  "number": 13,
+  "topic_key": "71a3cb155f8dc89b",
+  "freq_rounds": 1,
+  "freq_note": "2018-1"
+ },
+ {
+  "year": 2018,
+  "round": 1,
+  "number": 14,
+  "topic_key": "192fc044e74dffea",
+  "freq_rounds": 1,
+  "freq_note": "2018-1"
+ },
+ {
+  "year": 2018,
+  "round": 2,
+  "number": 1,
+  "topic_key": "2244f147303ea73c",
+  "freq_rounds": 3,
+  "freq_note": "2018-2 2018-1 2016-3"
+ },
+ {
+  "year": 2018,
+  "round": 2,
+  "number": 2,
+  "topic_key": "b8de01befddf429f",
+  "freq_rounds": 3,
+  "freq_note": "2025-3 2018-2 2015-2"
+ },
+ {
+  "year": 2018,
+  "round": 2,
+  "number": 3,
+  "topic_key": "63236c4c6c752f2b",
+  "freq_rounds": 2,
+  "freq_note": "2018-2 2016-1"
+ },
+ {
+  "year": 2018,
+  "round": 2,
+  "number": 4,
+  "topic_key": "d9c2c059ceedd25b",
+  "freq_rounds": 5,
+  "freq_note": "2024-2 2020-3 2018-2 2015-1 2005-3"
+ },
+ {
+  "year": 2018,
+  "round": 2,
+  "number": 5,
+  "topic_key": "3a066bda8c96b947",
+  "freq_rounds": 1,
+  "freq_note": "2018-2"
+ },
+ {
+  "year": 2018,
+  "round": 2,
+  "number": 6,
+  "topic_key": "be3159ad04564bfb",
+  "freq_rounds": 1,
+  "freq_note": "2018-2"
+ },
+ {
+  "year": 2018,
+  "round": 2,
+  "number": 7,
+  "topic_key": "ab233b682ec35564",
+  "freq_rounds": 1,
+  "freq_note": "2018-2"
+ },
+ {
+  "year": 2018,
+  "round": 2,
+  "number": 8,
+  "topic_key": "1f9669f291b79e96",
+  "freq_rounds": 5,
+  "freq_note": "2023-1 2022-3 2019-1 2018-2 2014-2"
+ },
+ {
+  "year": 2018,
+  "round": 2,
+  "number": 9,
+  "topic_key": "6ca194190d2e06e8",
+  "freq_rounds": 5,
+  "freq_note": "2023-1 2019-2 2018-2 2012-2 2010-3"
+ },
+ {
+  "year": 2018,
+  "round": 2,
+  "number": 10,
+  "topic_key": "0ff8033cf9437c21",
+  "freq_rounds": 1,
+  "freq_note": "2018-2"
+ },
+ {
+  "year": 2018,
+  "round": 2,
+  "number": 11,
+  "topic_key": "68264bdb65b97eea",
+  "freq_rounds": 1,
+  "freq_note": "2018-2"
+ },
+ {
+  "year": 2018,
+  "round": 2,
+  "number": 12,
+  "topic_key": "8757150decbd89b0",
+  "freq_rounds": 1,
+  "freq_note": "2018-2"
+ },
+ {
+  "year": 2018,
+  "round": 2,
+  "number": 13,
+  "topic_key": "20240f33d890365c",
+  "freq_rounds": 3,
+  "freq_note": "2018-3 2018-2 2011-3"
+ },
+ {
+  "year": 2018,
+  "round": 2,
+  "number": 14,
+  "topic_key": "f1bfb695fb56934e",
+  "freq_rounds": 2,
+  "freq_note": "2021-3 2018-2"
+ },
+ {
+  "year": 2018,
+  "round": 3,
+  "number": 1,
+  "topic_key": "ee2395702adfcc4d",
+  "freq_rounds": 3,
+  "freq_note": "2020-2 2018-3 2018-1"
+ },
+ {
+  "year": 2018,
+  "round": 3,
+  "number": 2,
+  "topic_key": "4b0234bab7d8600c",
+  "freq_rounds": 4,
+  "freq_note": "2022-2 2018-3 2009-1 2008-1"
+ },
+ {
+  "year": 2018,
+  "round": 3,
+  "number": 3,
+  "topic_key": "291597a100aadd81",
+  "freq_rounds": 1,
+  "freq_note": "2018-3"
+ },
+ {
+  "year": 2018,
+  "round": 3,
+  "number": 4,
+  "topic_key": "83d6fe6e1451bc73",
+  "freq_rounds": 5,
+  "freq_note": "2022-2 2021-3 2019-2 2018-3 2013-3"
+ },
+ {
+  "year": 2018,
+  "round": 3,
+  "number": 5,
+  "topic_key": "5d77f2c6d3a030bc",
+  "freq_rounds": 8,
+  "freq_note": "2026-2 2022-2 2021-3 2018-3 2013-3 2013-2 2007-1 2005-2"
+ },
+ {
+  "year": 2018,
+  "round": 3,
+  "number": 6,
+  "topic_key": "0f96613235062963",
+  "freq_rounds": 1,
+  "freq_note": "2018-3"
+ },
+ {
+  "year": 2018,
+  "round": 3,
+  "number": 7,
+  "topic_key": "e2afd50c42250e2f",
+  "freq_rounds": 2,
+  "freq_note": "2018-3 2015-2"
+ },
+ {
+  "year": 2018,
+  "round": 3,
+  "number": 8,
+  "topic_key": "8c7bbbba95c10259",
+  "freq_rounds": 1,
+  "freq_note": "2018-3"
+ },
+ {
+  "year": 2018,
+  "round": 3,
+  "number": 9,
+  "topic_key": "4f1463c060a0c7bd",
+  "freq_rounds": 3,
+  "freq_note": "2025-1 2018-3 2015-2"
+ },
+ {
+  "year": 2018,
+  "round": 3,
+  "number": 10,
+  "topic_key": "0ff39bbbf981ac01",
+  "freq_rounds": 1,
+  "freq_note": "2018-3"
+ },
+ {
+  "year": 2018,
+  "round": 3,
+  "number": 11,
+  "topic_key": "5e9f92a01c986baf",
+  "freq_rounds": 1,
+  "freq_note": "2018-3"
+ },
+ {
+  "year": 2018,
+  "round": 3,
+  "number": 12,
+  "topic_key": "fc9c9ee3e7886a4f",
+  "freq_rounds": 4,
+  "freq_note": "2025-2 2021-3 2020-1 2018-3"
+ },
+ {
+  "year": 2018,
+  "round": 3,
+  "number": 13,
+  "topic_key": "20240f33d890365c",
+  "freq_rounds": 3,
+  "freq_note": "2018-3 2018-2 2011-3"
+ },
+ {
+  "year": 2018,
+  "round": 3,
+  "number": 14,
+  "topic_key": "67e103b0761e6068",
+  "freq_rounds": 1,
+  "freq_note": "2018-3"
+ },
+ {
+  "year": 2018,
+  "round": 3,
+  "number": 15,
+  "topic_key": "e8ec996983305dd0",
+  "freq_rounds": 2,
+  "freq_note": "2022-3 2018-3"
+ },
+ {
+  "year": 2019,
+  "round": 1,
+  "number": 1,
+  "topic_key": "c6e19e830859f2cb",
+  "freq_rounds": 1,
+  "freq_note": "2019-1"
+ },
+ {
+  "year": 2019,
+  "round": 1,
+  "number": 2,
+  "topic_key": "766ebcd59621e305",
+  "freq_rounds": 1,
+  "freq_note": "2019-1"
+ },
+ {
+  "year": 2019,
+  "round": 1,
+  "number": 3,
+  "topic_key": "30bb3825e8f631cc",
+  "freq_rounds": 1,
+  "freq_note": "2019-1"
+ },
+ {
+  "year": 2019,
+  "round": 1,
+  "number": 4,
+  "topic_key": "1f9669f291b79e96",
+  "freq_rounds": 5,
+  "freq_note": "2023-1 2022-3 2019-1 2018-2 2014-2"
+ },
+ {
+  "year": 2019,
+  "round": 1,
+  "number": 5,
+  "topic_key": "9d55292bfacdaef6",
+  "freq_rounds": 2,
+  "freq_note": "2024-1 2019-1"
+ },
+ {
+  "year": 2019,
+  "round": 1,
+  "number": 6,
+  "topic_key": "acc3e0404646c575",
+  "freq_rounds": 1,
+  "freq_note": "2019-1"
+ },
+ {
+  "year": 2019,
+  "round": 1,
+  "number": 7,
+  "topic_key": "bd7712b33ceccc8c",
+  "freq_rounds": 3,
+  "freq_note": "2024-2 2019-1 2017-3"
+ },
+ {
+  "year": 2019,
+  "round": 1,
+  "number": 8,
+  "topic_key": "a9a1d5317a33ae8c",
+  "freq_rounds": 1,
+  "freq_note": "2019-1"
+ },
+ {
+  "year": 2019,
+  "round": 1,
+  "number": 9,
+  "topic_key": "daca41214b39c5dc",
+  "freq_rounds": 1,
+  "freq_note": "2019-1"
+ },
+ {
+  "year": 2019,
+  "round": 1,
+  "number": 10,
+  "topic_key": "258be18e31c81885",
+  "freq_rounds": 1,
+  "freq_note": "2019-1"
+ },
+ {
+  "year": 2019,
+  "round": 1,
+  "number": 11,
+  "topic_key": "069d3bb002acd8d7",
+  "freq_rounds": 1,
+  "freq_note": "2019-1"
+ },
+ {
+  "year": 2019,
+  "round": 1,
+  "number": 12,
+  "topic_key": "ff5a3bf388516d09",
+  "freq_rounds": 6,
+  "freq_note": "2023-3 2022-1 2019-1 2017-1 2014-2 2012-3"
+ },
+ {
+  "year": 2019,
+  "round": 1,
+  "number": 13,
+  "topic_key": "203c668991795128",
+  "freq_rounds": 2,
+  "freq_note": "2023-1 2019-1"
+ },
+ {
+  "year": 2019,
+  "round": 1,
+  "number": 14,
+  "topic_key": "db41c5a530c44dbb",
+  "freq_rounds": 2,
+  "freq_note": "2022-1 2019-1"
+ },
+ {
+  "year": 2019,
+  "round": 1,
+  "number": 15,
+  "topic_key": "dbe272bab69f8e13",
+  "freq_rounds": 1,
+  "freq_note": "2019-1"
+ },
+ {
+  "year": 2019,
+  "round": 2,
+  "number": 1,
+  "topic_key": "03d1308fad737453",
+  "freq_rounds": 3,
+  "freq_note": "2026-2 2022-2 2019-2"
+ },
+ {
+  "year": 2019,
+  "round": 2,
+  "number": 2,
+  "topic_key": "8b16ebc056e61302",
+  "freq_rounds": 1,
+  "freq_note": "2019-2"
+ },
+ {
+  "year": 2019,
+  "round": 2,
+  "number": 3,
+  "topic_key": "83d6fe6e1451bc73",
+  "freq_rounds": 5,
+  "freq_note": "2022-2 2021-3 2019-2 2018-3 2013-3"
+ },
+ {
+  "year": 2019,
+  "round": 2,
+  "number": 4,
+  "topic_key": "a2a024bab5d97721",
+  "freq_rounds": 2,
+  "freq_note": "2024-1 2019-2"
+ },
+ {
+  "year": 2019,
+  "round": 2,
+  "number": 5,
+  "topic_key": "24df4151a15edc61",
+  "freq_rounds": 3,
+  "freq_note": "2026-2 2022-3 2019-2"
+ },
+ {
+  "year": 2019,
+  "round": 2,
+  "number": 6,
+  "topic_key": "d86adb9fbd11b8aa",
+  "freq_rounds": 3,
+  "freq_note": "2023-3 2019-2 2014-2"
+ },
+ {
+  "year": 2019,
+  "round": 2,
+  "number": 7,
+  "topic_key": "f31dab902a88d192",
+  "freq_rounds": 2,
+  "freq_note": "2025-1 2019-2"
+ },
+ {
+  "year": 2019,
+  "round": 2,
+  "number": 8,
+  "topic_key": "6ca194190d2e06e8",
+  "freq_rounds": 5,
+  "freq_note": "2023-1 2019-2 2018-2 2012-2 2010-3"
+ },
+ {
+  "year": 2019,
+  "round": 2,
+  "number": 9,
+  "topic_key": "9299d682ee57f705",
+  "freq_rounds": 2,
+  "freq_note": "2025-1 2019-2"
+ },
+ {
+  "year": 2019,
+  "round": 2,
+  "number": 10,
+  "topic_key": "cfb67899498aa36a",
+  "freq_rounds": 3,
+  "freq_note": "2026-2 2022-1 2019-2"
+ },
+ {
+  "year": 2019,
+  "round": 2,
+  "number": 11,
+  "topic_key": "56568a456eabaae5",
+  "freq_rounds": 4,
+  "freq_note": "2025-1 2022-2 2019-2 2011-2"
+ },
+ {
+  "year": 2019,
+  "round": 2,
+  "number": 12,
+  "topic_key": "338968769c3b4ed8",
+  "freq_rounds": 2,
+  "freq_note": "2026-2 2019-2"
+ },
+ {
+  "year": 2019,
+  "round": 2,
+  "number": 13,
+  "topic_key": "32901a8d7d11475c",
+  "freq_rounds": 2,
+  "freq_note": "2026-2 2019-2"
+ },
+ {
+  "year": 2019,
+  "round": 2,
+  "number": 14,
+  "topic_key": "46aef9eed681a5f1",
+  "freq_rounds": 2,
+  "freq_note": "2026-1 2019-2"
+ },
+ {
+  "year": 2019,
+  "round": 3,
+  "number": 1,
+  "topic_key": "3a0772443a073914",
+  "freq_rounds": 1,
+  "freq_note": "2019-3"
+ },
+ {
+  "year": 2019,
+  "round": 3,
+  "number": 2,
+  "topic_key": "a9a6653e48976138",
+  "freq_rounds": 1,
+  "freq_note": "2019-3"
+ },
+ {
+  "year": 2019,
+  "round": 3,
+  "number": 3,
+  "topic_key": "4e4b5fbbbb602b6d",
+  "freq_rounds": 1,
+  "freq_note": "2019-3"
+ },
+ {
+  "year": 2019,
+  "round": 3,
+  "number": 4,
+  "topic_key": "15de21c670ae7c3f",
+  "freq_rounds": 1,
+  "freq_note": "2019-3"
+ },
+ {
+  "year": 2019,
+  "round": 3,
+  "number": 5,
+  "topic_key": "07406b074129fa08",
+  "freq_rounds": 2,
+  "freq_note": "2024-1 2019-3"
+ },
+ {
+  "year": 2019,
+  "round": 3,
+  "number": 6,
+  "topic_key": "5e388103a391daab",
+  "freq_rounds": 1,
+  "freq_note": "2019-3"
+ },
+ {
+  "year": 2019,
+  "round": 3,
+  "number": 7,
+  "topic_key": "33b0ae7bae190a7a",
+  "freq_rounds": 2,
+  "freq_note": "2026-2 2019-3"
+ },
+ {
+  "year": 2019,
+  "round": 3,
+  "number": 8,
+  "topic_key": "6e2713a6efee97ba",
+  "freq_rounds": 1,
+  "freq_note": "2019-3"
+ },
+ {
+  "year": 2019,
+  "round": 3,
+  "number": 9,
+  "topic_key": "8ce36dd884c52e0f",
+  "freq_rounds": 6,
+  "freq_note": "2025-1 2022-3 2019-3 2011-2 2007-4 2006-1"
+ },
+ {
+  "year": 2019,
+  "round": 3,
+  "number": 10,
+  "topic_key": "233ece6e65ae46ec",
+  "freq_rounds": 3,
+  "freq_note": "2025-3 2019-3 2016-1"
+ },
+ {
+  "year": 2019,
+  "round": 3,
+  "number": 11,
+  "topic_key": "8eefcfdf5990e441",
+  "freq_rounds": 1,
+  "freq_note": "2019-3"
+ },
+ {
+  "year": 2019,
+  "round": 3,
+  "number": 12,
+  "topic_key": "44d4acc09345505b",
+  "freq_rounds": 2,
+  "freq_note": "2019-3 2008-1"
+ },
+ {
+  "year": 2020,
+  "round": 1,
+  "number": 1,
+  "topic_key": "3871bd64012152bf",
+  "freq_rounds": 1,
+  "freq_note": "2020-1"
+ },
+ {
+  "year": 2020,
+  "round": 1,
+  "number": 2,
+  "topic_key": "a733fa9b25f33689",
+  "freq_rounds": 1,
+  "freq_note": "2020-1"
+ },
+ {
+  "year": 2020,
+  "round": 1,
+  "number": 3,
+  "topic_key": "051e4e127b92f5d9",
+  "freq_rounds": 1,
+  "freq_note": "2020-1"
+ },
+ {
+  "year": 2020,
+  "round": 1,
+  "number": 4,
+  "topic_key": "1b87755b47d8f1b9",
+  "freq_rounds": 2,
+  "freq_note": "2023-1 2020-1"
+ },
+ {
+  "year": 2020,
+  "round": 1,
+  "number": 5,
+  "topic_key": "b3d39ae866236c29",
+  "freq_rounds": 3,
+  "freq_note": "2025-3 2022-3 2020-1"
+ },
+ {
+  "year": 2020,
+  "round": 1,
+  "number": 6,
+  "topic_key": "3ed7282daf1c8fde",
+  "freq_rounds": 3,
+  "freq_note": "2024-2 2022-1 2020-1"
+ },
+ {
+  "year": 2020,
+  "round": 1,
+  "number": 7,
+  "topic_key": "185c29dc24325934",
+  "freq_rounds": 1,
+  "freq_note": "2020-1"
+ },
+ {
+  "year": 2020,
+  "round": 1,
+  "number": 8,
+  "topic_key": "2302442630c4f1f1",
+  "freq_rounds": 3,
+  "freq_note": "2023-1 2020-1 2012-1"
+ },
+ {
+  "year": 2020,
+  "round": 1,
+  "number": 9,
+  "topic_key": "abd815286ba1007a",
+  "freq_rounds": 1,
+  "freq_note": "2020-1"
+ },
+ {
+  "year": 2020,
+  "round": 1,
+  "number": 10,
+  "topic_key": "99323a1b054ea967",
+  "freq_rounds": 2,
+  "freq_note": "2020-1 2015-1"
+ },
+ {
+  "year": 2020,
+  "round": 1,
+  "number": 11,
+  "topic_key": "9267ade3a81c9230",
+  "freq_rounds": 2,
+  "freq_note": "2022-2 2020-1"
+ },
+ {
+  "year": 2020,
+  "round": 1,
+  "number": 12,
+  "topic_key": "fc9c9ee3e7886a4f",
+  "freq_rounds": 4,
+  "freq_note": "2025-2 2021-3 2020-1 2018-3"
+ },
+ {
+  "year": 2020,
+  "round": 1,
+  "number": 13,
+  "topic_key": "85fc37b18c570974",
+  "freq_rounds": 1,
+  "freq_note": "2020-1"
+ },
+ {
+  "year": 2020,
+  "round": 1,
+  "number": 14,
+  "topic_key": "65163149f88b2ec2",
+  "freq_rounds": 2,
+  "freq_note": "2023-1 2020-1"
+ },
+ {
+  "year": 2020,
+  "round": 2,
+  "number": 1,
+  "topic_key": "61ece249af489bd4",
+  "freq_rounds": 2,
+  "freq_note": "2020-2 2018-1"
+ },
+ {
+  "year": 2020,
+  "round": 2,
+  "number": 2,
+  "topic_key": "14537a40a77352e5",
+  "freq_rounds": 2,
+  "freq_note": "2020-2 2014-1"
+ },
+ {
+  "year": 2020,
+  "round": 2,
+  "number": 3,
+  "topic_key": "ee2395702adfcc4d",
+  "freq_rounds": 3,
+  "freq_note": "2020-2 2018-3 2018-1"
+ },
+ {
+  "year": 2020,
+  "round": 2,
+  "number": 4,
+  "topic_key": "b73dfe25b4b8714c",
+  "freq_rounds": 1,
+  "freq_note": "2020-2"
+ },
+ {
+  "year": 2020,
+  "round": 2,
+  "number": 5,
+  "topic_key": "280bc35652c80e28",
+  "freq_rounds": 2,
+  "freq_note": "2023-3 2020-2"
+ },
+ {
+  "year": 2020,
+  "round": 2,
+  "number": 6,
+  "topic_key": "726c001809b5e8af",
+  "freq_rounds": 3,
+  "freq_note": "2023-3 2020-2 2018-1"
+ },
+ {
+  "year": 2020,
+  "round": 2,
+  "number": 7,
+  "topic_key": "c9edafd836d0cb72",
+  "freq_rounds": 3,
+  "freq_note": "2020-2 2017-1 2012-3"
+ },
+ {
+  "year": 2020,
+  "round": 2,
+  "number": 8,
+  "topic_key": "d9ffa10f9614a1e7",
+  "freq_rounds": 2,
+  "freq_note": "2024-2 2020-2"
+ },
+ {
+  "year": 2020,
+  "round": 2,
+  "number": 9,
+  "topic_key": "5d44ee6f2c3f71b7",
+  "freq_rounds": 1,
+  "freq_note": "2020-2"
+ },
+ {
+  "year": 2020,
+  "round": 2,
+  "number": 10,
+  "topic_key": "ae864aa8f89f876e",
+  "freq_rounds": 2,
+  "freq_note": "2024-2 2020-2"
+ },
+ {
+  "year": 2020,
+  "round": 2,
+  "number": 11,
+  "topic_key": "97ada23ad892c942",
+  "freq_rounds": 3,
+  "freq_note": "2023-3 2020-2 2015-2"
+ },
+ {
+  "year": 2020,
+  "round": 2,
+  "number": 12,
+  "topic_key": "f29c21d4897f7894",
+  "freq_rounds": 1,
+  "freq_note": "2020-2"
+ },
+ {
+  "year": 2020,
+  "round": 2,
+  "number": 13,
+  "topic_key": "cdc09ef8b7cebae6",
+  "freq_rounds": 5,
+  "freq_note": "2026-1 2020-3 2020-2 2017-3 2005-1"
+ },
+ {
+  "year": 2020,
+  "round": 2,
+  "number": 14,
+  "topic_key": "6837e1e519b44b8d",
+  "freq_rounds": 2,
+  "freq_note": "2023-3 2020-2"
+ },
+ {
+  "year": 2020,
+  "round": 3,
+  "number": 1,
+  "topic_key": "3bdcd3e12d43691a",
+  "freq_rounds": 4,
+  "freq_note": "2023-3 2020-3 2017-3 2008-4"
+ },
+ {
+  "year": 2020,
+  "round": 3,
+  "number": 2,
+  "topic_key": "d9c2c059ceedd25b",
+  "freq_rounds": 5,
+  "freq_note": "2024-2 2020-3 2018-2 2015-1 2005-3"
+ },
+ {
+  "year": 2020,
+  "round": 3,
+  "number": 3,
+  "topic_key": "3414941820b4330f",
+  "freq_rounds": 4,
+  "freq_note": "2020-3 2014-2 2011-3 2008-1"
+ },
+ {
+  "year": 2020,
+  "round": 3,
+  "number": 4,
+  "topic_key": "a7185c8437131c95",
+  "freq_rounds": 2,
+  "freq_note": "2020-3 2017-1"
+ },
+ {
+  "year": 2020,
+  "round": 3,
+  "number": 5,
+  "topic_key": "bcadf15c8d42b98a",
+  "freq_rounds": 4,
+  "freq_note": "2023-3 2022-3 2020-3 2017-3"
+ },
+ {
+  "year": 2020,
+  "round": 3,
+  "number": 6,
+  "topic_key": "ca8d7e53a9700153",
+  "freq_rounds": 2,
+  "freq_note": "2024-2 2020-3"
+ },
+ {
+  "year": 2020,
+  "round": 3,
+  "number": 7,
+  "topic_key": "793bad2c5e44912a",
+  "freq_rounds": 2,
+  "freq_note": "2020-3 2014-2"
+ },
+ {
+  "year": 2020,
+  "round": 3,
+  "number": 8,
+  "topic_key": "df75df338fde7846",
+  "freq_rounds": 2,
+  "freq_note": "2025-3 2020-3"
+ },
+ {
+  "year": 2020,
+  "round": 3,
+  "number": 9,
+  "topic_key": "96a94f47a7b5d937",
+  "freq_rounds": 4,
+  "freq_note": "2020-3 2008-4 2006-2 2005-2"
+ },
+ {
+  "year": 2020,
+  "round": 3,
+  "number": 10,
+  "topic_key": "b2f627fff19fda46",
+  "freq_rounds": 1,
+  "freq_note": "2020-3"
+ },
+ {
+  "year": 2020,
+  "round": 3,
+  "number": 11,
+  "topic_key": "498df1e95a092981",
+  "freq_rounds": 3,
+  "freq_note": "2020-3 2018-1 2013-1"
+ },
+ {
+  "year": 2020,
+  "round": 3,
+  "number": 12,
+  "topic_key": "04ecb1fa28506ccb",
+  "freq_rounds": 1,
+  "freq_note": "2020-3"
+ },
+ {
+  "year": 2020,
+  "round": 3,
+  "number": 13,
+  "topic_key": "cdc09ef8b7cebae6",
+  "freq_rounds": 5,
+  "freq_note": "2026-1 2020-3 2020-2 2017-3 2005-1"
+ },
+ {
+  "year": 2021,
+  "round": 3,
+  "number": 1,
+  "topic_key": "9b72e31dac817154",
+  "freq_rounds": 1,
+  "freq_note": "2021-3"
+ },
+ {
+  "year": 2021,
+  "round": 3,
+  "number": 2,
+  "topic_key": "dce4037199e930e9",
+  "freq_rounds": 2,
+  "freq_note": "2021-3 2013-3"
+ },
+ {
+  "year": 2021,
+  "round": 3,
+  "number": 3,
+  "topic_key": "037d9ea53e01c05a",
+  "freq_rounds": 2,
+  "freq_note": "2021-3 2011-3"
+ },
+ {
+  "year": 2021,
+  "round": 3,
+  "number": 4,
+  "topic_key": "ed265bc903a5a097",
+  "freq_rounds": 1,
+  "freq_note": "2021-3"
+ },
+ {
+  "year": 2021,
+  "round": 3,
+  "number": 5,
+  "topic_key": "c75b6f114c23a4d7",
+  "freq_rounds": 1,
+  "freq_note": "2021-3"
+ },
+ {
+  "year": 2021,
+  "round": 3,
+  "number": 6,
+  "topic_key": "83d6fe6e1451bc73",
+  "freq_rounds": 5,
+  "freq_note": "2022-2 2021-3 2019-2 2018-3 2013-3"
+ },
+ {
+  "year": 2021,
+  "round": 3,
+  "number": 7,
+  "topic_key": "01f78be6f7cad026",
+  "freq_rounds": 1,
+  "freq_note": "2021-3"
+ },
+ {
+  "year": 2021,
+  "round": 3,
+  "number": 8,
+  "topic_key": "a39f905cb62d0448",
+  "freq_rounds": 4,
+  "freq_note": "2025-2 2021-3 2017-3 2009-4"
+ },
+ {
+  "year": 2021,
+  "round": 3,
+  "number": 9,
+  "topic_key": "5d77f2c6d3a030bc",
+  "freq_rounds": 8,
+  "freq_note": "2026-2 2022-2 2021-3 2018-3 2013-3 2013-2 2007-1 2005-2"
+ },
+ {
+  "year": 2021,
+  "round": 3,
+  "number": 10,
+  "topic_key": "7d3b74f4d9a7eb03",
+  "freq_rounds": 2,
+  "freq_note": "2021-3 2008-1"
+ },
+ {
+  "year": 2021,
+  "round": 3,
+  "number": 11,
+  "topic_key": "be27df6a90da2374",
+  "freq_rounds": 3,
+  "freq_note": "2024-2 2021-3 2017-3"
+ },
+ {
+  "year": 2021,
+  "round": 3,
+  "number": 12,
+  "topic_key": "fc9c9ee3e7886a4f",
+  "freq_rounds": 4,
+  "freq_note": "2025-2 2021-3 2020-1 2018-3"
+ },
+ {
+  "year": 2021,
+  "round": 3,
+  "number": 13,
+  "topic_key": "f1bfb695fb56934e",
+  "freq_rounds": 2,
+  "freq_note": "2021-3 2018-2"
+ },
+ {
+  "year": 2021,
+  "round": 3,
+  "number": 14,
+  "topic_key": "7dcd340d84f762eb",
+  "freq_rounds": 1,
+  "freq_note": "2021-3"
+ },
+ {
+  "year": 2021,
+  "round": 3,
+  "number": 15,
+  "topic_key": "b95db1b45b4e65c7",
+  "freq_rounds": 2,
+  "freq_note": "2021-3 2005-1"
+ },
+ {
+  "year": 2022,
+  "round": 1,
+  "number": 1,
+  "topic_key": "d8f119e0256ece5d",
+  "freq_rounds": 2,
+  "freq_note": "2022-1 2005-1"
+ },
+ {
+  "year": 2022,
+  "round": 1,
+  "number": 2,
+  "topic_key": "b05ebe7f74e662f9",
+  "freq_rounds": 3,
+  "freq_note": "2022-1 2016-3 2008-1"
+ },
+ {
+  "year": 2022,
+  "round": 1,
+  "number": 3,
+  "topic_key": "8cb22bdd0b7ba1ab",
+  "freq_rounds": 1,
+  "freq_note": "2022-1"
+ },
+ {
+  "year": 2022,
+  "round": 1,
+  "number": 4,
+  "topic_key": "f4f6dce2f3a0f9da",
+  "freq_rounds": 1,
+  "freq_note": "2022-1"
+ },
+ {
+  "year": 2022,
+  "round": 1,
+  "number": 5,
+  "topic_key": "3ed7282daf1c8fde",
+  "freq_rounds": 3,
+  "freq_note": "2024-2 2022-1 2020-1"
+ },
+ {
+  "year": 2022,
+  "round": 1,
+  "number": 6,
+  "topic_key": "18d8042386b79e2c",
+  "freq_rounds": 1,
+  "freq_note": "2022-1"
+ },
+ {
+  "year": 2022,
+  "round": 1,
+  "number": 7,
+  "topic_key": "697644adf300a2ef",
+  "freq_rounds": 2,
+  "freq_note": "2022-1 2014-1"
+ },
+ {
+  "year": 2022,
+  "round": 1,
+  "number": 8,
+  "topic_key": "f3859b168562f927",
+  "freq_rounds": 11,
+  "freq_note": "2022-2 2022-1 2016-1 2013-3 2012-1 2011-2 2009-4 2008-4 2005-3 2005-2 2005-1"
+ },
+ {
+  "year": 2022,
+  "round": 1,
+  "number": 9,
+  "topic_key": "cfb67899498aa36a",
+  "freq_rounds": 3,
+  "freq_note": "2026-2 2022-1 2019-2"
+ },
+ {
+  "year": 2022,
+  "round": 1,
+  "number": 10,
+  "topic_key": "db41c5a530c44dbb",
+  "freq_rounds": 2,
+  "freq_note": "2022-1 2019-1"
+ },
+ {
+  "year": 2022,
+  "round": 1,
+  "number": 11,
+  "topic_key": "4f4adcbf8c6f66dc",
+  "freq_rounds": 1,
+  "freq_note": "2022-1"
+ },
+ {
+  "year": 2022,
+  "round": 1,
+  "number": 12,
+  "topic_key": "ff5a3bf388516d09",
+  "freq_rounds": 6,
+  "freq_note": "2023-3 2022-1 2019-1 2017-1 2014-2 2012-3"
+ },
+ {
+  "year": 2022,
+  "round": 2,
+  "number": 1,
+  "topic_key": "03d1308fad737453",
+  "freq_rounds": 3,
+  "freq_note": "2026-2 2022-2 2019-2"
+ },
+ {
+  "year": 2022,
+  "round": 2,
+  "number": 2,
+  "topic_key": "83d6fe6e1451bc73",
+  "freq_rounds": 5,
+  "freq_note": "2022-2 2021-3 2019-2 2018-3 2013-3"
+ },
+ {
+  "year": 2022,
+  "round": 2,
+  "number": 3,
+  "topic_key": "4b0234bab7d8600c",
+  "freq_rounds": 4,
+  "freq_note": "2022-2 2018-3 2009-1 2008-1"
+ },
+ {
+  "year": 2022,
+  "round": 2,
+  "number": 4,
+  "topic_key": "5d77f2c6d3a030bc",
+  "freq_rounds": 8,
+  "freq_note": "2026-2 2022-2 2021-3 2018-3 2013-3 2013-2 2007-1 2005-2"
+ },
+ {
+  "year": 2022,
+  "round": 2,
+  "number": 5,
+  "topic_key": "aeb98edb21f6633d",
+  "freq_rounds": 3,
+  "freq_note": "2025-3 2022-2 2012-1"
+ },
+ {
+  "year": 2022,
+  "round": 2,
+  "number": 6,
+  "topic_key": "a96b65a721e561e1",
+  "freq_rounds": 1,
+  "freq_note": "2022-2"
+ },
+ {
+  "year": 2022,
+  "round": 2,
+  "number": 7,
+  "topic_key": "f3859b168562f927",
+  "freq_rounds": 11,
+  "freq_note": "2022-2 2022-1 2016-1 2013-3 2012-1 2011-2 2009-4 2008-4 2005-3 2005-2 2005-1"
+ },
+ {
+  "year": 2022,
+  "round": 2,
+  "number": 8,
+  "topic_key": "9267ade3a81c9230",
+  "freq_rounds": 2,
+  "freq_note": "2022-2 2020-1"
+ },
+ {
+  "year": 2022,
+  "round": 2,
+  "number": 9,
+  "topic_key": "f8dd602d131923f0",
+  "freq_rounds": 2,
+  "freq_note": "2022-2 2013-3"
+ },
+ {
+  "year": 2022,
+  "round": 2,
+  "number": 10,
+  "topic_key": "56568a456eabaae5",
+  "freq_rounds": 4,
+  "freq_note": "2025-1 2022-2 2019-2 2011-2"
+ },
+ {
+  "year": 2022,
+  "round": 2,
+  "number": 11,
+  "topic_key": "eb499d749fcbc193",
+  "freq_rounds": 2,
+  "freq_note": "2025-3 2022-2"
+ },
+ {
+  "year": 2022,
+  "round": 3,
+  "number": 1,
+  "topic_key": "24df4151a15edc61",
+  "freq_rounds": 3,
+  "freq_note": "2026-2 2022-3 2019-2"
+ },
+ {
+  "year": 2022,
+  "round": 3,
+  "number": 2,
+  "topic_key": "0c1a2989574d8390",
+  "freq_rounds": 2,
+  "freq_note": "2022-3 2012-1"
+ },
+ {
+  "year": 2022,
+  "round": 3,
+  "number": 3,
+  "topic_key": "ecc5d452bed7b27c",
+  "freq_rounds": 2,
+  "freq_note": "2026-2 2022-3"
+ },
+ {
+  "year": 2022,
+  "round": 3,
+  "number": 4,
+  "topic_key": "bcadf15c8d42b98a",
+  "freq_rounds": 4,
+  "freq_note": "2023-3 2022-3 2020-3 2017-3"
+ },
+ {
+  "year": 2022,
+  "round": 3,
+  "number": 5,
+  "topic_key": "b3d39ae866236c29",
+  "freq_rounds": 3,
+  "freq_note": "2025-3 2022-3 2020-1"
+ },
+ {
+  "year": 2022,
+  "round": 3,
+  "number": 6,
+  "topic_key": "1f9669f291b79e96",
+  "freq_rounds": 5,
+  "freq_note": "2023-1 2022-3 2019-1 2018-2 2014-2"
+ },
+ {
+  "year": 2022,
+  "round": 3,
+  "number": 7,
+  "topic_key": "6ecbdd6ec859d284",
+  "freq_rounds": 1,
+  "freq_note": "2022-3"
+ },
+ {
+  "year": 2022,
+  "round": 3,
+  "number": 8,
+  "topic_key": "f74909ace68e5189",
+  "freq_rounds": 1,
+  "freq_note": "2022-3"
+ },
+ {
+  "year": 2022,
+  "round": 3,
+  "number": 9,
+  "topic_key": "12d62db9ba43ceb8",
+  "freq_rounds": 2,
+  "freq_note": "2022-3 2011-3"
+ },
+ {
+  "year": 2022,
+  "round": 3,
+  "number": 10,
+  "topic_key": "18997733ec258a9f",
+  "freq_rounds": 1,
+  "freq_note": "2022-3"
+ },
+ {
+  "year": 2022,
+  "round": 3,
+  "number": 11,
+  "topic_key": "c93ce605e1ea21a6",
+  "freq_rounds": 2,
+  "freq_note": "2022-3 2006-1"
+ },
+ {
+  "year": 2022,
+  "round": 3,
+  "number": 12,
+  "topic_key": "e8ec996983305dd0",
+  "freq_rounds": 2,
+  "freq_note": "2022-3 2018-3"
+ },
+ {
+  "year": 2022,
+  "round": 3,
+  "number": 13,
+  "topic_key": "8ce36dd884c52e0f",
+  "freq_rounds": 6,
+  "freq_note": "2025-1 2022-3 2019-3 2011-2 2007-4 2006-1"
+ },
+ {
+  "year": 2023,
+  "round": 1,
+  "number": 1,
+  "topic_key": "1b87755b47d8f1b9",
+  "freq_rounds": 2,
+  "freq_note": "2023-1 2020-1"
+ },
+ {
+  "year": 2023,
+  "round": 1,
+  "number": 2,
+  "topic_key": "8dbd3f3b97be730f",
+  "freq_rounds": 3,
+  "freq_note": "2023-1 2009-1 2005-3"
+ },
+ {
+  "year": 2023,
+  "round": 1,
+  "number": 3,
+  "topic_key": "a8b30a0767856c63",
+  "freq_rounds": 3,
+  "freq_note": "2023-1 2018-1 2015-1"
+ },
+ {
+  "year": 2023,
+  "round": 1,
+  "number": 4,
+  "topic_key": "5bc24f6aa24f9b22",
+  "freq_rounds": 2,
+  "freq_note": "2023-1 2007-1"
+ },
+ {
+  "year": 2023,
+  "round": 1,
+  "number": 5,
+  "topic_key": "2302442630c4f1f1",
+  "freq_rounds": 3,
+  "freq_note": "2023-1 2020-1 2012-1"
+ },
+ {
+  "year": 2023,
+  "round": 1,
+  "number": 6,
+  "topic_key": "1f9669f291b79e96",
+  "freq_rounds": 5,
+  "freq_note": "2023-1 2022-3 2019-1 2018-2 2014-2"
+ },
+ {
+  "year": 2023,
+  "round": 1,
+  "number": 7,
+  "topic_key": "5d7e36286be65ae3",
+  "freq_rounds": 2,
+  "freq_note": "2023-1 2011-3"
+ },
+ {
+  "year": 2023,
+  "round": 1,
+  "number": 8,
+  "topic_key": "5a5b118831f513b8",
+  "freq_rounds": 2,
+  "freq_note": "2026-2 2023-1"
+ },
+ {
+  "year": 2023,
+  "round": 1,
+  "number": 9,
+  "topic_key": "6ca194190d2e06e8",
+  "freq_rounds": 5,
+  "freq_note": "2023-1 2019-2 2018-2 2012-2 2010-3"
+ },
+ {
+  "year": 2023,
+  "round": 1,
+  "number": 10,
+  "topic_key": "019d385eb67632a7",
+  "freq_rounds": 1,
+  "freq_note": "2023-1"
+ },
+ {
+  "year": 2023,
+  "round": 1,
+  "number": 11,
+  "topic_key": "13f3cf8c531952d7",
+  "freq_rounds": 1,
+  "freq_note": "2023-1"
+ },
+ {
+  "year": 2023,
+  "round": 1,
+  "number": 12,
+  "topic_key": "203c668991795128",
+  "freq_rounds": 2,
+  "freq_note": "2023-1 2019-1"
+ },
+ {
+  "year": 2023,
+  "round": 1,
+  "number": 13,
+  "topic_key": "fccb60fb512d13df",
+  "freq_rounds": 1,
+  "freq_note": "2023-1"
+ },
+ {
+  "year": 2023,
+  "round": 1,
+  "number": 14,
+  "topic_key": "d3c6f20142bdbe3a",
+  "freq_rounds": 2,
+  "freq_note": "2023-1 2013-3"
+ },
+ {
+  "year": 2023,
+  "round": 1,
+  "number": 15,
+  "topic_key": "65163149f88b2ec2",
+  "freq_rounds": 2,
+  "freq_note": "2023-1 2020-1"
+ },
+ {
+  "year": 2023,
+  "round": 3,
+  "number": 1,
+  "topic_key": "3bb4d8a6f8aae28e",
+  "freq_rounds": 2,
+  "freq_note": "2025-2 2023-3"
+ },
+ {
+  "year": 2023,
+  "round": 3,
+  "number": 2,
+  "topic_key": "d86adb9fbd11b8aa",
+  "freq_rounds": 3,
+  "freq_note": "2023-3 2019-2 2014-2"
+ },
+ {
+  "year": 2023,
+  "round": 3,
+  "number": 3,
+  "topic_key": "3bdcd3e12d43691a",
+  "freq_rounds": 4,
+  "freq_note": "2023-3 2020-3 2017-3 2008-4"
+ },
+ {
+  "year": 2023,
+  "round": 3,
+  "number": 4,
+  "topic_key": "98b297950041a424",
+  "freq_rounds": 1,
+  "freq_note": "2023-3"
+ },
+ {
+  "year": 2023,
+  "round": 3,
+  "number": 5,
+  "topic_key": "280bc35652c80e28",
+  "freq_rounds": 2,
+  "freq_note": "2023-3 2020-2"
+ },
+ {
+  "year": 2023,
+  "round": 3,
+  "number": 6,
+  "topic_key": "fabb32bdc58b71be",
+  "freq_rounds": 2,
+  "freq_note": "2023-3 2016-3"
+ },
+ {
+  "year": 2023,
+  "round": 3,
+  "number": 7,
+  "topic_key": "726c001809b5e8af",
+  "freq_rounds": 3,
+  "freq_note": "2023-3 2020-2 2018-1"
+ },
+ {
+  "year": 2023,
+  "round": 3,
+  "number": 8,
+  "topic_key": "bcadf15c8d42b98a",
+  "freq_rounds": 4,
+  "freq_note": "2023-3 2022-3 2020-3 2017-3"
+ },
+ {
+  "year": 2023,
+  "round": 3,
+  "number": 9,
+  "topic_key": "0353ab4cbed5beae",
+  "freq_rounds": 1,
+  "freq_note": "2023-3"
+ },
+ {
+  "year": 2023,
+  "round": 3,
+  "number": 10,
+  "topic_key": "286d85ddea4c23ba",
+  "freq_rounds": 4,
+  "freq_note": "2023-3 2017-3 2014-2 2011-2"
+ },
+ {
+  "year": 2023,
+  "round": 3,
+  "number": 11,
+  "topic_key": "42998cf32d552343",
+  "freq_rounds": 1,
+  "freq_note": "2023-3"
+ },
+ {
+  "year": 2023,
+  "round": 3,
+  "number": 12,
+  "topic_key": "a1602581300fb7d2",
+  "freq_rounds": 3,
+  "freq_note": "2023-3 2017-3 2007-1"
+ },
+ {
+  "year": 2023,
+  "round": 3,
+  "number": 13,
+  "topic_key": "97ada23ad892c942",
+  "freq_rounds": 3,
+  "freq_note": "2023-3 2020-2 2015-2"
+ },
+ {
+  "year": 2023,
+  "round": 3,
+  "number": 14,
+  "topic_key": "6837e1e519b44b8d",
+  "freq_rounds": 2,
+  "freq_note": "2023-3 2020-2"
+ },
+ {
+  "year": 2023,
+  "round": 3,
+  "number": 15,
+  "topic_key": "821fa74b50ba3f7c",
+  "freq_rounds": 1,
+  "freq_note": "2023-3"
+ },
+ {
+  "year": 2023,
+  "round": 3,
+  "number": 16,
+  "topic_key": "ff5a3bf388516d09",
+  "freq_rounds": 6,
+  "freq_note": "2023-3 2022-1 2019-1 2017-1 2014-2 2012-3"
+ },
+ {
+  "year": 2024,
+  "round": 1,
+  "number": 1,
+  "topic_key": "a2a024bab5d97721",
+  "freq_rounds": 2,
+  "freq_note": "2024-1 2019-2"
+ },
+ {
+  "year": 2024,
+  "round": 1,
+  "number": 2,
+  "topic_key": "ab86e3fe2e6d2097",
+  "freq_rounds": 2,
+  "freq_note": "2024-1 2008-4"
+ },
+ {
+  "year": 2024,
+  "round": 1,
+  "number": 3,
+  "topic_key": "2050e03ca119580f",
+  "freq_rounds": 1,
+  "freq_note": "2024-1"
+ },
+ {
+  "year": 2024,
+  "round": 1,
+  "number": 4,
+  "topic_key": "9d55292bfacdaef6",
+  "freq_rounds": 2,
+  "freq_note": "2024-1 2019-1"
+ },
+ {
+  "year": 2024,
+  "round": 1,
+  "number": 5,
+  "topic_key": "f1b6f2857fb6d44d",
+  "freq_rounds": 1,
+  "freq_note": "2024-1"
+ },
+ {
+  "year": 2024,
+  "round": 1,
+  "number": 6,
+  "topic_key": "dc6a6489640ca02b",
+  "freq_rounds": 1,
+  "freq_note": "2024-1"
+ },
+ {
+  "year": 2024,
+  "round": 1,
+  "number": 7,
+  "topic_key": "598b3e71ec378bd8",
+  "freq_rounds": 1,
+  "freq_note": "2024-1"
+ },
+ {
+  "year": 2024,
+  "round": 1,
+  "number": 8,
+  "topic_key": "6aa71d5597dc7551",
+  "freq_rounds": 2,
+  "freq_note": "2024-1 2006-1"
+ },
+ {
+  "year": 2024,
+  "round": 1,
+  "number": 9,
+  "topic_key": "d3294de09594bf12",
+  "freq_rounds": 2,
+  "freq_note": "2024-1 2015-2"
+ },
+ {
+  "year": 2024,
+  "round": 1,
+  "number": 10,
+  "topic_key": "a251d292b0481820",
+  "freq_rounds": 2,
+  "freq_note": "2024-1 2008-4"
+ },
+ {
+  "year": 2024,
+  "round": 1,
+  "number": 11,
+  "topic_key": "5ef0b4eba35ab2d6",
+  "freq_rounds": 1,
+  "freq_note": "2024-1"
+ },
+ {
+  "year": 2024,
+  "round": 1,
+  "number": 12,
+  "topic_key": "25ddc0f8c9d3e22e",
+  "freq_rounds": 1,
+  "freq_note": "2024-1"
+ },
+ {
+  "year": 2024,
+  "round": 1,
+  "number": 13,
+  "topic_key": "ffa44f740615f8ca",
+  "freq_rounds": 3,
+  "freq_note": "2024-1 2009-4 2007-4"
+ },
+ {
+  "year": 2024,
+  "round": 1,
+  "number": 14,
+  "topic_key": "07406b074129fa08",
+  "freq_rounds": 2,
+  "freq_note": "2024-1 2019-3"
+ },
+ {
+  "year": 2024,
+  "round": 1,
+  "number": 15,
+  "topic_key": "ef575e8837d065a1",
+  "freq_rounds": 1,
+  "freq_note": "2024-1"
+ },
+ {
+  "year": 2024,
+  "round": 2,
+  "number": 1,
+  "topic_key": "fbd68463e8f0560d",
+  "freq_rounds": 3,
+  "freq_note": "2025-3 2024-2 2005-2"
+ },
+ {
+  "year": 2024,
+  "round": 2,
+  "number": 2,
+  "topic_key": "d9c2c059ceedd25b",
+  "freq_rounds": 5,
+  "freq_note": "2024-2 2020-3 2018-2 2015-1 2005-3"
+ },
+ {
+  "year": 2024,
+  "round": 2,
+  "number": 3,
+  "topic_key": "3ed7282daf1c8fde",
+  "freq_rounds": 3,
+  "freq_note": "2024-2 2022-1 2020-1"
+ },
+ {
+  "year": 2024,
+  "round": 2,
+  "number": 4,
+  "topic_key": "559cb990c9dffd86",
+  "freq_rounds": 1,
+  "freq_note": "2024-2"
+ },
+ {
+  "year": 2024,
+  "round": 2,
+  "number": 5,
+  "topic_key": "cfee398643cbc3dc",
+  "freq_rounds": 1,
+  "freq_note": "2024-2"
+ },
+ {
+  "year": 2024,
+  "round": 2,
+  "number": 6,
+  "topic_key": "a91e2b149e5b727a",
+  "freq_rounds": 3,
+  "freq_note": "2024-2 2018-1 2015-2"
+ },
+ {
+  "year": 2024,
+  "round": 2,
+  "number": 7,
+  "topic_key": "7d04bbbe5494ae9d",
+  "freq_rounds": 1,
+  "freq_note": "2024-2"
+ },
+ {
+  "year": 2024,
+  "round": 2,
+  "number": 8,
+  "topic_key": "be27df6a90da2374",
+  "freq_rounds": 3,
+  "freq_note": "2024-2 2021-3 2017-3"
+ },
+ {
+  "year": 2024,
+  "round": 2,
+  "number": 9,
+  "topic_key": "ca8d7e53a9700153",
+  "freq_rounds": 2,
+  "freq_note": "2024-2 2020-3"
+ },
+ {
+  "year": 2024,
+  "round": 2,
+  "number": 10,
+  "topic_key": "bd7712b33ceccc8c",
+  "freq_rounds": 3,
+  "freq_note": "2024-2 2019-1 2017-3"
+ },
+ {
+  "year": 2024,
+  "round": 2,
+  "number": 11,
+  "topic_key": "d9ffa10f9614a1e7",
+  "freq_rounds": 2,
+  "freq_note": "2024-2 2020-2"
+ },
+ {
+  "year": 2024,
+  "round": 2,
+  "number": 12,
+  "topic_key": "ae864aa8f89f876e",
+  "freq_rounds": 2,
+  "freq_note": "2024-2 2020-2"
+ },
+ {
+  "year": 2024,
+  "round": 2,
+  "number": 13,
+  "topic_key": "a516a87cfcaef229",
+  "freq_rounds": 1,
+  "freq_note": "2024-2"
+ },
+ {
+  "year": 2024,
+  "round": 2,
+  "number": 14,
+  "topic_key": "d18f655c3fce66ca",
+  "freq_rounds": 1,
+  "freq_note": "2024-2"
+ },
+ {
+  "year": 2024,
+  "round": 2,
+  "number": 15,
+  "topic_key": "c3c59e5f8b3e9753",
+  "freq_rounds": 1,
+  "freq_note": "2024-2"
+ },
+ {
+  "year": 2025,
+  "round": 1,
+  "number": 1,
+  "topic_key": "48a7a593cb3d268c",
+  "freq_rounds": 2,
+  "freq_note": "2025-1 2005-1"
+ },
+ {
+  "year": 2025,
+  "round": 1,
+  "number": 2,
+  "topic_key": "3cf166c6b73f030b",
+  "freq_rounds": 1,
+  "freq_note": "2025-1"
+ },
+ {
+  "year": 2025,
+  "round": 1,
+  "number": 3,
+  "topic_key": "585b5c62fa0b47ce",
+  "freq_rounds": 2,
+  "freq_note": "2025-1 2015-1"
+ },
+ {
+  "year": 2025,
+  "round": 1,
+  "number": 4,
+  "topic_key": "e8c0653fea13f91b",
+  "freq_rounds": 1,
+  "freq_note": "2025-1"
+ },
+ {
+  "year": 2025,
+  "round": 1,
+  "number": 5,
+  "topic_key": "ff4d5fbbafdf976c",
+  "freq_rounds": 1,
+  "freq_note": "2025-1"
+ },
+ {
+  "year": 2025,
+  "round": 1,
+  "number": 6,
+  "topic_key": "f31dab902a88d192",
+  "freq_rounds": 2,
+  "freq_note": "2025-1 2019-2"
+ },
+ {
+  "year": 2025,
+  "round": 1,
+  "number": 7,
+  "topic_key": "35051070e572e47d",
+  "freq_rounds": 1,
+  "freq_note": "2025-1"
+ },
+ {
+  "year": 2025,
+  "round": 1,
+  "number": 8,
+  "topic_key": "b534ba68236ba543",
+  "freq_rounds": 1,
+  "freq_note": "2025-1"
+ },
+ {
+  "year": 2025,
+  "round": 1,
+  "number": 9,
+  "topic_key": "4f1463c060a0c7bd",
+  "freq_rounds": 3,
+  "freq_note": "2025-1 2018-3 2015-2"
+ },
+ {
+  "year": 2025,
+  "round": 1,
+  "number": 10,
+  "topic_key": "9299d682ee57f705",
+  "freq_rounds": 2,
+  "freq_note": "2025-1 2019-2"
+ },
+ {
+  "year": 2025,
+  "round": 1,
+  "number": 11,
+  "topic_key": "1e54cd98add8755d",
+  "freq_rounds": 2,
+  "freq_note": "2025-1 2018-1"
+ },
+ {
+  "year": 2025,
+  "round": 1,
+  "number": 12,
+  "topic_key": "56568a456eabaae5",
+  "freq_rounds": 4,
+  "freq_note": "2025-1 2022-2 2019-2 2011-2"
+ },
+ {
+  "year": 2025,
+  "round": 1,
+  "number": 13,
+  "topic_key": "285e19f20beded7d",
+  "freq_rounds": 1,
+  "freq_note": "2025-1"
+ },
+ {
+  "year": 2025,
+  "round": 1,
+  "number": 14,
+  "topic_key": "1be3bc32e6564055",
+  "freq_rounds": 1,
+  "freq_note": "2025-1"
+ },
+ {
+  "year": 2025,
+  "round": 1,
+  "number": 15,
+  "topic_key": "8ce36dd884c52e0f",
+  "freq_rounds": 6,
+  "freq_note": "2025-1 2022-3 2019-3 2011-2 2007-4 2006-1"
+ },
+ {
+  "year": 2025,
+  "round": 2,
+  "number": 1,
+  "topic_key": "3bb4d8a6f8aae28e",
+  "freq_rounds": 2,
+  "freq_note": "2025-2 2023-3"
+ },
+ {
+  "year": 2025,
+  "round": 2,
+  "number": 2,
+  "topic_key": "a39f905cb62d0448",
+  "freq_rounds": 4,
+  "freq_note": "2025-2 2021-3 2017-3 2009-4"
+ },
+ {
+  "year": 2025,
+  "round": 2,
+  "number": 3,
+  "topic_key": "7ae0313746717283",
+  "freq_rounds": 4,
+  "freq_note": "2025-2 2012-3 2012-1 2005-2"
+ },
+ {
+  "year": 2025,
+  "round": 2,
+  "number": 4,
+  "topic_key": "e2230b853516e7b0",
+  "freq_rounds": 1,
+  "freq_note": "2025-2"
+ },
+ {
+  "year": 2025,
+  "round": 2,
+  "number": 5,
+  "topic_key": "f73967ffd2fede44",
+  "freq_rounds": 2,
+  "freq_note": "2025-2 2015-1"
+ },
+ {
+  "year": 2025,
+  "round": 2,
+  "number": 6,
+  "topic_key": "e9d9fd5e8ac9555b",
+  "freq_rounds": 3,
+  "freq_note": "2025-2 2013-2 2006-1"
+ },
+ {
+  "year": 2025,
+  "round": 2,
+  "number": 7,
+  "topic_key": "78e9a31cfff4b7eb",
+  "freq_rounds": 2,
+  "freq_note": "2025-2 2012-2"
+ },
+ {
+  "year": 2025,
+  "round": 2,
+  "number": 8,
+  "topic_key": "63538fe6ef330c13",
+  "freq_rounds": 1,
+  "freq_note": "2025-2"
+ },
+ {
+  "year": 2025,
+  "round": 2,
+  "number": 9,
+  "topic_key": "1677447d61038a9d",
+  "freq_rounds": 2,
+  "freq_note": "2025-2 2013-1"
+ },
+ {
+  "year": 2025,
+  "round": 2,
+  "number": 10,
+  "topic_key": "0f217d03b819358d",
+  "freq_rounds": 3,
+  "freq_note": "2025-2 2011-3 2010-3"
+ },
+ {
+  "year": 2025,
+  "round": 2,
+  "number": 11,
+  "topic_key": "38913e1d6a7b94cb",
+  "freq_rounds": 1,
+  "freq_note": "2025-2"
+ },
+ {
+  "year": 2025,
+  "round": 2,
+  "number": 12,
+  "topic_key": "5b640788d162b075",
+  "freq_rounds": 2,
+  "freq_note": "2025-2 2017-1"
+ },
+ {
+  "year": 2025,
+  "round": 2,
+  "number": 13,
+  "topic_key": "fc9c9ee3e7886a4f",
+  "freq_rounds": 4,
+  "freq_note": "2025-2 2021-3 2020-1 2018-3"
+ },
+ {
+  "year": 2025,
+  "round": 2,
+  "number": 14,
+  "topic_key": "087408522c31eeb1",
+  "freq_rounds": 1,
+  "freq_note": "2025-2"
+ },
+ {
+  "year": 2025,
+  "round": 2,
+  "number": 15,
+  "topic_key": "2b8a61594b1f4c4d",
+  "freq_rounds": 1,
+  "freq_note": "2025-2"
+ },
+ {
+  "year": 2025,
+  "round": 3,
+  "number": 1,
+  "topic_key": "fbd68463e8f0560d",
+  "freq_rounds": 3,
+  "freq_note": "2025-3 2024-2 2005-2"
+ },
+ {
+  "year": 2025,
+  "round": 3,
+  "number": 2,
+  "topic_key": "b8de01befddf429f",
+  "freq_rounds": 3,
+  "freq_note": "2025-3 2018-2 2015-2"
+ },
+ {
+  "year": 2025,
+  "round": 3,
+  "number": 3,
+  "topic_key": "b3d39ae866236c29",
+  "freq_rounds": 3,
+  "freq_note": "2025-3 2022-3 2020-1"
+ },
+ {
+  "year": 2025,
+  "round": 3,
+  "number": 4,
+  "topic_key": "aeb98edb21f6633d",
+  "freq_rounds": 3,
+  "freq_note": "2025-3 2022-2 2012-1"
+ },
+ {
+  "year": 2025,
+  "round": 3,
+  "number": 5,
+  "topic_key": "85422afb467e9456",
+  "freq_rounds": 1,
+  "freq_note": "2025-3"
+ },
+ {
+  "year": 2025,
+  "round": 3,
+  "number": 6,
+  "topic_key": "df1ed64b2f432a0e",
+  "freq_rounds": 2,
+  "freq_note": "2025-3 2010-3"
+ },
+ {
+  "year": 2025,
+  "round": 3,
+  "number": 7,
+  "topic_key": "2bb232c0b13c7749",
+  "freq_rounds": 1,
+  "freq_note": "2025-3"
+ },
+ {
+  "year": 2025,
+  "round": 3,
+  "number": 8,
+  "topic_key": "df75df338fde7846",
+  "freq_rounds": 2,
+  "freq_note": "2025-3 2020-3"
+ },
+ {
+  "year": 2025,
+  "round": 3,
+  "number": 9,
+  "topic_key": "c399862d3b9d6b76",
+  "freq_rounds": 1,
+  "freq_note": "2025-3"
+ },
+ {
+  "year": 2025,
+  "round": 3,
+  "number": 10,
+  "topic_key": "13f320e7b5ead102",
+  "freq_rounds": 1,
+  "freq_note": "2025-3"
+ },
+ {
+  "year": 2025,
+  "round": 3,
+  "number": 11,
+  "topic_key": "ba2fd310dcaa8781",
+  "freq_rounds": 1,
+  "freq_note": "2025-3"
+ },
+ {
+  "year": 2025,
+  "round": 3,
+  "number": 12,
+  "topic_key": "233ece6e65ae46ec",
+  "freq_rounds": 3,
+  "freq_note": "2025-3 2019-3 2016-1"
+ },
+ {
+  "year": 2025,
+  "round": 3,
+  "number": 13,
+  "topic_key": "eb499d749fcbc193",
+  "freq_rounds": 2,
+  "freq_note": "2025-3 2022-2"
+ },
+ {
+  "year": 2025,
+  "round": 3,
+  "number": 14,
+  "topic_key": "298f95e1bf913612",
+  "freq_rounds": 1,
+  "freq_note": "2025-3"
+ },
+ {
+  "year": 2025,
+  "round": 3,
+  "number": 15,
+  "topic_key": "c686a60eb57546ae",
+  "freq_rounds": 2,
+  "freq_note": "2025-3 2010-3"
+ },
+ {
+  "year": 2026,
+  "round": 1,
+  "number": 1,
+  "topic_key": "c667d53acd899a97",
+  "freq_rounds": 1,
+  "freq_note": "2026-1"
+ },
+ {
+  "year": 2026,
+  "round": 1,
+  "number": 2,
+  "topic_key": "2e4d9b862baf285e",
+  "freq_rounds": 4,
+  "freq_note": "2026-1 2010-3 2008-1 2006-1"
+ },
+ {
+  "year": 2026,
+  "round": 1,
+  "number": 3,
+  "topic_key": "c9f95a0a5af052bf",
+  "freq_rounds": 1,
+  "freq_note": "2026-1"
+ },
+ {
+  "year": 2026,
+  "round": 1,
+  "number": 4,
+  "topic_key": "a2c30a62782d546f",
+  "freq_rounds": 2,
+  "freq_note": "2026-1 2010-3"
+ },
+ {
+  "year": 2026,
+  "round": 1,
+  "number": 5,
+  "topic_key": "46aef9eed681a5f1",
+  "freq_rounds": 2,
+  "freq_note": "2026-1 2019-2"
+ },
+ {
+  "year": 2026,
+  "round": 1,
+  "number": 6,
+  "topic_key": "cdc09ef8b7cebae6",
+  "freq_rounds": 5,
+  "freq_note": "2026-1 2020-3 2020-2 2017-3 2005-1"
+ },
+ {
+  "year": 2026,
+  "round": 2,
+  "number": 1,
+  "topic_key": "b9d487a30398d42e",
+  "freq_rounds": 1,
+  "freq_note": "2026-2"
+ },
+ {
+  "year": 2026,
+  "round": 2,
+  "number": 2,
+  "topic_key": "ecc5d452bed7b27c",
+  "freq_rounds": 2,
+  "freq_note": "2026-2 2022-3"
+ },
+ {
+  "year": 2026,
+  "round": 2,
+  "number": 3,
+  "topic_key": "03d1308fad737453",
+  "freq_rounds": 3,
+  "freq_note": "2026-2 2022-2 2019-2"
+ },
+ {
+  "year": 2026,
+  "round": 2,
+  "number": 4,
+  "topic_key": "24df4151a15edc61",
+  "freq_rounds": 3,
+  "freq_note": "2026-2 2022-3 2019-2"
+ },
+ {
+  "year": 2026,
+  "round": 2,
+  "number": 5,
+  "topic_key": "5d77f2c6d3a030bc",
+  "freq_rounds": 8,
+  "freq_note": "2026-2 2022-2 2021-3 2018-3 2013-3 2013-2 2007-1 2005-2"
+ },
+ {
+  "year": 2026,
+  "round": 2,
+  "number": 6,
+  "topic_key": "dd77279f7d325eec",
+  "freq_rounds": 1,
+  "freq_note": "2026-2"
+ },
+ {
+  "year": 2026,
+  "round": 2,
+  "number": 7,
+  "topic_key": "c60d060b946d6dd6",
+  "freq_rounds": 1,
+  "freq_note": "2026-2"
+ },
+ {
+  "year": 2026,
+  "round": 2,
+  "number": 8,
+  "topic_key": "5a5b118831f513b8",
+  "freq_rounds": 2,
+  "freq_note": "2026-2 2023-1"
+ },
+ {
+  "year": 2026,
+  "round": 2,
+  "number": 9,
+  "topic_key": "cfb67899498aa36a",
+  "freq_rounds": 3,
+  "freq_note": "2026-2 2022-1 2019-2"
+ },
+ {
+  "year": 2026,
+  "round": 2,
+  "number": 10,
+  "topic_key": "338968769c3b4ed8",
+  "freq_rounds": 2,
+  "freq_note": "2026-2 2019-2"
+ },
+ {
+  "year": 2026,
+  "round": 2,
+  "number": 11,
+  "topic_key": "9167942fb927d626",
+  "freq_rounds": 2,
+  "freq_note": "2026-2 2011-2"
+ },
+ {
+  "year": 2026,
+  "round": 2,
+  "number": 12,
+  "topic_key": "1e7ba6ab5d02c999",
+  "freq_rounds": 3,
+  "freq_note": "2026-2 2007-1 2005-2"
+ },
+ {
+  "year": 2026,
+  "round": 2,
+  "number": 13,
+  "topic_key": "33b0ae7bae190a7a",
+  "freq_rounds": 2,
+  "freq_note": "2026-2 2019-3"
+ },
+ {
+  "year": 2026,
+  "round": 2,
+  "number": 14,
+  "topic_key": "32901a8d7d11475c",
+  "freq_rounds": 2,
+  "freq_note": "2026-2 2019-2"
+ },
+ {
+  "year": 2026,
+  "round": 2,
+  "number": 15,
+  "topic_key": "0eec27c419d0fe24",
+  "freq_rounds": 1,
+  "freq_note": "2026-2"
+ }
+]
