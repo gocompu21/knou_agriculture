@@ -21,9 +21,12 @@ sys.stdout.reconfigure(encoding='utf-8')
 from gisa.models import GisaEssayQuestion as Q
 from gisa.templatetags.gisa_filters import qtext
 
-# 객관식에서만 성립하는 표현 — 필답 해설에 있으면 수험생이 오해한다
+# 객관식에서만 성립하는 표현 — 필답 해설에 있으면 수험생이 오해한다.
+# '고르게'(균등하게)와 '선지'(습지개'선지'역)는 오탐이 잦아 뺐다.
+# '고르는/고르면'도 "이 풀에서 고르면 됩니다" 같은 정상 용례가 많아
+# 검출되면 문맥을 직접 확인한다.
 _OBJECTIVE = re.compile(
-    r'고르게|고르는|고르면|선지|보기 중|틀린 것|옳은 것|아닌 것은|오답 패턴|객관식'
+    r'보기 중|틀린 것|옳은 것|아닌 것은|오답 패턴|객관식|사지선다'
 )
 
 
