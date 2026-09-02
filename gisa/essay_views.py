@@ -635,3 +635,35 @@ def essay_grade_one(request, cert_id, question_id):
         # 브라우저에서 escape 하면 표는 파이프 문자로, 그림은 태그 글자로 보인다
         'reference_html': str(qtext(q.reference)) if q.reference else '',
     })
+
+
+def essay_siblings(request, cert_id, question_id):
+    """같은 주제로 묶인 다른 회차 문항들을 돌려준다.
+
+    같은 개념이 회차마다 어떤 형태로 바뀌어 나왔는지 나란히 보면, 표현이
+    달라져도 묻는 것이 같다는 걸 알게 된다. 답까지 함께 보내 대조할 수 있게 한다.
+    """
+    cert = get_object_or_404(Certification, pk=cert_id)
+    q = get_object_or_404(GisaEssayQuestion, pk=question_id, certification=cert)
+    if not q.topic_key:
+        return JsonResponse({'ok': True, 'items': []})
+
+    sibs = (GisaEssayQuestion.objects
+            .filter(certification=cert, topic_key=q.topic_key)
+            .exclude(pk=q.pk)
+            .order_by('-year', '-round', 'number'))
+
+    items = [{
+        'pk': s.pk,
+        'label': f'{s.year}-{s.round}',
+        'number': s.number,
+        'orig_number': s.orig_number,
+        'qtype': s.get_qtype_display(),
+        'points': s.points,
+        'text_html': str(qtext(s.text)),
+        # 답 항목도 서버에서 렌더링한다. 원번호·첨자·표가 들어 있어 그대로
+        # 넣으면 글자로 보이고, escape 없이 넣으면 위험하다
+        'answer_html_items': [str(qtext(it)) for it in (s.answer_items or [])],
+        'answer_html': str(qtext(s.answer_text)) if s.answer_text else '',
+    } for s in sibs]
+    return JsonResponse({'ok': True, 'items': items})

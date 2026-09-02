@@ -37,9 +37,31 @@
     /* 문항이 주제순으로 놓이므로 어느 주제인지 배지로 알린다 */
     .sq-topic { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
         background: #e8eef5; color: #2d4a6b; font-weight: 600; }
-    /* 되풀이 출제된 주제임을 알리는 배지 */
+    /* 되풀이 출제된 주제임을 알리는 배지. 누르면 다른 회차 문항이 펼쳐진다 */
     .sq-freq { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
-        background: #fff3e0; color: #a1651a; font-weight: 700; }
+        background: #fff3e0; color: #a1651a; font-weight: 700;
+        border: 1px solid #f0d9b5; cursor: pointer; font-family: inherit; }
+    .sq-freq:hover { background: #ffe8c8; }
+    .sq-freq.on { background: #a1651a; color: #fff; border-color: #a1651a; }
+
+    /* 같은 주제의 다른 회차 문항 — 표현이 어떻게 바뀌는지 대조용 */
+    .sib { margin: 8px 0 4px 34px; border-left: 3px solid #d9c7a8;
+        background: #fffdf8; border-radius: 0 8px 8px 0; padding: 10px 14px; }
+    .sib.hidden { display: none; }
+    .sib-head { font-size: 0.76rem; color: #a1651a; font-weight: 700;
+        margin-bottom: 8px; }
+    .sib-q { padding: 8px 0; border-top: 1px dashed #e8dcc4; }
+    .sib-q:first-of-type { border-top: 0; padding-top: 0; }
+    .sib-meta { display: flex; align-items: baseline; gap: 7px; margin-bottom: 3px;
+        flex-wrap: wrap; }
+    .sib-lab { font-size: 0.72rem; font-weight: 700; color: #1b4332;
+        background: #e7efe9; padding: 1px 7px; border-radius: 6px; }
+    .sib-type { font-size: 0.7rem; color: #8a7a5e; }
+    .sib-text { font-size: 0.87rem; line-height: 1.7; color: #333; }
+    .sib-ans { margin-top: 5px; font-size: 0.83rem; line-height: 1.7;
+        color: #40624f; }
+    .sib-ans div { padding: 1px 0; }
+    .sib-loading { font-size: 0.8rem; color: #999; }
     /* 출제 회차를 최신순으로 나열. 최신일수록 진해 학습 우선순위가 보인다 */
     .sq-rounds { display: inline-flex; flex-wrap: wrap; gap: 3px; }
     .fq-r { font-size: 0.66rem; padding: 1px 5px; border-radius: 5px;
@@ -119,7 +141,8 @@
             {% if q.topic_group %}<span class="sq-topic">{{ q.get_topic_group_display }}</span>{% endif %}
             <span class="sq-type">{{ q.get_qtype_display }}</span>
             {% if q.freq_rounds > 1 %}
-            <span class="sq-freq">빈출 {{ q.freq_rounds }}회</span>
+            <button type="button" class="sq-freq" data-sib="{{ q.pk }}"
+                    title="같은 주제의 다른 회차 문항 보기">빈출 {{ q.freq_rounds }}회</button>
             <span class="sq-rounds">{{ q.freq_note|freq_badges }}</span>
             {% endif %}
             {% if study_mode == 'freq' %}<span class="sq-src">{{ q.label }}</span>{% endif %}
@@ -127,6 +150,8 @@
         </div>
         <div class="sq-text">{{ q.text|qtext }}</div>
         {% if q.text_image %}<img class="sq-img" src="{{ q.text_image|vurl }}" alt="">{% endif %}
+
+        {% if q.freq_rounds > 1 %}<div class="sib hidden" id="sib{{ q.pk }}"></div>{% endif %}
 
         <div class="sq-toggle"><button class="btn-reveal" data-n="{{ q.pk }}">정답 보기</button></div>
 
@@ -186,5 +211,56 @@ document.getElementById('btnAll').addEventListener('click', () => {
 
 /* 첫 진입은 모두 펼친 상태로 — 훑어보기 용도가 많다 */
 document.getElementById('btnAll').click();
+
+/* 빈출 배지 클릭 → 같은 주제의 다른 회차 문항을 펼쳐 대조한다.
+   같은 개념이 회차마다 어떻게 달리 묻는지 보면 표현에 흔들리지 않는다. */
+const CERT_ID = {{ cert.pk }};
+
+document.querySelectorAll('.sq-freq[data-sib]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const pk = btn.dataset.sib;
+        const box = document.getElementById('sib' + pk);
+        if (!box) return;
+
+        if (!box.classList.contains('hidden')) {
+            box.classList.add('hidden');
+            btn.classList.remove('on');
+            return;
+        }
+        box.classList.remove('hidden');
+        btn.classList.add('on');
+
+        if (box.dataset.loaded) return;
+        box.innerHTML = '<div class="sib-loading">불러오는 중…</div>';
+        try {
+            const r = await fetch(`/gisa/${CERT_ID}/essay/siblings/${pk}/`);
+            const d = await r.json();
+            if (!d.ok) throw new Error(d.error || '불러오지 못했습니다');
+            if (!d.items.length) {
+                box.innerHTML = '<div class="sib-loading">다른 회차 문항이 없습니다.</div>';
+                box.dataset.loaded = '1';
+                return;
+            }
+            let html = `<div class="sib-head">같은 주제로 나온 다른 회차 ${d.items.length}문항</div>`;
+            d.items.forEach(s => {
+                html += '<div class="sib-q">';
+                html += `<div class="sib-meta"><span class="sib-lab">${s.label}</span>`;
+                html += `<span class="sib-type">${s.number}번 · ${s.qtype} · ${s.points}점</span></div>`;
+                html += `<div class="sib-text">${s.text_html}</div>`;
+                if (s.answer_html_items.length || s.answer_html) {
+                    html += '<div class="sib-ans">';
+                    s.answer_html_items.forEach(it => { html += `<div>${it}</div>`; });
+                    if (s.answer_html) html += s.answer_html;
+                    html += '</div>';
+                }
+                html += '</div>';
+            });
+            box.innerHTML = html;
+            box.dataset.loaded = '1';
+        } catch (e) {
+            box.innerHTML = `<div class="sib-loading">${e.message}</div>`;
+        }
+    });
+});
 </script>
 {% endblock %}
