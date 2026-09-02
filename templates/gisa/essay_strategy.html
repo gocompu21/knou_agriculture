@@ -179,7 +179,8 @@
     </div>
 
     <h2 class="st">가장 많이 나온 주제</h2>
-    <p>3회 이상 출제된 {{ top_topics|length }}개 주제입니다. 이것만 확실히 해도 회차당 5~7문항이 걸립니다.</p>
+    <p>3회 이상 출제된 {{ top_topics|length }}개 주제입니다. 전체 기출의 30%에 해당하므로,
+       이것만 확실히 해도 회차당 4~5문항이 걸립니다.</p>
     {% for q in top_topics %}
     <div class="topic">
         <span class="cnt">{{ q.freq_rounds }}회</span>
@@ -190,7 +191,7 @@
     {% endfor %}
 
     <h2 class="st">계산 유형 — 공식만 외우면 되는 점수</h2>
-    <p>전체 기출에서 계산은 {{ types|length }}개 유형 중 5%에 불과하지만, 유형이 고정돼 있어
+    <p>계산은 전체 기출의 5%뿐이지만, 쓰이는 공식이 {{ calc_topics|length }}가지로 고정돼 있어
        <b>가장 확실하게 점수로 바뀌는 부분</b>입니다.</p>
     {% for q in calc_topics %}
     <div class="topic">
