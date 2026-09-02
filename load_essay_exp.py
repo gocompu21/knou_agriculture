@@ -3,7 +3,7 @@
 해설은 화면에서 `qtext` 필터를 거치므로, 넣기 전에 실제로 렌더링해 보고
 SVG가 필터에 걸려 사라지지는 않는지, 표가 표로 바뀌는지 확인한다.
 """
-import argparse, glob, json, os, sys, django
+import argparse, glob, json, os, re, sys, django
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
@@ -14,12 +14,33 @@ from gisa.models import GisaEssayQuestion as Q
 from gisa.templatetags.gisa_filters import qtext
 
 
+# 객관식에서만 성립하는 표현. 실기 필답 해설에 있으면 수험생이 필기 문제로 오해한다
+_OBJECTIVE = re.compile(
+    r'고르게|고르는|고르면|선지|보기 중|틀린 것|옳은 것|아닌 것은|오답 패턴|객관식'
+)
+
+
+def body_len(text):
+    """표와 SVG 마크업을 뺀 본문 길이. 분량 판단은 이 값으로 한다."""
+    t = re.sub(r'\[svg\].*?\[/svg\]', '', text or '', flags=re.DOTALL)
+    t = re.sub(r'^\s*\|.*$', '', t, flags=re.MULTILINE)
+    return len(t.strip())
+
+
 def check(text):
     """넣어도 되는지 판정. 반환값은 경고 목록(비어 있으면 통과)."""
     warns = []
     if not (text or '').strip():
         return ['빈 해설']
     html = str(qtext(text))
+
+    m = _OBJECTIVE.search(text)
+    if m:
+        warns.append(f'객관식 표현 "{m.group()}"')
+
+    # LaTeX 천단위 표기는 필터가 중괄호를 처리하지 않아 그대로 노출된다
+    if '{,}' in text:
+        warns.append('{,} 표기 (중괄호가 화면에 노출됨)')
 
     # SVG가 필터에 걸려 통째로 사라지면 그림 없는 해설이 된다
     want = text.count('[svg]')
@@ -64,10 +85,10 @@ def main():
     for r, w in bad:
         print(f'  [{r.get("number")}] {", ".join(w)}')
 
-    print('\n번호  글자수  표  그림')
+    print('\n번호  본문   전체   표  그림')
     for r, q in ok:
         t = r['reference']
-        print(f'  {r["number"]:>2}  {len(t):>5}  '
+        print(f'  {r["number"]:>2}  {body_len(t):>4}  {len(t):>5}   '
               f'{"O" if "|---" in t or "| ---" in t else "-"}   '
               f'{t.count("[svg]") or "-"}')
 
