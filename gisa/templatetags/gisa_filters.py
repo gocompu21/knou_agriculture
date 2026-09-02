@@ -77,17 +77,32 @@ def _md_table(block):
     body = [cells(ln) for ln in lines[2:]]
     ncol = len(head)
 
+    # +, 0, - 나 '많다/적다'처럼 짧은 값만 든 열은 가운데 정렬이 읽기 좋다.
+    # 서술이 든 열까지 가운데로 몰면 오히려 나빠지므로 열 단위로 판단한다.
+    def _short(c):
+        return "<br>" not in c and len(c) <= 8
+
+    center = [
+        all(_short(row[i]) for row in body if i < len(row) and row[i])
+        for i in range(ncol)
+    ]
+
+    def _align(style, i):
+        if i < len(center) and center[i]:
+            return style.replace("text-align:left", "text-align:center")
+        return style
+
     out = ['<table style="%s">' % _TABLE_STYLE]
     out.append("<thead><tr>")
-    for h in head:
-        out.append('<th style="%s">%s</th>' % (_TH_STYLE, h))
+    for i, h in enumerate(head):
+        out.append('<th style="%s">%s</th>' % (_align(_TH_STYLE, i), h))
     out.append("</tr></thead><tbody>")
     for row in body:
         if len(row) < ncol:
             row = row + [""] * (ncol - len(row))
         out.append("<tr>")
-        for cel in row[:ncol]:
-            out.append('<td style="%s">%s</td>' % (_CELL_STYLE, cel))
+        for i, cel in enumerate(row[:ncol]):
+            out.append('<td style="%s">%s</td>' % (_align(_CELL_STYLE, i), cel))
         out.append("</tr>")
     out.append("</tbody></table>")
     note = "\n".join(tail).strip()
