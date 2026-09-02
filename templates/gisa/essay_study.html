@@ -57,9 +57,18 @@
     .sib-lab { font-size: 0.72rem; font-weight: 700; color: #1b4332;
         background: #e7efe9; padding: 1px 7px; border-radius: 6px; }
     .sib-type { font-size: 0.7rem; color: #8a7a5e; }
-    .sib-text { font-size: 0.87rem; line-height: 1.7; color: #333; }
-    .sib-ans { margin-top: 5px; font-size: 0.83rem; line-height: 1.7;
-        color: #40624f; }
+    /* 문제와 답이 잇달아 나오므로 굵기·밑줄·색으로 갈라 준다.
+       밑줄은 글자에 닿지 않게 띄우고, 지문 상자·표 안에는 걸리지 않게 한다 */
+    .sib-text { font-size: 0.88rem; line-height: 1.75; color: #1f2d24;
+        font-weight: 600; text-decoration: underline;
+        text-decoration-color: #c3d3c8; text-underline-offset: 3px;
+        text-decoration-thickness: 1px; }
+    /* 상속된 밑줄은 none 으로 못 끄므로 새 서식 문맥을 만들어 끊는다.
+       q-box 는 본래 블록이라 폭이 줄지 않게 width 를 채워 준다 */
+    .sib-text .q-box, .sib-text table { display: inline-block; width: 100%;
+        text-decoration: none; font-weight: 400; }
+    .sib-ans { margin-top: 6px; font-size: 0.83rem; line-height: 1.7;
+        color: #4a6b58; font-weight: 400; }
     .sib-ans div { padding: 1px 0; }
     .sib-loading { font-size: 0.8rem; color: #999; }
     /* 출제 회차를 최신순으로 나열. 최신일수록 진해 학습 우선순위가 보인다 */
