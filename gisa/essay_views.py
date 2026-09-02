@@ -62,6 +62,18 @@ def essay_list(request, cert_id):
                 .annotate(c=Count('id'))
                 .order_by('section'))
 
+    # 화면만 열었다 나간 세션은 이력을 어지럽히므로 치운다.
+    # 답을 하나도 쓰지 않았고, 인쇄용 시험지도 아니고, 하루가 지난 것.
+    # (시험지 모드는 인쇄만 해두고 며칠 뒤 답을 올리는 흐름이라 남긴다)
+    try:
+        stale = timezone.now() - timedelta(days=1)
+        (GisaEssaySession.objects
+         .filter(user=request.user, certification=cert, status='progress',
+                 mode='online', started_at__lt=stale, attempts__isnull=True)
+         .delete())
+    except Exception:
+        pass
+
     # 내 응시 이력 요약
     sessions = (GisaEssaySession.objects
                 .filter(user=request.user, certification=cert)

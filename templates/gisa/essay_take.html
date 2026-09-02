@@ -24,6 +24,12 @@
     .et-btn { background: #fff; color: #1b4332; border: 0; border-radius: 14px;
         padding: 6px 16px; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
     .et-btn:disabled { opacity: 0.5; cursor: default; }
+    /* 취소 — 그만두고 목록으로. 제출 버튼과 헷갈리지 않게 옅게 둔다 */
+    .et-cancel { color: rgba(255,255,255,.9); text-decoration: none;
+        background: rgba(255,255,255,0.15); border-radius: 14px;
+        padding: 6px 14px; font-size: 0.83rem; font-weight: 600;
+        white-space: nowrap; }
+    .et-cancel:hover { background: rgba(255,255,255,0.28); }
 
     .et-wrap { max-width: 860px; margin: 0 auto; padding: 16px 16px 80px; }
 
@@ -133,6 +139,7 @@
         <small>· {{ questions|length }}문항 · {{ total_points }}점</small>
     </div>
     {% if time_limit %}<div class="et-timer" id="timer">90:00</div>{% endif %}
+    <a class="et-cancel" id="btnCancel" href="{% url 'gisa:essay_list' cert.pk %}">취소</a>
 </div>
 
 <div class="et-wrap">
@@ -326,6 +333,21 @@ document.getElementById('upfile').addEventListener('change', async e => {
     }
 });
 {% endif %}
+
+/* ---------- 취소 ---------- */
+document.getElementById('btnCancel').addEventListener('click', e => {
+    let filled = 0;
+    document.querySelectorAll('textarea[name^=answer_]').forEach(t => {
+        if (t.value.trim()) filled++;
+    });
+    // 쓰던 답이 있으면 한 번 물어본다. 임시저장이 남아 있어 되돌아오면 복구된다.
+    if (filled && !confirm(
+            `작성한 답안 ${filled}문항이 있습니다.\n` +
+            `채점하지 않고 나가시겠습니까?\n\n` +
+            `(작성 내용은 이 브라우저에 남아 있어 다시 들어오면 이어서 쓸 수 있습니다)`)) {
+        e.preventDefault();
+    }
+});
 
 /* ---------- 제출 → 문항별 병렬 채점 (진행률 표시) ---------- */
 // 동시 실행 수. 실측(15문항): 3개 60초 / 5개 45초 / 8개 50초 —
