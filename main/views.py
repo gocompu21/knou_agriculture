@@ -1117,17 +1117,20 @@ def usage_stats(request):
             bump(uid, "solved", r["n"])
             bump(uid, "correct", r["c"])
 
-    # 세션 수 (한 번 앉은 횟수) 와 사용시간
+    # 세션 수 (한 번 앉은 횟수)
+    #
+    # 사용시간은 내지 않는다 — 기사 앱은 제출 시점에 답안을 일괄 저장해
+    # 한 세션의 모든 문항이 같은 created_at 을 가진다. (첫 풀이~마지막
+    # 풀이)로 재면 늘 0초가 나오므로, 채워 넣으면 실제로 잰 값처럼
+    # 보이지만 근거가 없다. 대신 세션 수와 문항 수로 활동량을 본다.
     for model in (Attempt, GisaAttempt):
         sess = (
             span(model.objects.exclude(session_id=""))
             .values("user_id", "session_id")
-            .annotate(s=Min("created_at"), e=Max("created_at"))
+            .distinct()
         )
         for r in sess:
             bump(r["user_id"], "sessions", 1)
-            sec = int((r["e"] - r["s"]).total_seconds())
-            bump(r["user_id"], "seconds", sec if sec > 0 else 60)
 
     # 기출학습 진도 기록·자료 열람·로그인
     for r in span(GisaStudyLog.objects.all()).values("user_id").annotate(n=Count("id")):
@@ -1162,7 +1165,6 @@ def usage_stats(request):
         a = agg.get(u.pk)
         if not a:
             continue
-        sec = a.get("seconds", 0)
         solved = a.get("solved", 0)
         rows.append({
             "pk": u.pk,
@@ -1178,18 +1180,17 @@ def usage_stats(request):
             "mock": a.get("mock", 0),
             "wrong": a.get("wrong_retry", 0),
             "sessions": a.get("sessions", 0),
-            "minutes": sec // 60,
             "studylog": a.get("studylog", 0),
             "pdf": a.get("pdf", 0),
             "login": a.get("login", 0),
             "last": last.get(u.pk),
         })
-    rows.sort(key=lambda r: (-r["solved"], -r["minutes"]))
+    rows.sort(key=lambda r: (-r["solved"], -r["sessions"]))
 
     total = {
         k: sum(r[k] for r in rows)
         for k in ("solved", "correct", "knou", "gisa", "study", "exam",
-                  "mock", "wrong", "sessions", "minutes", "studylog", "pdf", "login")
+                  "mock", "wrong", "sessions", "studylog", "pdf", "login")
     }
     total["users"] = len(rows)
     total["rate"] = (

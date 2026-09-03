@@ -141,8 +141,8 @@
             <div class="sum-l">정답률</div></div>
         <div class="sum-cell"><b class="sum-v">{{ total.sessions }}</b>
             <div class="sum-l">응시 세션</div></div>
-        <div class="sum-cell"><b class="sum-v">{{ total.minutes }}</b>
-            <div class="sum-l">사용 분</div></div>
+        <div class="sum-cell"><b class="sum-v">{{ total.study }}</b>
+            <div class="sum-l">학습모드</div></div>
         <div class="sum-cell"><b class="sum-v">{{ total.login }}</b>
             <div class="sum-l">로그인</div></div>
     </div>
@@ -162,7 +162,6 @@
                     <th data-t="num">모의</th>
                     <th data-t="num">오답</th>
                     <th data-t="num">세션</th>
-                    <th data-t="num">사용(분)</th>
                     <th data-t="num">진도기록</th>
                     <th data-t="num">자료</th>
                     <th data-t="num">로그인</th>
@@ -185,7 +184,6 @@
                     <td>{% if r.mock %}{{ r.mock }}{% else %}<span class="dash">-</span>{% endif %}</td>
                     <td>{% if r.wrong %}{{ r.wrong }}{% else %}<span class="dash">-</span>{% endif %}</td>
                     <td>{% if r.sessions %}{{ r.sessions }}{% else %}<span class="dash">-</span>{% endif %}</td>
-                    <td>{% if r.minutes %}{{ r.minutes }}{% else %}<span class="dash">-</span>{% endif %}</td>
                     <td>{% if r.studylog %}{{ r.studylog }}{% else %}<span class="dash">-</span>{% endif %}</td>
                     <td>{% if r.pdf %}{{ r.pdf }}{% else %}<span class="dash">-</span>{% endif %}</td>
                     <td>{% if r.login %}{{ r.login }}{% else %}<span class="dash">-</span>{% endif %}</td>
