@@ -30,15 +30,18 @@ BASE = [
 DERIVE = ("② 양변에 자연로그를 취한다. ln1.5는 주어진 값에서 ln3 − ln2 로 유도한다."
           "\n[eq]n × ln1.01 > ln1.5 = ln3 − ln2 = 0.4055[/eq]")
 
-# pk → ln1.5 유도가 필요한 회차인가
-TARGETS = [(485, True), (598, False), (657, False), (804, True), (1047, False)]
+# (연도, 회차, 문항번호) → ln1.5 유도가 필요한 회차인가.
+# pk 는 로컬 6 / 서버 3 으로 달라 회차로 찾는다.
+TARGETS = [((2024, 2, 2), True), ((2020, 3, 2), False), ((2018, 2, 4), False),
+           ((2015, 1, 5), True), ((2005, 3, 4), False)]
 
 
 def main():
-    for pk, derive in TARGETS:
-        q = Q.objects.filter(pk=pk).first()
+    for (year, rnd, num), derive in TARGETS:
+        q = Q.objects.filter(source='기출', year=year, round=rnd,
+                             number=num, qtype='계산').first()
         if not q:
-            print(f'  건너뜀: pk={pk} 없음')
+            print(f'  건너뜀: {year}-{rnd} #{num} 없음')
             continue
         items = list(BASE)
         if derive:
