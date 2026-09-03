@@ -109,11 +109,17 @@ def essay_list(request, cert_id):
         if n:
             freq_cards.append({'min': lo, 'label': label, 'count': n})
 
+    # 재출제 유력 — 실기 1회 출제인데 주제어가 필기에 10회 이상 등장한 문항
+    comeback_count = (GisaEssayQuestion.objects
+                      .filter(certification=cert, source='기출',
+                              freq_rounds=1, written_freq__gte=10).count())
+
     return render(request, 'gisa/essay_list.html', {
         'cert': cert,
         'round_cards': round_cards,
         'sections': sections,
         'freq_cards': freq_cards,
+        'comeback_count': comeback_count,
         'notes': GisaEssayNote.objects.filter(certification=cert),
         'sessions': sessions,
         'total': qs.count(),
@@ -440,6 +446,15 @@ def essay_study(request, cert_id):
             seen.add(q.topic_key)
             questions.append(q)
         title = f'빈출 주제 ({min_rounds}회 이상 출제)'
+        year = round_ = None
+    elif study_mode == 'comeback':
+        # 재출제 유력 — 실기에는 1회만 나왔지만 필기에서 자주 다뤄진 주제.
+        # 최근 3개 회차 신규 주제를 역검증하니 81%가 필기 빈출 영역 출신이었다.
+        questions = list(GisaEssayQuestion.objects
+                         .filter(certification=cert, source='기출',
+                                 freq_rounds=1, written_freq__gte=10)
+                         .order_by('-written_freq', '-year', '-round'))
+        title = '재출제 유력 주제'
         year = round_ = None
     else:
         qs = GisaEssayQuestion.objects.filter(certification=cert, source=source)

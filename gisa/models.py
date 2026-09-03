@@ -302,6 +302,12 @@ class GisaEssayQuestion(models.Model):
         help_text='이 주제가 출제된 회차 수. 1이면 한 번만 나온 주제')
     freq_note = models.CharField('출제 이력', max_length=200, blank=True,
                                  help_text='이 주제가 나온 회차 목록')
+    # 실기에 1회만 나왔지만 필기에서 자주 다뤄진 주제는 재출제 유력 후보다.
+    # 최근 3개 회차 신규 주제를 역검증하니 81%가 필기 빈출 영역에서 나왔다.
+    # tag_written_freq.py 가 주제어의 필기 등장 횟수를 계산해 채운다.
+    written_freq = models.PositiveSmallIntegerField(
+        '필기 등장 횟수', default=0,
+        help_text='이 문항 주제어가 필기 기출에 등장한 횟수')
     notes = models.TextField('판독 메모', blank=True,
                              help_text='원문 오식 등. 관리자만 확인')
 

@@ -152,6 +152,18 @@
             </div>
         </div>
         {% endfor %}
+        {% if comeback_count %}
+        <div class="ec ec-freq">
+            <div class="ec-head">
+                <span class="ec-title">재출제 유력</span>
+                <span class="ec-meta">{{ comeback_count }}문항</span>
+            </div>
+            <div class="ec-sum">실기엔 1회뿐이지만 필기에서 자주 다뤄진 주제</div>
+            <div class="ec-actions">
+                <a class="ec-btn primary" href="{% url 'gisa:essay_study' cert.pk %}?mode=comeback">학습</a>
+            </div>
+        </div>
+        {% endif %}
     </div>
     {% endif %}
 
