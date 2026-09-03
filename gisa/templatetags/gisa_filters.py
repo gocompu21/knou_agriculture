@@ -187,6 +187,10 @@ _EQ_BLOCK = re.compile(r"\[eq\](.*?)\[/eq\]", re.DOTALL | re.IGNORECASE)
 # 수식 안의 나눗셈은 분수로 보여 준다 — a / b 를 세로 분수로 쌓는다.
 # 피연산자는 괄호로 묶인 덩어리, 함수 표기(ln1.5), 숫자·변수까지만 잡는다.
 _FRAC_TERM = r"(?:\([^()]*\)|(?:ln|log|sin|cos|tan)[\d.]*|[A-Za-z0-9,.₀-₉]+)"
+# 단위 표기(g/m², 본/m², 입/g, 개체/ha)는 나눗셈이 아니라 한 덩어리다.
+# 분자가 한 글자 단위이고 분모가 m²·g·ha 류면 분수로 만들지 않는다.
+_UNIT = re.compile(
+    r"^(?:[gkmcLl]|㎡|m²|m2|본|입|개체|주|ha|㏊|kg|mg|cm|mm|km|년|일|초|회)$")
 _FRAC = re.compile(r"(%s)\s*/\s*(%s)" % (_FRAC_TERM, _FRAC_TERM))
 # 분수는 인라인 블록을 vertical-align:middle 로 앉힌다 — 분수막이 등호·
 # 부등호가 그려지는 x-height 중앙과 같은 높이가 된다. 앞뒤는 &nbsp; 로
@@ -210,7 +214,11 @@ def frac_span(num, den):
 def _fractions(s):
     """a / b → 세로 분수. 이미 태그가 낀 부분은 건드리지 않는다."""
     def one(m):
-        return frac_span(m.group(1), m.group(2))
+        num, den = m.group(1), m.group(2)
+        # 단위 표기(g/m², 본/m², 입/g)는 나눗셈이 아니라 한 덩어리다
+        if _UNIT.match(num) and _UNIT.match(den):
+            return m.group(0)
+        return frac_span(num, den)
 
     out, last = [], 0
     for m in re.finditer(r"<[^>]+>", s):        # 태그 밖에서만 치환
@@ -312,6 +320,14 @@ def _render_qtext(value):
     # 박스 안 줄머리 공백은 &nbsp; 로 살린다 — 데이터에 쓴 들여쓰기가
     # 그대로 보이게 하는 것이 규칙이다. CSS 로 들여쓰기를 흉내내면
     # (음수 text-indent 등) 데이터와 따로 놀아 정렬이 어긋난다.
+    # 한글 항이 섞인 분수는 [frac]분자|분모[/frac] 로 적어 둔다 —
+    # 띄어쓰기 때문에 항의 경계를 자동으로 가를 수 없다.
+    text = re.sub(
+        r"\[frac\]([^|\[\]]+)\|([^|\[\]]+)\[/frac\]",
+        lambda m: frac_span(m.group(1).strip(), m.group(2).strip()),
+        text,
+    )
+
     def _eq_box(m):
         body = _spaced_ops(_fractions(m.group(1).strip("\n")))
         body = re.sub(r"(^|\n)( +)",
