@@ -224,7 +224,11 @@ _EQ_STYLE = (
     "display:block;margin:8px 0;padding:11px 16px;background:#fff;color:#111;"
     "border:1px solid #dde5e0;border-left:3px solid #2d6a4f;"
     "border-radius:0 6px 6px 0;"
-    "font-family:'Cambria Math','Times New Roman',serif;font-size:1.08em;"
+    # 숫자·기호는 세리프 수식체, 한글은 본문 고딕(SUIT)으로 폴백시킨다.
+    # 스택이 serif 로 끝나면 한글 글리프가 없는 앞 폰트를 지나 명조로
+    # 떨어져, 박스 안 한글만 본문과 다른 글씨가 됐다.
+    "font-family:'Cambria Math','Times New Roman','SUIT',sans-serif;"
+    "font-size:1em;"
     "line-height:2;letter-spacing:0.01em;overflow-x:auto;"
     # 여러 줄 풀이는 이어지는 줄을 들여써 = 가 계단처럼 정렬돼 보이게 한다
     "padding-left:2.4em;text-indent:-1.3em;"
