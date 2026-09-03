@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block title %}사용현황{% endblock %}
+
+{% block extra_css %}
+<style>
+    .manage-wrap { width: min(1240px, 95vw); margin: 0 auto; }
+
+    .manage-nav { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .manage-nav a { text-decoration: none; padding: 8px 18px; border-radius: 8px;
+        font-size: 0.85rem; font-weight: 700; transition: background 0.2s; }
+    .manage-nav .active { background: var(--forest); color: #fff; }
+    .manage-nav a:not(.active) { background: #e8f5df; color: var(--forest); }
+    .manage-nav a:not(.active):hover { background: #d4ebc8; }
+
+    .manage-header { display: flex; justify-content: space-between;
+        align-items: baseline; margin-bottom: 18px; gap: 14px; flex-wrap: wrap; }
+    .manage-header h1 { font-size: 1.5rem; margin: 0; }
+    .manage-header .sub { color: #6b8a72; font-size: 0.86rem; }
+
+    /* 기간 선택 */
+    .period-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        background: #fff; border: 1px solid #e0ece0; border-radius: 10px;
+        padding: 11px 14px; margin-bottom: 18px; }
+    .period-bar a.pill { text-decoration: none; padding: 6px 15px;
+        border-radius: 15px; font-size: 0.83rem; font-weight: 700;
+        background: #f1f7ee; color: #4a7256; }
+    .period-bar a.pill:hover { background: #e2efdb; }
+    .period-bar a.pill.on { background: var(--forest); color: #fff; }
+    .period-bar .sep { width: 1px; height: 22px; background: #e5ece5; margin: 0 4px; }
+    .period-bar form { display: flex; align-items: center; gap: 6px; margin: 0; }
+    .period-bar input[type=date] { padding: 5px 8px; font-family: inherit;
+        font-size: 0.82rem; border: 1px solid #d6e3d6; border-radius: 6px;
+        color: #333; }
+    .period-bar button { padding: 6px 15px; border: 0; border-radius: 15px;
+        background: #4a7256; color: #fff; font-family: inherit; font-size: 0.83rem;
+        font-weight: 700; cursor: pointer; }
+    .period-bar button:hover { background: #3b5c45; }
+    .period-bar .tilde { color: #9db3a3; }
+
+    /* 요약 */
+    .sum-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(122px, 1fr));
+        gap: 1px; background: #e0ece0; border: 1px solid #e0ece0;
+        border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+    .sum-cell { background: #fff; padding: 13px 15px; }
+    .sum-v { font-size: 1.3rem; font-weight: 700; color: #1b4332;
+        display: block; line-height: 1.25; font-variant-numeric: tabular-nums; }
+    .sum-l { font-size: 0.75rem; color: #7d8f83; margin-top: 1px; }
+
+    /* 표 */
+    .tbl-wrap { overflow-x: auto; background: #fff; border: 1px solid #e0ece0;
+        border-radius: 10px; }
+    .u-table { border-collapse: collapse; width: 100%; min-width: 1080px; }
+    .u-table thead { background: #f6faf3; }
+    .u-table th { padding: 11px 12px; font-size: 0.76rem; font-weight: 700;
+        color: #6b8a72; border-bottom: 2px solid #e0ece0; white-space: nowrap;
+        text-align: right; cursor: pointer; user-select: none;
+        position: relative; padding-right: 19px; }
+    .u-table th.l { text-align: left; }
+    .u-table th.plain { cursor: default; padding-right: 12px; }
+    .u-table th:not(.plain)::after { content: "⇅"; position: absolute; right: 6px;
+        opacity: 0.28; font-weight: 400; }
+    .u-table th.asc::after { content: "▲"; opacity: 1; color: #2d6a4f; font-size: 0.66em; }
+    .u-table th.desc::after { content: "▼"; opacity: 1; color: #2d6a4f; font-size: 0.66em; }
+    .u-table th:not(.plain):hover { background: #eef5ea; color: #1b4332; }
+    .u-table td { padding: 10px 12px; font-size: 0.84rem; text-align: right;
+        border-bottom: 1px solid #f2f5f2; white-space: nowrap;
+        font-variant-numeric: tabular-nums; }
+    .u-table td.l { text-align: left; }
+    .u-table tbody tr:hover { background: #fafdf8; }
+    .u-table tbody tr:last-child td { border-bottom: none; }
+
+    .u-name { font-weight: 700; color: #1b4332; font-size: 0.88rem; }
+    .u-cohort { display: inline-block; margin-left: 5px; padding: 1px 8px;
+        border-radius: 9px; background: #eef5ea; color: #2d6a4f;
+        font-size: 0.74rem; font-weight: 600; white-space: nowrap; }
+    .u-strong { font-weight: 700; color: #1b4332; }
+    .dash { color: #ccd6cd; }
+    .u-rate { font-weight: 700; }
+    .r-hi { color: #1b6b3a; }
+    .r-mid { color: #a1651a; }
+    .r-lo { color: #b3261e; }
+    .u-bar { display: inline-block; height: 6px; border-radius: 3px;
+        background: #2d6a4f; vertical-align: middle; }
+    .u-bar.g { background: #8fb3a1; }
+
+    .empty { padding: 46px 20px; text-align: center; color: #8a9a90;
+        background: #fff; border: 1px solid #e0ece0; border-radius: 10px; }
+
+    @media (max-width: 640px) {
+        .manage-header h1 { font-size: 1.25rem; }
+        .sum-v { font-size: 1.12rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="manage-wrap">
+    <nav class="manage-nav">
+        <a href="{% url 'main:subject_manage' %}">교과목 관리</a>
+        <a href="{% url 'exam:exam_manage' %}">시험 관리</a>
+        <a href="{% url 'exam:question_manage' %}">문제 관리</a>
+        <a href="{% url 'main:member_manage' %}">회원 관리</a>
+        <a href="{% url 'main:usage_stats' %}" class="active">사용현황</a>
+        <a href="{% url 'main:restore_stats' %}">복원통계</a>
+        <a href="{% url 'gisa:gisa_question_manage' %}">기사문제</a>
+        <a href="{% url 'main:material_manage' %}">자료 등록</a>
+    </nav>
+
+    <div class="manage-header">
+        <h1>사용현황</h1>
+        <span class="sub">{{ label }} · 활동 회원 {{ total.users }}명</span>
+    </div>
+
+    <div class="period-bar">
+        <a class="pill {% if period == 'today' %}on{% endif %}"
+           href="?period=today">오늘</a>
+        <a class="pill {% if period == '7d' %}on{% endif %}"
+           href="?period=7d">7일</a>
+        <a class="pill {% if period == 'month' %}on{% endif %}"
+           href="?period=month">이번달</a>
+        <a class="pill {% if period == 'all' %}on{% endif %}"
+           href="?period=all">전체</a>
+        <span class="sep"></span>
+        <form method="get">
+            <input type="hidden" name="period" value="custom">
+            <input type="date" name="start" value="{{ start }}" required>
+            <span class="tilde">~</span>
+            <input type="date" name="end" value="{{ end }}" required>
+            <button type="submit">조회</button>
+        </form>
+    </div>
+
+    {% if rows %}
+    <div class="sum-grid">
+        <div class="sum-cell"><b class="sum-v">{{ total.users }}</b>
+            <div class="sum-l">활동 회원</div></div>
+        <div class="sum-cell"><b class="sum-v">{{ total.solved|floatformat:0 }}</b>
+            <div class="sum-l">푼 문제</div></div>
+        <div class="sum-cell"><b class="sum-v">{% if total.rate != None %}{{ total.rate }}%{% else %}-{% endif %}</b>
+            <div class="sum-l">정답률</div></div>
+        <div class="sum-cell"><b class="sum-v">{{ total.sessions }}</b>
+            <div class="sum-l">응시 세션</div></div>
+        <div class="sum-cell"><b class="sum-v">{{ total.minutes }}</b>
+            <div class="sum-l">사용 분</div></div>
+        <div class="sum-cell"><b class="sum-v">{{ total.login }}</b>
+            <div class="sum-l">로그인</div></div>
+    </div>
+
+    <div class="tbl-wrap">
+        <table class="u-table" id="uTable">
+            <thead>
+                <tr>
+                    <th class="plain l">#</th>
+                    <th class="l" data-t="text">회원</th>
+                    <th data-t="num">기수</th>
+                    <th data-t="num">푼 문제</th>
+                    <th class="l plain">방송대 · 기사</th>
+                    <th data-t="num">정답률</th>
+                    <th data-t="num">학습</th>
+                    <th data-t="num">기출</th>
+                    <th data-t="num">모의</th>
+                    <th data-t="num">오답</th>
+                    <th data-t="num">세션</th>
+                    <th data-t="num">사용(분)</th>
+                    <th data-t="num">진도기록</th>
+                    <th data-t="num">자료</th>
+                    <th data-t="num">로그인</th>
+                    <th data-t="num">최근</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                <tr>
+                    <td style="color:#b6c3bb; font-size:0.78rem;">{{ forloop.counter }}</td>
+                    <td class="l"><span class="u-name">{{ r.name }}</span>{% if r.cohort %}<span class="u-cohort">{{ r.cohort }}기</span>{% endif %}</td>
+                    <td data-v="{{ r.cohort|default:0 }}">{% if r.cohort %}{{ r.cohort }}{% else %}<span class="dash">-</span>{% endif %}</td>
+                    <td class="u-strong">{{ r.solved }}</td>
+                    <td class="l" data-v="{{ r.solved }}" style="min-width:118px;">
+                        {% if r.knou %}<i class="u-bar" style="width:{% widthratio r.knou r.solved 100 %}px" title="방송대 {{ r.knou }}"></i>{% endif %}{% if r.gisa %}<i class="u-bar g" style="width:{% widthratio r.gisa r.solved 100 %}px" title="기사 {{ r.gisa }}"></i>{% endif %}
+                    </td>
+                    <td data-v="{{ r.rate|default:0 }}">{% if r.rate != None %}<span class="u-rate {% if r.rate >= 70 %}r-hi{% elif r.rate >= 40 %}r-mid{% else %}r-lo{% endif %}">{{ r.rate }}%</span>{% else %}<span class="dash">-</span>{% endif %}</td>
+                    <td>{% if r.study %}{{ r.study }}{% else %}<span class="dash">-</span>{% endif %}</td>
+                    <td>{% if r.exam %}{{ r.exam }}{% else %}<span class="dash">-</span>{% endif %}</td>
+                    <td>{% if r.mock %}{{ r.mock }}{% else %}<span class="dash">-</span>{% endif %}</td>
+                    <td>{% if r.wrong %}{{ r.wrong }}{% else %}<span class="dash">-</span>{% endif %}</td>
+                    <td>{% if r.sessions %}{{ r.sessions }}{% else %}<span class="dash">-</span>{% endif %}</td>
+                    <td>{% if r.minutes %}{{ r.minutes }}{% else %}<span class="dash">-</span>{% endif %}</td>
+                    <td>{% if r.studylog %}{{ r.studylog }}{% else %}<span class="dash">-</span>{% endif %}</td>
+                    <td>{% if r.pdf %}{{ r.pdf }}{% else %}<span class="dash">-</span>{% endif %}</td>
+                    <td>{% if r.login %}{{ r.login }}{% else %}<span class="dash">-</span>{% endif %}</td>
+                    <td data-v="{{ r.last|date:'U'|default:0 }}">{% if r.last %}{{ r.last|date:"m.d H:i" }}{% else %}<span class="dash">-</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty">{{ label }} 동안 활동한 회원이 없습니다.</div>
+    {% endif %}
+</div>
+
+<script>
+/* 헤더 정렬 — 표시값이 가공된 열은 data-v 의 원값으로 비교한다 */
+(function () {
+    var table = document.getElementById('uTable');
+    if (!table) return;
+    var tbody = table.querySelector('tbody');
+    var ths = table.querySelectorAll('th:not(.plain)');
+
+    function keyOf(row, idx, type) {
+        var td = row.children[idx];
+        if (!td) return type === 'num' ? 0 : '';
+        if (td.dataset.v !== undefined) {
+            return type === 'num' ? parseFloat(td.dataset.v) || 0 : td.dataset.v;
+        }
+        var s = td.textContent.trim();
+        if (type === 'num') return parseFloat(s.replace(/[^\d.-]/g, '')) || 0;
+        return s === '-' ? '' : s;
+    }
+
+    ths.forEach(function (th) {
+        th.addEventListener('click', function () {
+            var idx = Array.prototype.indexOf.call(th.parentElement.children, th);
+            var type = th.dataset.t || 'text';
+            var desc = !th.classList.contains('desc');
+            ths.forEach(function (o) { o.classList.remove('asc', 'desc'); });
+            th.classList.add(desc ? 'desc' : 'asc');
+
+            var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+            rows.sort(function (a, b) {
+                var x = keyOf(a, idx, type), y = keyOf(b, idx, type);
+                // 빈 값은 방향과 무관하게 뒤로 — 미기록 회원이 위로 오면 쓸모없다
+                var xe = (x === '' || x === 0), ye = (y === '' || y === 0);
+                if (xe !== ye) return xe ? 1 : -1;
+                var c = type === 'num' ? x - y : String(x).localeCompare(String(y), 'ko');
+                return desc ? -c : c;
+            });
+            rows.forEach(function (r, i) {
+                tbody.appendChild(r);
+                r.children[0].textContent = i + 1;
+            });
+        });
+    });
+})();
+</script>
+{% endblock %}

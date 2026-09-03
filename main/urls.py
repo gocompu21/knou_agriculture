@@ -26,6 +26,7 @@ urlpatterns = [
     path("manage/subjects/<int:pk>/delete/", views.subject_delete, name="subject_delete"),
     path("manage/members/", views.member_manage, name="member_manage"),
     path("manage/members/<int:pk>/toggle/", views.member_toggle, name="member_toggle"),
+    path("manage/usage/", views.usage_stats, name="usage_stats"),
     path("manage/members/<int:pk>/cohort/", views.member_cohort, name="member_cohort"),
     path("manage/members/<int:pk>/delete/", views.member_delete, name="member_delete"),
     path("manage/members/<int:pk>/approve/", views.member_approve, name="member_approve"),

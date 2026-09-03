@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from datetime import date
+from datetime import date, datetime, time, timedelta
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
@@ -1040,6 +1040,169 @@ def member_manage(request):
         "members": members,
         "pending_members": pending_members,
         "active_tab": request.GET.get("tab", "members"),
+    })
+
+
+def _usage_range(period, start_raw, end_raw):
+    """기간 선택값 → (시작, 끝, 라벨). 끝은 그날 24시까지 포함한다."""
+    from django.utils import timezone as _tz
+
+    now = _tz.localtime()
+    today = now.date()
+    if period == "today":
+        return today, today, "오늘"
+    if period == "7d":
+        return today - timedelta(days=6), today, "최근 7일"
+    if period == "month":
+        return today.replace(day=1), today, f"{today.month}월"
+    if period == "custom":
+        try:
+            s = date.fromisoformat(start_raw)
+            e = date.fromisoformat(end_raw)
+        except (TypeError, ValueError):
+            return today - timedelta(days=6), today, "최근 7일"
+        if s > e:
+            s, e = e, s
+        return s, e, f"{s.isoformat()} ~ {e.isoformat()}"
+    if period == "all":
+        return None, None, "전체"
+    return today - timedelta(days=6), today, "최근 7일"
+
+
+@login_required
+@user_passes_test(staff_required)
+def usage_stats(request):
+    """사용현황 — 기간을 골라 회원별 활동을 본다.
+
+    풀이 수만 보면 학습모드로 답을 보며 넘긴 기록과 실제 시험 응시가
+    한 덩어리가 된다. 그래서 모드별(학습/기출/모의/오답)로 나눠 센다.
+    """
+    from django.utils import timezone as _tz
+    from accounts.models import UserProfile
+    from gisa.models import GisaStudyLog
+    from .models import MaterialOpenLog
+
+    period = request.GET.get("period", "7d")
+    start, end, label = _usage_range(
+        period, request.GET.get("start"), request.GET.get("end")
+    )
+
+    def span(qs, field="created_at"):
+        if start is None:
+            return qs
+        tz = _tz.get_current_timezone()
+        lo = datetime.combine(start, time.min).replace(tzinfo=tz)
+        hi = datetime.combine(end, time.max).replace(tzinfo=tz)
+        return qs.filter(**{f"{field}__range": (lo, hi)})
+
+    # 모드별 풀이 수 — exam 앱과 gisa 앱을 합산한다
+    MODES = ("study", "exam", "mock", "wrong_retry")
+    agg = {}
+
+    def bump(uid, key, n):
+        row = agg.setdefault(uid, {m: 0 for m in MODES})
+        row.setdefault(key, 0)
+        row[key] += n
+
+    for model, tag in ((Attempt, "knou"), (GisaAttempt, "gisa")):
+        rows = (
+            span(model.objects.all())
+            .values("user_id", "mode")
+            .annotate(n=Count("id"), c=Count("id", filter=Q(is_correct=True)))
+        )
+        for r in rows:
+            uid, mode = r["user_id"], (r["mode"] or "exam")
+            bump(uid, mode if mode in MODES else "exam", r["n"])
+            bump(uid, tag, r["n"])
+            bump(uid, "solved", r["n"])
+            bump(uid, "correct", r["c"])
+
+    # 세션 수 (한 번 앉은 횟수) 와 사용시간
+    for model in (Attempt, GisaAttempt):
+        sess = (
+            span(model.objects.exclude(session_id=""))
+            .values("user_id", "session_id")
+            .annotate(s=Min("created_at"), e=Max("created_at"))
+        )
+        for r in sess:
+            bump(r["user_id"], "sessions", 1)
+            sec = int((r["e"] - r["s"]).total_seconds())
+            bump(r["user_id"], "seconds", sec if sec > 0 else 60)
+
+    # 기출학습 진도 기록·자료 열람·로그인
+    for r in span(GisaStudyLog.objects.all()).values("user_id").annotate(n=Count("id")):
+        bump(r["user_id"], "studylog", r["n"])
+    for r in span(MaterialOpenLog.objects.all(), "opened_at").values(
+        "user_id"
+    ).annotate(n=Count("id")):
+        bump(r["user_id"], "pdf", r["n"])
+    for r in span(LoginLog.objects.all(), "logged_in_at").values("user_id").annotate(
+        n=Count("id")
+    ):
+        bump(r["user_id"], "login", r["n"])
+
+    # 마지막 활동 시각 (기간 안에서)
+    last = {}
+    for model, field in (
+        (Attempt, "created_at"),
+        (GisaAttempt, "created_at"),
+        (GisaStudyLog, "created_at"),
+        (LoginLog, "logged_in_at"),
+    ):
+        for r in span(model.objects.all(), field).values("user_id").annotate(
+            m=Max(field)
+        ):
+            cur = last.get(r["user_id"])
+            if cur is None or (r["m"] and r["m"] > cur):
+                last[r["user_id"]] = r["m"]
+
+    cohorts = {p.user_id: p.cohort for p in UserProfile.objects.all()}
+    rows = []
+    for u in User.objects.all():
+        a = agg.get(u.pk)
+        if not a:
+            continue
+        sec = a.get("seconds", 0)
+        solved = a.get("solved", 0)
+        rows.append({
+            "pk": u.pk,
+            "name": (u.first_name or u.username),
+            "cohort": cohorts.get(u.pk),
+            "solved": solved,
+            "correct": a.get("correct", 0),
+            "rate": round(a.get("correct", 0) / solved * 100) if solved else None,
+            "knou": a.get("knou", 0),
+            "gisa": a.get("gisa", 0),
+            "study": a.get("study", 0),
+            "exam": a.get("exam", 0),
+            "mock": a.get("mock", 0),
+            "wrong": a.get("wrong_retry", 0),
+            "sessions": a.get("sessions", 0),
+            "minutes": sec // 60,
+            "studylog": a.get("studylog", 0),
+            "pdf": a.get("pdf", 0),
+            "login": a.get("login", 0),
+            "last": last.get(u.pk),
+        })
+    rows.sort(key=lambda r: (-r["solved"], -r["minutes"]))
+
+    total = {
+        k: sum(r[k] for r in rows)
+        for k in ("solved", "correct", "knou", "gisa", "study", "exam",
+                  "mock", "wrong", "sessions", "minutes", "studylog", "pdf", "login")
+    }
+    total["users"] = len(rows)
+    total["rate"] = (
+        round(total["correct"] / total["solved"] * 100) if total["solved"] else None
+    )
+
+    return render(request, "main/usage_stats.html", {
+        "rows": rows,
+        "total": total,
+        "period": period,
+        "label": label,
+        "start": start.isoformat() if start else "",
+        "end": end.isoformat() if end else "",
     })
 
 
