@@ -962,6 +962,7 @@ def member_manage(request):
     for m in members:
         td = usage_map.get(m.pk, timedelta())
         total_sec = int(td.total_seconds())
+        m.usage_seconds = total_sec          # 표 정렬용 (표시값은 "3시간 20분")
         if total_sec < 60:
             m.usage_display = "-"
         else:
@@ -1006,6 +1007,7 @@ def member_manage(request):
         prof = profiles.get(m.pk)
         m.receive_email = prof.receive_email if prof else True
         m.password_changed_at = prof.password_changed_at if prof else None
+        m.cohort = prof.cohort if prof else None
 
     # 회원별 최근 메일 열람 시각
     from bbs.models import NoticeOpenLog
@@ -1151,6 +1153,31 @@ def member_toggle(request, pk):
     setattr(target_user, field, new_val)
     target_user.save(update_fields=[field])
     return JsonResponse({"ok": True, "field": field, "value": new_val})
+
+
+@login_required
+@user_passes_test(staff_required)
+@require_POST
+def member_cohort(request, pk):
+    """회원 기수 저장. 빈 값으로 보내면 미지정으로 되돌린다."""
+    from accounts.models import UserProfile
+
+    target_user = get_object_or_404(User, pk=pk)
+    raw = (request.POST.get("cohort") or "").strip()
+    if raw == "":
+        value = None
+    else:
+        try:
+            value = int(raw)
+        except ValueError:
+            return JsonResponse({"error": "기수는 숫자로 입력하세요."}, status=400)
+        if not 1 <= value <= 99:
+            return JsonResponse({"error": "기수는 1~99 사이여야 합니다."}, status=400)
+
+    profile, _ = UserProfile.objects.get_or_create(user=target_user)
+    profile.cohort = value
+    profile.save(update_fields=["cohort"])
+    return JsonResponse({"ok": True, "cohort": value})
 
 
 @login_required

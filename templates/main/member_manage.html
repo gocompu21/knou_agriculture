@@ -90,6 +90,30 @@
     .member-table tbody tr:hover { background: #fafdf8; }
     .member-table tbody tr:last-child td { border-bottom: none; }
 
+    /* 헤더 정렬 — 누르면 그 열 기준으로 오름/내림 전환 */
+    .member-table th.sortable { cursor: pointer; user-select: none; padding-right: 20px;
+        position: relative; }
+    .member-table th.sortable:hover { color: #1b4332; background: #eef5ea; }
+    .member-table th.sortable::after {
+        content: "⇅"; position: absolute; right: 7px; opacity: 0.28;
+        font-size: 0.9em; font-weight: 400;
+    }
+    .member-table th.sortable.asc::after { content: "▲"; opacity: 1; color: #2d6a4f;
+        font-size: 0.66em; }
+    .member-table th.sortable.desc::after { content: "▼"; opacity: 1; color: #2d6a4f;
+        font-size: 0.66em; }
+
+    /* 기수 — 눌러서 바로 입력 */
+    .td-cohort { text-align: center; }
+    .cohort-cell { display: inline-block; min-width: 34px; padding: 1px 7px;
+        border-radius: 9px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+        color: #2d6a4f; background: #eef5ea; }
+    .cohort-cell:hover { background: #d9e9dd; }
+    .cohort-cell .dash { color: #b9c6bd; font-weight: 400; }
+    .cohort-input { width: 46px; padding: 2px 5px; font-family: inherit;
+        font-size: 0.8rem; text-align: center; border: 1px solid #2d6a4f;
+        border-radius: 5px; }
+
     .td-name { font-weight: 600; color: #1b4332; }
     .td-id { color: #555; font-size: 0.82rem; }
     .td-email { color: #888; font-size: 0.8rem; }
@@ -354,20 +378,21 @@
         <thead>
             <tr>
                 <th style="text-align:center;">No</th>
-                <th>이름</th>
-                <th>아이디</th>
-                <th>이메일</th>
-                <th>가입일</th>
-                <th>비번변경</th>
-                <th>메일열람</th>
-                <th>PDF열람</th>
-                <th>로그인</th>
-                <th>사용시간</th>
-                <th>최종작업</th>
-                <th>작업시간</th>
-                <th>이메일</th>
-                <th>스태프</th>
-                <th>활성</th>
+                <th class="sortable" data-sort="text">이름</th>
+                <th class="sortable" data-sort="num">기수</th>
+                <th class="sortable" data-sort="text">아이디</th>
+                <th class="sortable" data-sort="text">이메일</th>
+                <th class="sortable" data-sort="text">가입일</th>
+                <th class="sortable" data-sort="text">비번변경</th>
+                <th class="sortable" data-sort="text">메일열람</th>
+                <th class="sortable" data-sort="num">PDF열람</th>
+                <th class="sortable" data-sort="num">로그인</th>
+                <th class="sortable" data-sort="num">사용시간</th>
+                <th class="sortable" data-sort="text">최종작업</th>
+                <th class="sortable" data-sort="text">작업시간</th>
+                <th class="sortable" data-sort="num">이메일</th>
+                <th class="sortable" data-sort="num">스태프</th>
+                <th class="sortable" data-sort="num">활성</th>
                 <th>삭제</th>
             </tr>
         </thead>
@@ -376,24 +401,31 @@
             <tr>
                 <td style="text-align:center; color:#888; font-size:0.8rem;">{{ forloop.revcounter }}</td>
                 <td class="td-name">{{ m.first_name|default:"-" }}</td>
+                <td class="td-cohort" data-v="{{ m.cohort|default:0 }}">
+                    <span class="cohort-cell" data-pk="{{ m.pk }}"
+                          data-cohort="{{ m.cohort|default_if_none:'' }}"
+                          onclick="editCohort(this)" title="눌러서 기수 입력">
+                        {% if m.cohort %}{{ m.cohort }}기{% else %}<span class="dash">-</span>{% endif %}
+                    </span>
+                </td>
                 <td class="td-id">{{ m.username }}</td>
                 <td class="td-email">{{ m.email|default:"-" }}</td>
                 <td class="td-date">{{ m.date_joined|date:"Y.m.d" }}</td>
                 <td class="td-date">{% if m.password_changed_at %}<span title="비밀번호 변경일">{{ m.password_changed_at|date:"Y.m.d" }}</span>{% else %}<span class="dash">-</span>{% endif %}</td>
                 <td class="td-date">{% if m.last_mail_open %}<span title="최근 메일 열람">{{ m.last_mail_open|date:"m.d H:i" }}</span>{% else %}<span class="dash">-</span>{% endif %}</td>
-                <td class="td-date">{% if m.last_pdf_open %}<span title="최근 PDF 열람 / 총 {{ m.pdf_open_count }}회">{{ m.last_pdf_open|date:"m.d H:i" }} <small style="color:#888;">({{ m.pdf_open_count }})</small></span>{% else %}<span class="dash">-</span>{% endif %}</td>
-                <td class="td-login"><span class="num {% if m.login_count == 0 %}zero{% endif %}">{{ m.login_count }}</span></td>
-                <td class="td-time">{% if m.usage_display == "-" %}<span class="dash">-</span>{% else %}{{ m.usage_display }}{% endif %}</td>
+                <td class="td-date" data-v="{{ m.pdf_open_count }}">{% if m.last_pdf_open %}<span title="최근 PDF 열람 / 총 {{ m.pdf_open_count }}회">{{ m.last_pdf_open|date:"m.d H:i" }} <small style="color:#888;">({{ m.pdf_open_count }})</small></span>{% else %}<span class="dash">-</span>{% endif %}</td>
+                <td class="td-login" data-v="{{ m.login_count }}"><span class="num {% if m.login_count == 0 %}zero{% endif %}">{{ m.login_count }}</span></td>
+                <td class="td-time" data-v="{{ m.usage_seconds|default:0 }}">{% if m.usage_display == "-" %}<span class="dash">-</span>{% else %}{{ m.usage_display }}{% endif %}</td>
                 <td class="td-activity">{% if m.last_activity_mode %}<span class="activity-source {% if m.last_activity_source == '기사' %}gisa{% else %}knou{% endif %}">{{ m.last_activity_source }}</span> {{ m.last_activity_mode }}{% else %}<span class="dash">-</span>{% endif %}</td>
                 <td class="td-date">{% if m.last_activity_at %}{{ m.last_activity_at|date:"m.d H:i" }}{% else %}<span class="dash">-</span>{% endif %}</td>
-                <td class="td-toggle">
+                <td class="td-toggle" data-v="{{ m.receive_email|yesno:'1,0' }}">
                     <button type="button"
                             class="toggle-btn {% if m.receive_email %}on{% else %}off{% endif %}"
                             data-pk="{{ m.pk }}" data-field="receive_email"
                             onclick="toggleMember(this)">
                     </button>
                 </td>
-                <td class="td-toggle">
+                <td class="td-toggle" data-v="{{ m.is_staff|yesno:'1,0' }}">
                     <button type="button"
                             class="toggle-btn {% if m.is_staff %}on{% else %}off{% endif %}"
                             data-pk="{{ m.pk }}" data-field="is_staff"
@@ -401,7 +433,7 @@
                             {% if m.pk == request.user.pk %}disabled title="자기 자신은 변경 불가"{% endif %}>
                     </button>
                 </td>
-                <td class="td-toggle">
+                <td class="td-toggle" data-v="{{ m.is_active|yesno:'1,0' }}">
                     <button type="button"
                             class="toggle-btn {% if m.is_active %}on{% else %}off{% endif %}"
                             data-pk="{{ m.pk }}" data-field="is_active"
@@ -426,7 +458,7 @@
         {% for m in members %}
         <div class="m-card">
             <div class="m-card-top">
-                <div class="m-card-name">{{ m.first_name|default:m.username }}<small>{{ m.username }}</small></div>
+                <div class="m-card-name">{{ m.first_name|default:m.username }}{% if m.cohort %} <span class="cohort-cell" style="cursor:default">{{ m.cohort }}기</span>{% endif %}<small>{{ m.username }}</small></div>
                 <div class="m-card-toggles">
                     <div class="m-card-toggle-label">
                         이메일
@@ -491,6 +523,113 @@
 
 {% block extra_js %}
 <script>
+/* 헤더 정렬 — 회원이 100명을 넘어 이름·기수로 찾는 일이 많다.
+   서버를 다시 부르지 않고 이미 받은 행만 다시 늘어놓는다. */
+(function () {
+    var table = document.querySelector('.member-table');
+    if (!table) return;
+    var tbody = table.querySelector('tbody');
+
+    function keyOf(row, idx, type) {
+        var td = row.children[idx];
+        if (!td) return type === 'num' ? 0 : '';
+        // 표시값이 "3시간 20분", "05.12 (3)" 처럼 가공된 열은 data-v 를 쓴다
+        if (td.dataset.v !== undefined) {
+            return type === 'num' ? parseFloat(td.dataset.v) || 0 : td.dataset.v;
+        }
+        var s = td.textContent.trim();
+        if (type === 'num') return parseFloat(s.replace(/[^\d.-]/g, '')) || 0;
+        return s === '-' ? '' : s;
+    }
+
+    table.querySelectorAll('th.sortable').forEach(function (th) {
+        th.addEventListener('click', function () {
+            var idx = Array.prototype.indexOf.call(th.parentElement.children, th);
+            var type = th.dataset.sort || 'text';
+            var desc = !th.classList.contains('desc');
+
+            table.querySelectorAll('th.sortable').forEach(function (o) {
+                o.classList.remove('asc', 'desc');
+            });
+            th.classList.add(desc ? 'desc' : 'asc');
+
+            var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+            rows.sort(function (a, b) {
+                var x = keyOf(a, idx, type), y = keyOf(b, idx, type);
+                // 빈 값은 방향과 무관하게 늘 뒤로 보낸다
+                var xe = (x === '' || x === 0), ye = (y === '' || y === 0);
+                if (xe !== ye) return xe ? 1 : -1;
+                var c = type === 'num' ? x - y : String(x).localeCompare(String(y), 'ko');
+                return desc ? -c : c;
+            });
+            rows.forEach(function (r) { tbody.appendChild(r); });
+
+            // No 열은 순번이므로 다시 매긴다
+            rows.forEach(function (r, i) {
+                r.children[0].textContent = rows.length - i;
+            });
+        });
+    });
+})();
+
+/* 기수 — 칸을 누르면 입력창으로 바뀐다 */
+function editCohort(cell) {
+    if (cell.querySelector('input')) return;
+    var pk = cell.dataset.pk;
+    var old = cell.dataset.cohort || '';
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'cohort-input';
+    input.value = old;
+    input.maxLength = 2;
+    cell.textContent = '';
+    cell.appendChild(input);
+    input.focus();
+    input.select();
+
+    var done = false;
+    function finish(save) {
+        if (done) return;
+        done = true;
+        var val = input.value.trim();
+        if (!save || val === old) { render(old); return; }
+        fetch('/manage/members/' + pk + '/cohort/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: 'cohort=' + encodeURIComponent(val)
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            if (d.error) { alert(d.error); render(old); return; }
+            var v = d.cohort === null ? '' : String(d.cohort);
+            cell.dataset.cohort = v;
+            cell.parentElement.dataset.v = v || 0;
+            render(v);
+        })
+        .catch(function () { alert('저장하지 못했습니다.'); render(old); });
+    }
+    function render(v) {
+        cell.textContent = '';
+        if (v) {
+            cell.textContent = v + '기';
+        } else {
+            var d = document.createElement('span');
+            d.className = 'dash';
+            d.textContent = '-';
+            cell.appendChild(d);
+        }
+    }
+
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') finish(true);
+        else if (e.key === 'Escape') finish(false);
+    });
+    input.addEventListener('blur', function () { finish(true); });
+}
+
 function toggleMember(btn) {
     var pk = btn.dataset.pk;
     var field = btn.dataset.field;
