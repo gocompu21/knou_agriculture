@@ -214,11 +214,35 @@ def _fractions(s):
     return "".join(out)
 
 _EQ_STYLE = (
-    "display:block;margin:8px 0;padding:10px 14px;background:#f7faf8;"
-    "border-left:3px solid #2d6a4f;border-radius:0 6px 6px 0;"
-    "font-family:'Cambria Math','Times New Roman',serif;font-size:1.02em;"
+    # 수식은 흰 바탕에 검은 글씨로 — 배경이 옅은 초록이면 글자가 묻힌다
+    "display:block;margin:8px 0;padding:11px 16px;background:#fff;color:#111;"
+    "border:1px solid #dde5e0;border-left:3px solid #2d6a4f;"
+    "border-radius:0 6px 6px 0;"
+    "font-family:'Cambria Math','Times New Roman',serif;font-size:1.08em;"
     "line-height:2;letter-spacing:0.01em;overflow-x:auto;"
 )
+
+# 붙어 있는 연산 기호는 좌우로 띄운다 — 0.7−0.1+0.3−0.1=0.8 처럼
+# 공백 없이 이어지면 숫자와 기호가 한 덩어리로 보인다.
+_EQ_OPS = re.compile(r"\s*([=+×÷≥≤<>≒≠])\s*")
+# 음수 부호와 뺄셈을 가른다: 여는 괄호나 다른 연산자 뒤의 −는 부호다
+_EQ_MINUS = re.compile(r"(?<=[\w),.\]])\s*([−–—-])\s*(?=[\w(])")
+
+
+def _spaced_ops(s):
+    """수식의 연산 기호 좌우에 여백을 준다. 태그 안은 건드리지 않는다."""
+    def one(chunk):
+        chunk = _EQ_OPS.sub(r" \1 ", chunk)
+        chunk = _EQ_MINUS.sub(r" \1 ", chunk)
+        return re.sub(r"  +", " ", chunk)
+
+    out, last = [], 0
+    for m in re.finditer(r"<[^>]+>", s):
+        out.append(one(s[last:m.start()]))
+        out.append(m.group())
+        last = m.end()
+    out.append(one(s[last:]))
+    return "".join(out)
 
 
 def _render_qtext(value):
@@ -273,7 +297,7 @@ def _render_qtext(value):
     # [eq]...[/eq] 로 묶으면 여백을 준 박스에 세리프체로 보여 준다.
     text = _EQ_BLOCK.sub(
         lambda m: '<span class="q-eq" style="%s">%s</span>'
-                  % (_EQ_STYLE, _fractions(m.group(1).strip("\n"))),
+                  % (_EQ_STYLE, _spaced_ops(_fractions(m.group(1).strip("\n")))),
         text,
     )
 
