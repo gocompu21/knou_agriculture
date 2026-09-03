@@ -149,7 +149,7 @@
     {% for q in questions %}
     <div class="sq">
         <div class="sq-head">
-            <span class="sq-no">{% if study_mode == 'freq' or study_mode == 'comeback' %}{{ forloop.counter }}{% else %}{{ q.number }}{% endif %}</span>
+            <span class="sq-no">{% if study_mode != 'answer' %}{{ forloop.counter }}{% else %}{{ q.number }}{% endif %}</span>
             {% if q.topic_group %}<span class="sq-topic">{{ q.get_topic_group_display }}</span>{% endif %}
             <span class="sq-type">{{ q.get_qtype_display }}</span>
             {% if q.freq_rounds > 1 %}
@@ -157,7 +157,7 @@
                     title="같은 주제의 다른 회차 문항 보기">빈출 {{ q.freq_rounds }}회</button>
             <span class="sq-rounds">{{ q.freq_note|freq_badges }}</span>
             {% endif %}
-            {% if study_mode == 'freq' or study_mode == 'comeback' %}<span class="sq-src">{{ q.label }}</span>{% endif %}
+            {% if study_mode != 'answer' %}<span class="sq-src">{{ q.label }}</span>{% endif %}
             {% if study_mode == 'comeback' %}<span class="sq-wfreq">필기 {{ q.written_freq }}회</span>{% endif %}
             <span class="sq-pts">{{ q.points }}점</span>
         </div>
@@ -190,7 +190,9 @@
 </div>
 
 <div class="es-bar">
-    {% if study_mode == 'comeback' %}
+    {% if study_mode == 'calc' %}
+    <span class="bar-note">계산 문항 전체 · 같은 공식끼리 붙여 두어 수치만 바뀐 반복이 보입니다</span>
+    {% elif study_mode == 'comeback' %}
     <span class="bar-note">실기에 1회만 나왔지만 필기에서 자주 다뤄진 주제 · 필기 등장 많은 순</span>
     {% elif study_mode == 'freq' %}
     <span class="bar-note">되풀이 출제된 주제만 모았습니다 · 주제마다 가장 최근 문항 하나</span>

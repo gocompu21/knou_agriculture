@@ -162,9 +162,11 @@
     <div class="step">
         <div class="no">3</div>
         <div class="body">
-            <b>계산 유형을 따로 정리한다</b> — 아래 표의 공식만 외우면 확보되는 점수입니다.
+            <b>계산 유형을 따로 정리한다</b> — 공식 18개만 외우면 확보되는 점수입니다.
             해마다 1~2문항 나오고 <b>수치까지 같은 문제가 다시 나온 적도 있습니다</b>.
-            해설에 흔한 오계산의 역산까지 붙여 두었으니 함정 위치를 함께 익힙니다.
+            해설에 흔한 오계산의 역산까지 붙여 두었으니 함정 위치를 함께 익힙니다.<br>
+            <a class="go" href="{% url 'gisa:essay_note' cert.pk 'calc' %}">계산 공식 18 정리</a>
+            <a class="go" href="{% url 'gisa:essay_study' cert.pk %}?mode=calc">계산 문항 몰아 풀기</a>
         </div>
     </div>
     <div class="step">

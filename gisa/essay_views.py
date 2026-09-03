@@ -456,6 +456,14 @@ def essay_study(request, cert_id):
                          .order_by('-written_freq', '-year', '-round'))
         title = '재출제 유력 주제'
         year = round_ = None
+    elif study_mode == 'calc':
+        # 계산만 몰아 풀기 — 공식이 고정돼 있어 가장 확실하게 점수가 되는 유형.
+        # 같은 공식(topic_key)끼리 붙여 두어 수치만 바뀐 반복을 눈으로 확인한다.
+        questions = list(GisaEssayQuestion.objects
+                         .filter(certification=cert, source='기출', qtype='계산')
+                         .order_by('-freq_rounds', 'topic_key', '-year', '-round'))
+        title = '계산 문항 전체'
+        year = round_ = None
     else:
         qs = GisaEssayQuestion.objects.filter(certification=cert, source=source)
         if source == '기출':
