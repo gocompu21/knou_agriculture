@@ -1087,6 +1087,17 @@ def usage_stats(request):
         period, request.GET.get("start"), request.GET.get("end")
     )
 
+    # 방송대(exam 앱) / 기사(gisa 앱) 가르기. 한쪽만 고르면 정답률·세션·
+    # 모드별 수치가 모두 그쪽 기준이 된다 — 두 시험은 성격이 달라 섞으면
+    # 누가 무엇을 하고 있는지 흐려진다.
+    app = request.GET.get("app", "")
+    if app not in ("knou", "gisa"):
+        app = ""
+    sources = [(Attempt, "knou"), (GisaAttempt, "gisa")]
+    if app:
+        sources = [s for s in sources if s[1] == app]
+    app_label = {"knou": "방송대", "gisa": "기사"}.get(app, "")
+
     def span(qs, field="created_at"):
         if start is None:
             return qs
@@ -1104,7 +1115,7 @@ def usage_stats(request):
         row.setdefault(key, 0)
         row[key] += n
 
-    for model, tag in ((Attempt, "knou"), (GisaAttempt, "gisa")):
+    for model, tag in sources:
         rows = (
             span(model.objects.all())
             .values("user_id", "mode")
@@ -1125,7 +1136,7 @@ def usage_stats(request):
     # 보이지만 근거가 없다. 대신 세션 수와 문항 수로 활동량을 본다.
     # values_list 로 짝을 뽑아 set 으로 센다 — values().distinct() 를 그대로
     # 순회하면 Meta.ordering 필드가 SELECT 에 끼어들어 중복 제거가 풀린다.
-    for model in (Attempt, GisaAttempt):
+    for model, _tag in sources:
         pairs = set(
             span(model.objects.exclude(session_id=""))
             .values_list("user_id", "session_id")
@@ -1134,8 +1145,11 @@ def usage_stats(request):
             bump(uid, "sessions", 1)
 
     # 기출학습 진도 기록·자료 열람·로그인
-    for r in span(GisaStudyLog.objects.all()).values("user_id").annotate(n=Count("id")):
-        bump(r["user_id"], "studylog", r["n"])
+    if app != "knou":          # 진도기록은 기사 앱에만 있다
+        for r in span(GisaStudyLog.objects.all()).values("user_id").annotate(
+            n=Count("id")
+        ):
+            bump(r["user_id"], "studylog", r["n"])
     for r in span(MaterialOpenLog.objects.all(), "opened_at").values(
         "user_id"
     ).annotate(n=Count("id")):
@@ -1147,12 +1161,11 @@ def usage_stats(request):
 
     # 마지막 활동 시각 (기간 안에서)
     last = {}
-    for model, field in (
-        (Attempt, "created_at"),
-        (GisaAttempt, "created_at"),
-        (GisaStudyLog, "created_at"),
-        (LoginLog, "logged_in_at"),
-    ):
+    act_models = [(m, "created_at") for m, _ in sources]
+    if app != "knou":
+        act_models.append((GisaStudyLog, "created_at"))
+    act_models.append((LoginLog, "logged_in_at"))
+    for model, field in act_models:
         for r in span(model.objects.all(), field).values("user_id").annotate(
             m=Max(field)
         ):
@@ -1205,6 +1218,8 @@ def usage_stats(request):
         "max_solved": max((r["solved"] for r in rows), default=1) or 1,
         "period": period,
         "label": label,
+        "app": app,
+        "app_label": app_label,
         "start": start.isoformat() if start else "",
         "end": end.isoformat() if end else "",
     })

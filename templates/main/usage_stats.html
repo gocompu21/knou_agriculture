@@ -109,21 +109,26 @@
 
     <div class="manage-header">
         <h1>사용현황</h1>
-        <span class="sub">{{ label }} · 활동 회원 {{ total.users }}명</span>
+        <span class="sub">{{ label }}{% if app_label %} · {{ app_label }}{% endif %} · 활동 회원 {{ total.users }}명</span>
     </div>
 
     <div class="period-bar">
         <a class="pill {% if period == 'today' %}on{% endif %}"
-           href="?period=today">오늘</a>
+           href="?period=today{% if app %}&app={{ app }}{% endif %}">오늘</a>
         <a class="pill {% if period == '7d' %}on{% endif %}"
-           href="?period=7d">7일</a>
+           href="?period=7d{% if app %}&app={{ app }}{% endif %}">7일</a>
         <a class="pill {% if period == 'month' %}on{% endif %}"
-           href="?period=month">이번달</a>
+           href="?period=month{% if app %}&app={{ app }}{% endif %}">이번달</a>
         <a class="pill {% if period == 'all' %}on{% endif %}"
-           href="?period=all">전체</a>
+           href="?period=all{% if app %}&app={{ app }}{% endif %}">전체</a>
+        <span class="sep"></span>
+        <a class="pill app {% if not app %}on{% endif %}" href="?period={{ period }}{% if period == 'custom' %}&start={{ start }}&end={{ end }}{% endif %}">전체</a>
+        <a class="pill app {% if app == 'knou' %}on{% endif %}" href="?period={{ period }}{% if period == 'custom' %}&start={{ start }}&end={{ end }}{% endif %}&app=knou">방송대</a>
+        <a class="pill app {% if app == 'gisa' %}on{% endif %}" href="?period={{ period }}{% if period == 'custom' %}&start={{ start }}&end={{ end }}{% endif %}&app=gisa">기사</a>
         <span class="sep"></span>
         <form method="get">
             <input type="hidden" name="period" value="custom">
+            {% if app %}<input type="hidden" name="app" value="{{ app }}">{% endif %}
             <input type="date" name="start" value="{{ start }}" required>
             <span class="tilde">~</span>
             <input type="date" name="end" value="{{ end }}" required>
@@ -155,14 +160,14 @@
                     <th class="l" data-t="text">회원</th>
                     <th data-t="num">기수</th>
                     <th data-t="num">푼 문제</th>
-                    <th class="l plain">방송대 · 기사</th>
+                    {% if not app %}<th class="l plain">방송대 · 기사</th>{% endif %}
                     <th data-t="num">정답률</th>
                     <th data-t="num">학습</th>
                     <th data-t="num">기출</th>
                     <th data-t="num">모의</th>
                     <th data-t="num">오답</th>
                     <th data-t="num">세션</th>
-                    <th data-t="num">진도기록</th>
+                    {% if app != "knou" %}<th data-t="num">진도기록</th>{% endif %}
                     <th data-t="num">자료</th>
                     <th data-t="num">로그인</th>
                     <th data-t="num">최근</th>
@@ -175,16 +180,16 @@
                     <td class="l"><span class="u-name">{{ r.name }}</span>{% if r.cohort %}<span class="u-cohort">{{ r.cohort }}기</span>{% endif %}</td>
                     <td data-v="{{ r.cohort|default:0 }}">{% if r.cohort %}{{ r.cohort }}{% else %}<span class="dash">-</span>{% endif %}</td>
                     <td class="u-strong">{{ r.solved }}</td>
-                    <td class="l" data-v="{{ r.solved }}" style="min-width:118px;">
+                    {% if not app %}<td class="l" data-v="{{ r.solved }}" style="min-width:118px;">
                         {% if r.knou %}<i class="u-bar" style="width:{% widthratio r.knou max_solved 100 %}px" title="방송대 {{ r.knou }}"></i>{% endif %}{% if r.gisa %}<i class="u-bar g" style="width:{% widthratio r.gisa max_solved 100 %}px" title="기사 {{ r.gisa }}"></i>{% endif %}
-                    </td>
+                    </td>{% endif %}
                     <td data-v="{{ r.rate|default:0 }}">{% if r.rate != None %}<span class="u-rate {% if r.rate >= 70 %}r-hi{% elif r.rate >= 40 %}r-mid{% else %}r-lo{% endif %}">{{ r.rate }}%</span>{% else %}<span class="dash">-</span>{% endif %}</td>
                     <td>{% if r.study %}{{ r.study }}{% else %}<span class="dash">-</span>{% endif %}</td>
                     <td>{% if r.exam %}{{ r.exam }}{% else %}<span class="dash">-</span>{% endif %}</td>
                     <td>{% if r.mock %}{{ r.mock }}{% else %}<span class="dash">-</span>{% endif %}</td>
                     <td>{% if r.wrong %}{{ r.wrong }}{% else %}<span class="dash">-</span>{% endif %}</td>
                     <td>{% if r.sessions %}{{ r.sessions }}{% else %}<span class="dash">-</span>{% endif %}</td>
-                    <td>{% if r.studylog %}{{ r.studylog }}{% else %}<span class="dash">-</span>{% endif %}</td>
+                    {% if app != "knou" %}<td>{% if r.studylog %}{{ r.studylog }}{% else %}<span class="dash">-</span>{% endif %}</td>{% endif %}
                     <td>{% if r.pdf %}{{ r.pdf }}{% else %}<span class="dash">-</span>{% endif %}</td>
                     <td>{% if r.login %}{{ r.login }}{% else %}<span class="dash">-</span>{% endif %}</td>
                     <td data-v="{{ r.last|date:'U'|default:0 }}">{% if r.last %}{{ r.last|date:"m.d H:i" }}{% else %}<span class="dash">-</span>{% endif %}</td>
