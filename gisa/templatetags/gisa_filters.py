@@ -220,13 +220,17 @@ _EQ_STYLE = (
     "border-radius:0 6px 6px 0;"
     "font-family:'Cambria Math','Times New Roman',serif;font-size:1.08em;"
     "line-height:2;letter-spacing:0.01em;overflow-x:auto;"
+    # 여러 줄 풀이는 이어지는 줄을 들여써 = 가 계단처럼 정렬돼 보이게 한다
+    "padding-left:2.4em;text-indent:-1.3em;"
 )
 
 # 붙어 있는 연산 기호는 좌우로 띄운다 — 0.7−0.1+0.3−0.1=0.8 처럼
 # 공백 없이 이어지면 숫자와 기호가 한 덩어리로 보인다.
-_EQ_OPS = re.compile(r"\s*([=+×÷≥≤<>≒≠])\s*")
+# 줄바꿈은 건드리지 않는다 — 여러 줄로 쓴 풀이가 한 줄로 이어지면 못 읽는다.
+# 그래서 \s 대신 [^\S\n](줄바꿈 아닌 공백)만 먹는다.
+_EQ_OPS = re.compile(r"[^\S\n]*([=+×÷≥≤<>≒≠])[^\S\n]*")
 # 음수 부호와 뺄셈을 가른다: 여는 괄호나 다른 연산자 뒤의 −는 부호다
-_EQ_MINUS = re.compile(r"(?<=[\w),.\]])\s*([−–—-])\s*(?=[\w(])")
+_EQ_MINUS = re.compile(r"(?<=[\w),.\]])[^\S\n]*([−–—-])[^\S\n]*(?=[\w(])")
 
 
 def _spaced_ops(s):
@@ -234,7 +238,8 @@ def _spaced_ops(s):
     def one(chunk):
         chunk = _EQ_OPS.sub(r" \1 ", chunk)
         chunk = _EQ_MINUS.sub(r" \1 ", chunk)
-        return re.sub(r"  +", " ", chunk)
+        # 줄머리 들여쓰기는 살린다 (= 로 이어지는 줄이 계단처럼 보이게)
+        return re.sub(r"(?<!\n)[^\S\n]{2,}", " ", chunk)
 
     out, last = [], 0
     for m in re.finditer(r"<[^>]+>", s):
