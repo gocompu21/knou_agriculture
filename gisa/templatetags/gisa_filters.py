@@ -182,6 +182,16 @@ def _sanitize_svg(src):
     )
 
 
+_EQ_BLOCK = re.compile(r"\[eq\](.*?)\[/eq\]", re.DOTALL | re.IGNORECASE)
+
+_EQ_STYLE = (
+    "display:block;margin:8px 0;padding:10px 14px;background:#f7faf8;"
+    "border-left:3px solid #2d6a4f;border-radius:0 6px 6px 0;"
+    "font-family:'Cambria Math','Times New Roman',serif;font-size:1.02em;"
+    "line-height:2;letter-spacing:0.01em;overflow-x:auto;"
+)
+
+
 def _render_qtext(value):
     """내부 공통 렌더링"""
     if value is None:
@@ -219,9 +229,25 @@ def _render_qtext(value):
     # 일반 ^{X}, _{X} 첨자
     text = re.sub(r"\^\{([^}]+)\}", r"<sup>\1</sup>", text)
     text = re.sub(r"_\{([^}]+)\}", r"<sub>\1</sub>", text)
+    # 괄호 없는 ^X, _X (계산 풀이에 자주 쓰인다). 뒤에 오는 한 토막만 올린다.
+    # ^(rt) 처럼 괄호로 묶은 것도 받는다
+    text = re.sub(r"\^\(([^)]{1,12})\)", r"<sup>\1</sup>", text)
+    # 소수 지수(10^0.35)까지 한 덩어리로 올린다 — 0만 올리면 10⁰.35가 된다
+    text = re.sub(r"\^(-?\d+(?:\.\d+)?|[A-Za-z]\d?)(?![\w.])",
+                  r"<sup>\1</sup>", text)
+    text = re.sub(r"(?<=[A-Za-z])_([A-Za-z0-9]{1,3})(?![A-Za-z0-9])",
+                  r"<sub>\1</sub>", text)
     # **강조** — 해설에서 핵심어를 짚는 데 쓴다. 문제 지문에는 거의 없으나
     # 있어도 별표가 그대로 보이는 것보다는 강조로 처리되는 편이 낫다
     text = re.sub(r"\*\*(?!\s)(.+?)(?<!\s)\*\*", r"<strong>\1</strong>", text)
+    # 수식 박스 — 계산 풀이가 본문에 섞이면 한쪽으로 치우쳐 읽기 나쁘다.
+    # [eq]...[/eq] 로 묶으면 여백을 준 박스에 세리프체로 보여 준다.
+    text = _EQ_BLOCK.sub(
+        lambda m: '<span class="q-eq" style="%s">%s</span>'
+                  % (_EQ_STYLE, m.group(1).strip("\n")),
+        text,
+    )
+
     text = text.replace("\n", "<br>")
 
     # 빼두었던 SVG를 검사해 되돌린다. 자리표시자 앞뒤의 <br>은 그림이 제 줄을
