@@ -177,7 +177,7 @@
                 {% for r in rows %}
                 <tr>
                     <td style="color:#b6c3bb; font-size:0.78rem;">{{ forloop.counter }}</td>
-                    <td class="l"><span class="u-name">{{ r.name }}</span>{% if r.cohort %}<span class="u-cohort">{{ r.cohort }}기</span>{% endif %}</td>
+                    <td class="l"><span class="u-name">{{ r.name }}</span>{% if r.cohort %}<span class="u-cohort"{% if r.cohort_color %} style="background:{{ r.cohort_color.0 }};color:{{ r.cohort_color.1 }};border:1px solid {{ r.cohort_color.2 }}"{% endif %}>{{ r.cohort }}기</span>{% endif %}</td>
                     <td data-v="{{ r.cohort|default:0 }}">{% if r.cohort %}{{ r.cohort }}{% else %}<span class="dash">-</span>{% endif %}</td>
                     <td class="u-strong">{{ r.solved }}</td>
                     {% if not app %}<td class="l" data-v="{{ r.solved }}" style="min-width:118px;">

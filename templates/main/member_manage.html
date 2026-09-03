@@ -112,7 +112,7 @@
     .cohort-cell { display: inline-block; min-width: 60px; padding: 3px 13px;
         border-radius: 11px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
         color: #2d6a4f; background: #eef5ea; white-space: nowrap; }
-    .cohort-cell:hover { background: #d9e9dd; }
+    .cohort-cell:hover { filter: brightness(0.93); }   /* 기수별 색을 덮지 않게 */
     .cohort-cell .dash { color: #b9c6bd; font-weight: 400; }
     .cohort-input { width: 58px; padding: 3px 6px; font-family: inherit;
         font-size: 0.85rem; text-align: center; border: 1px solid #2d6a4f;
@@ -410,7 +410,7 @@
                 <td class="td-cohort" data-v="{{ m.cohort|default:0 }}">
                     <span class="cohort-cell" data-pk="{{ m.pk }}"
                           data-cohort="{{ m.cohort|default_if_none:'' }}"
-                          onclick="editCohort(this)" title="눌러서 기수 입력">{% if m.cohort %}{{ m.cohort }}기{% else %}<span class="dash">-</span>{% endif %}</span>
+                          onclick="editCohort(this)" title="눌러서 기수 입력"{% if m.cohort_color %} style="background:{{ m.cohort_color.0 }};color:{{ m.cohort_color.1 }};border:1px solid {{ m.cohort_color.2 }}"{% endif %}>{% if m.cohort %}{{ m.cohort }}기{% else %}<span class="dash">-</span>{% endif %}</span>
                 </td>
                 <td class="td-id">{{ m.username }}</td>
                 <td class="td-email">{{ m.email|default:"-" }}</td>
@@ -462,7 +462,7 @@
         {% for m in members %}
         <div class="m-card">
             <div class="m-card-top">
-                <div class="m-card-name">{{ m.first_name|default:m.username }}{% if m.cohort %} <span class="cohort-cell" style="cursor:default">{{ m.cohort }}기</span>{% endif %}<small>{{ m.username }}</small></div>
+                <div class="m-card-name">{{ m.first_name|default:m.username }}{% if m.cohort %} <span class="cohort-cell" style="cursor:default{% if m.cohort_color %};background:{{ m.cohort_color.0 }};color:{{ m.cohort_color.1 }}{% endif %}">{{ m.cohort }}기</span>{% endif %}<small>{{ m.username }}</small></div>
                 <div class="m-card-toggles">
                     <div class="m-card-toggle-label">
                         이메일

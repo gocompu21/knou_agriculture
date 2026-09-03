@@ -1009,6 +1009,10 @@ def member_manage(request):
         m.password_changed_at = prof.password_changed_at if prof else None
         m.cohort = prof.cohort if prof else None
 
+    newest_cohort = max((m.cohort for m in members if m.cohort), default=None)
+    for m in members:
+        m.cohort_color = _cohort_color(m.cohort, newest_cohort)
+
     # 회원별 최근 메일 열람 시각
     from bbs.models import NoticeOpenLog
     last_opens = {
@@ -1041,6 +1045,28 @@ def member_manage(request):
         "pending_members": pending_members,
         "active_tab": request.GET.get("tab", "members"),
     })
+
+
+# 기수 배지 색 — 최신 기수일수록 진하게. 회원 목록에서 기수를 눈으로
+# 훑을 때 세대가 한눈에 갈리도록, 숫자를 읽지 않아도 구분되게 한다.
+_COHORT_TONES = [
+    ("#1b4332", "#ffffff", "#1b4332"),   # 최신
+    ("#2d6a4f", "#ffffff", "#2d6a4f"),
+    ("#40806b", "#ffffff", "#40806b"),
+    ("#74a892", "#ffffff", "#74a892"),
+    ("#dbe9e0", "#1f4d3a", "#bcd6c7"),
+    ("#eef3ef", "#40624f", "#d5e2da"),
+    ("#f6f7f6", "#7d8f83", "#e2e6e3"),   # 가장 오래된 기수
+]
+
+
+def _cohort_color(cohort, newest):
+    """기수 → (배경, 글자, 테두리). 최신 기수부터 순서대로 옅어진다."""
+    if not cohort or not newest:
+        return None
+    gap = newest - cohort
+    idx = min(gap, len(_COHORT_TONES) - 1)
+    return _COHORT_TONES[idx]
 
 
 def _usage_range(period, start_raw, end_raw):
@@ -1174,6 +1200,7 @@ def usage_stats(request):
                 last[r["user_id"]] = r["m"]
 
     cohorts = {p.user_id: p.cohort for p in UserProfile.objects.all()}
+    newest_cohort = max((c for c in cohorts.values() if c), default=None)
     rows = []
     for u in User.objects.all():
         a = agg.get(u.pk)
@@ -1189,6 +1216,7 @@ def usage_stats(request):
             "pk": u.pk,
             "name": (u.first_name or u.username),
             "cohort": cohorts.get(u.pk),
+            "cohort_color": _cohort_color(cohorts.get(u.pk), newest_cohort),
             "solved": solved,
             "correct": a.get("correct", 0),
             "rate": round(a.get("correct", 0) / solved * 100) if solved else None,
