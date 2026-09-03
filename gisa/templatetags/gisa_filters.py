@@ -197,16 +197,20 @@ _FRAC_STYLE = (
 )
 
 
+def frac_span(num, den):
+    """세로 분수 마크업 — [eq] 박스와 학습자료의 공식 줄이 함께 쓴다."""
+    return (
+        '&nbsp;<span style="%s">'
+        '<span style="display:block;padding:0 .35em">%s</span>'
+        '<span style="display:block;border-top:1px solid currentColor;'
+        'padding:0 .35em">%s</span></span>&nbsp;'
+    ) % (_FRAC_STYLE, num, den)
+
+
 def _fractions(s):
     """a / b → 세로 분수. 이미 태그가 낀 부분은 건드리지 않는다."""
     def one(m):
-        num, den = m.group(1), m.group(2)
-        return (
-            '&nbsp;<span style="%s">'
-            '<span style="display:block;padding:0 .35em">%s</span>'
-            '<span style="display:block;border-top:1px solid currentColor;'
-            'padding:0 .35em">%s</span></span>&nbsp;'
-        ) % (_FRAC_STYLE, num, den)
+        return frac_span(m.group(1), m.group(2))
 
     out, last = [], 0
     for m in re.finditer(r"<[^>]+>", s):        # 태그 밖에서만 치환

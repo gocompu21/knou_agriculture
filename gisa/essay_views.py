@@ -764,6 +764,27 @@ def essay_note(request, cert_id, slug):
             raw = re.sub(r'\^(-?\d+(?:\.\d+)?|[A-Za-z]\d?)(?![\w.])',
                          r'<sup>\1</sup>', raw)
             raw = re.sub(r'_\{([^}]{1,12})\}', r'<sub>\1</sub>', raw)
+            if lab in ('공식', '대입'):
+                # X ÷ Y 는 세로 분수로. 한글 항(연면적 ÷ 대지면적)도 분수로
+                # 만들되, 분자는 = 나 문장 구분자(/ ,) 뒤부터만 잡는다 —
+                # 앞 문장까지 분자로 빨려 들어가면 공식이 뭉개진다.
+                from gisa.templatetags.gisa_filters import frac_span
+                # A ÷ B 를 세로 분수로. 항은 기호식 덩어리(2C, (A+B), ln1.5)와
+                # ×·로 이어진 곱까지만 잡는다.
+                #
+                # 한글 공식(연면적 ÷ 대지면적 × 100)은 정규식으로 항의 경계를
+                # 가르려 하면 띄어쓰기·볼드 때문에 매번 어긋난다. 그런 줄은
+                # 데이터에서 [frac]분자|분모[/frac] 로 적어 두면 그대로 그린다.
+                sym = (r"(?:\([^()]*\)|(?:ln|log)\s?[\d.,A-Za-z]*"
+                       r"|[A-Za-z0-9.,₀-₉]+)")
+                chain = r"%s(?:\s*[×·]\s*%s)*" % (sym, sym)
+                raw = re.sub(
+                    r"(?<![가-힣])(%s)\s*÷\s*(%s)" % (chain, chain),
+                    lambda m2: frac_span(m2.group(1), m2.group(2)), raw)
+                raw = re.sub(
+                    r"\[frac\]([^|\[\]]+)\|([^|\[\]]+)\[/frac\]",
+                    lambda m2: frac_span(m2.group(1).strip(),
+                                         m2.group(2).strip()), raw)
             blocks.append({
                 'label': lab,
                 'html': md.markdown(raw, extensions=['tables']),
