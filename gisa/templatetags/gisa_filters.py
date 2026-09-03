@@ -248,6 +248,12 @@ def _render_qtext(value):
         text,
     )
 
+    # 계산 문항의 '계산)' 아래 풀이는 한 단 들여써서 라벨과 구분한다
+    m = re.match(r'계산\)\s*\n(.+)$', text, re.DOTALL)
+    if m:
+        text = ('계산)\n<span class="q-calc" style="display:block;'
+                'padding-left:1.1em">' + m.group(1) + '</span>')
+
     text = text.replace("\n", "<br>")
 
     # 빼두었던 SVG를 검사해 되돌린다. 자리표시자 앞뒤의 <br>은 그림이 제 줄을
