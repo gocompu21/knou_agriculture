@@ -106,11 +106,12 @@
     /* 기수 — 눌러서 바로 입력 */
     /* 이름·기수는 가장 많이 찾는 열이라 넉넉히 잡는다 */
     .member-table th:nth-child(2), .member-table td.td-name { min-width: 96px; }
-    .td-cohort { text-align: center; min-width: 74px; }
-    .member-table th:nth-child(3) { min-width: 74px; }
-    .cohort-cell { display: inline-block; min-width: 48px; padding: 3px 11px;
-        border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
-        color: #2d6a4f; background: #eef5ea; }
+    .td-cohort { text-align: center; min-width: 96px; white-space: nowrap; }
+    .member-table th:nth-child(3) { min-width: 96px; }
+    /* "38기"가 알약 안에서 두 줄로 쪼개지던 것을 막는다 */
+    .cohort-cell { display: inline-block; min-width: 60px; padding: 3px 13px;
+        border-radius: 11px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+        color: #2d6a4f; background: #eef5ea; white-space: nowrap; }
     .cohort-cell:hover { background: #d9e9dd; }
     .cohort-cell .dash { color: #b9c6bd; font-weight: 400; }
     .cohort-input { width: 58px; padding: 3px 6px; font-family: inherit;
@@ -408,9 +409,7 @@
                 <td class="td-cohort" data-v="{{ m.cohort|default:0 }}">
                     <span class="cohort-cell" data-pk="{{ m.pk }}"
                           data-cohort="{{ m.cohort|default_if_none:'' }}"
-                          onclick="editCohort(this)" title="눌러서 기수 입력">
-                        {% if m.cohort %}{{ m.cohort }}기{% else %}<span class="dash">-</span>{% endif %}
-                    </span>
+                          onclick="editCohort(this)" title="눌러서 기수 입력">{% if m.cohort %}{{ m.cohort }}기{% else %}<span class="dash">-</span>{% endif %}</span>
                 </td>
                 <td class="td-id">{{ m.username }}</td>
                 <td class="td-email">{{ m.email|default:"-" }}</td>
