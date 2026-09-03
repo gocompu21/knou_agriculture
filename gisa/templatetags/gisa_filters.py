@@ -194,9 +194,6 @@ _FRAC = re.compile(r"(%s)\s*/\s*(%s)" % (_FRAC_TERM, _FRAC_TERM))
 _FRAC_STYLE = (
     "display:inline-block;vertical-align:middle;text-align:center;"
     "margin:0 .3em;line-height:1.3;font-size:0.95em;"
-    # [eq] 박스의 text-indent(-1.3em)가 상속되면 분자가 왼쪽으로 당겨져
-    # 앞의 기호와 겹친다. 분수 안에서는 끊는다.
-    "text-indent:0;"
 )
 
 
@@ -230,8 +227,6 @@ _EQ_STYLE = (
     "font-family:'Cambria Math','Times New Roman','SUIT',sans-serif;"
     "font-size:1em;"
     "line-height:2;letter-spacing:0.01em;overflow-x:auto;"
-    # 여러 줄 풀이는 이어지는 줄을 들여써 = 가 계단처럼 정렬돼 보이게 한다
-    "padding-left:2.4em;text-indent:-1.3em;"
 )
 
 # 붙어 있는 연산 기호는 좌우로 띄운다 — 0.7−0.1+0.3−0.1=0.8 처럼
@@ -310,11 +305,16 @@ def _render_qtext(value):
     text = re.sub(r"\*\*(?!\s)(.+?)(?<!\s)\*\*", r"<strong>\1</strong>", text)
     # 수식 박스 — 계산 풀이가 본문에 섞이면 한쪽으로 치우쳐 읽기 나쁘다.
     # [eq]...[/eq] 로 묶으면 여백을 준 박스에 세리프체로 보여 준다.
-    text = _EQ_BLOCK.sub(
-        lambda m: '<span class="q-eq" style="%s">%s</span>'
-                  % (_EQ_STYLE, _spaced_ops(_fractions(m.group(1).strip("\n")))),
-        text,
-    )
+    # 박스 안 줄머리 공백은 &nbsp; 로 살린다 — 데이터에 쓴 들여쓰기가
+    # 그대로 보이게 하는 것이 규칙이다. CSS 로 들여쓰기를 흉내내면
+    # (음수 text-indent 등) 데이터와 따로 놀아 정렬이 어긋난다.
+    def _eq_box(m):
+        body = _spaced_ops(_fractions(m.group(1).strip("\n")))
+        body = re.sub(r"(^|\n)( +)",
+                      lambda x: x.group(1) + "&nbsp;" * len(x.group(2)), body)
+        return '<span class="q-eq" style="%s">%s</span>' % (_EQ_STYLE, body)
+
+    text = _EQ_BLOCK.sub(_eq_box, text)
 
     # 계산 문항의 '계산)' 아래 풀이는 한 단 들여써서 라벨과 구분한다
     m = re.match(r'계산\)\s*\n(.+)$', text, re.DOTALL)
