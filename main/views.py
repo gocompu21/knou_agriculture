@@ -1180,6 +1180,11 @@ def usage_stats(request):
         if not a:
             continue
         solved = a.get("solved", 0)
+        # 앱을 골랐으면 그 앱을 실제로 푼 회원만 남긴다 — 로그인 기록은
+        # 앱을 가리지 않으므로, 그냥 두면 방송대를 골라도 로그인만 한
+        # 회원까지 표에 남아 활동 회원 수가 부풀려진다.
+        if app and not solved:
+            continue
         rows.append({
             "pk": u.pk,
             "name": (u.first_name or u.username),
