@@ -1201,6 +1201,8 @@ def usage_stats(request):
     return render(request, "main/usage_stats.html", {
         "rows": rows,
         "total": total,
+        # 막대는 회원끼리 견줘 봐야 뜻이 있으므로 최다 풀이자를 기준으로 잡는다
+        "max_solved": max((r["solved"] for r in rows), default=1) or 1,
         "period": period,
         "label": label,
         "start": start.isoformat() if start else "",

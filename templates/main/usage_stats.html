@@ -176,7 +176,7 @@
                     <td data-v="{{ r.cohort|default:0 }}">{% if r.cohort %}{{ r.cohort }}{% else %}<span class="dash">-</span>{% endif %}</td>
                     <td class="u-strong">{{ r.solved }}</td>
                     <td class="l" data-v="{{ r.solved }}" style="min-width:118px;">
-                        {% if r.knou %}<i class="u-bar" style="width:{% widthratio r.knou r.solved 100 %}px" title="방송대 {{ r.knou }}"></i>{% endif %}{% if r.gisa %}<i class="u-bar g" style="width:{% widthratio r.gisa r.solved 100 %}px" title="기사 {{ r.gisa }}"></i>{% endif %}
+                        {% if r.knou %}<i class="u-bar" style="width:{% widthratio r.knou max_solved 100 %}px" title="방송대 {{ r.knou }}"></i>{% endif %}{% if r.gisa %}<i class="u-bar g" style="width:{% widthratio r.gisa max_solved 100 %}px" title="기사 {{ r.gisa }}"></i>{% endif %}
                     </td>
                     <td data-v="{{ r.rate|default:0 }}">{% if r.rate != None %}<span class="u-rate {% if r.rate >= 70 %}r-hi{% elif r.rate >= 40 %}r-mid{% else %}r-lo{% endif %}">{{ r.rate }}%</span>{% else %}<span class="dash">-</span>{% endif %}</td>
                     <td>{% if r.study %}{{ r.study }}{% else %}<span class="dash">-</span>{% endif %}</td>
