@@ -184,6 +184,35 @@ def _sanitize_svg(src):
 
 _EQ_BLOCK = re.compile(r"\[eq\](.*?)\[/eq\]", re.DOTALL | re.IGNORECASE)
 
+# 수식 안의 나눗셈은 분수로 보여 준다 — a / b 를 세로 분수로 쌓는다.
+# 피연산자는 괄호로 묶인 덩어리, 함수 표기(ln1.5), 숫자·변수까지만 잡는다.
+_FRAC_TERM = r"(?:\([^()]*\)|(?:ln|log|sin|cos|tan)[\d.]*|[A-Za-z0-9,.₀-₉]+)"
+_FRAC = re.compile(r"(%s)\s*/\s*(%s)" % (_FRAC_TERM, _FRAC_TERM))
+_FRAC_STYLE = (
+    "display:inline-block;vertical-align:middle;text-align:center;"
+    "margin:0 .25em;line-height:1.25;"
+)
+
+
+def _fractions(s):
+    """a / b → 세로 분수. 이미 태그가 낀 부분은 건드리지 않는다."""
+    def one(m):
+        num, den = m.group(1), m.group(2)
+        return (
+            '<span style="%s">'
+            '<span style="display:block;padding:0 .3em">%s</span>'
+            '<span style="display:block;border-top:1px solid currentColor;'
+            'padding:0 .3em">%s</span></span>'
+        ) % (_FRAC_STYLE, num, den)
+
+    out, last = [], 0
+    for m in re.finditer(r"<[^>]+>", s):        # 태그 밖에서만 치환
+        out.append(_FRAC.sub(one, s[last:m.start()]))
+        out.append(m.group())
+        last = m.end()
+    out.append(_FRAC.sub(one, s[last:]))
+    return "".join(out)
+
 _EQ_STYLE = (
     "display:block;margin:8px 0;padding:10px 14px;background:#f7faf8;"
     "border-left:3px solid #2d6a4f;border-radius:0 6px 6px 0;"
@@ -244,7 +273,7 @@ def _render_qtext(value):
     # [eq]...[/eq] 로 묶으면 여백을 준 박스에 세리프체로 보여 준다.
     text = _EQ_BLOCK.sub(
         lambda m: '<span class="q-eq" style="%s">%s</span>'
-                  % (_EQ_STYLE, m.group(1).strip("\n")),
+                  % (_EQ_STYLE, _fractions(m.group(1).strip("\n"))),
         text,
     )
 
@@ -371,6 +400,42 @@ def _round_tone(year, newest):
     if gap <= 10:
         return "#eef3ef", "#40624f", "#cfdcd4"
     return "#f6f7f6", "#8b968f", "#e2e6e3"       # 오래된 회차 — 흐리게
+
+
+@register.filter(name="note_badges")
+def note_badges(rounds_line):
+    """학습자료의 「출제」 줄 → 두 자리 연도 배지 (2024-2 → 24-2).
+
+    노트는 한 줄에 다섯 회차가 늘어서서 숫자 띠처럼 보였다. 배지로 끊고
+    연도를 두 자리로 줄이면 한눈에 몇 회차인지 잡힌다. 회차 뒤에 붙는
+    설명(— 다섯 회차 모두 …)은 배지 뒤에 그대로 흘려 둔다.
+    """
+    if not rounds_line:
+        return ""
+    text = str(rounds_line).strip()
+    # 회차 뒤 괄호는 배점·유형 주석(2022-2(4.5점 표그림)) — 배지 안에 붙인다
+    found = list(re.finditer(r"\b(\d{4})-(\d)\b(?:\s*\(([^)]{1,20})\))?", text))
+    if not found:
+        return escape(text)
+
+    newest = max(int(m.group(1)) for m in found)
+    out = []
+    for m in found:
+        y, r, memo = m.group(1), m.group(2), m.group(3)
+        bg, fg, bd = _round_tone(y, newest)
+        inner = "%s-%s" % (y[2:], r)
+        if memo:
+            inner += '<i class="fq-memo">%s</i>' % escape(memo)
+        out.append(
+            '<span class="fq-r" style="background:%s;color:%s;border-color:%s">'
+            "%s</span>" % (bg, fg, bd, inner)
+        )
+
+    # 마지막 회차 뒤에 남은 설명 꼬리를 살린다
+    tail = text[found[-1].end():].strip(" —-·")
+    if tail:
+        out.append('<span class="fq-tail">%s</span>' % escape(tail))
+    return mark_safe("".join(out))
 
 
 @register.filter(name="freq_badges")

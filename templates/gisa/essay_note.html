@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load gisa_filters %}
 
 {% block title %}{{ note.title }}{% endblock %}
 
@@ -81,6 +82,38 @@
     .nt-arrow { margin-left: auto; color: #bbb; font-size: 0.8rem; }
     .nt-item.open .nt-arrow { transform: rotate(90deg); }
 
+    /* 출제 회차 — 숫자 띠로 보이던 줄을 배지로 끊는다 */
+    .nt-rounds { display: flex; flex-wrap: wrap; align-items: center;
+        gap: 5px; margin: 8px 0 4px; }
+    .nt-rlab { font-size: 0.72rem; font-weight: 700; color: #8b968f;
+        letter-spacing: 0.04em; margin-right: 2px; }
+    .nt-rounds .fq-r { font-size: 0.73rem; font-weight: 700; padding: 2px 8px;
+        border-radius: 9px; border: 1px solid; line-height: 1.5; }
+    /* 배점·유형 주석 — 배지 안에 작게 (22-2 4.5점 표그림) */
+    .nt-rounds .fq-memo { font-style: normal; font-weight: 500;
+        font-size: 0.88em; opacity: 0.75; margin-left: 4px; }
+    .nt-rounds .fq-tail { font-size: 0.8rem; color: #6b7a70;
+        flex-basis: 100%; line-height: 1.7; margin: 1px 0 0 2.5em; }
+
+    /* 공식 / 대입 / 함정 — 라벨을 왼쪽에 세우고 여백을 준다 */
+    .nt-blk { display: flex; gap: 10px; align-items: baseline;
+        padding: 9px 0; border-top: 1px solid #f0f3f1; }
+    .nt-blk:first-of-type { border-top: 0; }
+    .nt-blab { flex-shrink: 0; width: 2.6em; text-align: center;
+        font-size: 0.72rem; font-weight: 700; padding: 2px 0;
+        border-radius: 7px; background: #eef3ef; color: #40624f; }
+    .nt-blk-1 .nt-blab { background: #1b4332; color: #fff; }
+    .nt-blk-3 .nt-blab { background: #fdf0dd; color: #a1651a; }
+    .nt-btext { flex: 1; min-width: 0; font-size: 0.87rem;
+        line-height: 1.85; color: #333; }
+    .nt-btext p { margin: 0 0 6px; }
+    .nt-btext p:last-child { margin-bottom: 0; }
+    .nt-btext strong { color: #1b4332; }
+    .nt-btext sup, .nt-btext sub { font-size: 0.72em; line-height: 0; }
+    /* 공식은 수식이라 본문과 글꼴을 달리해 눈에 띄게 한다 */
+    .nt-blk-1 .nt-btext { font-family: 'Cambria Math','Times New Roman',serif;
+        font-size: 0.95rem; letter-spacing: 0.01em; }
+
     .nt-body { display: none; padding: 4px 2px 18px; }
     .nt-item.open .nt-body { display: block; }
     .nt-body h3 { font-size: 0.92rem; color: #1b4332; margin: 14px 0 6px;
@@ -149,7 +182,7 @@
             {% if it.warned %}<span class="nt-warn">⚠️</span>{% endif %}
             <span class="nt-arrow">›</span>
         </div>
-        <div class="nt-body">{% if it.rep_pk %}<div class="nt-sib hidden"></div>{% endif %}{{ it.html|safe }}</div>
+        <div class="nt-body">{% if it.rep_pk %}<div class="nt-sib hidden"></div>{% endif %}{% if it.rounds %}<div class="nt-rounds"><span class="nt-rlab">출제</span>{{ it.rounds|note_badges }}</div>{% endif %}{% for b in it.blocks %}<div class="nt-blk nt-blk-{{ forloop.counter }}"><span class="nt-blab">{{ b.label }}</span><div class="nt-btext">{{ b.html|safe }}</div></div>{% endfor %}{{ it.html|safe }}</div>
     </div>
     {% endfor %}
 </div>

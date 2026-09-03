@@ -748,14 +748,37 @@ def essay_note(request, cert_id, slug):
             if pool:
                 rep_pk = pool[0].pk
 
+        # 「공식 / 대입 / 함정」처럼 라벨이 붙은 문단은 따로 떼어 낸다 —
+        # 한 덩어리로 렌더링하면 줄바꿈만으로 구분돼 빽빽해 보인다.
+        body_rest = re.sub(r'^\*\*출제\*\*.*$', '', body, flags=re.M)
+        body_rest = re.sub(r'^\s*---\s*$', '', body_rest, flags=re.M)
+        blocks = []
+        for lab in ('공식', '대입', '함정', '유형', '주의'):
+            bm = re.search(r'^\*\*%s\*\*\s*(.+)$' % lab, body_rest, flags=re.M)
+            if not bm:
+                continue
+            raw = bm.group(1).strip()
+            # 지수·아래첨자를 실제 수학식으로 (^{n} → <sup>n</sup>)
+            raw = re.sub(r'\^\{([^}]{1,12})\}', r'<sup>\1</sup>', raw)
+            raw = re.sub(r'\^\(([^)]{1,12})\)', r'<sup>\1</sup>', raw)
+            raw = re.sub(r'\^(-?\d+(?:\.\d+)?|[A-Za-z]\d?)(?![\w.])',
+                         r'<sup>\1</sup>', raw)
+            raw = re.sub(r'_\{([^}]{1,12})\}', r'<sub>\1</sub>', raw)
+            blocks.append({
+                'label': lab,
+                'html': md.markdown(raw, extensions=['tables']),
+            })
+            body_rest = body_rest.replace(bm.group(0), '')
+
         items.append({
             'freq': int(freq),
             'group': group.strip(),
             'title': title.strip(),
             'rounds': rounds,
             'rep_pk': rep_pk,
+            'blocks': blocks,
             'warned': '⚠️ 요구가 커진 지점' in body,
-            'html': md.markdown(body, extensions=['tables', 'nl2br']),
+            'html': md.markdown(body_rest, extensions=['tables', 'nl2br']),
         })
 
     # 머리말의 목차는 카드 목록이 대신하므로 걷어낸다
