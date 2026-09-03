@@ -53,6 +53,27 @@
         border-radius: 8px; background: #fff3e0; color: #a1651a;
         flex-shrink: 0; }
     .nt-freq.hi { background: #a1651a; color: #fff; }
+    /* 배지가 버튼이면 눌러서 회차별 기출을 펼칠 수 있다 */
+    .nt-freq.btn { border: 1px solid #f0d9b5; cursor: pointer;
+        font-family: inherit; }
+    .nt-freq.btn:hover { background: #ffe8c8; }
+    .nt-freq.btn.hi:hover { background: #8a5516; }
+    .nt-freq.btn.on { outline: 2px solid #a1651a; }
+
+    /* 회차별 기출 문항 펼침 — 학습 화면의 형제 문항 상자와 같은 결 */
+    .nt-sib { margin: 6px 0 12px; border-left: 3px solid #d9c7a8;
+        background: #fffdf8; border-radius: 0 8px 8px 0; padding: 10px 14px; }
+    .nt-sib.hidden { display: none; }
+    .nt-sib-q { padding: 8px 0; border-top: 1px dashed #e8dcc4; }
+    .nt-sib-q:first-child { border-top: 0; padding-top: 0; }
+    .nt-sib-lab { font-size: 0.72rem; font-weight: 700; color: #1b4332;
+        background: #e7efe9; padding: 1px 7px; border-radius: 6px;
+        margin-right: 7px; }
+    .nt-sib-text { font-size: 0.87rem; line-height: 1.7; color: #1f2d24;
+        font-weight: 600; margin-top: 3px; }
+    .nt-sib-ans { margin-top: 4px; font-size: 0.83rem; line-height: 1.7;
+        color: #4a6b58; }
+    .nt-sib-load { font-size: 0.8rem; color: #999; }
     .nt-group { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
         background: #e8eef5; color: #2d4a6b; font-weight: 600; flex-shrink: 0; }
     .nt-name { font-size: 0.92rem; font-weight: 600; color: #1f2d24; }
@@ -117,13 +138,18 @@
     {% for it in items %}
     <div class="nt-item" data-freq="{{ it.freq }}" data-warn="{{ it.warned|yesno:'1,0' }}">
         <div class="nt-head">
+            {% if it.rep_pk %}
+            <button type="button" class="nt-freq btn {% if it.freq >= 4 %}hi{% endif %}"
+                    data-pk="{{ it.rep_pk }}" title="회차별 기출 문항 보기">{{ it.freq }}회</button>
+            {% else %}
             <span class="nt-freq {% if it.freq >= 4 %}hi{% endif %}">{{ it.freq }}회</span>
+            {% endif %}
             <span class="nt-group">{{ it.group }}</span>
             <span class="nt-name">{{ it.title }}</span>
             {% if it.warned %}<span class="nt-warn">⚠️</span>{% endif %}
             <span class="nt-arrow">›</span>
         </div>
-        <div class="nt-body">{{ it.html|safe }}</div>
+        <div class="nt-body">{% if it.rep_pk %}<div class="nt-sib hidden"></div>{% endif %}{{ it.html|safe }}</div>
     </div>
     {% endfor %}
 </div>
@@ -137,6 +163,49 @@
 /* 주제 펼치기 — 58개를 한꺼번에 펼치면 너무 길어 접어 둔다 */
 document.querySelectorAll('.nt-head').forEach(h => {
     h.addEventListener('click', () => h.parentElement.classList.toggle('open'));
+});
+
+/* 회차 배지 클릭 → 그 주제의 기출 문항을 회차별로 펼친다 */
+const CERT_ID = {{ cert.pk }};
+document.querySelectorAll('.nt-freq.btn').forEach(btn => {
+    btn.addEventListener('click', async e => {
+        e.stopPropagation();                 // 헤더 접기와 겹치지 않게
+        const item = btn.closest('.nt-item');
+        const box = item.querySelector('.nt-sib');
+        if (!box) return;
+        if (!box.classList.contains('hidden')) {
+            box.classList.add('hidden');
+            btn.classList.remove('on');
+            return;
+        }
+        item.classList.add('open');
+        box.classList.remove('hidden');
+        btn.classList.add('on');
+        if (box.dataset.loaded) return;
+        box.innerHTML = '<div class="nt-sib-load">불러오는 중…</div>';
+        try {
+            const r = await fetch(`/gisa/${CERT_ID}/essay/siblings/${btn.dataset.pk}/?all=1`);
+            const d = await r.json();
+            if (!d.ok) throw new Error('불러오지 못했습니다');
+            let html = '';
+            d.items.forEach(s => {
+                html += `<div class="nt-sib-q"><span class="nt-sib-lab">${s.label}</span>`;
+                html += `<span style="font-size:0.72rem;color:#8a7a5e">${s.qtype} · ${s.points}점</span>`;
+                html += `<div class="nt-sib-text">${s.text_html}</div>`;
+                if (s.answer_html_items.length || s.answer_html) {
+                    html += '<div class="nt-sib-ans">';
+                    s.answer_html_items.forEach(it => { html += `<div>${it}</div>`; });
+                    if (s.answer_html) html += s.answer_html;
+                    html += '</div>';
+                }
+                html += '</div>';
+            });
+            box.innerHTML = html || '<div class="nt-sib-load">문항이 없습니다.</div>';
+            box.dataset.loaded = '1';
+        } catch (err) {
+            box.innerHTML = `<div class="nt-sib-load">${err.message}</div>`;
+        }
+    });
 });
 
 let allOpen = false;

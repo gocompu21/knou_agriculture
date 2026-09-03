@@ -674,8 +674,11 @@ def essay_siblings(request, cert_id, question_id):
 
     sibs = (GisaEssayQuestion.objects
             .filter(certification=cert, topic_key=q.topic_key)
-            .exclude(pk=q.pk)
             .order_by('-year', '-round', 'number'))
+    # 학습 화면은 지금 보는 문항을 빼고 "다른 회차"만 보여주지만,
+    # 정리 문서(?all=1)에서는 그 회차 자신까지 전부 나열한다
+    if request.GET.get('all') != '1':
+        sibs = sibs.exclude(pk=q.pk)
 
     items = [{
         'pk': s.pk,
@@ -718,11 +721,39 @@ def essay_note(request, cert_id, slug):
         freq, group, title, body = parts[i:i + 4]
         # 각 주제가 어느 회차에 나왔는지 — 본문 첫 **출제** 줄에서 뽑는다
         m = re.search(r'\*\*출제\*\*\s*(.+)', body)
+        rounds = m.group(1).strip() if m else ''
+
+        # 회차 배지를 누르면 그 주제의 기출 문항들을 펼쳐 보여준다.
+        # 출제 줄의 첫 회차 + 빈출 수로 대표 문항을 찾는다 — 정확히 하나로
+        # 좁혀질 때만 배지를 버튼으로 만든다 (calc 문서는 계산 유형으로 한정)
+        rep_pk = None
+        rm = re.search(r'(\d{4})-(\d)', rounds)
+        if rm:
+            cand = GisaEssayQuestion.objects.filter(
+                certification=cert, source='기출',
+                year=int(rm.group(1)), round=int(rm.group(2)),
+                freq_rounds=int(freq))
+            if note.slug == 'calc':
+                cand = cand.filter(qtype='계산')
+            pool = list(cand)
+            if len(pool) > 1:
+                # 같은 회차에 같은 빈출 수 주제가 여럿이면 제목 낱말이
+                # 가장 많이 겹치는 것을 고른다
+                key = set(re.findall(r'[가-힣A-Za-z]{2,}', title))
+                pool.sort(key=lambda q: len(
+                    key & set(re.findall(r'[가-힣A-Za-z]{2,}',
+                                         (q.text or '') + ' ' +
+                                         ' '.join(q.answer_items or [])))),
+                    reverse=True)
+            if pool:
+                rep_pk = pool[0].pk
+
         items.append({
             'freq': int(freq),
             'group': group.strip(),
             'title': title.strip(),
-            'rounds': m.group(1).strip() if m else '',
+            'rounds': rounds,
+            'rep_pk': rep_pk,
             'warned': '⚠️ 요구가 커진 지점' in body,
             'html': md.markdown(body, extensions=['tables', 'nl2br']),
         })
