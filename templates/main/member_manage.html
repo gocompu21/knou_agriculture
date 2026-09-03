@@ -104,17 +104,21 @@
         font-size: 0.66em; }
 
     /* 기수 — 눌러서 바로 입력 */
-    .td-cohort { text-align: center; }
-    .cohort-cell { display: inline-block; min-width: 34px; padding: 1px 7px;
-        border-radius: 9px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    /* 이름·기수는 가장 많이 찾는 열이라 넉넉히 잡는다 */
+    .member-table th:nth-child(2), .member-table td.td-name { min-width: 96px; }
+    .td-cohort { text-align: center; min-width: 74px; }
+    .member-table th:nth-child(3) { min-width: 74px; }
+    .cohort-cell { display: inline-block; min-width: 48px; padding: 3px 11px;
+        border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
         color: #2d6a4f; background: #eef5ea; }
     .cohort-cell:hover { background: #d9e9dd; }
     .cohort-cell .dash { color: #b9c6bd; font-weight: 400; }
-    .cohort-input { width: 46px; padding: 2px 5px; font-family: inherit;
-        font-size: 0.8rem; text-align: center; border: 1px solid #2d6a4f;
-        border-radius: 5px; }
+    .cohort-input { width: 58px; padding: 3px 6px; font-family: inherit;
+        font-size: 0.85rem; text-align: center; border: 1px solid #2d6a4f;
+        border-radius: 6px; }
 
-    .td-name { font-weight: 600; color: #1b4332; }
+    .td-name { font-weight: 600; color: #1b4332; font-size: 0.9rem;
+        white-space: nowrap; }
     .td-id { color: #555; font-size: 0.82rem; }
     .td-email { color: #888; font-size: 0.8rem; }
     .td-date { color: #888; font-size: 0.8rem; white-space: nowrap; }
