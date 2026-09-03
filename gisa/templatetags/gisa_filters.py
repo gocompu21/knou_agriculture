@@ -188,9 +188,15 @@ _EQ_BLOCK = re.compile(r"\[eq\](.*?)\[/eq\]", re.DOTALL | re.IGNORECASE)
 # 피연산자는 괄호로 묶인 덩어리, 함수 표기(ln1.5), 숫자·변수까지만 잡는다.
 _FRAC_TERM = r"(?:\([^()]*\)|(?:ln|log|sin|cos|tan)[\d.]*|[A-Za-z0-9,.₀-₉]+)"
 _FRAC = re.compile(r"(%s)\s*/\s*(%s)" % (_FRAC_TERM, _FRAC_TERM))
+# 분수는 인라인 블록을 vertical-align:middle 로 앉힌다 — 분수막이 등호·
+# 부등호가 그려지는 x-height 중앙과 같은 높이가 된다. 앞뒤는 &nbsp; 로
+# 띄운다(일반 공백은 렌더링 과정에서 눌려 기호와 분수가 붙어 보였다).
 _FRAC_STYLE = (
     "display:inline-block;vertical-align:middle;text-align:center;"
-    "margin:0 .25em;line-height:1.25;"
+    "margin:0 .3em;line-height:1.3;font-size:0.95em;"
+    # [eq] 박스의 text-indent(-1.3em)가 상속되면 분자가 왼쪽으로 당겨져
+    # 앞의 기호와 겹친다. 분수 안에서는 끊는다.
+    "text-indent:0;"
 )
 
 
@@ -199,10 +205,10 @@ def _fractions(s):
     def one(m):
         num, den = m.group(1), m.group(2)
         return (
-            '<span style="%s">'
-            '<span style="display:block;padding:0 .3em">%s</span>'
+            '&nbsp;<span style="%s">'
+            '<span style="display:block;padding:0 .35em">%s</span>'
             '<span style="display:block;border-top:1px solid currentColor;'
-            'padding:0 .3em">%s</span></span>'
+            'padding:0 .35em">%s</span></span>&nbsp;'
         ) % (_FRAC_STYLE, num, den)
 
     out, last = [], 0
