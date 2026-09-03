@@ -1123,14 +1123,15 @@ def usage_stats(request):
     # 한 세션의 모든 문항이 같은 created_at 을 가진다. (첫 풀이~마지막
     # 풀이)로 재면 늘 0초가 나오므로, 채워 넣으면 실제로 잰 값처럼
     # 보이지만 근거가 없다. 대신 세션 수와 문항 수로 활동량을 본다.
+    # values_list 로 짝을 뽑아 set 으로 센다 — values().distinct() 를 그대로
+    # 순회하면 Meta.ordering 필드가 SELECT 에 끼어들어 중복 제거가 풀린다.
     for model in (Attempt, GisaAttempt):
-        sess = (
+        pairs = set(
             span(model.objects.exclude(session_id=""))
-            .values("user_id", "session_id")
-            .distinct()
+            .values_list("user_id", "session_id")
         )
-        for r in sess:
-            bump(r["user_id"], "sessions", 1)
+        for uid, _sid in pairs:
+            bump(uid, "sessions", 1)
 
     # 기출학습 진도 기록·자료 열람·로그인
     for r in span(GisaStudyLog.objects.all()).values("user_id").annotate(n=Count("id")):
