@@ -24,7 +24,7 @@ from accounts.models import LoginLog
 from exam.models import Attempt, Question, StudyNote
 from gisa.models import GisaAttempt, GisaQuestion
 from .forms import SubjectForm
-from .models import FavoriteSubject, Subject, SubjectMaterial
+from .models import FavoriteSubject, QnaQuestion, Subject, SubjectMaterial
 
 logger = logging.getLogger(__name__)
 
@@ -467,6 +467,10 @@ def subject_detail(request, pk):
             "latest_questions": latest_questions,
             "materials": materials,
             "materials_count": materials_count,
+            # 질의응답 탭 — 그 과목 질문만 보여 준다
+            "qna_items": QnaQuestion.objects.filter(
+                subject=subject).select_related("user")[:15],
+            "qna_count": QnaQuestion.objects.filter(subject=subject).count(),
         },
     )
 
@@ -1680,8 +1684,6 @@ def qna_list(request):
     과목은 사용자가 매번 고르는 대신 질문한 화면에서 자동으로 잡히므로,
     여기서는 이미 쌓인 질문을 과목으로 걸러 보는 역할만 한다.
     """
-    from .models import QnaQuestion
-
     subject_id = request.GET.get("subject") or ""
     cert = request.GET.get("cert") or ""
     mine = request.GET.get("mine") == "1"
@@ -1762,14 +1764,22 @@ def qna_create(request):
                      f"내일 다시 물어봐 주세요.",
         })
 
+    # 질문은 과목·자격증 화면에서만 받는다. 어디에 관한 물음인지 모르면
+    # 과목에 맞춘 답을 할 수 없고, 목록에서도 분류가 안 된다.
     subject = None
     sid = request.POST.get("subject_id") or ""
     if sid.isdigit():
         subject = Subject.objects.filter(pk=int(sid)).first()
+    cert_name = (request.POST.get("cert_name") or "").strip()[:50]
+    if subject is None and not cert_name:
+        return JsonResponse({
+            "ok": False,
+            "error": "과목 화면의 질의응답 탭에서 물어봐 주세요.",
+        })
 
     q = QnaQuestion.objects.create(
         subject=subject,
-        cert_name=(request.POST.get("cert_name") or "").strip()[:50],
+        cert_name=cert_name,
         cert_subject=(request.POST.get("cert_subject") or "").strip()[:50],
         user=request.user,
         title=title,

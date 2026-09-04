@@ -11,27 +11,11 @@
     .qna-head h1 { font-size: 1.5rem; color: var(--forest); margin: 0; }
     .qna-head .sub { color: #7d8f83; font-size: 0.85rem; }
 
-    /* 물어보기 */
-    .ask-box { background: #fff; border: 1px solid #e0ece0; border-radius: 12px;
-        padding: 16px 18px; margin-bottom: 18px; }
-    .ask-where { font-size: 0.8rem; color: #6b8a72; margin-bottom: 8px; }
-    .ask-where b { color: #1b4332; }
-    .ask-row { display: flex; gap: 8px; }
-    .ask-row input[type=text] { flex: 1; padding: 10px 13px; font-family: inherit;
-        font-size: 0.92rem; border: 1px solid #d6e3d6; border-radius: 8px; }
-    .ask-row input[type=text]:focus { outline: none; border-color: #2d6a4f;
-        box-shadow: 0 0 0 2px rgba(45,106,79,.15); }
-    .ask-row button { padding: 10px 22px; border: 0; border-radius: 8px;
-        background: var(--forest); color: #fff; font-family: inherit;
-        font-size: 0.9rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
-    .ask-row button:hover { background: #163728; }
-    .ask-row button:disabled { background: #b9c9bd; cursor: default; }
-    .ask-note { font-size: 0.76rem; color: #9aa8a0; margin-top: 7px; }
-    .ask-result { display: none; margin-top: 12px; padding: 13px 15px;
-        background: #f7faf6; border-left: 3px solid #2d6a4f; border-radius: 0 8px 8px 0;
-        font-size: 0.88rem; line-height: 1.75; white-space: pre-wrap; }
-    .ask-result.on { display: block; }
-    .ask-err { color: #b3261e; }
+    .read-note { background: #f7faf6; border: 1px solid #e0ece0;
+        border-left: 3px solid #2d6a4f; border-radius: 0 10px 10px 0;
+        padding: 12px 16px; margin-bottom: 16px;
+        font-size: 0.84rem; color: #4a6b56; line-height: 1.7; }
+    .read-note b { color: #1b4332; }
 
     /* 과목 고르기 */
     .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
@@ -76,18 +60,9 @@
         <span class="sub">궁금한 것을 물으면 AI가 우리 교재를 근거로 답합니다 · 모두 {{ total }}건</span>
     </div>
 
-    <div class="ask-box">
-        <div class="ask-where" id="askWhere">
-            {% if sel_subject %}<b id="whereName">과목</b>에 관해 물어봅니다.
-            {% else %}과목을 고르고 물어보면 그 과목에 맞춰 답합니다.{% endif %}
-        </div>
-        <div class="ask-row">
-            <input type="text" id="askTitle" maxlength="200"
-                   placeholder="예) 토양의 완충능은 무엇인가요?">
-            <button id="askBtn">물어보기</button>
-        </div>
-        <div class="ask-note">AI가 쓴 답이라 틀릴 수 있습니다. 시험 준비에는 교재와 함께 확인하세요.</div>
-        <div class="ask-result" id="askResult"></div>
+    <div class="read-note">
+        질문은 <b>각 과목·자격증 화면의 질의응답 탭</b>에서 합니다.
+        그래야 그 과목에 맞춰 답할 수 있습니다. 여기서는 쌓인 질문을 모아 봅니다.
     </div>
 
     <div class="filters">
@@ -108,7 +83,7 @@
     <div class="qlist">
         {% for q in questions %}
         <a class="qrow" href="{% url 'main:qna_detail' q.pk %}">
-            <span class="q-where">{{ q.where }}</span>
+            <span class="q-where">{% if q.subject %}{% if q.subject.grade %}{{ q.subject.grade }}학년 {% endif %}{{ q.subject.name }}{% else %}{{ q.where }}{% endif %}</span>
             <span class="q-title">{{ q.title }}</span>
             {% if q.note_ref %}<span class="q-note">📖 교재</span>{% endif %}
             {% if q.flagged %}<span class="q-flag">신고 {{ q.flagged }}</span>{% endif %}
@@ -124,47 +99,5 @@
     </div>
 </div>
 
-<script>
-const ASK_URL = "{% url 'main:qna_create' %}";
-const CSRF = "{{ csrf_token }}";
-let SUBJECT_ID = "{{ sel_subject }}";
 
-const btn = document.getElementById('askBtn');
-const inp = document.getElementById('askTitle');
-const out = document.getElementById('askResult');
-
-async function ask() {
-    const title = inp.value.trim();
-    if (!title) { inp.focus(); return; }
-    btn.disabled = true;
-    btn.textContent = '묻는 중…';
-    out.className = 'ask-result on';
-    out.textContent = '답을 쓰고 있습니다…';
-    try {
-        const body = new URLSearchParams({ title: title });
-        if (SUBJECT_ID) body.set('subject_id', SUBJECT_ID);
-        const r = await fetch(ASK_URL, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': CSRF,
-                       'Content-Type': 'application/x-www-form-urlencoded' },
-            body: body,
-        });
-        const d = await r.json();
-        if (!d.ok) {
-            out.innerHTML = '<span class="ask-err">' + (d.error || '답을 받지 못했습니다.') + '</span>';
-        } else {
-            /* 답을 받으면 바로 그 질문 페이지로 — 목록에도 남는다 */
-            location.href = d.url;
-            return;
-        }
-    } catch (e) {
-        out.innerHTML = '<span class="ask-err">' + e.message + '</span>';
-    }
-    btn.disabled = false;
-    btn.textContent = '물어보기';
-}
-
-btn.addEventListener('click', ask);
-inp.addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
-</script>
 {% endblock %}
