@@ -31,7 +31,7 @@
     /* 빈출 문항은 회차 배지가 10개까지 붙으므로 줄바꿈을 허용한다 */
     .sq-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;
         flex-wrap: wrap; row-gap: 5px; }
-    .sq-no { font-weight: 700; color: #1b4332; font-size: 1rem; min-width: 26px; }
+    .sq-no { font-weight: 700; font-size: 0.95rem; }
     .sq-type { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
         background: #eef2ee; color: #40624f; }
     /* 문항이 주제순으로 놓이므로 어느 주제인지 배지로 알린다 */
@@ -45,7 +45,7 @@
     .sq-freq.on { background: #a1651a; color: #fff; border-color: #a1651a; }
 
     /* 같은 주제의 다른 회차 문항 — 표현이 어떻게 바뀌는지 대조용 */
-    .sib { margin: 8px 0 4px 34px; border-left: 3px solid #d9c7a8;
+    .sib { margin: 8px 0 4px; border-left: 3px solid #d9c7a8;
         background: #fffdf8; border-radius: 0 8px 8px 0; padding: 10px 14px; }
     .sib.hidden { display: none; }
     .sib-head { font-size: 0.76rem; color: #a1651a; font-weight: 700;
@@ -82,12 +82,18 @@
     .sq-wfreq { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
         background: #e8eef5; color: #2d4a6b; font-weight: 700; }
     .sq-pts { margin-left: auto; font-size: 0.78rem; color: #999; }
+    /* 문제는 풀기 화면·인쇄 시험지와 같은 "N. 문제문" 한 줄. 배지·배점 줄은
+     * 따로 위에 둔다. 둘째 줄부터는 번호 폭만큼 들여 문장이 번호 아래로
+     * 들어가지 않게 한다. */
     .sq-text { font-size: 0.95rem; line-height: 1.75; color: #222;
-        padding-left: 34px; margin-bottom: 10px; }
-    .sq-img { display: block; max-width: min(100%, 420px); margin: 8px 0 8px 34px; }
+        padding-left: 20px; text-indent: -20px; margin-bottom: 10px; }
+    .sq-text .q-box, .sq-text table { text-indent: 0; }
+    .sq-text .q-box { margin-left: -20px !important; margin-right: 0 !important;
+        width: calc(100% + 20px); max-width: none !important; box-sizing: border-box; }
+    .sq-img { display: block; max-width: min(100%, 420px); margin: 8px 0; }
 
     /* 정답 영역 */
-    .ans { margin-left: 34px; background: #f7faf8; border-left: 3px solid #2d6a4f;
+    .ans { background: #f7faf8; border-left: 3px solid #2d6a4f;
         border-radius: 0 8px 8px 0; padding: 12px 16px; }
     .ans.hidden { display: none; }
     .ans-item { font-size: 0.9rem; line-height: 1.8; color: #1f3d30;
@@ -114,11 +120,19 @@
     .ans-ref .body .q-svg { text-align: center; }
     .ans-ref .body .q-svg svg { max-width: 100%; height: auto; }
 
-    .sq-toggle { margin-left: 34px; }
-    .btn-reveal { background: #eef2ee; color: #40624f; border: 0;
-        border-radius: 6px; padding: 6px 14px; font-size: 0.82rem;
-        font-weight: 600; cursor: pointer; }
-    .btn-reveal:hover { background: #dde7e0; }
+    /* 정답 보기/접기는 아이콘 버튼 — 눈(보기)·눈 가림(접기). 글자 버튼은
+     * 문항마다 되풀이돼 화면을 어지럽혔다. */
+    .sq-toggle { margin: 2px 0 6px; }
+    .btn-reveal { width: 30px; height: 30px; padding: 0; border: 1px solid #cfdad3;
+        border-radius: 50%; background: #fff; color: #40624f; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center; }
+    .btn-reveal:hover { background: #eef2ee; }
+    .btn-reveal svg { width: 17px; height: 17px; fill: none; stroke: currentColor;
+        stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+    .btn-reveal .i-hide { display: none; }
+    .btn-reveal.open { background: #1b4332; color: #fff; border-color: #1b4332; }
+    .btn-reveal.open .i-show { display: none; }
+    .btn-reveal.open .i-hide { display: block; }
 
     .es-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff;
         border-top: 1px solid #e5e5e5; padding: 9px 16px; z-index: 90;
@@ -130,8 +144,6 @@
     .bar-note { font-size: 0.82rem; color: #777; }
 
     @media (max-width: 600px) {
-        .sq-text, .ans, .sq-toggle { padding-left: 0; margin-left: 0; }
-        .sq-img { margin-left: 0; }
         .ans { border-radius: 8px; }
     }
 </style>
@@ -149,7 +161,6 @@
     {% for q in questions %}
     <div class="sq">
         <div class="sq-head">
-            <span class="sq-no">{% if study_mode != 'answer' %}{{ forloop.counter }}{% else %}{{ q.number }}{% endif %}</span>
             {% if q.topic_group %}<span class="sq-topic">{{ q.get_topic_group_display }}</span>{% endif %}
             <span class="sq-type">{{ q.get_qtype_display }}</span>
             {% if q.freq_rounds > 1 %}
@@ -161,12 +172,17 @@
             {% if study_mode == 'comeback' %}<span class="sq-wfreq">필기 {{ q.written_freq }}회</span>{% endif %}
             <span class="sq-pts">{{ q.points }}점</span>
         </div>
-        <div class="sq-text">{{ q.text|qtext }}</div>
+        <div class="sq-text"><span class="sq-no">{% if study_mode != 'answer' %}{{ forloop.counter }}{% else %}{{ q.number }}{% endif %}.</span> {{ q.text|qtext }}</div>
         {% if q.text_image %}<img class="sq-img" src="{{ q.text_image|vurl }}" alt="">{% endif %}
 
         {% if q.freq_rounds > 1 %}<div class="sib hidden" id="sib{{ q.pk }}"></div>{% endif %}
 
-        <div class="sq-toggle"><button class="btn-reveal" data-n="{{ q.pk }}">정답 보기</button></div>
+        <div class="sq-toggle">
+            <button class="btn-reveal" data-n="{{ q.pk }}" title="정답 보기" aria-label="정답 보기">
+                <svg class="i-show" viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="i-hide" viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 4l16 16"/></svg>
+            </button>
+        </div>
 
         <div class="ans hidden" id="ans{{ q.pk }}">
             {% for it in q.answer_items %}
@@ -208,20 +224,23 @@
 /* 정답 펼치기 — 처음에는 모두 접혀 있다. 스스로 떠올린 뒤 확인하는 흐름 */
 let allOpen = false;
 
+function setReveal(btn, open) {
+    btn.classList.toggle('open', open);
+    btn.title = btn.ariaLabel = open ? '정답 접기' : '정답 보기';
+}
+
 document.querySelectorAll('.btn-reveal').forEach(btn => {
     btn.addEventListener('click', () => {
         const box = document.getElementById('ans' + btn.dataset.n);
-        const open = box.classList.toggle('hidden');
-        btn.textContent = open ? '정답 보기' : '정답 접기';
+        const hidden = box.classList.toggle('hidden');
+        setReveal(btn, !hidden);
     });
 });
 
 document.getElementById('btnAll').addEventListener('click', () => {
     allOpen = !allOpen;
     document.querySelectorAll('.ans').forEach(b => b.classList.toggle('hidden', !allOpen));
-    document.querySelectorAll('.btn-reveal').forEach(b => {
-        b.textContent = allOpen ? '정답 접기' : '정답 보기';
-    });
+    document.querySelectorAll('.btn-reveal').forEach(b => setReveal(b, allOpen));
     document.getElementById('btnAll').textContent =
         allOpen ? '정답 모두 접기' : '정답 모두 보기';
 });
