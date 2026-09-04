@@ -314,6 +314,7 @@
                     <a href="http://www.studynamu.com" target="_blank" rel="noopener">나무의사</a>
                     <a href="{% url 'bbs:notice_list' %}">공지사항</a>
                     <a href="{% url 'main:mypage' %}">수강과목</a>
+                    <a href="{% url 'main:qna_list' %}">질의응답</a>
                     {% if user.is_staff %}
                     <a href="{% url 'main:subject_manage' %}" class="nav-admin">관리{% if pending_signup_count %} <span style="display:inline-block;background:#d93025;color:#fff;border-radius:10px;padding:1px 7px;font-size:0.72rem;font-weight:700;margin-left:2px;vertical-align:1px;">{{ pending_signup_count }}</span>{% endif %}</a>
                     {% endif %}

@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}질의응답{% endblock %}
+
+{% block extra_css %}
+<style>
+    .qna-wrap { width: min(1000px, 94vw); margin: 0 auto; }
+
+    .qna-head { display: flex; align-items: baseline; gap: 12px;
+        margin-bottom: 16px; flex-wrap: wrap; }
+    .qna-head h1 { font-size: 1.5rem; color: var(--forest); margin: 0; }
+    .qna-head .sub { color: #7d8f83; font-size: 0.85rem; }
+
+    /* 물어보기 */
+    .ask-box { background: #fff; border: 1px solid #e0ece0; border-radius: 12px;
+        padding: 16px 18px; margin-bottom: 18px; }
+    .ask-where { font-size: 0.8rem; color: #6b8a72; margin-bottom: 8px; }
+    .ask-where b { color: #1b4332; }
+    .ask-row { display: flex; gap: 8px; }
+    .ask-row input[type=text] { flex: 1; padding: 10px 13px; font-family: inherit;
+        font-size: 0.92rem; border: 1px solid #d6e3d6; border-radius: 8px; }
+    .ask-row input[type=text]:focus { outline: none; border-color: #2d6a4f;
+        box-shadow: 0 0 0 2px rgba(45,106,79,.15); }
+    .ask-row button { padding: 10px 22px; border: 0; border-radius: 8px;
+        background: var(--forest); color: #fff; font-family: inherit;
+        font-size: 0.9rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .ask-row button:hover { background: #163728; }
+    .ask-row button:disabled { background: #b9c9bd; cursor: default; }
+    .ask-note { font-size: 0.76rem; color: #9aa8a0; margin-top: 7px; }
+    .ask-result { display: none; margin-top: 12px; padding: 13px 15px;
+        background: #f7faf6; border-left: 3px solid #2d6a4f; border-radius: 0 8px 8px 0;
+        font-size: 0.88rem; line-height: 1.75; white-space: pre-wrap; }
+    .ask-result.on { display: block; }
+    .ask-err { color: #b3261e; }
+
+    /* 과목 고르기 */
+    .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .fpill { text-decoration: none; font-size: 0.8rem; padding: 5px 12px;
+        border-radius: 14px; background: #f1f7ee; color: #4a7256; font-weight: 600; }
+    .fpill:hover { background: #e2efdb; }
+    .fpill.on { background: var(--forest); color: #fff; }
+    .fpill .n { opacity: .65; font-size: 0.92em; margin-left: 3px; }
+
+    /* 목록 */
+    .qlist { background: #fff; border: 1px solid #e0ece0; border-radius: 12px;
+        overflow: hidden; }
+    .qrow { display: flex; align-items: baseline; gap: 10px; padding: 12px 16px;
+        border-bottom: 1px solid #f2f5f2; text-decoration: none; color: inherit; }
+    .qrow:last-child { border-bottom: 0; }
+    .qrow:hover { background: #fafdf8; }
+    .q-where { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; padding: 2px 9px;
+        border-radius: 9px; background: #eef5ea; color: #2d6a4f; white-space: nowrap; }
+    .q-title { flex: 1; font-size: 0.92rem; font-weight: 600; color: #1f2d24;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .q-note { flex-shrink: 0; font-size: 0.7rem; color: #8fa396; }
+    .q-meta { flex-shrink: 0; font-size: 0.76rem; color: #96a69c;
+        display: flex; gap: 10px; align-items: baseline; }
+    .q-meta .who { font-weight: 600; color: #6b8a72; }
+    .q-meta .eye::before { content: "👁 "; opacity: .5; }
+    .q-flag { color: #c07a1a; font-size: 0.72rem; }
+
+    .empty { padding: 40px 20px; text-align: center; color: #93a399; }
+
+    @media (max-width: 640px) {
+        .qna-head h1 { font-size: 1.22rem; }
+        .q-note, .q-meta .when { display: none; }
+        .q-title { white-space: normal; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="qna-wrap">
+    <div class="qna-head">
+        <h1>질의응답</h1>
+        <span class="sub">궁금한 것을 물으면 AI가 우리 교재를 근거로 답합니다 · 모두 {{ total }}건</span>
+    </div>
+
+    <div class="ask-box">
+        <div class="ask-where" id="askWhere">
+            {% if sel_subject %}<b id="whereName">과목</b>에 관해 물어봅니다.
+            {% else %}과목을 고르고 물어보면 그 과목에 맞춰 답합니다.{% endif %}
+        </div>
+        <div class="ask-row">
+            <input type="text" id="askTitle" maxlength="200"
+                   placeholder="예) 토양의 완충능은 무엇인가요?">
+            <button id="askBtn">물어보기</button>
+        </div>
+        <div class="ask-note">AI가 쓴 답이라 틀릴 수 있습니다. 시험 준비에는 교재와 함께 확인하세요.</div>
+        <div class="ask-result" id="askResult"></div>
+    </div>
+
+    <div class="filters">
+        <a class="fpill {% if not sel_subject and not sel_cert and not mine %}on{% endif %}"
+           href="{% url 'main:qna_list' %}">전체</a>
+        <a class="fpill {% if mine %}on{% endif %}"
+           href="?mine=1">내 질문</a>
+        {% for s in subjects %}
+        <a class="fpill {% if sel_subject == s.pk|stringformat:'s' %}on{% endif %}"
+           href="?subject={{ s.pk }}" data-sid="{{ s.pk }}" data-name="{{ s.name }}">{{ s.name }}<span class="n">{{ s.qna_count }}</span></a>
+        {% endfor %}
+        {% for c in cert_counts %}
+        <a class="fpill {% if sel_cert == c.cert_name %}on{% endif %}"
+           href="?cert={{ c.cert_name|urlencode }}">{{ c.cert_name }}<span class="n">{{ c.n }}</span></a>
+        {% endfor %}
+    </div>
+
+    <div class="qlist">
+        {% for q in questions %}
+        <a class="qrow" href="{% url 'main:qna_detail' q.pk %}">
+            <span class="q-where">{{ q.where }}</span>
+            <span class="q-title">{{ q.title }}</span>
+            {% if q.note_ref %}<span class="q-note">📖 교재</span>{% endif %}
+            {% if q.flagged %}<span class="q-flag">신고 {{ q.flagged }}</span>{% endif %}
+            <span class="q-meta">
+                <span class="who">{{ q.user.first_name|default:q.user.username }}</span>
+                <span class="eye">{{ q.view_count }}</span>
+                <span class="when">{{ q.created_at|date:"m.d" }}</span>
+            </span>
+        </a>
+        {% empty %}
+        <div class="empty">아직 질문이 없습니다. 첫 질문을 남겨 보세요.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+const ASK_URL = "{% url 'main:qna_create' %}";
+const CSRF = "{{ csrf_token }}";
+let SUBJECT_ID = "{{ sel_subject }}";
+
+const btn = document.getElementById('askBtn');
+const inp = document.getElementById('askTitle');
+const out = document.getElementById('askResult');
+
+async function ask() {
+    const title = inp.value.trim();
+    if (!title) { inp.focus(); return; }
+    btn.disabled = true;
+    btn.textContent = '묻는 중…';
+    out.className = 'ask-result on';
+    out.textContent = '답을 쓰고 있습니다…';
+    try {
+        const body = new URLSearchParams({ title: title });
+        if (SUBJECT_ID) body.set('subject_id', SUBJECT_ID);
+        const r = await fetch(ASK_URL, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': CSRF,
+                       'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body,
+        });
+        const d = await r.json();
+        if (!d.ok) {
+            out.innerHTML = '<span class="ask-err">' + (d.error || '답을 받지 못했습니다.') + '</span>';
+        } else {
+            /* 답을 받으면 바로 그 질문 페이지로 — 목록에도 남는다 */
+            location.href = d.url;
+            return;
+        }
+    } catch (e) {
+        out.innerHTML = '<span class="ask-err">' + e.message + '</span>';
+    }
+    btn.disabled = false;
+    btn.textContent = '물어보기';
+}
+
+btn.addEventListener('click', ask);
+inp.addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
+</script>
+{% endblock %}

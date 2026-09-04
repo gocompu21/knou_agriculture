@@ -110,3 +110,79 @@ class SubjectViewLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username} viewed {self.subject.name}[{self.tab}] @ {self.viewed_at:%Y-%m-%d %H:%M}"
+
+
+class QnaQuestion(models.Model):
+    """질의응답 — 과목별로 묻고 AI가 답한다.
+
+    답은 Gemini 가 실시간으로 쓴다. 사전 검증을 거치지 않으므로 화면에
+    그 사실을 밝히고, 이상한 답을 신고받아(flagged) 관리 화면에서
+    모아 볼 수 있게 한다. 실제로 생태통로 기능이나 파편화 용어처럼
+    정설과 어긋난 서술이 나오는 일이 있다.
+
+    과목은 사용자가 고르는 대신 질문한 화면에서 자동으로 잡는다.
+    회원 대부분이 한쪽 시험만 쓰고(방송대 59 / 기사 8 / 둘 다 24),
+    실기는 과목 구분 자체가 없어 고르게 하면 번거롭기만 하다.
+    """
+    subject = models.ForeignKey(
+        Subject, on_delete=models.CASCADE, related_name='questions',
+        null=True, blank=True, verbose_name='과목')
+    # 기사시험 쪽 질문은 자격증으로 묶는다 (문자열로 두어 앱 간 결합을 피함)
+    cert_name = models.CharField('자격증', max_length=50, blank=True, default='')
+    cert_subject = models.CharField('기사 과목', max_length=50, blank=True, default='')
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='qna_questions', verbose_name='질문자')
+    title = models.CharField('질문', max_length=200)
+    body = models.TextField('보충 설명', blank=True, default='')
+
+    answer = models.TextField('답변', blank=True, default='')
+    answer_model = models.CharField('모델', max_length=40, blank=True, default='')
+    # 답에 근거로 쓴 쪽집게 노트 대목. 비어 있으면 교재 밖 내용이라는 뜻이라
+    # 화면에서 그 차이를 알려 준다.
+    note_ref = models.CharField('참고 노트', max_length=200, blank=True, default='')
+    answered_at = models.DateTimeField('답변 시각', null=True, blank=True)
+    error = models.CharField('오류', max_length=200, blank=True, default='')
+
+    view_count = models.PositiveIntegerField('조회수', default=0)
+    flagged = models.PositiveIntegerField('신고', default=0)
+    created_at = models.DateTimeField('작성일', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '질의응답'
+        verbose_name_plural = '질의응답'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['subject', '-created_at']),
+            models.Index(fields=['cert_name', '-created_at']),
+            models.Index(fields=['user', '-created_at']),
+        ]
+
+    def __str__(self):
+        where = self.subject.name if self.subject else (self.cert_name or '전체')
+        return f"[{where}] {self.title[:30]}"
+
+    @property
+    def where(self):
+        """질문이 걸린 자리 — 과목 또는 자격증(+과목)"""
+        if self.subject:
+            return self.subject.name
+        if self.cert_subject:
+            return f"{self.cert_name} · {self.cert_subject}"
+        return self.cert_name or '전체'
+
+
+class QnaView(models.Model):
+    """질문 조회 기록 — 같은 사람이 여러 번 열어도 조회수는 한 번만 센다."""
+    question = models.ForeignKey(
+        QnaQuestion, on_delete=models.CASCADE, related_name='views')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='qna_views')
+    viewed_at = models.DateTimeField('시각', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '질문 조회'
+        verbose_name_plural = '질문 조회'
+        unique_together = [('question', 'user')]

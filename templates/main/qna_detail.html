@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}{{ q.title|truncatechars:30 }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .qd-wrap { width: min(860px, 94vw); margin: 0 auto; }
+
+    .qd-back { display: inline-block; font-size: 0.82rem; color: #6b8a72;
+        text-decoration: none; margin-bottom: 12px; }
+    .qd-back:hover { color: #1b4332; }
+
+    .qd-head { background: #fff; border: 1px solid #e0ece0; border-radius: 12px;
+        padding: 18px 20px; margin-bottom: 14px; }
+    .qd-where { display: inline-block; font-size: 0.74rem; font-weight: 700;
+        padding: 2px 10px; border-radius: 9px; background: #eef5ea; color: #2d6a4f;
+        margin-bottom: 9px; }
+    .qd-title { font-size: 1.16rem; font-weight: 700; color: #1b4332;
+        line-height: 1.5; margin: 0 0 6px; word-break: keep-all; }
+    .qd-body { font-size: 0.9rem; line-height: 1.75; color: #445; margin: 8px 0 0;
+        white-space: pre-wrap; }
+    .qd-meta { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline;
+        font-size: 0.78rem; color: #93a399; margin-top: 12px;
+        padding-top: 10px; border-top: 1px solid #f2f5f2; }
+    .qd-meta .who { font-weight: 700; color: #4a7256; }
+
+    /* 답변 */
+    .qd-ans { background: #fff; border: 1px solid #e0ece0; border-radius: 12px;
+        padding: 18px 20px; }
+    .ans-top { display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+        padding-bottom: 10px; border-bottom: 1px solid #f2f5f2; flex-wrap: wrap; }
+    .ans-tag { font-size: 0.74rem; font-weight: 700; padding: 2px 10px;
+        border-radius: 9px; background: #1b4332; color: #fff; }
+    .ans-note { font-size: 0.75rem; color: #6b8a72; background: #f1f7ee;
+        padding: 2px 9px; border-radius: 9px; }
+    .ans-none { font-size: 0.75rem; color: #a5875a; background: #fdf6e8;
+        padding: 2px 9px; border-radius: 9px; }
+    .ans-model { margin-left: auto; font-size: 0.72rem; color: #b3c0b7; }
+
+    .ans-text { font-size: 0.92rem; line-height: 1.85; color: #222;
+        word-break: keep-all; }
+    .ans-text h3 { font-size: 0.96rem; color: #1b4332; margin: 16px 0 6px; }
+    .ans-text p { margin: 0 0 10px; }
+    .ans-text ul { padding-left: 20px; margin: 6px 0 12px; }
+    .ans-text li { margin: 4px 0; }
+    .ans-text strong { color: #1b4332; }
+    .ans-text code { background: #f2f5f3; padding: 1px 5px; border-radius: 4px;
+        font-size: 0.92em; }
+
+    .qd-warn { font-size: 0.78rem; color: #96805a; background: #fdf9ef;
+        border: 1px solid #f0e6cf; border-radius: 8px; padding: 9px 13px;
+        margin-top: 14px; line-height: 1.65; }
+
+    .qd-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .qd-btn { font-size: 0.8rem; padding: 7px 15px; border-radius: 14px;
+        border: 1px solid #dde7de; background: #fff; color: #5a7a63;
+        font-family: inherit; font-weight: 600; cursor: pointer; }
+    .qd-btn:hover { background: #f3f8f1; }
+    .qd-btn.warn:hover { background: #fdf3f2; border-color: #e6c9c5; color: #b3261e; }
+    .qd-btn:disabled { opacity: .5; cursor: default; }
+
+    /* 조회자 */
+    .viewers { margin-top: 16px; background: #fff; border: 1px solid #e0ece0;
+        border-radius: 12px; padding: 14px 18px; }
+    .viewers h2 { font-size: 0.88rem; color: #4a7256; margin: 0 0 9px; }
+    .viewer-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .viewer { font-size: 0.76rem; padding: 3px 10px; border-radius: 10px;
+        background: #f4f8f2; color: #5a7a63; }
+    .viewer b { font-weight: 700; color: #3d6149; }
+
+    .err-box { background: #fdf3f2; border: 1px solid #f0d9d6; border-radius: 10px;
+        padding: 14px 16px; font-size: 0.86rem; color: #b3261e; line-height: 1.7; }
+
+    @media (max-width: 640px) {
+        .qd-title { font-size: 1.04rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="qd-wrap">
+    <a class="qd-back" href="{% url 'main:qna_list' %}">&lsaquo; 질의응답 목록</a>
+
+    <div class="qd-head">
+        <span class="qd-where">{{ q.where }}</span>
+        <h1 class="qd-title">{{ q.title }}</h1>
+        {% if q.body %}<div class="qd-body">{{ q.body }}</div>{% endif %}
+        <div class="qd-meta">
+            <span class="who">{{ q.user.first_name|default:q.user.username }}</span>
+            <span>{{ q.created_at|date:"Y.m.d H:i" }}</span>
+            <span>조회 {{ q.view_count }}</span>
+            {% if q.flagged %}<span style="color:#c07a1a">신고 {{ q.flagged }}</span>{% endif %}
+        </div>
+    </div>
+
+    {% if q.answer %}
+    <div class="qd-ans">
+        <div class="ans-top">
+            <span class="ans-tag">AI 답변</span>
+            {% if q.note_ref %}
+            <span class="ans-note">📖 {{ q.note_ref }}</span>
+            {% else %}
+            <span class="ans-none">교재 밖 내용</span>
+            {% endif %}
+            <span class="ans-model">{{ q.answer_model }}</span>
+        </div>
+        <div class="ans-text" id="ansText">{{ q.answer }}</div>
+
+        <div class="qd-warn">
+            AI가 쓴 답이라 <b>틀릴 수 있습니다</b>.
+            {% if not q.note_ref %}우리 교재에서 관련 대목을 찾지 못해 일반 지식으로 답했으므로 시험 범위를 벗어날 수 있습니다.{% endif %}
+            시험 준비에는 교재와 함께 확인하세요.
+        </div>
+
+        <div class="qd-actions">
+            <button class="qd-btn warn" id="flagBtn">이 답이 이상해요</button>
+            {% if q.user_id == request.user.id or request.user.is_staff %}
+            <button class="qd-btn warn" id="delBtn">질문 지우기</button>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="err-box">
+        답을 받지 못했습니다.{% if q.error %}<br><small>{{ q.error }}</small>{% endif %}
+    </div>
+    {% endif %}
+
+    {% if viewers %}
+    <div class="viewers">
+        <h2>이 질문을 본 사람 {{ q.view_count }}명</h2>
+        <div class="viewer-list">
+            {% for v in viewers %}
+            <span class="viewer"><b>{{ v.user.first_name|default:v.user.username }}</b> {{ v.viewed_at|date:"m.d" }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+const CSRF = "{{ csrf_token }}";
+const PK = {{ q.pk }};
+
+/* 마크다운 비슷하게 온 답을 읽기 좋게 — **강조**, 목록, 제목만 처리한다.
+   LaTeX 표기($\text{H}^+$)가 섞여 오므로 걷어낸다. */
+(function () {
+    const el = document.getElementById('ansText');
+    if (!el) return;
+    let t = el.textContent;
+    t = t.replace(/\$\\text\{([^}]*)\}\$/g, '$1')
+         .replace(/\$([^$\n]{1,40})\$/g, '$1')
+         .replace(/\\text\{([^}]*)\}/g, '$1');
+    const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const out = [];
+    let ul = false;
+    t.split('\n').forEach(raw => {
+        const line = raw.trim();
+        if (!line) { if (ul) { out.push('</ul>'); ul = false; } return; }
+        let h = esc(line);
+        h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        h = h.replace(/`([^`]+)`/g, '<code>$1</code>');
+        if (/^#{1,4}\s/.test(line)) {
+            if (ul) { out.push('</ul>'); ul = false; }
+            out.push('<h3>' + h.replace(/^#{1,4}\s*/, '') + '</h3>');
+        } else if (/^[*\-•]\s/.test(line) || /^\d+\.\s/.test(line)) {
+            if (!ul) { out.push('<ul>'); ul = true; }
+            out.push('<li>' + h.replace(/^([*\-•]|\d+\.)\s*/, '') + '</li>');
+        } else {
+            if (ul) { out.push('</ul>'); ul = false; }
+            out.push('<p>' + h + '</p>');
+        }
+    });
+    if (ul) out.push('</ul>');
+    el.innerHTML = out.join('');
+})();
+
+const flagBtn = document.getElementById('flagBtn');
+if (flagBtn) flagBtn.addEventListener('click', async () => {
+    if (!confirm('이 답에 문제가 있다고 알릴까요?')) return;
+    flagBtn.disabled = true;
+    await fetch(`/qna/${PK}/flag/`, {
+        method: 'POST', headers: { 'X-CSRFToken': CSRF },
+    });
+    flagBtn.textContent = '알려 주셔서 고맙습니다';
+});
+
+const delBtn = document.getElementById('delBtn');
+if (delBtn) delBtn.addEventListener('click', async () => {
+    if (!confirm('이 질문을 지울까요?')) return;
+    const r = await fetch(`/qna/${PK}/delete/`, {
+        method: 'POST', headers: { 'X-CSRFToken': CSRF },
+    });
+    const d = await r.json();
+    if (d.ok) location.href = "{% url 'main:qna_list' %}";
+    else alert(d.error || '지우지 못했습니다.');
+});
+</script>
+{% endblock %}

@@ -1669,3 +1669,141 @@ def material_print_log(request, pk, material_pk):
         return JsonResponse({'ok': True})
     except Exception as e:
         return JsonResponse({'ok': False, 'error': str(e)}, status=500)
+
+
+# ---------------------------------------------------------------- 질의응답
+
+@login_required
+def qna_list(request):
+    """질의응답 목록 — 과목별로 걸러 본다.
+
+    과목은 사용자가 매번 고르는 대신 질문한 화면에서 자동으로 잡히므로,
+    여기서는 이미 쌓인 질문을 과목으로 걸러 보는 역할만 한다.
+    """
+    from .models import QnaQuestion
+
+    subject_id = request.GET.get("subject") or ""
+    cert = request.GET.get("cert") or ""
+    mine = request.GET.get("mine") == "1"
+
+    qs = QnaQuestion.objects.select_related("subject", "user")
+    if subject_id.isdigit():
+        qs = qs.filter(subject_id=int(subject_id))
+    elif cert:
+        qs = qs.filter(cert_name=cert)
+    if mine:
+        qs = qs.filter(user=request.user)
+
+    # 과목 곁의 숫자는 "그 과목에 쌓인 질문 수"라 목록을 고르는 데 쓰인다
+    counts = dict(
+        QnaQuestion.objects.exclude(subject=None)
+        .values_list("subject_id")
+        .annotate(n=Count("id"))
+    )
+    subjects = []
+    for s in Subject.objects.order_by("grade", "name"):
+        n = counts.get(s.pk)
+        if n:
+            s.qna_count = n
+            subjects.append(s)
+    cert_counts = (
+        QnaQuestion.objects.exclude(cert_name="")
+        .values("cert_name").annotate(n=Count("id")).order_by("-n")
+    )
+
+    return render(request, "main/qna_list.html", {
+        "questions": qs[:200],
+        "subjects": subjects,
+        "counts": counts,
+        "cert_counts": cert_counts,
+        "sel_subject": subject_id,
+        "sel_cert": cert,
+        "mine": mine,
+        "total": QnaQuestion.objects.count(),
+    })
+
+
+@login_required
+def qna_detail(request, pk):
+    from .models import QnaQuestion, QnaView
+
+    q = get_object_or_404(
+        QnaQuestion.objects.select_related("subject", "user"), pk=pk)
+    # 조회수는 사람 단위로 센다 — 같은 사람이 여러 번 열어도 하나다
+    _, created = QnaView.objects.get_or_create(question=q, user=request.user)
+    if created:
+        QnaQuestion.objects.filter(pk=q.pk).update(view_count=F("view_count") + 1)
+        q.refresh_from_db(fields=["view_count"])
+
+    return render(request, "main/qna_detail.html", {
+        "q": q,
+        "viewers": q.views.select_related("user").order_by("-viewed_at")[:30],
+    })
+
+
+@login_required
+@require_POST
+def qna_create(request):
+    """질문을 올리고 곧바로 답을 받는다."""
+    from .models import QnaQuestion
+    from . import qna as qna_engine
+
+    title = (request.POST.get("title") or "").strip()
+    if not title:
+        return JsonResponse({"ok": False, "error": "질문을 입력해 주세요."})
+    if len(title) > 200:
+        return JsonResponse({"ok": False, "error": "질문은 200자 이내로 써 주세요."})
+
+    left = qna_engine.remaining_today(request.user)
+    if left <= 0:
+        return JsonResponse({
+            "ok": False,
+            "error": f"하루 질문 한도({qna_engine.DAILY_LIMIT}회)를 다 썼습니다. "
+                     f"내일 다시 물어봐 주세요.",
+        })
+
+    subject = None
+    sid = request.POST.get("subject_id") or ""
+    if sid.isdigit():
+        subject = Subject.objects.filter(pk=int(sid)).first()
+
+    q = QnaQuestion.objects.create(
+        subject=subject,
+        cert_name=(request.POST.get("cert_name") or "").strip()[:50],
+        cert_subject=(request.POST.get("cert_subject") or "").strip()[:50],
+        user=request.user,
+        title=title,
+        body=(request.POST.get("body") or "").strip()[:2000],
+    )
+    ok = qna_engine.ask_gemini(q)
+    return JsonResponse({
+        "ok": ok,
+        "pk": q.pk,
+        "answer": q.answer,
+        "note_ref": q.note_ref,
+        "error": q.error,
+        "left": qna_engine.remaining_today(request.user),
+        "url": f"/qna/{q.pk}/",
+    })
+
+
+@login_required
+@require_POST
+def qna_flag(request, pk):
+    """답이 이상하다는 신고 — 관리 화면에서 모아 본다."""
+    from .models import QnaQuestion
+
+    QnaQuestion.objects.filter(pk=pk).update(flagged=F("flagged") + 1)
+    return JsonResponse({"ok": True})
+
+
+@login_required
+@require_POST
+def qna_delete(request, pk):
+    from .models import QnaQuestion
+
+    q = get_object_or_404(QnaQuestion, pk=pk)
+    if q.user_id != request.user.id and not request.user.is_staff:
+        return JsonResponse({"ok": False, "error": "지울 권한이 없습니다."})
+    q.delete()
+    return JsonResponse({"ok": True})
