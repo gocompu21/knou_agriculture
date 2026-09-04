@@ -619,11 +619,22 @@ def essay_upload(request, cert_id, session_id):
 
     try:
         from .essay_ocr import transcribe_uploads
-        results = transcribe_uploads(session, uploads)
+        results, rejected = transcribe_uploads(session, uploads)
     except Exception as e:
         return JsonResponse({'ok': False, 'error': f'판독 실패: {e}'}, status=500)
 
-    return JsonResponse({'ok': True, 'answers': results})
+    # 이 시험지가 아닌 사진은 업로드 기록도 지운다 — 남겨 두면 쪽 번호가
+    # 밀리고 하루 판독 한도까지 먹는다.
+    bad_pages = {r['page_no'] for r in rejected if r['reason'].startswith('다른 시험지')}
+    for up in uploads:
+        if up.page_no in bad_pages:
+            up.image.delete(save=False)
+            up.delete()
+
+    if not results and rejected:
+        return JsonResponse({'ok': False, 'error': rejected[0]['reason'],
+                             'rejected': rejected}, status=422)
+    return JsonResponse({'ok': True, 'answers': results, 'rejected': rejected})
 
 
 @login_required

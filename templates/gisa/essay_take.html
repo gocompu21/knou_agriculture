@@ -411,6 +411,7 @@ document.getElementById('upgo').addEventListener('click', async () => {
     // 한 장씩 보낸다. 서버는 원래 장별로 판독하고 같은 문항은 이어 붙이므로,
     // 나눠 보내도 결과는 같고 대신 장마다 진행을 보여 줄 수 있다.
     const collected = {};       // question_id → 이어 붙인 답
+    const notes = [];           // 서버가 뺀 문항·쪽에 대한 설명
     let failed = 0;
     for (let i = 0; i < total; i++) {
         const it = items[i];
@@ -425,6 +426,8 @@ document.getElementById('upgo').addEventListener('click', async () => {
             });
             const d = await r.json();
             if (!d.ok) throw new Error(d.error || '판독 실패');
+            // 이 시험지가 아닌 문항은 서버가 빼고 알려준다. 사용자가 알아야 한다.
+            (d.rejected || []).forEach(x => notes.push(`${i + 1}쪽: ${x.reason}`));
             (d.answers || []).forEach(a => {
                 const t = (a.text || '').trim();
                 if (!t) return;
@@ -445,6 +448,12 @@ document.getElementById('upgo').addEventListener('click', async () => {
     }
     saveDraft();
     const filled = Object.keys(collected).length;
+    // 다른 시험지·다른 문항이라 뺀 것은 실패한 장의 사유와 함께 보여 준다
+    const why = [];
+    items.forEach((it, i) => { if (it.classList.contains('fail')) why.push(`${i + 1}쪽: ${it.title}`); });
+    const detail = why.concat(notes).length
+        ? `<div style="margin-top:8px;font-weight:400;color:#8a3b00;text-align:left;display:inline-block">`
+          + why.concat(notes).map(t => `· ${t}`).join('<br>') + `</div>` : '';
     if (failed) {
         // 읽은 장은 큐에서 빼 두어야 다시 시도할 때 그 장까지 또 보내지 않는다.
         // 판독은 장마다 API 를 부르고 하루 한도도 장수로 세므로 두 번 보내면 낭비다.
@@ -454,11 +463,11 @@ document.getElementById('upgo').addEventListener('click', async () => {
         upRender();
         status.innerHTML = `<span style="color:#c62828">${failed}장은 읽지 못했습니다.</span> `
             + `${filled}개 문항을 읽었습니다. 읽은 장은 치웠으니, 남은 장을 `
-            + `다시 찍어 바꾸거나 그대로 다시 판독해 보세요.`;
+            + `다시 찍어 바꾸거나 그대로 다시 판독해 보세요.` + detail;
         go.disabled = false;
     } else {
         status.innerHTML = `${total}장 모두 판독했습니다. ${filled}개 문항을 읽었습니다. `
-            + `<b>내용을 확인하고 필요하면 고친 뒤 제출하세요.</b>`;
+            + `<b>내용을 확인하고 필요하면 고친 뒤 제출하세요.</b>` + detail;
         upQueue.length = 0; upRender();
         prog.classList.remove('on');
     }

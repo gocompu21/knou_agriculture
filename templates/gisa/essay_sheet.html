@@ -122,8 +122,18 @@
     .sq-box.h2 { height: 160px; }   /* 5줄 ≈ 200자 — 열거·표그림 */
     .sq-box.h3 { height: 256px; }   /* 8줄 ≈ 320자 — 서술·계산 */
 
+    /* 인쇄할 때 모든 쪽 오른쪽 위에 시험지 코드를 찍는다. 화면에서는 감춘다.
+     * 사진 판독 때 코드로 "이 시험지가 맞는지"를 가리는데, 코드가 1쪽에만
+     * 있으면 2쪽부터는 대조할 길이 없다. print 의 position:fixed 는
+     * 모든 쪽에 되풀이 찍힌다. */
+    .sh-run { display: none; }
+
     @media print {
         .sheet-bar, .sheet-tip { display: none !important; }
+        .sh-run { display: block; position: fixed; top: 0; right: 0;
+            font-size: 0.68rem; color: #555; font-family: ui-monospace, monospace;
+            letter-spacing: 1px; }
+        .sh-run b { color: #111; font-size: 0.8rem; }
         body { background: #fff !important; }
         .sheet { box-shadow: none; margin: 0; padding: 0 6mm; max-width: none; }
         @page { size: A4; margin: 12mm 10mm; }
@@ -150,6 +160,7 @@
 </div>
 
 <div class="sheet">
+    <div class="sh-run">시험지 코드 <b>{{ session.paper_code }}</b> · {{ session.label }}</div>
     <div class="sh-head">
         <div class="sh-title">
             <h1>{{ cert.name }} 실기 필답형</h1>

@@ -84,11 +84,47 @@ def _page_prompt(questions):
         text = (q.text or '').split('\n')[0][:110]
         lines.append(f"{q.number}번: {text}")
 
+    lines += ["",
+              "함께 읽어야 할 것:",
+              "- 페이지 오른쪽 위에 '시험지 코드'라는 작은 글씨와 영문·숫자 10자가 "
+              "인쇄돼 있으면 그 코드를 paper_code 에 그대로 적는다. 보이지 않으면 빈 문자열.",
+              "- 각 답안 위에 인쇄된 문제문(발문)의 첫 15자 안팎을 stem 에 읽히는 대로 적는다. "
+              "위 목록과 다르더라도 고쳐 쓰지 말고 사진에 인쇄된 대로 적는다.",
+              "  (이 사진이 정말 이 시험지인지 대조하는 데 쓴다)"]
+
     terms = _collect_terms(questions)
     if terms:
         lines += ["", "[출제 용어] 답안에 나올 가능성이 높은 표기입니다.",
                   ' · '.join(terms)]
     return '\n'.join(lines)
+
+
+# 시험지 코드는 16진수 대문자다. 판독 모델이 0↔O, 1↔I 처럼 헷갈리는 글자를
+# 코드에 나올 수 있는 쪽으로 되돌린 뒤 비교한다.
+_CODE_FIX = str.maketrans({'O': '0', 'Q': '0', 'I': '1', 'L': '1', 'Z': '2',
+                           'S': '5', 'G': '6', 'B': '8'})
+
+
+def _norm_code(s):
+    import re
+    s = re.sub(r'[^0-9A-Za-z]', '', s or '').upper()
+    return s.translate(_CODE_FIX)
+
+
+def _stem_match(stem, text):
+    """사진에서 읽은 발문 머리가 실제 문항의 발문과 같은가.
+
+    글자 단위 겹침으로 본다. 손글씨 판독처럼 정밀할 필요는 없고, 전혀 다른
+    문제를 걸러내면 된다 — 같은 문항이면 대개 0.8 이상, 다른 문항이면 0.3 아래다.
+    """
+    import re
+    a = re.sub(r'[^가-힣A-Za-z0-9]', '', stem or '')
+    b = re.sub(r'[^가-힣A-Za-z0-9]', '', (text or '').split('\n')[0])
+    if len(a) < 4:
+        return None                 # 읽지 못했으면 판단 보류
+    head = b[:max(len(a) + 4, 12)]
+    hit = sum(1 for ch in a if ch in head)
+    return hit / len(a)
 
 
 def transcribe_uploads(session, uploads):
@@ -114,14 +150,18 @@ def transcribe_uploads(session, uploads):
 
     class AnswerItem(BaseModel):
         number: int = Field(description="문항 번호")
+        stem: str = Field(default='', description="답안 위에 인쇄된 문제문의 첫 15자 안팎, 읽히는 대로")
         text: str = Field(description="손글씨를 그대로 옮긴 답안. 비었으면 빈 문자열")
 
     class PageResult(BaseModel):
+        paper_code: str = Field(default='', description="페이지 오른쪽 위의 시험지 코드. 없으면 빈 문자열")
         answers: list[AnswerItem]
 
     client = genai.Client(api_key=api_key)
     model = settings.GEMINI_ESSAY_OCR_MODEL
     collected = {}
+    rejected = []          # [{'page_no', 'reason'}] — 이 시험지가 아닌 사진
+    want_code = _norm_code(session.paper_code)
 
     for up in uploads:
         path = pathlib.Path(up.image.path)
@@ -142,9 +182,52 @@ def transcribe_uploads(session, uploads):
             },
         )
         parsed = PageResult.model_validate_json(response.text)
+
+        # ── 이 시험지가 맞는가 ─────────────────────────────────────
+        # 번호만 보고 넣으면 다른 회차 시험지도 번호가 같으면 그대로 들어간다.
+        # 1) 코드가 보이면 코드로 판정한다 — 가장 확실하다.
+        got_code = _norm_code(parsed.paper_code)
+        if want_code and len(got_code) >= 6 and got_code != want_code:
+            rejected.append({
+                'page_no': up.page_no,
+                'reason': f'다른 시험지 사진입니다 (사진의 코드 {parsed.paper_code.strip()}, '
+                          f'이 시험지는 {session.paper_code})',
+            })
+            continue
+
+        # 2) 코드가 안 보이면(2쪽부터는 없을 수 있다) 인쇄된 발문으로 판정한다.
+        #    읽힌 발문이 있는 문항 가운데 절반 넘게 어긋나면 다른 시험지다.
+        judged, wrong = 0, []
         for item in parsed.answers:
             q = by_number.get(item.number)
             if not q:
+                continue
+            r = _stem_match(item.stem, q.text)
+            if r is None:
+                continue
+            judged += 1
+            if r < 0.5:
+                wrong.append(item.number)
+        if judged >= 2 and len(wrong) * 2 > judged:
+            rejected.append({
+                'page_no': up.page_no,
+                'reason': '다른 시험지 사진입니다 — 인쇄된 문제가 이 시험지의 '
+                          f'{", ".join(str(n) for n in wrong)}번과 다릅니다',
+            })
+            continue
+
+        for item in parsed.answers:
+            q = by_number.get(item.number)
+            if not q:
+                continue
+            # 발문이 읽혔는데 다른 문제면 그 답만 빼고, 나머지는 살린다
+            r = _stem_match(item.stem, q.text)
+            if r is not None and r < 0.5:
+                rejected.append({
+                    'page_no': up.page_no,
+                    'reason': f'{item.number}번 답안 위에 인쇄된 문제가 이 시험지의 '
+                              f'{item.number}번과 달라 넣지 않았습니다',
+                })
                 continue
             text = (item.text or '').strip()
             if not text:
@@ -171,4 +254,4 @@ def transcribe_uploads(session, uploads):
             'text': text,
         })
     results.sort(key=lambda r: r['number'])
-    return results
+    return results, rejected
