@@ -59,11 +59,24 @@
      * 번호와 박스 왼쪽 선이 어긋났다. 문제가 줄바꿈되면 둘째 줄부터
      * 번호 너비만큼 들여써 번호만 도드라지게 한다. */
     .sq-head { position: relative; margin: 0 0 6px 32px;
-        padding-left: 20px; padding-right: 52px; text-indent: -20px; }
+        padding-left: 20px; text-indent: -20px; }
     .sq-no { font-weight: 700; font-size: 0.95rem; }
     .sq-text { font-size: 0.9rem; line-height: 1.65; color: #111; }
-    /* 배점은 발문 첫 줄 오른쪽에 고정한다. 글 흐름에 맡기면 [box] 지문이나
-     * 표가 뒤따르는 문항에서 그 아래로 밀려난다. */
+    /* 배점과 겹치지 않도록 발문 글 첫 줄에만 오른쪽 자리를 비운다.
+     * 발문 블록 전체에 padding 을 주면 [box] 지문까지 좁아진다. */
+    .sq-head::before { content: ''; float: right; width: 52px; height: 1.4em; }
+    /* [box] 지문 상자를 답안 박스와 같은 좌우 선에 맞춘다.
+     * 발문은 번호 너비만큼 왼쪽을(20px), 배점 자리만큼 오른쪽을(52px)
+     * 비워 두므로 박스가 그 안쪽으로 밀린다. 음수 여백으로 되돌린다.
+     * qtext 가 인라인 style 로 margin 을 주므로 !important 가 필요하다. */
+    .sq-head .q-box {
+        margin-left: -20px !important; margin-right: 0 !important;
+        /* 왼쪽으로 당긴 만큼 너비를 늘려야 오른쪽 선도 답안 박스와 맞는다.
+         * qtext 가 인라인으로 max-width:100% 를 주므로 함께 풀어야 한다. */
+        width: calc(100% + 20px); max-width: none !important;
+        clear: both; box-sizing: border-box; }
+    /* 배점은 발문 블록 오른쪽 위에 고정한다. float 로 두면 뒤따르는
+     * [box] 지문에 밀려 답안 박스 안으로 들어가거나 둘째 줄로 내려간다. */
     .sq-pts { position: absolute; top: 0; right: 0; text-indent: 0;
         font-size: 0.75rem; color: #888; white-space: nowrap; }
     .sq-img { display: block; max-width: min(100%, 340px); margin: 6px 0 6px 32px; }
