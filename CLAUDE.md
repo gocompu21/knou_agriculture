@@ -758,6 +758,10 @@ knou_agriculture/
 `mock_exam_take.html`, `exam_result.html`, `wrong_answers.html` 모두 `{% load gisa_filters %}`로 `qtext` 필터 사용:
 - `[box]...[/box]` → `<div class="q-box">` 테두리 박스
 - `<u>` 밑줄, 위/아래첨자(`^{X}`, `_{X}`), 줄바꿈 변환
+- **①~⑳ 으로 시작하는 줄은 매달린 들여쓰기 블록**으로 감싼다(inline style,
+  `_HANG`). 줄이 넘어가면 번호 뒤 글자 자리에서 이어진다. 상자 첫/끝 줄도
+  처리하며, 블록 앞뒤 `<br>` 을 하나씩 빼 빈 줄 수는 원문대로 남긴다.
+  템플릿 쪽에서 같은 항목에 또 들여쓰기를 주면 두 번 밀리므로 주지 말 것
 
 ### 채점 결과·오답노트 하단 쪽집게 노트
 
