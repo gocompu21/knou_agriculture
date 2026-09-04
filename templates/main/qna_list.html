@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% load qna_filters %}
 {% block title %}질의응답{% endblock %}
 
 {% block extra_css %}
@@ -25,30 +26,53 @@
     .fpill.on { background: var(--forest); color: #fff; }
     .fpill .n { opacity: .65; font-size: 0.92em; margin-left: 3px; }
 
-    /* 목록 */
+    /* 목록 — 제목 아래 답 세 줄, 누르면 펼쳐진다 */
     .qlist { background: #fff; border: 1px solid #e0ece0; border-radius: 12px;
         overflow: hidden; }
-    .qrow { display: flex; align-items: baseline; gap: 10px; padding: 12px 16px;
-        border-bottom: 1px solid #f2f5f2; text-decoration: none; color: inherit; }
-    .qrow:last-child { border-bottom: 0; }
-    .qrow:hover { background: #fafdf8; }
+    .qna-item { border-bottom: 1px solid #f2f5f2; }
+    .qna-item:last-child { border-bottom: 0; }
+    .qi-head { display: flex; align-items: baseline; gap: 10px;
+        padding: 12px 16px 7px; cursor: pointer; }
+    .qi-head:hover { background: #fafdf8; }
     .q-where { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; padding: 2px 9px;
         border-radius: 9px; background: #eef5ea; color: #2d6a4f; white-space: nowrap; }
-    .q-title { flex: 1; font-size: 0.92rem; font-weight: 600; color: #1f2d24;
-        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .q-note { flex-shrink: 0; font-size: 0.7rem; color: #8fa396; }
+    .qi-title { flex: 1; font-size: 0.92rem; font-weight: 600; color: #1f2d24; }
+    .q-note { flex-shrink: 0; font-size: 0.78rem; }
+    .q-flag { flex-shrink: 0; color: #c07a1a; font-size: 0.72rem; }
     .q-meta { flex-shrink: 0; font-size: 0.76rem; color: #96a69c;
         display: flex; gap: 10px; align-items: baseline; }
     .q-meta .who { font-weight: 600; color: #6b8a72; }
     .q-meta .eye::before { content: "👁 "; opacity: .5; }
-    .q-flag { color: #c07a1a; font-size: 0.72rem; }
+    .qi-arrow { flex-shrink: 0; color: #c3cec7; font-size: 0.8rem;
+        transition: transform .15s; }
+    .qna-item.open .qi-arrow { transform: rotate(90deg); }
+
+    .qi-peek { padding: 0 16px 12px; font-size: 0.83rem; line-height: 1.65;
+        color: #7c8a81; cursor: pointer;
+        display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+        overflow: hidden; }
+    .qna-item.open .qi-peek { display: none; }
+
+    .qi-full { display: none; padding: 2px 16px 15px; font-size: 0.88rem;
+        line-height: 1.8; color: #263; }
+    .qna-item.open .qi-full { display: block; }
+    .qi-full h3 { font-size: 0.9rem; color: #1b4332; margin: 12px 0 5px; }
+    .qi-full p { margin: 0 0 8px; }
+    .qi-full ul { padding-left: 19px; margin: 5px 0 10px; }
+    .qi-full li { margin: 3px 0; }
+    .qi-full strong { color: #1b4332; }
+    .qi-note-ref { font-size: 0.75rem; color: #6b8a72; background: #f1f7ee;
+        display: inline-block; padding: 2px 9px; border-radius: 9px;
+        margin-bottom: 8px; }
+    .qi-link { display: inline-block; margin-top: 6px; font-size: 0.78rem;
+        color: #2d6a4f; text-decoration: none; font-weight: 600; }
+    .qi-link:hover { text-decoration: underline; }
 
     .empty { padding: 40px 20px; text-align: center; color: #93a399; }
 
     @media (max-width: 640px) {
         .qna-head h1 { font-size: 1.22rem; }
-        .q-note, .q-meta .when { display: none; }
-        .q-title { white-space: normal; }
+        .q-meta .when { display: none; }
     }
 </style>
 {% endblock %}
@@ -80,24 +104,86 @@
         {% endfor %}
     </div>
 
-    <div class="qlist">
+    <div class="qlist" id="qnaList">
         {% for q in questions %}
-        <a class="qrow" href="{% url 'main:qna_detail' q.pk %}">
-            <span class="q-where">{% if q.subject %}{% if q.subject.grade %}{{ q.subject.grade }}학년 {% endif %}{{ q.subject.name }}{% else %}{{ q.where }}{% endif %}</span>
-            <span class="q-title">{{ q.title }}</span>
-            {% if q.note_ref %}<span class="q-note">📖 교재</span>{% endif %}
-            {% if q.flagged %}<span class="q-flag">신고 {{ q.flagged }}</span>{% endif %}
-            <span class="q-meta">
-                <span class="who">{{ q.user.first_name|default:q.user.username }}</span>
-                <span class="eye">{{ q.view_count }}</span>
-                <span class="when">{{ q.created_at|date:"m.d" }}</span>
-            </span>
-        </a>
+        <div class="qna-item" data-pk="{{ q.pk }}">
+            <div class="qi-head" onclick="toggleQna(this)">
+                <span class="q-where">{% if q.subject %}{% if q.subject.grade %}{{ q.subject.grade }}학년 {% endif %}{{ q.subject.name }}{% else %}{{ q.where }}{% endif %}</span>
+                <span class="qi-title">{{ q.title }}</span>
+                {% if q.note_ref %}<span class="q-note" title="{{ q.note_ref }}">📖</span>{% endif %}
+                {% if q.flagged %}<span class="q-flag">신고 {{ q.flagged }}</span>{% endif %}
+                <span class="q-meta">
+                    <span class="who">{{ q.user.first_name|default:q.user.username }}</span>
+                    <span class="eye">{{ q.view_count }}</span>
+                    <span class="when">{{ q.created_at|date:"m.d" }}</span>
+                </span>
+                <span class="qi-arrow">›</span>
+            </div>
+            <div class="qi-peek">{{ q.answer|qna_peek }}</div>
+            <div class="qi-full" data-raw="{{ q.answer }}" data-ref="{{ q.note_ref }}"></div>
+        </div>
         {% empty %}
-        <div class="empty">아직 질문이 없습니다. 첫 질문을 남겨 보세요.</div>
+        <div class="empty">아직 질문이 없습니다.</div>
         {% endfor %}
     </div>
 </div>
 
 
+
+<script>
+    /* AI 답은 마크다운 비슷하게 온다. 제목·목록·강조만 살린다.
+       LaTeX 표기가 섞여 오면 걷어낸다. */
+    function qnaRender(raw) {
+        var t = String(raw || '');
+        t = t.split('$').join('');
+        t = t.replace(/\\text\{([^}]*)\}/g, '$1');
+        var esc = function (x) {
+            return x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        };
+        var out = [], ul = false;
+        t.split('\n').forEach(function (rawLine) {
+            var line = rawLine.trim();
+            if (!line) { if (ul) { out.push('</ul>'); ul = false; } return; }
+            var h = esc(line)
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>');
+            if (/^#{1,4}\s/.test(line)) {
+                if (ul) { out.push('</ul>'); ul = false; }
+                out.push('<h3>' + h.replace(/^#{1,4}\s*/, '') + '</h3>');
+            } else if (/^[*\-•]\s/.test(line) || /^\d+\.\s/.test(line)) {
+                if (!ul) { out.push('<ul>'); ul = true; }
+                out.push('<li>' + h.replace(/^([*\-•]|\d+\.)\s*/, '') + '</li>');
+            } else {
+                if (ul) { out.push('</ul>'); ul = false; }
+                out.push('<p>' + h + '</p>');
+            }
+        });
+        if (ul) out.push('</ul>');
+        return out.join('');
+    }
+
+    function toggleQna(head) {
+        var item = head.closest ? head.closest('.qna-item') : head.parentElement;
+        var full = item.querySelector('.qi-full');
+        if (full && !full.dataset.done) {
+            var pk = item.dataset.pk;
+            full.innerHTML =
+                (full.dataset.ref ? '<div class="qi-note-ref">📖 ' + full.dataset.ref + '</div>' : '')
+                + qnaRender(full.dataset.raw)
+                + '<a class="qi-link" href="/qna/' + pk + '/">따로 보기 &rsaquo;</a>';
+            full.dataset.done = '1';
+        }
+        item.classList.toggle('open');
+    }
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    /* 미리보기를 눌러도 펼쳐지게 — 제목만 누르라고 하면 잘 안 눌린다 */
+    document.querySelectorAll('.qi-peek').forEach(function (el) {
+        el.addEventListener('click', function () {
+            toggleQna(el.parentElement.querySelector('.qi-head'));
+        });
+    });
+});
+</script>
 {% endblock %}
