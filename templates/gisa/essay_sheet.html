@@ -79,11 +79,14 @@
         /* 흑백 프린터 기준 색이다.
          * 연한 색(#ccc 이하)은 흑백 출력에서 하프톤으로 흩어져 얼룩이
          * 되거나 아예 안 찍힌다. #9a9a9a 는 확실히 찍히면서도 검은
-         * 볼펜 글씨보다 뚜렷이 옅어 판독 시 글자와 구분된다. */
+         * 볼펜 글씨보다 뚜렷이 옅어 판독 시 글자와 구분된다.
+         *
+         * 줄 간격 32px(≈8.5mm). 종전 38px 은 성인 손글씨(7~9mm)에 견줘
+         * 지나치게 넉넉해 한 칸에 담기는 줄 수가 적었다. */
         background-image: repeating-linear-gradient(
             to bottom,
-            transparent, transparent 37px,
-            #9a9a9a 37px, #9a9a9a 38px);
+            transparent, transparent 31px,
+            #9a9a9a 31px, #9a9a9a 32px);
         /* 파선으로 잘라 실선을 피한다. 실선은 글자의 가로획(ㅡ, ㄴ의 밑변)과
          * 이어져 보일 수 있다. 파선은 끊겨 있어 획으로 오인되지 않는다. */
         -webkit-mask-image: repeating-linear-gradient(
@@ -91,12 +94,14 @@
         mask-image: repeating-linear-gradient(
             to right, #000 0 5px, transparent 5px 12px);
     }
-    /* 높이 = 38px × 줄수 + 14px.
-     * 줄 위에 글씨를 얹어 쓰므로 마지막 줄 아래에도 글자 높이만큼
-     * 여유가 있어야 한다. 딱 배수로 맞추면 마지막 줄이 테두리에 붙는다. */
-    .sq-box.h1 { height: 90px; }    /* 2줄 — 단답·빈칸 */
-    .sq-box.h2 { height: 166px; }   /* 4줄 — 열거·표그림 */
-    .sq-box.h3 { height: 242px; }   /* 6줄 — 서술·계산 */
+    /* 높이 = 32px × 줄수. 딱 배수로 잡아야 마지막 점선이 밑변과 겹쳐
+     * 사라지고, 밑변이 그 줄을 대신한다. 배수 + 여백으로 두면 밑변
+     * 바로 위에 점선이 하나 더 남아 쓰지도 못할 자투리 줄이 생긴다.
+     *
+     * 한 줄에 40자 안팎이 들어가므로 줄 수 × 40 이 대략의 답안 분량이다. */
+    .sq-box.h1 { height: 96px; }    /* 3줄 ≈ 120자 — 단답·빈칸 */
+    .sq-box.h2 { height: 160px; }   /* 5줄 ≈ 200자 — 열거·표그림 */
+    .sq-box.h3 { height: 256px; }   /* 8줄 ≈ 320자 — 서술·계산 */
 
     @media print {
         .sheet-bar, .sheet-tip { display: none !important; }
