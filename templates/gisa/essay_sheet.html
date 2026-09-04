@@ -99,11 +99,14 @@
             transparent, transparent 31px,
             #9a9a9a 31px, #9a9a9a 32px);
         /* 파선으로 잘라 실선을 피한다. 실선은 글자의 가로획(ㅡ, ㄴ의 밑변)과
-         * 이어져 보일 수 있다. 파선은 끊겨 있어 획으로 오인되지 않는다. */
+         * 이어져 보일 수 있다. 파선은 끊겨 있어 획으로 오인되지 않는다.
+         *
+         * 주기를 % 로 잡아 줄 너비에 맞춘다. px 로 두면 너비가 주기의
+         * 배수가 아닐 때 오른쪽 끝 조각이 잘려 좌우가 어긋나 보인다. */
         -webkit-mask-image: repeating-linear-gradient(
-            to right, #000 0 5px, transparent 5px 12px);
+            to right, #000 0 0.7315%, transparent 0.7315% 1.7416%);
         mask-image: repeating-linear-gradient(
-            to right, #000 0 5px, transparent 5px 12px);
+            to right, #000 0 0.7315%, transparent 0.7315% 1.7416%);
     }
     /* 높이 = 32px × 줄수. 딱 배수로 잡아야 마지막 점선이 밑변과 겹쳐
      * 사라지고, 밑변이 그 줄을 대신한다. 배수 + 여백으로 두면 밑변
