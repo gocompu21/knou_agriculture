@@ -96,7 +96,7 @@ def _page_prompt(questions):
 
     lines += ["",
               "함께 읽어야 할 것:",
-              "- 페이지 오른쪽 위에 '시험지 코드'라는 작은 글씨와 영문·숫자 10자가 "
+              "- 페이지 오른쪽 아래(첫 쪽은 오른쪽 위에도)에 '시험지 코드'라는 작은 글씨와 영문·숫자 10자가 "
               "인쇄돼 있으면 그 코드를 paper_code 에 그대로 적는다. 보이지 않으면 빈 문자열.",
               "- 각 답안 위에 인쇄된 문제문(발문)의 첫 15자 안팎을 stem 에 읽히는 대로 적는다. "
               "위 목록과 다르더라도 고쳐 쓰지 말고 사진에 인쇄된 대로 적는다.",
@@ -164,7 +164,7 @@ def transcribe_uploads(session, uploads):
         text: str = Field(description="손글씨를 그대로 옮긴 답안. 비었으면 빈 문자열")
 
     class PageResult(BaseModel):
-        paper_code: str = Field(default='', description="페이지 오른쪽 위의 시험지 코드. 없으면 빈 문자열")
+        paper_code: str = Field(default='', description="페이지 오른쪽 아래(첫 쪽은 오른쪽 위에도 있음)의 시험지 코드. 없으면 빈 문자열")
         answers: list[AnswerItem]
 
     client = genai.Client(api_key=api_key)
