@@ -53,10 +53,12 @@ def essay_list(request, cert_id):
     qs = GisaEssayQuestion.objects.filter(certification=cert)
 
     from django.db.models import Sum
+    # 연도는 최신부터, 그 안의 회차는 1→2→3 순. 시험이 치러진 차례대로
+    # 읽는 편이 자연스럽고, 특정 회차를 찾을 때도 눈이 덜 헤맨다.
     rounds = (qs.filter(source='기출')
               .values('year', 'round')
               .annotate(c=Count('id'), p=Sum('points'))
-              .order_by('-year', '-round'))
+              .order_by('-year', 'round'))
 
     sections = (qs.filter(source='예상')
                 .values('section')
@@ -100,6 +102,16 @@ def essay_list(request, cert_id):
             'best': best.get(key),
         })
 
+    # 연도별로 묶는다 — 51개 회차가 한 줄로 늘어서면 어느 해 것인지
+    # 카드를 하나씩 읽어야 한다.
+    round_years = []
+    for c in round_cards:
+        if not round_years or round_years[-1]['year'] != c['year']:
+            round_years.append({'year': c['year'], 'cards': [], 'done': 0})
+        round_years[-1]['cards'].append(c)
+        if c['best'] is not None:
+            round_years[-1]['done'] += 1
+
     # 빈출 주제 현황 — 되풀이 출제된 주제가 몇 개인지 보여 준다
     freq_cards = []
     for lo, label in ((4, '4회 이상'), (3, '3회 이상'), (2, '2회 이상')):
@@ -117,6 +129,7 @@ def essay_list(request, cert_id):
     return render(request, 'gisa/essay_list.html', {
         'cert': cert,
         'round_cards': round_cards,
+        'round_years': round_years,
         'sections': sections,
         'freq_cards': freq_cards,
         'comeback_count': comeback_count,

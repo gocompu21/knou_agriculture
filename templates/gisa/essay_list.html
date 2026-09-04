@@ -38,6 +38,15 @@
     .card-grid { display: grid; gap: 12px;
         grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
 
+    /* 연도 묶음 — 51개 회차가 한 줄로 늘어서지 않게 해마다 가른다 */
+    .year-group { margin-bottom: 20px; }
+    .year-head { display: flex; align-items: baseline; gap: 9px;
+        padding-bottom: 6px; margin-bottom: 10px;
+        border-bottom: 1px solid #e8ede9; }
+    .year-label { font-size: 0.98rem; font-weight: 800; color: #1b4332;
+        letter-spacing: -0.01em; }
+    .year-meta { font-size: 0.76rem; color: #8fa396; }
+
     .ec { border: 1px solid #dfe5e0; border-radius: 10px; padding: 14px 16px;
         background: #fff; transition: box-shadow .15s, transform .15s; }
     .ec:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.08); transform: translateY(-1px); }
@@ -170,28 +179,36 @@
     <div class="sec-title">기출문제
         <small>풀기 = 실전 90분 · 시험지 = 인쇄해서 손으로 · 학습 = 정답 보며 익히기</small>
     </div>
-    {% if round_cards %}
-    <div class="card-grid">
-        {% for r in round_cards %}
-        <div class="ec">
-            <div class="ec-head">
-                <span class="ec-title">{{ r.year }}년 {{ r.round }}회</span>
-                <span class="ec-meta">{{ r.count }}문항 · {{ r.points }}점</span>
-            </div>
-            {% if r.best is not None %}
-            <span class="ec-best">최고 {{ r.best }}점</span>
-            {% else %}
-            <span class="ec-best none">미응시</span>
-            {% endif %}
-            {% if r.partial %}<span class="ec-partial">일부 복원</span>{% endif %}
-            <div class="ec-actions">
-                <a class="ec-btn primary" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}">풀기</a>
-                <a class="ec-btn sub" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}&mode=paper">시험지</a>
-                <a class="ec-btn study" href="{% url 'gisa:essay_study' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}">학습</a>
-            </div>
+    {% if round_years %}
+    {% for y in round_years %}
+    <div class="year-group">
+        <div class="year-head">
+            <span class="year-label">{{ y.year }}년</span>
+            <span class="year-meta">{{ y.cards|length }}회차{% if y.done %} · 응시 {{ y.done }}{% endif %}</span>
         </div>
-        {% endfor %}
+        <div class="card-grid">
+            {% for r in y.cards %}
+            <div class="ec">
+                <div class="ec-head">
+                    <span class="ec-title">{{ r.round }}회</span>
+                    <span class="ec-meta">{{ r.count }}문항 · {{ r.points }}점</span>
+                </div>
+                {% if r.best is not None %}
+                <span class="ec-best">최고 {{ r.best }}점</span>
+                {% else %}
+                <span class="ec-best none">미응시</span>
+                {% endif %}
+                {% if r.partial %}<span class="ec-partial">일부 복원</span>{% endif %}
+                <div class="ec-actions">
+                    <a class="ec-btn primary" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}">풀기</a>
+                    <a class="ec-btn sub" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}&mode=paper">시험지</a>
+                    <a class="ec-btn study" href="{% url 'gisa:essay_study' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}">학습</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
+    {% endfor %}
     {% else %}
     <div class="empty">등록된 기출이 없습니다.</div>
     {% endif %}
