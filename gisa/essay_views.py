@@ -660,7 +660,7 @@ def essay_upload(request, cert_id, session_id):
                   else f'&section={other.section}')
             switch = {'url': reverse('gisa:essay_take', args=[cert.pk]) + '?' + q,
                       'label': other.label, 'started': when}
-            r['reason'] += f' — {when}에 인쇄한 {other.label} 시험지입니다.'
+            r['reason'] += f' — {when}에 만든 {other.label} 시험지입니다.'
 
     if not results and rejected:
         return JsonResponse({'ok': False, 'error': rejected[0]['reason'],
