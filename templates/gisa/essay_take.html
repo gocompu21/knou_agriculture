@@ -223,14 +223,7 @@
     <div class="et-notice">
         <b>시험지 모드</b>입니다. 아래 순서로 진행하세요.<br>
         ① <a href="{% url 'gisa:essay_sheet' cert.pk session.pk %}" target="_blank" style="color:#1b4332;font-weight:700">시험지 인쇄</a>
-        → ② 볼펜으로 풀기 → ③ 페이지별로 사진 촬영 → ④ 아래에 업로드<br>
-        <!-- 코드를 보여 주어야 손에 든 시험지가 이 화면 것인지 바로 견줄 수 있다.
-             같은 회차를 다시 열면 진행 중인 시험지를 잇는다. -->
-        <span style="color:#666">이 화면의 시험지 코드
-        <b style="font-family:ui-monospace,monospace;letter-spacing:1px">{{ session.paper_code }}</b>
-        · 인쇄한 시험지의 코드와 같아야 합니다.
-        <a href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ session.year }}&round={{ session.round }}&mode=paper&new=1"
-           style="color:#1b4332;font-weight:600">새 시험지 만들기</a></span>
+        → ② 볼펜으로 풀기 → ③ 페이지별로 사진 촬영 → ④ 아래에 업로드
     </div>
 
     <div class="up-box">
@@ -478,13 +471,7 @@ document.getElementById('upgo').addEventListener('click', async () => {
                 method: 'POST', headers: {'X-CSRFToken': CSRF}, body: fd
             });
             const d = await r.json();
-            if (!d.ok) {
-                const e = new Error(d.error || '판독 실패');
-                // 사진이 내 다른 시험지(먼저 인쇄해 둔 것)라면 그리로 옮겨 갈 길을 낸다
-                if (d.switch) e.why = `${e.message} <a href="${d.switch.url}" `
-                    + `style="color:#1b4332;font-weight:700">그 시험지로 이어가기 →</a>`;
-                throw e;
-            }
+            if (!d.ok) throw new Error(d.error || '판독 실패');
             // 이 시험지가 아닌 문항은 서버가 빼고 알려준다. 사용자가 알아야 한다.
             (d.rejected || []).forEach(x => notes.push(`${i + 1}쪽: ${x.reason}`));
             (d.answers || []).forEach(a => {
@@ -502,7 +489,6 @@ document.getElementById('upgo').addEventListener('click', async () => {
             it.classList.remove('busy'); it.classList.add('fail');
             it.querySelector('.st').textContent = '실패';
             it.title = err.message;
-            it.dataset.why = err.why || err.message;
         }
         prog.firstElementChild.style.width = Math.round((i + 1) / total * 100) + '%';
     }
@@ -510,7 +496,7 @@ document.getElementById('upgo').addEventListener('click', async () => {
     const filled = Object.keys(collected).length;
     // 다른 시험지·다른 문항이라 뺀 것은 실패한 장의 사유와 함께 보여 준다
     const why = [];
-    items.forEach((it, i) => { if (it.classList.contains('fail')) why.push(`${i + 1}쪽: ${it.dataset.why || it.title}`); });
+    items.forEach((it, i) => { if (it.classList.contains('fail')) why.push(`${i + 1}쪽: ${it.title}`); });
     const detail = why.concat(notes).length
         ? `<div style="margin-top:8px;font-weight:400;color:#8a3b00;text-align:left;display:inline-block">`
           + why.concat(notes).map(t => `· ${t}`).join('<br>') + `</div>` : '';

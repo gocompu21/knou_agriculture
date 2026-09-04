@@ -96,8 +96,9 @@ def _page_prompt(questions):
 
     lines += ["",
               "함께 읽어야 할 것:",
-              "- 페이지 오른쪽 아래(첫 쪽은 오른쪽 위에도)에 '시험지 코드'라는 작은 글씨와 영문·숫자 10자가 "
-              "인쇄돼 있으면 그 코드를 paper_code 에 그대로 적는다. 보이지 않으면 빈 문자열.",
+              "- 페이지 오른쪽 아래(첫 쪽은 오른쪽 위에도)에 '시험지 코드'라는 작은 글씨와 "
+              "연도-회차 꼴의 코드(예: 2026-2)가 인쇄돼 있으면 그 코드를 paper_code 에 "
+              "그대로 적는다. 보이지 않으면 빈 문자열.",
               "- 각 답안 위에 인쇄된 문제문(발문)의 첫 15자 안팎을 stem 에 읽히는 대로 적는다. "
               "위 목록과 다르더라도 고쳐 쓰지 말고 사진에 인쇄된 대로 적는다.",
               "  (이 사진이 정말 이 시험지인지 대조하는 데 쓴다)"]
@@ -109,8 +110,8 @@ def _page_prompt(questions):
     return '\n'.join(lines)
 
 
-# 시험지 코드는 16진수 대문자다. 판독 모델이 0↔O, 1↔I 처럼 헷갈리는 글자를
-# 코드에 나올 수 있는 쪽으로 되돌린 뒤 비교한다.
+# 시험지 코드는 "연도-회차"(예: 2026-2)다. 판독 모델이 0↔O, 1↔I 처럼 헷갈리는
+# 글자를 숫자로 되돌리고 구분 기호를 뗀 뒤 비교한다 → "20262".
 _CODE_FIX = str.maketrans({'O': '0', 'Q': '0', 'I': '1', 'L': '1', 'Z': '2',
                            'S': '5', 'G': '6', 'B': '8'})
 
@@ -119,6 +120,19 @@ def _norm_code(s):
     import re
     s = re.sub(r'[^0-9A-Za-z]', '', s or '').upper()
     return s.translate(_CODE_FIX)
+
+
+def _code_mismatch(want, got):
+    """읽힌 코드가 연도-회차 꼴인데 이 시험지와 다를 때만 True.
+
+    회차만 가리면 되므로 엄격할 이유가 없다. 코드가 안 읽혔거나 다른 꼴
+    (예전 세션의 16진수 코드, 오독)이면 판정을 미루고 발문 대조로 넘긴다.
+    """
+    import re
+    want, got = _norm_code(want), _norm_code(got)
+    if not want or not re.fullmatch(r'\d{5,6}', got):
+        return False
+    return got != want
 
 
 def _stem_match(stem, text):
@@ -171,7 +185,6 @@ def transcribe_uploads(session, uploads):
     model = settings.GEMINI_ESSAY_OCR_MODEL
     collected = {}
     rejected = []          # [{'page_no', 'reason'}] — 이 시험지가 아닌 사진
-    want_code = _norm_code(session.paper_code)
 
     for up in uploads:
         path = pathlib.Path(up.image.path)
@@ -196,13 +209,11 @@ def transcribe_uploads(session, uploads):
         # ── 이 시험지가 맞는가 ─────────────────────────────────────
         # 번호만 보고 넣으면 다른 회차 시험지도 번호가 같으면 그대로 들어간다.
         # 1) 코드가 보이면 코드로 판정한다 — 가장 확실하다.
-        got_code = _norm_code(parsed.paper_code)
-        if want_code and len(got_code) >= 6 and got_code != want_code:
+        if _code_mismatch(session.paper_code, parsed.paper_code):
             rejected.append({
                 'page_no': up.page_no,
-                'reason': f'다른 시험지 사진입니다 (사진의 코드 {parsed.paper_code.strip()}, '
+                'reason': f'다른 회차 시험지 사진입니다 (사진의 코드 {parsed.paper_code.strip()}, '
                           f'이 시험지는 {session.paper_code})',
-                'got_code': got_code,   # 뷰가 이 코드의 시험지를 찾아 이어갈 길을 낸다
             })
             continue
 

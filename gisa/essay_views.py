@@ -13,7 +13,6 @@
 """
 import json
 import random
-import uuid
 from datetime import timedelta
 
 from django.conf import settings
@@ -187,7 +186,6 @@ def essay_take(request, cert_id):
     total_points = round(sum(float(q.points) for q in questions), 1)
 
     # 인쇄한 시험지로 이어 오는 경우(?resume=<세션pk>)는 새로 만들지 않는다.
-    # 새 세션을 만들면 종이에 찍힌 시험지 코드와 어긋난다.
     session = None
     resume = request.GET.get('resume')
     if resume:
@@ -195,25 +193,18 @@ def essay_take(request, cert_id):
             pk=resume, user=request.user, certification=cert,
             status='progress').first()
 
-    # 시험지 모드를 목록에서 다시 열어도 같은 회차의 진행 중 시험지를 잇는다.
-    # 열 때마다 새 코드를 만들면 먼저 인쇄해 둔 시험지가 "다른 시험지"로
-    # 거부된다(실제로 13:19 에 인쇄한 시험지를 14:00 세션에 올려 거부된 일이 있다).
-    # 기출은 문항이 회차로 정해져 있어 이어도 같은 시험지다. 일부러 새로
-    # 뽑으려면 ?new=1.
-    if (session is None and mode == 'paper' and source == '기출'
-            and not request.GET.get('new')):
-        session = GisaEssaySession.objects.filter(
-            user=request.user, certification=cert, source='기출',
-            year=year, round=round_, mode='paper', status='progress',
-        ).exclude(paper_code='').order_by('-pk').first()
-
+    # 시험지 코드는 "연도-회차"(예: 2026-2)로 고정한다. 세션마다 다른 코드를
+    # 주면 먼저 인쇄한 시험지가 다음 세션에서 "다른 시험지"로 거부된다.
+    # 시험지 보안이 필요한 서비스가 아니므로 회차만 맞으면 된다.
     if session is None:
+        code = ''
+        if mode == 'paper':
+            code = f'{year}-{round_}' if source == '기출' else section[:12]
         session = GisaEssaySession.objects.create(
             user=request.user, certification=cert,
             source=source, section=(section if source == '예상' else '기출'),
             year=year, round=round_, mode=mode,
-            total_points=total_points,
-            paper_code=uuid.uuid4().hex[:10].upper() if mode == 'paper' else '',
+            total_points=total_points, paper_code=code,
         )
 
     # 실전(기출)은 90분 타이머, 학습(예상)은 무제한
@@ -643,30 +634,10 @@ def essay_upload(request, cert_id, session_id):
             up.image.delete(save=False)
             up.delete()
 
-    # 사진의 코드가 내 다른 진행 중 시험지의 것이면(먼저 인쇄해 둔 시험지에
-    # 새 세션으로 들어온 경우가 대부분) 그 시험지로 옮겨 갈 길을 함께 준다.
-    switch = None
-    for r in rejected:
-        code = r.pop('got_code', '')
-        if switch or not code:
-            continue
-        other = GisaEssaySession.objects.filter(
-            user=request.user, certification=cert, paper_code=code,
-            status='progress').exclude(pk=session.pk).first()
-        if other:
-            when = timezone.localtime(other.started_at).strftime('%m월 %d일 %H:%M')
-            q = f'resume={other.pk}&source={other.source}&mode=paper'
-            q += (f'&year={other.year}&round={other.round}' if other.source == '기출'
-                  else f'&section={other.section}')
-            switch = {'url': reverse('gisa:essay_take', args=[cert.pk]) + '?' + q,
-                      'label': other.label, 'started': when}
-            r['reason'] += f' — {when}에 만든 {other.label} 시험지입니다.'
-
     if not results and rejected:
         return JsonResponse({'ok': False, 'error': rejected[0]['reason'],
-                             'rejected': rejected, 'switch': switch}, status=422)
-    return JsonResponse({'ok': True, 'answers': results, 'rejected': rejected,
-                         'switch': switch})
+                             'rejected': rejected}, status=422)
+    return JsonResponse({'ok': True, 'answers': results, 'rejected': rejected})
 
 
 @login_required
