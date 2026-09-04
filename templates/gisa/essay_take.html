@@ -61,6 +61,23 @@
         box-shadow: 0 0 0 3px rgba(45,106,79,0.1); }
     .eq-hint { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
 
+    /* ── 시험지 모드: 문항 머리를 인쇄본과 같게 — "N. 문제문 (배점)" ──
+     * essay_sheet.html 의 규칙을 그대로 옮겼다. 배지·힌트는 종이에 없으므로 뺀다. */
+    .paper .sq-head { position: relative; margin: 0 0 6px 0;
+        padding-left: 20px; text-indent: -20px; }
+    .paper .sq-head::before { content: ''; float: right; width: 52px; height: 1.4em; }
+    .paper .sq-no { font-weight: 700; font-size: 0.95rem; }
+    .paper .sq-text { font-size: 0.9rem; line-height: 1.65; color: #111; }
+    .paper .sq-pts { position: absolute; top: 0; right: 0; text-indent: 0;
+        font-size: 0.75rem; color: #888; white-space: nowrap; }
+    .paper .sq-head .q-box { border-width: 1.5px !important; border-radius: 3px !important;
+        margin-left: -20px !important; margin-right: 0 !important;
+        width: calc(100% + 20px); max-width: none !important;
+        clear: both; box-sizing: border-box; }
+    .paper .eq-answer { margin-left: 0; }
+    .paper .eq-img { margin-left: 0; }
+    .paper .eq-hint { display: none; }
+
     /* ── 시험지 모드: 답안 칸을 인쇄한 시험지와 같은 괘선 칸으로 ──
      * 줄 간격 32px, 파선, 유형별 줄 수(3·5·8)가 시험지와 같다. 판독된 글이
      * 종이에 쓴 자리 그대로 줄 위에 얹혀 보이도록 line-height 를 줄 간격에
@@ -253,6 +270,15 @@
         {% csrf_token %}
         {% for q in questions %}
         <div class="eq" data-qid="{{ q.pk }}">
+            {% if session.mode == 'paper' %}
+            <!-- 시험지 모드는 인쇄본과 같은 꼴: "N. 문제문 (배점)". 판독한 글을 종이와
+                 맞대어 확인하는 화면이라 종이와 다르게 보이면 대조가 어렵다. -->
+            <div class="sq-head">
+                <span class="sq-no">{{ q.number }}.</span>
+                <span class="sq-text">{{ q.text|qtext }}</span>
+                <span class="sq-pts">({{ q.points }}점)</span>
+            </div>
+            {% else %}
             <div class="eq-head">
                 <span class="eq-no">{{ q.number }}</span>
                 {% if q.topic_group %}<span class="eq-topic">{{ q.get_topic_group_display }}</span>{% endif %}
@@ -260,6 +286,7 @@
                 <span class="eq-pts">{{ q.points }}점</span>
             </div>
             <div class="eq-text">{{ q.text|qtext }}</div>
+            {% endif %}
             {% if q.text_image %}<img class="eq-img" src="{{ q.text_image|vurl }}" alt="">{% endif %}
             <div class="eq-answer {% if q.qtype == '단답' or q.qtype == '빈칸' %}ln1{% elif q.qtype == '서술' or q.qtype == '계산' %}ln3{% else %}ln2{% endif %}">
                 <input type="hidden" name="question_id" value="{{ q.pk }}">
