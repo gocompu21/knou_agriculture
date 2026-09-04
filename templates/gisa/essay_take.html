@@ -97,7 +97,25 @@
     .up-label { display: inline-block; background: #1b4332; color: #fff;
         padding: 10px 22px; border-radius: 8px; font-weight: 600; cursor: pointer;
         font-size: 0.9rem; }
-    .up-list { margin-top: 12px; font-size: 0.83rem; color: #666; }
+    .up-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .up-label.sub { background: #fff; color: #1b4332; border: 1.5px solid #1b4332; }
+    /* 모아 둔 사진 — 미리보기 + 페이지 번호 + 빼기 */
+    .up-list { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+        margin-top: 14px; }
+    .up-list:empty { display: none; }
+    .up-item { position: relative; width: 84px; }
+    .up-item img { width: 84px; height: 108px; object-fit: cover; border-radius: 6px;
+        border: 1px solid #cfd8d2; display: block; background: #eee; }
+    .up-item .no { position: absolute; left: 4px; top: 4px; background: #1b4332;
+        color: #fff; font-size: 0.7rem; font-weight: 700; padding: 1px 6px;
+        border-radius: 8px; }
+    .up-item .rm { position: absolute; right: -6px; top: -6px; width: 22px; height: 22px;
+        border-radius: 50%; border: 0; background: #c62828; color: #fff; font-size: 0.8rem;
+        line-height: 22px; cursor: pointer; padding: 0; }
+    .up-go { margin-top: 14px; background: #d9a441; color: #1b1b1b; border: 0;
+        padding: 11px 26px; border-radius: 8px; font-weight: 700; font-size: 0.95rem;
+        cursor: pointer; font-family: inherit; }
+    .up-go:disabled { background: #cfd8d2; cursor: default; }
     .up-status { margin-top: 12px; font-size: 0.85rem; color: #2d6a4f; font-weight: 600; }
 
     /* 채점 진행률 오버레이 */
@@ -162,10 +180,19 @@
     <div class="up-box">
         <h3>답안지 사진 업로드</h3>
         <p>페이지마다 한 장씩, 그림자 없이 정면에서 촬영하세요.<br>
-           여러 장을 한 번에 선택할 수 있습니다.</p>
-        <label class="up-label" for="upfile">사진 선택</label>
-        <input type="file" id="upfile" class="up-file" accept="image/*" capture="environment" multiple>
+           카메라로 한 장씩 찍거나 앨범·파일에서 여러 장을 골라 모은 뒤 판독을 시작합니다.</p>
+        <div class="up-btns">
+            <label class="up-label" for="upcam">카메라로 찍기</label>
+            <label class="up-label sub" for="upfile">사진·파일 고르기</label>
+        </div>
+        <!-- capture 가 붙은 입력은 모바일에서 카메라를 곧장 열고 한 장만 돌려준다.
+             그래서 카메라용과 앨범·파일용을 나누고, 고른 사진은 아래 목록에 모아
+             두었다가 판독 시작 버튼으로 한 번에 보낸다. 찍자마자 보내면 두 장째를
+             찍을 길이 없다. -->
+        <input type="file" id="upcam" class="up-file" accept="image/*" capture="environment">
+        <input type="file" id="upfile" class="up-file" accept="image/*" multiple>
         <div class="up-list" id="uplist"></div>
+        <button type="button" class="up-go" id="upgo" hidden>판독 시작</button>
         <div class="up-status" id="upstatus"></div>
     </div>
     {% endif %}
@@ -316,16 +343,51 @@ function escapeHtml(s) {
 
 /* ---------- 사진 업로드 ---------- */
 {% if session.mode == 'paper' %}
-document.getElementById('upfile').addEventListener('change', async e => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
+/* 모아 둔 사진. 카메라는 한 번에 한 장씩 오므로 change 마다 이어 붙인다. */
+const upQueue = [];
+
+function upRender() {
     const list = document.getElementById('uplist');
+    const go = document.getElementById('upgo');
+    list.innerHTML = '';
+    upQueue.forEach((f, i) => {
+        const it = document.createElement('div');
+        it.className = 'up-item';
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(f);
+        img.onload = () => URL.revokeObjectURL(img.src);
+        const no = document.createElement('span');
+        no.className = 'no'; no.textContent = (i + 1) + '쪽';
+        const rm = document.createElement('button');
+        rm.type = 'button'; rm.className = 'rm'; rm.textContent = '×';
+        rm.title = '빼기';
+        rm.addEventListener('click', () => { upQueue.splice(i, 1); upRender(); });
+        it.append(img, no, rm);
+        list.appendChild(it);
+    });
+    go.hidden = upQueue.length === 0;
+    go.textContent = `${upQueue.length}장 판독 시작`;
+}
+
+function upAdd(e) {
+    Array.from(e.target.files || []).forEach(f => upQueue.push(f));
+    e.target.value = '';           // 같은 사진을 다시 골라도 change 가 뜨게
+    upRender();
+    document.getElementById('upstatus').textContent =
+        '더 찍거나 고른 뒤, 다 모이면 판독 시작을 누르세요.';
+}
+document.getElementById('upcam').addEventListener('change', upAdd);
+document.getElementById('upfile').addEventListener('change', upAdd);
+
+document.getElementById('upgo').addEventListener('click', async () => {
+    if (!upQueue.length) return;
+    const go = document.getElementById('upgo');
     const status = document.getElementById('upstatus');
-    list.textContent = files.map(f => f.name).join(', ');
-    status.textContent = '판독 중… 잠시만 기다려 주세요.';
+    go.disabled = true;
+    status.textContent = `${upQueue.length}장 판독 중… 잠시만 기다려 주세요.`;
 
     const fd = new FormData();
-    files.forEach(f => fd.append('images', f));
+    upQueue.forEach(f => fd.append('images', f));
     try {
         const r = await fetch(`/gisa/${CERT_ID}/essay/${SESSION_ID}/upload/`, {
             method: 'POST', headers: {'X-CSRFToken': CSRF}, body: fd
@@ -339,8 +401,10 @@ document.getElementById('upfile').addEventListener('change', async e => {
         });
         saveDraft();
         status.innerHTML = `${filled}개 문항을 읽었습니다. <b>내용을 확인하고 필요하면 고친 뒤 제출하세요.</b>`;
+        upQueue.length = 0; upRender();
     } catch (err) {
         status.innerHTML = `<span style="color:#c62828">${err.message}</span>`;
+        go.disabled = false;
     }
 });
 {% endif %}
