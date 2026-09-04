@@ -88,7 +88,9 @@
      * 자리에서 이어진다 */
     .pt { padding: 4px 0 4px calc(22px + 1.4em); text-indent: -1.4em;
         position: relative; font-size: 0.87rem; line-height: 1.65; }
-    .pt::before { position: absolute; left: 0; font-weight: 700; }
+    /* text-indent 가 상속돼 ✓ 글자까지 왼쪽으로 밀리므로 0 으로 되돌린다.
+     * left:0 이 답안 상자의 왼쪽 선과 같은 자리다. */
+    .pt::before { position: absolute; left: 0; font-weight: 700; text-indent: 0; }
     .pt.y::before { content: '✓'; color: #1b5e20; }
     .pt.n::before { content: '✕'; color: #c62828; }
     .pt.n { color: #777; }
