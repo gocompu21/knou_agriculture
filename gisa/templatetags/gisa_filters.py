@@ -267,6 +267,15 @@ def _spaced_ops(s):
     return "".join(out)
 
 
+# 원번호(①~⑳)로 시작하는 줄. 상자 첫 줄은 여는 태그 뒤에서, 상자 끝 줄은 닫는
+# 태그 앞에서 잡는다. 같은 줄 가운데 상자·표 태그가 있으면 제외.
+_HANG = re.compile(
+    r'^((?:<div class="q-box"[^>]*>)?)'
+    r'([①-⑳](?![^\n]*<(?:div|table|span class="q-calc"))[^\n]*?)'
+    r'((?:</div>)?)$', re.M)
+_HANG_OPEN = '<div style="padding-left:1.4em;text-indent:-1.4em">'
+
+
 def _render_qtext(value):
     """내부 공통 렌더링"""
     if value is None:
@@ -342,7 +351,20 @@ def _render_qtext(value):
         text = ('계산)\n<span class="q-calc" style="display:block;'
                 'padding-left:1.1em">' + m.group(1) + '</span>')
 
+    # ① ② ③ 으로 시작하는 줄은 줄이 넘어갈 때 번호 뒤 글자 자리에서 이어지게
+    # 매달린 들여쓰기를 준다(번호 아래로 문장이 들어가면 항목 경계가 흐려진다).
+    # 상자·표가 같은 줄에 있으면 div 가 엇갈리므로 건너뛴다. 스타일은 어느
+    # 화면에서 쓰든 따로 CSS 가 필요 없도록 inline 으로 둔다.
+    text = _HANG.sub(
+        lambda m: m.group(1) + _HANG_OPEN + m.group(2) + '</div>\x01' + m.group(3),
+        text)
     text = text.replace("\n", "<br>")
+    # 블록이 된 줄은 스스로 줄을 바꾸므로 앞뒤 <br> 을 하나씩 뺀다. 둘 이상이면
+    # 하나만 빼서 원문의 빈 줄은 남긴다. 블록과 블록 사이는 뒤쪽에서만 뺀다.
+    text = re.sub(r'\x01((?:<br>)*)', lambda m: '\x01' + m.group(1)[4:], text)
+    text = re.sub(r'(?<!\x01)(?<!<br>)((?:<br>)+)(?=' + re.escape(_HANG_OPEN) + ')',
+                  lambda m: m.group(1)[4:], text)
+    text = text.replace('\x01', '')
 
     # 빼두었던 SVG를 검사해 되돌린다. 자리표시자 앞뒤의 <br>은 그림이 제 줄을
     # 차지하도록 흡수한다 (안 그러면 그림 위아래에 빈 줄이 생긴다)

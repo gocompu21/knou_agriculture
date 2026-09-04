@@ -79,8 +79,10 @@
     /* 상자·표가 들어오면 줄 리듬이 깨지는 대신 답이 그대로 보이는 쪽을 택한다 */
     .qr-mine .q-box, .qr-mine table { line-height: 1.6; }
 
-    .pt { padding: 4px 0 4px 22px; position: relative; font-size: 0.87rem;
-        line-height: 1.65; }
+    /* ✓ 자리(22px) 뒤에 원번호 폭만큼 더 매달아, 줄이 넘어가면 번호 뒤 글자
+     * 자리에서 이어진다 */
+    .pt { padding: 4px 0 4px calc(22px + 1.4em); text-indent: -1.4em;
+        position: relative; font-size: 0.87rem; line-height: 1.65; }
     .pt::before { position: absolute; left: 0; font-weight: 700; }
     .pt.y::before { content: '✓'; color: #1b5e20; }
     .pt.n::before { content: '✕'; color: #c62828; }
