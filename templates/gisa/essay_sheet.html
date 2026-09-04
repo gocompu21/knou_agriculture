@@ -146,7 +146,9 @@
         .sh-run-space { display: block; height: 28px; }
         body { background: #fff !important; }
         .sheet { box-shadow: none; margin: 0; padding: 0 6mm; max-width: none; }
-        @page { size: A4; margin: 12mm 10mm; }
+        /* 위 여백은 넉넉히 — 쪽 첫머리가 종이 끝에 붙으면 답답하고, 사진을 찍을 때
+         * 첫 문항이 잘리기 쉽다. */
+        @page { size: A4; margin: 18mm 10mm 12mm; }
     }
     @media (max-width: 600px) {
         .sq-text, .sq-box, .sq-img { padding-left: 0; margin-left: 0; }
