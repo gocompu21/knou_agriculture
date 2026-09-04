@@ -404,6 +404,7 @@ document.getElementById('upgo').addEventListener('click', async () => {
     const items = document.querySelectorAll('.up-item');
     const total = upQueue.length;
     go.disabled = true;
+    go.textContent = '판독 중…';        // 비활성만으로는 눌린 줄 모른다
     prog.classList.add('on');
     prog.firstElementChild.style.width = '0%';
 
