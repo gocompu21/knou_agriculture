@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 
+{% load qna_filters %}
 {% block title %}{{ cert.name }} 실기 필답형{% endblock %}
 
 {% block extra_css %}
@@ -102,6 +103,69 @@
         .hist-scroll { overflow-x: auto; }
         .hist { min-width: 560px; }
     }
+    /* 질의응답 탭 */
+    .qna-ask { background: #fff; border: 1px solid #e3e9e4; border-radius: 10px;
+        padding: 15px 17px; margin-bottom: 14px; }
+    .qna-ask-head { font-size: 0.88rem; font-weight: 700; color: #1b4332;
+        margin-bottom: 9px; }
+    .qna-ask-row { display: flex; gap: 8px; }
+    .qna-ask-row input { flex: 1; padding: 9px 12px; font-family: inherit;
+        font-size: 0.9rem; border: 1px solid #d6e3d6; border-radius: 7px; }
+    .qna-ask-row input:focus { outline: none; border-color: #2d6a4f;
+        box-shadow: 0 0 0 2px rgba(45,106,79,.15); }
+    .qna-ask-row button { padding: 9px 20px; border: 0; border-radius: 7px;
+        background: #1b4332; color: #fff; font-family: inherit; font-size: 0.88rem;
+        font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .qna-ask-row button:hover { background: #163728; }
+    .qna-ask-row button:disabled { background: #b9c9bd; cursor: default; }
+    .qna-ask-note { font-size: 0.75rem; color: #9aa8a0; margin-top: 7px; }
+    .qna-ask-result { display: none; margin-top: 11px; padding: 11px 14px;
+        background: #f7faf6; border-left: 3px solid #2d6a4f;
+        border-radius: 0 7px 7px 0; font-size: 0.85rem; line-height: 1.7; }
+    .qna-ask-result.on { display: block; }
+    .qna-ask-result.err { background: #fdf3f2; border-left-color: #d93025; color: #b3261e; }
+
+    .qna-tab-list { list-style: none; margin: 0; padding: 0;
+        background: #fff; border: 1px solid #e3e9e4; border-radius: 10px;
+        overflow: hidden; }
+    .qna-item { border-bottom: 1px solid #f2f5f2; }
+    .qna-item:last-child { border-bottom: 0; }
+    .qi-head { display: flex; align-items: baseline; gap: 9px;
+        padding: 11px 15px 7px; cursor: pointer; }
+    .qi-head:hover { background: #fafdf8; }
+    .qi-title { flex: 1; font-size: 0.9rem; font-weight: 600; color: #1f2d24; }
+    .qt-note { flex-shrink: 0; font-size: 0.78rem; }
+    .qt-meta { flex-shrink: 0; font-size: 0.75rem; color: #97a79d; }
+    .qi-arrow { flex-shrink: 0; color: #c3cec7; font-size: 0.8rem;
+        transition: transform .15s; }
+    .qna-item.open .qi-arrow { transform: rotate(90deg); }
+
+    /* 접힌 상태에서 답 앞부분 3줄만 */
+    .qi-peek { padding: 0 15px 11px; font-size: 0.83rem; line-height: 1.65;
+        color: #7c8a81; cursor: pointer;
+        display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+        overflow: hidden; }
+    .qna-item.open .qi-peek { display: none; }
+
+    .qi-full { display: none; padding: 2px 15px 14px; font-size: 0.88rem;
+        line-height: 1.8; color: #263; }
+    .qna-item.open .qi-full { display: block; }
+    .qi-full h3 { font-size: 0.9rem; color: #1b4332; margin: 12px 0 5px; }
+    .qi-full p { margin: 0 0 8px; }
+    .qi-full ul { padding-left: 19px; margin: 5px 0 10px; }
+    .qi-full li { margin: 3px 0; }
+    .qi-full strong { color: #1b4332; }
+    .qi-note-ref { font-size: 0.75rem; color: #6b8a72; background: #f1f7ee;
+        display: inline-block; padding: 2px 9px; border-radius: 9px;
+        margin-bottom: 8px; }
+    .qi-link { display: inline-block; margin-top: 6px; font-size: 0.78rem;
+        color: #2d6a4f; text-decoration: none; font-weight: 600; }
+    .qi-link:hover { text-decoration: underline; }
+
+    .qna-more { text-align: right; margin-top: 10px; }
+    .qna-more a { font-size: 0.82rem; color: #2d6a4f; text-decoration: none;
+        font-weight: 600; }
+    .qna-more a:hover { text-decoration: underline; }
 </style>
 {% endblock %}
 
@@ -234,6 +298,40 @@
     </div>
     {% endif %}
 
+    <div class="sec-title">질의응답
+        <small>실기 답안 형식(①②③)으로 답합니다 · 우리 쪽집게 노트를 근거로</small>
+    </div>
+    <div class="qna-ask">
+        <div class="qna-ask-row">
+            <input type="text" id="qnaInput" maxlength="200"
+                   placeholder="예) 추이대의 종다양성이 높은 까닭은?">
+            <button id="qnaBtn" onclick="askQna()">물어보기</button>
+        </div>
+        <div class="qna-ask-note">AI가 쓴 답이라 틀릴 수 있습니다. 교재와 함께 확인하세요.</div>
+        <div class="qna-ask-result" id="qnaResult"></div>
+    </div>
+
+    <div class="qlist" id="qnaList">
+        {% for q in qna_items %}
+        <div class="qna-item" data-pk="{{ q.pk }}">
+            <div class="qi-head" onclick="toggleQna(this)">
+                <span class="qi-title">{{ q.title }}</span>
+                {% if q.note_ref %}<span class="qt-note" title="{{ q.note_ref }}">📖</span>{% endif %}
+                <span class="qt-meta">{{ q.user.first_name|default:q.user.username }} · 조회 {{ q.view_count }} · {{ q.created_at|date:"m.d" }}</span>
+                <span class="qi-arrow">›</span>
+            </div>
+            <div class="qi-peek">{{ q.answer|qna_peek }}</div>
+            <div class="qi-full" data-raw="{{ q.answer }}" data-ref="{{ q.note_ref }}"></div>
+        </div>
+        {% endfor %}
+    </div>
+    {% if not qna_items %}
+    <div class="empty" id="qnaEmpty">아직 질문이 없습니다. 첫 질문을 남겨 보세요.</div>
+    {% endif %}
+    {% if qna_count > qna_items|length %}
+    <div class="qna-more"><a href="/qna/?cert={{ cert.name|urlencode }}">실기 질문 {{ qna_count }}건 모두 보기 &rsaquo;</a></div>
+    {% endif %}
+
     <div class="sec-title">응시 이력</div>
     {% if sessions %}
     <div class="hist-scroll">
@@ -290,4 +388,145 @@
     <div class="empty">아직 응시 기록이 없습니다.</div>
     {% endif %}
 </div>
+
+<script>
+    /* AI 답은 마크다운 비슷하게 온다. 제목·목록·강조만 살린다.
+       LaTeX 표기가 섞여 오면 걷어낸다. */
+    function qnaRender(raw) {
+        var t = String(raw || '');
+        t = t.split('$').join('');
+        t = t.replace(/\\text\{([^}]*)\}/g, '$1');
+        var esc = function (x) {
+            return x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        };
+        var out = [], ul = false;
+        t.split('\n').forEach(function (rawLine) {
+            var line = rawLine.trim();
+            if (!line) { if (ul) { out.push('</ul>'); ul = false; } return; }
+            var h = esc(line)
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>');
+            if (/^#{1,4}\s/.test(line)) {
+                if (ul) { out.push('</ul>'); ul = false; }
+                out.push('<h3>' + h.replace(/^#{1,4}\s*/, '') + '</h3>');
+            } else if (/^[*\-•]\s/.test(line) || /^\d+\.\s/.test(line)) {
+                if (!ul) { out.push('<ul>'); ul = true; }
+                out.push('<li>' + h.replace(/^([*\-•]|\d+\.)\s*/, '') + '</li>');
+            } else {
+                if (ul) { out.push('</ul>'); ul = false; }
+                out.push('<p>' + h + '</p>');
+            }
+        });
+        if (ul) out.push('</ul>');
+        return out.join('');
+    }
+
+    function toggleQna(head) {
+        var item = head.closest ? head.closest('.qna-item') : head.parentElement;
+        var full = item.querySelector('.qi-full');
+        if (full && !full.dataset.done) {
+            var pk = item.dataset.pk;
+            full.innerHTML =
+                (full.dataset.ref ? '<div class="qi-note-ref">📖 ' + full.dataset.ref + '</div>' : '')
+                + qnaRender(full.dataset.raw)
+                + '<a class="qi-link" href="/qna/' + pk + '/">따로 보기 &rsaquo;</a>';
+            full.dataset.done = '1';
+        }
+        item.classList.toggle('open');
+    }
+
+
+/* 실기 질의응답 — cert_subject 를 '실기' 로 보내면 프롬프트가 답안
+   형식(①②③)으로 답하도록 갈린다. 실기는 과목 구분이 없다. */
+async function askQna() {
+    var inp = document.getElementById('qnaInput');
+    var btn = document.getElementById('qnaBtn');
+    var out = document.getElementById('qnaResult');
+    var title = inp.value.trim();
+    if (!title) { inp.focus(); return; }
+    btn.disabled = true; btn.textContent = '묻는 중…';
+    out.className = 'qna-ask-result on';
+    out.textContent = '답을 쓰고 있습니다…';
+    try {
+        var body = new URLSearchParams({
+            title: title, cert_name: '{{ cert.name }}', cert_subject: '실기' });
+        var r = await fetch('/qna/create/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}',
+                       'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body });
+        var d = await r.json();
+        if (!d.ok) {
+            out.className = 'qna-ask-result on err';
+            out.textContent = d.error || '답을 받지 못했습니다.';
+        } else {
+            out.className = 'qna-ask-result';
+            inp.value = '';
+            qnaPrepend(d);
+        }
+    } catch (e) {
+        out.className = 'qna-ask-result on err';
+        out.textContent = e.message;
+    }
+    btn.disabled = false; btn.textContent = '물어보기';
+}
+
+function qnaPrepend(d) {
+    var list = document.getElementById('qnaList');
+    var empty = document.getElementById('qnaEmpty');
+    if (empty) empty.remove();
+    if (!list) return;
+    /* 새 답만 펼친 채로 둔다 */
+    list.querySelectorAll('.qna-item.open').forEach(function (el) {
+        el.classList.remove('open');
+    });
+    var esc = function (x) {
+        return (x || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    };
+    var it = document.createElement('div');
+    it.className = 'qna-item open';
+    it.dataset.pk = d.pk;
+    it.innerHTML =
+        '<div class="qi-head" onclick="toggleQna(this)">'
+      +   '<span class="qi-title">' + esc(d.title) + '</span>'
+      +   (d.note_ref ? '<span class="qt-note" title="' + esc(d.note_ref) + '">📖</span>' : '')
+      +   '<span class="qt-meta">' + esc(d.who) + ' · 조회 0 · ' + esc(d.when) + '</span>'
+      +   '<span class="qi-arrow">›</span>'
+      + '</div>'
+      + '<div class="qi-peek"></div>'
+      + '<div class="qi-full"></div>';
+    var full = it.querySelector('.qi-full');
+    full.dataset.raw = d.answer || '';
+    full.dataset.ref = d.note_ref || '';
+    full.dataset.done = '1';
+    full.innerHTML =
+        (d.note_ref ? '<div class="qi-note-ref">📖 ' + esc(d.note_ref) + '</div>' : '')
+      + qnaRender(d.answer)
+      + '<a class="qi-link" href="' + d.url + '">따로 보기 &rsaquo;</a>';
+    var peek = String(d.answer || '')
+        .replace(/^#{1,6}\s*/gm, '')
+        .replace(/\*\*(.+?)\*\*/g, '$1')
+        .replace(/`([^`]+)`/g, '$1')
+        .replace(/^\s*[*\-•]\s+/gm, '')
+        .replace(/^\s*\d+\.\s+/gm, '')
+        .split('$').join('')
+        .replace(/\s+/g, ' ').trim();
+    it.querySelector('.qi-peek').textContent =
+        peek.slice(0, 180) + (peek.length > 180 ? '…' : '');
+    list.insertBefore(it, list.firstChild);
+    it.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    var inp = document.getElementById('qnaInput');
+    if (inp) inp.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') askQna();
+    });
+    document.querySelectorAll('.qi-peek').forEach(function (el) {
+        el.addEventListener('click', function () {
+            toggleQna(el.parentElement.querySelector('.qi-head'));
+        });
+    });
+});
+</script>
 {% endblock %}

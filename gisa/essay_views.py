@@ -27,6 +27,7 @@ from django.views.decorators.http import require_POST
 
 from .essay_grading import grade_answer, grade_session
 from .templatetags.gisa_filters import qtext
+from main.models import QnaQuestion
 from .models import (Certification, GisaEssayAttempt, GisaEssayNote,
                      GisaEssayQuestion, GisaEssaySession, GisaEssayUpload)
 
@@ -134,6 +135,12 @@ def essay_list(request, cert_id):
         'freq_cards': freq_cards,
         'comeback_count': comeback_count,
         'notes': GisaEssayNote.objects.filter(certification=cert),
+        # 질의응답 — 실기 질문만. cert_subject='실기' 로 표시해 두면
+        # 프롬프트가 답안 형식(①②③)으로 답하도록 갈린다.
+        'qna_items': QnaQuestion.objects.filter(
+            cert_name=cert.name, cert_subject='실기').select_related('user')[:10],
+        'qna_count': QnaQuestion.objects.filter(
+            cert_name=cert.name, cert_subject='실기').count(),
         'sessions': sessions,
         'total': qs.count(),
     })
