@@ -75,7 +75,10 @@
         border: 1.5px solid #333; border-radius: 3px; }
     .sq-box::before {
         content: ''; position: absolute; left: 10px; right: 10px;
-        top: 0; bottom: 0;
+        /* 아래를 한 줄만큼 잘라내 마지막 점선을 그리지 않는다.
+         * 높이가 줄 간격의 배수라 그냥 두면 마지막 점선이 밑변 위에
+         * 겹쳐 두 겹으로 찍힌다. 그 줄은 밑변이 대신한다. */
+        top: 0; bottom: 32px;
         /* 흑백 프린터 기준 색이다.
          * 연한 색(#ccc 이하)은 흑백 출력에서 하프톤으로 흩어져 얼룩이
          * 되거나 아예 안 찍힌다. #9a9a9a 는 확실히 찍히면서도 검은
