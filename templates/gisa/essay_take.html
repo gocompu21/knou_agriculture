@@ -38,55 +38,38 @@
         margin-bottom: 18px; }
     .et-notice b { color: #1b4332; }
 
-    .eq { border-bottom: 1px solid #eee; padding: 18px 0; }
-    .eq:last-child { border-bottom: 0; }
-    .eq-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
-    .eq-no { font-weight: 700; color: #1b4332; font-size: 1rem; min-width: 26px; }
-    .eq-type { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
-        background: #eef2ee; color: #40624f; }
-    /* 문항이 주제순으로 놓이므로 어느 주제인지 배지로 알린다 */
-    .eq-topic { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
-        background: #e8eef5; color: #2d4a6b; font-weight: 600; }
-    .eq-pts { font-size: 0.75rem; color: #999; margin-left: auto; }
-    .eq-text { font-size: 0.95rem; line-height: 1.75; color: #222;
-        padding-left: 34px; margin-bottom: 10px; }
-    .eq-img { display: block; max-width: min(100%, 420px); margin: 8px 0 8px 34px; }
-    .eq-answer { margin-left: 34px; }
-    .eq-answer textarea {
-        width: 100%; min-height: 90px; padding: 10px 12px; font-size: 0.92rem;
-        line-height: 1.7; border: 1px solid #cfd8d2; border-radius: 8px;
-        font-family: inherit; resize: vertical; box-sizing: border-box;
-    }
-    .eq-answer textarea:focus { outline: 0; border-color: #2d6a4f;
-        box-shadow: 0 0 0 3px rgba(45,106,79,0.1); }
-    .eq-hint { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
-
-    /* ── 시험지 모드: 문항 머리를 인쇄본과 같게 — "N. 문제문 (배점)" ──
-     * essay_sheet.html 의 규칙을 그대로 옮겼다. 배지·힌트는 종이에 없으므로 뺀다. */
-    .paper .sq-head { position: relative; margin: 0 0 6px 0;
+    /* ── 문항은 온라인 풀기·시험지 모드 모두 인쇄 시험지와 같은 꼴 ──
+     * "N. 문제문 (배점)" 머리와 괘선 답안 칸. essay_sheet.html 의 규칙을 그대로
+     * 옮겼다. 종이로 풀든 화면에서 풀든 같은 모양이어야 시험지 감각이 이어지고,
+     * 판독한 글을 종이와 맞대어 볼 때도 어긋나지 않는다. 배지·힌트는 종이에
+     * 없으므로 두지 않는다. */
+    /* 문항 사이 구분선 없이 여백 32px — 인쇄 시험지와 같은 값
+     * (textarea 가 inline-block 이라 밑에 5px 이 붙으므로 27px). */
+    .eq { padding: 0 0 27px; }
+    .sq-head { position: relative; margin: 0 0 6px 0;
         padding-left: 20px; text-indent: -20px; }
-    .paper .sq-head::before { content: ''; float: right; width: 52px; height: 1.4em; }
-    .paper .sq-no { font-weight: 700; font-size: 0.95rem; }
-    .paper .sq-text { font-size: 0.9rem; line-height: 1.65; color: #111; }
-    .paper .sq-pts { position: absolute; top: 0; right: 0; text-indent: 0;
+    .sq-head::before { content: ''; float: right; width: 52px; height: 1.4em; }
+    .sq-no { font-weight: 700; font-size: 0.95rem; }
+    .sq-text { font-size: 0.9rem; line-height: 1.65; color: #111; }
+    .sq-pts { position: absolute; top: 0; right: 0; text-indent: 0;
         font-size: 0.75rem; color: #888; white-space: nowrap; }
-    .paper .sq-head .q-box { border-width: 1.5px !important; border-radius: 3px !important;
+    .sq-head .q-box { border-width: 1.5px !important; border-radius: 3px !important;
         margin-left: -20px !important; margin-right: 0 !important;
         width: calc(100% + 20px); max-width: none !important;
         clear: both; box-sizing: border-box; }
-    .paper .eq-answer { margin-left: 0; }
-    .paper .eq-img { margin-left: 0; }
-    .paper .eq-hint { display: none; }
-    /* 인쇄 시험지에는 문항 사이 구분선이 없다. 여백만 두되 시험지와 같은 32px
-     * (textarea 가 inline-block 이라 밑에 5px 이 붙으므로 27px). */
-    .paper .eq { border-bottom: 0; padding: 0 0 27px; }
+    .eq-img { display: block; max-width: min(100%, 420px); margin: 8px 0; }
+    .eq-answer textarea {
+        width: 100%; font-family: inherit; box-sizing: border-box;
+    }
+    .eq-answer textarea:focus { outline: 0; border-color: #2d6a4f;
+        box-shadow: 0 0 0 3px rgba(45,106,79,0.1); }
 
-    /* ── 시험지 모드: 답안 칸을 인쇄한 시험지와 같은 괘선 칸으로 ──
+    /* ── 답안 칸은 인쇄한 시험지와 같은 괘선 칸 ──
      * 줄 간격 32px, 파선, 유형별 줄 수(3·5·8)가 시험지와 같다. 판독된 글이
      * 종이에 쓴 자리 그대로 줄 위에 얹혀 보이도록 line-height 를 줄 간격에
      * 맞추고, 괘선은 12×32 타일(아래쪽에 5px 파선)을 배경으로 깐다. 배경이라
      * 글자를 가리지 않고, 칸이 늘어나도 타일이 이어져 줄이 계속된다. */
-    .paper .eq-answer textarea {
+    .eq-answer textarea {
         line-height: 32px; padding: 0 12px; font-size: 0.95rem;
         /* 테두리는 정수 px — 1.5px 는 렌더링 반올림으로 안쪽 높이가 97 이 되어
          * 줄 수 계산(32 배수)이 한 줄 어긋난다. */
@@ -104,9 +87,9 @@
         background-origin: padding-box; background-attachment: local, local;
     }
     /* 줄 수 × 32px + 테두리 4px (box-sizing: border-box) */
-    .paper .eq-answer.ln1 textarea { min-height: 100px; }   /* 3줄 — 단답·빈칸 */
-    .paper .eq-answer.ln2 textarea { min-height: 164px; }   /* 5줄 — 열거·표그림 */
-    .paper .eq-answer.ln3 textarea { min-height: 260px; }   /* 8줄 — 서술·계산 */
+    .eq-answer.ln1 textarea { min-height: 100px; }   /* 3줄 — 단답·빈칸 */
+    .eq-answer.ln2 textarea { min-height: 164px; }   /* 5줄 — 열거·표그림 */
+    .eq-answer.ln3 textarea { min-height: 260px; }   /* 8줄 — 서술·계산 */
 
     /* 학습 모드 즉시 채점 */
     .eq-check { margin-top: 8px; display: flex; gap: 8px; align-items: center; }
@@ -222,10 +205,6 @@
     .btn-submit:disabled { background: #bbb; cursor: default; }
     .submit-note { font-size: 0.8rem; color: #999; }
 
-    @media (max-width: 600px) {
-        .eq-text, .eq-answer { padding-left: 0; margin-left: 0; }
-        .eq-img { margin-left: 0; }
-    }
 </style>
 {% endblock %}
 
@@ -268,34 +247,24 @@
     </div>
     {% endif %}
 
-    <form id="essayForm" method="post" class="{% if session.mode == 'paper' %}paper{% endif %}"
+    <form id="essayForm" method="post"
           action="{% url 'gisa:essay_submit' cert.pk session.pk %}">
         {% csrf_token %}
         {% for q in questions %}
         <div class="eq" data-qid="{{ q.pk }}">
-            {% if session.mode == 'paper' %}
-            <!-- 시험지 모드는 인쇄본과 같은 꼴: "N. 문제문 (배점)". 판독한 글을 종이와
-                 맞대어 확인하는 화면이라 종이와 다르게 보이면 대조가 어렵다. -->
+            <!-- 인쇄본과 같은 꼴: "N. 문제문 (배점)". 온라인 풀기도 같다 — 시험지
+                 모드에서는 판독한 글을 종이와 맞대어 확인하므로 종이와 다르게
+                 보이면 대조가 어렵고, 온라인 풀기도 실제 시험지 감각으로 푼다. -->
             <div class="sq-head">
                 <span class="sq-no">{{ q.number }}.</span>
                 <span class="sq-text">{{ q.text|qtext }}</span>
                 <span class="sq-pts">({{ q.points }}점)</span>
             </div>
-            {% else %}
-            <div class="eq-head">
-                <span class="eq-no">{{ q.number }}</span>
-                {% if q.topic_group %}<span class="eq-topic">{{ q.get_topic_group_display }}</span>{% endif %}
-                <span class="eq-type">{{ q.get_qtype_display }}</span>
-                <span class="eq-pts">{{ q.points }}점</span>
-            </div>
-            <div class="eq-text">{{ q.text|qtext }}</div>
-            {% endif %}
             {% if q.text_image %}<img class="eq-img" src="{{ q.text_image|vurl }}" alt="">{% endif %}
             <div class="eq-answer {% if q.qtype == '단답' or q.qtype == '빈칸' %}ln1{% elif q.qtype == '서술' or q.qtype == '계산' %}ln3{% else %}ln2{% endif %}">
                 <input type="hidden" name="question_id" value="{{ q.pk }}">
                 <textarea name="answer_{{ q.pk }}" id="ans_{{ q.pk }}"
                           placeholder="답안을 입력하세요"></textarea>
-                <div class="eq-hint">항목을 나눠 쓸 때는 ① ② ③ 으로 구분하면 채점이 정확합니다.</div>
 
                 {% if not is_exam %}
                 <div class="eq-check">
@@ -375,14 +344,13 @@ document.addEventListener('input', e => {
 /* 괘선 칸은 스크롤 대신 줄 수가 늘어난다. 높이를 줄 간격(32px)의 배수로
    맞춰야 마지막 글줄 아래에도 괘선이 온전히 그어진다. */
 function autoGrow(t) {
-    if (!t.closest('.paper')) return;
     // 높이 = 줄 수 × 32 + 테두리 4. min-height 도 같은 꼴이라 줄 수로 환산해 비교한다.
     const minRows = Math.round(((parseInt(getComputedStyle(t).minHeight, 10) || 100) - 4) / 32);
     t.style.height = 'auto';
     const rows = Math.max(minRows, Math.ceil(t.scrollHeight / 32));
     t.style.height = (rows * 32 + 4) + 'px';
 }
-document.querySelectorAll('.paper textarea[name^=answer_]').forEach(autoGrow);
+document.querySelectorAll('textarea[name^=answer_]').forEach(autoGrow);
 
 /* ---------- 학습 모드 즉시 채점 ---------- */
 document.querySelectorAll('.btn-check').forEach(btn => {
