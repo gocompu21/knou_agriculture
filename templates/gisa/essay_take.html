@@ -112,6 +112,20 @@
     .up-item .rm { position: absolute; right: -6px; top: -6px; width: 22px; height: 22px;
         border-radius: 50%; border: 0; background: #c62828; color: #fff; font-size: 0.8rem;
         line-height: 22px; cursor: pointer; padding: 0; }
+    /* 판독 진행 — 장마다 상태를 덮어 보여 주고, 아래 막대로 전체 진행을 알린다 */
+    .up-item .st { position: absolute; left: 0; right: 0; bottom: 0; padding: 3px 0;
+        font-size: 0.72rem; font-weight: 700; text-align: center; color: #fff;
+        border-radius: 0 0 6px 6px; display: none; }
+    .up-item.busy img { opacity: .45; }
+    .up-item.busy .st { display: block; background: #1b4332; }
+    .up-item.done .st { display: block; background: #2d6a4f; }
+    .up-item.fail .st { display: block; background: #c62828; }
+    .up-item.busy .rm, .up-item.done .rm { display: none; }
+    .up-prog { display: none; margin: 14px auto 0; max-width: 360px; height: 8px;
+        background: #e3e9e4; border-radius: 4px; overflow: hidden; }
+    .up-prog.on { display: block; }
+    .up-prog i { display: block; height: 100%; width: 0; background: #2d6a4f;
+        transition: width .3s; }
     .up-go { margin-top: 14px; background: #d9a441; color: #1b1b1b; border: 0;
         padding: 11px 26px; border-radius: 8px; font-weight: 700; font-size: 0.95rem;
         cursor: pointer; font-family: inherit; }
@@ -192,6 +206,7 @@
         <input type="file" id="upcam" class="up-file" accept="image/*" capture="environment">
         <input type="file" id="upfile" class="up-file" accept="image/*" multiple>
         <div class="up-list" id="uplist"></div>
+        <div class="up-prog" id="upprog"><i></i></div>
         <button type="button" class="up-go" id="upgo" hidden>판독 시작</button>
         <div class="up-status" id="upstatus"></div>
     </div>
@@ -362,7 +377,9 @@ function upRender() {
         rm.type = 'button'; rm.className = 'rm'; rm.textContent = '×';
         rm.title = '빼기';
         rm.addEventListener('click', () => { upQueue.splice(i, 1); upRender(); });
-        it.append(img, no, rm);
+        const st = document.createElement('span');
+        st.className = 'st';
+        it.append(img, no, rm, st);
         list.appendChild(it);
     });
     go.hidden = upQueue.length === 0;
@@ -383,28 +400,66 @@ document.getElementById('upgo').addEventListener('click', async () => {
     if (!upQueue.length) return;
     const go = document.getElementById('upgo');
     const status = document.getElementById('upstatus');
+    const prog = document.getElementById('upprog');
+    const items = document.querySelectorAll('.up-item');
+    const total = upQueue.length;
     go.disabled = true;
-    status.textContent = `${upQueue.length}장 판독 중… 잠시만 기다려 주세요.`;
+    prog.classList.add('on');
+    prog.firstElementChild.style.width = '0%';
 
-    const fd = new FormData();
-    upQueue.forEach(f => fd.append('images', f));
-    try {
-        const r = await fetch(`/gisa/${CERT_ID}/essay/${SESSION_ID}/upload/`, {
-            method: 'POST', headers: {'X-CSRFToken': CSRF}, body: fd
-        });
-        const d = await r.json();
-        if (!d.ok) throw new Error(d.error || '판독 실패');
-        let filled = 0;
-        (d.answers || []).forEach(a => {
-            const el = document.getElementById(`ans_${a.question_id}`);
-            if (el) { el.value = a.text; filled++; }
-        });
-        saveDraft();
-        status.innerHTML = `${filled}개 문항을 읽었습니다. <b>내용을 확인하고 필요하면 고친 뒤 제출하세요.</b>`;
-        upQueue.length = 0; upRender();
-    } catch (err) {
-        status.innerHTML = `<span style="color:#c62828">${err.message}</span>`;
+    // 한 장씩 보낸다. 서버는 원래 장별로 판독하고 같은 문항은 이어 붙이므로,
+    // 나눠 보내도 결과는 같고 대신 장마다 진행을 보여 줄 수 있다.
+    const collected = {};       // question_id → 이어 붙인 답
+    let failed = 0;
+    for (let i = 0; i < total; i++) {
+        const it = items[i];
+        it.classList.add('busy');
+        it.querySelector('.st').textContent = '판독 중';
+        status.textContent = `${i + 1} / ${total}쪽 판독 중… (한 장에 10~20초쯤 걸립니다)`;
+        const fd = new FormData();
+        fd.append('images', upQueue[i]);
+        try {
+            const r = await fetch(`/gisa/${CERT_ID}/essay/${SESSION_ID}/upload/`, {
+                method: 'POST', headers: {'X-CSRFToken': CSRF}, body: fd
+            });
+            const d = await r.json();
+            if (!d.ok) throw new Error(d.error || '판독 실패');
+            (d.answers || []).forEach(a => {
+                const t = (a.text || '').trim();
+                if (!t) return;
+                collected[a.question_id] = collected[a.question_id]
+                    ? collected[a.question_id] + '\n' + t : t;
+                const el = document.getElementById(`ans_${a.question_id}`);
+                if (el) el.value = collected[a.question_id];   // 읽는 족족 채운다
+            });
+            it.classList.remove('busy'); it.classList.add('done');
+            it.querySelector('.st').textContent = '완료';
+        } catch (err) {
+            failed++;
+            it.classList.remove('busy'); it.classList.add('fail');
+            it.querySelector('.st').textContent = '실패';
+            it.title = err.message;
+        }
+        prog.firstElementChild.style.width = Math.round((i + 1) / total * 100) + '%';
+    }
+    saveDraft();
+    const filled = Object.keys(collected).length;
+    if (failed) {
+        // 읽은 장은 큐에서 빼 두어야 다시 시도할 때 그 장까지 또 보내지 않는다.
+        // 판독은 장마다 API 를 부르고 하루 한도도 장수로 세므로 두 번 보내면 낭비다.
+        const keep = [];
+        items.forEach((it, i) => { if (it.classList.contains('fail')) keep.push(upQueue[i]); });
+        upQueue.length = 0; keep.forEach(f => upQueue.push(f));
+        upRender();
+        status.innerHTML = `<span style="color:#c62828">${failed}장은 읽지 못했습니다.</span> `
+            + `${filled}개 문항을 읽었습니다. 읽은 장은 치웠으니, 남은 장을 `
+            + `다시 찍어 바꾸거나 그대로 다시 판독해 보세요.`;
         go.disabled = false;
+    } else {
+        status.innerHTML = `${total}장 모두 판독했습니다. ${filled}개 문항을 읽었습니다. `
+            + `<b>내용을 확인하고 필요하면 고친 뒤 제출하세요.</b>`;
+        upQueue.length = 0; upRender();
+        prog.classList.remove('on');
     }
 });
 {% endif %}
