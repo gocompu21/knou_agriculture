@@ -182,7 +182,7 @@
         {% if a.question.text_image %}<img class="qr-img" src="{{ a.question.text_image|vurl }}" alt="">{% endif %}
 
         {# 판독기가 분수를 [eq]a / b[/eq], 표를 마크다운 표로 옮기므로 모범답안과 같은 렌더러로 그린다 #}
-        <div class="qr-mine {% if not a.answer_text %}empty{% endif %}">{% if a.answer_text %}{{ a.answer_text|qtext }}{% else %}(답안 없음){% endif %}</div>
+        <div class="qr-mine {% if not a.answer_text %}empty{% endif %}">{% if a.answer_text %}{{ a.answer_text|qtext_items }}{% else %}(답안 없음){% endif %}</div>
 
         {% for p in a.feedback.points %}
         <div class="pt {% if p.matched %}y{% else %}n{% endif %}">{{ p.point }}{% if not p.matched and p.comment %} <span class="pt-cmt">— {{ p.comment }}</span>{% endif %}</div>

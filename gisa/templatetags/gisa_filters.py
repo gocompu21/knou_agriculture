@@ -388,6 +388,37 @@ def qtext(value):
     return mark_safe(_render_qtext(value))
 
 
+_ITEM_START = re.compile(r'^[①-⑳]')
+
+
+def _group_items(value):
+    """① 줄 뒤에 오는, 번호 없는 줄을 그 항목의 이어지는 줄로 묶는다.
+
+    손글씨를 판독한 답안은 종이의 줄 끝마다 줄바꿈이 들어 있어, 한 항목이
+    여러 줄로 나뉜다. 그대로 두면 첫 줄만 매달리고 나머지는 번호 아래로
+    들어간다. 묶인 줄은 \\x02 로 이어 두었다가 렌더 뒤 <br> 로 되돌린다.
+    빈 줄, 표(|)·상자([)·태그(<) 줄, '계산)' 라벨에서 묶음을 끊는다.
+    """
+    out, in_item = [], False
+    for ln in (value or '').split('\n'):
+        s = ln.strip()
+        if _ITEM_START.match(s):
+            out.append(s)
+            in_item = True
+        elif in_item and s and s[0] not in '|[<' and not s.startswith('계산)'):
+            out[-1] += '\x02' + s
+        else:
+            out.append(ln)
+            in_item = False
+    return '\n'.join(out)
+
+
+@register.filter(name="qtext_items")
+def qtext_items(value):
+    """사용자 답안용 qtext — ① 항목의 이어지는 줄까지 매달아 들여쓴다."""
+    return mark_safe(_render_qtext(_group_items(value)).replace('\x02', '<br>'))
+
+
 @register.filter(name="qtext_pre")
 def qtext_pre(value):
     """[box] 이전 부분만 렌더링 (box가 없으면 전체 반환).
