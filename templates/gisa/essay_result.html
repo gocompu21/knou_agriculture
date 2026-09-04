@@ -45,7 +45,7 @@
 
     .qr { border-bottom: 1px solid #eee; padding: 16px 0; }
     .qr-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
-    .qr-no { font-weight: 700; font-size: 1rem; min-width: 26px; position: relative; }
+    .qr-no { font-weight: 700; font-size: 0.95rem; }
     .qr-no.full { color: #1565c0; }
     .qr-no.part { color: #a1651a; }
     .qr-no.zero { color: #c62828; }
@@ -58,7 +58,12 @@
         font-family: inherit; font-variant-numeric: tabular-nums; }
     .qr-pts input:focus { outline: none; border-color: #2d6a4f;
         box-shadow: 0 0 0 2px rgba(45,106,79,0.15); }
-    .qr-text { font-size: 0.93rem; line-height: 1.7; color: #222; margin-bottom: 10px; }
+    /* "N. 문제문" — 둘째 줄부터 번호 폭만큼 들여 문장이 번호 아래로 들어가지 않게 */
+    .qr-text { font-size: 0.93rem; line-height: 1.7; color: #222; margin-bottom: 10px;
+        padding-left: 20px; text-indent: -20px; }
+    .qr-text .q-box, .qr-text table { text-indent: 0; }
+    .qr-text .q-box { margin-left: -20px !important; margin-right: 0 !important;
+        width: calc(100% + 20px); max-width: none !important; box-sizing: border-box; }
     .qr-img { display: block; max-width: min(100%, 320px); margin: 6px 0; }
 
     /* 내 답안은 시험지·풀이 화면과 같은 괘선 칸에 보인다 — 줄 간격 32px 위에
@@ -168,8 +173,9 @@
 
     {% for a in attempts %}
     <div class="qr">
+        <!-- 학습 화면과 같은 꼴: 배지·점수 한 줄, 그 아래 "N. 문제문". 번호 색으로
+             만점(파랑)·부분(갈색)·0점(빨강)을 알린다. -->
         <div class="qr-head">
-            <span class="qr-no {% if a.is_perfect %}full{% elif a.score > 0 %}part{% else %}zero{% endif %}">{{ a.question.number }}</span>
             <span class="qr-type">{{ a.question.get_qtype_display }}</span>
             <span class="qr-pts">
                 <input type="number" step="0.5" min="0" max="{{ a.question.points }}"
@@ -178,7 +184,7 @@
                 {% if a.feedback.engine %}<span class="engine-tag">{{ a.feedback.engine }}</span>{% endif %}
             </span>
         </div>
-        <div class="qr-text">{{ a.question.text|qtext }}</div>
+        <div class="qr-text"><span class="qr-no {% if a.is_perfect %}full{% elif a.score > 0 %}part{% else %}zero{% endif %}">{{ a.question.number }}.</span> {{ a.question.text|qtext }}</div>
         {% if a.question.text_image %}<img class="qr-img" src="{{ a.question.text_image|vurl }}" alt="">{% endif %}
 
         {# 판독기가 분수를 [eq]a / b[/eq], 표를 마크다운 표로 옮기므로 모범답안과 같은 렌더러로 그린다 #}
