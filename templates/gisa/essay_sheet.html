@@ -127,16 +127,21 @@
 
     /* 인쇄할 때 모든 쪽 오른쪽 위에 시험지 코드를 찍는다. 화면에서는 감춘다.
      * 사진 판독 때 코드로 "이 시험지가 맞는지"를 가리는데, 코드가 1쪽에만
-     * 있으면 2쪽부터는 대조할 길이 없다. print 의 position:fixed 는
-     * 모든 쪽에 되풀이 찍힌다. */
+     * 있으면 2쪽부터는 대조할 길이 없다.
+     * 표의 <thead> 는 인쇄 때 쪽마다 되풀이되면서 자리도 차지한다. 전에 쓴
+     * position:fixed 는 본문 위에 그대로 얹혀 1쪽 제목·2쪽 첫 문항과 겹쳤다. */
+    .sheet-tbl { width: 100%; border-collapse: collapse; }
+    .sheet-tbl td { padding: 0; vertical-align: top; }
     .sh-run { display: none; }
 
     @media print {
         .sheet-bar, .sheet-tip { display: none !important; }
-        .sh-run { display: block; position: fixed; top: 0; right: 0;
+        .sh-run { display: block; text-align: right; padding-bottom: 6px;
             font-size: 0.68rem; color: #555; font-family: ui-monospace, monospace;
             letter-spacing: 1px; }
-        .sh-run b { color: #111; font-size: 0.8rem; }
+        .sh-run b { color: #111; font-size: 0.9rem; }
+        /* 코드는 머리글이 쪽마다 찍으므로 제목 옆의 큰 코드는 인쇄에서 뺀다 */
+        .sh-code { display: none; }
         body { background: #fff !important; }
         .sheet { box-shadow: none; margin: 0; padding: 0 6mm; max-width: none; }
         @page { size: A4; margin: 12mm 10mm; }
@@ -163,7 +168,11 @@
 </div>
 
 <div class="sheet">
+<table class="sheet-tbl">
+<thead><tr><td>
     <div class="sh-run">시험지 코드 <b>{{ session.paper_code }}</b> · {{ session.label }}</div>
+</td></tr></thead>
+<tbody><tr><td>
     <div class="sh-head">
         <div class="sh-title">
             <h1>{{ cert.name }} 실기 필답형</h1>
@@ -196,6 +205,8 @@
         {% endif %}
     </div>
     {% endfor %}
+</td></tr></tbody>
+</table>
 </div>
 </body>
 </html>
