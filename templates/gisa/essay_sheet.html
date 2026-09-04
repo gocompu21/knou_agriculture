@@ -55,10 +55,10 @@
     .sq { margin-bottom: 4px; page-break-inside: avoid; break-inside: avoid; }
     /* 번호와 문제는 한 줄로 붙여 쓴다. 문제가 길어 줄바꿈되면 둘째 줄부터
      * 번호 너비만큼 들여써 번호가 도드라지게 한다(행잡이 들여쓰기). */
-    /* 번호를 답안 박스의 왼쪽 끝에 맞춘다. 종전에는 32px 들여써 있어
-     * 번호와 박스 왼쪽 선이 어긋났다. 문제가 줄바꿈되면 둘째 줄부터
-     * 번호 너비만큼 들여써 번호만 도드라지게 한다. */
-    .sq-head { position: relative; margin: 0 0 6px 32px;
+    /* 문제 블록은 들여쓰지 않는다. 머리말·구분선과 같은 선에서 시작해야
+     * 종이 전체가 한 줄로 맞는다. 문제가 줄바꿈되면 둘째 줄부터 번호
+     * 너비만큼 들여써 번호만 도드라지게 한다. */
+    .sq-head { position: relative; margin: 0 0 6px 0;
         padding-left: 20px; text-indent: -20px; }
     .sq-no { font-weight: 700; font-size: 0.95rem; }
     .sq-text { font-size: 0.9rem; line-height: 1.65; color: #111; }
@@ -79,7 +79,7 @@
      * [box] 지문에 밀려 답안 박스 안으로 들어가거나 둘째 줄로 내려간다. */
     .sq-pts { position: absolute; top: 0; right: 0; text-indent: 0;
         font-size: 0.75rem; color: #888; white-space: nowrap; }
-    .sq-img { display: block; max-width: min(100%, 340px); margin: 6px 0 6px 32px; }
+    .sq-img { display: block; max-width: min(100%, 340px); margin: 6px 0; }
 
     /* 답안 박스
      *
@@ -92,7 +92,7 @@
      *    글자 획과 구분하기 쉽다. 실선 회색은 획으로 오인될 수 있다.
      *  - 좌우 여백을 두어 줄이 테두리에 닿지 않게 한다(획과 겹침 방지).
      */
-    .sq-box { position: relative; margin: 0 0 18px 32px;
+    .sq-box { position: relative; margin: 0 0 18px 0;
         border: 1.5px solid #333; border-radius: 3px; }
     .sq-box::before {
         content: ''; position: absolute; left: 12px; right: 12px;
