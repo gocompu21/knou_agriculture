@@ -77,6 +77,9 @@
     .paper .eq-answer { margin-left: 0; }
     .paper .eq-img { margin-left: 0; }
     .paper .eq-hint { display: none; }
+    /* 인쇄 시험지에는 문항 사이 구분선이 없다. 여백만 두되 시험지와 같은 32px
+     * (textarea 가 inline-block 이라 밑에 5px 이 붙으므로 27px). */
+    .paper .eq { border-bottom: 0; padding: 0 0 27px; }
 
     /* ── 시험지 모드: 답안 칸을 인쇄한 시험지와 같은 괘선 칸으로 ──
      * 줄 간격 32px, 파선, 유형별 줄 수(3·5·8)가 시험지와 같다. 판독된 글이

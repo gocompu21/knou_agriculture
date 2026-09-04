@@ -57,7 +57,10 @@
     .sh-guide { font-size: 0.76rem; color: #666; margin-bottom: 16px;
         padding: 6px 0; border-bottom: 1px solid #ddd; }
 
-    .sq { margin-bottom: 4px; page-break-inside: avoid; break-inside: avoid; }
+    /* 문항 사이 32px (화면 시험지 모드와 같은 값). 답안 칸의 18px 과 마진이
+     * 병합되므로 더하지 않고 큰 값이 그대로 간격이 된다. 붙어 보이면 다음 문항
+     * 발문이 앞 답안 칸에 딸린 것처럼 읽힌다. */
+    .sq { margin-bottom: 32px; page-break-inside: avoid; break-inside: avoid; }
     /* 번호와 문제는 한 줄로 붙여 쓴다. 문제가 길어 줄바꿈되면 둘째 줄부터
      * 번호 너비만큼 들여써 번호가 도드라지게 한다(행잡이 들여쓰기). */
     /* 문제 블록은 들여쓰지 않는다. 머리말·구분선과 같은 선에서 시작해야
