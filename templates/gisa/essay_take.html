@@ -98,6 +98,15 @@
         padding: 10px 22px; border-radius: 8px; font-weight: 600; cursor: pointer;
         font-size: 0.9rem; }
     .up-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    /* 데스크톱에서는 카메라 버튼을 감춘다. 데스크톱 브라우저는 capture 를 무시하고
+     * 파일 창을 열어 "사진·파일 고르기"와 똑같이 동작하는데, 이름만 카메라라
+     * 헷갈린다. 마우스(정밀 포인터)가 주 입력이면 데스크톱으로 본다. */
+    @media (hover: hover) and (pointer: fine) {
+        .up-btns .up-label[for="upcam"] { display: none; }
+        /* 혼자 남은 버튼은 주 버튼답게 진하게. 기본 .up-label.sub 가 뒤에
+         * 선언돼 있어 선택자를 한 단계 좁혀 이긴다. */
+        .up-btns .up-label.sub { background: #1b4332; color: #fff; }
+    }
     .up-label.sub { background: #fff; color: #1b4332; border: 1.5px solid #1b4332; }
     /* 모아 둔 사진 — 미리보기 + 페이지 번호 + 빼기 */
     .up-list { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
