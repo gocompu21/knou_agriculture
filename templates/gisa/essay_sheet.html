@@ -75,6 +75,8 @@
      * 비워 두므로 박스가 그 안쪽으로 밀린다. 음수 여백으로 되돌린다.
      * qtext 가 인라인 style 로 margin 을 주므로 !important 가 필요하다. */
     .sq-head .q-box {
+        /* 테두리를 답안 박스와 같게 — qtext 는 2px/radius 4px 로 그린다 */
+        border-width: 1.5px !important; border-radius: 3px !important;
         margin-left: -20px !important; margin-right: 0 !important;
         /* 왼쪽으로 당긴 만큼 너비를 늘려야 오른쪽 선도 답안 박스와 맞는다.
          * qtext 가 인라인으로 max-width:100% 를 주므로 함께 풀어야 한다. */
