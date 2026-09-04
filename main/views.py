@@ -13,6 +13,7 @@ import markdown
 import re
 
 from django.conf import settings
+from django.utils import timezone
 from django.db.models import Case, Count, F, IntegerField, Max, Min, Q, Sum, Value, When
 from django.db.models.functions import TruncDate
 
@@ -1789,9 +1790,12 @@ def qna_create(request):
     return JsonResponse({
         "ok": ok,
         "pk": q.pk,
+        "title": q.title,
         "answer": q.answer,
         "note_ref": q.note_ref,
         "error": q.error,
+        "who": request.user.first_name or request.user.username,
+        "when": timezone.localtime(q.created_at).strftime("%m.%d"),
         "left": qna_engine.remaining_today(request.user),
         "url": f"/qna/{q.pk}/",
     })

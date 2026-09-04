@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load humanize gisa_filters %}
 
+{% load qna_filters %}
 {% block title %}{{ cert.name }} | 기사시험{% endblock %}
 
 {% block extra_css_links %}{% include "gisa/_katex.html" %}{% endblock %}
@@ -979,18 +980,43 @@
     .qna-ask-result.on { display: block; }
     .qna-ask-result.err { background: #fdf3f2; border-left-color: #d93025; color: #b3261e; }
 
-    .qna-tab-list { list-style: none; margin: 0; padding: 0; background: #fff;
-        border: 1px solid #e3e6ea; border-radius: 10px; overflow: hidden; }
-    .qna-tab-list li { border-bottom: 1px solid #f2f4f6; }
-    .qna-tab-list li:last-child { border-bottom: 0; }
-    .qna-tab-list a { display: flex; align-items: baseline; gap: 9px;
-        padding: 11px 15px; text-decoration: none; color: inherit; }
-    .qna-tab-list a:hover { background: #fafbfd; }
-    .qt-sub { flex-shrink: 0; font-size: 0.7rem; font-weight: 700; padding: 2px 8px;
-        border-radius: 8px; background: #eef0f8; color: #3949ab; white-space: nowrap; }
-    .qt-title { flex: 1; font-size: 0.9rem; font-weight: 600; color: #1f2430; }
+    .qna-tab-list { list-style: none; margin: 0; padding: 0;
+        background: #fff; border: 1px solid #e3e6ea; border-radius: 10px;
+        overflow: hidden; }
+    .qna-item { border-bottom: 1px solid #f2f4f6; }
+    .qna-item:last-child { border-bottom: 0; }
+    .qi-head { display: flex; align-items: baseline; gap: 9px;
+        padding: 11px 15px 7px; cursor: pointer; }
+    .qi-head:hover { background: #fafbfd; }
+    .qi-title { flex: 1; font-size: 0.9rem; font-weight: 600; color: #1f2d24; }
     .qt-note { flex-shrink: 0; font-size: 0.78rem; }
-    .qt-meta { flex-shrink: 0; font-size: 0.75rem; color: #9aa0ac; }
+    .qt-meta { flex-shrink: 0; font-size: 0.75rem; color: #97a79d; }
+    .qi-arrow { flex-shrink: 0; color: #c3cec7; font-size: 0.8rem;
+        transition: transform .15s; }
+    .qna-item.open .qi-arrow { transform: rotate(90deg); }
+
+    /* 접힌 상태에서 답 앞부분 3줄만 */
+    .qi-peek { padding: 0 15px 11px; font-size: 0.83rem; line-height: 1.65;
+        color: #7c8a81; cursor: pointer;
+        display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+        overflow: hidden; }
+    .qna-item.open .qi-peek { display: none; }
+
+    .qi-full { display: none; padding: 2px 15px 14px; font-size: 0.88rem;
+        line-height: 1.8; color: #263; }
+    .qna-item.open .qi-full { display: block; }
+    .qi-full h3 { font-size: 0.9rem; color: #1a237e; margin: 12px 0 5px; }
+    .qi-full p { margin: 0 0 8px; }
+    .qi-full ul { padding-left: 19px; margin: 5px 0 10px; }
+    .qi-full li { margin: 3px 0; }
+    .qi-full strong { color: #1a237e; }
+    .qi-note-ref { font-size: 0.75rem; color: #3949ab; background: #eef0f8;
+        display: inline-block; padding: 2px 9px; border-radius: 9px;
+        margin-bottom: 8px; }
+    .qi-link { display: inline-block; margin-top: 6px; font-size: 0.78rem;
+        color: #3949ab; text-decoration: none; font-weight: 600; }
+    .qi-link:hover { text-decoration: underline; }
+
     .qna-more { text-align: right; margin-top: 10px; }
     .qna-more a { font-size: 0.82rem; color: #3949ab; text-decoration: none;
         font-weight: 600; }
@@ -1522,24 +1548,26 @@
             <div class="qna-ask-result" id="qnaResult"></div>
         </div>
 
-        {% if qna_items %}
-        <ul class="qna-tab-list">
+        <ul class="qna-tab-list" id="qnaList">
             {% for q in qna_items %}
-            <li>
-                <a href="/qna/{{ q.pk }}/">
+            <li class="qna-item" data-pk="{{ q.pk }}">
+                <div class="qi-head" onclick="toggleQna(this)">
                     {% if q.cert_subject %}<span class="qt-sub">{{ q.cert_subject }}</span>{% endif %}
-                    <span class="qt-title">{{ q.title }}</span>
-                    {% if q.note_ref %}<span class="qt-note">📖</span>{% endif %}
+                    <span class="qi-title">{{ q.title }}</span>
+                    {% if q.note_ref %}<span class="qt-note" title="{{ q.note_ref }}">📖</span>{% endif %}
                     <span class="qt-meta">{{ q.user.first_name|default:q.user.username }} · 조회 {{ q.view_count }} · {{ q.created_at|date:"m.d" }}</span>
-                </a>
+                    <span class="qi-arrow">›</span>
+                </div>
+                <div class="qi-peek">{{ q.answer|qna_peek }}</div>
+                <div class="qi-full" data-raw="{{ q.answer }}" data-ref="{{ q.note_ref }}"></div>
             </li>
             {% endfor %}
         </ul>
         {% if qna_count > qna_items|length %}
         <div class="qna-more"><a href="/qna/?cert={{ cert.name|urlencode }}">이 자격증 질문 {{ qna_count }}건 모두 보기 &rsaquo;</a></div>
         {% endif %}
-        {% else %}
-        <div class="empty-tab">아직 질문이 없습니다. 첫 질문을 남겨 보세요.</div>
+        {% if not qna_items %}
+        <div class="empty-tab" id="qnaEmpty">아직 질문이 없습니다. 첫 질문을 남겨 보세요.</div>
         {% endif %}
     </div>
 </div>
@@ -2568,6 +2596,52 @@ function registerFromSearch(qId) {
     document.querySelectorAll('.exp-text-inner').forEach(linkTerms);
 })();
 
+/* AI 답은 마크다운 비슷하게 온다. 제목·목록·강조만 살린다.
+       LaTeX 표기가 섞여 오면 걷어낸다. */
+    function qnaRender(raw) {
+        var t = String(raw || '');
+        t = t.split('$').join('');
+        t = t.replace(/\\text\{([^}]*)\}/g, '$1');
+        var esc = function (x) {
+            return x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        };
+        var out = [], ul = false;
+        t.split('\n').forEach(function (rawLine) {
+            var line = rawLine.trim();
+            if (!line) { if (ul) { out.push('</ul>'); ul = false; } return; }
+            var h = esc(line)
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>');
+            if (/^#{1,4}\s/.test(line)) {
+                if (ul) { out.push('</ul>'); ul = false; }
+                out.push('<h3>' + h.replace(/^#{1,4}\s*/, '') + '</h3>');
+            } else if (/^[*\-•]\s/.test(line) || /^\d+\.\s/.test(line)) {
+                if (!ul) { out.push('<ul>'); ul = true; }
+                out.push('<li>' + h.replace(/^([*\-•]|\d+\.)\s*/, '') + '</li>');
+            } else {
+                if (ul) { out.push('</ul>'); ul = false; }
+                out.push('<p>' + h + '</p>');
+            }
+        });
+        if (ul) out.push('</ul>');
+        return out.join('');
+    }
+
+    function toggleQna(head) {
+        var item = head.closest ? head.closest('.qna-item') : head.parentElement;
+        var full = item.querySelector('.qi-full');
+        if (full && !full.dataset.done) {
+            var pk = item.dataset.pk;
+            full.innerHTML =
+                (full.dataset.ref ? '<div class="qi-note-ref">📖 ' + full.dataset.ref + '</div>' : '')
+                + qnaRender(full.dataset.raw)
+                + '<a class="qi-link" href="/qna/' + pk + '/">따로 보기 &rsaquo;</a>';
+            full.dataset.done = '1';
+        }
+        item.classList.toggle('open');
+    }
+
+
 /* 질의응답 — 이 자격증(+과목)에 관해 묻는다 */
 async function askQna() {
     var inp = document.getElementById('qnaInput');
@@ -2589,19 +2663,75 @@ async function askQna() {
             body: body
         });
         var d = await r.json();
-        if (d.ok) { location.href = d.url; return; }
-        out.className = 'qna-ask-result on err';
-        out.textContent = d.error || '답을 받지 못했습니다.';
+        if (!d.ok) {
+            out.className = 'qna-ask-result on err';
+            out.textContent = d.error || '답을 받지 못했습니다.';
+        } else {
+            out.className = 'qna-ask-result';
+            inp.value = '';
+            d.sub = sel ? sel.value : '';
+            qnaPrepend(d);
+        }
     } catch (e) {
         out.className = 'qna-ask-result on err';
         out.textContent = e.message;
     }
     btn.disabled = false; btn.textContent = '물어보기';
 }
+
+/* 새 답을 목록 맨 위에 펼친 채로 끼워 넣는다 — 화면을 떠나지 않는다 */
+function qnaPrepend(d) {
+    var list = document.getElementById('qnaList');
+    var empty = document.getElementById('qnaEmpty');
+    if (empty) empty.remove();
+    if (!list) return;
+    var esc = function (x) {
+        return (x || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    };
+    var li = document.createElement('li');
+    li.className = 'qna-item open';
+    li.dataset.pk = d.pk;
+    li.innerHTML =
+        '<div class="qi-head" onclick="toggleQna(this)">'
+      +   (d.sub ? '<span class="qt-sub">' + esc(d.sub) + '</span>' : '')
+      +   '<span class="qi-title">' + esc(d.title) + '</span>'
+      +   (d.note_ref ? '<span class="qt-note" title="' + esc(d.note_ref) + '">📖</span>' : '')
+      +   '<span class="qt-meta">' + esc(d.who) + ' · 조회 0 · ' + esc(d.when) + '</span>'
+      +   '<span class="qi-arrow">›</span>'
+      + '</div>'
+      + '<div class="qi-peek"></div>'
+      + '<div class="qi-full"></div>';
+    var full = li.querySelector('.qi-full');
+    full.dataset.raw = d.answer || '';
+    full.dataset.ref = d.note_ref || '';
+    full.dataset.done = '1';
+    full.innerHTML =
+        (d.note_ref ? '<div class="qi-note-ref">📖 ' + esc(d.note_ref) + '</div>' : '')
+      + qnaRender(d.answer)
+      + '<a class="qi-link" href="' + d.url + '">따로 보기 &rsaquo;</a>';
+    var peek = String(d.answer || '')
+        .replace(/^#{1,6}\s*/gm, '')
+        .replace(/\*\*(.+?)\*\*/g, '$1')
+        .replace(/`([^`]+)`/g, '$1')
+        .replace(/^\s*[*\-•]\s+/gm, '')
+        .replace(/^\s*\d+\.\s+/gm, '')
+        .split('$').join('')
+        .replace(/\s+/g, ' ').trim();
+    li.querySelector('.qi-peek').textContent =
+        peek.slice(0, 180) + (peek.length > 180 ? '…' : '');
+    list.insertBefore(li, list.firstChild);
+    li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     var inp = document.getElementById('qnaInput');
     if (inp) inp.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') askQna();
+    });
+    document.querySelectorAll('.qi-peek').forEach(function (el) {
+        el.addEventListener('click', function () {
+            toggleQna(el.parentElement.querySelector('.qi-head'));
+        });
     });
 });
 </script>
