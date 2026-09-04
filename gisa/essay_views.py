@@ -195,6 +195,18 @@ def essay_take(request, cert_id):
             pk=resume, user=request.user, certification=cert,
             status='progress').first()
 
+    # 시험지 모드를 목록에서 다시 열어도 같은 회차의 진행 중 시험지를 잇는다.
+    # 열 때마다 새 코드를 만들면 먼저 인쇄해 둔 시험지가 "다른 시험지"로
+    # 거부된다(실제로 13:19 에 인쇄한 시험지를 14:00 세션에 올려 거부된 일이 있다).
+    # 기출은 문항이 회차로 정해져 있어 이어도 같은 시험지다. 일부러 새로
+    # 뽑으려면 ?new=1.
+    if (session is None and mode == 'paper' and source == '기출'
+            and not request.GET.get('new')):
+        session = GisaEssaySession.objects.filter(
+            user=request.user, certification=cert, source='기출',
+            year=year, round=round_, mode='paper', status='progress',
+        ).exclude(paper_code='').order_by('-pk').first()
+
     if session is None:
         session = GisaEssaySession.objects.create(
             user=request.user, certification=cert,
