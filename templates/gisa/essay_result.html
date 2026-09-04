@@ -61,10 +61,23 @@
     .qr-text { font-size: 0.93rem; line-height: 1.7; color: #222; margin-bottom: 10px; }
     .qr-img { display: block; max-width: min(100%, 320px); margin: 6px 0; }
 
-    .qr-mine { background: #fafafa; border-left: 3px solid #cfd8d2;
-        padding: 8px 12px; font-size: 0.88rem; line-height: 1.7; color: #444;
-        white-space: pre-wrap; margin-bottom: 10px; }
+    /* 내 답안은 시험지·풀이 화면과 같은 괘선 칸에 보인다 — 줄 간격 32px 위에
+     * 글이 얹히고 마지막 줄 아래는 밑변이 대신한다(essay_take 의 textarea 와
+     * 같은 타일). qtext 가 줄바꿈을 <br> 로 바꾸므로 pre-wrap 을 겹치면
+     * 줄이 두 배로 벌어진다. */
+    .qr-mine { position: relative; font-size: 0.95rem; line-height: 32px; color: #222;
+        padding: 0 12px; margin-bottom: 10px; min-height: 100px; box-sizing: border-box;
+        border: 2px solid #333; border-radius: 3px; background-color: #fff;
+        background-image:
+            linear-gradient(#fff, #fff),
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='32'%3E%3Cpath d='M0 31.5h5' stroke='%239a9a9a' stroke-width='1'/%3E%3C/svg%3E");
+        background-size: 100% 2px, 12px 32px;
+        background-position: 0 100%, 12px 0;
+        background-repeat: no-repeat, repeat;
+        background-origin: padding-box; }
     .qr-mine.empty { color: #bbb; font-style: italic; }
+    /* 상자·표가 들어오면 줄 리듬이 깨지는 대신 답이 그대로 보이는 쪽을 택한다 */
+    .qr-mine .q-box, .qr-mine table { line-height: 1.6; }
 
     .pt { padding: 4px 0 4px 22px; position: relative; font-size: 0.87rem;
         line-height: 1.65; }
@@ -108,8 +121,9 @@
             <span class="unit">/ {{ session.total_points }}점 · {{ session.percent }}%</span>
         </div>
         <div class="er-actions">
-            {# 결과를 본 뒤 이어질 일은 틀린 문항을 정답과 맞춰 보는 것이다.
-               필기 상세로 보내면 실기 흐름에서 튕겨 나간다. #}
+            <!-- 결과를 본 뒤 이어질 일은 틀린 문항을 정답과 맞춰 보는 것이다.
+                 필기 상세로 보내면 실기 흐름에서 튕겨 나간다. -->
+            <!-- Django 의 {# #} 주석은 한 줄만 된다. 여러 줄이면 글자로 새어 나온다. -->
             {% if session.source == '기출' and session.year %}
             <a class="er-btn" href="{% url 'gisa:essay_study' cert.pk %}?source=기출&year={{ session.year }}&round={{ session.round }}">{{ session.year }}년 {{ session.round }}회 학습</a>
             {% endif %}
