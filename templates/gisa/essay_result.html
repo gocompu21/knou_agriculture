@@ -108,8 +108,12 @@
             <span class="unit">/ {{ session.total_points }}점 · {{ session.percent }}%</span>
         </div>
         <div class="er-actions">
-            <a class="er-btn" href="{% url 'gisa:essay_list' cert.pk %}">실기 목록</a>
-            <a class="er-btn sub" href="/gisa/{{ cert.pk }}/">돌아가기</a>
+            {# 결과를 본 뒤 이어질 일은 틀린 문항을 정답과 맞춰 보는 것이다.
+               필기 상세로 보내면 실기 흐름에서 튕겨 나간다. #}
+            {% if session.source == '기출' and session.year %}
+            <a class="er-btn" href="{% url 'gisa:essay_study' cert.pk %}?source=기출&year={{ session.year }}&round={{ session.round }}">{{ session.year }}년 {{ session.round }}회 학습</a>
+            {% endif %}
+            <a class="er-btn sub" href="{% url 'gisa:essay_list' cert.pk %}">실기 목록</a>
         </div>
     </div>
 </div>
