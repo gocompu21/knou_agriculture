@@ -55,8 +55,11 @@
     .sq { margin-bottom: 4px; page-break-inside: avoid; break-inside: avoid; }
     /* 번호와 문제는 한 줄로 붙여 쓴다. 문제가 길어 줄바꿈되면 둘째 줄부터
      * 번호 너비만큼 들여써 번호가 도드라지게 한다(행잡이 들여쓰기). */
-    .sq-head { position: relative; margin-bottom: 6px;
-        padding-left: 32px; padding-right: 52px; text-indent: -32px; }
+    /* 번호를 답안 박스의 왼쪽 끝에 맞춘다. 종전에는 32px 들여써 있어
+     * 번호와 박스 왼쪽 선이 어긋났다. 문제가 줄바꿈되면 둘째 줄부터
+     * 번호 너비만큼 들여써 번호만 도드라지게 한다. */
+    .sq-head { position: relative; margin: 0 0 6px 32px;
+        padding-left: 20px; padding-right: 52px; text-indent: -20px; }
     .sq-no { font-weight: 700; font-size: 0.95rem; }
     .sq-text { font-size: 0.9rem; line-height: 1.65; color: #111; }
     /* 배점은 발문 첫 줄 오른쪽에 고정한다. 글 흐름에 맡기면 [box] 지문이나
@@ -79,7 +82,7 @@
     .sq-box { position: relative; margin: 0 0 18px 32px;
         border: 1.5px solid #333; border-radius: 3px; }
     .sq-box::before {
-        content: ''; position: absolute; left: 10px; right: 10px;
+        content: ''; position: absolute; left: 12px; right: 12px;
         /* 아래를 한 줄만큼 잘라내 마지막 점선을 그리지 않는다.
          * 높이가 줄 간격의 배수라 그냥 두면 마지막 점선이 밑변 위에
          * 겹쳐 두 겹으로 찍힌다. 그 줄은 밑변이 대신한다. */
