@@ -101,33 +101,18 @@
      */
     .sq-box { position: relative; margin: 0 0 18px 0;
         border: 1.5px solid #333; border-radius: 3px; }
-    .sq-box::before {
-        content: ''; position: absolute; left: 12px; right: 12px;
-        /* 아래를 한 줄만큼 잘라내 마지막 점선을 그리지 않는다.
-         * 높이가 줄 간격의 배수라 그냥 두면 마지막 점선이 밑변 위에
-         * 겹쳐 두 겹으로 찍힌다. 그 줄은 밑변이 대신한다. */
-        top: 0; bottom: 32px;
-        /* 흑백 프린터 기준 색이다.
-         * 연한 색(#ccc 이하)은 흑백 출력에서 하프톤으로 흩어져 얼룩이
-         * 되거나 아예 안 찍힌다. #9a9a9a 는 확실히 찍히면서도 검은
-         * 볼펜 글씨보다 뚜렷이 옅어 판독 시 글자와 구분된다.
-         *
-         * 줄 간격 32px(≈8.5mm). 종전 38px 은 성인 손글씨(7~9mm)에 견줘
-         * 지나치게 넉넉해 한 칸에 담기는 줄 수가 적었다. */
-        background-image: repeating-linear-gradient(
-            to bottom,
-            transparent, transparent 31px,
-            #9a9a9a 31px, #9a9a9a 32px);
-        /* 파선으로 잘라 실선을 피한다. 실선은 글자의 가로획(ㅡ, ㄴ의 밑변)과
-         * 이어져 보일 수 있다. 파선은 끊겨 있어 획으로 오인되지 않는다.
-         *
-         * 주기를 % 로 잡아 줄 너비에 맞춘다. px 로 두면 너비가 주기의
-         * 배수가 아닐 때 오른쪽 끝 조각이 잘려 좌우가 어긋나 보인다. */
-        -webkit-mask-image: repeating-linear-gradient(
-            to right, #000 0 0.7315%, transparent 0.7315% 1.7416%);
-        mask-image: repeating-linear-gradient(
-            to right, #000 0 0.7315%, transparent 0.7315% 1.7416%);
-    }
+    /* 답안 줄은 진짜 요소의 dashed border 로 긋는다.
+     *
+     * 전에는 repeating-linear-gradient + mask-image 로 그렸는데, 그러면
+     * PDF 에 소프트마스크·그라디언트·투명그룹이 상자마다 실린다(15문항에
+     * SMask 61, Shading 120). Brother 같은 GDI 프린터로 보낼 때 PDFium 이
+     * 이것들을 페이지마다 비트맵으로 합성하느라 스풀이 한참 걸렸다.
+     * dashed border 는 벡터 획이라 일반 웹페이지처럼 바로 나간다.
+     *
+     * 색 #9a9a9a: 흑백 출력에서 확실히 찍히되 볼펜 글씨보다 뚜렷이 옅다.
+     * 파선: 실선은 글자의 가로획과 이어져 보일 수 있어 판독에 불리하다. */
+    .sq-ln { position: absolute; left: 12px; right: 12px; height: 0;
+        border-top: 1px dashed #9a9a9a; }
     /* 높이 = 32px × 줄수. 딱 배수로 잡아야 마지막 점선이 밑변과 겹쳐
      * 사라지고, 밑변이 그 줄을 대신한다. 배수 + 여백으로 두면 밑변
      * 바로 위에 점선이 하나 더 남아 쓰지도 못할 자투리 줄이 생긴다.
@@ -142,12 +127,6 @@
         body { background: #fff !important; }
         .sheet { box-shadow: none; margin: 0; padding: 0 6mm; max-width: none; }
         @page { size: A4; margin: 12mm 10mm; }
-        /* 브라우저는 기본적으로 배경을 인쇄하지 않는다.
-         * 이 선언이 없으면 답안 줄이 아예 찍히지 않는다. */
-        .sq-box::before {
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
     }
     @media (max-width: 600px) {
         .sq-text, .sq-box, .sq-img { padding-left: 0; margin-left: 0; }
@@ -194,7 +173,13 @@
             <span class="sq-pts">({{ q.points }}점)</span>
         </div>
         {% if q.text_image %}<img class="sq-img" src="{{ q.text_image|vurl }}" alt="">{% endif %}
-        <div class="sq-box {% if q.qtype == '단답' or q.qtype == '빈칸' %}h1{% elif q.qtype == '서술' or q.qtype == '계산' %}h3{% else %}h2{% endif %}"></div>
+        {% if q.qtype == '단답' or q.qtype == '빈칸' %}
+        <div class="sq-box h1"><i class="sq-ln" style="top:32px"></i><i class="sq-ln" style="top:64px"></i></div>
+        {% elif q.qtype == '서술' or q.qtype == '계산' %}
+        <div class="sq-box h3"><i class="sq-ln" style="top:32px"></i><i class="sq-ln" style="top:64px"></i><i class="sq-ln" style="top:96px"></i><i class="sq-ln" style="top:128px"></i><i class="sq-ln" style="top:160px"></i><i class="sq-ln" style="top:192px"></i><i class="sq-ln" style="top:224px"></i></div>
+        {% else %}
+        <div class="sq-box h2"><i class="sq-ln" style="top:32px"></i><i class="sq-ln" style="top:64px"></i><i class="sq-ln" style="top:96px"></i><i class="sq-ln" style="top:128px"></i></div>
+        {% endif %}
     </div>
     {% endfor %}
 </div>
