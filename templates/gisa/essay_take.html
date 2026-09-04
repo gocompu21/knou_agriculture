@@ -61,6 +61,33 @@
         box-shadow: 0 0 0 3px rgba(45,106,79,0.1); }
     .eq-hint { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
 
+    /* ── 시험지 모드: 답안 칸을 인쇄한 시험지와 같은 괘선 칸으로 ──
+     * 줄 간격 32px, 파선, 유형별 줄 수(3·5·8)가 시험지와 같다. 판독된 글이
+     * 종이에 쓴 자리 그대로 줄 위에 얹혀 보이도록 line-height 를 줄 간격에
+     * 맞추고, 괘선은 12×32 타일(아래쪽에 5px 파선)을 배경으로 깐다. 배경이라
+     * 글자를 가리지 않고, 칸이 늘어나도 타일이 이어져 줄이 계속된다. */
+    .paper .eq-answer textarea {
+        line-height: 32px; padding: 0 12px; font-size: 0.95rem;
+        /* 테두리는 정수 px — 1.5px 는 렌더링 반올림으로 안쪽 높이가 97 이 되어
+         * 줄 수 계산(32 배수)이 한 줄 어긋난다. */
+        border: 2px solid #333; border-radius: 3px; resize: none; overflow: hidden;
+        background-color: #fff;
+        /* 두 겹: 위는 맨 아래 2px 를 덮는 흰 띠, 아래는 파선 타일.
+         * 마지막 줄의 파선은 밑변 테두리와 붙어 두 겹으로 보이므로 흰 띠로
+         * 지운다 — 시험지 인쇄에서 마지막 점선을 뺀 것과 같은 이유다. */
+        background-image:
+            linear-gradient(#fff, #fff),
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='32'%3E%3Cpath d='M0 31.5h5' stroke='%239a9a9a' stroke-width='1'/%3E%3C/svg%3E");
+        background-size: 100% 2px, 12px 32px;
+        background-position: 0 100%, 12px 0;
+        background-repeat: no-repeat, repeat;
+        background-origin: padding-box; background-attachment: local, local;
+    }
+    /* 줄 수 × 32px + 테두리 4px (box-sizing: border-box) */
+    .paper .eq-answer.ln1 textarea { min-height: 100px; }   /* 3줄 — 단답·빈칸 */
+    .paper .eq-answer.ln2 textarea { min-height: 164px; }   /* 5줄 — 열거·표그림 */
+    .paper .eq-answer.ln3 textarea { min-height: 260px; }   /* 8줄 — 서술·계산 */
+
     /* 학습 모드 즉시 채점 */
     .eq-check { margin-top: 8px; display: flex; gap: 8px; align-items: center; }
     .btn-check { background: #2d6a4f; color: #fff; border: 0; border-radius: 6px;
@@ -221,7 +248,7 @@
     </div>
     {% endif %}
 
-    <form id="essayForm" method="post"
+    <form id="essayForm" method="post" class="{% if session.mode == 'paper' %}paper{% endif %}"
           action="{% url 'gisa:essay_submit' cert.pk session.pk %}">
         {% csrf_token %}
         {% for q in questions %}
@@ -234,7 +261,7 @@
             </div>
             <div class="eq-text">{{ q.text|qtext }}</div>
             {% if q.text_image %}<img class="eq-img" src="{{ q.text_image|vurl }}" alt="">{% endif %}
-            <div class="eq-answer">
+            <div class="eq-answer {% if q.qtype == '단답' or q.qtype == '빈칸' %}ln1{% elif q.qtype == '서술' or q.qtype == '계산' %}ln3{% else %}ln2{% endif %}">
                 <input type="hidden" name="question_id" value="{{ q.pk }}">
                 <textarea name="answer_{{ q.pk }}" id="ans_{{ q.pk }}"
                           placeholder="답안을 입력하세요"></textarea>
@@ -306,14 +333,26 @@ function loadDraft() {
         const data = JSON.parse(raw);
         Object.entries(data).forEach(([k, v]) => {
             const el = document.querySelector(`textarea[name="${k}"]`);
-            if (el && !el.value) el.value = v;
+            if (el && !el.value) { el.value = v; if (typeof autoGrow === 'function') autoGrow(el); }
         });
     } catch (e) {}
 }
 loadDraft();
 document.addEventListener('input', e => {
-    if (e.target.matches('textarea[name^=answer_]')) saveDraft();
+    if (e.target.matches('textarea[name^=answer_]')) { saveDraft(); autoGrow(e.target); }
 });
+
+/* 괘선 칸은 스크롤 대신 줄 수가 늘어난다. 높이를 줄 간격(32px)의 배수로
+   맞춰야 마지막 글줄 아래에도 괘선이 온전히 그어진다. */
+function autoGrow(t) {
+    if (!t.closest('.paper')) return;
+    // 높이 = 줄 수 × 32 + 테두리 4. min-height 도 같은 꼴이라 줄 수로 환산해 비교한다.
+    const minRows = Math.round(((parseInt(getComputedStyle(t).minHeight, 10) || 100) - 4) / 32);
+    t.style.height = 'auto';
+    const rows = Math.max(minRows, Math.ceil(t.scrollHeight / 32));
+    t.style.height = (rows * 32 + 4) + 'px';
+}
+document.querySelectorAll('.paper textarea[name^=answer_]').forEach(autoGrow);
 
 /* ---------- 학습 모드 즉시 채점 ---------- */
 document.querySelectorAll('.btn-check').forEach(btn => {
@@ -443,7 +482,7 @@ document.getElementById('upgo').addEventListener('click', async () => {
                 collected[a.question_id] = collected[a.question_id]
                     ? collected[a.question_id] + '\n' + t : t;
                 const el = document.getElementById(`ans_${a.question_id}`);
-                if (el) el.value = collected[a.question_id];   // 읽는 족족 채운다
+                if (el) { el.value = collected[a.question_id]; autoGrow(el); }   // 읽는 족족 채운다
             });
             it.classList.remove('busy'); it.classList.add('done');
             it.querySelector('.st').textContent = '완료';
