@@ -53,11 +53,16 @@
         padding: 6px 0; border-bottom: 1px solid #ddd; }
 
     .sq { margin-bottom: 4px; page-break-inside: avoid; break-inside: avoid; }
-    .sq-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; }
-    .sq-no { font-weight: 700; font-size: 1.02rem; min-width: 24px; }
-    .sq-pts { margin-left: auto; font-size: 0.75rem; color: #888; }
-    .sq-text { font-size: 0.9rem; line-height: 1.65; color: #111;
-        padding-left: 32px; margin-bottom: 6px; }
+    /* 번호와 문제는 한 줄로 붙여 쓴다. 문제가 길어 줄바꿈되면 둘째 줄부터
+     * 번호 너비만큼 들여써 번호가 도드라지게 한다(행잡이 들여쓰기). */
+    .sq-head { position: relative; margin-bottom: 6px;
+        padding-left: 32px; padding-right: 52px; text-indent: -32px; }
+    .sq-no { font-weight: 700; font-size: 0.95rem; }
+    .sq-text { font-size: 0.9rem; line-height: 1.65; color: #111; }
+    /* 배점은 발문 첫 줄 오른쪽에 고정한다. 글 흐름에 맡기면 [box] 지문이나
+     * 표가 뒤따르는 문항에서 그 아래로 밀려난다. */
+    .sq-pts { position: absolute; top: 0; right: 0; text-indent: 0;
+        font-size: 0.75rem; color: #888; white-space: nowrap; }
     .sq-img { display: block; max-width: min(100%, 340px); margin: 6px 0 6px 32px; }
 
     /* 답안 박스
@@ -158,10 +163,10 @@
     {% for q in questions %}
     <div class="sq">
         <div class="sq-head">
-            <span class="sq-no">{{ q.number }}</span>
+            <span class="sq-no">{{ q.number }}.</span>
+            <span class="sq-text">{{ q.text|qtext }}</span>
             <span class="sq-pts">({{ q.points }}점)</span>
         </div>
-        <div class="sq-text">{{ q.text|qtext }}</div>
         {% if q.text_image %}<img class="sq-img" src="{{ q.text_image|vurl }}" alt="">{% endif %}
         <div class="sq-box {% if q.qtype == '단답' or q.qtype == '빈칸' %}h1{% elif q.qtype == '서술' or q.qtype == '계산' %}h3{% else %}h2{% endif %}"></div>
     </div>
