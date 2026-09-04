@@ -953,6 +953,49 @@
     .freq-t3 { color: #c9a227; }
     .freq-t2 { color: #9aa0a6; }
     .freq-t1 { color: #c4c7c5; }
+
+    /* 질의응답 탭 */
+    .qna-ask { background: #fff; border: 1px solid #e3e6ea; border-radius: 10px;
+        padding: 15px 17px; margin-bottom: 14px; }
+    .qna-ask-head { font-size: 0.88rem; font-weight: 700; color: #1a237e;
+        margin-bottom: 9px; }
+    .qna-ask-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .qna-ask-row select { padding: 9px 10px; font-family: inherit; font-size: 0.86rem;
+        border: 1px solid #d6dae3; border-radius: 7px; background: #fff; color: #333; }
+    .qna-ask-row input { flex: 1; min-width: 200px; padding: 9px 12px;
+        font-family: inherit; font-size: 0.9rem;
+        border: 1px solid #d6dae3; border-radius: 7px; }
+    .qna-ask-row input:focus { outline: none; border-color: #3949ab;
+        box-shadow: 0 0 0 2px rgba(57,73,171,.15); }
+    .qna-ask-row button { padding: 9px 20px; border: 0; border-radius: 7px;
+        background: #1a237e; color: #fff; font-family: inherit; font-size: 0.88rem;
+        font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .qna-ask-row button:hover { background: #131b5e; }
+    .qna-ask-row button:disabled { background: #b6bacd; cursor: default; }
+    .qna-ask-note { font-size: 0.75rem; color: #9aa0ac; margin-top: 7px; }
+    .qna-ask-result { display: none; margin-top: 11px; padding: 11px 14px;
+        background: #f6f7fb; border-left: 3px solid #3949ab;
+        border-radius: 0 7px 7px 0; font-size: 0.85rem; line-height: 1.7; }
+    .qna-ask-result.on { display: block; }
+    .qna-ask-result.err { background: #fdf3f2; border-left-color: #d93025; color: #b3261e; }
+
+    .qna-tab-list { list-style: none; margin: 0; padding: 0; background: #fff;
+        border: 1px solid #e3e6ea; border-radius: 10px; overflow: hidden; }
+    .qna-tab-list li { border-bottom: 1px solid #f2f4f6; }
+    .qna-tab-list li:last-child { border-bottom: 0; }
+    .qna-tab-list a { display: flex; align-items: baseline; gap: 9px;
+        padding: 11px 15px; text-decoration: none; color: inherit; }
+    .qna-tab-list a:hover { background: #fafbfd; }
+    .qt-sub { flex-shrink: 0; font-size: 0.7rem; font-weight: 700; padding: 2px 8px;
+        border-radius: 8px; background: #eef0f8; color: #3949ab; white-space: nowrap; }
+    .qt-title { flex: 1; font-size: 0.9rem; font-weight: 600; color: #1f2430; }
+    .qt-note { flex-shrink: 0; font-size: 0.78rem; }
+    .qt-meta { flex-shrink: 0; font-size: 0.75rem; color: #9aa0ac; }
+    .qna-more { text-align: right; margin-top: 10px; }
+    .qna-more a { font-size: 0.82rem; color: #3949ab; text-decoration: none;
+        font-weight: 600; }
+
+    @media (max-width: 600px) { .qt-meta { display: none; } }
 </style>
 {% endblock %}
 
@@ -962,7 +1005,7 @@
         <button class="hamburger-btn hero-hamburger" onclick="toggleMobileMenu()" aria-label="메뉴">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
-        <span class="mobile-tab-label hero-tab-label">{% if active_tab == 'textbook' %}쪽집게 노트{% elif active_tab == 'study' %}기출학습{% elif active_tab == 'solve' %}기출고사{% elif active_tab == 'mock' %}모의고사{% elif active_tab == 'wrong' %}오답노트{% elif active_tab == 'history' %}시험이력{% elif active_tab == 'latest' %}최신기출{% elif active_tab == 'glossary' %}용어집{% endif %}</span>
+        <span class="mobile-tab-label hero-tab-label">{% if active_tab == 'textbook' %}쪽집게 노트{% elif active_tab == 'study' %}기출학습{% elif active_tab == 'solve' %}기출고사{% elif active_tab == 'mock' %}모의고사{% elif active_tab == 'wrong' %}오답노트{% elif active_tab == 'history' %}시험이력{% elif active_tab == 'latest' %}최신기출{% elif active_tab == 'glossary' %}용어집{% elif active_tab == 'qna' %}질의응답{% endif %}</span>
         <h1 style="color:#fff;">{{ cert.name }} <span style="font-size:0.6em; font-weight:400; opacity:0.8;">{{ cert.get_category_display }}</span></h1>
         <div class="hero-stats" style="color:#fff;">
             <span>시험 <strong style="color:#fff;">{{ exams.count }}회</strong></span>
@@ -978,7 +1021,7 @@
         <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="메뉴">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
-        <span class="mobile-tab-label">{% if active_tab == 'textbook' %}쪽집게 노트{% elif active_tab == 'study' %}기출학습{% elif active_tab == 'solve' %}기출고사{% elif active_tab == 'mock' %}모의고사{% elif active_tab == 'wrong' %}오답노트{% elif active_tab == 'history' %}시험이력{% elif active_tab == 'latest' %}최신기출{% elif active_tab == 'glossary' %}용어집{% endif %}</span>
+        <span class="mobile-tab-label">{% if active_tab == 'textbook' %}쪽집게 노트{% elif active_tab == 'study' %}기출학습{% elif active_tab == 'solve' %}기출고사{% elif active_tab == 'mock' %}모의고사{% elif active_tab == 'wrong' %}오답노트{% elif active_tab == 'history' %}시험이력{% elif active_tab == 'latest' %}최신기출{% elif active_tab == 'glossary' %}용어집{% elif active_tab == 'qna' %}질의응답{% endif %}</span>
         {% if active_tab == 'wrong' and wrong_count %}<span class="tab-badge">{{ wrong_count }}</span>{% endif %}
     </div>
 
@@ -994,6 +1037,7 @@
         <button class="tab-btn{% if active_tab == 'history' %} active{% endif %}" onclick="switchTab('history')">시험이력</button>
         <button class="tab-btn{% if active_tab == 'latest' %} active{% endif %}" onclick="switchTab('latest')">최신기출{% if latest_year_cards %}<span class="tab-badge" style="background:#3949ab;">{{ latest_year_cards|length }}</span>{% endif %}</button>
         <button class="tab-btn{% if active_tab == 'glossary' %} active{% endif %}" onclick="switchTab('glossary')">용어집{% if glossary_count %}<span class="tab-badge" style="background:#6a1b9a;">{{ glossary_count }}</span>{% endif %}</button>
+        <button class="tab-btn{% if active_tab == 'qna' %} active{% endif %}" onclick="switchTab('qna')">질의응답{% if qna_count %}<span class="tab-badge" style="background:#8a5cf6;">{{ qna_count }}</span>{% endif %}</button>
     </div>
 
     <!-- Mobile Drawer -->
@@ -1012,6 +1056,7 @@
             <button class="drawer-item{% if active_tab == 'history' %} active{% endif %}" onclick="switchTab('history')">시험이력</button>
             <button class="drawer-item{% if active_tab == 'latest' %} active{% endif %}" onclick="switchTab('latest')">최신기출{% if latest_year_cards %}<span class="tab-badge" style="background:#3949ab;">{{ latest_year_cards|length }}</span>{% endif %}</button>
             <button class="drawer-item{% if active_tab == 'glossary' %} active{% endif %}" onclick="switchTab('glossary')">용어집{% if glossary_count %}<span class="tab-badge" style="background:#6a1b9a;">{{ glossary_count }}</span>{% endif %}</button>
+            <button class="drawer-item{% if active_tab == 'qna' %} active{% endif %}" onclick="switchTab('qna')">질의응답{% if qna_count %}<span class="tab-badge" style="background:#8a5cf6;">{{ qna_count }}</span>{% endif %}</button>
         </nav>
     </div>
 
@@ -1457,6 +1502,44 @@
         <div class="empty-tab">
             {% if glossary_subject %}{{ glossary_subject }} 용어집이 아직 준비되지 않았습니다.{% else %}등록된 용어가 없습니다.{% endif %}
         </div>
+        {% endif %}
+    </div>
+
+    <!-- ══════════ 질의응답 탭 ══════════ -->
+    <div id="tab-qna" class="tab-content{% if active_tab == 'qna' %} active{% endif %}">
+        <div class="qna-ask">
+            <div class="qna-ask-head">{{ cert.name }}에 관해 물어보세요</div>
+            <div class="qna-ask-row">
+                <select id="qnaSubj">
+                    <option value="">과목 전체</option>
+                    {% for sub in subjects %}<option value="{{ sub.name }}">{{ sub.name }}</option>{% endfor %}
+                </select>
+                <input type="text" id="qnaInput" maxlength="200"
+                       placeholder="예) 비오톱 지도화 유형을 알려주세요">
+                <button id="qnaBtn" onclick="askQna()">물어보기</button>
+            </div>
+            <div class="qna-ask-note">AI가 우리 쪽집게 노트를 근거로 답합니다. 틀릴 수 있으니 교재와 함께 확인하세요.</div>
+            <div class="qna-ask-result" id="qnaResult"></div>
+        </div>
+
+        {% if qna_items %}
+        <ul class="qna-tab-list">
+            {% for q in qna_items %}
+            <li>
+                <a href="/qna/{{ q.pk }}/">
+                    {% if q.cert_subject %}<span class="qt-sub">{{ q.cert_subject }}</span>{% endif %}
+                    <span class="qt-title">{{ q.title }}</span>
+                    {% if q.note_ref %}<span class="qt-note">📖</span>{% endif %}
+                    <span class="qt-meta">{{ q.user.first_name|default:q.user.username }} · 조회 {{ q.view_count }} · {{ q.created_at|date:"m.d" }}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% if qna_count > qna_items|length %}
+        <div class="qna-more"><a href="/qna/?cert={{ cert.name|urlencode }}">이 자격증 질문 {{ qna_count }}건 모두 보기 &rsaquo;</a></div>
+        {% endif %}
+        {% else %}
+        <div class="empty-tab">아직 질문이 없습니다. 첫 질문을 남겨 보세요.</div>
         {% endif %}
     </div>
 </div>
@@ -2484,5 +2567,42 @@ function registerFromSearch(qId) {
     }
     document.querySelectorAll('.exp-text-inner').forEach(linkTerms);
 })();
+
+/* 질의응답 — 이 자격증(+과목)에 관해 묻는다 */
+async function askQna() {
+    var inp = document.getElementById('qnaInput');
+    var btn = document.getElementById('qnaBtn');
+    var sel = document.getElementById('qnaSubj');
+    var out = document.getElementById('qnaResult');
+    var title = inp.value.trim();
+    if (!title) { inp.focus(); return; }
+    btn.disabled = true; btn.textContent = '묻는 중…';
+    out.className = 'qna-ask-result on';
+    out.textContent = '답을 쓰고 있습니다…';
+    try {
+        var body = new URLSearchParams({ title: title, cert_name: '{{ cert.name }}' });
+        if (sel && sel.value) body.set('cert_subject', sel.value);
+        var r = await fetch('/qna/create/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}',
+                       'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body
+        });
+        var d = await r.json();
+        if (d.ok) { location.href = d.url; return; }
+        out.className = 'qna-ask-result on err';
+        out.textContent = d.error || '답을 받지 못했습니다.';
+    } catch (e) {
+        out.className = 'qna-ask-result on err';
+        out.textContent = e.message;
+    }
+    btn.disabled = false; btn.textContent = '물어보기';
+}
+document.addEventListener('DOMContentLoaded', function () {
+    var inp = document.getElementById('qnaInput');
+    if (inp) inp.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') askQna();
+    });
+});
 </script>
 {% endblock %}

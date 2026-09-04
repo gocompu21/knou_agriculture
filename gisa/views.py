@@ -415,6 +415,12 @@ def certification_detail(request, cert_id):
     subjects = GisaSubject.objects.filter(certification=cert)
 
     active_tab = request.GET.get("tab", "textbook")
+
+    # 질의응답 — 이 자격증 질문만
+    from main.models import QnaQuestion
+    qna_items = QnaQuestion.objects.filter(
+        cert_name=cert.name).select_related("user")[:15]
+    qna_count = QnaQuestion.objects.filter(cert_name=cert.name).count()
     total_questions = GisaQuestion.objects.filter(exam__certification=cert).exclude(exam__exam_type="최신").count()
 
     # 페이지 진입 로그 저장 (실패해도 페이지 표시는 계속)
@@ -727,6 +733,8 @@ def certification_detail(request, cert_id):
             "latest_questions": latest_questions,
             "glossary_terms": glossary_terms,
             "glossary_count": glossary_count,
+            "qna_items": qna_items,
+            "qna_count": qna_count,
             "glossary_subject": glossary_subject,
             "glossary_subjects": glossary_subjects,
             "glossary_json": _glossary_json(cert, include_ids=request.user.is_staff if request.user.is_authenticated else False),
