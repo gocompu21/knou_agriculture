@@ -52,8 +52,12 @@
     .qr-type { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
         background: #eef2ee; color: #40624f; }
     .qr-pts { margin-left: auto; font-size: 0.85rem; font-weight: 700; }
-    .qr-pts input { width: 46px; padding: 3px 6px; text-align: right;
-        border: 1px solid #ccc; border-radius: 5px; font-size: 0.85rem; }
+    /* 스피너 화살표가 자리를 먹어 46px 로는 3.0 이 눌려 보였다 */
+    .qr-pts input { width: 68px; padding: 4px 8px; text-align: center;
+        border: 1px solid #ccc; border-radius: 5px; font-size: 0.9rem;
+        font-family: inherit; font-variant-numeric: tabular-nums; }
+    .qr-pts input:focus { outline: none; border-color: #2d6a4f;
+        box-shadow: 0 0 0 2px rgba(45,106,79,0.15); }
     .qr-text { font-size: 0.93rem; line-height: 1.7; color: #222; margin-bottom: 10px; }
     .qr-img { display: block; max-width: min(100%, 320px); margin: 6px 0; }
 
