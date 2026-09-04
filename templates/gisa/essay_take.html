@@ -478,7 +478,13 @@ document.getElementById('upgo').addEventListener('click', async () => {
                 method: 'POST', headers: {'X-CSRFToken': CSRF}, body: fd
             });
             const d = await r.json();
-            if (!d.ok) throw new Error(d.error || '판독 실패');
+            if (!d.ok) {
+                const e = new Error(d.error || '판독 실패');
+                // 사진이 내 다른 시험지(먼저 인쇄해 둔 것)라면 그리로 옮겨 갈 길을 낸다
+                if (d.switch) e.why = `${e.message} <a href="${d.switch.url}" `
+                    + `style="color:#1b4332;font-weight:700">그 시험지로 이어가기 →</a>`;
+                throw e;
+            }
             // 이 시험지가 아닌 문항은 서버가 빼고 알려준다. 사용자가 알아야 한다.
             (d.rejected || []).forEach(x => notes.push(`${i + 1}쪽: ${x.reason}`));
             (d.answers || []).forEach(a => {
@@ -496,6 +502,7 @@ document.getElementById('upgo').addEventListener('click', async () => {
             it.classList.remove('busy'); it.classList.add('fail');
             it.querySelector('.st').textContent = '실패';
             it.title = err.message;
+            it.dataset.why = err.why || err.message;
         }
         prog.firstElementChild.style.width = Math.round((i + 1) / total * 100) + '%';
     }
@@ -503,7 +510,7 @@ document.getElementById('upgo').addEventListener('click', async () => {
     const filled = Object.keys(collected).length;
     // 다른 시험지·다른 문항이라 뺀 것은 실패한 장의 사유와 함께 보여 준다
     const why = [];
-    items.forEach((it, i) => { if (it.classList.contains('fail')) why.push(`${i + 1}쪽: ${it.title}`); });
+    items.forEach((it, i) => { if (it.classList.contains('fail')) why.push(`${i + 1}쪽: ${it.dataset.why || it.title}`); });
     const detail = why.concat(notes).length
         ? `<div style="margin-top:8px;font-weight:400;color:#8a3b00;text-align:left;display:inline-block">`
           + why.concat(notes).map(t => `· ${t}`).join('<br>') + `</div>` : '';

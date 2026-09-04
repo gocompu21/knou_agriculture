@@ -643,10 +643,30 @@ def essay_upload(request, cert_id, session_id):
             up.image.delete(save=False)
             up.delete()
 
+    # 사진의 코드가 내 다른 진행 중 시험지의 것이면(먼저 인쇄해 둔 시험지에
+    # 새 세션으로 들어온 경우가 대부분) 그 시험지로 옮겨 갈 길을 함께 준다.
+    switch = None
+    for r in rejected:
+        code = r.pop('got_code', '')
+        if switch or not code:
+            continue
+        other = GisaEssaySession.objects.filter(
+            user=request.user, certification=cert, paper_code=code,
+            status='progress').exclude(pk=session.pk).first()
+        if other:
+            when = timezone.localtime(other.started_at).strftime('%m월 %d일 %H:%M')
+            q = f'resume={other.pk}&source={other.source}&mode=paper'
+            q += (f'&year={other.year}&round={other.round}' if other.source == '기출'
+                  else f'&section={other.section}')
+            switch = {'url': reverse('gisa:essay_take', args=[cert.pk]) + '?' + q,
+                      'label': other.label, 'started': when}
+            r['reason'] += f' — {when}에 인쇄한 {other.label} 시험지입니다.'
+
     if not results and rejected:
         return JsonResponse({'ok': False, 'error': rejected[0]['reason'],
-                             'rejected': rejected}, status=422)
-    return JsonResponse({'ok': True, 'answers': results, 'rejected': rejected})
+                             'rejected': rejected, 'switch': switch}, status=422)
+    return JsonResponse({'ok': True, 'answers': results, 'rejected': rejected,
+                         'switch': switch})
 
 
 @login_required

@@ -202,6 +202,7 @@ def transcribe_uploads(session, uploads):
                 'page_no': up.page_no,
                 'reason': f'다른 시험지 사진입니다 (사진의 코드 {parsed.paper_code.strip()}, '
                           f'이 시험지는 {session.paper_code})',
+                'got_code': got_code,   # 뷰가 이 코드의 시험지를 찾아 이어갈 길을 낸다
             })
             continue
 
