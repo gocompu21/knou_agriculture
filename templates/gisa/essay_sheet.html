@@ -122,7 +122,7 @@
      *
      * 한 줄에 40자 안팎이 들어가므로 줄 수 × 40 이 대략의 답안 분량이다. */
     .sq-box.h1 { height: 96px; }    /* 3줄 ≈ 120자 — 단답·빈칸 */
-    .sq-box.h2 { height: 160px; }   /* 5줄 ≈ 200자 — 열거·표그림 */
+    .sq-box.h2 { height: 192px; }   /* 6줄 ≈ 240자 — 열거·표그림 (5줄은 두 항목이 세 줄씩이면 찼다) */
     .sq-box.h3 { height: 256px; }   /* 8줄 ≈ 320자 — 서술·계산 */
 
     /* 인쇄할 때 모든 쪽 오른쪽 아래에 시험지 코드를 찍는다. 화면에서는 감춘다.
@@ -205,7 +205,7 @@
         {% elif q.qtype == '서술' or q.qtype == '계산' %}
         <div class="sq-box h3"><i class="sq-ln" style="top:32px"></i><i class="sq-ln" style="top:64px"></i><i class="sq-ln" style="top:96px"></i><i class="sq-ln" style="top:128px"></i><i class="sq-ln" style="top:160px"></i><i class="sq-ln" style="top:192px"></i><i class="sq-ln" style="top:224px"></i></div>
         {% else %}
-        <div class="sq-box h2"><i class="sq-ln" style="top:32px"></i><i class="sq-ln" style="top:64px"></i><i class="sq-ln" style="top:96px"></i><i class="sq-ln" style="top:128px"></i></div>
+        <div class="sq-box h2"><i class="sq-ln" style="top:32px"></i><i class="sq-ln" style="top:64px"></i><i class="sq-ln" style="top:96px"></i><i class="sq-ln" style="top:128px"></i><i class="sq-ln" style="top:160px"></i></div>
         {% endif %}
     </div>
     {% endfor %}
