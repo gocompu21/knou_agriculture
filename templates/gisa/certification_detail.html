@@ -2685,6 +2685,10 @@ function qnaPrepend(d) {
     var empty = document.getElementById('qnaEmpty');
     if (empty) empty.remove();
     if (!list) return;
+    /* 새 답만 펼친 채로 둔다 */
+    list.querySelectorAll('.qna-item.open').forEach(function (el) {
+        el.classList.remove('open');
+    });
     var esc = function (x) {
         return (x || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     };
