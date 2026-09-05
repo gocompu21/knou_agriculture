@@ -392,7 +392,9 @@ class GisaEssaySession(models.Model):
         if self.source == '기출':
             return f"{self.year}년 {self.round}회"
         if self.source == '모의':
-            return '모의고사'
+            # section 에 범위가 들어 있다 ("모의 2020~2026 · 3분류"). 없으면 기본 라벨
+            s = (self.section or '').strip()
+            return s.replace('모의', '모의고사', 1) if s and s != '모의고사' else '모의고사'
         if self.source == '오답':
             return '오답 재풀이'
         return self.section or '학습'

@@ -150,6 +150,8 @@ def essay_list(request, cert_id):
         'wrong_items': wrong,
         'wrong_count': len(wrong),
         'mock_size': MOCK_SIZE,
+        'mock_years': sorted({c['year'] for c in round_cards}, reverse=True),
+        'topic_groups': GisaEssayQuestion.TOPIC_CHOICES,
         'mock_sessions': [s for s in sessions if s.source == '모의' and s.status == 'done'][:5],
         'round_cards': round_cards,
         'round_years': round_years,
@@ -200,13 +202,60 @@ def _wrong_attempts(user, cert):
     return wrong
 
 
-def _pick_mock(cert):
-    """모의고사 — 기출 전체에서 주제가 겹치지 않게 무작위로 뽑는다.
+def _mock_scope(request, cert):
+    """모의고사 범위 파라미터 → (yfrom, yto, groups, n, 라벨).
+
+    연도 범위·주제 분류·문항 수를 고를 수 있다. 라벨은 세션 section(30자)에
+    들어가 시험이력에 "모의 2020~2026 · 3분류 · 15문항"처럼 남는다.
+    """
+    years = sorted(set(GisaEssayQuestion.objects.filter(certification=cert, source='기출')
+                       .order_by().values_list('year', flat=True)))
+    lo, hi = (years[0], years[-1]) if years else (None, None)
+
+    def _int(name, default):
+        try:
+            return int(request.GET.get(name) or default)
+        except (TypeError, ValueError):
+            return default
+    yfrom, yto = _int('yfrom', lo), _int('yto', hi)
+    if yfrom and yto and yfrom > yto:
+        yfrom, yto = yto, yfrom
+    groups = []
+    for g in request.GET.getlist('g'):
+        try:
+            groups.append(int(g))
+        except ValueError:
+            pass
+    all_groups = [gid for gid, _ in GisaEssayQuestion.TOPIC_CHOICES]
+    if not groups or set(groups) >= set(all_groups):
+        groups = []                                  # 전체
+    n = max(5, min(30, _int('n', MOCK_SIZE)))
+
+    parts = ['모의']
+    if (yfrom, yto) != (lo, hi):
+        parts.append('%d~%d' % (yfrom, yto) if yfrom != yto else str(yfrom))
+    if groups:
+        parts.append('%d분류' % len(groups))
+    if n != MOCK_SIZE:
+        parts.append('%d문항' % n)
+    return yfrom, yto, groups, n, ' '.join(parts)[:30]
+
+
+def _pick_mock(cert, yfrom=None, yto=None, groups=None, n=MOCK_SIZE):
+    """모의고사 — 기출에서 주제가 겹치지 않게 무작위로 뽑는다.
 
     같은 주제(topic_key)가 두 번 나오면 한 회차 시험답지 않다. 최근 회차의
-    문항이 조금 더 자주 뽑히도록 연도에 가중치를 둔다.
+    문항이 조금 더 자주 뽑히도록 연도에 가중치를 둔다. 범위(연도·분류)를 주면
+    그 안에서만 뽑는다.
     """
-    pool = list(GisaEssayQuestion.objects.filter(certification=cert, source='기출'))
+    qs = GisaEssayQuestion.objects.filter(certification=cert, source='기출')
+    if yfrom:
+        qs = qs.filter(year__gte=yfrom)
+    if yto:
+        qs = qs.filter(year__lte=yto)
+    if groups:
+        qs = qs.filter(topic_group__in=groups)
+    pool = list(qs)
     random.shuffle(pool)
     years = [q.year for q in pool] or [0]
     lo = min(years)
@@ -218,7 +267,7 @@ def _pick_mock(cert):
             continue
         seen.add(key)
         picked.append(q)
-        if len(picked) >= MOCK_SIZE:
+        if len(picked) >= n:
             break
     # 화면은 순번(1, 2, 3…)으로 보여 주므로 순서만 안정적이면 된다.
     # 이어 올 때 attempts 를 같은 기준으로 정렬해 같은 차례가 나온다.
@@ -282,6 +331,10 @@ def essay_take(request, cert_id):
                  .order_by('question__number', 'question_id')]
         if saved:
             questions = saved
+    mock_label = '모의고사'
+    if questions is None and source == '모의':
+        yfrom, yto, groups, n, mock_label = _mock_scope(request, cert)
+        questions = _pick_mock(cert, yfrom, yto, groups, n)
     if questions is None:
         questions = _pick_questions(cert, source, section, year, round_, request.user)
     if not questions:
@@ -296,7 +349,7 @@ def essay_take(request, cert_id):
         code = ''
         if mode == 'paper':
             code = f'{year}-{round_}' if source == '기출' else section[:12]
-        section_val = {'예상': section, '기출': '기출', '모의': '모의고사',
+        section_val = {'예상': section, '기출': '기출', '모의': mock_label,
                        '오답': '오답 재풀이'}.get(source, source)
         session = GisaEssaySession.objects.create(
             user=request.user, certification=cert,
