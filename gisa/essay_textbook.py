@@ -135,44 +135,72 @@ def _clip(t, n=60):
     return (t[:n - 2] + '…') if len(t) > n else t
 
 
-_ANS_KV = re.compile(r'^[①-⑳\d.)\s]*\(?\s*([ㄱ-ㅎA-Za-z가-힣]{1,3})\s*\)?\s*[:：\-–—]\s*(.+)$')
+# 답 항목의 "표지 : 값" 꼴. 표지는 ㄱ·㉠·①·A 같은 빈칸 이름.
+#   "ㄱ : 20", "① ㄱ : 구조", "(A) : 4분의 1", "(A) 다년생", "㉠ 가장자리"
+_KEY = r'[ㄱ-ㅎ㉠-㉭①-⑳A-Za-z]'
+_ANS_KV = re.compile(
+    r'^[①-⑳\d.)\s]*(?:\(\s*(%s)\s*\)|(%s))\s*[:：\-–—]?\s*(.+)$' % (_KEY, _KEY))
+# 발문의 안내 문장 — 빈칸 문항에서 주제를 담지 않는 부분
+_LEAD = re.compile(
+    r'^(?:다음|아래|위)?[^.\n]{0,30}?(?:빈칸|괄호|\(\s*\)|알맞은|들어갈|채우시오|쓰시오)[^.\n]*[.?]?\s*',
+    re.M)
+
+
+def _clause(text, n=60):
+    """첫 문장에서 끊는다. 문장이 너무 길면 쉼표에서, 그것도 없으면 글자 수로."""
+    text = text.strip()
+    m = re.search(r'[.!?]\s', text + ' ')
+    if m and m.end() <= n + 12:
+        return text[:m.start() + 1]
+    m = re.search(r',\s', text)
+    if m and 24 <= m.start() <= n:
+        return text[:m.start()] + ' …'
+    return _clip(text, n)
 
 
 def _fill_blanks(q):
-    """빈칸 문항: 지문 상자의 ( ㄱ )·( ① )·(   ) 에 답을 채운 문장을 돌려준다.
+    """빈칸 문항: ( ㄱ )·( ① )·(   ) 에 답을 채운 문장을 돌려준다.
 
     "다음 빈칸에 알맞은 말을 채우시오"는 발문으로는 주제를 알 수 없고, 답만
-    떼면 'ㄱ'·'경성' 같은 조각이 남는다. 상자 문장에 답을 넣어 읽으면 그 자체가
-    주제 요약이다: "경관생태학에서 (구조)은 이질적인 공간요소들이 이루는 유형…".
+    떼면 'ㄱ'·'경성' 같은 조각이 남는다. 문항 전체 맥락(상자 문장, 상자가
+    없으면 발문의 본문)에 답을 넣어 읽으면 그 자체가 주제 요약이다:
+    "경관생태학에서 (구조)은 이질적인 공간요소들이 이루는 유형을 말한다."
     """
-    m = re.search(r'\[box\](.*?)\[/box\]', q.text or '', flags=re.S)
-    if not m:
+    text = q.text or ''
+    m = re.search(r'\[box\](.*?)\[/box\]', text, flags=re.S)
+    if m:
+        body = m.group(1)
+    else:
+        body = _LEAD.sub('', text)          # 안내 문장을 뗀 나머지가 본문
+    body = re.sub(r'\[/?(?:eq|svg|frac)\]', '', body)
+    body = re.sub(r'\s+', ' ', body).strip()
+    if not body:
         return ''
-    box = re.sub(r'\s+', ' ', m.group(1)).strip()
+
     items = [str(a) for a in (q.answer_items or [])]
     keyed, seq = {}, []
-    for i, a in enumerate(items):
-        kv = _ANS_KV.match(a.strip())
-        if kv and len(kv.group(2)) <= 40:
-            keyed[kv.group(1)] = kv.group(2).strip()
-            seq.append(kv.group(2).strip())
+    for a in items:
+        a = a.strip()
+        kv = _ANS_KV.match(a)
+        circ = re.match(r'^([①-⑳])', a)
+        if kv and len(kv.group(3)) <= 40:
+            key = kv.group(1) or kv.group(2)
+            val = kv.group(3).strip(' :：-–—')
+            keyed[key] = val
+            seq.append(val)
         else:
-            v = re.sub(r'^[①-⑳\d.)\s]+', '', a).strip()
-            seq.append(v)
-        circ = re.match(r'^([①-⑳])', a.strip())
+            seq.append(re.sub(r'^[①-⑳\d.)\s]+', '', a).strip())
         if circ:
-            keyed[circ.group(1)] = seq[-1]
+            keyed.setdefault(circ.group(1), seq[-1])
 
     def rep(mm):
         key = mm.group(1).strip()
-        if key in keyed:
-            return '(%s)' % keyed[key]
-        return mm.group(0)
-    box = re.sub(r'\(\s*([ㄱ-ㅎ①-⑳A-Za-z])\s*\)', rep, box)
+        return '(%s)' % keyed[key] if key in keyed else mm.group(0)
+    body = re.sub(r'\(\s*(%s)\s*\)' % _KEY, rep, body)
     # 이름 없는 빈칸 (     ) 은 답을 차례로 넣는다
     it = iter(seq)
-    box = re.sub(r'\(\s{1,}\)|\(\s*\)', lambda mm: '(%s)' % next(it, ' '), box)
-    return box
+    body = re.sub(r'\(\s*\)', lambda mm: '(%s)' % next(it, ' '), body)
+    return _clause(body)
 
 
 def _title_from(q):
@@ -182,10 +210,10 @@ def _title_from(q):
     문항은 답(첫 항목)이 곧 주제어이므로 답을 제목으로 쓴다. 빈칸 문항은
     지문에 답을 채운 문장을 쓴다.
     """
-    if q.qtype == '빈칸':
+    if q.qtype == '빈칸' or re.search(r'\(\s*%s?\s*\)' % _KEY, q.text or ''):
         filled = _fill_blanks(q)
-        if filled:
-            return _clip(filled, 60)
+        if filled and not re.search(r'\(\s*%s?\s*\)' % _KEY, filled):
+            return filled
     t = re.sub(r'\[box\].*?\[/box\]', '', q.text or '', flags=re.S)
     t = re.sub(r'\[/?(?:eq|svg)\][^\[]*(?:\[/(?:eq|svg)\])?', '', t)
     t = t.strip().split('\n')[0].strip()
