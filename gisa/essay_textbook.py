@@ -125,7 +125,10 @@ _DIRECTIVE = re.compile(
     r'\.?\s*$')
 
 
-_GENERIC = re.compile(r'다음|아래|위의|보기|설명하는|해당하는|빈칸|괄호|알맞은|\(\s*\)|무엇인가|무엇이라')
+# 발문만으로 주제가 안 보이는 꼴. "다음 표에서 사토와 식토를 구분하여…"처럼 내용이
+# 담긴 긴 발문은 여기 걸리지 않게 강한 신호만 본다.
+_GENERIC = re.compile(r'설명하는 것|해당하는 것|무엇인가|무엇이라|알맞은|빈칸|괄호|\(\s*\)|^다음(?:은|의|에서)?\s*$')
+_TAIL_VERB = re.compile(r'\s*(?:나누어|비교하여|구분하여|정리하여|이용하여|들어|찾아|골라|각각)$')
 
 
 def _clip(t, n=60):
@@ -142,13 +145,20 @@ def _title_from(q):
     t = re.sub(r'\[/?(?:eq|svg)\][^\[]*(?:\[/(?:eq|svg)\])?', '', t)
     t = t.strip().split('\n')[0].strip()
     t = re.sub(r'\s*\((?:단|다만),.*$', '', t)
-    t = _DIRECTIVE.sub('', t).strip(' ,.:;')
-    if (not t or len(t) < 6 or _GENERIC.search(t)) and q.answer_items:
-        a = re.sub(r'^[①-⑳\d.)\s]+', '', str(q.answer_items[0])).strip()
-        a = re.sub(r'\s*[:：].*$', '', a)          # "용어 : 설명" 이면 용어만
-        a = re.sub(r'[\[\]*_`]', '', a)
-        if a:
-            return _clip(a, 48)
+    t = _DIRECTIVE.sub('', t).strip(' ,.:;?')
+    t = _TAIL_VERB.sub('', t).strip(' ,.:;?')
+    if not t or len(t) < 6 or _GENERIC.search(t):
+        # 답의 첫 항목(없으면 answer_text 첫 줄)이 곧 주제어다. 표로 된 답은 못 쓴다
+        cands = list(q.answer_items or [])
+        first = (q.answer_text or '').strip().split('\n')[0].strip()
+        if first and not first.startswith('|'):
+            cands.append(first)
+        for a in cands:
+            a = re.sub(r'^[①-⑳\d.)\s]+', '', str(a)).strip()
+            a = re.sub(r'\s*[:：].*$', '', a)          # "용어 : 설명" 이면 용어만
+            a = re.sub(r'[\[\]*_`]', '', a).strip()
+            if a:
+                return _clip(a, 48)
     return _clip(t)
 
 
