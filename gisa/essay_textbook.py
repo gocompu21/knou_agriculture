@@ -135,12 +135,57 @@ def _clip(t, n=60):
     return (t[:n - 2] + '…') if len(t) > n else t
 
 
+_ANS_KV = re.compile(r'^[①-⑳\d.)\s]*\(?\s*([ㄱ-ㅎA-Za-z가-힣]{1,3})\s*\)?\s*[:：\-–—]\s*(.+)$')
+
+
+def _fill_blanks(q):
+    """빈칸 문항: 지문 상자의 ( ㄱ )·( ① )·(   ) 에 답을 채운 문장을 돌려준다.
+
+    "다음 빈칸에 알맞은 말을 채우시오"는 발문으로는 주제를 알 수 없고, 답만
+    떼면 'ㄱ'·'경성' 같은 조각이 남는다. 상자 문장에 답을 넣어 읽으면 그 자체가
+    주제 요약이다: "경관생태학에서 (구조)은 이질적인 공간요소들이 이루는 유형…".
+    """
+    m = re.search(r'\[box\](.*?)\[/box\]', q.text or '', flags=re.S)
+    if not m:
+        return ''
+    box = re.sub(r'\s+', ' ', m.group(1)).strip()
+    items = [str(a) for a in (q.answer_items or [])]
+    keyed, seq = {}, []
+    for i, a in enumerate(items):
+        kv = _ANS_KV.match(a.strip())
+        if kv and len(kv.group(2)) <= 40:
+            keyed[kv.group(1)] = kv.group(2).strip()
+            seq.append(kv.group(2).strip())
+        else:
+            v = re.sub(r'^[①-⑳\d.)\s]+', '', a).strip()
+            seq.append(v)
+        circ = re.match(r'^([①-⑳])', a.strip())
+        if circ:
+            keyed[circ.group(1)] = seq[-1]
+
+    def rep(mm):
+        key = mm.group(1).strip()
+        if key in keyed:
+            return '(%s)' % keyed[key]
+        return mm.group(0)
+    box = re.sub(r'\(\s*([ㄱ-ㅎ①-⑳A-Za-z])\s*\)', rep, box)
+    # 이름 없는 빈칸 (     ) 은 답을 차례로 넣는다
+    it = iter(seq)
+    box = re.sub(r'\(\s{1,}\)|\(\s*\)', lambda mm: '(%s)' % next(it, ' '), box)
+    return box
+
+
 def _title_from(q):
     """정리 자료가 없는 주제는 대표 문항의 발문에서 제목을 뽑는다.
 
     "다음에서 설명하는 것은 무엇인가"처럼 발문만으로는 주제가 안 보이는
-    문항은 답(첫 항목)이 곧 주제어이므로 답을 제목으로 쓴다.
+    문항은 답(첫 항목)이 곧 주제어이므로 답을 제목으로 쓴다. 빈칸 문항은
+    지문에 답을 채운 문장을 쓴다.
     """
+    if q.qtype == '빈칸':
+        filled = _fill_blanks(q)
+        if filled:
+            return _clip(filled, 60)
     t = re.sub(r'\[box\].*?\[/box\]', '', q.text or '', flags=re.S)
     t = re.sub(r'\[/?(?:eq|svg)\][^\[]*(?:\[/(?:eq|svg)\])?', '', t)
     t = t.strip().split('\n')[0].strip()
