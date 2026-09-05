@@ -87,6 +87,17 @@
         background-origin: padding-box; background-attachment: local, local;
     }
     /* 줄 수 × 32px + 테두리 4px (box-sizing: border-box) */
+    /* 답안에 마크다운 표(| … |)가 들어 있으면 칸 아래에 실제 표로 미리 보여 준다.
+     * textarea 는 표를 그릴 수 없어 판독된 표가 막대기 글자로만 보였다. */
+    .ans-preview { display: none; margin: 6px 0 0; padding: 8px 12px; background: #f7faf8;
+        border-left: 3px solid #2d6a4f; border-radius: 0 8px 8px 0; font-size: 0.86rem; }
+    .ans-preview.on { display: block; }
+    .ans-preview .pv-lab { font-size: 0.72rem; font-weight: 700; color: #8b968f;
+        letter-spacing: .04em; margin-bottom: 4px; }
+    .ans-preview table { border-collapse: collapse; max-width: 100%; }
+    .ans-preview th, .ans-preview td { border: 1px solid #b9c9bd; padding: 3px 9px;
+        line-height: 1.6; text-align: center; }
+    .ans-preview th { background: #e7efe9; font-weight: 600; white-space: nowrap; }
     .eq-answer.ln1 textarea { min-height: 100px; }   /* 3줄 — 단답·빈칸 */
     .eq-answer.ln2 textarea { min-height: 196px; }   /* 6줄 — 열거·표그림 */
     .eq-answer.ln3 textarea { min-height: 260px; }   /* 8줄 — 서술·계산 */
@@ -370,7 +381,28 @@ document.addEventListener('input', e => {
 
 /* 괘선 칸은 스크롤 대신 줄 수가 늘어난다. 높이를 줄 간격(32px)의 배수로
    맞춰야 마지막 글줄 아래에도 괘선이 온전히 그어진다. */
+/* 마크다운 표 → <table> 미리보기. 표 줄(| 로 시작)이 둘 이상일 때만. */
+function previewTable(t) {
+    let box = t.parentElement.querySelector('.ans-preview');
+    const lines = t.value.split('\n').map(s => s.trim()).filter(s => s.startsWith('|'));
+    const rows = lines.filter(s => !/^\|?\s*:?-{2,}/.test(s.replace(/\|/g, '').trim()) && s.replace(/[|\s:-]/g, '') !== '')
+        .map(s => s.replace(/^\||\|$/g, '').split('|').map(c => c.trim()));
+    if (rows.length < 2) { if (box) box.classList.remove('on'); return; }
+    if (!box) {
+        box = document.createElement('div'); box.className = 'ans-preview';
+        t.insertAdjacentElement('afterend', box);
+    }
+    const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    let html = '<div class="pv-lab">표 미리보기 — 채점 결과에도 이렇게 보입니다</div><table>';
+    rows.forEach((r, i) => {
+        html += '<tr>' + r.map(c => (i ? '<td>' : '<th>') + esc(c) + (i ? '</td>' : '</th>')).join('') + '</tr>';
+    });
+    box.innerHTML = html + '</table>';
+    box.classList.add('on');
+}
+
 function autoGrow(t) {
+    previewTable(t);
     // 높이 = 줄 수 × 32 + 테두리 4. min-height 도 같은 꼴이라 줄 수로 환산해 비교한다.
     const minRows = Math.round(((parseInt(getComputedStyle(t).minHeight, 10) || 100) - 4) / 32);
     t.style.height = 'auto';
