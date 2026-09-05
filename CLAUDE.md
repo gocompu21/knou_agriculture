@@ -1335,7 +1335,9 @@ ESSAY_DAILY_OCR_LIMIT    = 40   # 사용자당 하루 판독 장수
   목록 필드가 없어, 이어 올 때(`?resume=`) 같은 세트를 되살릴 유일한 저장소다.
   하루 지나도 답이 하나도 없으면 목록 진입 시 지운다
 - `essay_save` 는 임시저장이 아니라 **진행률 채점 1단계**라 status 를 `grading` 으로
-  바꾼다. 임시저장은 localStorage 다
+  바꾼다. 임시저장은 `essay_draft`(`/essay/<sid>/draft/`) — 입력 2초 뒤 서버에
+  attempts 로 묶어 저장하고, 화면을 떠날 때도 한 번 보낸다. 이어하기(`?resume=`)가
+  이 초안을 textarea 에 채운다. localStorage 초안은 새로 고침 대비용으로 병행
 
 - 실기 카드: 왼쪽 다크그린 띠 + `실기` 배지, "기출 N회차 · 문항 N개" 표기
 - 실기 페이지 hero 우측에 `필기로 ›` 전환 링크
