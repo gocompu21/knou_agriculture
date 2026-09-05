@@ -173,10 +173,13 @@ def _wrong_attempts(user, cert):
     """만점을 못 받은 문항의 최근 답안. 문항마다 가장 최근 응시 하나로 판정한다.
 
     같은 문항을 나중에 다시 풀어 만점을 받았으면 오답에서 빠진다.
+    답을 쓰지 않고 넘긴 문항은 '틀린' 게 아니라 '안 푼' 것이므로 넣지 않는다
+    (0점이지만 오답노트에 쌓이면 실제 약점이 묻힌다).
     """
     atts = (GisaEssayAttempt.objects
             .filter(session__user=user, session__certification=cert,
                     session__status='done')
+            .exclude(answer_text='')
             .select_related('question', 'session')
             .order_by('-session__submitted_at', 'question__number'))
     wrong, seen = [], set()
