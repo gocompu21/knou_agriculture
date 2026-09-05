@@ -74,4 +74,5 @@ urlpatterns = [
     path("<int:cert_id>/essay/grade-one/<int:question_id>/", essay_views.essay_grade_one, name="essay_grade_one"),
     path("<int:cert_id>/essay/siblings/<int:question_id>/", essay_views.essay_siblings, name="essay_siblings"),
     path("<int:cert_id>/essay/note/<slug:slug>/", essay_views.essay_note, name="essay_note"),
+    path("<int:cert_id>/essay/wrong/dismiss/<int:question_id>/", essay_views.essay_wrong_dismiss, name="essay_wrong_dismiss"),
 ]

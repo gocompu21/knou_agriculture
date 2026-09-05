@@ -127,9 +127,14 @@
     .wq-ans { font-size: 0.88rem; line-height: 1.8; color: #1f3d30; background: #f7faf8;
         border-left: 3px solid #2d6a4f; padding: 8px 12px; }
     .wq-ans .ai { padding: 1px 0; }
-    .wq-foot { text-align: right; margin-top: 6px; }
+    .wq-foot { display: flex; justify-content: flex-end; align-items: center; gap: 14px;
+        margin-top: 6px; }
     .wq-foot a { font-size: 0.78rem; color: #2d6a4f; text-decoration: none; font-weight: 600; }
     .wq-foot a:hover { text-decoration: underline; }
+    .dismiss-btn { background: none; border: 0; cursor: pointer; color: #888;
+        font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center;
+        gap: 4px; padding: 4px 0; font-family: inherit; }
+    .dismiss-btn:hover { color: #555; }
     .wq-retry { display: inline-block; background: #1b4332; color: #fff; text-decoration: none;
         font-weight: 700; padding: 8px 20px; border-radius: 18px; font-size: 0.85rem; }
     .wq-retry:hover { background: #2d6a4f; }
@@ -452,11 +457,11 @@
         <div class="sec-title">오답노트
             <small>만점을 못 받은 문항 · 문항마다 가장 최근 응시로 판정 · 다시 풀어 만점을 받으면 빠진다</small>
             {% if wrong_items %}
-            <a class="wq-retry" style="margin-left:auto" href="{% url 'gisa:essay_take' cert.pk %}?source=오답">오답 재풀이{% if wrong_count > 20 %} (최근 20문항){% endif %}</a>
+            <a class="wq-retry" id="wrongRetry" style="margin-left:auto" href="{% url 'gisa:essay_take' cert.pk %}?source=오답">오답 재풀이{% if wrong_count > 20 %} (최근 20문항){% endif %}</a>
             {% endif %}
         </div>
         {% for a in wrong_items %}
-        <div class="wq">
+        <div class="wq" id="wq-{{ a.question.pk }}">
             <div class="wq-head">
                 <span class="wq-lab">{{ a.question.year }}-{{ a.question.round }}</span>
                 <span class="wq-type">{{ a.question.get_qtype_display }}</span>
@@ -470,11 +475,17 @@
                 {% for it in a.question.answer_items %}<div class="ai">{{ it|qtext }}</div>{% endfor %}
                 {% if a.question.answer_text %}{{ a.question.answer_text|qtext }}{% endif %}
             </div>
-            <div class="wq-foot"><a href="{% url 'gisa:essay_result' cert.pk a.session.pk %}">채점 결과 ({{ a.session.label }}, {{ a.session.started_at|date:"m/d" }}) &rsaquo;</a></div>
+            <div class="wq-foot">
+                <a href="{% url 'gisa:essay_result' cert.pk a.session.pk %}">채점 결과 ({{ a.session.label }}, {{ a.session.started_at|date:"m/d" }}) &rsaquo;</a>
+                <!-- 필기 오답노트의 "노트 X" 와 같은 제외 버튼 -->
+                <button type="button" class="dismiss-btn" title="오답노트에서 빼기"
+                        onclick="dismissEssayWrong(this, '{% url 'gisa:essay_wrong_dismiss' cert.pk a.question.pk %}', 'wq-{{ a.question.pk }}')">
+                    노트 <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+            </div>
         </div>
-        {% empty %}
-        <div class="empty">오답이 없습니다. 기출고사나 모의고사를 풀면 만점을 못 받은 문항이 여기에 모입니다.</div>
         {% endfor %}
+        <div class="empty" id="wrongEmpty" {% if wrong_items %}hidden{% endif %}>오답이 없습니다. 기출고사나 모의고사를 풀면 만점을 못 받은 문항이 여기에 모입니다.</div>
     </div>
 
     <!-- ══════════ 시험이력 ══════════ -->
@@ -596,6 +607,30 @@ document.querySelectorAll('.tab-btn').forEach(function (b) {
     var btn = document.querySelector('.tab-btn.active');
     if (btn && btn.scrollIntoView) btn.scrollIntoView({ block: 'nearest', inline: 'center' });
 })();
+
+/* 오답노트 "노트 X" — 카드를 지우고 탭 배지·재풀이 버튼·빈 안내를 맞춘다 */
+function dismissEssayWrong(btn, url, cardId) {
+    btn.disabled = true;
+    fetch(url, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}',
+                                            'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            if (!d.ok) throw new Error(d.error || '실패');
+            var card = document.getElementById(cardId);
+            card.style.transition = 'opacity .3s'; card.style.opacity = '0';
+            setTimeout(function () {
+                card.remove();
+                var n = document.querySelectorAll('#tab-wrong .wq').length;
+                var badge = document.querySelector('.tab-btn[data-tab="wrong"] .tab-badge');
+                if (badge) { if (n) badge.textContent = n; else badge.remove(); }
+                var retry = document.getElementById('wrongRetry');
+                if (retry && !n) retry.remove();
+                var empty = document.getElementById('wrongEmpty');
+                if (empty) empty.hidden = n > 0;
+            }, 300);
+        })
+        .catch(function (e) { btn.disabled = false; alert(e.message); });
+}
 
 /* AI 답은 마크다운 비슷하게 온다. 제목·목록·강조만 살린다. LaTeX 표기가 섞여 오면 걷어낸다. */
 function qnaRender(raw) {

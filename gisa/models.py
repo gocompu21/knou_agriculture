@@ -431,6 +431,9 @@ class GisaEssayAttempt(models.Model):
                                     help_text='사용자가 조정한 값. 없으면 ai_score를 쓴다')
     feedback = models.JSONField('채점 상세', default=dict, blank=True,
                                 help_text='{points: [{point, matched, comment}], summary: str}')
+    # 오답노트 "노트 X" — 사용자가 이 답안을 오답노트에서 뺐다. 문항의 가장 최근
+    # 답안에만 의미가 있다(나중에 다시 틀리면 새 답안이 최근이 되어 다시 나온다)
+    wrong_dismissed = models.BooleanField('오답노트 제외', default=False)
     graded_at = models.DateTimeField('채점 시각', null=True, blank=True)
     created_at = models.DateTimeField('작성 시각', auto_now_add=True)
 

@@ -187,6 +187,8 @@ def _wrong_attempts(user, cert):
         if a.question_id in seen:
             continue
         seen.add(a.question_id)
+        if a.wrong_dismissed:           # "노트 X" 로 뺀 답안 — 최근 답안이 이것이면 제외
+            continue
         if a.score < float(a.question.points):
             wrong.append(a)
     wrong.sort(key=lambda a: (-a.question.year, -a.question.round, a.question.number))
@@ -827,6 +829,27 @@ def essay_siblings(request, cert_id, question_id):
         'answer_html': str(qtext(s.answer_text)) if s.answer_text else '',
     } for s in sibs]
     return JsonResponse({'ok': True, 'items': items})
+
+
+@login_required
+@require_POST
+def essay_wrong_dismiss(request, cert_id, question_id):
+    """오답노트 "노트 X" — 이 문항의 가장 최근 답안에 제외 표시를 한다.
+
+    필기의 wrong_dismiss 는 정답 응시를 하나 만들어 빼지만, 실기는 응시가 세션
+    단위라 그렇게 하면 이력이 어지러워진다. 답안에 표시만 남긴다.
+    """
+    cert = get_object_or_404(Certification, pk=cert_id)
+    a = (GisaEssayAttempt.objects
+         .filter(session__user=request.user, session__certification=cert,
+                 session__status='done', question_id=question_id)
+         .exclude(answer_text='')
+         .order_by('-session__submitted_at').first())
+    if a is None:
+        return JsonResponse({'ok': False, 'error': '해당 문항의 답안이 없습니다.'}, status=404)
+    a.wrong_dismissed = True
+    a.save(update_fields=['wrong_dismissed'])
+    return JsonResponse({'ok': True, 'remaining': len(_wrong_attempts(request.user, cert))})
 
 
 @login_required
