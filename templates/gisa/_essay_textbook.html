@@ -32,8 +32,10 @@
     <div class="tb-item" data-stars="{{ t.stars }}" data-calc="{{ t.calc|yesno:'1,0' }}"
          data-comeback="{{ t.comeback|yesno:'1,0' }}" data-warn="{{ t.warned|yesno:'1,0' }}">
         <div class="tb-head" onclick="tbToggle(this)">
-            <span class="tb-stars{% if not t.stars %} dim{% endif %}">{% if t.stars == 3 %}★★★{% elif t.stars == 2 %}★★{% elif t.stars == 1 %}★{% else %}☆{% endif %}</span>
-            <span class="tb-title">{{ t.title }}</span>
+            <!-- 분류 안 일련번호 → 제목 → 별. 별을 앞에 두면 제목 시작선이 들쭉날쭉하다 -->
+            <span class="tb-no">{{ forloop.counter }}.</span>
+            <span class="tb-title">{{ t.title }}
+                <span class="tb-stars{% if not t.stars %} dim{% endif %}">{% if t.stars == 3 %}★★★{% elif t.stars == 2 %}★★{% elif t.stars == 1 %}★{% else %}☆{% endif %}</span></span>
             {% if t.calc %}<span class="tb-tag calc">계산</span>{% endif %}
             {% if t.comeback %}<span class="tb-tag comeback">재출제 유력</span>{% endif %}
             {% if t.warned %}<span class="tb-tag warn" title="요구가 커진 이력">⚠️</span>{% endif %}
