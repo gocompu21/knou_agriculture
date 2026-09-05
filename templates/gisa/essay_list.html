@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
-
+{% load gisa_filters %}
 {% load qna_filters %}
 {% block title %}{{ cert.name }} 실기 필답형{% endblock %}
 
@@ -10,7 +10,7 @@
 
     .essay-hero {
         background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
-        color: #fff; padding: 22px 20px; border-radius: 12px; margin: 16px 0 20px;
+        color: #fff; padding: 22px 20px; border-radius: 12px; margin: 16px 0 0;
     }
     .essay-hero h1 { margin: 0 0 6px; font-size: 1.3rem; }
     .essay-hero p { margin: 0; font-size: 0.88rem; opacity: 0.9; line-height: 1.6; }
@@ -25,27 +25,42 @@
         background: rgba(255,255,255,0.18); padding: 6px 14px; border-radius: 14px;
         font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
     .hero-switch:hover { background: rgba(255,255,255,0.3); }
-    /* 학습전략은 처음 오는 사람이 먼저 볼 곳이라 눈에 띄게 둔다 */
     .hero-switch.strategy { background: #fff; color: #1b4332; }
     .hero-switch.strategy:hover { background: #eef4f0; }
     .hero-stat { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; }
     .hero-stat span { font-size: 0.85rem; background: rgba(255,255,255,0.15);
         padding: 4px 12px; border-radius: 12px; }
 
+    /* ── 탭 — 필기 상세(certification_detail)와 같은 구조, 색만 실기 녹색 ── */
+    .tab-nav { display: flex; background: #fff; border-bottom: 2px solid #e0e0e0;
+        overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+        position: sticky; top: 0; z-index: 10; margin-top: 12px; }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn { flex: 0 0 auto; padding: 14px 18px; font-weight: 700; font-size: 0.9rem;
+        color: #888; border: 0; border-bottom: 3px solid transparent; cursor: pointer;
+        background: none; font-family: inherit; white-space: nowrap;
+        transition: color .2s; margin-bottom: -2px; }
+    .tab-btn:hover { color: #333; }
+    .tab-btn.active { color: #1b4332; border-bottom-color: #2d6a4f; }
+    .tab-badge { background: #ef5350; color: #fff; font-size: 0.72rem; font-weight: 700;
+        padding: 1px 7px; border-radius: 10px; margin-left: 5px; vertical-align: 1px; }
+    .tab-badge.soft { background: #8a5cf6; }
+    .tab-content { display: none; padding: 22px 0 0; }
+    .tab-content.active { display: block; }
+
     .sec-title { font-size: 1.05rem; font-weight: 700; color: #1b4332;
-        margin: 26px 0 12px; display: flex; align-items: center; gap: 8px; }
+        margin: 0 0 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .sec-title small { font-weight: 400; color: #777; font-size: 0.8rem; }
+    .sec-title + .sec-title, .card-grid + .sec-title, .year-group + .sec-title,
+    .empty + .sec-title { margin-top: 26px; }
 
     .card-grid { display: grid; gap: 12px;
         grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
 
-    /* 연도 묶음 — 51개 회차가 한 줄로 늘어서지 않게 해마다 가른다 */
     .year-group { margin-bottom: 20px; }
     .year-head { display: flex; align-items: baseline; gap: 9px;
-        padding-bottom: 6px; margin-bottom: 10px;
-        border-bottom: 1px solid #e8ede9; }
-    .year-label { font-size: 0.98rem; font-weight: 800; color: #1b4332;
-        letter-spacing: -0.01em; }
+        padding-bottom: 6px; margin-bottom: 10px; border-bottom: 1px solid #e8ede9; }
+    .year-label { font-size: 0.98rem; font-weight: 800; color: #1b4332; }
     .year-meta { font-size: 0.76rem; color: #8fa396; }
 
     .ec { border: 1px solid #dfe5e0; border-radius: 10px; padding: 14px 16px;
@@ -58,30 +73,66 @@
     .ec-best { display: inline-block; font-size: 0.75rem; padding: 2px 8px;
         border-radius: 10px; background: #e8f5e9; color: #1b5e20; font-weight: 600; }
     .ec-best.none { background: #f2f2f2; color: #999; font-weight: 400; }
-    /* 문항이 일부만 복원된 회차 — 45점 실전과 다르다는 것을 알린다 */
     .ec-partial { display: inline-block; font-size: 0.72rem; padding: 2px 7px;
-        border-radius: 9px; background: #fff4e5; color: #a1651a;
-        margin-left: 4px; }
+        border-radius: 9px; background: #fff4e5; color: #a1651a; margin-left: 4px; }
     .ec-actions { display: flex; gap: 5px; margin-top: 10px; }
     .ec-btn { flex: 1; text-align: center; padding: 7px 0; border-radius: 6px;
-        font-size: 0.8rem; text-decoration: none; font-weight: 600;
-        white-space: nowrap; }
+        font-size: 0.8rem; text-decoration: none; font-weight: 600; white-space: nowrap; }
     .ec-btn.primary { background: #1b4332; color: #fff; }
     .ec-btn.primary:hover { background: #2d6a4f; }
     .ec-btn.sub { background: #eef2ee; color: #40624f; }
     .ec-btn.sub:hover { background: #dde7e0; }
-    /* 학습 = 정답을 보며 익히는 모드. 풀이와 구분되게 테두리형으로 둔다 */
-    .ec-btn.study { background: #fff; color: #40624f;
-        border: 1px solid #cbd8d0; }
+    .ec-btn.study { background: #fff; color: #40624f; border: 1px solid #cbd8d0; }
     .ec-btn.study:hover { background: #f2f7f4; }
-    /* 빈출 주제 카드 — 회차 카드와 구분되게 왼쪽에 주황 띠 */
     .ec-freq { border-left: 4px solid #d9a441; }
     .ec-freq .ec-title { color: #a1651a; }
-    /* 정리 자료 — 문항이 아니라 읽는 자료라 남색 띠로 구분 */
     .ec-note { border-left: 4px solid #2d4a6b; }
     .ec-note .ec-title { color: #2d4a6b; }
-    .ec-sum { font-size: 0.78rem; color: #777; line-height: 1.6;
-        margin: 4px 0 8px; }
+    .ec-sum { font-size: 0.78rem; color: #777; line-height: 1.6; margin: 4px 0 8px; }
+
+    /* 모의고사 시작 카드 */
+    .mock-box { background: #fff; border: 1px solid #dfe5e0; border-radius: 12px;
+        padding: 22px 24px; display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+    .mock-box .mk-text { flex: 1; min-width: 240px; font-size: 0.88rem; color: #444;
+        line-height: 1.7; }
+    .mock-box .mk-text b { color: #1b4332; }
+    .mk-start { background: #1b4332; color: #fff; text-decoration: none; font-weight: 700;
+        padding: 12px 28px; border-radius: 22px; font-size: 0.95rem; white-space: nowrap; }
+    .mk-start:hover { background: #2d6a4f; }
+
+    /* 오답노트 */
+    .wq { background: #fff; border: 1px solid #e3e9e4; border-radius: 10px;
+        padding: 14px 16px 12px; margin-bottom: 12px; }
+    .wq-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;
+        flex-wrap: wrap; }
+    .wq-lab { font-size: 0.72rem; font-weight: 700; color: #1b4332;
+        background: #e7efe9; padding: 1px 8px; border-radius: 7px; }
+    .wq-type { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px;
+        background: #eef2ee; color: #40624f; }
+    .wq-score { margin-left: auto; font-size: 0.82rem; font-weight: 700; }
+    .wq-score.zero { color: #c62828; }
+    .wq-score.part { color: #a1651a; }
+    .wq-score small { font-weight: 400; color: #999; }
+    .wq-text { font-size: 0.93rem; line-height: 1.7; color: #222; margin-bottom: 10px;
+        padding-left: 20px; text-indent: -20px; }
+    .wq-text .q-box, .wq-text table { text-indent: 0; }
+    .wq-text .q-box { margin-left: -20px !important; margin-right: 0 !important;
+        width: calc(100% + 20px); max-width: none !important; box-sizing: border-box; }
+    .wq-no { font-weight: 700; }
+    .wq-mine { font-size: 0.86rem; line-height: 1.7; color: #555; background: #fafafa;
+        border-left: 3px solid #cfd8d2; padding: 8px 12px; margin-bottom: 8px; }
+    .wq-mine.empty { color: #bbb; font-style: italic; }
+    .wq-lbl { font-size: 0.72rem; font-weight: 700; color: #8b968f; letter-spacing: .04em;
+        margin-bottom: 3px; }
+    .wq-ans { font-size: 0.88rem; line-height: 1.8; color: #1f3d30; background: #f7faf8;
+        border-left: 3px solid #2d6a4f; padding: 8px 12px; }
+    .wq-ans .ai { padding: 1px 0; }
+    .wq-foot { text-align: right; margin-top: 6px; }
+    .wq-foot a { font-size: 0.78rem; color: #2d6a4f; text-decoration: none; font-weight: 600; }
+    .wq-foot a:hover { text-decoration: underline; }
+    .wq-retry { display: inline-block; background: #1b4332; color: #fff; text-decoration: none;
+        font-weight: 700; padding: 8px 20px; border-radius: 18px; font-size: 0.85rem; }
+    .wq-retry:hover { background: #2d6a4f; }
 
     .hist { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
     .hist th { background: #1b4332; color: #fff; padding: 8px 10px; text-align: left;
@@ -91,6 +142,9 @@
     .badge-mode { font-size: 0.72rem; padding: 2px 7px; border-radius: 8px;
         background: #eef2ee; color: #40624f; }
     .badge-mode.paper { background: #fff3e0; color: #a1651a; }
+    .badge-src { font-size: 0.72rem; padding: 2px 7px; border-radius: 8px;
+        background: #e8eef5; color: #2d4a6b; margin-right: 4px; }
+    .badge-src.wrong { background: #fbeaea; color: #9a3232; }
     .score-big { font-weight: 700; color: #1b5e20; }
     .score-big.low { color: #999; }
 
@@ -102,12 +156,12 @@
         .ec { padding: 12px; }
         .hist-scroll { overflow-x: auto; }
         .hist { min-width: 560px; }
+        .tab-btn { padding: 12px 14px; font-size: 0.86rem; }
     }
-    /* 질의응답 탭 */
+
+    /* 질의응답 */
     .qna-ask { background: #fff; border: 1px solid #e3e9e4; border-radius: 10px;
         padding: 15px 17px; margin-bottom: 14px; }
-    .qna-ask-head { font-size: 0.88rem; font-weight: 700; color: #1b4332;
-        margin-bottom: 9px; }
     .qna-ask-row { display: flex; gap: 8px; }
     .qna-ask-row input { flex: 1; padding: 9px 12px; font-family: inherit;
         font-size: 0.9rem; border: 1px solid #d6e3d6; border-radius: 7px; }
@@ -124,11 +178,9 @@
         border-radius: 0 7px 7px 0; font-size: 0.85rem; line-height: 1.7; }
     .qna-ask-result.on { display: block; }
     .qna-ask-result.err { background: #fdf3f2; border-left-color: #d93025; color: #b3261e; }
-
-    .qna-tab-list { list-style: none; margin: 0; padding: 0;
-        background: #fff; border: 1px solid #e3e9e4; border-radius: 10px;
-        overflow: hidden; }
-    .qna-item { border-bottom: 1px solid #f2f5f2; }
+    .qna-item { border-bottom: 1px solid #f2f5f2; background: #fff; }
+    .qlist { border: 1px solid #e3e9e4; border-radius: 10px; overflow: hidden; }
+    .qlist:empty { display: none; }
     .qna-item:last-child { border-bottom: 0; }
     .qi-head { display: flex; align-items: baseline; gap: 9px;
         padding: 11px 15px 7px; cursor: pointer; }
@@ -136,17 +188,13 @@
     .qi-title { flex: 1; font-size: 0.9rem; font-weight: 600; color: #1f2d24; }
     .qt-note { flex-shrink: 0; font-size: 0.78rem; }
     .qt-meta { flex-shrink: 0; font-size: 0.75rem; color: #97a79d; }
-    .qi-arrow { flex-shrink: 0; color: #c3cec7; font-size: 0.8rem;
-        transition: transform .15s; }
+    .qi-arrow { flex-shrink: 0; color: #c3cec7; font-size: 0.8rem; transition: transform .15s; }
     .qna-item.open .qi-arrow { transform: rotate(90deg); }
-
-    /* 접힌 상태에서 답 앞부분 3줄만 */
     .qi-peek { padding: 0 15px 11px; font-size: 0.83rem; line-height: 1.65;
         color: #7c8a81; cursor: pointer;
         display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
         overflow: hidden; }
     .qna-item.open .qi-peek { display: none; }
-
     .qi-full { display: none; padding: 2px 15px 14px; font-size: 0.88rem;
         line-height: 1.8; color: #263; }
     .qna-item.open .qi-full { display: block; }
@@ -156,15 +204,12 @@
     .qi-full li { margin: 3px 0; }
     .qi-full strong { color: #1b4332; }
     .qi-note-ref { font-size: 0.75rem; color: #6b8a72; background: #f1f7ee;
-        display: inline-block; padding: 2px 9px; border-radius: 9px;
-        margin-bottom: 8px; }
+        display: inline-block; padding: 2px 9px; border-radius: 9px; margin-bottom: 8px; }
     .qi-link { display: inline-block; margin-top: 6px; font-size: 0.78rem;
         color: #2d6a4f; text-decoration: none; font-weight: 600; }
     .qi-link:hover { text-decoration: underline; }
-
     .qna-more { text-align: right; margin-top: 10px; }
-    .qna-more a { font-size: 0.82rem; color: #2d6a4f; text-decoration: none;
-        font-weight: 600; }
+    .qna-more a { font-size: 0.82rem; color: #2d6a4f; text-decoration: none; font-weight: 600; }
     .qna-more a:hover { text-decoration: underline; }
 </style>
 {% endblock %}
@@ -190,254 +235,413 @@
         </div>
     </div>
 
-    {% if notes %}
-    <div class="sec-title">정리 자료
-        <small>기출을 주제로 묶어 정의·이유·사례 세 층으로 정리했다</small>
+    <!-- 탭 — 필기 상세와 같은 순서. 실기는 과목이 하나라 과목 선택은 없다. -->
+    <div class="tab-nav" id="tabNav">
+        <button class="tab-btn{% if active_tab == 'textbook' %} active{% endif %}" data-tab="textbook">쪽집게 노트</button>
+        <button class="tab-btn{% if active_tab == 'study' %} active{% endif %}" data-tab="study">기출학습</button>
+        <button class="tab-btn{% if active_tab == 'solve' %} active{% endif %}" data-tab="solve">기출고사</button>
+        <button class="tab-btn{% if active_tab == 'mock' %} active{% endif %}" data-tab="mock">모의고사</button>
+        <button class="tab-btn{% if active_tab == 'wrong' %} active{% endif %}" data-tab="wrong">오답노트{% if wrong_count %}<span class="tab-badge">{{ wrong_count }}</span>{% endif %}</button>
+        <button class="tab-btn{% if active_tab == 'history' %} active{% endif %}" data-tab="history">시험이력</button>
+        <button class="tab-btn{% if active_tab == 'qna' %} active{% endif %}" data-tab="qna">질의응답{% if qna_count %}<span class="tab-badge soft">{{ qna_count }}</span>{% endif %}</button>
     </div>
-    <div class="card-grid">
-        {% for n in notes %}
-        <div class="ec ec-note">
-            <div class="ec-head">
-                <span class="ec-title">{{ n.title }}</span>
-            </div>
-            {% if n.summary %}<div class="ec-sum">{{ n.summary }}</div>{% endif %}
-            <div class="ec-actions">
-                <a class="ec-btn primary" href="{% url 'gisa:essay_note' cert.pk n.slug %}">보기</a>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
 
-    {% if freq_cards %}
-    <div class="sec-title">빈출 주제
-        <small>같은 주제가 표현만 바뀌어 되풀이 출제된다 · 정답을 보며 익히기</small>
-    </div>
-    <div class="card-grid">
-        {% for f in freq_cards %}
-        <div class="ec ec-freq">
-            <div class="ec-head">
-                <span class="ec-title">{{ f.label }} 출제</span>
-                <span class="ec-meta">{{ f.count }}주제</span>
-            </div>
-            <div class="ec-actions">
-                <a class="ec-btn primary" href="{% url 'gisa:essay_study' cert.pk %}?mode=freq&min={{ f.min }}">학습</a>
-            </div>
-        </div>
-        {% endfor %}
-        {% if comeback_count %}
-        <div class="ec ec-freq">
-            <div class="ec-head">
-                <span class="ec-title">재출제 유력</span>
-                <span class="ec-meta">{{ comeback_count }}문항</span>
-            </div>
-            <div class="ec-sum">실기엔 1회뿐이지만 필기에서 자주 다뤄진 주제</div>
-            <div class="ec-actions">
-                <a class="ec-btn primary" href="{% url 'gisa:essay_study' cert.pk %}?mode=comeback">학습</a>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-    {% endif %}
-
-    <div class="sec-title">기출문제
-        <small>풀기 = 실전 90분 · 시험지 = 인쇄해서 손으로 · 학습 = 정답 보며 익히기</small>
-    </div>
-    {% if round_years %}
-    {% for y in round_years %}
-    <div class="year-group">
-        <div class="year-head">
-            <span class="year-label">{{ y.year }}년</span>
-            <span class="year-meta">{{ y.cards|length }}회차{% if y.done %} · 응시 {{ y.done }}{% endif %}</span>
+    <!-- ══════════ 쪽집게 노트 ══════════ -->
+    <div id="tab-textbook" class="tab-content{% if active_tab == 'textbook' %} active{% endif %}">
+        <div class="sec-title">정리 자료
+            <small>기출을 주제로 묶어 정의·이유·사례 세 층으로 정리했다</small>
         </div>
         <div class="card-grid">
-            {% for r in y.cards %}
-            <div class="ec">
-                <div class="ec-head">
-                    <span class="ec-title">{{ r.round }}회</span>
-                    <span class="ec-meta">{{ r.count }}문항 · {{ r.points }}점</span>
-                </div>
-                {% if r.best is not None %}
-                <span class="ec-best">최고 {{ r.best }}점</span>
-                {% else %}
-                <span class="ec-best none">미응시</span>
-                {% endif %}
-                {% if r.partial %}<span class="ec-partial">일부 복원</span>{% endif %}
+            <div class="ec ec-note">
+                <div class="ec-head"><span class="ec-title">학습전략</span></div>
+                <div class="ec-sum">회차·유형·주제 분포를 근거로 무엇을 먼저 익힐지 안내</div>
                 <div class="ec-actions">
-                    <a class="ec-btn primary" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}">풀기</a>
-                    <a class="ec-btn sub" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}&mode=paper">시험지</a>
-                    <a class="ec-btn study" href="{% url 'gisa:essay_study' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}">학습</a>
+                    <a class="ec-btn primary" href="{% url 'gisa:essay_strategy' cert.pk %}">보기</a>
+                </div>
+            </div>
+            {% for n in notes %}
+            <div class="ec ec-note">
+                <div class="ec-head"><span class="ec-title">{{ n.title }}</span></div>
+                {% if n.summary %}<div class="ec-sum">{{ n.summary }}</div>{% endif %}
+                <div class="ec-actions">
+                    <a class="ec-btn primary" href="{% url 'gisa:essay_note' cert.pk n.slug %}">보기</a>
                 </div>
             </div>
             {% endfor %}
         </div>
     </div>
-    {% endfor %}
-    {% else %}
-    <div class="empty">등록된 기출이 없습니다.</div>
-    {% endif %}
 
-    {% if sections %}
-    <div class="sec-title">영역별 예상문제
-        <small>필기에 자주 나왔지만 실기에는 아직 안 나온 주제로 직접 만든 문항 ·
-        풀기 = 10문항씩 무제한 · 학습 = 정답 보며 익히기</small>
-    </div>
-    <div class="card-grid">
-        {% for s in sections %}
-        <div class="ec">
-            <div class="ec-head">
-                <span class="ec-title">{{ s.section }}</span>
-                <span class="ec-meta">{{ s.c }}문항</span>
+    <!-- ══════════ 기출학습 ══════════ -->
+    <div id="tab-study" class="tab-content{% if active_tab == 'study' %} active{% endif %}">
+        {% if freq_cards %}
+        <div class="sec-title">빈출 주제
+            <small>같은 주제가 표현만 바뀌어 되풀이 출제된다 · 정답을 보며 익히기</small>
+        </div>
+        <div class="card-grid">
+            {% for f in freq_cards %}
+            <div class="ec ec-freq">
+                <div class="ec-head">
+                    <span class="ec-title">{{ f.label }} 출제</span>
+                    <span class="ec-meta">{{ f.count }}주제</span>
+                </div>
+                <div class="ec-actions">
+                    <a class="ec-btn primary" href="{% url 'gisa:essay_study' cert.pk %}?mode=freq&min={{ f.min }}">학습</a>
+                </div>
             </div>
-            <div class="ec-actions">
-                <a class="ec-btn primary" href="{% url 'gisa:essay_take' cert.pk %}?source=예상&section={{ s.section|urlencode }}">풀기</a>
-                <a class="ec-btn study" href="{% url 'gisa:essay_study' cert.pk %}?source=예상&section={{ s.section|urlencode }}">학습</a>
+            {% endfor %}
+            {% if comeback_count %}
+            <div class="ec ec-freq">
+                <div class="ec-head">
+                    <span class="ec-title">재출제 유력</span>
+                    <span class="ec-meta">{{ comeback_count }}문항</span>
+                </div>
+                <div class="ec-sum">실기엔 1회뿐이지만 필기에서 자주 다뤄진 주제</div>
+                <div class="ec-actions">
+                    <a class="ec-btn primary" href="{% url 'gisa:essay_study' cert.pk %}?mode=comeback">학습</a>
+                </div>
+            </div>
+            {% endif %}
+            <div class="ec ec-freq">
+                <div class="ec-head">
+                    <span class="ec-title">계산 문항</span>
+                </div>
+                <div class="ec-sum">공식이 고정돼 가장 확실하게 점수가 되는 유형 · 같은 공식끼리 묶어서</div>
+                <div class="ec-actions">
+                    <a class="ec-btn primary" href="{% url 'gisa:essay_study' cert.pk %}?mode=calc">학습</a>
+                </div>
             </div>
         </div>
+        {% endif %}
+
+        <div class="sec-title">회차별 학습
+            <small>문제와 모범답안을 함께 본다 · 응시 기록에 남지 않는다</small>
+        </div>
+        {% for y in round_years %}
+        <div class="year-group">
+            <div class="year-head">
+                <span class="year-label">{{ y.year }}년</span>
+                <span class="year-meta">{{ y.cards|length }}회차</span>
+            </div>
+            <div class="card-grid">
+                {% for r in y.cards %}
+                <div class="ec">
+                    <div class="ec-head">
+                        <span class="ec-title">{{ r.round }}회</span>
+                        <span class="ec-meta">{{ r.count }}문항 · {{ r.points }}점</span>
+                    </div>
+                    {% if r.partial %}<span class="ec-partial">일부 복원</span>{% endif %}
+                    <div class="ec-actions">
+                        <a class="ec-btn study" href="{% url 'gisa:essay_study' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}">학습</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty">등록된 기출이 없습니다.</div>
         {% endfor %}
-    </div>
-    {% endif %}
 
-    <div class="sec-title">질의응답
-        <small>실기 답안 형식(①②③)으로 답합니다 · 우리 쪽집게 노트를 근거로</small>
-    </div>
-    <div class="qna-ask">
-        <div class="qna-ask-row">
-            <input type="text" id="qnaInput" maxlength="200"
-                   placeholder="예) 추이대의 종다양성이 높은 까닭은?">
-            <button id="qnaBtn" onclick="askQna()">물어보기</button>
-        </div>
-        <div class="qna-ask-note">AI가 쓴 답이라 틀릴 수 있습니다. 교재와 함께 확인하세요.</div>
-        <div class="qna-ask-result" id="qnaResult"></div>
-    </div>
-
-    <div class="qlist" id="qnaList">
-        {% for q in qna_items %}
-        <div class="qna-item" data-pk="{{ q.pk }}">
-            <div class="qi-head" onclick="toggleQna(this)">
-                <span class="qi-title">{{ q.title }}</span>
-                {% if q.note_ref %}<span class="qt-note" title="{{ q.note_ref }}">📖</span>{% endif %}
-                <span class="qt-meta">{{ q.user.first_name|default:q.user.username }} · 조회 {{ q.view_count }} · {{ q.created_at|date:"m.d" }}</span>
-                <span class="qi-arrow">›</span>
+        {% if sections %}
+        <div class="sec-title">영역별 예상문제 <small>정답 보며 익히기</small></div>
+        <div class="card-grid">
+            {% for s in sections %}
+            <div class="ec">
+                <div class="ec-head">
+                    <span class="ec-title">{{ s.section }}</span>
+                    <span class="ec-meta">{{ s.c }}문항</span>
+                </div>
+                <div class="ec-actions">
+                    <a class="ec-btn study" href="{% url 'gisa:essay_study' cert.pk %}?source=예상&section={{ s.section|urlencode }}">학습</a>
+                </div>
             </div>
-            <div class="qi-peek">{{ q.answer|qna_peek }}</div>
-            <div class="qi-full" data-raw="{{ q.answer }}" data-ref="{{ q.note_ref }}"></div>
+            {% endfor %}
         </div>
-        {% endfor %}
+        {% endif %}
     </div>
-    {% if not qna_items %}
-    <div class="empty" id="qnaEmpty">아직 질문이 없습니다. 첫 질문을 남겨 보세요.</div>
-    {% endif %}
-    {% if qna_count > qna_items|length %}
-    <div class="qna-more"><a href="/qna/?cert={{ cert.name|urlencode }}">실기 질문 {{ qna_count }}건 모두 보기 &rsaquo;</a></div>
-    {% endif %}
 
-    <div class="sec-title">응시 이력</div>
-    {% if sessions %}
-    <div class="hist-scroll">
-        <table class="hist">
-            <thead>
+    <!-- ══════════ 기출고사 ══════════ -->
+    <div id="tab-solve" class="tab-content{% if active_tab == 'solve' %} active{% endif %}">
+        <div class="sec-title">기출문제
+            <small>풀기 = 실전 90분 화면 입력 · 시험지 = 인쇄해서 손으로 풀고 사진 제출</small>
+        </div>
+        {% for y in round_years %}
+        <div class="year-group">
+            <div class="year-head">
+                <span class="year-label">{{ y.year }}년</span>
+                <span class="year-meta">{{ y.cards|length }}회차{% if y.done %} · 응시 {{ y.done }}{% endif %}</span>
+            </div>
+            <div class="card-grid">
+                {% for r in y.cards %}
+                <div class="ec">
+                    <div class="ec-head">
+                        <span class="ec-title">{{ r.round }}회</span>
+                        <span class="ec-meta">{{ r.count }}문항 · {{ r.points }}점</span>
+                    </div>
+                    {% if r.best is not None %}
+                    <span class="ec-best">최고 {{ r.best }}점</span>
+                    {% else %}
+                    <span class="ec-best none">미응시</span>
+                    {% endif %}
+                    {% if r.partial %}<span class="ec-partial">일부 복원</span>{% endif %}
+                    <div class="ec-actions">
+                        <a class="ec-btn primary" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}">풀기</a>
+                        <a class="ec-btn sub" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}&mode=paper">시험지</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty">등록된 기출이 없습니다.</div>
+        {% endfor %}
+
+        {% if sections %}
+        <div class="sec-title">영역별 예상문제 <small>10문항씩 무제한</small></div>
+        <div class="card-grid">
+            {% for s in sections %}
+            <div class="ec">
+                <div class="ec-head">
+                    <span class="ec-title">{{ s.section }}</span>
+                    <span class="ec-meta">{{ s.c }}문항</span>
+                </div>
+                <div class="ec-actions">
+                    <a class="ec-btn primary" href="{% url 'gisa:essay_take' cert.pk %}?source=예상&section={{ s.section|urlencode }}">풀기</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ══════════ 모의고사 ══════════ -->
+    <div id="tab-mock" class="tab-content{% if active_tab == 'mock' %} active{% endif %}">
+        <div class="sec-title">모의고사
+            <small>기출 전체에서 주제가 겹치지 않게 {{ mock_size }}문항을 무작위로 · 실전 90분</small>
+        </div>
+        <div class="mock-box">
+            <div class="mk-text">
+                회차를 섞어 뽑으므로 <b>한 회차를 통째로 외운 것인지, 주제를 익힌 것인지</b>가 드러납니다.
+                최근 회차 문항이 조금 더 자주 뽑히고, 매번 다른 세트가 나옵니다.
+                채점·점수 조정은 기출고사와 같습니다.
+            </div>
+            <a class="mk-start" href="{% url 'gisa:essay_take' cert.pk %}?source=모의">모의고사 시작</a>
+        </div>
+        {% if mock_sessions %}
+        <div class="sec-title" style="margin-top:26px">최근 모의고사</div>
+        <div class="hist-scroll">
+            <table class="hist">
+                <thead><tr><th style="width:110px">점수</th><th style="width:110px">문항</th><th>일시</th></tr></thead>
+                <tbody>
+                {% for s in mock_sessions %}
                 <tr>
-                    <th style="width:130px">범위</th>
-                    <th style="width:70px">방식</th>
-                    <th style="width:110px">점수</th>
-                    <th style="width:90px">작업형 필요</th>
-                    <th>일시</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in sessions %}
-                <tr>
-                    <td>{{ s.label }}</td>
-                    <td><span class="badge-mode {% if s.mode == 'paper' %}paper{% endif %}">{{ s.get_mode_display }}</span></td>
-                    <td>
-                        {% if s.status == 'done' %}
-                        <span class="score-big {% if s.percent < 60 %}low{% endif %}">{{ s.score }}</span>
-                        <span style="color:#999">/ {{ s.total_points }}</span>
-                        {% else %}
-                        <span style="color:#bbb">{{ s.get_status_display }}</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if s.status == 'done' and s.source == '기출' %}
-                            {% if s.practical_estimate %}
-                            <span style="color:#a1651a">{{ s.practical_estimate }}점</span>
-                            {% else %}
-                            <span style="color:#1b5e20">불필요</span>
-                            {% endif %}
-                        {% else %}—{% endif %}
-                    </td>
-                    <td style="color:#888">
-                        {{ s.started_at|date:"m/d H:i" }}
-                        {% if s.status == 'done' %}
-                        · <a href="{% url 'gisa:essay_result' cert.pk s.pk %}" style="color:#1b4332">결과</a>
-                        {% else %}
-                        {# 인쇄만 하고 답을 아직 안 올린 시험지는 같은 세션으로 이어간다 #}
-                        · <a href="{% url 'gisa:essay_take' cert.pk %}?resume={{ s.pk }}&source={{ s.source|urlencode }}{% if s.source == '기출' %}&year={{ s.year }}&round={{ s.round }}{% else %}&section={{ s.section|urlencode }}{% endif %}&mode={{ s.mode }}" style="color:#a1651a">이어하기</a>
-                        {% if s.mode == 'paper' %}
-                        · <a href="{% url 'gisa:essay_sheet' cert.pk s.pk %}" style="color:#666">시험지</a>
-                        {% endif %}
-                        {% endif %}
-                    </td>
+                    <td><span class="score-big {% if s.percent < 60 %}low{% endif %}">{{ s.score }}</span>
+                        <span style="color:#999">/ {{ s.total_points }}</span></td>
+                    <td>{{ s.attempts.count }}문항</td>
+                    <td style="color:#888">{{ s.started_at|date:"m/d H:i" }}
+                        · <a href="{% url 'gisa:essay_result' cert.pk s.pk %}" style="color:#1b4332">결과</a></td>
                 </tr>
                 {% endfor %}
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
     </div>
-    {% else %}
-    <div class="empty">아직 응시 기록이 없습니다.</div>
-    {% endif %}
+
+    <!-- ══════════ 오답노트 ══════════ -->
+    <div id="tab-wrong" class="tab-content{% if active_tab == 'wrong' %} active{% endif %}">
+        <div class="sec-title">오답노트
+            <small>만점을 못 받은 문항 · 문항마다 가장 최근 응시로 판정 · 다시 풀어 만점을 받으면 빠진다</small>
+            {% if wrong_items %}
+            <a class="wq-retry" style="margin-left:auto" href="{% url 'gisa:essay_take' cert.pk %}?source=오답">오답 재풀이{% if wrong_count > 20 %} (최근 20문항){% endif %}</a>
+            {% endif %}
+        </div>
+        {% for a in wrong_items %}
+        <div class="wq">
+            <div class="wq-head">
+                <span class="wq-lab">{{ a.question.year }}-{{ a.question.round }}</span>
+                <span class="wq-type">{{ a.question.get_qtype_display }}</span>
+                <span class="wq-score {% if a.score > 0 %}part{% else %}zero{% endif %}">{{ a.score }} <small>/ {{ a.question.points }}점</small></span>
+            </div>
+            <div class="wq-text"><span class="wq-no">{{ a.question.number }}.</span> {{ a.question.text|qtext }}</div>
+            <div class="wq-lbl">내 답안</div>
+            <div class="wq-mine {% if not a.answer_text %}empty{% endif %}">{% if a.answer_text %}{{ a.answer_text|qtext_items }}{% else %}(답안 없음){% endif %}</div>
+            <div class="wq-lbl">모범답안</div>
+            <div class="wq-ans">
+                {% for it in a.question.answer_items %}<div class="ai">{{ it|qtext }}</div>{% endfor %}
+                {% if a.question.answer_text %}{{ a.question.answer_text|qtext }}{% endif %}
+            </div>
+            <div class="wq-foot"><a href="{% url 'gisa:essay_result' cert.pk a.session.pk %}">채점 결과 ({{ a.session.label }}, {{ a.session.started_at|date:"m/d" }}) &rsaquo;</a></div>
+        </div>
+        {% empty %}
+        <div class="empty">오답이 없습니다. 기출고사나 모의고사를 풀면 만점을 못 받은 문항이 여기에 모입니다.</div>
+        {% endfor %}
+    </div>
+
+    <!-- ══════════ 시험이력 ══════════ -->
+    <div id="tab-history" class="tab-content{% if active_tab == 'history' %} active{% endif %}">
+        <div class="sec-title">응시 이력</div>
+        {% if sessions %}
+        <div class="hist-scroll">
+            <table class="hist">
+                <thead>
+                    <tr>
+                        <th style="width:150px">범위</th>
+                        <th style="width:80px">방식</th>
+                        <th style="width:110px">점수</th>
+                        <th style="width:90px">작업형 필요</th>
+                        <th>일시</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in sessions %}
+                    <tr>
+                        <td>{% if s.source == '모의' %}<span class="badge-src">모의</span>{% elif s.source == '오답' %}<span class="badge-src wrong">오답</span>{% endif %}{{ s.label }}</td>
+                        <td><span class="badge-mode {% if s.mode == 'paper' %}paper{% endif %}">{{ s.get_mode_display }}</span></td>
+                        <td>
+                            {% if s.status == 'done' %}
+                            <span class="score-big {% if s.percent < 60 %}low{% endif %}">{{ s.score }}</span>
+                            <span style="color:#999">/ {{ s.total_points }}</span>
+                            {% else %}
+                            <span style="color:#bbb">{{ s.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if s.status == 'done' and s.source == '기출' %}
+                                {% if s.practical_estimate %}
+                                <span style="color:#a1651a">{{ s.practical_estimate }}점</span>
+                                {% else %}
+                                <span style="color:#1b5e20">불필요</span>
+                                {% endif %}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td style="color:#888">
+                            {{ s.started_at|date:"m/d H:i" }}
+                            {% if s.status == 'done' %}
+                            · <a href="{% url 'gisa:essay_result' cert.pk s.pk %}" style="color:#1b4332">결과</a>
+                            {% else %}
+                            <!-- 인쇄만 하고 답을 아직 안 올린 시험지는 같은 세션으로 이어간다 -->
+                            · <a href="{% url 'gisa:essay_take' cert.pk %}?resume={{ s.pk }}&source={{ s.source|urlencode }}{% if s.source == '기출' %}&year={{ s.year }}&round={{ s.round }}{% elif s.source == '예상' %}&section={{ s.section|urlencode }}{% endif %}&mode={{ s.mode }}" style="color:#a1651a">이어하기</a>
+                            {% if s.mode == 'paper' %}
+                            · <a href="{% url 'gisa:essay_sheet' cert.pk s.pk %}" style="color:#666">시험지</a>
+                            {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty">아직 응시 기록이 없습니다.</div>
+        {% endif %}
+    </div>
+
+    <!-- ══════════ 질의응답 ══════════ -->
+    <div id="tab-qna" class="tab-content{% if active_tab == 'qna' %} active{% endif %}">
+        <div class="sec-title">질의응답
+            <small>실기 답안 형식(①②③)으로 답합니다 · 우리 쪽집게 노트를 근거로</small>
+        </div>
+        <div class="qna-ask">
+            <div class="qna-ask-row">
+                <input type="text" id="qnaInput" maxlength="200"
+                       placeholder="예) 추이대의 종다양성이 높은 까닭은?">
+                <button id="qnaBtn" onclick="askQna()">물어보기</button>
+            </div>
+            <div class="qna-ask-note">AI가 쓴 답이라 틀릴 수 있습니다. 교재와 함께 확인하세요.</div>
+            <div class="qna-ask-result" id="qnaResult"></div>
+        </div>
+
+        <div class="qlist" id="qnaList">
+            {% for q in qna_items %}
+            <div class="qna-item" data-pk="{{ q.pk }}">
+                <div class="qi-head" onclick="toggleQna(this)">
+                    <span class="qi-title">{{ q.title }}</span>
+                    {% if q.note_ref %}<span class="qt-note" title="{{ q.note_ref }}">📖</span>{% endif %}
+                    <span class="qt-meta">{{ q.user.first_name|default:q.user.username }} · 조회 {{ q.view_count }} · {{ q.created_at|date:"m.d" }}</span>
+                    <span class="qi-arrow">›</span>
+                </div>
+                <div class="qi-peek">{{ q.answer|qna_peek }}</div>
+                <div class="qi-full" data-raw="{{ q.answer }}" data-ref="{{ q.note_ref }}"></div>
+            </div>
+            {% endfor %}
+        </div>
+        {% if not qna_items %}
+        <div class="empty" id="qnaEmpty">아직 질문이 없습니다. 첫 질문을 남겨 보세요.</div>
+        {% endif %}
+        {% if qna_count > qna_items|length %}
+        <div class="qna-more"><a href="/qna/?cert={{ cert.name|urlencode }}">실기 질문 {{ qna_count }}건 모두 보기 &rsaquo;</a></div>
+        {% endif %}
+    </div>
 </div>
 
 <script>
-    /* AI 답은 마크다운 비슷하게 온다. 제목·목록·강조만 살린다.
-       LaTeX 표기가 섞여 오면 걷어낸다. */
-    function qnaRender(raw) {
-        var t = String(raw || '');
-        t = t.split('$').join('');
-        t = t.replace(/\\text\{([^}]*)\}/g, '$1');
-        var esc = function (x) {
-            return x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        };
-        var out = [], ul = false;
-        t.split('\n').forEach(function (rawLine) {
-            var line = rawLine.trim();
-            if (!line) { if (ul) { out.push('</ul>'); ul = false; } return; }
-            var h = esc(line)
-                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                .replace(/`([^`]+)`/g, '<code>$1</code>');
-            if (/^#{1,4}\s/.test(line)) {
-                if (ul) { out.push('</ul>'); ul = false; }
-                out.push('<h3>' + h.replace(/^#{1,4}\s*/, '') + '</h3>');
-            } else if (/^[*\-•]\s/.test(line) || /^\d+\.\s/.test(line)) {
-                if (!ul) { out.push('<ul>'); ul = true; }
-                out.push('<li>' + h.replace(/^([*\-•]|\d+\.)\s*/, '') + '</li>');
-            } else {
-                if (ul) { out.push('</ul>'); ul = false; }
-                out.push('<p>' + h + '</p>');
-            }
-        });
-        if (ul) out.push('</ul>');
-        return out.join('');
-    }
+/* 탭 전환 — 내용은 모두 서버에서 내려와 있으므로 보이기만 바꾸고 주소의
+   ?tab= 을 갱신한다. 새로 고침·뒤로 가기에도 같은 탭이 열린다. */
+function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(function (b) {
+        b.classList.toggle('active', b.dataset.tab === name);
+    });
+    document.querySelectorAll('.tab-content').forEach(function (c) {
+        c.classList.toggle('active', c.id === 'tab-' + name);
+    });
+    var u = new URL(location.href); u.searchParams.set('tab', name);
+    history.replaceState(null, '', u);
+    var btn = document.querySelector('.tab-btn.active');
+    if (btn && btn.scrollIntoView) btn.scrollIntoView({ block: 'nearest', inline: 'center' });
+}
+document.querySelectorAll('.tab-btn').forEach(function (b) {
+    b.addEventListener('click', function () { switchTab(b.dataset.tab); });
+});
+(function () {
+    var btn = document.querySelector('.tab-btn.active');
+    if (btn && btn.scrollIntoView) btn.scrollIntoView({ block: 'nearest', inline: 'center' });
+})();
 
-    function toggleQna(head) {
-        var item = head.closest ? head.closest('.qna-item') : head.parentElement;
-        var full = item.querySelector('.qi-full');
-        if (full && !full.dataset.done) {
-            var pk = item.dataset.pk;
-            full.innerHTML =
-                (full.dataset.ref ? '<div class="qi-note-ref">📖 ' + full.dataset.ref + '</div>' : '')
-                + qnaRender(full.dataset.raw)
-                + '<a class="qi-link" href="/qna/' + pk + '/">따로 보기 &rsaquo;</a>';
-            full.dataset.done = '1';
+/* AI 답은 마크다운 비슷하게 온다. 제목·목록·강조만 살린다. LaTeX 표기가 섞여 오면 걷어낸다. */
+function qnaRender(raw) {
+    var t = String(raw || '');
+    t = t.split('$').join('');
+    t = t.replace(/\\text\{([^}]*)\}/g, '$1');
+    var esc = function (x) {
+        return x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    };
+    var out = [], ul = false;
+    t.split('\n').forEach(function (rawLine) {
+        var line = rawLine.trim();
+        if (!line) { if (ul) { out.push('</ul>'); ul = false; } return; }
+        var h = esc(line)
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/`([^`]+)`/g, '<code>$1</code>');
+        if (/^#{1,4}\s/.test(line)) {
+            if (ul) { out.push('</ul>'); ul = false; }
+            out.push('<h3>' + h.replace(/^#{1,4}\s*/, '') + '</h3>');
+        } else if (/^[*\-•]\s/.test(line) || /^\d+\.\s/.test(line)) {
+            if (!ul) { out.push('<ul>'); ul = true; }
+            out.push('<li>' + h.replace(/^([*\-•]|\d+\.)\s*/, '') + '</li>');
+        } else {
+            if (ul) { out.push('</ul>'); ul = false; }
+            out.push('<p>' + h + '</p>');
         }
-        item.classList.toggle('open');
+    });
+    if (ul) out.push('</ul>');
+    return out.join('');
+}
+
+function toggleQna(head) {
+    var item = head.closest ? head.closest('.qna-item') : head.parentElement;
+    var full = item.querySelector('.qi-full');
+    if (full && !full.dataset.done) {
+        var pk = item.dataset.pk;
+        full.innerHTML =
+            (full.dataset.ref ? '<div class="qi-note-ref">📖 ' + full.dataset.ref + '</div>' : '')
+            + qnaRender(full.dataset.raw)
+            + '<a class="qi-link" href="/qna/' + pk + '/">따로 보기 &rsaquo;</a>';
+        full.dataset.done = '1';
     }
+    item.classList.toggle('open');
+}
 
-
-/* 실기 질의응답 — cert_subject 를 '실기' 로 보내면 프롬프트가 답안
-   형식(①②③)으로 답하도록 갈린다. 실기는 과목 구분이 없다. */
+/* 실기 질의응답 — cert_subject 를 '실기' 로 보내면 프롬프트가 답안 형식(①②③)으로 답한다 */
 async function askQna() {
     var inp = document.getElementById('qnaInput');
     var btn = document.getElementById('qnaBtn');
@@ -476,10 +680,7 @@ function qnaPrepend(d) {
     var empty = document.getElementById('qnaEmpty');
     if (empty) empty.remove();
     if (!list) return;
-    /* 새 답만 펼친 채로 둔다 */
-    list.querySelectorAll('.qna-item.open').forEach(function (el) {
-        el.classList.remove('open');
-    });
+    list.querySelectorAll('.qna-item.open').forEach(function (el) { el.classList.remove('open'); });
     var esc = function (x) {
         return (x || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     };
@@ -511,21 +712,16 @@ function qnaPrepend(d) {
         .replace(/^\s*\d+\.\s+/gm, '')
         .split('$').join('')
         .replace(/\s+/g, ' ').trim();
-    it.querySelector('.qi-peek').textContent =
-        peek.slice(0, 180) + (peek.length > 180 ? '…' : '');
+    it.querySelector('.qi-peek').textContent = peek.slice(0, 180) + (peek.length > 180 ? '…' : '');
     list.insertBefore(it, list.firstChild);
     it.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 document.addEventListener('DOMContentLoaded', function () {
     var inp = document.getElementById('qnaInput');
-    if (inp) inp.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') askQna();
-    });
+    if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') askQna(); });
     document.querySelectorAll('.qi-peek').forEach(function (el) {
-        el.addEventListener('click', function () {
-            toggleQna(el.parentElement.querySelector('.qi-head'));
-        });
+        el.addEventListener('click', function () { toggleQna(el.parentElement.querySelector('.qi-head')); });
     });
 });
 </script>

@@ -256,7 +256,7 @@
                  모드에서는 판독한 글을 종이와 맞대어 확인하므로 종이와 다르게
                  보이면 대조가 어렵고, 온라인 풀기도 실제 시험지 감각으로 푼다. -->
             <div class="sq-head">
-                <span class="sq-no">{{ q.number }}.</span>
+                <span class="sq-no">{% if seq_numbers %}{{ forloop.counter }}{% else %}{{ q.number }}{% endif %}.</span>
                 <span class="sq-text">{{ q.text|qtext }}</span>
                 <span class="sq-pts">({{ q.points }}점)</span>
             </div>

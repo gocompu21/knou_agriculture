@@ -136,7 +136,12 @@
             {% if session.source == '기출' and session.year %}
             <a class="er-btn" href="{% url 'gisa:essay_study' cert.pk %}?source=기출&year={{ session.year }}&round={{ session.round }}">{{ session.year }}년 {{ session.round }}회 학습</a>
             {% endif %}
-            <a class="er-btn sub" href="{% url 'gisa:essay_list' cert.pk %}">실기 목록</a>
+            {% if session.source == '오답' %}
+            <a class="er-btn" href="{% url 'gisa:essay_list' cert.pk %}?tab=wrong">오답노트</a>
+            {% elif session.source == '모의' %}
+            <a class="er-btn" href="{% url 'gisa:essay_list' cert.pk %}?tab=mock">모의고사</a>
+            {% endif %}
+            <a class="er-btn sub" href="{% url 'gisa:essay_list' cert.pk %}?tab=history">시험이력</a>
         </div>
     </div>
 </div>
@@ -186,7 +191,7 @@
                 {% if a.feedback.engine %}<span class="engine-tag">{{ a.feedback.engine }}</span>{% endif %}
             </span>
         </div>
-        <div class="qr-text"><span class="qr-no {% if a.is_perfect %}full{% elif a.score > 0 %}part{% else %}zero{% endif %}">{{ a.question.number }}.</span> {{ a.question.text|qtext }}</div>
+        <div class="qr-text"><span class="qr-no {% if a.is_perfect %}full{% elif a.score > 0 %}part{% else %}zero{% endif %}">{% if session.source == '모의' or session.source == '오답' %}{{ forloop.counter }}{% else %}{{ a.question.number }}{% endif %}.</span> {{ a.question.text|qtext }}</div>
         {% if a.question.text_image %}<img class="qr-img" src="{{ a.question.text_image|vurl }}" alt="">{% endif %}
 
         {# 판독기가 분수를 [eq]a / b[/eq], 표를 마크다운 표로 옮기므로 모범답안과 같은 렌더러로 그린다 #}

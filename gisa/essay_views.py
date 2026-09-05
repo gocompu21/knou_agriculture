@@ -74,6 +74,12 @@ def essay_list(request, cert_id):
          .filter(user=request.user, certification=cert, status='progress',
                  mode='online', started_at__lt=stale, attempts__isnull=True)
          .delete())
+        # 모의·오답 세션은 문항을 빈 답안으로 붙여 두므로 답이 하나도 없는지 본다
+        for s in GisaEssaySession.objects.filter(
+                user=request.user, certification=cert, status='progress',
+                mode='online', started_at__lt=stale, source__in=('모의', '오답')):
+            if not s.attempts.exclude(answer_text='').exists():
+                s.delete()
     except Exception:
         pass
 
@@ -126,8 +132,20 @@ def essay_list(request, cert_id):
                       .filter(certification=cert, source='기출',
                               freq_rounds=1, written_freq__gte=10).count())
 
+    # 오답노트 — 만점을 못 받은 문항(문항마다 최근 응시 기준)
+    wrong = _wrong_attempts(request.user, cert)
+
+    tab = request.GET.get('tab', 'textbook')
+    if tab not in ('textbook', 'study', 'solve', 'mock', 'wrong', 'history', 'qna'):
+        tab = 'textbook'
+
     return render(request, 'gisa/essay_list.html', {
         'cert': cert,
+        'active_tab': tab,
+        'wrong_items': wrong,
+        'wrong_count': len(wrong),
+        'mock_size': MOCK_SIZE,
+        'mock_sessions': [s for s in sessions if s.source == '모의' and s.status == 'done'][:5],
         'round_cards': round_cards,
         'round_years': round_years,
         'sections': sections,
@@ -147,7 +165,66 @@ def essay_list(request, cert_id):
 
 # ------------------------------------------------------------------ 풀이
 
+MOCK_SIZE = 15          # 실제 필답형이 15문항 안팎 45점이다
+WRONG_RETRY_MAX = 20    # 오답 재풀이 한 번에 담는 문항 수
+
+
+def _wrong_attempts(user, cert):
+    """만점을 못 받은 문항의 최근 답안. 문항마다 가장 최근 응시 하나로 판정한다.
+
+    같은 문항을 나중에 다시 풀어 만점을 받았으면 오답에서 빠진다.
+    """
+    atts = (GisaEssayAttempt.objects
+            .filter(session__user=user, session__certification=cert,
+                    session__status='done')
+            .select_related('question', 'session')
+            .order_by('-session__submitted_at', 'question__number'))
+    wrong, seen = [], set()
+    for a in atts:
+        if a.question_id in seen:
+            continue
+        seen.add(a.question_id)
+        if a.score < float(a.question.points):
+            wrong.append(a)
+    wrong.sort(key=lambda a: (-a.question.year, -a.question.round, a.question.number))
+    return wrong
+
+
+def _pick_mock(cert):
+    """모의고사 — 기출 전체에서 주제가 겹치지 않게 무작위로 뽑는다.
+
+    같은 주제(topic_key)가 두 번 나오면 한 회차 시험답지 않다. 최근 회차의
+    문항이 조금 더 자주 뽑히도록 연도에 가중치를 둔다.
+    """
+    pool = list(GisaEssayQuestion.objects.filter(certification=cert, source='기출'))
+    random.shuffle(pool)
+    years = [q.year for q in pool] or [0]
+    lo = min(years)
+    weighted = sorted(pool, key=lambda q: random.random() / (1 + (q.year - lo) / 10))
+    picked, seen = [], set()
+    for q in weighted:
+        key = q.topic_key or f'#{q.pk}'
+        if key in seen:
+            continue
+        seen.add(key)
+        picked.append(q)
+        if len(picked) >= MOCK_SIZE:
+            break
+    # 화면은 순번(1, 2, 3…)으로 보여 주므로 순서만 안정적이면 된다.
+    # 이어 올 때 attempts 를 같은 기준으로 정렬해 같은 차례가 나온다.
+    picked.sort(key=lambda q: (q.number, q.pk))
+    return picked
+
+
 def _pick_questions(cert, source, section=None, year=None, round_=None, user=None):
+    if source == '모의':
+        return _pick_mock(cert)
+    if source == '오답':
+        if not (user and user.is_authenticated):
+            return []
+        qs = [a.question for a in _wrong_attempts(user, cert)][:WRONG_RETRY_MAX]
+        qs.sort(key=lambda q: (q.number, q.pk))
+        return qs
     qs = GisaEssayQuestion.objects.filter(certification=cert, source=source)
     if source == '기출':
         qs = qs.filter(year=year, round=round_)
@@ -179,12 +256,6 @@ def essay_take(request, cert_id):
     year = int(year) if year else None
     round_ = int(round_) if round_ else None
 
-    questions = _pick_questions(cert, source, section, year, round_, request.user)
-    if not questions:
-        return redirect(f'/gisa/{cert_id}/essay/')
-
-    total_points = round(sum(float(q.points) for q in questions), 1)
-
     # 인쇄한 시험지로 이어 오는 경우(?resume=<세션pk>)는 새로 만들지 않는다.
     session = None
     resume = request.GET.get('resume')
@@ -193,6 +264,21 @@ def essay_take(request, cert_id):
             pk=resume, user=request.user, certification=cert,
             status='progress').first()
 
+    questions = None
+    if session is not None and source in ('모의', '오답'):
+        # 무작위·오답 세트는 이어 올 때 다시 뽑으면 다른 문항이 된다.
+        # 답을 저장해 둔 문항이 있으면 그 문항들로 잇는다.
+        saved = [a.question for a in session.attempts.select_related('question')
+                 .order_by('question__number', 'question_id')]
+        if saved:
+            questions = saved
+    if questions is None:
+        questions = _pick_questions(cert, source, section, year, round_, request.user)
+    if not questions:
+        return redirect(f'/gisa/{cert_id}/essay/?tab=' + ('wrong' if source == '오답' else 'mock'))
+
+    total_points = round(sum(float(q.points) for q in questions), 1)
+
     # 시험지 코드는 "연도-회차"(예: 2026-2)로 고정한다. 세션마다 다른 코드를
     # 주면 먼저 인쇄한 시험지가 다음 세션에서 "다른 시험지"로 거부된다.
     # 시험지 보안이 필요한 서비스가 아니므로 회차만 맞으면 된다.
@@ -200,15 +286,23 @@ def essay_take(request, cert_id):
         code = ''
         if mode == 'paper':
             code = f'{year}-{round_}' if source == '기출' else section[:12]
+        section_val = {'예상': section, '기출': '기출', '모의': '모의고사',
+                       '오답': '오답 재풀이'}.get(source, source)
         session = GisaEssaySession.objects.create(
             user=request.user, certification=cert,
-            source=source, section=(section if source == '예상' else '기출'),
+            source=source, section=section_val,
             year=year, round=round_, mode=mode,
             total_points=total_points, paper_code=code,
         )
+        if source in ('모의', '오답'):
+            # 뽑힌 문항을 세션에 붙여 둔다(빈 답안). 이어 올 때 같은 세트가
+            # 나오게 하는 유일한 저장소다 — 세션에 문항 목록 필드가 없다.
+            GisaEssayAttempt.objects.bulk_create([
+                GisaEssayAttempt(session=session, question=q, answer_text='')
+                for q in questions])
 
-    # 실전(기출)은 90분 타이머, 학습(예상)은 무제한
-    time_limit = 90 * 60 if source == '기출' else 0
+    # 실전(기출·모의)은 90분 타이머, 학습(예상·오답)은 무제한
+    time_limit = 90 * 60 if source in ('기출', '모의') else 0
 
     return render(request, 'gisa/essay_take.html', {
         'cert': cert,
@@ -216,7 +310,9 @@ def essay_take(request, cert_id):
         'questions': questions,
         'total_points': total_points,
         'time_limit': time_limit,
-        'is_exam': source == '기출',
+        'is_exam': source in ('기출', '모의'),
+        # 여러 회차를 섞은 세트는 원래 문항 번호가 겹치므로 순번으로 보여 준다
+        'seq_numbers': source in ('모의', '오답'),
     })
 
 

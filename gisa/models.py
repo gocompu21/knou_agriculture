@@ -391,6 +391,10 @@ class GisaEssaySession(models.Model):
     def label(self):
         if self.source == '기출':
             return f"{self.year}년 {self.round}회"
+        if self.source == '모의':
+            return '모의고사'
+        if self.source == '오답':
+            return '오답 재풀이'
         return self.section or '학습'
 
     @property
