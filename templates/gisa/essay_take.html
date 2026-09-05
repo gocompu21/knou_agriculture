@@ -264,7 +264,7 @@
             <div class="eq-answer {% if q.qtype == '단답' or q.qtype == '빈칸' %}ln1{% elif q.qtype == '서술' or q.qtype == '계산' %}ln3{% else %}ln2{% endif %}">
                 <input type="hidden" name="question_id" value="{{ q.pk }}">
                 <textarea name="answer_{{ q.pk }}" id="ans_{{ q.pk }}"
-                          placeholder="답안을 입력하세요"></textarea>
+                          placeholder="답안을 입력하세요">{{ q.draft }}</textarea>
 
                 {% if not is_exam %}
                 <div class="eq-check">
@@ -318,13 +318,40 @@ setInterval(() => {
 
 /* ---------- 임시 저장 (작성 중 유실 방지) ---------- */
 const DRAFT_KEY = `essay_draft_${SESSION_ID}`;
+/* 초안은 두 곳에 남긴다. localStorage 는 즉시(새로 고침 대비), 서버는 2초 뒤에
+   묶어서(이어하기·다른 기기 대비). 15문항을 쓰다 날리면 치명적이다. */
+let _draftTimer = null, _draftDirty = false;
 function saveDraft() {
     const data = {};
     document.querySelectorAll('textarea[name^=answer_]').forEach(t => {
         if (t.value.trim()) data[t.name] = t.value;
     });
     try { localStorage.setItem(DRAFT_KEY, JSON.stringify(data)); } catch (e) {}
+    _draftDirty = true;
+    clearTimeout(_draftTimer);
+    _draftTimer = setTimeout(saveDraftServer, 2000);
 }
+function draftForm() {
+    const fd = new FormData();
+    document.querySelectorAll('textarea[name^=answer_]').forEach(t => {
+        fd.append('question_id', t.name.slice(7));
+        fd.append(t.name, t.value);
+    });
+    return fd;
+}
+async function saveDraftServer() {
+    if (!_draftDirty) return;
+    _draftDirty = false;
+    try {
+        await fetch(`/gisa/${CERT_ID}/essay/${SESSION_ID}/draft/`, {
+            method: 'POST', headers: {'X-CSRFToken': CSRF}, body: draftForm(), keepalive: true
+        });
+    } catch (e) { _draftDirty = true; }
+}
+/* 화면을 떠날 때 아직 안 보낸 초안이 있으면 마지막으로 보낸다 */
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && _draftDirty) saveDraftServer();
+});
 function loadDraft() {
     try {
         const raw = localStorage.getItem(DRAFT_KEY);

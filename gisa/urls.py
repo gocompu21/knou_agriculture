@@ -64,6 +64,7 @@ urlpatterns = [
     path("<int:cert_id>/essay/strategy/", essay_views.essay_strategy, name="essay_strategy"),
     path("<int:cert_id>/essay/<int:session_id>/submit/", essay_views.essay_submit, name="essay_submit"),
     path("<int:cert_id>/essay/<int:session_id>/save/", essay_views.essay_save, name="essay_save"),
+    path("<int:cert_id>/essay/<int:session_id>/draft/", essay_views.essay_draft, name="essay_draft"),
     path("<int:cert_id>/essay/<int:session_id>/grade/<int:question_id>/", essay_views.essay_grade_step, name="essay_grade_step"),
     path("<int:cert_id>/essay/<int:session_id>/finish/", essay_views.essay_finish, name="essay_finish"),
     path("<int:cert_id>/essay/<int:session_id>/result/", essay_views.essay_result, name="essay_result"),

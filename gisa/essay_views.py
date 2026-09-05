@@ -311,6 +311,12 @@ def essay_take(request, cert_id):
                 GisaEssayAttempt(session=session, question=q, answer_text='')
                 for q in questions])
 
+    # 이어 올 때 서버에 저장된 초안을 채워 준다. localStorage 초안은 같은 브라우저
+    # 에서만 살아 있어, 다른 기기에서 열면 빈 시험지였다.
+    drafts = dict(session.attempts.values_list('question_id', 'answer_text'))
+    for q in questions:
+        q.draft = drafts.get(q.pk, '')
+
     # 실전(기출·모의)은 90분 타이머, 학습(예상·오답)은 무제한
     time_limit = 90 * 60 if source in ('기출', '모의') else 0
 
@@ -357,6 +363,37 @@ def essay_submit(request, cert_id, session_id):
     session.save(update_fields=['status'])
     grade_session(session)
     return redirect('gisa:essay_result', cert_id=cert_id, session_id=session.pk)
+
+
+@login_required
+@require_POST
+def essay_draft(request, cert_id, session_id):
+    """답안 초안 자동 저장 — 상태를 바꾸지 않고 답만 남긴다.
+
+    essay_save 는 진행률 채점 1단계라 status 를 grading 으로 바꾸므로 초안용으로
+    쓸 수 없다. 이어하기(?resume=)가 이 초안을 채워 준다. 비어 있는 답은 지운다.
+    """
+    cert = get_object_or_404(Certification, pk=cert_id)
+    session = get_object_or_404(GisaEssaySession, pk=session_id,
+                                user=request.user, certification=cert)
+    if session.status != 'progress':
+        return JsonResponse({'ok': False, 'error': '진행 중인 응시가 아닙니다.'}, status=400)
+    n = 0
+    for qid in request.POST.getlist('question_id'):
+        q = GisaEssayQuestion.objects.filter(pk=qid, certification=cert).first()
+        if not q:
+            continue
+        text = request.POST.get(f'answer_{qid}', '').strip()
+        if text:
+            GisaEssayAttempt.objects.update_or_create(
+                session=session, question=q, defaults={'answer_text': text})
+            n += 1
+        elif session.source not in ('모의', '오답'):
+            # 모의·오답은 빈 답안이 문항 세트를 붙잡아 두는 자리라 지우지 않는다
+            GisaEssayAttempt.objects.filter(session=session, question=q).delete()
+        else:
+            GisaEssayAttempt.objects.filter(session=session, question=q).update(answer_text='')
+    return JsonResponse({'ok': True, 'saved': n})
 
 
 @login_required
