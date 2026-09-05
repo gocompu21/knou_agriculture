@@ -1,0 +1,76 @@
+{% load gisa_filters %}
+<!-- 실기 쪽집게 노트 — 분류(pill) → 주제 아코디언. 별 = 출제 회차 수, 배지 = 출제 회차.
+     데이터는 essay_textbook.build_textbook() 이 만든다. -->
+<div class="tb-top">
+    <div class="tb-pills">
+        {% for g in tb.groups %}
+        <button type="button" class="tb-pill{% if forloop.first %} on{% endif %}" data-g="{{ g.id }}">{{ g.name }}<span class="tb-cnt">{{ g.count }}</span></button>
+        {% endfor %}
+    </div>
+    <div class="tb-tools">
+        <div class="tb-chips">
+            <button type="button" class="tb-chip on" data-f="all">전체</button>
+            <button type="button" class="tb-chip" data-f="s3" title="5회 이상 출제">★★★ {{ tb.n_star3 }}</button>
+            <button type="button" class="tb-chip" data-f="calc">계산 {{ tb.n_calc }}</button>
+            <button type="button" class="tb-chip" data-f="comeback" title="실기 1회 출제이나 필기에 10회 이상 등장">재출제 유력 {{ tb.n_comeback }}</button>
+            <button type="button" class="tb-chip" data-f="warn" title="같은 주제인데 요구가 커진 이력">⚠️ 요구 확장 {{ tb.n_warned }}</button>
+        </div>
+        <button type="button" class="tb-expand" id="tbExpand">전체 펼치기</button>
+    </div>
+    <div class="tb-legend">
+        <span><b class="tb-stars">★★★</b> 5회 이상</span>
+        <span><b class="tb-stars">★★</b> 3~4회</span>
+        <span><b class="tb-stars">★</b> 2회</span>
+        <span><b class="tb-stars dim">☆</b> 1회 (재출제 유력·계산)</span>
+        <span class="tb-legend-note">회차 배지는 최근일수록 진하다 · 주제를 누르면 정리·모범답안이 펼쳐진다</span>
+    </div>
+</div>
+
+{% for g in tb.groups %}
+<div class="tb-group" data-g="{{ g.id }}" {% if not forloop.first %}hidden{% endif %}>
+    {% for t in g.topics %}
+    <div class="tb-item" data-stars="{{ t.stars }}" data-calc="{{ t.calc|yesno:'1,0' }}"
+         data-comeback="{{ t.comeback|yesno:'1,0' }}" data-warn="{{ t.warned|yesno:'1,0' }}">
+        <div class="tb-head" onclick="tbToggle(this)">
+            <span class="tb-stars{% if not t.stars %} dim{% endif %}">{% if t.stars == 3 %}★★★{% elif t.stars == 2 %}★★{% elif t.stars == 1 %}★{% else %}☆{% endif %}</span>
+            <span class="tb-title">{{ t.title }}</span>
+            {% if t.calc %}<span class="tb-tag calc">계산</span>{% endif %}
+            {% if t.comeback %}<span class="tb-tag comeback">재출제 유력</span>{% endif %}
+            {% if t.warned %}<span class="tb-tag warn" title="요구가 커진 이력">⚠️</span>{% endif %}
+            <span class="tb-meta">{{ t.freq }}회 · {{ t.pts }}</span>
+            <span class="tb-arrow">›</span>
+        </div>
+        <div class="tb-body">
+            <div class="tb-rounds"><span class="tb-rlab">출제</span>{{ t.rounds_str|note_badges }}
+                <span class="tb-qtypes">{{ t.qtypes }}</span></div>
+
+            {% for b in t.blocks %}
+            <div class="nt-blk nt-blk-{{ forloop.counter }}"><span class="nt-blab">{{ b.label }}</span><div class="nt-btext">{{ b.html|safe }}</div></div>
+            {% endfor %}
+
+            {% if t.html %}
+            <div class="tb-note">{{ t.html|safe }}</div>
+            {% else %}
+            <!-- 정리 자료가 없는 주제는 최근 문항과 모범답안으로 대신한다 -->
+            <div class="tb-q">
+                <span class="tb-qlab">최근 문항 · {{ t.latest }}</span>
+                <div class="tb-qtext">{{ t.q_html|safe }}</div>
+            </div>
+            <div class="tb-ans">
+                <span class="tb-qlab">모범답안</span>
+                {% for a in t.ans_items %}<div class="tb-ai">{{ a|safe }}</div>{% endfor %}
+                {% if t.ans_html %}<div class="tb-ai">{{ t.ans_html|safe }}</div>{% endif %}
+            </div>
+            {% endif %}
+
+            <div class="tb-foot">
+                <button type="button" class="tb-sib-btn" data-pk="{{ t.rep_pk }}" onclick="tbSiblings(this)">기출 문항 {{ t.count }}개 보기</button>
+                <a class="tb-link" href="{% url 'gisa:essay_study' cert.pk %}?source=기출&year={{ t.latest_year }}&round={{ t.latest_round }}">{{ t.latest_year }}년 {{ t.latest_round }}회 학습 &rsaquo;</a>
+            </div>
+            <div class="nt-sib hidden"></div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+<div class="empty" id="tbEmpty" hidden>조건에 맞는 주제가 없습니다.</div>

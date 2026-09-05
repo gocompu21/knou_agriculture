@@ -90,6 +90,119 @@
     .ec-note .ec-title { color: #2d4a6b; }
     .ec-sum { font-size: 0.78rem; color: #777; line-height: 1.6; margin: 4px 0 8px; }
 
+    /* ── 쪽집게 노트 (주제별 교재) ── */
+    .tb-links { margin-left: auto; display: flex; gap: 10px; flex-wrap: wrap; }
+    .tb-links a { font-size: 0.78rem; color: #2d6a4f; text-decoration: none; font-weight: 600; }
+    .tb-links a:hover { text-decoration: underline; }
+    .tb-top { margin-bottom: 12px; }
+    .tb-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .tb-pill { font-size: 0.82rem; padding: 6px 13px; border-radius: 16px;
+        border: 1px solid #d5e0d8; background: #fff; color: #40624f; cursor: pointer;
+        font-family: inherit; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+    .tb-pill:hover { background: #eef3ef; }
+    .tb-pill.on { background: #1b4332; color: #fff; border-color: #1b4332; }
+    .tb-cnt { font-size: 0.72rem; font-weight: 700; padding: 0 6px; border-radius: 8px;
+        background: rgba(0,0,0,0.07); }
+    .tb-pill.on .tb-cnt { background: rgba(255,255,255,0.22); }
+    .tb-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .tb-chips { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; }
+    .tb-chip { font-size: 0.76rem; padding: 4px 11px; border-radius: 13px;
+        border: 1px solid #e0e6e2; background: #fafcfa; color: #5a6b60; cursor: pointer;
+        font-family: inherit; font-weight: 600; }
+    .tb-chip:hover { background: #eef3ef; }
+    .tb-chip.on { background: #a1651a; color: #fff; border-color: #a1651a; }
+    .tb-expand { font-size: 0.78rem; padding: 5px 12px; border-radius: 13px; border: 1px solid #cbd8d0;
+        background: #fff; color: #40624f; cursor: pointer; font-family: inherit; font-weight: 600; }
+    .tb-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px;
+        font-size: 0.74rem; color: #8b968f; }
+    .tb-legend b { margin-right: 3px; }
+    .tb-legend-note { flex-basis: 100%; }
+    .tb-stars { color: #e0a416; font-size: 0.82rem; letter-spacing: -1px; white-space: nowrap;
+        flex-shrink: 0; width: 2.6em; }
+    .tb-stars.dim { color: #c9c9c9; }
+
+    .tb-group { background: #fff; border: 1px solid #e3e9e4; border-radius: 10px; overflow: hidden; }
+    .tb-item { border-bottom: 1px solid #eef2ef; }
+    .tb-item:last-child { border-bottom: 0; }
+    .tb-item.hide { display: none; }
+    .tb-head { display: flex; align-items: center; gap: 8px; padding: 11px 14px;
+        cursor: pointer; flex-wrap: wrap; }
+    .tb-head:hover { background: #fafcfa; }
+    .tb-item.open .tb-head { background: #f5f9f6; }
+    .tb-title { font-size: 0.92rem; font-weight: 600; color: #1f2d24; flex: 1; min-width: 160px; }
+    .tb-tag { font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 7px; flex-shrink: 0; }
+    .tb-tag.calc { background: #e8eef5; color: #2d4a6b; }
+    .tb-tag.comeback { background: #fff3e0; color: #a1651a; }
+    .tb-tag.warn { background: none; padding: 0; }
+    .tb-meta { font-size: 0.74rem; color: #97a79d; white-space: nowrap; flex-shrink: 0; }
+    .tb-arrow { color: #c3cec7; font-size: 0.9rem; transition: transform .15s; flex-shrink: 0; }
+    .tb-item.open .tb-arrow { transform: rotate(90deg); }
+    .tb-body { display: none; padding: 4px 16px 16px 16px; }
+    .tb-item.open .tb-body { display: block; }
+    .tb-rounds { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin: 4px 0 10px; }
+    .tb-rlab { font-size: 0.72rem; font-weight: 700; color: #8b968f; letter-spacing: 0.04em; margin-right: 2px; }
+    .tb-rounds .fq-r { font-size: 0.73rem; font-weight: 700; padding: 2px 8px; border-radius: 9px;
+        border: 1px solid; line-height: 1.5; }
+    .tb-rounds .fq-memo { font-style: normal; font-weight: 500; font-size: 0.88em; opacity: 0.75; margin-left: 4px; }
+    .tb-qtypes { font-size: 0.74rem; color: #97a79d; margin-left: 6px; }
+
+    /* 공식/대입/함정 블록 — essay_note 와 같은 결 */
+    .nt-blk { display: flex; gap: 10px; align-items: baseline; padding: 9px 0; border-top: 1px solid #f0f3f1; }
+    .nt-blk:first-of-type { border-top: 0; }
+    .nt-blab { flex-shrink: 0; width: 2.6em; text-align: center; font-size: 0.72rem; font-weight: 700;
+        padding: 2px 0; border-radius: 7px; background: #eef3ef; color: #40624f; }
+    .nt-blk-1 .nt-blab { background: #1b4332; color: #fff; }
+    .nt-blk-3 .nt-blab { background: #fdf0dd; color: #a1651a; }
+    .nt-btext { flex: 1; min-width: 0; font-size: 0.87rem; line-height: 1.85; color: #333; }
+    .nt-btext p { margin: 0 0 6px; }
+    .nt-btext p:last-child { margin-bottom: 0; }
+    .nt-btext strong { color: #1b4332; }
+    .nt-btext sup, .nt-btext sub { font-size: 0.72em; line-height: 0; }
+
+    .tb-note h3 { font-size: 0.9rem; color: #1b4332; margin: 14px 0 6px; padding-bottom: 3px;
+        border-bottom: 1px solid #e5ece7; }
+    .tb-note h3:first-child { margin-top: 6px; }
+    .tb-note p { font-size: 0.88rem; line-height: 1.85; color: #333; margin: 6px 0; }
+    .tb-note ul, .tb-note ol { padding-left: 20px; margin: 6px 0; font-size: 0.88rem; line-height: 1.8; color: #333; }
+    .tb-note li { margin: 3px 0; }
+    .tb-note table { border-collapse: collapse; font-size: 0.84rem; margin: 10px 0; display: block;
+        overflow-x: auto; max-width: 100%; }
+    .tb-note th, .tb-note td { border: 1px solid #ccd6cf; padding: 5px 10px; line-height: 1.7; vertical-align: top; }
+    .tb-note th { background: #eaf1ec; white-space: nowrap; }
+    .tb-note strong { color: #1b4332; }
+    .tb-note code { background: #f2f5f3; padding: 1px 5px; border-radius: 4px; font-size: 0.92em; }
+    .tb-note blockquote { margin: 10px 0; padding: 8px 14px; background: #fffdf5;
+        border-left: 3px solid #e8d9a0; font-size: 0.86rem; line-height: 1.8; color: #5a4a28; }
+    .tb-note blockquote p { margin: 3px 0; font-size: inherit; color: inherit; }
+
+    .tb-q, .tb-ans { margin-top: 8px; }
+    .tb-qlab { display: block; font-size: 0.72rem; font-weight: 700; color: #8b968f;
+        letter-spacing: .04em; margin-bottom: 3px; }
+    .tb-qtext { font-size: 0.9rem; line-height: 1.75; color: #1f2d24; font-weight: 600; }
+    .tb-ans { background: #f7faf8; border-left: 3px solid #2d6a4f; border-radius: 0 8px 8px 0;
+        padding: 8px 12px; }
+    .tb-ai { font-size: 0.88rem; line-height: 1.8; color: #1f3d30; padding: 1px 0; }
+    .tb-ans table { border-collapse: collapse; font-size: 0.86em; }
+    .tb-ans th, .tb-ans td { border: 1px solid #ccd6cf; padding: 3px 9px; }
+
+    .tb-foot { display: flex; align-items: center; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
+    .tb-sib-btn { font-size: 0.78rem; font-weight: 700; padding: 5px 12px; border-radius: 12px;
+        border: 1px solid #f0d9b5; background: #fff3e0; color: #a1651a; cursor: pointer; font-family: inherit; }
+    .tb-sib-btn:hover { background: #ffe8c8; }
+    .tb-sib-btn.on { background: #a1651a; color: #fff; border-color: #a1651a; }
+    .tb-link { font-size: 0.78rem; color: #2d6a4f; text-decoration: none; font-weight: 600; }
+    .tb-link:hover { text-decoration: underline; }
+    .nt-sib { margin: 8px 0 0; border-left: 3px solid #d9c7a8; background: #fffdf8;
+        border-radius: 0 8px 8px 0; padding: 10px 14px; }
+    .nt-sib.hidden { display: none; }
+    .nt-sib-q { padding: 8px 0; border-top: 1px dashed #e8dcc4; }
+    .nt-sib-q:first-child { border-top: 0; padding-top: 0; }
+    .nt-sib-lab { font-size: 0.72rem; font-weight: 700; color: #1b4332; background: #e7efe9;
+        padding: 1px 7px; border-radius: 6px; margin-right: 7px; }
+    .nt-sib-text { font-size: 0.87rem; line-height: 1.7; color: #1f2d24; font-weight: 600; margin-top: 3px; }
+    .nt-sib-ans { margin-top: 4px; font-size: 0.83rem; line-height: 1.7; color: #4a6b58; }
+    .nt-sib-load { font-size: 0.8rem; color: #999; }
+
     /* 모의고사 시작 카드 */
     .mock-box { background: #fff; border: 1px solid #dfe5e0; border-radius: 12px;
         padding: 22px 24px; display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
@@ -297,27 +410,14 @@
 
     <!-- ══════════ 쪽집게 노트 ══════════ -->
     <div id="tab-textbook" class="tab-content{% if active_tab == 'textbook' %} active{% endif %}">
-        <div class="sec-title">정리 자료
-            <small>기출을 주제로 묶어 정의·이유·사례 세 층으로 정리했다</small>
+        <div class="sec-title">쪽집게 노트
+            <small>{{ tb.total }}주제 · 2회 이상 출제 + 계산 + 재출제 유력 · 분류별 · 별은 출제 회차 수</small>
+            <span class="tb-links">
+                <a href="{% url 'gisa:essay_strategy' cert.pk %}">학습전략</a>
+                {% for n in notes %}<a href="{% url 'gisa:essay_note' cert.pk n.slug %}">{{ n.title }} 원문</a>{% endfor %}
+            </span>
         </div>
-        <div class="card-grid">
-            <div class="ec ec-note">
-                <div class="ec-head"><span class="ec-title">학습전략</span></div>
-                <div class="ec-sum">회차·유형·주제 분포를 근거로 무엇을 먼저 익힐지 안내</div>
-                <div class="ec-actions">
-                    <a class="ec-btn primary" href="{% url 'gisa:essay_strategy' cert.pk %}">보기</a>
-                </div>
-            </div>
-            {% for n in notes %}
-            <div class="ec ec-note">
-                <div class="ec-head"><span class="ec-title">{{ n.title }}</span></div>
-                {% if n.summary %}<div class="ec-sum">{{ n.summary }}</div>{% endif %}
-                <div class="ec-actions">
-                    <a class="ec-btn primary" href="{% url 'gisa:essay_note' cert.pk n.slug %}">보기</a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
+        {% include "gisa/_essay_textbook.html" %}
     </div>
 
     <!-- ══════════ 기출학습 ══════════ -->
@@ -661,6 +761,78 @@ document.querySelectorAll('.tab-btn').forEach(function (b) {
     var btn = document.querySelector('.tab-btn.active');
     if (btn && btn.scrollIntoView) btn.scrollIntoView({ block: 'nearest', inline: 'center' });
 })();
+
+/* ── 쪽집게 노트: 분류 pill · 걸러 보기 · 펼치기 · 기출 문항 펼침 ── */
+var tbFilter = 'all', tbAllOpen = false;
+function tbApply() {
+    var g = document.querySelector('.tb-pill.on'); var gid = g ? g.dataset.g : null;
+    var shown = 0;
+    document.querySelectorAll('.tb-group').forEach(function (grp) {
+        grp.hidden = grp.dataset.g !== gid;
+        if (grp.hidden) return;
+        grp.querySelectorAll('.tb-item').forEach(function (it) {
+            var ok = tbFilter === 'all'
+                || (tbFilter === 's3' && it.dataset.stars === '3')
+                || (tbFilter === 'calc' && it.dataset.calc === '1')
+                || (tbFilter === 'comeback' && it.dataset.comeback === '1')
+                || (tbFilter === 'warn' && it.dataset.warn === '1');
+            it.classList.toggle('hide', !ok);
+            if (ok) shown++;
+        });
+    });
+    var empty = document.getElementById('tbEmpty');
+    if (empty) empty.hidden = shown > 0;
+}
+document.querySelectorAll('.tb-pill').forEach(function (b) {
+    b.addEventListener('click', function () {
+        document.querySelectorAll('.tb-pill').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on'); tbApply();
+    });
+});
+document.querySelectorAll('.tb-chip').forEach(function (b) {
+    b.addEventListener('click', function () {
+        document.querySelectorAll('.tb-chip').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on'); tbFilter = b.dataset.f; tbApply();
+    });
+});
+function tbToggle(head) { head.parentElement.classList.toggle('open'); }
+var tbExpandBtn = document.getElementById('tbExpand');
+if (tbExpandBtn) tbExpandBtn.addEventListener('click', function () {
+    tbAllOpen = !tbAllOpen;
+    document.querySelectorAll('.tb-group:not([hidden]) .tb-item:not(.hide)').forEach(function (x) {
+        x.classList.toggle('open', tbAllOpen);
+    });
+    tbExpandBtn.textContent = tbAllOpen ? '전체 접기' : '전체 펼치기';
+});
+/* 같은 주제로 나온 기출 문항 전부 — essay_note 와 같은 API(siblings?all=1) */
+async function tbSiblings(btn) {
+    var body = btn.closest('.tb-body');
+    var box = body.querySelector('.nt-sib');
+    if (!box.classList.contains('hidden')) { box.classList.add('hidden'); btn.classList.remove('on'); return; }
+    box.classList.remove('hidden'); btn.classList.add('on');
+    if (box.dataset.loaded) return;
+    box.innerHTML = '<div class="nt-sib-load">불러오는 중…</div>';
+    try {
+        var r = await fetch('/gisa/{{ cert.pk }}/essay/siblings/' + btn.dataset.pk + '/?all=1');
+        var d = await r.json();
+        if (!d.ok) throw new Error('불러오지 못했습니다');
+        var html = '';
+        d.items.forEach(function (s) {
+            html += '<div class="nt-sib-q"><span class="nt-sib-lab">' + s.label + '</span>'
+                  + '<span style="font-size:0.72rem;color:#8a7a5e">' + s.qtype + ' · ' + s.points + '점</span>'
+                  + '<div class="nt-sib-text">' + s.text_html + '</div>';
+            if (s.answer_html_items.length || s.answer_html) {
+                html += '<div class="nt-sib-ans">';
+                s.answer_html_items.forEach(function (it) { html += '<div>' + it + '</div>'; });
+                if (s.answer_html) html += s.answer_html;
+                html += '</div>';
+            }
+            html += '</div>';
+        });
+        box.innerHTML = html || '<div class="nt-sib-load">문항이 없습니다.</div>';
+        box.dataset.loaded = '1';
+    } catch (e) { box.innerHTML = '<div class="nt-sib-load">' + e.message + '</div>'; }
+}
 
 /* 시험이력 — 상대 시간, 한 건 삭제 */
 function timeAgo(iso) {

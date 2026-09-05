@@ -139,9 +139,14 @@ def essay_list(request, cert_id):
     if tab not in ('textbook', 'study', 'solve', 'mock', 'wrong', 'history', 'qna'):
         tab = 'textbook'
 
+    # 쪽집게 노트 — 주제별 교재. 탭이 클라이언트 전환이라 항상 내려보낸다(10분 캐시)
+    from .essay_textbook import build_textbook
+    textbook = build_textbook(cert)
+
     return render(request, 'gisa/essay_list.html', {
         'cert': cert,
         'active_tab': tab,
+        'tb': textbook,
         'wrong_items': wrong,
         'wrong_count': len(wrong),
         'mock_size': MOCK_SIZE,
@@ -887,102 +892,13 @@ def essay_note(request, cert_id, slug):
     """
     import re
     import markdown as md
+    from .essay_textbook import parse_note_items
 
     cert = get_object_or_404(Certification, pk=cert_id)
     note = get_object_or_404(GisaEssayNote, certification=cert, slug=slug)
 
-    text = note.content
-    # 목차와 머리말(첫 `## 3회 …` 앞부분)은 통째로 두고, 주제부터 카드로 나눈다.
-    # 분류명에도 가운뎃점이 들어가고(법규·제도) 주제명에도 들어가므로
-    # (복원·복구·대체) 구분자만으로는 못 가른다. 분류명을 명시해 집는다.
-    groups = '|'.join(re.escape(g) for _, g in GisaEssayQuestion.TOPIC_CHOICES)
-    parts = re.split(r'^## (\d+)회 · (%s) · (.+)$' % groups, text, flags=re.M)
-    intro_md = parts[0]
-    items = []
-    for i in range(1, len(parts), 4):
-        freq, group, title, body = parts[i:i + 4]
-        # 각 주제가 어느 회차에 나왔는지 — 본문 첫 **출제** 줄에서 뽑는다
-        m = re.search(r'\*\*출제\*\*\s*(.+)', body)
-        rounds = m.group(1).strip() if m else ''
-
-        # 회차 배지를 누르면 그 주제의 기출 문항들을 펼쳐 보여준다.
-        # 출제 줄의 첫 회차 + 빈출 수로 대표 문항을 찾는다 — 정확히 하나로
-        # 좁혀질 때만 배지를 버튼으로 만든다 (calc 문서는 계산 유형으로 한정)
-        rep_pk = None
-        rm = re.search(r'(\d{4})-(\d)', rounds)
-        if rm:
-            cand = GisaEssayQuestion.objects.filter(
-                certification=cert, source='기출',
-                year=int(rm.group(1)), round=int(rm.group(2)),
-                freq_rounds=int(freq))
-            if note.slug == 'calc':
-                cand = cand.filter(qtype='계산')
-            pool = list(cand)
-            if len(pool) > 1:
-                # 같은 회차에 같은 빈출 수 주제가 여럿이면 제목 낱말이
-                # 가장 많이 겹치는 것을 고른다
-                key = set(re.findall(r'[가-힣A-Za-z]{2,}', title))
-                pool.sort(key=lambda q: len(
-                    key & set(re.findall(r'[가-힣A-Za-z]{2,}',
-                                         (q.text or '') + ' ' +
-                                         ' '.join(q.answer_items or [])))),
-                    reverse=True)
-            if pool:
-                rep_pk = pool[0].pk
-
-        # 「공식 / 대입 / 함정」처럼 라벨이 붙은 문단은 따로 떼어 낸다 —
-        # 한 덩어리로 렌더링하면 줄바꿈만으로 구분돼 빽빽해 보인다.
-        body_rest = re.sub(r'^\*\*출제\*\*.*$', '', body, flags=re.M)
-        body_rest = re.sub(r'^\s*---\s*$', '', body_rest, flags=re.M)
-        blocks = []
-        for lab in ('공식', '대입', '함정', '유형', '주의'):
-            bm = re.search(r'^\*\*%s\*\*\s*(.+)$' % lab, body_rest, flags=re.M)
-            if not bm:
-                continue
-            raw = bm.group(1).strip()
-            # 지수·아래첨자를 실제 수학식으로 (^{n} → <sup>n</sup>)
-            raw = re.sub(r'\^\{([^}]{1,12})\}', r'<sup>\1</sup>', raw)
-            raw = re.sub(r'\^\(([^)]{1,12})\)', r'<sup>\1</sup>', raw)
-            raw = re.sub(r'\^(-?\d+(?:\.\d+)?|[A-Za-z]\d?)(?![\w.])',
-                         r'<sup>\1</sup>', raw)
-            raw = re.sub(r'_\{([^}]{1,12})\}', r'<sub>\1</sub>', raw)
-            if lab in ('공식', '대입'):
-                # X ÷ Y 는 세로 분수로. 한글 항(연면적 ÷ 대지면적)도 분수로
-                # 만들되, 분자는 = 나 문장 구분자(/ ,) 뒤부터만 잡는다 —
-                # 앞 문장까지 분자로 빨려 들어가면 공식이 뭉개진다.
-                from gisa.templatetags.gisa_filters import frac_span
-                # A ÷ B 를 세로 분수로. 항은 기호식 덩어리(2C, (A+B), ln1.5)와
-                # ×·로 이어진 곱까지만 잡는다.
-                #
-                # 한글 공식(연면적 ÷ 대지면적 × 100)은 정규식으로 항의 경계를
-                # 가르려 하면 띄어쓰기·볼드 때문에 매번 어긋난다. 그런 줄은
-                # 데이터에서 [frac]분자|분모[/frac] 로 적어 두면 그대로 그린다.
-                sym = (r"(?:\([^()]*\)|(?:ln|log)\s?[\d.,A-Za-z]*"
-                       r"|[A-Za-z0-9.,₀-₉]+)")
-                chain = r"%s(?:\s*[×·]\s*%s)*" % (sym, sym)
-                raw = re.sub(
-                    r"(?<![가-힣])(%s)\s*÷\s*(%s)" % (chain, chain),
-                    lambda m2: frac_span(m2.group(1), m2.group(2)), raw)
-                raw = re.sub(
-                    r"\[frac\]([^|\[\]]+)\|([^|\[\]]+)\[/frac\]",
-                    lambda m2: frac_span(m2.group(1).strip(),
-                                         m2.group(2).strip()), raw)
-            blocks.append({
-                'label': lab,
-                'html': md.markdown(raw, extensions=['tables']),
-            })
-            body_rest = body_rest.replace(bm.group(0), '')
-
-        items.append({
-            'freq': int(freq),
-            'group': group.strip(),
-            'title': title.strip(),
-            'rounds': rounds,
-            'rep_pk': rep_pk,
-            'blocks': blocks,
-            'warned': '⚠️ 요구가 커진 지점' in body,
-            'html': md.markdown(body_rest, extensions=['tables', 'nl2br']),
-        })
+    # 파싱은 쪽집게 노트(essay_textbook)와 같은 함수를 쓴다
+    intro_md, items = parse_note_items(cert, note)
 
     # 머리말의 목차는 카드 목록이 대신하므로 걷어낸다
     intro_md = re.split(r'^## 목차', intro_md, flags=re.M)[0]
