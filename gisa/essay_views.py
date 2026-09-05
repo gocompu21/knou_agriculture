@@ -853,6 +853,32 @@ def essay_wrong_dismiss(request, cert_id, question_id):
 
 
 @login_required
+@require_POST
+def essay_session_delete(request, cert_id, session_id):
+    """시험이력에서 응시 하나를 지운다. 답안·업로드 사진은 CASCADE 로 함께 지워진다."""
+    cert = get_object_or_404(Certification, pk=cert_id)
+    s = get_object_or_404(GisaEssaySession, pk=session_id, user=request.user, certification=cert)
+    for up in s.uploads.all():
+        up.image.delete(save=False)
+    s.delete()
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'ok': True})
+    return redirect(reverse('gisa:essay_list', args=[cert.pk]) + '?tab=history')
+
+
+@login_required
+@require_POST
+def essay_session_delete_all(request, cert_id):
+    """내 실기 응시 기록 전체 삭제."""
+    cert = get_object_or_404(Certification, pk=cert_id)
+    qs = GisaEssaySession.objects.filter(user=request.user, certification=cert)
+    for up in GisaEssayUpload.objects.filter(session__in=qs):
+        up.image.delete(save=False)
+    qs.delete()
+    return redirect(reverse('gisa:essay_list', args=[cert.pk]) + '?tab=history')
+
+
+@login_required
 def essay_note(request, cert_id, slug):
     """실기 학습자료 (빈출 주제 정리 등).
 

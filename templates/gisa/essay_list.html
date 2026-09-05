@@ -139,19 +139,63 @@
         font-weight: 700; padding: 8px 20px; border-radius: 18px; font-size: 0.85rem; }
     .wq-retry:hover { background: #2d6a4f; }
 
+    /* 모의고사 탭의 최근 기록 표 */
     .hist { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
     .hist th { background: #1b4332; color: #fff; padding: 8px 10px; text-align: left;
         font-weight: 600; font-size: 0.8rem; }
     .hist td { padding: 8px 10px; border-bottom: 1px solid #eee; }
     .hist tr:hover td { background: #fafafa; }
-    .badge-mode { font-size: 0.72rem; padding: 2px 7px; border-radius: 8px;
-        background: #eef2ee; color: #40624f; }
-    .badge-mode.paper { background: #fff3e0; color: #a1651a; }
-    .badge-src { font-size: 0.72rem; padding: 2px 7px; border-radius: 8px;
-        background: #e8eef5; color: #2d4a6b; margin-right: 4px; }
-    .badge-src.wrong { background: #fbeaea; color: #9a3232; }
     .score-big { font-weight: 700; color: #1b5e20; }
     .score-big.low { color: #999; }
+
+    /* ── 시험이력 표 — 필기 상세의 history-table 과 같은 결 ── */
+    .hist-scroll { background: #fff; border: 1px solid #e3e9e4; border-radius: 10px;
+        overflow: auto; max-height: 70vh; }
+    .history-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    .history-table th { background: #1b4332; color: #fff; padding: 10px 12px;
+        text-align: left; font-weight: 600; font-size: 0.78rem; position: sticky; top: 0;
+        z-index: 1; white-space: nowrap; }
+    .history-table td { padding: 10px 12px; border-bottom: 1px solid #eee;
+        vertical-align: middle; }
+    .history-table tbody tr:last-child td { border-bottom: 0; }
+    .history-table tbody tr:hover td { background: #fafafa; }
+    .session-mode { display: inline-block; font-size: 0.72rem; font-weight: 700;
+        padding: 3px 8px; border-radius: 8px; white-space: nowrap; }
+    .mode-exam { background: #e7efe9; color: #1b4332; }
+    .mode-mock { background: #e8eef5; color: #2d4a6b; }
+    .mode-wrong { background: #fbeaea; color: #9a3232; }
+    .mode-pred { background: #f2f2f2; color: #666; }
+    .ht-paper { display: inline-block; margin-top: 3px; font-size: 0.68rem; font-weight: 600;
+        padding: 1px 7px; border-radius: 7px; background: #fff3e0; color: #a1651a; }
+    .ht-label { font-weight: 600; color: #222; white-space: nowrap; }
+    .ht-score { font-size: 1.15rem; font-weight: 800; color: #999; font-variant-numeric: tabular-nums; }
+    .ht-score.good { color: #1b5e20; }
+    .ht-score.mid { color: #b26a00; }
+    .ht-tot { font-size: 0.75rem; color: #aaa; margin-left: 2px; }
+    .ht-status { font-size: 0.78rem; color: #bbb; }
+    .ht-need { font-weight: 700; color: #a1651a; }
+    .ht-pass { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 2px 8px;
+        border-radius: 8px; background: #e8f5e9; color: #1b5e20; white-space: nowrap; }
+    .ht-dash { color: #ccc; }
+    .ht-when { color: #555; white-space: nowrap; font-size: 0.82rem; }
+    .ht-ago { color: #aaa; font-size: 0.74rem; margin-top: 1px; }
+    .ht-actions { text-align: right; white-space: nowrap; }
+    .ht-btn { display: inline-block; font-size: 0.78rem; font-weight: 700; padding: 5px 12px;
+        border-radius: 12px; text-decoration: none; background: #1b4332; color: #fff;
+        margin-left: 4px; }
+    .ht-btn:hover { background: #2d6a4f; }
+    .ht-btn.warm { background: #a1651a; }
+    .ht-btn.warm:hover { background: #8a5516; }
+    .ht-btn.sub { background: #eef2ee; color: #40624f; }
+    .ht-btn.sub:hover { background: #dde7e0; }
+    .ht-del { background: none; border: 0; cursor: pointer; color: #bbb; padding: 4px;
+        margin-left: 6px; vertical-align: middle; line-height: 0; border-radius: 6px; }
+    .ht-del:hover { color: #c62828; background: #fdf3f2; }
+    .hist-clear { text-align: right; margin-top: 12px; }
+    .hist-clear button { background: none; border: 1px solid #ddd; color: #888;
+        border-radius: 14px; padding: 6px 14px; font-size: 0.8rem; font-family: inherit;
+        cursor: pointer; }
+    .hist-clear button:hover { border-color: #c62828; color: #c62828; }
 
     .empty { padding: 30px; text-align: center; color: #999; font-size: 0.9rem;
         background: #fafafa; border-radius: 10px; }
@@ -159,8 +203,8 @@
     @media (max-width: 600px) {
         .card-grid { grid-template-columns: 1fr 1fr; }
         .ec { padding: 12px; }
-        .hist-scroll { overflow-x: auto; }
-        .hist { min-width: 560px; }
+        .hist { min-width: 460px; }
+        .history-table { min-width: 680px; }
         .tab-btn { padding: 12px 14px; font-size: 0.86rem; }
     }
 
@@ -490,61 +534,71 @@
 
     <!-- ══════════ 시험이력 ══════════ -->
     <div id="tab-history" class="tab-content{% if active_tab == 'history' %} active{% endif %}">
-        <div class="sec-title">응시 이력</div>
-        {% if sessions %}
-        <div class="hist-scroll">
-            <table class="hist">
+        <div class="sec-title">시험이력
+            <small>필답 45점 기준 · 작업형 필요 = 실기 합격(합계 60점)까지 작업형에서 더 받아야 할 점수</small>
+        </div>
+        <!-- 필기 상세의 history-table 과 같은 표 디자인 — 모드·점수·필요 점수·일시·액션 -->
+        <div class="hist-scroll" id="histWrap" {% if not sessions %}hidden{% endif %}>
+            <table class="history-table">
                 <thead>
                     <tr>
-                        <th style="width:150px">범위</th>
-                        <th style="width:80px">방식</th>
-                        <th style="width:110px">점수</th>
-                        <th style="width:90px">작업형 필요</th>
-                        <th>일시</th>
+                        <th style="width:84px">모드</th>
+                        <th style="width:130px">범위</th>
+                        <th style="width:84px">점수</th>
+                        <th style="width:96px">작업형 필요</th>
+                        <th style="width:150px">일시</th>
+                        <th style="width:150px"></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for s in sessions %}
-                    <tr>
-                        <td>{% if s.source == '모의' %}<span class="badge-src">모의</span>{% elif s.source == '오답' %}<span class="badge-src wrong">오답</span>{% endif %}{{ s.label }}</td>
-                        <td><span class="badge-mode {% if s.mode == 'paper' %}paper{% endif %}">{{ s.get_mode_display }}</span></td>
+                    <tr id="hs-{{ s.pk }}" data-ts="{{ s.started_at|date:'c' }}">
+                        <td>
+                            <span class="session-mode mode-{% if s.source == '모의' %}mock{% elif s.source == '오답' %}wrong{% elif s.source == '예상' %}pred{% else %}exam{% endif %}">{% if s.source == '기출' %}기출고사{% elif s.source == '모의' %}모의고사{% elif s.source == '오답' %}오답재풀이{% else %}예상문제{% endif %}</span>
+                            {% if s.mode == 'paper' %}<span class="ht-paper" title="시험지 사진">시험지</span>{% endif %}
+                        </td>
+                        <td class="ht-label">{% if s.source == '기출' %}{{ s.label }}{% elif s.source == '예상' %}{{ s.section }}{% else %}{{ s.attempts.count }}문항{% endif %}</td>
                         <td>
                             {% if s.status == 'done' %}
-                            <span class="score-big {% if s.percent < 60 %}low{% endif %}">{{ s.score }}</span>
-                            <span style="color:#999">/ {{ s.total_points }}</span>
+                            <span class="ht-score {% if s.percent >= 60 %}good{% elif s.percent >= 40 %}mid{% endif %}">{{ s.score }}</span><span class="ht-tot">/{{ s.total_points }}</span>
                             {% else %}
-                            <span style="color:#bbb">{{ s.get_status_display }}</span>
+                            <span class="ht-status">{{ s.get_status_display }}</span>
                             {% endif %}
                         </td>
                         <td>
                             {% if s.status == 'done' and s.source == '기출' %}
                                 {% if s.practical_estimate %}
-                                <span style="color:#a1651a">{{ s.practical_estimate }}점</span>
+                                <span class="ht-need">{{ s.practical_estimate }}점</span>
                                 {% else %}
-                                <span style="color:#1b5e20">불필요</span>
+                                <span class="ht-pass">합격선 넘음</span>
                                 {% endif %}
-                            {% else %}—{% endif %}
+                            {% else %}<span class="ht-dash">—</span>{% endif %}
                         </td>
-                        <td style="color:#888">
-                            {{ s.started_at|date:"m/d H:i" }}
+                        <td class="ht-when"><div>{{ s.started_at|date:"Y.m.d H:i" }}</div><div class="ht-ago"></div></td>
+                        <td class="ht-actions">
                             {% if s.status == 'done' %}
-                            · <a href="{% url 'gisa:essay_result' cert.pk s.pk %}" style="color:#1b4332">결과</a>
+                            <a class="ht-btn" href="{% url 'gisa:essay_result' cert.pk s.pk %}">결과</a>
                             {% else %}
                             <!-- 인쇄만 하고 답을 아직 안 올린 시험지는 같은 세션으로 이어간다 -->
-                            · <a href="{% url 'gisa:essay_take' cert.pk %}?resume={{ s.pk }}&source={{ s.source|urlencode }}{% if s.source == '기출' %}&year={{ s.year }}&round={{ s.round }}{% elif s.source == '예상' %}&section={{ s.section|urlencode }}{% endif %}&mode={{ s.mode }}" style="color:#a1651a">이어하기</a>
-                            {% if s.mode == 'paper' %}
-                            · <a href="{% url 'gisa:essay_sheet' cert.pk s.pk %}" style="color:#666">시험지</a>
+                            <a class="ht-btn warm" href="{% url 'gisa:essay_take' cert.pk %}?resume={{ s.pk }}&source={{ s.source|urlencode }}{% if s.source == '기출' %}&year={{ s.year }}&round={{ s.round }}{% elif s.source == '예상' %}&section={{ s.section|urlencode }}{% endif %}&mode={{ s.mode }}">이어하기</a>
+                            {% if s.mode == 'paper' %}<a class="ht-btn sub" href="{% url 'gisa:essay_sheet' cert.pk s.pk %}">시험지</a>{% endif %}
                             {% endif %}
-                            {% endif %}
+                            <button type="button" class="ht-del" title="이 기록 삭제"
+                                    onclick="deleteEssaySession(this, '{% url 'gisa:essay_session_delete' cert.pk s.pk %}', 'hs-{{ s.pk }}')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m1 0v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6h10zM10 11v6M14 11v6"/></svg>
+                            </button>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-        {% else %}
-        <div class="empty">아직 응시 기록이 없습니다.</div>
-        {% endif %}
+        <div class="empty" id="histEmpty" {% if sessions %}hidden{% endif %}>아직 응시 기록이 없습니다.</div>
+        <form method="post" action="{% url 'gisa:essay_session_delete_all' cert.pk %}" class="hist-clear" id="histClear" {% if not sessions %}hidden{% endif %}
+              onsubmit="return confirm('실기 응시 기록을 모두 지웁니다. 채점 결과와 오답노트도 함께 사라집니다. 계속할까요?')">
+            {% csrf_token %}
+            <button type="submit">전체 기록 삭제</button>
+        </form>
     </div>
 
     <!-- ══════════ 질의응답 ══════════ -->
@@ -607,6 +661,43 @@ document.querySelectorAll('.tab-btn').forEach(function (b) {
     var btn = document.querySelector('.tab-btn.active');
     if (btn && btn.scrollIntoView) btn.scrollIntoView({ block: 'nearest', inline: 'center' });
 })();
+
+/* 시험이력 — 상대 시간, 한 건 삭제 */
+function timeAgo(iso) {
+    var d = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (d < 60) return '방금';
+    if (d < 3600) return Math.floor(d / 60) + '분 전';
+    if (d < 86400) return Math.floor(d / 3600) + '시간 전';
+    if (d < 86400 * 30) return Math.floor(d / 86400) + '일 전';
+    if (d < 86400 * 365) return Math.floor(d / 86400 / 30) + '개월 전';
+    return Math.floor(d / 86400 / 365) + '년 전';
+}
+document.querySelectorAll('.history-table tr[data-ts]').forEach(function (tr) {
+    var el = tr.querySelector('.ht-ago');
+    if (el) el.textContent = timeAgo(tr.dataset.ts);
+});
+function deleteEssaySession(btn, url, rowId) {
+    if (!confirm('이 응시 기록을 지울까요? 채점 결과도 함께 사라집니다.')) return;
+    btn.disabled = true;
+    fetch(url, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}',
+                                            'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            if (!d.ok) throw new Error(d.error || '삭제 실패');
+            var row = document.getElementById(rowId);
+            row.style.transition = 'opacity .25s'; row.style.opacity = '0';
+            setTimeout(function () {
+                row.remove();
+                var n = document.querySelectorAll('.history-table tbody tr').length;
+                if (!n) {
+                    document.getElementById('histWrap').hidden = true;
+                    document.getElementById('histClear').hidden = true;
+                    document.getElementById('histEmpty').hidden = false;
+                }
+            }, 250);
+        })
+        .catch(function (e) { btn.disabled = false; alert(e.message); });
+}
 
 /* 오답노트 "노트 X" — 카드를 지우고 탭 배지·재풀이 버튼·빈 안내를 맞춘다 */
 function dismissEssayWrong(btn, url, cardId) {
