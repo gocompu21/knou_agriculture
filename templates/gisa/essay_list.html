@@ -187,7 +187,9 @@
 
 
     /* 주제의 기출 문항 목록 — 문항 + 연도 배지, 누르면 답 */
-    .tb-qlist { margin: 4px 0 10px; }
+    /* 문항 목록과 아래 정리 본문 사이는 넉넉히 — 붙어 있으면 (1) 정의가 마지막 문항에 딸린 것처럼 읽힌다 */
+    .tb-qlist { margin: 4px 0 26px; }
+    .tb-qlist + .tb-note > h3:first-child, .tb-qlist + .nt-blk { margin-top: 0; }
     .tq { border-bottom: 1px dashed #e3e9e4; }
     .tq:last-child { border-bottom: 0; }
     .tq-head { display: flex; align-items: flex-start; gap: 6px; padding: 4px 4px; cursor: pointer; }
