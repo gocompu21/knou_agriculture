@@ -14,6 +14,7 @@ urlpatterns = [
     path("subjects/<int:pk>/notes/create/", views.note_create, name="note_create"),
     path("subjects/notes/<int:note_pk>/update/", views.note_update, name="note_update"),
     path("subjects/notes/<int:note_pk>/delete/", views.note_delete, name="note_delete"),
+    path("subjects/notes/upload-image/", views.note_image_upload, name="note_image_upload"),
     path("subjects/<int:pk>/latest/create/", views.latest_question_create, name="latest_question_create"),
     path("subjects/<int:pk>/latest/clone/", views.latest_question_clone, name="latest_question_clone"),
     path("subjects/<int:pk>/api/years/", views.api_existing_years, name="api_existing_years"),

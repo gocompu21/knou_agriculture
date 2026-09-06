@@ -4,6 +4,7 @@
 {% block title %}{{ subject.name }} | 한울회 A+ 학습시스템{% endblock %}
 
 {% block extra_css %}
+{% if request.user.is_staff %}<link rel="stylesheet" href="https://uicdn.toast.com/editor/3.2.2/toastui-editor.min.css">{% endif %}
 <style>
     /* ══════════ Breadcrumb ══════════ */
     .breadcrumb {
@@ -178,6 +179,16 @@
         font-size: 0.82rem; line-height: 1.55; tab-size: 4;
     }
     .note-editor textarea:focus, .note-editor input:focus { outline: none; border-color: #2d6a4f; }
+    .note-ed { background: #fff; border-radius: 6px; }
+    .note-ed .toastui-editor-defaultUI { border-color: #ccc; }
+    .note-ed .toastui-editor-contents { font-size: 0.9rem; }
+    .note-ed .toastui-editor-contents h2 { font-size: 1.15rem; border-bottom: 1px solid #dce8dc; }
+    .note-ed .toastui-editor-contents h3 { font-size: 1.02rem; color: #1b4332; }
+    .note-ed .toastui-editor-contents img { max-width: min(100%, 520px); }
+    .content-box img.note-img {
+        display: block; max-width: min(100%, 520px); height: auto;
+        margin: 10px auto; border-radius: 6px; border: 1px solid #e3e3e3;
+    }
     .note-editor-hint { font-size: 0.74rem; color: #777; margin: 6px 0 8px; line-height: 1.6; }
     .note-editor-hint code { background: #eef3ee; padding: 0 4px; border-radius: 3px; }
     .note-editor-actions { display: flex; gap: 8px; align-items: center; }
@@ -1591,12 +1602,14 @@
             {% if request.user.is_staff and ch.note_pk %}
             <div class="note-editor" id="note-editor-{{ ch.note_pk }}" hidden>
                 <input type="text" id="note-title-{{ ch.note_pk }}" value="{{ ch.note_title }}" placeholder="제N장. 제목">
-                <textarea id="note-content-{{ ch.note_pk }}" spellcheck="false">{{ ch.note_content }}</textarea>
+                <textarea id="note-content-{{ ch.note_pk }}" spellcheck="false" hidden>{{ ch.note_content }}</textarea>
+                <div class="note-ed" id="note-ed-{{ ch.note_pk }}"></div>
                 <div class="note-editor-hint">
-                    <code>## 제N장. 제목</code> 장 · <code>### N.M 절제목</code> 절 · <code>#### N.M.K 항제목</code> 항 ·
-                    <code>**볼드**</code> · <code>- </code> 목록 · <code>| 표 |</code> ·
-                    절 끝에 <code>**관련 문제**: (연도-문항번호), (연도-문항번호)</code> ·
-                    장 끝에 <code>### 핵심 키워드 요약</code> 표. 제목의 장 번호를 바꾸면 순서도 함께 바뀝니다.
+                    화면에서 바로 고치면 됩니다(WYSIWYG). 이미지는 툴바의 그림 버튼, 붙여넣기(Ctrl+V), 끌어다 놓기로 넣습니다.
+                    아래 <b>Markdown</b> 탭으로 바꾸면 원문을 직접 고칠 수 있습니다.
+                    구조: 장 제목은 <b>제목2</b>(<code>## 제N장. 제목</code>), 절은 <b>제목3</b>(<code>### N.M 절제목</code>),
+                    절 끝 줄에 <code>**관련 문제**: (연도-문항번호), …</code>, 장 끝에 <code>### 핵심 키워드 요약</code> 표.
+                    제목의 장 번호를 바꾸면 순서도 함께 바뀝니다.
                 </div>
                 <div class="note-editor-actions">
                     <button type="button" class="note-save-btn" onclick="saveNote({{ ch.note_pk }})">저장</button>
@@ -2095,6 +2108,11 @@
 {% endblock %}
 
 {% block extra_js %}
+{% if request.user.is_staff %}
+<!-- npm(jsdelivr) 배포판의 toastui-editor.js 는 prosemirror 를 외부 의존으로 두어 단독 로드 시 깨진다. 의존성이 모두 든 -all 번들은 Toast UI 자체 CDN 에만 있다 -->
+<script src="https://uicdn.toast.com/editor/3.2.2/toastui-editor-all.min.js"></script>
+<script src="https://uicdn.toast.com/editor/3.2.2/i18n/ko-kr.js"></script>
+{% endif %}
 <script>
     function switchTab(tabName) {
         document.querySelectorAll('.tab-content').forEach(function (el) {
@@ -2151,21 +2169,60 @@
 
     // 전체 펼치기/접기 토글 (절 내용까지 펼침 / 절 내용만 접음, 장은 항상 open)
     /* ── 관리자 쪽집게 노트 편집 ── */
-    var _noteOrig = {};
+    var _noteOrig = {};   // 편집기가 처음 만든 마크다운 (변경 여부 비교용)
+    var _noteEds = {};    // pk → Toast UI Editor 인스턴스
+    function _uploadNoteImage(blob, cb) {
+        var fd = new FormData();
+        fd.append('image', blob, blob.name || 'image.png');
+        fd.append('subject', '{{ subject.pk }}');
+        fetch('{% url "main:note_image_upload" %}', { method: 'POST', body: fd,
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+            .then(function(r) { return r.json().then(function(j) { if (!r.ok) throw new Error(j.error || '업로드 실패'); return j; }); })
+            .then(function(j) { cb(j.url, (blob.name || 'image').replace(/\.[^.]+$/, '')); })
+            .catch(function(e) { alert(e.message); });
+    }
+    function _noteMarkdown(pk) {
+        var e = _noteEds[pk];
+        return e ? e.getMarkdown() : document.getElementById('note-content-' + pk).value;
+    }
     window.openNoteEditor = function(pk) {
         var ed = document.getElementById('note-editor-' + pk);
         if (!ed) return;
-        var ta = document.getElementById('note-content-' + pk);
-        if (!(pk in _noteOrig)) _noteOrig[pk] = ta.value;
         ed.hidden = false;
         ed.closest('.chapter-item').classList.add('open');
-        ta.focus();
+        if (!_noteEds[pk]) {
+            var ta = document.getElementById('note-content-' + pk);
+            if (window.toastui && toastui.Editor) {
+                _noteEds[pk] = new toastui.Editor({
+                    el: document.getElementById('note-ed-' + pk),
+                    height: '600px',
+                    initialEditType: 'wysiwyg',
+                    previewStyle: 'vertical',
+                    initialValue: ta.value,
+                    language: 'ko-KR',
+                    usageStatistics: false,
+                    hooks: { addImageBlobHook: _uploadNoteImage },
+                    toolbarItems: [
+                        ['heading', 'bold', 'italic', 'strike'],
+                        ['hr', 'quote'],
+                        ['ul', 'ol', 'indent', 'outdent'],
+                        ['table', 'image', 'link'],
+                        ['code', 'codeblock']
+                    ]
+                });
+                _noteOrig[pk] = _noteEds[pk].getMarkdown();
+            } else {
+                // 편집기 스크립트를 못 불러온 경우: 원문 textarea 로 편집
+                ta.hidden = false;
+                _noteOrig[pk] = ta.value;
+            }
+        }
     };
     window.closeNoteEditor = function(pk) {
         var ed = document.getElementById('note-editor-' + pk);
-        var ta = document.getElementById('note-content-' + pk);
-        if (ta && ta.value !== _noteOrig[pk] && !confirm('고친 내용을 버리고 닫을까요?')) return;
-        if (ta && pk in _noteOrig) ta.value = _noteOrig[pk];
+        if (_noteMarkdown(pk) !== _noteOrig[pk] && !confirm('고친 내용을 버리고 닫을까요?')) return;
+        if (_noteEds[pk]) _noteEds[pk].setMarkdown(_noteOrig[pk], false);
+        else document.getElementById('note-content-' + pk).value = _noteOrig[pk];
         document.getElementById('note-msg-' + pk).textContent = '';
         ed.hidden = true;
     };
@@ -2181,7 +2238,7 @@
         msg.style.color = '#555'; msg.textContent = '저장 중…';
         _notePost('/subjects/notes/' + pk + '/update/', {
             title: document.getElementById('note-title-' + pk).value,
-            content: document.getElementById('note-content-' + pk).value
+            content: _noteMarkdown(pk)
         }).then(function() {
             location.href = '?tab=notes';
         }).catch(function(e) { msg.style.color = '#b71c1c'; msg.textContent = e.message; });

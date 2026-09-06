@@ -961,6 +961,21 @@ PREFIX_MAP = {
 - **2020 이전 문항이 없는 과목은 기출학습·기출풀기·모의고사 탭이 전체 연도를 쓴다**
   (`subject_detail`, `mock_exam_take`). 그 밖의 과목은 종전대로 2020 미만만
 
+### 쪽집게 노트 관리자 편집 (방송대 subject_detail)
+
+스태프는 쪽집게 노트 탭에서 장(StudyNote 레코드)마다 **수정**·**이 장 삭제**·**새 장 추가**를
+할 수 있다. 편집기는 **Toast UI Editor 3.2.2**(jsdelivr, 스태프에게만 로드) — WYSIWYG 로
+고치고 하단 Markdown 탭으로 원문도 볼 수 있으며, 저장은 `getMarkdown()` 결과를
+`note_update` 로 보낸다(제목의 "제N장"으로 `order` 갱신, 번호 충돌 시 400).
+`## ` 제목 줄이 없으면 서버가 앞에 붙인다.
+
+- 이미지: 툴바·붙여넣기·드래그 → `note_image_upload` → `media/notes/s<subject_pk>/` 저장,
+  마크다운에 `![alt](url)` 로 들어간다. `parse_note_chapters` 가 이를 `<img class="note-img">` 로
+  바꾼다(폭 520px 상한)
+- 파서가 WYSIWYG 출력을 받아들이도록 `* ` 불렛, 2~4칸 들여쓴 하위 불렛, `\~ \_ \*` 같은
+  마크다운 이스케이프 제거(`\|` 는 `&#124;`)를 추가했다. 직접 쓴 마크다운 규칙은 그대로다
+- 파싱 결과 캐시는 `updated_at` 최대값이 버전이라 저장하면 곧바로 새로 파싱된다
+
 ## 채점 결과 보기 flex 레이아웃 (exam_result)
 
 `exam/exam_result.html`의 보기(choice-item)가 줄바꿈 시 텍스트 시작 위치가 정렬되도록 flex 레이아웃 적용.

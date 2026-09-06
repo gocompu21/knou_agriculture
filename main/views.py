@@ -9,6 +9,8 @@ from django.views.decorators.http import require_POST
 
 import json
 import logging
+import os
+import uuid
 import markdown
 import re
 
@@ -68,6 +70,13 @@ def parse_note_chapters(content, subject_pk, cache_version=None):
         body = re.sub(r"\*\*관련 문제\*\*:.*", "", text, flags=re.DOTALL).strip()
         body = re.sub(r"\*\*관련 기출문제\*\*.*", "", body, flags=re.DOTALL).strip()
         body = re.sub(r"\*\*핵심 정리\*\*", "", body)
+        # 이미지: ![설명](url) → <img>
+        body = re.sub(
+            r"!\[([^\]]*)\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)",
+            r'<img class="note-img" src="\2" alt="\1">', body)
+        # WYSIWYG 편집기가 넣는 마크다운 이스케이프(\~ \_ \* 등) 제거. 표 구분자 \| 는 보존
+        body = body.replace("\\|", "&#124;")
+        body = re.sub(r"\\([~_*#\[\]()!<>\-.`])", r"\1", body)
 
         html_lines = []
         table_rows = []
@@ -96,8 +105,8 @@ def parse_note_chapters(content, subject_pk, cache_version=None):
             html_lines.append(f"<p>{joined}</p>")
             para_lines = []
 
-        for line in body.split("\n"):
-            line = line.strip()
+        for raw_line in body.split("\n"):
+            line = raw_line.strip()
             if not line:
                 _flush_table()
                 _flush_para()
@@ -124,18 +133,19 @@ def parse_note_chapters(content, subject_pk, cache_version=None):
                 lc = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", lc)
                 lc = re.sub(r"\*(.+?)\*", r"<em>\1</em>", lc)
                 html_lines.append(f"<div class='num-item num-sub'>→ {lc}</div>")
-            elif line.startswith("- "):
+            elif re.match(r"^ {2,4}[-*] ", raw_line):
+                # 들여쓴 하위 불렛 (상위 불렛 검사보다 먼저 봐야 한다)
+                _flush_para()
+                lc = raw_line.strip()[2:]
+                lc = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", lc)
+                lc = re.sub(r"\*(.+?)\*", r"<em>\1</em>", lc)
+                html_lines.append(f"<li class='sub-item'>{lc}</li>")
+            elif line.startswith("- ") or line.startswith("* "):
                 _flush_para()
                 lc = line[2:]
                 lc = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", lc)
                 lc = re.sub(r"\*(.+?)\*", r"<em>\1</em>", lc)
                 html_lines.append(f"<li>{lc}</li>")
-            elif line.startswith("  - "):
-                _flush_para()
-                lc = line[4:]
-                lc = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", lc)
-                lc = re.sub(r"\*(.+?)\*", r"<em>\1</em>", lc)
-                html_lines.append(f"<li class='sub-item'>{lc}</li>")
             else:
                 para_lines.append(line)
 
@@ -984,6 +994,30 @@ def note_create(request, pk):
                    f"핵심 용어는 **볼드**로 표시합니다.\n\n**관련 문제**: \n")
     note = StudyNote.objects.create(subject=subject, title=title, content=content, order=order)
     return JsonResponse({"ok": True, "pk": note.pk, "order": note.order})
+
+
+@login_required
+@user_passes_test(staff_required)
+@require_POST
+def note_image_upload(request):
+    """쪽집게 노트 편집기 이미지 업로드 → media/notes/<subject>/ 에 저장하고 URL 반환"""
+    f = request.FILES.get("image") or request.FILES.get("file")
+    if not f:
+        return JsonResponse({"error": "파일이 없습니다."}, status=400)
+    allowed = {"image/jpeg": ".jpg", "image/png": ".png", "image/gif": ".gif",
+               "image/webp": ".webp", "image/svg+xml": ".svg"}
+    if f.content_type not in allowed:
+        return JsonResponse({"error": "이미지 파일(jpg·png·gif·webp·svg)만 올릴 수 있습니다."}, status=400)
+    if f.size > 8 * 1024 * 1024:
+        return JsonResponse({"error": "8MB 이하만 올릴 수 있습니다."}, status=400)
+    subject_pk = re.sub(r"\D", "", request.POST.get("subject", "")) or "0"
+    rel_dir = os.path.join("notes", f"s{subject_pk}")
+    os.makedirs(os.path.join(settings.MEDIA_ROOT, rel_dir), exist_ok=True)
+    filename = f"{timezone.now():%Y%m%d}_{uuid.uuid4().hex[:10]}{allowed[f.content_type]}"
+    with open(os.path.join(settings.MEDIA_ROOT, rel_dir, filename), "wb") as out:
+        for chunk in f.chunks():
+            out.write(chunk)
+    return JsonResponse({"url": f"{settings.MEDIA_URL}notes/s{subject_pk}/{filename}"})
 
 
 @login_required
