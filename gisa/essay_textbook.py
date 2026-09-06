@@ -85,6 +85,41 @@ def number_sections(html):
     return ''.join(out)
 
 
+def _bigrams(s):
+    s = re.sub(r'[^가-힣A-Za-z0-9]', '', s or '')
+    return {s[i:i + 2] for i in range(len(s) - 1)}
+
+
+def _pick_rep(cert, title, rounds, is_calc):
+    """정리 항목의 대표 문항 — 「출제」 줄의 회차들 안에서 제목과 글자쌍이 가장
+    많이 겹치는 문항.
+
+    전에는 첫 회차 + 빈출 수로 좁힌 뒤 낱말 겹침으로 골랐는데, 한글은 띄어쓰기가
+    들쭉날쭉해 낱말이 통째로 어긋난다("중규모 교란설" vs "중규모교란설에서").
+    그래서 같은 회차의 다른 4회 주제(K-전략종)에 붙는 사고가 났다. 글자쌍
+    겹침은 띄어쓰기에 흔들리지 않는다. 첫 회차에서 뚜렷하지 않으면 나머지 회차도 본다.
+    """
+    pairs = re.findall(r'(\d{4})-(\d)', rounds or '')
+    if not pairs:
+        return None
+    tb = _bigrams(title)
+    best, best_score = None, -1.0
+    for i, (y, r) in enumerate(pairs):
+        cand = GisaEssayQuestion.objects.filter(
+            certification=cert, source='기출', year=int(y), round=int(r))
+        if is_calc:
+            cand = cand.filter(qtype='계산')
+        for q in cand:
+            hay = _bigrams((q.text or '') + ' ' + ' '.join(q.answer_items or [])
+                           + ' ' + (q.answer_text or ''))
+            score = len(tb & hay) / max(1, len(tb))
+            if score > best_score:
+                best, best_score = q, score
+        if best_score >= 0.5:        # 첫 회차에서 뚜렷하면 거기서 끝
+            break
+    return best
+
+
 # ------------------------------------------------------------------ 정리 자료 파싱
 
 def parse_note_items(cert, note):
@@ -105,28 +140,7 @@ def parse_note_items(cert, note):
         m = re.search(r'\*\*출제\*\*\s*(.+)', body)
         rounds = m.group(1).strip() if m else ''
 
-        # 출제 줄의 첫 회차 + 빈출 수로 대표 문항을 찾는다. 같은 회차에 같은
-        # 빈출 수 주제가 여럿이면 제목 낱말이 가장 많이 겹치는 것을 고른다
-        # (calc 문서는 계산 유형으로 한정).
-        rep = None
-        rm = re.search(r'(\d{4})-(\d)', rounds)
-        if rm:
-            cand = GisaEssayQuestion.objects.filter(
-                certification=cert, source='기출',
-                year=int(rm.group(1)), round=int(rm.group(2)),
-                freq_rounds=int(freq))
-            if note.slug == 'calc':
-                cand = cand.filter(qtype='계산')
-            pool = list(cand)
-            if len(pool) > 1:
-                key = set(re.findall(r'[가-힣A-Za-z]{2,}', title))
-                pool.sort(key=lambda q: len(
-                    key & set(re.findall(r'[가-힣A-Za-z]{2,}',
-                                         (q.text or '') + ' ' +
-                                         ' '.join(q.answer_items or [])))),
-                    reverse=True)
-            if pool:
-                rep = pool[0]
+        rep = _pick_rep(cert, title, rounds, note.slug == 'calc')
 
         # 「공식 / 대입 / 함정」처럼 라벨이 붙은 문단은 따로 떼어 낸다 —
         # 한 덩어리로 렌더링하면 줄바꿈만으로 구분돼 빽빽해 보인다.
@@ -287,7 +301,7 @@ def build_textbook(cert):
     qs_all = GisaEssayQuestion.objects.filter(certification=cert, source='기출')
     notes = list(GisaEssayNote.objects.filter(certification=cert))
     stamp = max([n.updated_at.timestamp() for n in notes] + [0])
-    key = 'essay_tb:v4:%d:%d:%d' % (cert.pk, qs_all.count(), int(stamp))
+    key = 'essay_tb:v5:%d:%d:%d' % (cert.pk, qs_all.count(), int(stamp))
     hit = cache.get(key)
     if hit:
         return hit
