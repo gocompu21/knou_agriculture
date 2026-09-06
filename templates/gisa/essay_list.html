@@ -120,6 +120,9 @@
     .tb-stars { color: #e0a416; font-size: 0.82rem; letter-spacing: -1px; white-space: nowrap;
         margin-left: 6px; }
     .tb-stars.dim { color: #c9c9c9; }
+    /* 제목 옆 별은 윗첨자처럼 작게 붙인다 — 제목과 같은 크기로 나란히 서면 글자처럼 읽힌다 */
+    .tb-title .tb-stars { width: auto; font-size: 0.68em; vertical-align: super;
+        line-height: 1; margin-left: 3px; letter-spacing: -0.5px; }
     .tb-no { font-weight: 700; color: #1b4332; font-size: 0.9rem; min-width: 1.9em;
         text-align: right; flex-shrink: 0; font-variant-numeric: tabular-nums; }
 
