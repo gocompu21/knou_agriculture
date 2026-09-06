@@ -186,8 +186,19 @@ _DIRECTIVE = re.compile(
 
 # 발문만으로 주제가 안 보이는 꼴. "다음 표에서 사토와 식토를 구분하여…"처럼 내용이
 # 담긴 긴 발문은 여기 걸리지 않게 강한 신호만 본다.
-_GENERIC = re.compile(r'설명하는 것|해당하는 것|무엇인가|무엇이라|알맞은|빈칸|괄호|\(\s*\)|^다음(?:은|의|에서)?\s*$')
+_GENERIC = re.compile(r'설명하는|해당하는|무엇인가|무엇이라|알맞은|빈칸|괄호|\(\s*\)|보기에서|골라|고르|다음 설명|다음 중|^다음(?:은|의|에서)?\s*$')
 _TAIL_VERB = re.compile(r'\s*(?:나누어|비교하여|구분하여|정리하여|이용하여|들어|찾아|골라|각각)$')
+# 발문에서 주제어(머리 명사구)를 떼는 꼴. 조사(을/는)만 보고 자르면 "침입종 때문에
+# 고유종이 멸종위기에 처하게 되|는" 처럼 동사 어미에서 잘리므로, 뒤에 오는 말까지
+# 확인되는 꼴만 쓴다. 안 맞으면 발문 전체를 둔다.
+_HEAD_PATTERNS = [
+    re.compile(r'^(.{2,44}?)(?:이란|란)\s*(?:무엇|어떤|어떻게|그\s*정의|정의|$)'),
+    re.compile(r'^(.{2,44}?)\s*(?:에 대하여|에 대해)(?:\s|$)'),
+    re.compile(r'^(.{2,44}?)(?:은|는)\s*(?:어떻게 다른지|무엇인지|무엇을|몇\s)'),
+    re.compile(r'^(.{2,60}?)(?:의\s*(?:종류|유형|기능|특징|방법|원인|조건|사례|예|목표|평가항목|내용|이유))?'
+               r'\s*\d+\s*가지(?:\s*이상)?(?:를|을)?(?:\s|$)'),
+    re.compile(r'^(.{2,44}?)의\s*(?:정의|개념)(?:을|를)?(?:\s|$)'),
+]
 
 
 def _clip(t, n=60):
@@ -262,6 +273,21 @@ def _fill_blanks(q):
     return _clause(body)
 
 
+def _answer_word(q):
+    """답의 첫 항목(없으면 answer_text 첫 줄)에서 주제어를 뽑는다. 표로 된 답은 못 쓴다."""
+    cands = list(q.answer_items or [])
+    first = (q.answer_text or '').strip().split('\n')[0].strip()
+    if first and not first.startswith('|'):
+        cands.append(first)
+    for a in cands:
+        a = re.sub(r'^[①-⑳\d.)\s]+', '', str(a)).strip()
+        a = re.sub(r'\s*[:：].*$', '', a)          # "용어 : 설명" 이면 용어만
+        a = re.sub(r'[\[\]*_`]', '', a).strip()
+        if a:
+            return _clip(a, 48)
+    return ''
+
+
 def _title_from(q):
     """정리 자료가 없는 주제는 대표 문항의 발문에서 제목을 뽑는다.
 
@@ -279,18 +305,34 @@ def _title_from(q):
     t = re.sub(r'\s*\((?:단|다만),.*$', '', t)
     t = _DIRECTIVE.sub('', t).strip(' ,.:;?')
     t = _TAIL_VERB.sub('', t).strip(' ,.:;?')
+    # 두 문장으로 이어지는 발문("…4가지를 쓰고, …하시오")은 첫 요구까지만
+    t = re.split(r'\s*(?:쓰고|설명하고|서술하고|구하고|들고),?\s', t)[0].strip(' ,.:;?')
     if not t or len(t) < 6 or _GENERIC.search(t):
-        # 답의 첫 항목(없으면 answer_text 첫 줄)이 곧 주제어다. 표로 된 답은 못 쓴다
-        cands = list(q.answer_items or [])
-        first = (q.answer_text or '').strip().split('\n')[0].strip()
-        if first and not first.startswith('|'):
-            cands.append(first)
-        for a in cands:
-            a = re.sub(r'^[①-⑳\d.)\s]+', '', str(a)).strip()
-            a = re.sub(r'\s*[:：].*$', '', a)          # "용어 : 설명" 이면 용어만
-            a = re.sub(r'[\[\]*_`]', '', a).strip()
-            if a:
-                return _clip(a, 48)
+        a = _answer_word(q)
+        if a:
+            return a
+    # "환경포텐셜의 종류 4가지를 쓰고" → "환경포텐셜": 발문의 머리 명사구가 주제어다.
+    # 너무 짧거나 "다음…"으로 시작하면 발문 전체를 둔다.
+    for pat in _HEAD_PATTERNS:
+        m = pat.match(t)
+        if m:
+            head = m.group(1).strip(' ,')
+            if re.search(r'(?:하는|되는|인|한|된)\s*것$', head):
+                # "…에 의해 결정되는 것은 무엇인지" — 수수께끼형은 답이 주제어다
+                a = _answer_word(q)
+                if a:
+                    return a
+            if len(head) >= 3 and not re.match(r'^(다음|아래|위)', head):
+                t = head
+            break
+    # 꼬리에 남은 조사("생태통로를", "종류를", "…으로")는 뗀다
+    t = re.sub(r'(?<=[가-힣)\]A-Za-z0-9])\s*(?:으로|을|를|은|는|의|에)$', '', t).strip(' ,')
+    # "…에 의해 결정되는 것(은 무엇인지)" — 지시어를 떼고 나면 '것'으로 끝나는
+    # 수수께끼형이 남는다. 이때는 답이 주제어다
+    if re.search(r'(?:하는|되는|인|한|된|라는)\s*것$', t):
+        a = _answer_word(q)
+        if a:
+            return a
     return _clip(t)
 
 
