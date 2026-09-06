@@ -142,7 +142,9 @@
     .tb-meta { font-size: 0.74rem; color: #97a79d; white-space: nowrap; flex-shrink: 0; }
     .tb-arrow { color: #c3cec7; font-size: 0.9rem; transition: transform .15s; flex-shrink: 0; }
     .tb-item.open .tb-arrow { transform: rotate(90deg); }
-    .tb-body { display: none; padding: 4px 16px 16px 16px; }
+    /* 펼친 내용은 제목 글자 시작선(번호 폭 1.9em + 간격 8px)에 맞춰 들여쓴다 */
+    .tb-body { display: none; padding: 4px 16px 16px calc(22px + 1.71rem); }
+    @media (max-width: 600px) { .tb-body { padding-left: 16px; } }
     .tb-item.open .tb-body { display: block; }
     .tb-rounds { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin: 4px 0 10px; }
     .tb-rlab { font-size: 0.72rem; font-weight: 700; color: #8b968f; letter-spacing: 0.04em; margin-right: 2px; }
