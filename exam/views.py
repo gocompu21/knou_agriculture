@@ -172,7 +172,10 @@ def exam_result(request, subject_id, year):
 @login_required
 def mock_exam_take(request, subject_id):
     subject = get_object_or_404(Subject, pk=subject_id)
-    all_questions = Question.objects.filter(subject=subject, year__lt=2020)
+    all_questions = Question.objects.filter(subject=subject)
+    # 2020 이전 기출이 있으면 그것만, 없으면(최신기출만 있는 과목) 전체
+    if all_questions.filter(year__lt=2020).exists():
+        all_questions = all_questions.filter(year__lt=2020)
 
     count = min(25, all_questions.count())
     if count == 0:

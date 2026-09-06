@@ -380,10 +380,13 @@ def subject_list(request):
 @login_required
 def subject_detail(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
-    # 학습/풀이 탭: 2020 이전만
+    # 학습/풀이 탭: 2020 이전만. 다만 2020 이전 문항이 하나도 없는 과목
+    # (잡초방제학처럼 2023년 이후 기출만 있는 경우)은 전체 연도를 쓴다.
+    base_qs = Question.objects.filter(subject=subject)
+    if base_qs.filter(year__lt=2020).exists():
+        base_qs = base_qs.filter(year__lt=2020)
     years = (
-        Question.objects.filter(subject=subject, year__lt=2020)
-        .values_list("year", flat=True)
+        base_qs.values_list("year", flat=True)
         .distinct()
         .order_by("-year")
     )
@@ -392,7 +395,7 @@ def subject_detail(request, pk):
         count = Question.objects.filter(subject=subject, year=year).count()
         year_cards.append({"year": year, "count": count})
 
-    total_questions = Question.objects.filter(subject=subject, year__lt=2020).count()
+    total_questions = base_qs.count()
 
     # 오답 수: 문제별 최신 Attempt 중 틀린 것만
     latest_ids = (
