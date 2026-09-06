@@ -52,10 +52,6 @@
             {% endfor %}
 
             {% if t.html %}<div class="tb-note">{{ t.html|safe }}</div>{% endif %}
-
-            <div class="tb-foot">
-                <a class="tb-link" href="{% url 'gisa:essay_study' cert.pk %}?source=기출&year={{ t.latest_year }}&round={{ t.latest_round }}">{{ t.latest_year }}년 {{ t.latest_round }}회 학습 &rsaquo;</a>
-            </div>
         </div>
     </div>
     {% endfor %}
