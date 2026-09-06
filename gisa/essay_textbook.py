@@ -141,6 +141,23 @@ def _pick_rep(cert, title, rounds, is_calc):
     return best
 
 
+def _loosen(md_text):
+    """문단 줄 바로 다음에 붙은 목록·표 앞에 빈 줄을 넣는다.
+
+    nl2br 을 빼면 마크다운이 "문단\\n- 항목" 을 한 문단으로 이어 붙여 목록이
+    사라진다(nl2br 이 있을 때는 줄바꿈이 살아 목록처럼 보였을 뿐이다).
+    """
+    out, prev = [], ''
+    for ln in md_text.split('\n'):
+        starts_block = re.match(r'^\s*(?:[-*+]\s|\d+\.\s|\|)', ln)
+        prev_para = prev.strip() and not re.match(r'^\s*(?:[-*+]\s|\d+\.\s|\||#|>)', prev)
+        if starts_block and prev_para:
+            out.append('')
+        out.append(ln)
+        prev = ln
+    return '\n'.join(out)
+
+
 # ------------------------------------------------------------------ 정리 자료 파싱
 
 def parse_note_items(cert, note):
@@ -188,9 +205,11 @@ def parse_note_items(cert, note):
             'topic_key': rep.topic_key if rep else '',
             'blocks': blocks,
             'warned': '⚠️ 요구가 커진 지점' in body,
-            # 본문에도 ÷·지수·LaTeX 가 섞여 있다(1.5배 도달 연수 풀이 등)
+            # 본문에도 ÷·지수·LaTeX 가 섞여 있다(1.5배 도달 연수 풀이 등).
+            # nl2br 은 쓰지 않는다 — 원문이 40자 안팎으로 줄을 끊어 둔 것이 화면에
+            # 그대로 나와 문단이 좁게 토막났다. 문단은 화면 폭에 맞게 흐르게 둔다.
             'html': number_sections(
-                md.markdown(mathify(body_rest), extensions=['tables', 'nl2br'])),
+                md.markdown(mathify(_loosen(body_rest)), extensions=['tables'])),
         })
     return intro_md, items
 
@@ -368,7 +387,7 @@ def build_textbook(cert):
         stamp = max(stamp, os.path.getmtime(_TITLES_PATH))
     except OSError:
         pass
-    key = 'essay_tb:v6:%d:%d:%d' % (cert.pk, qs_all.count(), int(stamp))
+    key = 'essay_tb:v7:%d:%d:%d' % (cert.pk, qs_all.count(), int(stamp))
     hit = cache.get(key)
     if hit:
         return hit
