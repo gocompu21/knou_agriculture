@@ -76,7 +76,10 @@ def number_sections(html):
     out, n = [parts[0]], 0
     for i in range(1, len(parts), 2):
         n += 1
-        head = parts[i].replace('<h3>', '<h3><span class="nt-hno">(%d)</span> ' % n, 1)
+        head = parts[i]
+        # 제목 맨 앞의 ⚠️·★ 같은 표시는 번호 뒤에 오면 어수선하다 → 제목 끝으로
+        head = re.sub(r'<h3>\s*([⚠★☆✅❗]+️?)\s*(.*?)\s*</h3>', r'<h3>\2 \1</h3>', head, flags=re.S)
+        head = head.replace('<h3>', '<h3><span class="nt-hno">(%d)</span> ' % n, 1)
         body = parts[i + 1] if i + 1 < len(parts) else ''
         out.append(head + '<div class="nt-sec">' + body + '</div>')
     return ''.join(out)
@@ -284,7 +287,7 @@ def build_textbook(cert):
     qs_all = GisaEssayQuestion.objects.filter(certification=cert, source='기출')
     notes = list(GisaEssayNote.objects.filter(certification=cert))
     stamp = max([n.updated_at.timestamp() for n in notes] + [0])
-    key = 'essay_tb:v3:%d:%d:%d' % (cert.pk, qs_all.count(), int(stamp))
+    key = 'essay_tb:v4:%d:%d:%d' % (cert.pk, qs_all.count(), int(stamp))
     hit = cache.get(key)
     if hit:
         return hit
