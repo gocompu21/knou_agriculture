@@ -215,7 +215,8 @@
     .tq-arrow { color: #9fb0a6; font-size: 0.85rem; transition: transform .15s; flex-shrink: 0; line-height: 1.7; }
     .tq.open .tq-arrow { transform: rotate(90deg); }
     /* 답은 흰 바탕에 검은 글 — 초록 바탕은 글이 묻힌다. 왼쪽 초록 선만 남겨 답임을 알린다 */
-    .tq-ans { display: none; margin: 4px 6px 12px calc(2.6em + 22px); background: #fff;
+    /* 답은 배지 왼쪽 선에서 조금만 들여 시작한다 — 깊이 들이면 폭이 좁아져 줄이 자주 넘어간다 */
+    .tq-ans { display: none; margin: 4px 6px 12px 6px; background: #fff;
         border-left: 3px solid #2d6a4f; padding: 6px 12px; }
     .tq.open .tq-ans { display: block; }
     .tq-ai { font-size: 0.9rem; line-height: 1.85; color: #1a1a1a; padding: 1px 0; }
