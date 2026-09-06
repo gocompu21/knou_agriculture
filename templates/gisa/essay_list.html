@@ -149,9 +149,11 @@
     @media (max-width: 600px) { .tb-body { padding-left: 16px; } }
     .tb-item.open .tb-body { display: block; }
 
-    /* 공식/대입/함정 블록 — essay_note 와 같은 결 */
-    .nt-blk { display: flex; gap: 10px; align-items: baseline; padding: 9px 0; border-top: 1px solid #f0f3f1; }
-    .nt-blk:first-of-type { border-top: 0; }
+    /* 공식/대입/함정 블록 — 문항 상자와 같은 둥근 상자에 묶는다 */
+    .tb-calc { border: 1px solid #cfdad3; border-radius: 10px; background: #fff;
+        padding: 4px 14px; margin: 0 0 20px; }
+    .nt-blk { display: flex; gap: 10px; align-items: baseline; padding: 9px 0; border-top: 1px solid #eef2ef; }
+    .nt-blk:first-child { border-top: 0; }
     .nt-blab { flex-shrink: 0; width: 2.6em; text-align: center; font-size: 0.72rem; font-weight: 700;
         padding: 2px 0; border-radius: 7px; background: #eef3ef; color: #40624f; }
     .nt-blk-1 .nt-blab { background: #1b4332; color: #fff; }
@@ -197,7 +199,7 @@
      * 연한 초록으로 칠해 아래 답과 한 덩이로 읽히게 한다. */
     .tb-qlist { margin: 4px 0 26px; border: 1px solid #cfdad3; border-radius: 10px;
         background: #fff; padding: 4px 8px; }
-    .tb-qlist + .tb-note > h3:first-child, .tb-qlist + .nt-blk { margin-top: 0; }
+    .tb-qlist + .tb-note > h3:first-child, .tb-calc + .tb-note > h3:first-child { margin-top: 0; }
     .tq { border-bottom: 1px solid #eef2ef; }
     .tq:last-child { border-bottom: 0; }
     .tq-head { display: flex; align-items: flex-start; gap: 8px; padding: 6px 6px; cursor: pointer;

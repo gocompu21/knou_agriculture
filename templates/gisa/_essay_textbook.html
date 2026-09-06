@@ -47,9 +47,14 @@
             <div class="tb-qlist" data-pk="{{ t.rep_pk }}" data-count="{{ t.count }}"
                  data-autoopen="{% if t.has_note %}0{% else %}1{% endif %}"></div>
 
-            {% for b in t.blocks %}
-            <div class="nt-blk nt-blk-{{ forloop.counter }}"><span class="nt-blab">{{ b.label }}</span><div class="nt-btext">{{ b.html|safe }}</div></div>
-            {% endfor %}
+            {% if t.blocks %}
+            <!-- 계산 주제의 공식·대입·함정 — 문항 상자와 같은 둥근 상자에 묶는다 -->
+            <div class="tb-calc">
+                {% for b in t.blocks %}
+                <div class="nt-blk nt-blk-{{ forloop.counter }}"><span class="nt-blab">{{ b.label }}</span><div class="nt-btext">{{ b.html|safe }}</div></div>
+                {% endfor %}
+            </div>
+            {% endif %}
 
             {% if t.html %}<div class="tb-note">{{ t.html|safe }}</div>{% endif %}
         </div>

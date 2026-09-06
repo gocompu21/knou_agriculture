@@ -96,9 +96,11 @@
         flex-basis: 100%; line-height: 1.7; margin: 1px 0 0 2.5em; }
 
     /* 공식 / 대입 / 함정 — 라벨을 왼쪽에 세우고 여백을 준다 */
+    .tb-calc { border: 1px solid #cfdad3; border-radius: 10px; background: #fff;
+        padding: 4px 14px; margin: 6px 0 16px; }
     .nt-blk { display: flex; gap: 10px; align-items: baseline;
-        padding: 9px 0; border-top: 1px solid #f0f3f1; }
-    .nt-blk:first-of-type { border-top: 0; }
+        padding: 9px 0; border-top: 1px solid #eef2ef; }
+    .nt-blk:first-child { border-top: 0; }
     .nt-blab { flex-shrink: 0; width: 2.6em; text-align: center;
         font-size: 0.72rem; font-weight: 700; padding: 2px 0;
         border-radius: 7px; background: #eef3ef; color: #40624f; }
@@ -188,7 +190,7 @@
             {% if it.warned %}<span class="nt-warn">⚠️</span>{% endif %}
             <span class="nt-arrow">›</span>
         </div>
-        <div class="nt-body">{% if it.rep_pk %}<div class="nt-sib hidden"></div>{% endif %}{% if it.rounds %}<div class="nt-rounds"><span class="nt-rlab">출제</span>{{ it.rounds|note_badges }}</div>{% endif %}{% for b in it.blocks %}<div class="nt-blk nt-blk-{{ forloop.counter }}"><span class="nt-blab">{{ b.label }}</span><div class="nt-btext">{{ b.html|safe }}</div></div>{% endfor %}{{ it.html|safe }}</div>
+        <div class="nt-body">{% if it.rep_pk %}<div class="nt-sib hidden"></div>{% endif %}{% if it.rounds %}<div class="nt-rounds"><span class="nt-rlab">출제</span>{{ it.rounds|note_badges }}</div>{% endif %}{% if it.blocks %}<div class="tb-calc">{% for b in it.blocks %}<div class="nt-blk nt-blk-{{ forloop.counter }}"><span class="nt-blab">{{ b.label }}</span><div class="nt-btext">{{ b.html|safe }}</div></div>{% endfor %}</div>{% endif %}{{ it.html|safe }}</div>
     </div>
     {% endfor %}
 </div>
