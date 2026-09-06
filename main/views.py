@@ -477,6 +477,18 @@ def subject_detail(request, pk):
                 combined, subject.pk,
                 cache_version=str(latest_updated) if latest_updated else None,
             )
+        # 관리자 편집용: 파싱된 장 ↔ StudyNote 레코드 연결 (제목 일치 → 순서 일치)
+        if request.user.is_staff and note_chapters:
+            notes_list = list(notes_qs)
+            by_title = {n.title.strip(): n for n in notes_list}
+            for idx, ch in enumerate(note_chapters):
+                note = by_title.get(ch["title"].strip())
+                if note is None and len(notes_list) == len(note_chapters):
+                    note = notes_list[idx]
+                if note is not None:
+                    ch["note_pk"] = note.pk
+                    ch["note_title"] = note.title
+                    ch["note_content"] = note.content
 
     # 최신기출: 2020년 이후 연도별 카드
     latest_years = (
@@ -910,6 +922,77 @@ def notes_study(request, pk):
         "section_id": section_id,
         "note_order": note_order,
     })
+
+
+## ══════════ 쪽집게 노트 관리자 편집 ══════════ ##
+
+
+def _note_payload(request, note=None):
+    """POST 의 title/content 를 정리해 (title, content, order, error) 로 돌려준다."""
+    title = (request.POST.get("title") or "").strip()
+    content = (request.POST.get("content") or "").replace("\r\n", "\n").strip("\n") + "\n"
+    if not content.strip():
+        return None, None, None, "내용이 비어 있습니다."
+    heading = re.search(r"^## (.+)$", content, re.M)
+    if not title:
+        title = heading.group(1).strip() if heading else (note.title if note else "")
+    if not title:
+        return None, None, None, "제목이 없습니다. '## 제N장. 제목' 줄을 넣어 주세요."
+    if not heading:
+        # 파서는 '## 제N장.' 줄로 장을 나누므로 없으면 제목 줄을 앞에 붙인다
+        content = f"## {title}\n\n{content}"
+    elif heading.group(1).strip() != title:
+        content = content.replace(heading.group(0), f"## {title}", 1)
+    m = re.match(r"제(\d+)장", title)
+    order = int(m.group(1)) if m else (note.order if note else None)
+    return title, content, order, None
+
+
+@login_required
+@user_passes_test(staff_required)
+@require_POST
+def note_update(request, note_pk):
+    note = get_object_or_404(StudyNote.objects.select_related("subject"), pk=note_pk)
+    title, content, order, err = _note_payload(request, note)
+    if err:
+        return JsonResponse({"error": err}, status=400)
+    if order != note.order and StudyNote.objects.filter(
+            subject=note.subject, order=order).exclude(pk=note.pk).exists():
+        return JsonResponse({"error": f"제{order}장은 이미 있습니다. 장 번호를 바꿔 주세요."}, status=400)
+    note.title, note.content, note.order = title, content, order
+    note.save()
+    return JsonResponse({"ok": True, "pk": note.pk, "order": note.order})
+
+
+@login_required
+@user_passes_test(staff_required)
+@require_POST
+def note_create(request, pk):
+    subject = get_object_or_404(Subject, pk=pk)
+    last = StudyNote.objects.filter(subject=subject).aggregate(m=Max("order"))["m"] or 0
+    order = last + 1
+    if request.POST.get("content"):
+        title, content, order2, err = _note_payload(request)
+        if err:
+            return JsonResponse({"error": err}, status=400)
+        order = order2 or order
+        if StudyNote.objects.filter(subject=subject, order=order).exists():
+            return JsonResponse({"error": f"제{order}장은 이미 있습니다."}, status=400)
+    else:
+        title = f"제{order}장. 새 장"
+        content = (f"## {title}\n\n### {order}.1 절 제목\n\n내용을 적습니다. "
+                   f"핵심 용어는 **볼드**로 표시합니다.\n\n**관련 문제**: \n")
+    note = StudyNote.objects.create(subject=subject, title=title, content=content, order=order)
+    return JsonResponse({"ok": True, "pk": note.pk, "order": note.order})
+
+
+@login_required
+@user_passes_test(staff_required)
+@require_POST
+def note_delete(request, note_pk):
+    note = get_object_or_404(StudyNote, pk=note_pk)
+    note.delete()
+    return JsonResponse({"ok": True})
 
 
 @login_required

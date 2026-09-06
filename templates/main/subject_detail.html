@@ -159,6 +159,40 @@
     .chapter-body { display: none; }
     .chapter-item.open .chapter-body { display: block; }
 
+    /* 관리자 노트 편집 */
+    .note-edit-btn {
+        background: none; border: 1px solid #b7cbb7; border-radius: 4px;
+        padding: 2px 8px; margin-left: 8px; font-size: 0.72rem; font-weight: 500;
+        color: #2d6a4f; cursor: pointer; white-space: nowrap;
+    }
+    .note-edit-btn:hover { background: #fff; }
+    .note-editor { padding: 12px 18px 14px; background: #fbfdfb; border-top: 1px solid #dce8dc; }
+    .note-editor input[type=text] {
+        width: 100%; box-sizing: border-box; padding: 7px 10px; margin-bottom: 8px;
+        border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; font-weight: 600;
+    }
+    .note-editor textarea {
+        width: 100%; box-sizing: border-box; min-height: 420px; padding: 10px 12px;
+        border: 1px solid #ccc; border-radius: 6px; resize: vertical;
+        font-family: Consolas, 'D2Coding', 'Nanum Gothic Coding', monospace;
+        font-size: 0.82rem; line-height: 1.55; tab-size: 4;
+    }
+    .note-editor textarea:focus, .note-editor input:focus { outline: none; border-color: #2d6a4f; }
+    .note-editor-hint { font-size: 0.74rem; color: #777; margin: 6px 0 8px; line-height: 1.6; }
+    .note-editor-hint code { background: #eef3ee; padding: 0 4px; border-radius: 3px; }
+    .note-editor-actions { display: flex; gap: 8px; align-items: center; }
+    .note-editor-actions button {
+        border: none; border-radius: 6px; padding: 7px 16px; font-size: 0.82rem; cursor: pointer;
+    }
+    .note-save-btn { background: #2d6a4f; color: #fff; }
+    .note-cancel-btn { background: #eee; color: #444; }
+    .note-del-btn { background: none; color: #b71c1c; margin-left: auto; text-decoration: underline; }
+    .note-editor-msg { font-size: 0.8rem; color: #b71c1c; margin-left: 6px; }
+    .note-add-btn {
+        background: none; border: 1px dashed #2d6a4f; border-radius: 6px; color: #2d6a4f;
+        padding: 6px 14px; font-size: 0.8rem; cursor: pointer; margin-right: 8px;
+    }
+
     .section-item { border-top: 1px solid #f0f0f0; }
     .section-header {
         padding: 12px 18px 12px 32px; cursor: pointer;
@@ -1551,9 +1585,27 @@
         {% for ch in note_chapters %}
         <div class="chapter-item open" id="{{ ch.id }}" data-ch-idx="{{ forloop.counter0 }}">
             <div class="chapter-header" onclick="this.parentElement.classList.toggle('open')">
-                <span>{{ ch.title }}</span>
+                <span>{{ ch.title }}{% if request.user.is_staff and ch.note_pk %}<button type="button" class="note-edit-btn" onclick="event.stopPropagation(); openNoteEditor({{ ch.note_pk }})">수정</button>{% endif %}</span>
                 <span class="chapter-chevron">&#9654;</span>
             </div>
+            {% if request.user.is_staff and ch.note_pk %}
+            <div class="note-editor" id="note-editor-{{ ch.note_pk }}" hidden>
+                <input type="text" id="note-title-{{ ch.note_pk }}" value="{{ ch.note_title }}" placeholder="제N장. 제목">
+                <textarea id="note-content-{{ ch.note_pk }}" spellcheck="false">{{ ch.note_content }}</textarea>
+                <div class="note-editor-hint">
+                    <code>## 제N장. 제목</code> 장 · <code>### N.M 절제목</code> 절 · <code>#### N.M.K 항제목</code> 항 ·
+                    <code>**볼드**</code> · <code>- </code> 목록 · <code>| 표 |</code> ·
+                    절 끝에 <code>**관련 문제**: (연도-문항번호), (연도-문항번호)</code> ·
+                    장 끝에 <code>### 핵심 키워드 요약</code> 표. 제목의 장 번호를 바꾸면 순서도 함께 바뀝니다.
+                </div>
+                <div class="note-editor-actions">
+                    <button type="button" class="note-save-btn" onclick="saveNote({{ ch.note_pk }})">저장</button>
+                    <button type="button" class="note-cancel-btn" onclick="closeNoteEditor({{ ch.note_pk }})">취소</button>
+                    <span class="note-editor-msg" id="note-msg-{{ ch.note_pk }}"></span>
+                    <button type="button" class="note-del-btn" onclick="deleteNote({{ ch.note_pk }}, '{{ ch.note_title|escapejs }}')">이 장 삭제</button>
+                </div>
+            </div>
+            {% endif %}
             <div class="chapter-body">
                 {% for sec in ch.sections %}
                 <div class="section-item" id="{{ sec.id }}">
@@ -1600,10 +1652,13 @@
         </div>
         {% endfor %}
         <div style="text-align:right;margin-top:12px;">
+            {% if request.user.is_staff %}<button type="button" class="note-add-btn" onclick="createNote()">+ 새 장 추가</button>{% endif %}
             <button type="button" id="toggle-all-notes" onclick="toggleAllNotes()" style="background:none;border:1px solid #ccc;border-radius:4px;padding:3px 10px;font-size:0.78rem;color:#555;cursor:pointer;">전체 펼치기</button>
         </div>
         {% else %}
-        <div class="empty-msg">등록된 쪽집게 정리가 없습니다.</div>
+        <div class="empty-msg">등록된 쪽집게 정리가 없습니다.
+            {% if request.user.is_staff %}<div style="margin-top:12px;"><button type="button" class="note-add-btn" onclick="createNote()">+ 새 장 추가</button></div>{% endif %}
+        </div>
         {% endif %}
     </div>
 
@@ -2095,6 +2150,64 @@
     formatBadges(document);
 
     // 전체 펼치기/접기 토글 (절 내용까지 펼침 / 절 내용만 접음, 장은 항상 open)
+    /* ── 관리자 쪽집게 노트 편집 ── */
+    var _noteOrig = {};
+    window.openNoteEditor = function(pk) {
+        var ed = document.getElementById('note-editor-' + pk);
+        if (!ed) return;
+        var ta = document.getElementById('note-content-' + pk);
+        if (!(pk in _noteOrig)) _noteOrig[pk] = ta.value;
+        ed.hidden = false;
+        ed.closest('.chapter-item').classList.add('open');
+        ta.focus();
+    };
+    window.closeNoteEditor = function(pk) {
+        var ed = document.getElementById('note-editor-' + pk);
+        var ta = document.getElementById('note-content-' + pk);
+        if (ta && ta.value !== _noteOrig[pk] && !confirm('고친 내용을 버리고 닫을까요?')) return;
+        if (ta && pk in _noteOrig) ta.value = _noteOrig[pk];
+        document.getElementById('note-msg-' + pk).textContent = '';
+        ed.hidden = true;
+    };
+    function _notePost(url, data) {
+        var fd = new FormData();
+        Object.keys(data || {}).forEach(function(k) { fd.append(k, data[k]); });
+        return fetch(url, { method: 'POST', body: fd,
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+            .then(function(r) { return r.json().then(function(j) { if (!r.ok) throw new Error(j.error || ('오류 ' + r.status)); return j; }); });
+    }
+    window.saveNote = function(pk) {
+        var msg = document.getElementById('note-msg-' + pk);
+        msg.style.color = '#555'; msg.textContent = '저장 중…';
+        _notePost('/subjects/notes/' + pk + '/update/', {
+            title: document.getElementById('note-title-' + pk).value,
+            content: document.getElementById('note-content-' + pk).value
+        }).then(function() {
+            location.href = '?tab=notes';
+        }).catch(function(e) { msg.style.color = '#b71c1c'; msg.textContent = e.message; });
+    };
+    window.deleteNote = function(pk, title) {
+        if (!confirm('"' + title + '" 장을 삭제할까요? 되돌릴 수 없습니다.')) return;
+        _notePost('/subjects/notes/' + pk + '/delete/').then(function() {
+            location.href = '?tab=notes';
+        }).catch(function(e) { alert(e.message); });
+    };
+    window.createNote = function() {
+        _notePost('{% url "main:note_create" subject.pk %}').then(function(j) {
+            location.href = '?tab=notes&edit_note=' + j.pk;
+        }).catch(function(e) { alert(e.message); });
+    };
+    (function() {
+        var m = location.search.match(/[?&]edit_note=(\d+)/);
+        if (m && window.openNoteEditor) {
+            setTimeout(function() {
+                openNoteEditor(m[1]);
+                var ed = document.getElementById('note-editor-' + m[1]);
+                if (ed) ed.scrollIntoView({ block: 'start' });
+            }, 50);
+        }
+    })();
+
     var _notesExpanded = false;
     window.toggleAllNotes = function() {
         _notesExpanded = !_notesExpanded;
