@@ -64,6 +64,24 @@ def mathify(s):
     return s
 
 
+def number_sections(html):
+    """절 제목(<h3>)에 (1) (2) 번호를 붙이고, 그 아래 내용을 .nt-sec 으로 감싸 들여쓴다.
+
+    한 주제 안에 정의·이유·사례·공식·대입이 잇달아 나와 어디서 절이 바뀌는지
+    눈이 놓치기 쉽다. 번호와 들여쓰기가 뼈대를 보여 준다.
+    """
+    parts = re.split(r'(<h3>.*?</h3>)', html, flags=re.S)
+    if len(parts) < 3:
+        return html
+    out, n = [parts[0]], 0
+    for i in range(1, len(parts), 2):
+        n += 1
+        head = parts[i].replace('<h3>', '<h3><span class="nt-hno">(%d)</span> ' % n, 1)
+        body = parts[i + 1] if i + 1 < len(parts) else ''
+        out.append(head + '<div class="nt-sec">' + body + '</div>')
+    return ''.join(out)
+
+
 # ------------------------------------------------------------------ 정리 자료 파싱
 
 def parse_note_items(cert, note):
@@ -133,7 +151,8 @@ def parse_note_items(cert, note):
             'blocks': blocks,
             'warned': '⚠️ 요구가 커진 지점' in body,
             # 본문에도 ÷·지수·LaTeX 가 섞여 있다(1.5배 도달 연수 풀이 등)
-            'html': md.markdown(mathify(body_rest), extensions=['tables', 'nl2br']),
+            'html': number_sections(
+                md.markdown(mathify(body_rest), extensions=['tables', 'nl2br'])),
         })
     return intro_md, items
 
@@ -265,7 +284,7 @@ def build_textbook(cert):
     qs_all = GisaEssayQuestion.objects.filter(certification=cert, source='기출')
     notes = list(GisaEssayNote.objects.filter(certification=cert))
     stamp = max([n.updated_at.timestamp() for n in notes] + [0])
-    key = 'essay_tb:v2:%d:%d:%d' % (cert.pk, qs_all.count(), int(stamp))
+    key = 'essay_tb:v3:%d:%d:%d' % (cert.pk, qs_all.count(), int(stamp))
     hit = cache.get(key)
     if hit:
         return hit
