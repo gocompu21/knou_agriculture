@@ -8,13 +8,6 @@
         {% endfor %}
     </div>
     <div class="tb-tools">
-        <div class="tb-chips">
-            <button type="button" class="tb-chip on" data-f="all">전체</button>
-            <button type="button" class="tb-chip" data-f="s3" title="5회 이상 출제">★★★ {{ tb.n_star3 }}</button>
-            <button type="button" class="tb-chip" data-f="calc">계산 {{ tb.n_calc }}</button>
-            <button type="button" class="tb-chip" data-f="comeback" title="실기 1회 출제이나 필기에 10회 이상 등장">재출제 유력 {{ tb.n_comeback }}</button>
-            <button type="button" class="tb-chip" data-f="warn" title="같은 주제인데 요구가 커진 이력">⚠️ 요구 확장 {{ tb.n_warned }}</button>
-        </div>
         <button type="button" class="tb-expand" id="tbExpand">전체 펼치기</button>
     </div>
 </div>
