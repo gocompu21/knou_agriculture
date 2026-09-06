@@ -199,6 +199,29 @@
     .tb-ans table { border-collapse: collapse; font-size: 0.86em; }
     .tb-ans th, .tb-ans td { border: 1px solid #ccd6cf; padding: 3px 9px; }
 
+    /* 주제의 기출 문항 목록 — 문항 + 연도 배지, 누르면 답 */
+    .tb-qlist { margin: 4px 0 10px; }
+    .tq-lab { font-size: 0.72rem; font-weight: 700; color: #8b968f; letter-spacing: .04em; margin-bottom: 4px; }
+    .tq { border-bottom: 1px dashed #e3e9e4; }
+    .tq:last-child { border-bottom: 0; }
+    .tq-head { display: flex; align-items: flex-start; gap: 6px; padding: 8px 4px; cursor: pointer; }
+    .tq-head:hover { background: #fafcfa; }
+    .tq-no { font-weight: 700; color: #1b4332; font-size: 0.88rem; flex-shrink: 0; min-width: 1.4em; line-height: 1.7; }
+    .tq-text { flex: 1; font-size: 0.9rem; line-height: 1.7; color: #1f2d24; font-weight: 600; }
+    .tq-text .q-box, .tq-text table { font-weight: 400; }
+    .tq-text .fq-r { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 1px 7px;
+        border-radius: 8px; border: 1px solid; line-height: 1.5; vertical-align: 2px; margin-left: 4px; }
+    .tq-meta { font-size: 0.72rem; color: #97a79d; font-weight: 400; margin-left: 6px; white-space: nowrap; }
+    .tq-arrow { color: #c3cec7; font-size: 0.85rem; transition: transform .15s; flex-shrink: 0; line-height: 1.7; }
+    .tq.open .tq-arrow { transform: rotate(90deg); }
+    .tq-ans { display: none; margin: 0 4px 10px 1.9em; background: #f7faf8; border-left: 3px solid #2d6a4f;
+        border-radius: 0 8px 8px 0; padding: 8px 12px; }
+    .tq.open .tq-ans { display: block; }
+    .tq-ai { font-size: 0.88rem; line-height: 1.8; color: #1f3d30; padding: 1px 0 1px 1.4em; text-indent: -1.4em; }
+    .tq-ai .q-box, .tq-ai table { text-indent: 0; }
+    .tq-ans table { border-collapse: collapse; font-size: 0.86em; }
+    .tq-ans th, .tq-ans td { border: 1px solid #ccd6cf; padding: 3px 9px; }
+
     .tb-foot { display: flex; align-items: center; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
     .tb-sib-btn { font-size: 0.78rem; font-weight: 700; padding: 5px 12px; border-radius: 12px;
         border: 1px solid #f0d9b5; background: #fff3e0; color: #a1651a; cursor: pointer; font-family: inherit; }
@@ -893,43 +916,64 @@ document.querySelectorAll('.tb-chip').forEach(function (b) {
         b.classList.add('on'); tbFilter = b.dataset.f; tbApply();
     });
 });
-function tbToggle(head) { head.parentElement.classList.toggle('open'); }
+function tbToggle(head) {
+    var item = head.parentElement;
+    item.classList.toggle('open');
+    if (item.classList.contains('open')) tbLoadQuestions(item);
+}
 var tbExpandBtn = document.getElementById('tbExpand');
 if (tbExpandBtn) tbExpandBtn.addEventListener('click', function () {
     tbAllOpen = !tbAllOpen;
     document.querySelectorAll('.tb-group:not([hidden]) .tb-item:not(.hide)').forEach(function (x) {
         x.classList.toggle('open', tbAllOpen);
+        if (tbAllOpen) tbLoadQuestions(x);
     });
     tbExpandBtn.textContent = tbAllOpen ? '전체 접기' : '전체 펼치기';
 });
-/* 같은 주제로 나온 기출 문항 전부 — essay_note 와 같은 API(siblings?all=1) */
-async function tbSiblings(btn) {
-    var body = btn.closest('.tb-body');
-    var box = body.querySelector('.nt-sib');
-    if (!box.classList.contains('hidden')) { box.classList.add('hidden'); btn.classList.remove('on'); return; }
-    box.classList.remove('hidden'); btn.classList.add('on');
-    if (box.dataset.loaded) return;
-    box.innerHTML = '<div class="nt-sib-load">불러오는 중…</div>';
+/* 연도 배지 색 — 최신일수록 진하게 (gisa_filters._round_tone 과 같은 단계) */
+function tbTone(year, newest) {
+    var gap = newest - year;
+    if (gap <= 1) return ['#1b4332', '#fff', '#1b4332'];
+    if (gap <= 3) return ['#40806b', '#fff', '#40806b'];
+    if (gap <= 6) return ['#dbe9e0', '#1f4d3a', '#a9c8b8'];
+    if (gap <= 10) return ['#eef3ef', '#40624f', '#cfdcd4'];
+    return ['#f6f7f6', '#8b968f', '#e2e6e3'];
+}
+/* 주제를 펼치면 그 주제의 기출 문항 전부를 불러와 나열한다 (siblings?all=1).
+   문항을 누르면 답이 펼쳐진다. 정리가 없는 주제는 첫 문항의 답을 바로 연다. */
+async function tbLoadQuestions(item) {
+    var box = item.querySelector('.tb-qlist');
+    if (!box || box.dataset.loaded) return;
+    box.dataset.loaded = '1';
+    box.innerHTML = '<div class="nt-sib-load">기출 문항 ' + box.dataset.count + '개 불러오는 중…</div>';
     try {
-        var r = await fetch('/gisa/{{ cert.pk }}/essay/siblings/' + btn.dataset.pk + '/?all=1');
+        var r = await fetch('/gisa/{{ cert.pk }}/essay/siblings/' + box.dataset.pk + '/?all=1');
         var d = await r.json();
         if (!d.ok) throw new Error('불러오지 못했습니다');
-        var html = '';
-        d.items.forEach(function (s) {
-            html += '<div class="nt-sib-q"><span class="nt-sib-lab">' + s.label + '</span>'
-                  + '<span style="font-size:0.72rem;color:#8a7a5e">' + s.qtype + ' · ' + s.points + '점</span>'
-                  + '<div class="nt-sib-text">' + s.text_html + '</div>';
+        var newest = Math.max.apply(null, d.items.map(function (s) { return +s.label.slice(0, 4); }));
+        var html = '<div class="tq-lab">기출 문항 ' + d.items.length + '개 · 누르면 답이 펼쳐집니다</div>';
+        d.items.forEach(function (s, i) {
+            var yr = +s.label.slice(0, 4), tone = tbTone(yr, newest);
+            var badge = '<span class="fq-r" style="background:' + tone[0] + ';color:' + tone[1] + ';border-color:' + tone[2] + '">' + s.label.slice(2) + '</span>';
+            var open = (box.dataset.autoopen === '1' && i === 0) ? ' open' : '';
+            html += '<div class="tq' + open + '"><div class="tq-head" onclick="this.parentElement.classList.toggle(\'open\')">'
+                  + '<span class="tq-no">' + (i + 1) + '.</span>'
+                  + '<div class="tq-text">' + s.text_html + ' ' + badge
+                  + '<span class="tq-meta">' + s.qtype + ' · ' + s.points + '점</span></div>'
+                  + '<span class="tq-arrow">›</span></div>';
             if (s.answer_html_items.length || s.answer_html) {
-                html += '<div class="nt-sib-ans">';
-                s.answer_html_items.forEach(function (it) { html += '<div>' + it + '</div>'; });
-                if (s.answer_html) html += s.answer_html;
+                html += '<div class="tq-ans">';
+                s.answer_html_items.forEach(function (it) { html += '<div class="tq-ai">' + it + '</div>'; });
+                if (s.answer_html) html += '<div class="tq-ai">' + s.answer_html + '</div>';
                 html += '</div>';
             }
             html += '</div>';
         });
-        box.innerHTML = html || '<div class="nt-sib-load">문항이 없습니다.</div>';
-        box.dataset.loaded = '1';
-    } catch (e) { box.innerHTML = '<div class="nt-sib-load">' + e.message + '</div>'; }
+        box.innerHTML = html;
+    } catch (e) {
+        box.dataset.loaded = '';
+        box.innerHTML = '<div class="nt-sib-load">' + e.message + '</div>';
+    }
 }
 
 /* 시험이력 — 상대 시간, 한 건 삭제 */
