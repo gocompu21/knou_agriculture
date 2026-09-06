@@ -146,12 +146,6 @@
     .tb-body { display: none; padding: 4px 16px 16px calc(22px + 1.71rem); }
     @media (max-width: 600px) { .tb-body { padding-left: 16px; } }
     .tb-item.open .tb-body { display: block; }
-    .tb-rounds { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin: 4px 0 10px; }
-    .tb-rlab { font-size: 0.72rem; font-weight: 700; color: #8b968f; letter-spacing: 0.04em; margin-right: 2px; }
-    .tb-rounds .fq-r { font-size: 0.73rem; font-weight: 700; padding: 2px 8px; border-radius: 9px;
-        border: 1px solid; line-height: 1.5; }
-    .tb-rounds .fq-memo { font-style: normal; font-weight: 500; font-size: 0.88em; opacity: 0.75; margin-left: 4px; }
-    .tb-qtypes { font-size: 0.74rem; color: #97a79d; margin-left: 6px; }
 
     /* 공식/대입/함정 블록 — essay_note 와 같은 결 */
     .nt-blk { display: flex; gap: 10px; align-items: baseline; padding: 9px 0; border-top: 1px solid #f0f3f1; }
@@ -189,15 +183,6 @@
     .tb-note .q-svg { text-align: center; margin: 10px 0 12px; }
     .tb-note .q-svg svg { max-width: 100%; height: auto; }
 
-    .tb-q, .tb-ans { margin-top: 8px; }
-    .tb-qlab { display: block; font-size: 0.72rem; font-weight: 700; color: #8b968f;
-        letter-spacing: .04em; margin-bottom: 3px; }
-    .tb-qtext { font-size: 0.9rem; line-height: 1.75; color: #1f2d24; font-weight: 600; }
-    .tb-ans { background: #f7faf8; border-left: 3px solid #2d6a4f; border-radius: 0 8px 8px 0;
-        padding: 8px 12px; }
-    .tb-ai { font-size: 0.88rem; line-height: 1.8; color: #1f3d30; padding: 1px 0; }
-    .tb-ans table { border-collapse: collapse; font-size: 0.86em; }
-    .tb-ans th, .tb-ans td { border: 1px solid #ccd6cf; padding: 3px 9px; }
 
     /* 주제의 기출 문항 목록 — 문항 + 연도 배지, 누르면 답 */
     .tb-qlist { margin: 4px 0 10px; }
@@ -217,27 +202,15 @@
     .tq-ans { display: none; margin: 0 4px 10px 1.9em; background: #f7faf8; border-left: 3px solid #2d6a4f;
         border-radius: 0 8px 8px 0; padding: 8px 12px; }
     .tq.open .tq-ans { display: block; }
-    .tq-ai { font-size: 0.88rem; line-height: 1.8; color: #1f3d30; padding: 1px 0 1px 1.4em; text-indent: -1.4em; }
-    .tq-ai .q-box, .tq-ai table { text-indent: 0; }
+    .tq-ai { font-size: 0.88rem; line-height: 1.8; color: #1f3d30; padding: 1px 0; }
+    .tq-ai.hang { padding-left: 1.4em; text-indent: -1.4em; }
+    .tq-ai.hang .q-box, .tq-ai.hang table { text-indent: 0; }
     .tq-ans table { border-collapse: collapse; font-size: 0.86em; }
     .tq-ans th, .tq-ans td { border: 1px solid #ccd6cf; padding: 3px 9px; }
 
     .tb-foot { display: flex; align-items: center; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
-    .tb-sib-btn { font-size: 0.78rem; font-weight: 700; padding: 5px 12px; border-radius: 12px;
-        border: 1px solid #f0d9b5; background: #fff3e0; color: #a1651a; cursor: pointer; font-family: inherit; }
-    .tb-sib-btn:hover { background: #ffe8c8; }
-    .tb-sib-btn.on { background: #a1651a; color: #fff; border-color: #a1651a; }
     .tb-link { font-size: 0.78rem; color: #2d6a4f; text-decoration: none; font-weight: 600; }
     .tb-link:hover { text-decoration: underline; }
-    .nt-sib { margin: 8px 0 0; border-left: 3px solid #d9c7a8; background: #fffdf8;
-        border-radius: 0 8px 8px 0; padding: 10px 14px; }
-    .nt-sib.hidden { display: none; }
-    .nt-sib-q { padding: 8px 0; border-top: 1px dashed #e8dcc4; }
-    .nt-sib-q:first-child { border-top: 0; padding-top: 0; }
-    .nt-sib-lab { font-size: 0.72rem; font-weight: 700; color: #1b4332; background: #e7efe9;
-        padding: 1px 7px; border-radius: 6px; margin-right: 7px; }
-    .nt-sib-text { font-size: 0.87rem; line-height: 1.7; color: #1f2d24; font-weight: 600; margin-top: 3px; }
-    .nt-sib-ans { margin-top: 4px; font-size: 0.83rem; line-height: 1.7; color: #4a6b58; }
     .nt-sib-load { font-size: 0.8rem; color: #999; }
 
     /* 모의고사 시작 카드 */
@@ -963,7 +936,11 @@ async function tbLoadQuestions(item) {
                   + '<span class="tq-arrow">›</span></div>';
             if (s.answer_html_items.length || s.answer_html) {
                 html += '<div class="tq-ans">';
-                s.answer_html_items.forEach(function (it) { html += '<div class="tq-ai">' + it + '</div>'; });
+                s.answer_html_items.forEach(function (it) {
+                    // ① 로 시작하는 항목만 매달린 들여쓰기. 계산 풀이·문장은 그대로
+                    var hang = /^\s*(?:<[^>]+>\s*)*[①-⑳]/.test(it) ? ' hang' : '';
+                    html += '<div class="tq-ai' + hang + '">' + it + '</div>';
+                });
                 if (s.answer_html) html += '<div class="tq-ai">' + s.answer_html + '</div>';
                 html += '</div>';
             }
