@@ -23,6 +23,47 @@ from .templatetags.gisa_filters import frac_span, qtext
 CACHE_TTL = 600
 
 
+# ------------------------------------------------------------------ 수식 표기
+
+# 항: 괄호 묶음, ln/log 식, 숫자·문자 덩어리. 분자는 ×·로 이어진 곱까지, 분모는 항 하나만
+# (20÷50×100 은 20/50 × 100 이지 20/(50×100) 이 아니다).
+_SYM = r"(?:\([^()]*\)|(?:ln|log)\s?\(?[\d.,A-Za-z₀-₉]*\)?|[A-Za-z0-9.,₀-₉]+(?:<su[bp]>[^<]*</su[bp]>)*)"
+_CHAIN = r"%s(?:\s*[×·]\s*%s)*" % (_SYM, _SYM)
+_DIV = re.compile(r"(?<![가-힣])(%s)\s*÷\s*(%s)" % (_CHAIN, _SYM))
+_FRAC_TAG = re.compile(r"\[frac\]([^|\[\]]+)\|([^|\[\]]+)\[/frac\]")
+
+
+def _latex_plain(x):
+    """$…$ 안의 LaTeX 를 화면용 평문으로. 우리 노트에 쓰인 범위만 다룬다."""
+    x = re.sub(r'\\(ln|log|sin|cos|tan|exp)\b\s*', r'\1', x)
+    for a, b in (('\\times', '×'), ('\\div', '÷'), ('\\approx', '≈'), ('\\cdot', '·'),
+                 ('\\ge', '≥'), ('\\le', '≤'), ('\\rightarrow', '→'), ('\\to', '→'),
+                 ('\\,', ' '), ('\\;', ' '), ('\\!', ''), ('\\left', ''), ('\\right', '')):
+        x = x.replace(a, b)
+    x = re.sub(r'\\frac\{([^{}]+)\}\{([^{}]+)\}', r'[frac]\1|\2[/frac]', x)
+    x = re.sub(r'_\{([^}]+)\}', r'<sub>\1</sub>', x)
+    x = re.sub(r'_([A-Za-z0-9])', r'<sub>\1</sub>', x)
+    return x.strip()
+
+
+def mathify(s):
+    """마크다운 본문의 수식 표기를 화면용으로 바꾼다.
+
+    - $$…$$ / $…$ 의 LaTeX → 평문 (\\ln → ln, \\frac → 분수, N_0 → N₀ 꼴)
+    - x^{n} · e^(rt) · (1.01)^t → 위첨자
+    - A ÷ B, [frac]A|B[/frac] → 세로 분수
+    노트를 LaTeX 로 적어 두면 화면에 $ 기호가 그대로 남았다. 마크다운 변환 전에 돈다.
+    """
+    s = re.sub(r'\$\$(.+?)\$\$', lambda m: _latex_plain(m.group(1)), s, flags=re.S)
+    s = re.sub(r'(?<![\\$])\$(?!\$)([^$\n]{1,120}?)\$', lambda m: _latex_plain(m.group(1)), s)
+    s = re.sub(r'\^\{([^}]{1,12})\}', r'<sup>\1</sup>', s)
+    s = re.sub(r'\^\(([^)]{1,12})\)', r'<sup>\1</sup>', s)
+    s = re.sub(r'\^(-?\d+(?:\.\d+)?|[A-Za-z]\d?)(?![\w.])', r'<sup>\1</sup>', s)
+    s = _DIV.sub(lambda m: frac_span(m.group(1), m.group(2)), s)
+    s = _FRAC_TAG.sub(lambda m: frac_span(m.group(1).strip(), m.group(2).strip()), s)
+    return s
+
+
 # ------------------------------------------------------------------ 정리 자료 파싱
 
 def parse_note_items(cert, note):
@@ -75,29 +116,10 @@ def parse_note_items(cert, note):
             bm = re.search(r'^\*\*%s\*\*\s*(.+)$' % lab, body_rest, flags=re.M)
             if not bm:
                 continue
-            raw = bm.group(1).strip()
-            raw = re.sub(r'\^\{([^}]{1,12})\}', r'<sup>\1</sup>', raw)
-            raw = re.sub(r'\^\(([^)]{1,12})\)', r'<sup>\1</sup>', raw)
-            raw = re.sub(r'\^(-?\d+(?:\.\d+)?|[A-Za-z]\d?)(?![\w.])',
-                         r'<sup>\1</sup>', raw)
-            raw = re.sub(r'_\{([^}]{1,12})\}', r'<sub>\1</sub>', raw)
-            if lab in ('공식', '대입'):
-                # A ÷ B 를 세로 분수로. 항은 기호식 덩어리(2C, (A+B), ln1.5)와
-                # ×·로 이어진 곱까지만 잡는다. 한글 공식은 [frac]분자|분모[/frac]
-                # 로 적어 두면 그대로 그린다.
-                sym = (r"(?:\([^()]*\)|(?:ln|log)\s?[\d.,A-Za-z]*"
-                       r"|[A-Za-z0-9.,₀-₉]+)")
-                chain = r"%s(?:\s*[×·]\s*%s)*" % (sym, sym)
-                raw = re.sub(
-                    r"(?<![가-힣])(%s)\s*÷\s*(%s)" % (chain, chain),
-                    lambda m2: frac_span(m2.group(1), m2.group(2)), raw)
-                raw = re.sub(
-                    r"\[frac\]([^|\[\]]+)\|([^|\[\]]+)\[/frac\]",
-                    lambda m2: frac_span(m2.group(1).strip(),
-                                         m2.group(2).strip()), raw)
+            raw = re.sub(r'_\{([^}]{1,12})\}', r'<sub>\1</sub>', bm.group(1).strip())
             blocks.append({
                 'label': lab,
-                'html': md.markdown(raw, extensions=['tables']),
+                'html': md.markdown(mathify(raw), extensions=['tables']),
             })
             body_rest = body_rest.replace(bm.group(0), '')
 
@@ -110,7 +132,8 @@ def parse_note_items(cert, note):
             'topic_key': rep.topic_key if rep else '',
             'blocks': blocks,
             'warned': '⚠️ 요구가 커진 지점' in body,
-            'html': md.markdown(body_rest, extensions=['tables', 'nl2br']),
+            # 본문에도 ÷·지수·LaTeX 가 섞여 있다(1.5배 도달 연수 풀이 등)
+            'html': md.markdown(mathify(body_rest), extensions=['tables', 'nl2br']),
         })
     return intro_md, items
 
@@ -242,7 +265,7 @@ def build_textbook(cert):
     qs_all = GisaEssayQuestion.objects.filter(certification=cert, source='기출')
     notes = list(GisaEssayNote.objects.filter(certification=cert))
     stamp = max([n.updated_at.timestamp() for n in notes] + [0])
-    key = 'essay_tb:v1:%d:%d:%d' % (cert.pk, qs_all.count(), int(stamp))
+    key = 'essay_tb:v2:%d:%d:%d' % (cert.pk, qs_all.count(), int(stamp))
     hit = cache.get(key)
     if hit:
         return hit
