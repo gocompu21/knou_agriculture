@@ -11,6 +11,8 @@
 분류별 아코디언으로 낸다. 어느 주제를 넣는가: 2회 이상 출제, 계산, 재출제 유력
 (1회 출제이나 필기 10회 이상 등장). 1회만 나온 나머지는 회차별 학습에서 본다.
 """
+import json
+import os
 import re
 
 import markdown as md
@@ -21,6 +23,25 @@ from .models import GisaEssayNote, GisaEssayQuestion
 from .templatetags.gisa_filters import frac_span, qtext
 
 CACHE_TTL = 600
+
+# 직접 지은 주제 제목 — 대표 문항의 "연도-회차-번호" → 제목. 발문을 규칙으로 잘라
+# 만든 제목은 문제의 부분집합이 되기 쉬워(예: "토양은 입경에 따라 사토, 미사토…"),
+# 정리 자료가 없는 주제는 여기서 문제의 뜻을 제목으로 적어 둔다. 규칙은 여기 없을 때만.
+_TITLES_PATH = os.path.join(os.path.dirname(__file__), 'essay_topic_titles.json')
+_titles_cache = {'mtime': None, 'data': {}}
+
+
+def _custom_titles():
+    try:
+        mtime = os.path.getmtime(_TITLES_PATH)
+    except OSError:
+        return {}
+    if _titles_cache['mtime'] != mtime:
+        with open(_TITLES_PATH, encoding='utf-8') as f:
+            data = json.load(f)
+        _titles_cache.update(mtime=mtime,
+                             data={k: v for k, v in data.items() if not k.startswith('_')})
+    return _titles_cache['data']
 
 
 # ------------------------------------------------------------------ 수식 표기
@@ -343,7 +364,11 @@ def build_textbook(cert):
     qs_all = GisaEssayQuestion.objects.filter(certification=cert, source='기출')
     notes = list(GisaEssayNote.objects.filter(certification=cert))
     stamp = max([n.updated_at.timestamp() for n in notes] + [0])
-    key = 'essay_tb:v5:%d:%d:%d' % (cert.pk, qs_all.count(), int(stamp))
+    try:
+        stamp = max(stamp, os.path.getmtime(_TITLES_PATH))
+    except OSError:
+        pass
+    key = 'essay_tb:v6:%d:%d:%d' % (cert.pk, qs_all.count(), int(stamp))
     hit = cache.get(key)
     if hit:
         return hit
@@ -365,6 +390,7 @@ def build_textbook(cert):
         topics.setdefault(q.topic_key, []).append(q)
 
     names = dict(GisaEssayQuestion.TOPIC_CHOICES)
+    custom = _custom_titles()
     groups = {gid: [] for gid, _ in GisaEssayQuestion.TOPIC_CHOICES}
     groups[0] = []
     for tk, qlist in topics.items():
@@ -374,7 +400,8 @@ def build_textbook(cert):
         notes_ = by_key.get(tk, {})
         note = notes_.get('freq58')
         calc = notes_.get('calc')
-        title = (note or calc or {}).get('title') or _title_from(rep)
+        title = (custom.get('%d-%d-%d' % (rep.year, rep.round, rep.number))
+                 or (note or calc or {}).get('title') or _title_from(rep))
         stars = 3 if freq >= 5 else 2 if freq >= 3 else 1 if freq >= 2 else 0
         comeback = freq <= 1 and any(q.written_freq >= 10 for q in qlist)
         is_calc = any(q.qtype == '계산' for q in qlist)
