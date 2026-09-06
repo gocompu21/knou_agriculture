@@ -186,7 +186,6 @@
 
     /* 주제의 기출 문항 목록 — 문항 + 연도 배지, 누르면 답 */
     .tb-qlist { margin: 4px 0 10px; }
-    .tq-lab { font-size: 0.72rem; font-weight: 700; color: #8b968f; letter-spacing: .04em; margin-bottom: 4px; }
     .tq { border-bottom: 1px dashed #e3e9e4; }
     .tq:last-child { border-bottom: 0; }
     .tq-head { display: flex; align-items: flex-start; gap: 6px; padding: 8px 4px; cursor: pointer; }
@@ -924,7 +923,7 @@ async function tbLoadQuestions(item) {
         var d = await r.json();
         if (!d.ok) throw new Error('불러오지 못했습니다');
         var newest = Math.max.apply(null, d.items.map(function (s) { return +s.label.slice(0, 4); }));
-        var html = '<div class="tq-lab">기출 문항 ' + d.items.length + '개 · 누르면 답이 펼쳐집니다</div>';
+        var html = '';
         d.items.forEach(function (s, i) {
             var yr = +s.label.slice(0, 4), tone = tbTone(yr, newest);
             // 번호 자리에 연도-회차 배지. 문항의 정체는 순번이 아니라 회차다
