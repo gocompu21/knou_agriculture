@@ -191,15 +191,15 @@
     .tq:last-child { border-bottom: 0; }
     .tq-head { display: flex; align-items: flex-start; gap: 6px; padding: 8px 4px; cursor: pointer; }
     .tq-head:hover { background: #fafcfa; }
-    .tq-no { font-weight: 700; color: #1b4332; font-size: 0.88rem; flex-shrink: 0; min-width: 1.4em; line-height: 1.7; }
+    .tq-head .tq-badge { flex-shrink: 0; display: inline-block; font-size: 0.72rem; font-weight: 700;
+        padding: 2px 8px; border-radius: 8px; border: 1px solid; line-height: 1.5; margin-top: 2px;
+        min-width: 2.6em; text-align: center; }
     .tq-text { flex: 1; font-size: 0.9rem; line-height: 1.7; color: #1f2d24; font-weight: 600; }
     .tq-text .q-box, .tq-text table { font-weight: 400; }
-    .tq-text .fq-r { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 1px 7px;
-        border-radius: 8px; border: 1px solid; line-height: 1.5; vertical-align: 2px; margin-left: 4px; }
     .tq-meta { font-size: 0.72rem; color: #97a79d; font-weight: 400; margin-left: 6px; white-space: nowrap; }
     .tq-arrow { color: #c3cec7; font-size: 0.85rem; transition: transform .15s; flex-shrink: 0; line-height: 1.7; }
     .tq.open .tq-arrow { transform: rotate(90deg); }
-    .tq-ans { display: none; margin: 0 4px 10px 1.9em; background: #f7faf8; border-left: 3px solid #2d6a4f;
+    .tq-ans { display: none; margin: 0 4px 10px calc(2.6em + 22px); background: #f7faf8; border-left: 3px solid #2d6a4f;
         border-radius: 0 8px 8px 0; padding: 8px 12px; }
     .tq.open .tq-ans { display: block; }
     .tq-ai { font-size: 0.88rem; line-height: 1.8; color: #1f3d30; padding: 1px 0; }
@@ -927,11 +927,12 @@ async function tbLoadQuestions(item) {
         var html = '<div class="tq-lab">기출 문항 ' + d.items.length + '개 · 누르면 답이 펼쳐집니다</div>';
         d.items.forEach(function (s, i) {
             var yr = +s.label.slice(0, 4), tone = tbTone(yr, newest);
-            var badge = '<span class="fq-r" style="background:' + tone[0] + ';color:' + tone[1] + ';border-color:' + tone[2] + '">' + s.label.slice(2) + '</span>';
+            // 번호 자리에 연도-회차 배지. 문항의 정체는 순번이 아니라 회차다
+            var badge = '<span class="fq-r tq-badge" style="background:' + tone[0] + ';color:' + tone[1] + ';border-color:' + tone[2] + '">' + s.label.slice(2) + '</span>';
             var open = (box.dataset.autoopen === '1' && i === 0) ? ' open' : '';
             html += '<div class="tq' + open + '"><div class="tq-head" onclick="this.parentElement.classList.toggle(\'open\')">'
-                  + '<span class="tq-no">' + (i + 1) + '.</span>'
-                  + '<div class="tq-text">' + s.text_html + ' ' + badge
+                  + badge
+                  + '<div class="tq-text">' + s.text_html
                   + '<span class="tq-meta">' + s.qtype + ' · ' + s.points + '점</span></div>'
                   + '<span class="tq-arrow">›</span></div>';
             if (s.answer_html_items.length || s.answer_html) {
