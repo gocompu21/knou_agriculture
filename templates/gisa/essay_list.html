@@ -102,9 +102,10 @@
     .tb-pill:hover { background: #eef3ef; }
     .tb-pill.on { background: #1b4332; color: #fff; border-color: #1b4332; }
     /* 주제 수는 윗첨자처럼 작게 — 알약 안에 배지가 하나 더 들어가면 무겁다 */
-    .tb-cnt { font-size: 0.68em; font-weight: 700; vertical-align: super; line-height: 1;
-        margin-left: 1px; opacity: 0.75; }
-    .tb-pill { gap: 2px; align-items: baseline; }
+    /* flex 상자 안이라 vertical-align 이 안 먹는다 → 위치로 올린다 */
+    .tb-cnt { font-size: 0.68em; font-weight: 700; line-height: 1; margin-left: 1px; opacity: 0.75;
+        position: relative; top: -0.55em; }
+    .tb-pill { gap: 2px; align-items: center; }
     .tb-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .tb-chips { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; }
     .tb-chip { font-size: 0.76rem; padding: 4px 11px; border-radius: 13px;
