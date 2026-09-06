@@ -162,24 +162,28 @@
     .nt-btext strong { color: #1b4332; }
     .nt-btext sup, .nt-btext sub { font-size: 0.72em; line-height: 0; }
 
-    .tb-note h3 { font-size: 0.92rem; color: #1b4332; margin: 16px 0 6px; padding-bottom: 3px;
-        border-bottom: 1px solid #e5ece7; }
+    /* 절 제목은 연한 초록 띠로 세워 어디서 절이 바뀌는지 한눈에 보이게, 절 내용은
+     * 안내선을 따라 들여쓴다. 본문은 글자를 조금 키우고 줄 간격을 넉넉히. */
+    .tb-note h3 { font-size: 0.95rem; color: #1b4332; margin: 18px 0 8px; padding: 6px 12px;
+        background: #eef4ef; border-left: 4px solid #2d6a4f; border-radius: 0 6px 6px 0;
+        border-bottom: 0; line-height: 1.5; }
     .tb-note h3:first-child { margin-top: 6px; }
-    /* 절 번호 (1) (2) 와 절 내용 들여쓰기 — 어디서 절이 바뀌는지 뼈대가 보이게 */
-    .nt-hno { font-weight: 800; color: #2d6a4f; margin-right: 2px; }
-    .nt-sec { padding-left: 1.3em; }
+    .nt-hno { font-weight: 800; color: #2d6a4f; margin-right: 4px; }
+    .nt-sec { padding-left: 14px; margin-left: 6px; border-left: 2px solid #e3ebe5; }
     .nt-sec table { max-width: 100%; }
-    .tb-note p { font-size: 0.88rem; line-height: 1.85; color: #333; margin: 6px 0; }
-    .tb-note ul, .tb-note ol { padding-left: 20px; margin: 6px 0; font-size: 0.88rem; line-height: 1.8; color: #333; }
-    .tb-note li { margin: 3px 0; }
-    .tb-note table { border-collapse: collapse; font-size: 0.84rem; margin: 10px 0; display: block;
+    .tb-note p { font-size: 0.9rem; line-height: 1.9; color: #222; margin: 6px 0; }
+    .tb-note ul, .tb-note ol { padding-left: 22px; margin: 6px 0; font-size: 0.9rem; line-height: 1.85; color: #222; }
+    .tb-note li { margin: 4px 0; }
+    .tb-note li::marker { color: #2d6a4f; }
+    .tb-note table { border-collapse: collapse; font-size: 0.86rem; margin: 10px 0; display: block;
         overflow-x: auto; max-width: 100%; }
-    .tb-note th, .tb-note td { border: 1px solid #ccd6cf; padding: 5px 10px; line-height: 1.7; vertical-align: top; }
-    .tb-note th { background: #eaf1ec; white-space: nowrap; }
+    .tb-note th, .tb-note td { border: 1px solid #d3ddd6; padding: 6px 12px; line-height: 1.75; vertical-align: top; }
+    .tb-note th { background: #e7efe9; color: #1b4332; white-space: nowrap; }
+    .tb-note tr:nth-child(even) td { background: #fafcfa; }
     .tb-note strong { color: #1b4332; }
     .tb-note code { background: #f2f5f3; padding: 1px 5px; border-radius: 4px; font-size: 0.92em; }
-    .tb-note blockquote { margin: 10px 0; padding: 8px 14px; background: #fffdf5;
-        border-left: 3px solid #e8d9a0; font-size: 0.86rem; line-height: 1.8; color: #5a4a28; }
+    .tb-note blockquote { margin: 10px 0; padding: 8px 14px; background: #fff8e6;
+        border-left: 3px solid #e2c76d; border-radius: 0 6px 6px 0; font-size: 0.87rem; line-height: 1.8; color: #5a4a28; }
     .tb-note blockquote p { margin: 3px 0; font-size: inherit; color: inherit; }
     /* 정리 자료의 자작 그림(SVG) — 가운데, 폭 맞춤 */
     .tb-note .q-svg { text-align: center; margin: 10px 0 12px; }
