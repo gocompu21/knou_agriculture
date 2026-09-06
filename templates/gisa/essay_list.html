@@ -214,10 +214,11 @@
     .tq-meta { font-size: 0.72rem; color: #6f7f75; font-weight: 400; margin-left: 6px; white-space: nowrap; }
     .tq-arrow { color: #9fb0a6; font-size: 0.85rem; transition: transform .15s; flex-shrink: 0; line-height: 1.7; }
     .tq.open .tq-arrow { transform: rotate(90deg); }
-    .tq-ans { display: none; margin: 4px 6px 12px calc(2.6em + 22px); background: #f6faf7; border-left: 3px solid #2d6a4f;
-        border-radius: 0 8px 8px 0; padding: 8px 12px; }
+    /* 답은 흰 바탕에 검은 글 — 초록 바탕은 글이 묻힌다. 왼쪽 초록 선만 남겨 답임을 알린다 */
+    .tq-ans { display: none; margin: 4px 6px 12px calc(2.6em + 22px); background: #fff;
+        border-left: 3px solid #2d6a4f; padding: 6px 12px; }
     .tq.open .tq-ans { display: block; }
-    .tq-ai { font-size: 0.88rem; line-height: 1.8; color: #1f3d30; padding: 1px 0; }
+    .tq-ai { font-size: 0.9rem; line-height: 1.85; color: #1a1a1a; padding: 1px 0; }
     .tq-ai.hang { padding-left: 1.4em; text-indent: -1.4em; }
     .tq-ai.hang .q-box, .tq-ai.hang table { text-indent: 0; }
     .tq-ans table { border-collapse: collapse; font-size: 0.86em; }
