@@ -13,6 +13,7 @@
     .site-stat:first-child { border-left: 0; }
     .site-stat .v { display: block; font-size: 1.45rem; font-weight: 800; color: #1b4332;
         letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.2; }
+    .site-stat .v small { font-size: 0.6em; font-weight: 600; color: #4f6357; margin-left: 2px; }
     .site-stat .l { display: block; margin-top: 4px; font-size: 0.8rem; color: #6b7d70; }
     @media (max-width: 900px) {
         .site-stats { grid-template-columns: repeat(3, 1fr); }
@@ -829,12 +830,12 @@
 
     <!-- ══════════ 전체 사용현황 — 누적, 10분 캐시 (main.views._site_totals) ══════════ -->
     <div class="site-stats fade-up delay-1">
-        <div class="site-stat"><span class="v">{{ totals.users|intcomma }}</span><span class="l">활동 회원</span></div>
-        <div class="site-stat"><span class="v">{{ totals.solved|intcomma }}</span><span class="l">푼 문제</span></div>
-        <div class="site-stat"><span class="v">{% if totals.rate != None %}{{ totals.rate }}%{% else %}-{% endif %}</span><span class="l">정답률</span></div>
-        <div class="site-stat"><span class="v">{{ totals.sessions|intcomma }}</span><span class="l">응시 세션</span></div>
-        <div class="site-stat"><span class="v">{{ totals.study|intcomma }}</span><span class="l">학습모드</span></div>
-        <div class="site-stat"><span class="v">{{ totals.login|intcomma }}</span><span class="l">로그인</span></div>
+        <div class="site-stat"><span class="v">{{ totals.users|intcomma }}<small>명</small></span><span class="l">활동 회원</span></div>
+        <div class="site-stat"><span class="v">{{ totals.solved|intcomma }}<small>개</small></span><span class="l">푼 문제</span></div>
+        <div class="site-stat"><span class="v">{% if totals.rate != None %}{{ totals.rate }}<small>%</small>{% else %}-{% endif %}</span><span class="l">정답률</span></div>
+        <div class="site-stat"><span class="v">{{ totals.sessions|intcomma }}<small>회</small></span><span class="l">응시 세션</span></div>
+        <div class="site-stat"><span class="v">{{ totals.study|intcomma }}<small>회</small></span><span class="l">학습모드</span></div>
+        <div class="site-stat"><span class="v">{{ totals.login|intcomma }}<small>회</small></span><span class="l">로그인</span></div>
     </div>
 
     <!-- ══════════ 학년별 교과목 ══════════ -->
