@@ -189,23 +189,26 @@
     /* 주제의 기출 문항 목록 — 문항 + 연도 배지, 누르면 답 */
     /* 문항 목록과 아래 정리 본문 사이는 넉넉히 — 붙어 있으면 (1) 정의가 마지막 문항에 딸린 것처럼 읽힌다 */
     /* 문항 목록은 둥근 상자에 담아 정리 본문과 구분한다 */
-    .tb-qlist { margin: 4px 0 26px; border: 1px solid #d5e0d8; border-radius: 10px;
-        background: #fbfdfb; padding: 6px 10px; }
+    /* 흰 바탕에 글은 진하게, 부수 정보(유형·배점)는 한 톤 낮게. 펼친 문항 줄은
+     * 연한 초록으로 칠해 아래 답과 한 덩이로 읽히게 한다. */
+    .tb-qlist { margin: 4px 0 26px; border: 1px solid #cfdad3; border-radius: 10px;
+        background: #fff; padding: 4px 8px; }
     .tb-qlist + .tb-note > h3:first-child, .tb-qlist + .nt-blk { margin-top: 0; }
-    .tq { border-bottom: 1px dashed #e3e9e4; }
+    .tq { border-bottom: 1px solid #eef2ef; }
     .tq:last-child { border-bottom: 0; }
-    .tq-head { display: flex; align-items: flex-start; gap: 6px; padding: 5px 4px; cursor: pointer;
+    .tq-head { display: flex; align-items: flex-start; gap: 8px; padding: 6px 6px; cursor: pointer;
         border-radius: 6px; }
-    .tq-head:hover { background: #eef4ef; }
+    .tq-head:hover { background: #f4f8f5; }
+    .tq.open .tq-head { background: #eef5f0; }
     .tq-head .tq-badge { flex-shrink: 0; display: inline-block; font-size: 0.72rem; font-weight: 700;
         padding: 2px 8px; border-radius: 8px; border: 1px solid; line-height: 1.5; margin-top: 2px;
         min-width: 2.6em; text-align: center; }
-    .tq-text { flex: 1; font-size: 0.9rem; line-height: 1.55; color: #1f2d24; font-weight: 600; }
+    .tq-text { flex: 1; font-size: 0.9rem; line-height: 1.55; color: #1a1a1a; font-weight: 500; }
     .tq-text .q-box, .tq-text table { font-weight: 400; }
-    .tq-meta { font-size: 0.72rem; color: #97a79d; font-weight: 400; margin-left: 6px; white-space: nowrap; }
-    .tq-arrow { color: #c3cec7; font-size: 0.85rem; transition: transform .15s; flex-shrink: 0; line-height: 1.7; }
+    .tq-meta { font-size: 0.72rem; color: #6f7f75; font-weight: 400; margin-left: 6px; white-space: nowrap; }
+    .tq-arrow { color: #9fb0a6; font-size: 0.85rem; transition: transform .15s; flex-shrink: 0; line-height: 1.7; }
     .tq.open .tq-arrow { transform: rotate(90deg); }
-    .tq-ans { display: none; margin: 0 4px 10px calc(2.6em + 22px); background: #f7faf8; border-left: 3px solid #2d6a4f;
+    .tq-ans { display: none; margin: 4px 6px 12px calc(2.6em + 22px); background: #f6faf7; border-left: 3px solid #2d6a4f;
         border-radius: 0 8px 8px 0; padding: 8px 12px; }
     .tq.open .tq-ans { display: block; }
     .tq-ai { font-size: 0.88rem; line-height: 1.8; color: #1f3d30; padding: 1px 0; }
