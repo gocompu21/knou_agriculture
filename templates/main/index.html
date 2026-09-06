@@ -1,9 +1,33 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block title %}한울회 A+ 학습시스템 | 홈{% endblock %}
 
 {% block extra_css %}
 <style>
+    /* ══════════ 전체 사용현황 띠 ══════════ */
+    .site-stats { margin-top: 18px; display: grid; gap: 0;
+        grid-template-columns: repeat(6, 1fr); background: #fff;
+        border: 1px solid #dbe7dc; border-radius: 14px; overflow: hidden; }
+    .site-stat { padding: 16px 20px; border-left: 1px solid #e6efe7; }
+    .site-stat:first-child { border-left: 0; }
+    .site-stat .v { display: block; font-size: 1.45rem; font-weight: 800; color: #1b4332;
+        letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.2; }
+    .site-stat .l { display: block; margin-top: 4px; font-size: 0.8rem; color: #6b7d70; }
+    @media (max-width: 900px) {
+        .site-stats { grid-template-columns: repeat(3, 1fr); }
+        .site-stat:nth-child(4) { border-left: 0; }
+        .site-stat:nth-child(n+4) { border-top: 1px solid #e6efe7; }
+    }
+    @media (max-width: 480px) {
+        .site-stats { grid-template-columns: repeat(2, 1fr); margin-top: 12px; }
+        .site-stat { padding: 12px 14px; }
+        .site-stat .v { font-size: 1.2rem; }
+        .site-stat:nth-child(4) { border-left: 1px solid #e6efe7; }
+        .site-stat:nth-child(odd) { border-left: 0; }
+        .site-stat:nth-child(n+3) { border-top: 1px solid #e6efe7; }
+    }
+
     /* ══════════ Hero ══════════ */
     .hero {
         display: grid;
@@ -802,6 +826,16 @@
             </div>
         </aside>
     </section>
+
+    <!-- ══════════ 전체 사용현황 — 누적, 10분 캐시 (main.views._site_totals) ══════════ -->
+    <div class="site-stats fade-up delay-1">
+        <div class="site-stat"><span class="v">{{ totals.users|intcomma }}</span><span class="l">활동 회원</span></div>
+        <div class="site-stat"><span class="v">{{ totals.solved|intcomma }}</span><span class="l">푼 문제</span></div>
+        <div class="site-stat"><span class="v">{% if totals.rate != None %}{{ totals.rate }}%{% else %}-{% endif %}</span><span class="l">정답률</span></div>
+        <div class="site-stat"><span class="v">{{ totals.sessions|intcomma }}</span><span class="l">응시 세션</span></div>
+        <div class="site-stat"><span class="v">{{ totals.study|intcomma }}</span><span class="l">학습모드</span></div>
+        <div class="site-stat"><span class="v">{{ totals.login|intcomma }}</span><span class="l">로그인</span></div>
+    </div>
 
     <!-- ══════════ 학년별 교과목 ══════════ -->
     <section id="subjects" class="section fade-up">

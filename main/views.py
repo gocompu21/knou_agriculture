@@ -243,11 +243,54 @@ def staff_required(user):
     return user.is_staff
 
 
+def _site_totals():
+    """홈 대시보드용 전체 누적 사용현황 (사용현황 페이지의 '전체' 합계와 같은 정의).
+
+    회원 한 명씩 돌지 않고 집계 쿼리로 센다. 10분 캐시 — 홈은 누구나 여는 화면이다.
+    """
+    from django.core.cache import cache
+    from gisa.models import GisaStudyLog
+    from .models import MaterialOpenLog
+
+    hit = cache.get("site_totals")
+    if hit:
+        return hit
+
+    users = set()
+    for model in (Attempt, GisaAttempt, LoginLog, GisaStudyLog, MaterialOpenLog):
+        users |= set(model.objects.order_by().values_list("user_id", flat=True).distinct())
+    users.discard(None)
+
+    solved = correct = study = sessions = 0
+    for model in (Attempt, GisaAttempt):
+        solved += model.objects.count()
+        correct += model.objects.filter(is_correct=True).count()
+        study += model.objects.filter(mode="study").count()
+        # 세션 = (회원, session_id) 짝의 수. order_by() 로 Meta.ordering 을 지워야
+        # distinct 가 제대로 먹는다
+        sessions += (model.objects.exclude(session_id="").order_by()
+                     .values("user_id", "session_id").distinct().count())
+
+    totals = {
+        "users": len(users),
+        "solved": solved,
+        "rate": round(correct / solved * 100) if solved else None,
+        "sessions": sessions,
+        "study": study,
+        "login": LoginLog.objects.count(),
+    }
+    cache.set("site_totals", totals, 600)
+    return totals
+
+
 def index(request):
     from bbs.models import Notice
 
     latest_notices = Notice.objects.all()[:5]
-    return render(request, "main/index.html", {"latest_notices": latest_notices})
+    return render(request, "main/index.html", {
+        "latest_notices": latest_notices,
+        "totals": _site_totals(),
+    })
 
 
 @login_required
