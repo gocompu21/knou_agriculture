@@ -1995,6 +1995,9 @@ def qna_create(request):
     note_sec = (request.POST.get("note_sec") or "").strip()
     if not re.fullmatch(r"\d+\.\d+", note_sec) or subject is None:
         note_sec = ""
+    if note_sec and not request.user.is_staff:
+        # 절에 직접 다는 질문은 노트를 보완하는 관리자용이다. 회원은 질의응답 탭에서 묻는다
+        return JsonResponse({"ok": False, "error": "절에 질문을 다는 것은 관리자만 할 수 있습니다."})
     note_sec_title = (request.POST.get("note_sec_title") or "").strip()[:200] if note_sec else ""
 
     q = QnaQuestion.objects.create(

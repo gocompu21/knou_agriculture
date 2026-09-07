@@ -1559,11 +1559,19 @@
     .sec-qna-btn:hover { background: #5e2a80; }
     .sec-qna-btn.ask { background: #fff; color: #7b3fa0; border: 1px solid #c9a7d9; }
     .sec-qna-btn.ask:hover { background: #f3e5f5; }
-    .sec-qna-list { margin-top: 8px; }
-    .sq-item { background: #fff; border: 1px solid #e8dff0; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
-    .sq-q { font-size: 0.88rem; font-weight: 600; color: #4a148c; display: flex; gap: 8px; align-items: baseline; }
+    .sec-qna-head { font-size: 0.8rem; font-weight: 700; color: #6a1b9a; }
+    .sec-qna-list { margin-top: 6px; }
+    .sec-qna-list:empty { margin-top: 0; }
+    .sq-item { background: #fff; border: 1px solid #e8dff0; border-radius: 8px; padding: 0; margin-bottom: 6px; overflow: hidden; }
+    .sq-q { font-size: 0.86rem; font-weight: 600; color: #4a148c; display: flex; gap: 6px; align-items: baseline;
+        padding: 8px 12px; cursor: pointer; }
+    .sq-q:hover { background: #faf5fd; }
+    .sq-arrow { color: #c3b3cf; font-size: 0.9rem; transition: transform .15s; flex-shrink: 0; }
+    .sq-item.open .sq-arrow { transform: rotate(90deg); }
+    .sq-title { flex: 1; }
     .sq-q .sq-meta { font-size: 0.72rem; color: #97a79d; font-weight: 400; margin-left: auto; white-space: nowrap; }
-    .sq-a { margin-top: 6px; font-size: 0.86rem; line-height: 1.75; color: #263; }
+    .sq-a { display: none; padding: 2px 12px 12px 28px; font-size: 0.86rem; line-height: 1.75; color: #263; }
+    .sq-item.open .sq-a { display: block; }
     .sq-a p { margin: 0 0 6px; }
     .sq-a ul { padding-left: 19px; margin: 4px 0 8px; }
     .sq-a h3 { font-size: 0.88rem; color: #1b4332; margin: 10px 0 4px; }
@@ -2720,7 +2728,10 @@
        "질문 N" 배지와 [질문 보기] [이 절에 질문] 버튼을 끼워 넣는다. 절 번호는 절 제목의
        "N.M" 이다. 여기서 물으면 note_sec 이 함께 가서 그 절이 답의 첫째 근거가 된다 */
     var _qnaBySec = {{ qna_by_sec_json|default:"{}"|safe }};
+    var _isStaff = {{ request.user.is_staff|yesno:"true,false" }};
     function _secQnaEsc(x) { return (x || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    /* 절 아래 상자: 연결된 질문이 있으면 제목 목록이 바로 보이고, 제목을 누르면 답이 펼쳐진다.
+       "이 절에 질문" 은 관리자에게만 있다(노트 보완용). 질문도 없고 관리자도 아니면 상자를 두지 않는다 */
     function initSecQna() {
         document.querySelectorAll('#tab-notes .section-item').forEach(function(sec) {
             var hdr = sec.querySelector('.section-header > span');
@@ -2731,20 +2742,22 @@
             var no = m[1];
             var title = m[2].replace(/\d+문제\s*$/, '').trim();
             var list = _qnaBySec[no] || [];
+            if (!list.length && !_isStaff) return;
             var box = document.createElement('div');
             box.className = 'sec-qna';
             box.dataset.sec = no;
             box.dataset.sectitle = title;
             box.innerHTML =
                 '<div class="sec-qna-bar">'
-              +   '<button type="button" class="sec-qna-btn" onclick="toggleSecQna(this)">질문·답 보기 (<span class="sec-qna-n">' + list.length + '</span>)</button>'
-              +   '<button type="button" class="sec-qna-btn ask" onclick="openSecQnaAsk(this)">이 절에 질문</button>'
+              +   '<span class="sec-qna-head">💬 질문 <span class="sec-qna-n">' + list.length + '</span></span>'
+              +   (_isStaff ? '<button type="button" class="sec-qna-btn ask" onclick="openSecQnaAsk(this)">이 절에 질문</button>' : '')
               + '</div>'
-              + '<div class="sec-qna-list" hidden></div>'
+              + '<div class="sec-qna-list"></div>'
               + '<div class="sec-qna-ask" hidden><input type="text" maxlength="200" placeholder="이 절 내용에 대해 궁금한 것을 적으세요">'
               +   '<button type="button" onclick="askSecQna(this)">물어보기</button></div>'
               + '<div class="sec-qna-msg" hidden></div>';
             body.appendChild(box);
+            renderSecQna(box);
             if (list.length) {
                 var b = document.createElement('span');
                 b.className = 'q-count-badge sec-q-badge';
@@ -2757,22 +2770,15 @@
         var no = box.dataset.sec;
         var list = _qnaBySec[no] || [];
         var wrap = box.querySelector('.sec-qna-list');
-        if (!list.length) { wrap.innerHTML = '<div class="nq-empty">이 절에 연결된 질문이 아직 없습니다.</div>'; return; }
+        if (!list.length) { wrap.innerHTML = ''; return; }
         wrap.innerHTML = list.map(function(q) {
             return '<div class="sq-item" data-pk="' + q.pk + '">'
-                 +   '<div class="sq-q"><span>Q. ' + _secQnaEsc(q.title) + '</span>'
+                 +   '<div class="sq-q" onclick="this.parentElement.classList.toggle(\'open\')"><span class="sq-arrow">›</span><span class="sq-title">' + _secQnaEsc(q.title) + '</span>'
                  +     '<span class="sq-meta">' + _secQnaEsc(q.who) + ' · ' + _secQnaEsc(q.when) + '</span></div>'
                  +   '<div class="sq-a">' + qnaRender(q.answer) + '</div>'
                  + '</div>';
         }).join('');
     }
-    window.toggleSecQna = function(btn) {
-        var box = btn.closest('.sec-qna');
-        var wrap = box.querySelector('.sec-qna-list');
-        if (!wrap.hidden) { wrap.hidden = true; return; }
-        renderSecQna(box);
-        wrap.hidden = false;
-    };
     window.openSecQnaAsk = function(btn) {
         var box = btn.closest('.sec-qna');
         var ask = box.querySelector('.sec-qna-ask');
@@ -2806,7 +2812,8 @@
             if (!badge) { badge = document.createElement('span'); badge.className = 'q-count-badge sec-q-badge'; hdr.appendChild(badge); }
             badge.textContent = '질문 ' + _qnaBySec[no].length;
             renderSecQna(box);
-            box.querySelector('.sec-qna-list').hidden = false;
+            var first = box.querySelector('.sq-item');
+            if (first) first.classList.add('open');   // 방금 받은 답은 펼쳐 둔다
             if (typeof qnaPrepend === 'function') qnaPrepend(d);   // 질의응답 탭 목록에도 넣는다
         }).catch(function(e) { msg.className = 'sec-qna-msg err'; msg.textContent = e.message; })
           .finally(function() { btn.disabled = false; btn.textContent = '물어보기'; });
