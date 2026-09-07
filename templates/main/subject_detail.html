@@ -2760,12 +2760,7 @@
                   : '');
             body.appendChild(box);
             renderSecQna(box);
-            if (list.length) {
-                var b = document.createElement('span');
-                b.className = 'q-count-badge sec-q-badge';
-                b.textContent = '관련 Q&A(' + list.length + ')';
-                hdr.appendChild(b);
-            }
+            // 절 제목 줄에는 배지를 달지 않는다 — 목록이 번잡해진다. 상자 머리글에만 수를 보인다
         });
     }
     function renderSecQna(box) {
@@ -2809,10 +2804,6 @@
             var no = box.dataset.sec;
             (_qnaBySec[no] = _qnaBySec[no] || []).unshift({ pk: d.pk, title: d.title, answer: d.answer, who: d.who, when: d.when, mine: true });
             box.querySelector('.sec-qna-n').textContent = _qnaBySec[no].length;
-            var hdr = box.closest('.section-item').querySelector('.section-header > span');
-            var badge = hdr.querySelector('.sec-q-badge');
-            if (!badge) { badge = document.createElement('span'); badge.className = 'q-count-badge sec-q-badge'; hdr.appendChild(badge); }
-            badge.textContent = '관련 Q&A(' + _qnaBySec[no].length + ')';
             renderSecQna(box);
             var first = box.querySelector('.sq-item');
             if (first) first.classList.add('open');   // 방금 받은 답은 펼쳐 둔다
