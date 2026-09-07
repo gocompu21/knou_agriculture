@@ -1513,6 +1513,9 @@
     .qi-arrow { flex-shrink: 0; color: #c3cec7; font-size: 0.8rem;
         transition: transform .15s; }
     .qna-item.open .qi-arrow { transform: rotate(90deg); }
+    .qi-del { flex-shrink: 0; background: none; border: none; cursor: pointer;
+        color: #c3cec7; font-size: 0.85rem; padding: 0 2px; line-height: 1; }
+    .qi-del:hover { color: #c62828; }
 
     /* 접힌 상태에서 답 앞부분 3줄만 */
     .qi-peek { padding: 0 15px 11px; font-size: 0.83rem; line-height: 1.65;
@@ -2092,6 +2095,7 @@
                     {% if q.note_ref %}<span class="qt-note" title="{{ q.note_ref }}">📖</span>{% endif %}
                     <span class="qt-meta">{{ q.user.first_name|default:q.user.username }} · 조회 {{ q.view_count }} · {{ q.created_at|date:"m.d" }}</span>
                     <span class="qi-arrow">›</span>
+                    {% if request.user.is_staff or q.user_id == request.user.id %}<button type="button" class="qi-del" title="이 질문 삭제" onclick="event.stopPropagation(); deleteQna({{ q.pk }})">✕</button>{% endif %}
                 </div>
                 <div class="qi-peek">{{ q.answer|qna_peek }}</div>
                 <div class="qi-full" data-raw="{{ q.answer }}"></div>
@@ -2582,6 +2586,25 @@
         return out.join('');
     }
 
+    /* 삭제 — 서버(qna_delete)가 본인 또는 관리자만 허용한다 */
+    window.deleteQna = function(pk) {
+        if (!confirm('이 질문과 답을 삭제할까요?')) return;
+        fetch('/qna/' + pk + '/delete/', {
+            method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        }).then(function(r) { return r.json(); }).then(function(d) {
+            if (!d.ok) { alert(d.error || '삭제하지 못했습니다.'); return; }
+            var li = document.querySelector('.qna-item[data-pk="' + pk + '"]');
+            if (li) li.remove();
+            var list = document.getElementById('qnaList');
+            if (list && !list.querySelector('.qna-item') && !document.getElementById('qnaEmpty')) {
+                var e = document.createElement('div');
+                e.className = 'empty-msg'; e.id = 'qnaEmpty';
+                e.textContent = '아직 질문이 없습니다. 첫 질문을 남겨 보세요.';
+                list.parentNode.insertBefore(e, list.nextSibling);
+            }
+        }).catch(function() { alert('삭제하지 못했습니다.'); });
+    };
+
     function toggleQna(head) {
         var item = head.closest ? head.closest('.qna-item') : head.parentElement;
         var full = item.querySelector('.qi-full');
@@ -2653,6 +2676,7 @@
           +   (d.note_ref ? '<span class="qt-note" title="' + esc(d.note_ref) + '">📖</span>' : '')
           +   '<span class="qt-meta">' + esc(d.who) + ' · 조회 0 · ' + esc(d.when) + '</span>'
           +   '<span class="qi-arrow">›</span>'
+          +   '<button type="button" class="qi-del" title="이 질문 삭제" onclick="event.stopPropagation(); deleteQna(' + d.pk + ')">✕</button>'
           + '</div>'
           + '<div class="qi-peek"></div>'
           + '<div class="qi-full"></div>';
