@@ -185,6 +185,11 @@
     .note-ed .toastui-editor-contents h2 { font-size: 1.15rem; border-bottom: 1px solid #dce8dc; }
     .note-ed .toastui-editor-contents h3 { font-size: 1.02rem; color: #1b4332; }
     .note-ed .toastui-editor-contents img { max-width: min(100%, 520px); }
+    .note-ed .note-u-btn {
+        font-weight: 700; font-size: 15px; text-decoration: underline; text-underline-offset: 2px;
+        color: #333; background: none; line-height: 30px;
+    }
+    .content-box u { text-decoration: underline; text-underline-offset: 2px; text-decoration-color: #2d6a4f; }
     .content-box img.note-img {
         display: block; max-width: min(100%, 520px); height: auto;
         margin: 10px auto; border-radius: 6px; border: 1px solid #e3e3e3;
@@ -2181,6 +2186,22 @@
             .then(function(j) { cb(j.url, (blob.name || 'image').replace(/\.[^.]+$/, '')); })
             .catch(function(e) { alert(e.message); });
     }
+    function _noteUnderline(pk) {
+        var ed = _noteEds[pk];
+        if (!ed) return;
+        var t = ed.getSelectedText();
+        if (!t) { alert('밑줄을 넣을 글자를 먼저 선택하세요.'); return; }
+        if (ed.isMarkdownMode()) {
+            ed.replaceSelection('<u>' + t + '</u>');
+            return;
+        }
+        // WYSIWYG 에서는 태그를 바로 넣으면 글자로 이스케이프되므로,
+        // 표식으로 감싼 뒤 마크다운을 꺼내 <u> 로 바꿔 다시 넣는다 (선택 안의 볼드 등은 풀린다)
+        var a = '⁣UOPEN⁣', b = '⁣UCLOSE⁣';
+        ed.replaceSelection(a + t + b);
+        var md = ed.getMarkdown().split(a).join('<u>').split(b).join('</u>');
+        ed.setMarkdown(md, false);
+    }
     function _noteMarkdown(pk) {
         var e = _noteEds[pk];
         return e ? e.getMarkdown() : document.getElementById('note-content-' + pk).value;
@@ -2193,6 +2214,12 @@
         if (!_noteEds[pk]) {
             var ta = document.getElementById('note-content-' + pk);
             if (window.toastui && toastui.Editor) {
+                // 밑줄 버튼: 마크다운에는 밑줄 문법이 없어 <u> 태그를 직접 넣는다
+                var uBtn = document.createElement('button');
+                uBtn.type = 'button';
+                uBtn.className = 'toastui-editor-toolbar-icons note-u-btn';
+                uBtn.textContent = 'U';
+                uBtn.addEventListener('click', function() { _noteUnderline(pk); });
                 _noteEds[pk] = new toastui.Editor({
                     el: document.getElementById('note-ed-' + pk),
                     height: '600px',
@@ -2202,8 +2229,16 @@
                     language: 'ko-KR',
                     usageStatistics: false,
                     hooks: { addImageBlobHook: _uploadNoteImage },
+                    // 기본 새니타이저가 <u> 를 지우므로 인라인 HTML 렌더러로 살려 둔다
+                    customHTMLRenderer: {
+                        htmlInline: {
+                            u: function(node, ctx) {
+                                return ctx.entering ? { type: 'openTag', tagName: 'u' } : { type: 'closeTag', tagName: 'u' };
+                            }
+                        }
+                    },
                     toolbarItems: [
-                        ['heading', 'bold', 'italic', 'strike'],
+                        ['heading', 'bold', 'italic', 'strike', { name: 'underline', tooltip: '밑줄', el: uBtn }],
                         ['hr', 'quote'],
                         ['ul', 'ol', 'indent', 'outdent'],
                         ['table', 'image', 'link'],
