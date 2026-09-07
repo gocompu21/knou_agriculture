@@ -2753,9 +2753,11 @@
               +   (_isStaff ? '<button type="button" class="sec-qna-btn ask" onclick="openSecQnaAsk(this)">이 절에 질문</button>' : '')
               + '</div>'
               + '<div class="sec-qna-list"></div>'
-              + '<div class="sec-qna-ask" hidden><input type="text" maxlength="200" placeholder="이 절 내용에 대해 궁금한 것을 적으세요">'
-              +   '<button type="button" onclick="askSecQna(this)">물어보기</button></div>'
-              + '<div class="sec-qna-msg" hidden></div>';
+              + (_isStaff
+                  ? '<div class="sec-qna-ask" hidden><input type="text" maxlength="200" placeholder="이 절 내용에 대해 궁금한 것을 적으세요">'
+                  +   '<button type="button" onclick="askSecQna(this)">물어보기</button></div>'
+                  + '<div class="sec-qna-msg" hidden></div>'
+                  : '');
             body.appendChild(box);
             renderSecQna(box);
             if (list.length) {
