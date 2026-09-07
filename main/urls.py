@@ -12,6 +12,7 @@ urlpatterns = [
     path("subjects/<int:pk>/", views.subject_detail, name="subject_detail"),
     path("subjects/<int:pk>/notes/study/", views.notes_study, name="notes_study"),
     path("subjects/<int:pk>/notes/create/", views.note_create, name="note_create"),
+    path("subjects/<int:pk>/api/note-questions/", views.api_note_questions, name="api_note_questions"),
     path("subjects/notes/<int:note_pk>/update/", views.note_update, name="note_update"),
     path("subjects/notes/<int:note_pk>/delete/", views.note_delete, name="note_delete"),
     path("subjects/notes/upload-image/", views.note_image_upload, name="note_image_upload"),

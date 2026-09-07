@@ -934,6 +934,43 @@ def notes_study(request, pk):
     })
 
 
+@login_required
+def api_note_questions(request, pk):
+    """쪽집게 노트의 관련 문제를 탭 안에 펼쳐 보이기 위한 JSON.
+    ?ref=YYYY-N&ref=... (notes_study 와 같은 형식)"""
+    subject = get_object_or_404(Subject, pk=pk)
+    q_filters = Q()
+    order = []
+    for ref in request.GET.getlist("ref")[:60]:
+        parts = ref.split("-")
+        try:
+            if len(parts) == 2:
+                year, number = int(parts[0]), int(parts[1])
+            elif len(parts) == 3:
+                year, number = int(parts[0]), int(parts[2])
+            else:
+                continue
+        except ValueError:
+            continue
+        q_filters |= Q(year=year, number=number)
+        order.append((year, number))
+    if not order:
+        return JsonResponse({"questions": []})
+    found = {(q.year, q.number): q for q in Question.objects.filter(q_filters, subject=subject)}
+    out = []
+    for key in order:
+        q = found.get(key)
+        if not q:
+            continue
+        out.append({
+            "pk": q.pk, "year": q.year, "number": q.number, "text": q.text,
+            "choices": [q.choice_1, q.choice_2, q.choice_3, q.choice_4],
+            "answer": q.answer, "explanation": q.explanation,
+            "choice_exps": [q.choice_1_exp, q.choice_2_exp, q.choice_3_exp, q.choice_4_exp],
+        })
+    return JsonResponse({"questions": out})
+
+
 ## ══════════ 쪽집게 노트 관리자 편집 ══════════ ##
 
 

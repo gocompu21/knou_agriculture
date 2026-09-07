@@ -1030,6 +1030,16 @@ PREFIX_MAP = {
 - `body.dataset.loaded` 체크: 로드 완료 후 `loaded='1'` 설정
 - `toggleChapter()`, `autoLoadAllChapters()`, `open_ch` IIFE 모두 `loaded || loading` 체크
 
+### 쪽집게 노트 관련 문제 — 탭 안에서 펼침 (subject_detail)
+
+절의 "관련 문제 학습 (N)" 버튼은 페이지를 옮기지 않는다. `api_note_questions`
+(`/subjects/<pk>/api/note-questions/?ref=YYYY-N&…`)로 문항을 받아 버튼 아래 `.nq-list`
+에 카드로 펼친다(`toggleNoteQuestions`, 한 번 받으면 접기/펼치기만). 선지를 누르면
+채점 없이 정답·해설을 보인다 — 내 선택은 검은 반전, 틀렸으면 정답을 빨간 반전, 정답
+선지 해설은 노란 하이라이트(`nqPick`). 해설 문자열은 data 속성이 아니라 카드 DOM 의
+`_q` 프로퍼티에 둔다(따옴표 이스케이프 회피). `notes_study` 뷰(학습모드 전체 화면)는
+남아 있지만 이 탭에서는 더 쓰지 않는다.
+
 ### 쪽집게 노트 "내용으로" 스크롤 (subject_detail)
 
 노트 학습 모드에서 "내용으로" 버튼 클릭 시 쪽집게 노트 탭의 해당 절로 스크롤.

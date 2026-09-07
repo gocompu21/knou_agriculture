@@ -310,6 +310,35 @@
     .q-study-btn:hover { background: #1b4332; }
     .q-study-btn.all { background: #3949ab; }
     .q-study-btn.all:hover { background: #1a237e; }
+
+    /* 관련 문제 — 탭 안에서 펼쳐 푼다 (이동 없음) */
+    .nq-list { margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
+    .nq-loading { font-size: 0.8rem; color: #777; padding: 6px 2px; }
+    .nq-card { background: #fff; border: 1px solid #dfe6df; border-radius: 10px; padding: 12px 14px; }
+    .nq-head { display: flex; gap: 8px; align-items: flex-start; font-size: 0.9rem; line-height: 1.6; color: #222; }
+    .nq-badge { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; padding: 1px 8px; border-radius: 9px;
+        background: #e8f5e9; color: #1b4332; margin-top: 3px; }
+    .nq-text { flex: 1; white-space: pre-wrap; word-break: keep-all; }
+    .nq-choices { margin: 8px 0 0 4px; }
+    .nq-choice { display: flex; gap: 6px; align-items: flex-start; padding: 4px 6px; border-radius: 6px;
+        cursor: pointer; font-size: 0.88rem; line-height: 1.55; color: #333; }
+    .nq-choice:hover { background: #f4f8f4; }
+    .nq-card.done .nq-choice { cursor: default; }
+    .nq-card.done .nq-choice:hover { background: none; }
+    .nq-num { flex-shrink: 0; width: 1.3em; height: 1.3em; line-height: 1.3em; text-align: center;
+        border-radius: 50%; font-size: 0.85rem; margin-top: 1px; }
+    .nq-choice.picked .nq-num { background: #333; color: #fff; }
+    .nq-choice.answer-miss .nq-num { background: #d93025; color: #fff; }
+    .nq-ctext { flex: 1; white-space: pre-wrap; word-break: keep-all; }
+    .nq-mark { flex-shrink: 0; font-weight: 700; font-size: 0.8rem; margin-left: 4px; }
+    .nq-mark.ok { color: #1565c0; }
+    .nq-mark.no { color: #c62828; }
+    .nq-exp { margin-top: 8px; padding: 9px 12px; background: #fbfdf9; border: 1px solid #e3ebe3;
+        border-radius: 8px; font-size: 0.83rem; line-height: 1.7; color: #333; }
+    .nq-exp .nq-exp-main { font-weight: 600; color: #1b4332; margin-bottom: 4px; white-space: pre-wrap; }
+    .nq-exp .nq-exp-line { padding-left: 1.3em; text-indent: -1.3em; white-space: pre-wrap; }
+    .nq-exp .nq-exp-line.hl { background: #fff9c4; }
+    .nq-empty { font-size: 0.82rem; color: #888; padding: 6px 2px; }
     .q-count-badge {
         font-size: 0.75rem; color: #888; font-weight: 400; margin-left: 8px;
     }
@@ -1641,29 +1670,23 @@
                         {% if sub.content_html %}<div class="content-box">{{ sub.content_html|safe }}</div>{% endif %}
                         {% if sub.questions %}
                         <div class="q-box">
-                            <form method="get" action="{% url 'main:notes_study' subject.pk %}" style="display:inline">
-                                {% for qref in sub.questions %}<input type="hidden" name="ref" value="{{ qref }}">{% endfor %}
-                                <button type="submit" class="q-study-btn">관련 문제 학습 ({{ sub.questions|length }})</button>
-                            </form>
+                            <button type="button" class="q-study-btn" data-refs="{{ sub.questions|join:',' }}" onclick="toggleNoteQuestions(this)">관련 문제 학습 ({{ sub.questions|length }})</button>
                             <div class="q-refs">{% for qref in sub.questions %}<span class="q-ref-badge">{{ qref }}</span> {% endfor %}</div>
+                            <div class="nq-list" hidden></div>
                         </div>
                         {% endif %}
                         {% endfor %}
                         {% if sec.questions and not sec.subsections %}
                         <div class="q-box">
-                            <form method="get" action="{% url 'main:notes_study' subject.pk %}" style="display:inline">
-                                {% for qref in sec.questions %}<input type="hidden" name="ref" value="{{ qref }}">{% endfor %}
-                                <button type="submit" class="q-study-btn">관련 문제 학습 ({{ sec.questions|length }})</button>
-                            </form>
+                            <button type="button" class="q-study-btn" data-refs="{{ sec.questions|join:',' }}" onclick="toggleNoteQuestions(this)">관련 문제 학습 ({{ sec.questions|length }})</button>
                             <div class="q-refs">{% for qref in sec.questions %}<span class="q-ref-badge">{{ qref }}</span> {% endfor %}</div>
+                            <div class="nq-list" hidden></div>
                         </div>
                         {% elif sec.subsections|length > 1 and sec.all_questions %}
                         <div class="q-box all-box">
-                            <form method="get" action="{% url 'main:notes_study' subject.pk %}" style="display:inline">
-                                {% for qref in sec.all_questions %}<input type="hidden" name="ref" value="{{ qref }}">{% endfor %}
-                                <button type="submit" class="q-study-btn all">이 절의 전체 문제 학습 ({{ sec.total_questions }})</button>
-                            </form>
+                            <button type="button" class="q-study-btn all" data-refs="{{ sec.all_questions|join:',' }}" onclick="toggleNoteQuestions(this)">이 절의 전체 문제 학습 ({{ sec.total_questions }})</button>
                             <div class="q-refs">{% for qref in sec.all_questions %}<span class="q-ref-badge">{{ qref }}</span> {% endfor %}</div>
+                            <div class="nq-list" hidden></div>
                         </div>
                         {% endif %}
                     </div>
@@ -2594,6 +2617,76 @@
         if (ul) out.push('</ul>');
         return out.join('');
     }
+
+    /* ── 쪽집게 노트 관련 문제: 페이지 이동 없이 버튼 아래에 펼친다 ── */
+    var _NQ_NUMS = ['①', '②', '③', '④'];
+    function _nqEsc(s) {
+        return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function _nqRender(list, questions) {
+        if (!questions.length) {
+            list.innerHTML = '<div class="nq-empty">등록된 문항을 찾지 못했습니다.</div>';
+            return;
+        }
+        list.innerHTML = questions.map(function(q) {
+            var choices = q.choices.map(function(c, i) {
+                return '<div class="nq-choice" data-n="' + (i + 1) + '" onclick="nqPick(this)">'
+                     +   '<span class="nq-num">' + _NQ_NUMS[i] + '</span>'
+                     +   '<span class="nq-ctext">' + _nqEsc(c) + '</span>'
+                     + '</div>';
+            }).join('');
+            return '<div class="nq-card" data-pk="' + q.pk + '" data-ans="' + _nqEsc(q.answer) + '">'
+                 +   '<div class="nq-head"><span class="nq-badge">' + q.year + '-' + q.number + '</span>'
+                 +   '<span class="nq-text">' + _nqEsc(q.text) + '</span></div>'
+                 +   '<div class="nq-choices">' + choices + '</div>'
+                 +   '<div class="nq-exp" hidden></div>'
+                 + '</div>';
+        }).join('');
+        // 해설은 data 속성 대신 클로저에 두어 따옴표 이스케이프 문제를 피한다
+        list.querySelectorAll('.nq-card').forEach(function(card, idx) { card._q = questions[idx]; });
+    }
+    window.toggleNoteQuestions = function(btn) {
+        var box = btn.closest('.q-box');
+        var list = box && box.querySelector('.nq-list');
+        if (!list) return;
+        if (!list.hidden) { list.hidden = true; btn.classList.remove('open'); return; }
+        list.hidden = false;
+        btn.classList.add('open');
+        if (list.dataset.loaded) return;
+        list.innerHTML = '<div class="nq-loading">문제를 불러오는 중…</div>';
+        var refs = (btn.dataset.refs || '').split(',').filter(Boolean);
+        var qs = refs.map(function(r) { return 'ref=' + encodeURIComponent(r); }).join('&');
+        fetch('{% url "main:api_note_questions" subject.pk %}?' + qs, { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) { list.dataset.loaded = '1'; _nqRender(list, d.questions || []); })
+            .catch(function() { list.innerHTML = '<div class="nq-empty">문제를 불러오지 못했습니다.</div>'; });
+    };
+    window.nqPick = function(el) {
+        var card = el.closest('.nq-card');
+        if (!card || card.classList.contains('done')) return;
+        var q = card._q || {};
+        var picked = el.dataset.n;
+        var answers = String(card.dataset.ans || '').split(',').filter(Boolean);
+        var correct = answers.indexOf(picked) >= 0;
+        card.classList.add('done');
+        el.classList.add('picked');
+        el.insertAdjacentHTML('beforeend', '<span class="nq-mark ' + (correct ? 'ok' : 'no') + '">' + (correct ? '정답' : '오답') + '</span>');
+        if (!correct) {
+            card.querySelectorAll('.nq-choice').forEach(function(c) {
+                if (answers.indexOf(c.dataset.n) >= 0) c.classList.add('answer-miss');
+            });
+        }
+        var exp = card.querySelector('.nq-exp');
+        var html = '';
+        if (q.explanation) html += '<div class="nq-exp-main">' + _nqEsc(q.explanation) + '</div>';
+        (q.choice_exps || []).forEach(function(e, i) {
+            if (!e) return;
+            var isAns = answers.indexOf(String(i + 1)) >= 0;
+            html += '<div class="nq-exp-line' + (isAns ? ' hl' : '') + '">' + _NQ_NUMS[i] + ' ' + _nqEsc(e) + '</div>';
+        });
+        exp.innerHTML = html || '<div class="nq-exp-line">해설이 없습니다.</div>';
+        exp.hidden = false;
+    };
 
     /* 삭제 — 서버(qna_delete)가 본인 또는 관리자만 허용한다 */
     window.deleteQna = function(pk) {
