@@ -560,6 +560,37 @@
     .q-box.all-box {
         background: #f0f4ff; border-color: #c5cae9;
     }
+
+    /* 관련 문제 — 탭 안에서 펼쳐 푼다 (이동 없음). 학습모드(gisa/study_mode) 카드와 같은 꼴 */
+    .nq-list { margin-top: 8px; background: #fff; border: 1px solid #e4e9e4; border-radius: 8px; padding: 6px 4px 0; }
+    .nq-loading, .nq-empty { font-size: 0.82rem; color: #777; padding: 8px 12px 12px; }
+    .nq-card { padding: 12px 14px 8px; border-bottom: 1px solid #eee; }
+    .nq-card:last-child { border-bottom: none; }
+    .nq-q { display: flex; align-items: flex-start; font-size: 0.88rem; line-height: 1.65; font-weight: 600; color: #222; margin-bottom: 10px; }
+    .nq-num-label { flex-shrink: 0; margin-right: 0.3em; }
+    .nq-q-body { flex: 1; word-break: keep-all; }
+    .nq-badge { font-size: 0.65em; color: #888; vertical-align: super; margin-left: 3px; font-weight: normal; white-space: nowrap; }
+    .nq-image-wrap { margin: 6px 0 8px; padding-left: 18px; }
+    .nq-image { max-width: min(100%, 320px); border: 1px solid #ddd; border-radius: 4px; }
+    .nq-choices { padding-left: 18px; margin-bottom: 6px; }
+    .nq-choice { margin-bottom: 5px; font-size: 0.88rem; line-height: 1.6; padding: 4px 5px 3px; border-radius: 5px; color: #222; }
+    .nq-ctext { word-break: keep-all; }
+    .nq-choice-image { display: inline; max-width: min(100%, 300px); margin-left: 2px; border: 1px solid #ddd; border-radius: 4px; vertical-align: middle; }
+    .nq-num { display: inline-flex; justify-content: center; align-items: center; width: 18px; height: 18px;
+        border-radius: 50%; border: 1.5px solid #333; font-size: 0.68rem; font-weight: 600; margin-right: 6px;
+        background: #fff; color: #333; position: relative; flex-shrink: 0; cursor: pointer; user-select: none;
+        transition: background 0.15s, color 0.15s; }
+    .nq-num::before { content: ''; position: absolute; top: -8px; right: -6px; bottom: -8px; left: -8px; }
+    .nq-num:hover { background: #e8eaf6; border-color: #1a237e; }
+    .nq-num.picked, .nq-num.picked:hover { background: #333; color: #fff; border-color: #333; }
+    .nq-num.correct, .nq-num.correct:hover { background: #d93025; color: #fff; border-color: #d93025; }
+    .nq-exp { display: none; margin: 3px 0 0 1.55em; padding: 4px 0 4px 1.4em; text-indent: -1.4em;
+        font-size: 0.84rem; font-weight: 400; color: #555; line-height: 1.6; }
+    .nq-card.exp-open .nq-exp { display: block; }
+    .nq-exp.correct-exp { color: #111; }
+    .nq-exp.correct-exp .exp-arrow { color: #d93025; }
+    .nq-exp.correct-exp .exp-text-inner { background: linear-gradient(to top, #fff176 40%, transparent 40%); }
+    .nq-card .q-box { text-indent: 0; }
     .q-count-badge {
         font-size: 0.75rem; color: #888; font-weight: 400;
         margin-left: 8px;
@@ -1766,6 +1797,50 @@ function formatBadges(container) {
 function toggleSection(el) {
     el.parentElement.classList.toggle('open');
 }
+
+/* ── 쪽집게 노트 관련 문제: 페이지 이동 없이 버튼 아래에 펼친다 ── */
+window.toggleNoteQuestions = function(btn) {
+    var box = btn.closest('.q-box');
+    var list = box && box.querySelector('.nq-list');
+    if (!list) return;
+    if (!list.hidden) { list.hidden = true; return; }
+    list.hidden = false;
+    if (list.dataset.loaded) return;
+    list.innerHTML = '<div class="nq-loading">문제를 불러오는 중…</div>';
+    var refs = (btn.dataset.refs || '').split(',').filter(Boolean);
+    var qs = refs.map(function(r) { return 'ref=' + encodeURIComponent(r); }).join('&');
+    fetch('{% url "gisa:api_textbook_questions" cert.pk %}?' + qs, { credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            list.dataset.loaded = '1';
+            list.innerHTML = d.html || '<div class="nq-empty">등록된 문항을 찾지 못했습니다.</div>';
+            if (window.renderMath) renderMath(list);
+        })
+        .catch(function() { list.innerHTML = '<div class="nq-empty">문제를 불러오지 못했습니다.</div>'; });
+};
+/* 학습모드 selectChoice 와 같은 규칙: 원번호를 눌러 고른다. 고른 번호 검은 반전,
+   틀렸으면 정답 빨간 반전, 해설 전부 펼침. 다시 고를 수 있다. 진도율용 학습기록은 문항당 1회 */
+window.nqPick = function(el, n) {
+    var card = el.closest('.nq-card');
+    if (!card) return;
+    var topBefore = el.getBoundingClientRect().top;
+    card.querySelectorAll('.nq-num').forEach(function(cn) { cn.classList.remove('picked'); });
+    el.classList.add('picked');
+    card.classList.add('exp-open');
+    var answers = String(card.dataset.answer || '').split(',').map(function(s) { return s.trim(); });
+    var isCorrect = answers.indexOf(String(n)) >= 0;
+    card.querySelectorAll('.nq-num').forEach(function(cn) {
+        cn.classList.remove('correct');
+        if (!isCorrect && answers.indexOf(cn.getAttribute('data-choice')) >= 0) cn.classList.add('correct');
+    });
+    if (!card.dataset.studyLogged && card.dataset.qid) {
+        card.dataset.studyLogged = '1';
+        var logUrl = '{% url "gisa:study_log" cert.pk 0 %}'.replace('/log/0/', '/log/' + card.dataset.qid + '/');
+        fetch(logUrl, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } }).catch(function() {});
+    }
+    var diff = el.getBoundingClientRect().top - topBefore;
+    if (diff !== 0) window.scrollBy(0, diff);
+};
 
 var _textbookExpanded = false;
 function toggleAllTextbook() {

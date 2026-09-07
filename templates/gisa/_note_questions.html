@@ -1,0 +1,18 @@
+{% load gisa_filters %}{% comment %}
+쪽집게 노트(certification_detail ?tab=textbook)의 "이 절의 문제 학습하기"를 눌렀을 때
+버튼 아래에 펼쳐지는 문항 카드. 학습모드(study_mode.html)의 카드 마크업을 따르되
+클래스는 nq- 접두어로 두어 상세 페이지의 다른 스타일과 섞이지 않게 한다.
+{% endcomment %}
+{% if not questions %}<div class="nq-empty">등록된 문항을 찾지 못했습니다.</div>{% endif %}
+{% for q in questions %}
+<div class="nq-card" data-answer="{{ q.answer }}" data-qid="{{ q.id }}">
+    <div class="nq-q"><span class="nq-num-label">{{ forloop.counter }}.</span><span class="nq-q-body">{{ q.text|qtext }} <sup class="nq-badge">{{ q.exam.year }}-{{ q.exam.round }}</sup></span></div>
+    {% if q.text_image %}<div class="nq-image-wrap"><img src="{{ q.text_image|vurl }}" class="nq-image"></div>{% endif %}
+    <div class="nq-choices">
+        <div class="nq-choice"><span class="nq-num" data-choice="1" onclick="nqPick(this, 1)">1</span> <span class="nq-ctext">{{ q.choice_1|qtext }}</span>{% if q.choice_1_image %}<img src="{{ q.choice_1_image|vurl }}" class="nq-choice-image">{% endif %}{% if q.choice_1_exp %}<div class="nq-exp{% if '1' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_1_exp|qtext }}</span></div>{% endif %}</div>
+        <div class="nq-choice"><span class="nq-num" data-choice="2" onclick="nqPick(this, 2)">2</span> <span class="nq-ctext">{{ q.choice_2|qtext }}</span>{% if q.choice_2_image %}<img src="{{ q.choice_2_image|vurl }}" class="nq-choice-image">{% endif %}{% if q.choice_2_exp %}<div class="nq-exp{% if '2' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_2_exp|qtext }}</span></div>{% endif %}</div>
+        <div class="nq-choice"><span class="nq-num" data-choice="3" onclick="nqPick(this, 3)">3</span> <span class="nq-ctext">{{ q.choice_3|qtext }}</span>{% if q.choice_3_image %}<img src="{{ q.choice_3_image|vurl }}" class="nq-choice-image">{% endif %}{% if q.choice_3_exp %}<div class="nq-exp{% if '3' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_3_exp|qtext }}</span></div>{% endif %}</div>
+        <div class="nq-choice"><span class="nq-num" data-choice="4" onclick="nqPick(this, 4)">4</span> <span class="nq-ctext">{{ q.choice_4|qtext }}</span>{% if q.choice_4_image %}<img src="{{ q.choice_4_image|vurl }}" class="nq-choice-image">{% endif %}{% if q.choice_4_exp %}<div class="nq-exp{% if '4' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_4_exp|qtext }}</span></div>{% endif %}</div>
+    </div>
+</div>
+{% endfor %}

@@ -1040,6 +1040,12 @@ PREFIX_MAP = {
 `_q` 프로퍼티에 둔다(따옴표 이스케이프 회피). `notes_study` 뷰(학습모드 전체 화면)는
 남아 있지만 이 탭에서는 더 쓰지 않는다.
 
+기사시험 필기 상세(`certification_detail ?tab=textbook`)도 같다. `_chapter_body.html` 의
+"이 절의 문제 학습하기" 버튼이 `api_textbook_questions`(`/gisa/<id>/textbook/questions/?ref=YYYY-R-N&…`)
+로 `_note_questions.html` 카드 HTML(qtext·이미지·vurl 적용, 최신기출 제외)을 받아 `.nq-list` 에
+넣는다. 원번호를 눌러 고르며(gisa study_mode 규칙), 처음 고를 때 `study_log` 로 진도율 기록을 남긴다.
+`textbook_study` 전체 화면 뷰는 남아 있다.
+
 ### 쪽집게 노트 "내용으로" 스크롤 (subject_detail)
 
 노트 학습 모드에서 "내용으로" 버튼 클릭 시 쪽집게 노트 탭의 해당 절로 스크롤.

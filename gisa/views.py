@@ -2082,6 +2082,37 @@ def history_api(request, cert_id):
 
 
 @login_required
+@login_required
+def api_textbook_questions(request, cert_id):
+    """쪽집게 노트의 '이 절의 문제 학습하기'를 탭 안에 펼치기 위한 문항 HTML.
+    ?ref=YYYY-R-N&ref=... → {"html": 카드 마크업, "count": n}. 문항 해석 규칙은
+    textbook_study 와 같다(최신기출 제외)."""
+    cert = get_object_or_404(Certification, pk=cert_id)
+    q_filters = Q()
+    order = []
+    for ref in request.GET.getlist("ref")[:80]:
+        parts = ref.split("-")
+        if len(parts) != 3:
+            continue
+        try:
+            year, round_num, number = (int(p) for p in parts)
+        except ValueError:
+            continue
+        q_filters |= Q(exam__year=year, exam__round=round_num, number=number,
+                       exam__certification=cert)
+        order.append((year, round_num, number))
+    if not order:
+        return JsonResponse({"html": "", "count": 0})
+    found = {}
+    for q in (GisaQuestion.objects.filter(q_filters).exclude(exam__exam_type="최신")
+              .select_related("subject", "exam")):
+        found.setdefault((q.exam.year, q.exam.round, q.number), q)
+    questions = [found[k] for k in order if k in found]
+    html = render_to_string("gisa/_note_questions.html",
+                            {"cert": cert, "questions": questions}, request=request)
+    return JsonResponse({"html": html, "count": len(questions)})
+
+
 def textbook_study(request, cert_id):
     """교재 관련 문제 학습모드 - question refs로 문제 조회"""
     cert = get_object_or_404(Certification, pk=cert_id)
