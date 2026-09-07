@@ -2749,7 +2749,7 @@
             box.dataset.sectitle = title;
             box.innerHTML =
                 '<div class="sec-qna-bar">'
-              +   '<span class="sec-qna-head">💬 질문 <span class="sec-qna-n">' + list.length + '</span></span>'
+              +   '<span class="sec-qna-head">💬 관련 Q&amp;A(<span class="sec-qna-n">' + list.length + '</span>)</span>'
               +   (_isStaff ? '<button type="button" class="sec-qna-btn ask" onclick="openSecQnaAsk(this)">이 절에 질문</button>' : '')
               + '</div>'
               + '<div class="sec-qna-list"></div>'
@@ -2763,7 +2763,7 @@
             if (list.length) {
                 var b = document.createElement('span');
                 b.className = 'q-count-badge sec-q-badge';
-                b.textContent = '질문 ' + list.length;
+                b.textContent = '관련 Q&A(' + list.length + ')';
                 hdr.appendChild(b);
             }
         });
@@ -2812,7 +2812,7 @@
             var hdr = box.closest('.section-item').querySelector('.section-header > span');
             var badge = hdr.querySelector('.sec-q-badge');
             if (!badge) { badge = document.createElement('span'); badge.className = 'q-count-badge sec-q-badge'; hdr.appendChild(badge); }
-            badge.textContent = '질문 ' + _qnaBySec[no].length;
+            badge.textContent = '관련 Q&A(' + _qnaBySec[no].length + ')';
             renderSecQna(box);
             var first = box.querySelector('.sq-item');
             if (first) first.classList.add('open');   // 방금 받은 답은 펼쳐 둔다
