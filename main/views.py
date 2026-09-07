@@ -520,6 +520,18 @@ def subject_detail(request, pk):
     materials = SubjectMaterial.objects.filter(subject=subject).order_by('-created_at')
     materials_count = materials.count()
 
+    # 쪽집게 노트 절 ↔ 질의응답 연결: 절 번호별 질문 목록 (노트 탭에서 절 아래에 펼친다)
+    qna_by_sec = {}
+    if active_tab == "notes":
+        for qq in (QnaQuestion.objects.filter(subject=subject).exclude(note_sec="")
+                   .exclude(answer="").select_related("user").order_by("-created_at")):
+            qna_by_sec.setdefault(qq.note_sec, []).append({
+                "pk": qq.pk, "title": qq.title, "answer": qq.answer,
+                "who": qq.user.first_name or qq.user.username,
+                "when": timezone.localtime(qq.created_at).strftime("%m.%d"),
+                "mine": qq.user_id == request.user.id,
+            })
+
     return render(
         request,
         "main/subject_detail.html",
@@ -536,6 +548,7 @@ def subject_detail(request, pk):
             "latest_questions": latest_questions,
             "materials": materials,
             "materials_count": materials_count,
+            "qna_by_sec_json": json.dumps(qna_by_sec, ensure_ascii=False),
             # 질의응답 탭 — 그 과목 질문만 보여 준다
             "qna_items": QnaQuestion.objects.filter(
                 subject=subject).select_related("user")[:15],
@@ -1978,6 +1991,12 @@ def qna_create(request):
             "error": "과목 화면의 질의응답 탭에서 물어봐 주세요.",
         })
 
+    # 쪽집게 노트의 절에서 바로 물은 경우: 절 번호("7.5")와 제목이 함께 온다
+    note_sec = (request.POST.get("note_sec") or "").strip()
+    if not re.fullmatch(r"\d+\.\d+", note_sec) or subject is None:
+        note_sec = ""
+    note_sec_title = (request.POST.get("note_sec_title") or "").strip()[:200] if note_sec else ""
+
     q = QnaQuestion.objects.create(
         subject=subject,
         cert_name=cert_name,
@@ -1985,6 +2004,8 @@ def qna_create(request):
         user=request.user,
         title=title,
         body=(request.POST.get("body") or "").strip()[:2000],
+        note_sec=note_sec,
+        note_sec_title=note_sec_title,
     )
     ok = qna_engine.ask_gemini(q)
     return JsonResponse({
@@ -1993,6 +2014,8 @@ def qna_create(request):
         "title": q.title,
         "answer": q.answer,
         "note_ref": q.note_ref,
+        "note_sec": q.note_sec,
+        "note_sec_title": q.note_sec_title,
         "error": q.error,
         "who": request.user.first_name or request.user.username,
         "when": timezone.localtime(q.created_at).strftime("%m.%d"),

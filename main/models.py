@@ -142,6 +142,11 @@ class QnaQuestion(models.Model):
     # 답에 근거로 쓴 쪽집게 노트 대목. 비어 있으면 교재 밖 내용이라는 뜻이라
     # 화면에서 그 차이를 알려 준다.
     note_ref = models.CharField('참고 노트', max_length=200, blank=True, default='')
+    # 쪽집게 노트의 대표 절과의 구조적 연결. note_sec 는 절 번호("7.5"), 제목은
+    # 노트를 고쳐 번호가 밀렸을 때 다시 찾기 위한 2차 키. 절에서 바로 물으면
+    # 그 절이 들어가고, 아니면 답할 때 근거로 고른 첫 절이 자동으로 들어간다.
+    note_sec = models.CharField('연결 절 번호', max_length=20, blank=True, default='')
+    note_sec_title = models.CharField('연결 절 제목', max_length=200, blank=True, default='')
     answered_at = models.DateTimeField('답변 시각', null=True, blank=True)
     error = models.CharField('오류', max_length=200, blank=True, default='')
 

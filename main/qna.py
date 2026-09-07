@@ -93,18 +93,34 @@ def _split_sections(content):
     return out
 
 
-def find_note(question, subject=None, cert_name="", cert_subject=""):
-    """질문과 가장 겹치는 노트 대목을 찾는다. 없으면 (None, '')."""
+def _sec_no(title):
+    """절 제목("7.5 설포닐우레아계", "7.5.1 …")에서 절 번호 "7.5" 를 뽑는다. 없으면 ''."""
+    m = re.match(r"(\d+)\.(\d+)", title or "")
+    return f"{m.group(1)}.{m.group(2)}" if m else ""
+
+
+def _sec_title(title):
+    """절 제목에서 번호를 뗀 나머지."""
+    return re.sub(r"^\d+(?:\.\d+)+\s*", "", title or "").strip()
+
+
+def find_note(question, subject=None, cert_name="", cert_subject="", force_sec=""):
+    """질문과 가장 겹치는 노트 대목을 찾는다. 없으면 (None, '', '', '').
+
+    돌려주는 값: (근거 본문, 절 제목 요약, 대표 절 번호, 대표 절 제목).
+    force_sec("7.5")이 오면 — 노트의 그 절에서 바로 물은 경우 — 그 절을 무조건
+    첫째 근거로 넣고, 나머지는 낱말 겹침으로 채운다.
+    """
     words = _tokens(question)
-    if not words:
-        return None, ""
+    if not words and not force_sec:
+        return None, "", "", ""
 
     sections = []
     if subject is not None:
         from exam.models import StudyNote
         for n in StudyNote.objects.filter(subject=subject):
             for title, body in _split_sections(n.content):
-                sections.append((f"{n.title} · {title}" if title else n.title, body))
+                sections.append((f"{n.title} · {title}" if title else n.title, body, title))
     elif cert_name:
         from gisa.models import GisaTextbook
         qs = GisaTextbook.objects.filter(certification__name=cert_name)
@@ -115,28 +131,44 @@ def find_note(question, subject=None, cert_name="", cert_subject=""):
         for tb in qs:
             head = tb.subject.name if tb.subject_id else cert_name
             for title, body in _split_sections(tb.content):
-                sections.append((f"{head} · {title}" if title else head, body))
+                sections.append((f"{head} · {title}" if title else head, body, title))
 
     if not sections:
-        return None, ""
+        return None, "", "", ""
 
-    ranked = sorted(sections, key=lambda s: -_score(s[1], words, s[0]))
-    best = ranked[0]
-    # 2글자 낱말 하나(4점)만 걸린 것은 근거가 못 된다. 3글자 이상이
-    # 본문에 있거나(9점) 2글자가 제목에 있으면(12점) 통과한다.
-    if _score(best[1], words, best[0]) < 9:
-        return None, ""
+    # 절에서 바로 물은 경우: 그 절(항 포함)을 맨 앞에 고정한다
+    forced = [s for s in sections if force_sec and _sec_no(s[2]) == force_sec]
+    rest = [s for s in sections if s not in forced]
+    ranked = sorted(rest, key=lambda s: -_score(s[1], words, s[0])) if words else rest
+
+    if not forced:
+        best = ranked[0]
+        # 2글자 낱말 하나(4점)만 걸린 것은 근거가 못 된다. 3글자 이상이
+        # 본문에 있거나(9점) 2글자가 제목에 있으면(12점) 통과한다.
+        if _score(best[1], words, best[0]) < 9:
+            return None, "", "", ""
+    else:
+        # 고정한 절 외에는 확실히 겹치는 것만 덧붙인다
+        ranked = [s for s in ranked if _score(s[1], words, s[0]) >= 9]
+
+    # 절 번호 → 절 제목 (항 7.5.1 이 대표로 잡혀도 연결은 절 7.5 로 한다)
+    sec_titles = {_sec_no(t): _sec_title(t) for _, _, t in sections
+                  if re.match(r"\d+\.\d+(?!\.\d)", t or "")}
 
     picked, used, titles = [], 0, []
-    for title, body in ranked[:3]:
+    rep_no, rep_title = "", ""
+    for full_title, body, raw_title in (forced + ranked)[:3]:
         if used >= NOTE_BUDGET:
             break
         room = NOTE_BUDGET - used
         chunk = body[:room]
-        picked.append(f"[{title}]\n{chunk}")
-        titles.append(title)
+        picked.append(f"[{full_title}]\n{chunk}")
+        titles.append(full_title)
         used += len(chunk)
-    return "\n\n".join(picked), " / ".join(titles[:2])
+        if not rep_no and _sec_no(raw_title):
+            rep_no = _sec_no(raw_title)
+            rep_title = sec_titles.get(rep_no, _sec_title(raw_title))
+    return "\n\n".join(picked), " / ".join(titles[:2]), rep_no, rep_title
 
 
 def build_prompt(q):
@@ -167,9 +199,19 @@ def build_prompt(q):
         style = ("- 핵심을 먼저 밝히고 항목을 나눠 설명한다.\n"
                  "- 선택지로 헷갈리기 쉬운 지점이 있으면 짚어 준다.")
 
-    note, titles = find_note(ask, q.subject, q.cert_name, q.cert_subject)
+    force_sec = q.note_sec if q.subject is not None else ""
+    note, titles, rep_no, rep_title = find_note(
+        ask, q.subject, q.cert_name, q.cert_subject, force_sec=force_sec)
+    # 대표 절 연결: 절에서 물었으면 그 절, 아니면 근거로 고른 첫 절
+    if q.subject is not None and not q.note_sec and rep_no:
+        q.note_sec, q.note_sec_title = rep_no, rep_title[:200]
     if note:
-        ground = (f"\n[우리 교재(쪽집게 노트)의 관련 대목]\n{note}\n\n"
+        where = ""
+        if force_sec:
+            where = (f"질문자는 쪽집게 노트 **{force_sec} {q.note_sec_title}** 절을 읽다가 "
+                     f"이 질문을 했다. 이 절의 내용과 용어를 첫째 근거로 삼고, 이 절의 "
+                     f"맥락에서 답하라.\n")
+        ground = (f"\n[우리 교재(쪽집게 노트)의 관련 대목]\n{note}\n\n{where}"
                   f"답은 **교재 대목과 이 과목의 일반 학술 지식을 함께 써서** 만든다.\n"
                   f"- 교재 대목은 시험 범위와 용어·분류·수치를 잡는 뼈대다. 교재가 쓰는 "
                   f"용어와 표기, 분류 체계를 그대로 따르고, 교재의 요지를 답에 담아라.\n"
@@ -230,8 +272,8 @@ def ask_gemini(q):
     q.note_ref = titles
     q.answered_at = timezone.now()
     q.error = ""
-    q.save(update_fields=["answer", "answer_model", "note_ref",
-                          "answered_at", "error"])
+    q.save(update_fields=["answer", "answer_model", "note_ref", "note_sec",
+                          "note_sec_title", "answered_at", "error"])
     return True
 
 
