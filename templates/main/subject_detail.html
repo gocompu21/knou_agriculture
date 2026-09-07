@@ -2081,7 +2081,6 @@
                        placeholder="예) 토양의 완충능은 무엇인가요?">
                 <button id="qnaBtn" onclick="askQna()">물어보기</button>
             </div>
-            <div class="qna-ask-note">AI가 우리 쪽집게 노트를 근거로 답합니다. 틀릴 수 있으니 교재와 함께 확인하세요.</div>
             <div class="qna-ask-result" id="qnaResult"></div>
         </div>
 
@@ -2590,8 +2589,7 @@
             var pk = item.dataset.pk;
             full.innerHTML =
                 (full.dataset.ref ? '<div class="qi-note-ref">📖 ' + full.dataset.ref + '</div>' : '')
-                + qnaRender(full.dataset.raw)
-                + '<a class="qi-link" href="/qna/' + pk + '/">따로 보기 &rsaquo;</a>';
+                + qnaRender(full.dataset.raw);
             full.dataset.done = '1';
         }
         item.classList.toggle('open');
@@ -2664,8 +2662,7 @@
         full.dataset.done = '1';
         full.innerHTML =
             (d.note_ref ? '<div class="qi-note-ref">📖 ' + esc(d.note_ref) + '</div>' : '')
-          + qnaRender(d.answer)
-          + '<a class="qi-link" href="' + d.url + '">따로 보기 &rsaquo;</a>';
+          + qnaRender(d.answer);
         /* 미리보기는 서버의 qna_peek 와 같은 규칙으로 — 마크다운 기호를 걷는다 */
         var peek = String(d.answer || '')
             .replace(/^#{1,6}\s*/gm, '')
