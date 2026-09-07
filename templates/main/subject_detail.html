@@ -1599,7 +1599,7 @@
     </div>
 
     <!-- Tab 0: 쪽집게 정리 -->
-    <div class="tab-content{% if active_tab == 'notes' %} active{% endif %}" id="tab-notes">
+    <div class="tab-content{% if active_tab == 'notes' %} active{% endif %}" id="tab-notes" data-count="{{ study_notes_count }}">
         {% if note_chapters %}
         {% for ch in note_chapters %}
         <div class="chapter-item open" id="{{ ch.id }}" data-ch-idx="{{ forloop.counter0 }}">
@@ -2123,6 +2123,15 @@
 {% endif %}
 <script>
     function switchTab(tabName) {
+        // 쪽집게 정리는 서버가 ?tab=notes 로 열렸을 때만 파싱해 내려보낸다.
+        // 다른 탭으로 들어와 여기로 옮기면 내용이 비어 있으므로 다시 불러온다.
+        if (tabName === 'notes') {
+            var tn = document.getElementById('tab-notes');
+            if (tn && !tn.querySelector('.chapter-item') && tn.dataset.count !== '0') {
+                location.href = '?tab=notes';
+                return;
+            }
+        }
         document.querySelectorAll('.tab-content').forEach(function (el) {
             el.classList.remove('active');
         });
