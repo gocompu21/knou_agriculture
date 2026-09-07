@@ -2197,10 +2197,22 @@
         }
         // WYSIWYG 에서는 태그를 바로 넣으면 글자로 이스케이프되므로,
         // 표식으로 감싼 뒤 마크다운을 꺼내 <u> 로 바꿔 다시 넣는다 (선택 안의 볼드 등은 풀린다)
+        // setMarkdown 은 커서를 문서 끝으로 보내 화면이 맨 아래로 튀므로,
+        // 선택 위치와 스크롤을 기억해 두고 다시 넣은 뒤 복원한다
+        var sel = ed.getSelection();
+        var root = document.getElementById('note-ed-' + pk);
+        var saved = [];
+        root.querySelectorAll('*').forEach(function(el) {
+            if (el.scrollTop > 0) saved.push([el, el.scrollTop]);
+        });
+        var winY = window.scrollY;
         var a = '⁣UOPEN⁣', b = '⁣UCLOSE⁣';
         ed.replaceSelection(a + t + b);
         var md = ed.getMarkdown().split(a).join('<u>').split(b).join('</u>');
         ed.setMarkdown(md, false);
+        try { ed.setSelection(sel[0], sel[1]); } catch (e) { /* 위치가 어긋나면 그대로 둔다 */ }
+        saved.forEach(function(p) { p[0].scrollTop = p[1]; });
+        window.scrollTo(0, winY);
     }
     function _noteMarkdown(pk) {
         var e = _noteEds[pk];
