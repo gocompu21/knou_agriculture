@@ -311,34 +311,36 @@
     .q-study-btn.all { background: #3949ab; }
     .q-study-btn.all:hover { background: #1a237e; }
 
-    /* 관련 문제 — 탭 안에서 펼쳐 푼다 (이동 없음) */
-    .nq-list { margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
-    .nq-loading { font-size: 0.8rem; color: #777; padding: 6px 2px; }
-    .nq-card { background: #fff; border: 1px solid #dfe6df; border-radius: 10px; padding: 12px 14px; }
-    .nq-head { display: flex; gap: 8px; align-items: flex-start; font-size: 0.9rem; line-height: 1.6; color: #222; }
-    .nq-badge { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; padding: 1px 8px; border-radius: 9px;
-        background: #e8f5e9; color: #1b4332; margin-top: 3px; }
-    .nq-text { flex: 1; white-space: pre-wrap; word-break: keep-all; }
-    .nq-choices { margin: 8px 0 0 4px; }
-    .nq-choice { display: flex; gap: 6px; align-items: flex-start; padding: 4px 6px; border-radius: 6px;
-        cursor: pointer; font-size: 0.88rem; line-height: 1.55; color: #333; }
-    .nq-choice:hover { background: #f4f8f4; }
-    .nq-card.done .nq-choice { cursor: default; }
-    .nq-card.done .nq-choice:hover { background: none; }
-    .nq-num { flex-shrink: 0; width: 1.3em; height: 1.3em; line-height: 1.3em; text-align: center;
-        border-radius: 50%; font-size: 0.85rem; margin-top: 1px; }
-    .nq-choice.picked .nq-num { background: #333; color: #fff; }
-    .nq-choice.answer-miss .nq-num { background: #d93025; color: #fff; }
+    /* 관련 문제 — 탭 안에서 펼쳐 푼다 (이동 없음). 학습모드(study_mode) 카드와 같은 꼴 */
+    .nq-list { flex-basis: 100%; width: 100%; margin-top: 6px; background: #fff;
+        border: 1px solid #e4e9e4; border-radius: 8px; padding: 12px 6px 4px; }
+    .nq-loading, .nq-empty { font-size: 0.82rem; color: #777; padding: 6px 10px; }
+    .nq-card { padding: 4px 12px 0; margin-bottom: 18px; }
+    .nq-q { font-weight: bold; font-size: 1.02em; line-height: 1.6; color: #222;
+        padding-left: 1.3em; text-indent: -1.3em; margin-bottom: 8px; white-space: pre-wrap; word-break: keep-all; }
+    .nq-badge { display: inline-block; text-indent: 0; margin-left: 8px; vertical-align: 2px;
+        background: #fff3e0; color: #e65100; padding: 2px 9px; border-radius: 12px;
+        font-size: 0.72em; font-weight: 600; white-space: nowrap; }
+    .nq-choices { padding-left: 10px; }
+    .nq-choice { display: flex; align-items: flex-start; margin-bottom: 6px; padding: 6px 8px;
+        border-radius: 5px; cursor: pointer; line-height: 1.5; font-size: 0.95em; color: #222;
+        transition: background 0.15s; }
+    .nq-choice:last-child { margin-bottom: 0; }
+    .nq-choice:hover { background: #f0f7f4; }
+    .nq-choice.selected { background: transparent; }
+    .nq-num { display: inline-flex; justify-content: center; align-items: center; width: 20px; height: 20px;
+        border-radius: 50%; border: 1.5px solid #333; font-size: 0.75em; font-weight: 600;
+        margin-right: 6px; margin-top: 2px; background: #fff; color: #333; flex-shrink: 0; }
+    .nq-choice.selected .nq-num { background: #333; color: #fff; }
+    .nq-num.correct { background: #d93025; color: #fff; border-color: #d93025; }
     .nq-ctext { flex: 1; white-space: pre-wrap; word-break: keep-all; }
-    .nq-mark { flex-shrink: 0; font-weight: 700; font-size: 0.8rem; margin-left: 4px; }
-    .nq-mark.ok { color: #1565c0; }
-    .nq-mark.no { color: #c62828; }
-    .nq-exp { margin-top: 8px; padding: 9px 12px; background: #fbfdf9; border: 1px solid #e3ebe3;
-        border-radius: 8px; font-size: 0.83rem; line-height: 1.7; color: #333; }
-    .nq-exp .nq-exp-main { font-weight: 600; color: #1b4332; margin-bottom: 4px; white-space: pre-wrap; }
-    .nq-exp .nq-exp-line { padding-left: 1.3em; text-indent: -1.3em; white-space: pre-wrap; }
-    .nq-exp .nq-exp-line.hl { background: #fff9c4; }
-    .nq-empty { font-size: 0.82rem; color: #888; padding: 6px 2px; }
+    .nq-exp { display: none; margin-top: 4px; padding: 4px 0; font-size: 0.93em; font-weight: 400;
+        color: #555; line-height: 1.6; white-space: pre-wrap; }
+    .nq-card.exp-open .nq-exp { display: block; }
+    .nq-exp.correct-exp { color: #111; }
+    .nq-exp .exp-arrow { color: #888; }
+    .nq-exp.correct-exp .exp-arrow { color: #d93025; }
+    .nq-exp.correct-exp .exp-text-inner { background: linear-gradient(to top, #fff176 40%, transparent 40%); }
     .q-count-badge {
         font-size: 0.75rem; color: #888; font-weight: 400; margin-left: 8px;
     }
@@ -2619,31 +2621,36 @@
     }
 
     /* ── 쪽집게 노트 관련 문제: 페이지 이동 없이 버튼 아래에 펼친다 ── */
-    var _NQ_NUMS = ['①', '②', '③', '④'];
     function _nqEsc(s) {
         return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
+    /* 학습모드(exam/study_mode.html)의 카드 마크업을 그대로 따른다:
+       "N. 문제 [YYYY년 N번]" → 원번호 보기, 보기마다 해설(↪)이 접혀 있다가 선택 시 펼쳐진다 */
     function _nqRender(list, questions) {
         if (!questions.length) {
             list.innerHTML = '<div class="nq-empty">등록된 문항을 찾지 못했습니다.</div>';
             return;
         }
-        list.innerHTML = questions.map(function(q) {
+        list.innerHTML = questions.map(function(q, qi) {
+            var answers = String(q.answer || '').split(',');
             var choices = q.choices.map(function(c, i) {
-                return '<div class="nq-choice" data-n="' + (i + 1) + '" onclick="nqPick(this)">'
-                     +   '<span class="nq-num">' + _NQ_NUMS[i] + '</span>'
-                     +   '<span class="nq-ctext">' + _nqEsc(c) + '</span>'
+                var n = String(i + 1);
+                var exp = (q.choice_exps || [])[i];
+                var expHtml = exp
+                    ? '<div class="nq-exp' + (answers.indexOf(n) >= 0 ? ' correct-exp' : '') + '">'
+                      + '<span class="exp-arrow">↪ </span><span class="exp-text-inner">' + _nqEsc(exp) + '</span></div>'
+                    : '';
+                return '<div class="nq-choice" onclick="nqPick(this, ' + n + ')">'
+                     +   '<span class="nq-num" data-choice="' + n + '">' + n + '</span>'
+                     +   '<div class="nq-ctext">' + _nqEsc(c) + expHtml + '</div>'
                      + '</div>';
             }).join('');
-            return '<div class="nq-card" data-pk="' + q.pk + '" data-ans="' + _nqEsc(q.answer) + '">'
-                 +   '<div class="nq-head"><span class="nq-badge">' + q.year + '-' + q.number + '</span>'
-                 +   '<span class="nq-text">' + _nqEsc(q.text) + '</span></div>'
+            return '<div class="nq-card" data-pk="' + q.pk + '" data-answer="' + _nqEsc(q.answer) + '">'
+                 +   '<div class="nq-q">' + (qi + 1) + '. ' + _nqEsc(q.text)
+                 +     '<span class="nq-badge">' + q.year + '년 ' + q.number + '번</span></div>'
                  +   '<div class="nq-choices">' + choices + '</div>'
-                 +   '<div class="nq-exp" hidden></div>'
                  + '</div>';
         }).join('');
-        // 해설은 data 속성 대신 클로저에 두어 따옴표 이스케이프 문제를 피한다
-        list.querySelectorAll('.nq-card').forEach(function(card, idx) { card._q = questions[idx]; });
     }
     window.toggleNoteQuestions = function(btn) {
         var box = btn.closest('.q-box');
@@ -2661,31 +2668,23 @@
             .then(function(d) { list.dataset.loaded = '1'; _nqRender(list, d.questions || []); })
             .catch(function() { list.innerHTML = '<div class="nq-empty">문제를 불러오지 못했습니다.</div>'; });
     };
-    window.nqPick = function(el) {
+    /* 학습모드의 selectChoice 와 같은 규칙: 고른 보기 검은 반전, 틀렸으면 정답 빨간 반전,
+       해설 전부 펼침. 다시 고를 수 있다. 클릭한 보기가 화면에서 같은 자리에 있도록 스크롤 보정 */
+    window.nqPick = function(el, n) {
         var card = el.closest('.nq-card');
-        if (!card || card.classList.contains('done')) return;
-        var q = card._q || {};
-        var picked = el.dataset.n;
-        var answers = String(card.dataset.ans || '').split(',').filter(Boolean);
-        var correct = answers.indexOf(picked) >= 0;
-        card.classList.add('done');
-        el.classList.add('picked');
-        el.insertAdjacentHTML('beforeend', '<span class="nq-mark ' + (correct ? 'ok' : 'no') + '">' + (correct ? '정답' : '오답') + '</span>');
-        if (!correct) {
-            card.querySelectorAll('.nq-choice').forEach(function(c) {
-                if (answers.indexOf(c.dataset.n) >= 0) c.classList.add('answer-miss');
-            });
-        }
-        var exp = card.querySelector('.nq-exp');
-        var html = '';
-        if (q.explanation) html += '<div class="nq-exp-main">' + _nqEsc(q.explanation) + '</div>';
-        (q.choice_exps || []).forEach(function(e, i) {
-            if (!e) return;
-            var isAns = answers.indexOf(String(i + 1)) >= 0;
-            html += '<div class="nq-exp-line' + (isAns ? ' hl' : '') + '">' + _NQ_NUMS[i] + ' ' + _nqEsc(e) + '</div>';
+        if (!card) return;
+        var topBefore = el.getBoundingClientRect().top;
+        card.querySelectorAll('.nq-choice').forEach(function(c) { c.classList.remove('selected'); });
+        el.classList.add('selected');
+        card.classList.add('exp-open');
+        var answers = String(card.dataset.answer || '').split(',').map(function(s) { return s.trim(); });
+        var isCorrect = answers.indexOf(String(n)) >= 0;
+        card.querySelectorAll('.nq-num').forEach(function(cn) {
+            cn.classList.remove('correct');
+            if (!isCorrect && answers.indexOf(cn.getAttribute('data-choice')) >= 0) cn.classList.add('correct');
         });
-        exp.innerHTML = html || '<div class="nq-exp-line">해설이 없습니다.</div>';
-        exp.hidden = false;
+        var diff = el.getBoundingClientRect().top - topBefore;
+        if (diff !== 0) window.scrollBy(0, diff);
     };
 
     /* 삭제 — 서버(qna_delete)가 본인 또는 관리자만 허용한다 */
