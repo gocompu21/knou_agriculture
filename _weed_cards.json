@@ -592,7 +592,9 @@
   "exam_count": 1,
   "badge": "1회",
   "order": 27,
-  "notes": [],
+  "notes": [
+   "잎 모양이 차이난다."
+  ],
   "q_img": "q027.jpg",
   "a_img": "a027.jpg",
   "family": "국화과",
@@ -1343,7 +1345,10 @@
   "exam_count": 0,
   "badge": "",
   "order": 61,
-  "notes": [],
+  "notes": [
+   "꽃 수술이 꽃잎 색과 같다.",
+   "꽃잎과 꽃술이 노란색이다"
+  ],
   "q_img": "q061.jpg",
   "a_img": "a061.jpg",
   "family": "국화과",
@@ -1405,7 +1410,9 @@
   "exam_count": 0,
   "badge": "",
   "order": 64,
-  "notes": [],
+  "notes": [
+   "(비교) 돌콩과 잎의 모양으로 구분"
+  ],
   "q_img": "q064.jpg",
   "a_img": "a064.jpg",
   "family": "콩과",
@@ -1466,7 +1473,9 @@
   "exam_count": 0,
   "badge": "",
   "order": 67,
-  "notes": [],
+  "notes": [
+   "잎이 가로는 좁고 세로는 길다."
+  ],
   "q_img": "q067.jpg",
   "a_img": "a067.jpg",
   "family": "명아주과",
@@ -1656,7 +1665,9 @@
   "exam_count": 0,
   "badge": "",
   "order": 76,
-  "notes": [],
+  "notes": [
+   "군락을 이룬것을 보면 올방개보다는 신장이 작으며 강아지풀처럼 변한다."
+  ],
   "q_img": "q076.jpg",
   "a_img": "a076.jpg",
   "family": "벼과(화본과)",
@@ -2222,7 +2233,10 @@
   "exam_count": 0,
   "badge": "",
   "order": 106,
-  "notes": [],
+  "notes": [
+   "타원형 잎",
+   "무질서 속의 질서"
+  ],
   "q_img": "q106.jpg",
   "a_img": "a106.jpg",
   "family": "생이가래과",
