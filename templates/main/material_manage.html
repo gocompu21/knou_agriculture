@@ -86,6 +86,16 @@
     }
     .alert-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 
+    /* 업로드 진행률 — 자료가 80MB 까지 있어 그냥 두면 한참 아무 반응이 없다 */
+    .up-progress { margin-top: 12px; }
+    .up-bar { height: 8px; background: #e8ece8; border-radius: 5px; overflow: hidden; }
+    .up-bar-fill { height: 100%; width: 0; background: #2d6a4f; border-radius: 5px;
+                   transition: width .15s linear; }
+    .up-bar-fill.done { background: #1b4332; }
+    .up-bar-fill.err { background: #b91c1c; }
+    .up-text { margin-top: 6px; font-size: 0.82rem; color: #555; }
+    .up-text.err { color: #b91c1c; }
+
     @media (max-width: 768px) {
         .form-row { grid-template-columns: 1fr; gap: 4px; }
         .material-table { font-size: 0.8rem; }
@@ -143,7 +153,11 @@
                 <input type="file" id="file" name="file" accept="application/pdf,.pdf" required>
             </div>
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary">+ 업로드</button>
+                <button type="submit" class="btn btn-primary" id="up-btn">+ 업로드</button>
+            </div>
+            <div class="up-progress" id="up-progress" hidden>
+                <div class="up-bar"><div class="up-bar-fill" id="up-bar-fill"></div></div>
+                <div class="up-text" id="up-text"></div>
             </div>
         </form>
     </div>
@@ -236,4 +250,81 @@
     {% endif %}
     {% endif %}
 </div>
+
+<script>
+/* 업로드 진행률 — 80MB 짜리도 있어 그냥 두면 다 올라갈 때까지 화면이 멈춘 듯 보인다.
+   XHR 의 upload.progress 로 보낸 양을 표시하고, 다 보낸 뒤에는 서버가 저장을 끝낼
+   때까지 '처리 중'으로 둔다. */
+(function () {
+    var form = document.querySelector('.upload-form');
+    if (!form || !window.FormData) return;          // 옛 브라우저는 그냥 폼 전송
+    var btn = document.getElementById('up-btn');
+    var box = document.getElementById('up-progress');
+    var fill = document.getElementById('up-bar-fill');
+    var text = document.getElementById('up-text');
+
+    function mb(n) { return (n / 1024 / 1024).toFixed(1) + 'MB'; }
+
+    form.addEventListener('submit', function (e) {
+        var file = document.getElementById('file').files[0];
+        if (!file) return;                          // required 가 막아 준다
+        e.preventDefault();
+
+        var started = Date.now();
+        btn.disabled = true;
+        btn.textContent = '업로드 중…';
+        box.hidden = false;
+        fill.className = 'up-bar-fill';
+        text.className = 'up-text';
+        fill.style.width = '0';
+        text.textContent = '0% (0MB / ' + mb(file.size) + ')';
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', form.action);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+        xhr.upload.addEventListener('progress', function (ev) {
+            if (!ev.lengthComputable) return;
+            var pct = ev.loaded / ev.total * 100;
+            fill.style.width = pct.toFixed(1) + '%';
+            var sec = (Date.now() - started) / 1000;
+            var speed = sec > 0.5 ? ' · ' + mb(ev.loaded / sec) + '/s' : '';
+            text.textContent = pct.toFixed(0) + '% (' + mb(ev.loaded) + ' / ' + mb(ev.total) + ')' + speed;
+        });
+        xhr.upload.addEventListener('load', function () {
+            fill.style.width = '100%';
+            text.textContent = '전송 완료 — 서버에서 저장하는 중입니다…';
+        });
+
+        function failed(msg) {
+            fill.className = 'up-bar-fill err';
+            fill.style.width = '100%';
+            text.className = 'up-text err';
+            text.textContent = msg;
+            btn.disabled = false;
+            btn.textContent = '+ 업로드';
+        }
+
+        xhr.addEventListener('load', function () {
+            var d = null;
+            try { d = JSON.parse(xhr.responseText); } catch (err) { /* 아래에서 처리 */ }
+            if (xhr.status >= 200 && xhr.status < 300 && d && d.ok) {
+                fill.className = 'up-bar-fill done';
+                text.textContent = '업로드가 끝났습니다. 목록을 새로 불러옵니다…';
+                location.href = d.redirect;
+                return;
+            }
+            if (xhr.status === 413) {
+                failed('파일이 너무 큽니다. 서버가 받을 수 있는 크기를 넘었습니다.');
+                return;
+            }
+            failed((d && d.error) || ('업로드에 실패했습니다. (오류 ' + xhr.status + ')'));
+        });
+        xhr.addEventListener('error', function () { failed('연결이 끊겨 업로드하지 못했습니다.'); });
+        xhr.addEventListener('abort', function () { failed('업로드를 취소했습니다.'); });
+
+        xhr.send(new FormData(form));
+    });
+})();
+</script>
 {% endblock %}

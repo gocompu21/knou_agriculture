@@ -1916,18 +1916,30 @@ def material_manage(request):
 @user_passes_test(staff_required)
 @require_POST
 def material_upload(request):
+    """PDF 자료 업로드.
+
+    화면은 XHR 로 올려 진행률을 보여 준다(자료가 80MB 까지 있어 그냥 두면
+    한참 아무 반응이 없다). XHR 이면 JSON 으로, 아니면 종전대로 리다이렉트.
+    """
+    ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    def fail(msg, subject_pk=None):
+        if ajax:
+            return JsonResponse({'ok': False, 'error': msg}, status=400)
+        from django.contrib import messages
+        messages.error(request, msg)
+        if subject_pk:
+            return redirect(f'/manage/materials/?subject={subject_pk}')
+        return redirect('main:material_manage')
+
     subject_id = request.POST.get('subject')
     title = request.POST.get('title', '').strip()
     pdf_file = request.FILES.get('file')
     if not subject_id or not pdf_file:
-        from django.contrib import messages
-        messages.error(request, '과목과 파일을 모두 선택해주세요.')
-        return redirect('main:material_manage')
+        return fail('과목과 파일을 모두 선택해주세요.')
     subject = get_object_or_404(Subject, pk=int(subject_id))
     if not pdf_file.name.lower().endswith('.pdf'):
-        from django.contrib import messages
-        messages.error(request, 'PDF 파일만 업로드할 수 있습니다.')
-        return redirect(f'/manage/materials/?subject={subject.pk}')
+        return fail('PDF 파일만 업로드할 수 있습니다.', subject.pk)
     if not title:
         title = pdf_file.name.rsplit('.', 1)[0]
     SubjectMaterial.objects.create(
@@ -1936,6 +1948,8 @@ def material_upload(request):
         file=pdf_file,
         uploaded_by=request.user,
     )
+    if ajax:
+        return JsonResponse({'ok': True, 'redirect': f'/manage/materials/?subject={subject.pk}'})
     return redirect(f'/manage/materials/?subject={subject.pk}')
 
 
