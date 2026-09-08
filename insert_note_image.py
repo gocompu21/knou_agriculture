@@ -44,6 +44,16 @@ if idx is None:
     print("절을 찾지 못함:", a.sec)
     sys.exit(1)
 ins = f"![{a.alt}]({a.url})"
+# 다음 절 제목 전까지가 이 절의 범위
+end = next((i for i in range(idx + 1, len(lines)) if lines[i].startswith("### ")), len(lines))
+if a.after == "@last-image":
+    # 절 안의 마지막 이미지 줄 뒤에 넣는다 (이미지가 없으면 절 머리)
+    last = next((i for i in range(end - 1, idx, -1) if lines[i].lstrip().startswith("![")), None)
+    if last is None:
+        a.after = ""
+    else:
+        lines[last + 1:last + 1] = ["", ins]
+        a.after = None
 if a.after:
     # 같은 절 안에서 --after 문자열이 든 줄 뒤에 넣는다
     j = next((i for i in range(idx + 1, len(lines))
@@ -52,7 +62,7 @@ if a.after:
         print("--after 줄을 찾지 못함:", a.after)
         sys.exit(1)
     lines[j + 1:j + 1] = ["", ins]
-else:
+elif a.after == "":
     # 제목 다음 빈 줄을 지나 첫 본문 앞에 넣는다
     j = idx + 1
     while j < len(lines) and not lines[j].strip():
