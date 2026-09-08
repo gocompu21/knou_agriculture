@@ -1024,6 +1024,7 @@ def _weed_card_payload(c):
         "notes": [n for n in c.notes.split("\n") if n.strip()],
         "exam_count": c.exam_count,
         "a_img": c.a_image.url if c.a_image else "",
+        "sketch": c.sketch_image.url if c.sketch_image else "",
     }
 
 

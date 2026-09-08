@@ -233,6 +233,10 @@
     .wq-slide { margin-top: 10px; }
     .wq-slide img { width: 100%; border-radius: 8px; border: 1px solid #ddd; }
     .wq-slide .wq-slide-cap { font-size: 0.75rem; color: #888; margin-top: 4px; }
+    /* 카드 손그림 — 식별 포인트 앞. 원본이 작아 크게 늘리면 뭉개진다 */
+    .wq-sketch { margin: 12px 0 4px; }
+    .wq-sketch img { width: 100%; max-width: 320px; border-radius: 8px; border: 1px solid #ddd; }
+    .wq-sketch .wq-slide-cap { font-size: 0.75rem; color: #888; margin-top: 4px; }
     .wq-actions { display: flex; gap: 8px; }
     .wq-next { flex: 1; padding: 12px; border: none; border-radius: 8px; background: #2d6a4f; color: #fff; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
     .wq-stop { padding: 12px 16px; border: 1px solid #ccc; border-radius: 8px; background: #fff; color: #666; cursor: pointer; }
@@ -3018,6 +3022,7 @@
                      +   (a.habitat ? '<span>' + _wqEsc(a.habitat) + '</span>' : '')
                      +   (a.exam_count ? '<span class="cnt">' + a.exam_count + '회 출제</span>' : '')
                      + '</div>'
+                     + (a.sketch ? '<div class="wq-sketch"><img src="' + a.sketch + '" alt="교수 손그림"><div class="wq-slide-cap">카드 손그림</div></div>' : '')
                      + (a.features ? '<div class="wq-sec"><b>식별 포인트</b>' + _wqEsc(a.features) + '</div>' : '')
                      + (a.similar ? '<div class="wq-sec"><b>헷갈리는 종과 구별</b>' + _wqEsc(a.similar) + '</div>' : '')
                      + (a.control ? '<div class="wq-sec"><b>방제·비고</b>' + _wqEsc(a.control) + '</div>' : '')

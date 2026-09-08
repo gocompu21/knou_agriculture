@@ -92,7 +92,8 @@ class WeedCard(models.Model):
     쪽의 사진 부분, a_image 는 이름·메모·세밀화가 다 보이는 슬라이드 전체다.
     family~control 은 답 화면에 함께 보여 주는 보충 정보(직접 작성)이고,
     notes 는 슬라이드의 교수 메모(글자 층이 있는 카드만), exam_count 는
-    슬라이드의 'N회 출제' 배지다.
+    슬라이드의 'N회 출제' 배지다. sketch_image 는 답 슬라이드에 붙어 있는
+    교수 손그림만 떼어 낸 것으로, 답 화면의 식별 포인트 앞에 보여 준다.
     """
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='weed_cards', verbose_name='과목')
     order = models.PositiveIntegerField('순서', default=0)
@@ -108,6 +109,7 @@ class WeedCard(models.Model):
     exam_count = models.PositiveIntegerField('출제 횟수', default=0)
     q_image = models.ImageField('문제 사진', upload_to='weeds/', blank=True)
     a_image = models.ImageField('답 슬라이드', upload_to='weeds/', blank=True)
+    sketch_image = models.ImageField('손그림', upload_to='weeds/', blank=True)
 
     class Meta:
         verbose_name = '잡초 카드'
