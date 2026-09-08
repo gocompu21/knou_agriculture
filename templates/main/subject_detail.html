@@ -208,6 +208,9 @@
     /* 사진과 보기를 좌우로 나눠 사진이 세로 공간을 넓게 쓰게 한다 */
     .wq-quiz { display: flex; gap: 18px; align-items: flex-start; }
     .wq-photo { flex: 1; min-width: 0; text-align: center; }
+    /* 손그림을 사진 모서리에 붙이려면 래퍼가 사진 크기와 같아야 한다.
+       inline-block 은 글꼴 baseline 때문에 아래가 몇 px 남으므로 flex 로 감싼다 */
+    .wq-photo-in { position: relative; display: inline-flex; max-width: 100%; }
     .wq-photo img { max-width: 100%; max-height: 68vh; border-radius: 8px; border: 1px solid #ddd; }
     .wq-side { flex: 0 0 260px; display: flex; flex-direction: column; gap: 14px; }
     .wq-choices { display: flex; flex-direction: column; gap: 10px; }
@@ -233,10 +236,10 @@
     .wq-slide { margin-top: 10px; }
     .wq-slide img { width: 100%; border-radius: 8px; border: 1px solid #ddd; }
     .wq-slide .wq-slide-cap { font-size: 0.75rem; color: #888; margin-top: 4px; }
-    /* 카드 손그림 — 식별 포인트 앞. 원본이 작아 크게 늘리면 뭉개진다 */
-    .wq-sketch { margin: 12px 0 4px; }
-    .wq-sketch img { width: 100%; max-width: 320px; border-radius: 8px; border: 1px solid #ddd; }
-    .wq-sketch .wq-slide-cap { font-size: 0.75rem; color: #888; margin-top: 4px; }
+    /* 카드 손그림 — 답을 고른 뒤 문제 사진 오른쪽 아래에 겹쳐 보인다 */
+    .wq-sketch-ov { position: absolute; right: 8px; bottom: 8px; width: 34%; max-width: 190px;
+                    border-radius: 6px; border: 1px solid #cfd8cf; background: #fff;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, .28); }
     .wq-actions { display: flex; gap: 8px; }
     .wq-next { flex: 1; padding: 12px; border: none; border-radius: 8px; background: #2d6a4f; color: #fff; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
     .wq-stop { padding: 12px 16px; border: 1px solid #ccc; border-radius: 8px; background: #fff; color: #666; cursor: pointer; }
@@ -271,6 +274,7 @@
         .wq-quiz { flex-direction: column; gap: 12px; }
         .wq-side { flex: none; width: 100%; }
         .wq-photo img { max-height: 52vh; }
+        .wq-sketch-ov { width: 38%; max-width: 150px; right: 6px; bottom: 6px; }
     }
     .content-box img.note-img {
         display: block; max-width: min(100%, 520px); height: auto;
@@ -1903,13 +1907,16 @@
                 <button type="button" class="wq-mode-btn" onclick="weedStart('freq')">출제된 것 우선 ({{ weed_stats.freq }})</button>
                 <button type="button" class="wq-mode-btn wrong" onclick="weedStart('wrong')">오답만 (<span id="wq-wrong2">{{ weed_stats.wrong }}</span>)</button>
             </div>
-            <div class="wq-hint">사진을 보고 잡초 이름을 고르세요. 고르면 정답과 함께 과·생활형·발생지·식별 포인트·유사종 구별·교수 메모·원본 슬라이드가 펼쳐집니다.</div>
+            <div class="wq-hint">사진을 보고 잡초 이름을 고르세요. 고르면 사진 위에 카드 손그림이 겹쳐 보이고, 정답과 함께 과·생활형·발생지·식별 포인트·유사종 구별·교수 메모·원본 슬라이드가 펼쳐집니다.</div>
         </div>
         <div id="wq-area" hidden>
             <div class="wq-progress"><span id="wq-pos"></span><span class="wq-score" id="wq-score"></span></div>
             <div class="wq-card">
                 <div class="wq-quiz">
-                    <div class="wq-photo"><img id="wq-img" alt="잡초 사진"></div>
+                    <div class="wq-photo"><span class="wq-photo-in">
+                        <img id="wq-img" alt="잡초 사진">
+                        <img id="wq-sketch-ov" class="wq-sketch-ov" alt="카드 손그림" hidden>
+                    </span></div>
                     <div class="wq-side">
                         <div class="wq-choices" id="wq-choices"></div>
                         <div class="wq-actions" id="wq-actions" hidden>
@@ -2945,6 +2952,7 @@
                 document.getElementById('wq-pos').textContent = '목록에서 고른 문제';
                 document.getElementById('wq-score').textContent = _wq.n ? ('정답 ' + _wq.ok + ' / ' + _wq.n) : '';
                 document.getElementById('wq-img').src = d.card.q_img;
+                document.getElementById('wq-sketch-ov').hidden = true;
                 var box = document.getElementById('wq-choices');
                 box.className = 'wq-choices';
                 box.innerHTML = d.choices.map(function(c) {
@@ -2982,6 +2990,7 @@
             document.getElementById('wq-pos').textContent = (_wq.n + 1) + ' / ' + d.total + (d.total - d.remaining ? '' : '');
             document.getElementById('wq-score').textContent = _wq.n ? ('정답 ' + _wq.ok + ' / ' + _wq.n) : '';
             document.getElementById('wq-img').src = d.card.q_img;
+            document.getElementById('wq-sketch-ov').hidden = true;
             var box = document.getElementById('wq-choices');
             box.className = 'wq-choices';
             box.innerHTML = d.choices.map(function(c) {
@@ -3013,6 +3022,8 @@
             });
             if (!d.correct) el.classList.add('miss');
             var a = d.answer;
+            var ov = document.getElementById('wq-sketch-ov');   // 사진 위 손그림
+            if (a.sketch) { ov.src = a.sketch; ov.hidden = false; } else { ov.hidden = true; }
             var html = '<div class="wq-verdict ' + (d.correct ? 'ok' : 'no') + '">'
                      + (d.correct ? '정답입니다.' : '오답입니다. 고른 것: ' + _wqEsc(d.selected_name) + ' → 정답은 ' + _wqEsc(a.name)) + '</div>'
                      + '<div class="wq-name">' + _wqEsc(a.name) + '<small>카드 ' + a.card_no + '</small></div>'
@@ -3022,7 +3033,6 @@
                      +   (a.habitat ? '<span>' + _wqEsc(a.habitat) + '</span>' : '')
                      +   (a.exam_count ? '<span class="cnt">' + a.exam_count + '회 출제</span>' : '')
                      + '</div>'
-                     + (a.sketch ? '<div class="wq-sketch"><img src="' + a.sketch + '" alt="교수 손그림"><div class="wq-slide-cap">카드 손그림</div></div>' : '')
                      + (a.features ? '<div class="wq-sec"><b>식별 포인트</b>' + _wqEsc(a.features) + '</div>' : '')
                      + (a.similar ? '<div class="wq-sec"><b>헷갈리는 종과 구별</b>' + _wqEsc(a.similar) + '</div>' : '')
                      + (a.control ? '<div class="wq-sec"><b>방제·비고</b>' + _wqEsc(a.control) + '</div>' : '')
