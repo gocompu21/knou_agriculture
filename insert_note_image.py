@@ -28,6 +28,7 @@ ap.add_argument("--order", type=int, required=True)
 ap.add_argument("--sec", required=True)
 ap.add_argument("--url", required=True)
 ap.add_argument("--alt", default="")
+ap.add_argument("--after", default="", help="이 문자열이 든 줄 바로 뒤에 넣는다 (없으면 절 머리)")
 a = ap.parse_args()
 
 subject = Subject.objects.get(name=a.subject, grade=a.grade)
@@ -43,11 +44,20 @@ if idx is None:
     print("절을 찾지 못함:", a.sec)
     sys.exit(1)
 ins = f"![{a.alt}]({a.url})"
-# 제목 다음 빈 줄을 지나 첫 본문 앞에 넣는다
-j = idx + 1
-while j < len(lines) and not lines[j].strip():
-    j += 1
-lines[j:j] = [ins, ""]
+if a.after:
+    # 같은 절 안에서 --after 문자열이 든 줄 뒤에 넣는다
+    j = next((i for i in range(idx + 1, len(lines))
+              if a.after in lines[i] and not lines[i].startswith("### ")), None)
+    if j is None:
+        print("--after 줄을 찾지 못함:", a.after)
+        sys.exit(1)
+    lines[j + 1:j + 1] = ["", ins]
+else:
+    # 제목 다음 빈 줄을 지나 첫 본문 앞에 넣는다
+    j = idx + 1
+    while j < len(lines) and not lines[j].strip():
+        j += 1
+    lines[j:j] = [ins, ""]
 note.content = "\n".join(lines)
 note.save(update_fields=["content", "updated_at"])
 print(f"넣음: {note.title} / {a.sec} 절 머리에 {ins}")
