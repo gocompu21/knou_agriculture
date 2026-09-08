@@ -201,6 +201,9 @@
     .wq-mode-btn:hover { background: #1b4332; }
     .wq-mode-btn.wrong { background: #b71c1c; }
     .wq-mode-btn.wrong:hover { background: #8e1515; }
+    /* 지금 풀고 있는 범위만 진하게 — 들어오자마자 '전체'로 시작하므로 어느 범위인지 보여야 한다 */
+    .wq-modes:has(.on) .wq-mode-btn:not(.on) { opacity: .45; }
+    .wq-modes:has(.on) .wq-mode-btn:not(.on):hover { opacity: 1; }
     .wq-hint { margin-top: 10px; font-size: 0.8rem; color: #777; line-height: 1.6; }
     .wq-progress { display: flex; justify-content: space-between; font-size: 0.82rem; color: #666; margin: 0 4px 8px; }
     .wq-score { color: #1b4332; font-weight: 600; }
@@ -256,7 +259,9 @@
     .wq-sketch-ov { position: absolute; right: 8px; bottom: 8px; width: 34%; max-width: 190px;
                     border-radius: 6px; border: 1px solid #cfd8cf; background: #fff;
                     box-shadow: 0 2px 8px rgba(0, 0, 0, .28); }
+    /* display:flex 는 [hidden] 을 이기므로 숨김을 따로 지정해야 한다 */
     .wq-actions { display: flex; gap: 8px; }
+    .wq-actions[hidden] { display: none; }
     .wq-next { flex: 1; padding: 12px; border: none; border-radius: 8px; background: #2d6a4f; color: #fff; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
     .wq-stop { padding: 12px 16px; border: 1px solid #ccc; border-radius: 8px; background: #fff; color: #666; cursor: pointer; }
     /* 잡초 전체 목록 */
@@ -1921,9 +1926,9 @@
                 <button type="button" class="wq-reset" onclick="weedReset()">기록 지우기</button>
             </div>
             <div class="wq-modes">
-                <button type="button" class="wq-mode-btn" onclick="weedStart('all')">전체 {{ weed_count }}종</button>
-                <button type="button" class="wq-mode-btn" onclick="weedStart('freq')">출제된 것 우선 ({{ weed_stats.freq }})</button>
-                <button type="button" class="wq-mode-btn wrong" onclick="weedStart('wrong')">오답만 (<span id="wq-wrong2">{{ weed_stats.wrong }}</span>)</button>
+                <button type="button" class="wq-mode-btn" data-mode="all" onclick="weedStart('all')">전체 {{ weed_count }}종</button>
+                <button type="button" class="wq-mode-btn" data-mode="freq" onclick="weedStart('freq')">출제된 것 우선 ({{ weed_stats.freq }})</button>
+                <button type="button" class="wq-mode-btn wrong" data-mode="wrong" onclick="weedStart('wrong')">오답만 (<span id="wq-wrong2">{{ weed_stats.wrong }}</span>)</button>
             </div>
             <div class="wq-hint">사진을 보고 잡초 이름을 고르세요. 고르면 사진 위에 교수 메모와 카드 손그림이 겹쳐 보이고, 아래에 정답과 함께 과·생활형·발생지·식별 포인트·유사종 구별·원본 슬라이드가 펼쳐집니다.</div>
         </div>
@@ -2372,6 +2377,7 @@
         activeBtn.classList.add('active');
         activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         history.replaceState(null, '', '?tab=' + tabName);
+        if (tabName === 'weeds' && window.weedAutoStart) weedAutoStart();
     }
 
     // 페이지 로드 시 활성 탭이 보이도록 스크롤
@@ -2902,13 +2908,24 @@
     }
     window.weedStart = function(mode) {
         _wq = { mode: mode, seen: [], n: 0, ok: 0, card: null, busy: false };
+        document.querySelectorAll('.wq-mode-btn').forEach(function(b) {
+            b.classList.toggle('on', b.dataset.mode === mode);
+        });
         document.getElementById('wq-done').hidden = true;
         document.getElementById('wq-area').hidden = false;
+        document.getElementById('wq-list').hidden = true;
         weedNext();
     };
     window.weedStop = function() {
         document.getElementById('wq-area').hidden = true;
         _wqShowDone('여기까지 ' + _wq.n + '문제 중 ' + _wq.ok + '문제를 맞혔습니다.');
+    };
+    /* 잡초 동정 탭에 들어오면 바로 전체 모드로 첫 문제를 낸다.
+       이미 풀고 있거나 목록을 보는 중이면 건드리지 않는다. */
+    window.weedAutoStart = function() {
+        if (_wq.card || !document.getElementById('wq-area').hidden) return;
+        if (!document.getElementById('wq-list').hidden) return;
+        weedStart('all');
     };
     /* 전체 목록 — 종명을 누르면 그 잡초 문제로 간다. 열 제목을 누르면 정렬 */
     var _wqItems = [], _wqSort = { key: 'no', asc: true };
@@ -3311,6 +3328,10 @@
                 toggleQna(el.parentElement.querySelector('.qi-head'));
             });
         });
+        /* ?tab=weeds 로 바로 들어온 경우에도 첫 문제를 낸다 */
+        {% if weed_count %}
+        if (document.getElementById('tab-weeds').classList.contains('active')) weedAutoStart();
+        {% endif %}
     });
 </script>
 {% endblock %}
