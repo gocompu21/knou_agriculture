@@ -226,6 +226,9 @@
     .wq-verdict.no { background: #fdecea; color: #b71c1c; }
     .wq-name { font-size: 1.35rem; font-weight: 800; color: #1b4332; margin-bottom: 6px; }
     .wq-name small { font-size: 0.75rem; color: #999; font-weight: 400; margin-left: 6px; }
+    /* 출제 횟수 별 — 노란 별에 옅은 테두리를 줘 흰 바탕에서도 또렷하게 */
+    .wq-stars { color: #f5b301; margin-left: 6px; letter-spacing: 1px; font-size: 0.9em;
+                text-shadow: 0 0 1px rgba(140, 100, 0, .45); }
     .wq-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
     .wq-meta span { font-size: 0.78rem; padding: 3px 10px; border-radius: 12px; background: #f0f4f0; color: #2d6a4f; }
     .wq-meta span.cnt { background: #fff3e0; color: #e65100; font-weight: 700; }
@@ -236,6 +239,14 @@
     .wq-slide { margin-top: 10px; }
     .wq-slide img { width: 100%; border-radius: 8px; border: 1px solid #ddd; }
     .wq-slide .wq-slide-cap { font-size: 0.75rem; color: #888; margin-top: 4px; }
+    /* 교수 메모 — 답을 고른 뒤 문제 사진 위쪽에 흰 상자로 겹쳐 보인다 */
+    .wq-notes-ov { position: absolute; left: 8px; right: 8px; top: 8px;
+                   background: rgba(255, 255, 255, .93); border-radius: 6px;
+                   padding: 8px 12px 8px 10px; text-align: left;
+                   font-size: 0.8rem; line-height: 1.45; color: #222;
+                   box-shadow: 0 2px 8px rgba(0, 0, 0, .18); max-height: 60%; overflow-y: auto; }
+    .wq-notes-ov ul { margin: 0; padding-left: 16px; }
+    .wq-notes-ov li { margin: 1px 0; }
     /* 카드 손그림 — 답을 고른 뒤 문제 사진 오른쪽 아래에 겹쳐 보인다 */
     .wq-sketch-ov { position: absolute; right: 8px; bottom: 8px; width: 34%; max-width: 190px;
                     border-radius: 6px; border: 1px solid #cfd8cf; background: #fff;
@@ -260,6 +271,7 @@
     .wq-table .wq-t-name { font-weight: 700; color: #1b4332; cursor: pointer; text-decoration: none; white-space: nowrap; }
     .wq-table .wq-t-name:hover { text-decoration: underline; }
     .wq-table .wq-t-cnt { color: #e65100; font-weight: 700; white-space: nowrap; }
+    .wq-table .wq-stars { margin-left: 4px; font-size: 0.8em; letter-spacing: 0; }
     .wq-table .wq-t-state { white-space: nowrap; font-size: 0.78rem; }
     .wq-table .wq-t-state.ok { color: #2e7d32; }
     .wq-table .wq-t-state.wrong { color: #c62828; font-weight: 700; }
@@ -275,6 +287,7 @@
         .wq-side { flex: none; width: 100%; }
         .wq-photo img { max-height: 52vh; }
         .wq-sketch-ov { width: 38%; max-width: 150px; right: 6px; bottom: 6px; }
+        .wq-notes-ov { font-size: 0.76rem; padding: 6px 9px 6px 8px; left: 6px; right: 6px; top: 6px; }
     }
     .content-box img.note-img {
         display: block; max-width: min(100%, 520px); height: auto;
@@ -1907,7 +1920,7 @@
                 <button type="button" class="wq-mode-btn" onclick="weedStart('freq')">출제된 것 우선 ({{ weed_stats.freq }})</button>
                 <button type="button" class="wq-mode-btn wrong" onclick="weedStart('wrong')">오답만 (<span id="wq-wrong2">{{ weed_stats.wrong }}</span>)</button>
             </div>
-            <div class="wq-hint">사진을 보고 잡초 이름을 고르세요. 고르면 사진 위에 카드 손그림이 겹쳐 보이고, 정답과 함께 과·생활형·발생지·식별 포인트·유사종 구별·교수 메모·원본 슬라이드가 펼쳐집니다.</div>
+            <div class="wq-hint">사진을 보고 잡초 이름을 고르세요. 고르면 사진 위에 교수 메모와 카드 손그림이 겹쳐 보이고, 아래에 정답과 함께 과·생활형·발생지·식별 포인트·유사종 구별·원본 슬라이드가 펼쳐집니다.</div>
         </div>
         <div id="wq-area" hidden>
             <div class="wq-progress"><span id="wq-pos"></span><span class="wq-score" id="wq-score"></span></div>
@@ -1915,6 +1928,7 @@
                 <div class="wq-quiz">
                     <div class="wq-photo"><span class="wq-photo-in">
                         <img id="wq-img" alt="잡초 사진">
+                        <div id="wq-notes-ov" class="wq-notes-ov" hidden></div>
                         <img id="wq-sketch-ov" class="wq-sketch-ov" alt="카드 손그림" hidden>
                     </span></div>
                     <div class="wq-side">
@@ -2875,6 +2889,12 @@
     /* ── 잡초 동정 퀴즈 (사진 → 이름 4지선다) ── */
     var _wq = { mode: 'all', seen: [], n: 0, ok: 0, card: null, busy: false };
     function _wqEsc(x) { return String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    // 출제 횟수를 별로 — 5회↑ ★★★ / 3~4 ★★ / 2 ★ / 1 ☆ (실기 쪽집게 노트와 같은 기준)
+    function _wqStars(n) {
+        if (!n) return '';
+        var s = n >= 5 ? '★★★' : n >= 3 ? '★★' : n >= 2 ? '★' : '☆';
+        return '<span class="wq-stars" title="' + n + '회 출제">' + s + '</span>';
+    }
     window.weedStart = function(mode) {
         _wq = { mode: mode, seen: [], n: 0, ok: 0, card: null, busy: false };
         document.getElementById('wq-done').hidden = true;
@@ -2894,7 +2914,7 @@
                    : it.state === 'ok' ? '<span class="wq-t-state ok">정답</span>' : '';
             return '<tr>'
                  + '<td class="wq-t-no">' + it.no + '</td>'
-                 + '<td><a class="wq-t-name" onclick="weedGo(' + it.id + ')">' + _wqEsc(it.name) + '</a></td>'
+                 + '<td><a class="wq-t-name" onclick="weedGo(' + it.id + ')">' + _wqEsc(it.name) + '</a>' + _wqStars(it.exam_count) + '</td>'
                  + '<td>' + _wqEsc(it.family) + '</td>'
                  + '<td class="wq-t-life">' + _wqEsc(it.life_form) + '</td>'
                  + '<td class="wq-t-habitat">' + _wqEsc(it.habitat) + '</td>'
@@ -2953,6 +2973,7 @@
                 document.getElementById('wq-score').textContent = _wq.n ? ('정답 ' + _wq.ok + ' / ' + _wq.n) : '';
                 document.getElementById('wq-img').src = d.card.q_img;
                 document.getElementById('wq-sketch-ov').hidden = true;
+                document.getElementById('wq-notes-ov').hidden = true;
                 var box = document.getElementById('wq-choices');
                 box.className = 'wq-choices';
                 box.innerHTML = d.choices.map(function(c) {
@@ -2991,6 +3012,7 @@
             document.getElementById('wq-score').textContent = _wq.n ? ('정답 ' + _wq.ok + ' / ' + _wq.n) : '';
             document.getElementById('wq-img').src = d.card.q_img;
             document.getElementById('wq-sketch-ov').hidden = true;
+            document.getElementById('wq-notes-ov').hidden = true;
             var box = document.getElementById('wq-choices');
             box.className = 'wq-choices';
             box.innerHTML = d.choices.map(function(c) {
@@ -3024,9 +3046,14 @@
             var a = d.answer;
             var ov = document.getElementById('wq-sketch-ov');   // 사진 위 손그림
             if (a.sketch) { ov.src = a.sketch; ov.hidden = false; } else { ov.hidden = true; }
+            var nov = document.getElementById('wq-notes-ov');   // 사진 위 교수 메모
+            if (a.notes && a.notes.length) {
+                nov.innerHTML = '<ul>' + a.notes.map(function(n) { return '<li>' + _wqEsc(n) + '</li>'; }).join('') + '</ul>';
+                nov.hidden = false;
+            } else { nov.hidden = true; nov.innerHTML = ''; }
             var html = '<div class="wq-verdict ' + (d.correct ? 'ok' : 'no') + '">'
                      + (d.correct ? '정답입니다.' : '오답입니다. 고른 것: ' + _wqEsc(d.selected_name) + ' → 정답은 ' + _wqEsc(a.name)) + '</div>'
-                     + '<div class="wq-name">' + _wqEsc(a.name) + '<small>카드 ' + a.card_no + '</small></div>'
+                     + '<div class="wq-name">' + _wqEsc(a.name) + _wqStars(a.exam_count) + '<small>카드 ' + a.card_no + '</small></div>'
                      + '<div class="wq-meta">'
                      +   (a.family ? '<span>' + _wqEsc(a.family) + '</span>' : '')
                      +   (a.life_form ? '<span>' + _wqEsc(a.life_form) + '</span>' : '')
@@ -3036,7 +3063,6 @@
                      + (a.features ? '<div class="wq-sec"><b>식별 포인트</b>' + _wqEsc(a.features) + '</div>' : '')
                      + (a.similar ? '<div class="wq-sec"><b>헷갈리는 종과 구별</b>' + _wqEsc(a.similar) + '</div>' : '')
                      + (a.control ? '<div class="wq-sec"><b>방제·비고</b>' + _wqEsc(a.control) + '</div>' : '')
-                     + (a.notes && a.notes.length ? '<div class="wq-sec"><b>교수 메모(카드 원문)</b><ul>' + a.notes.map(function(n) { return '<li>' + _wqEsc(n) + '</li>'; }).join('') + '</ul></div>' : '')
                      + (a.a_img ? '<div class="wq-slide"><img src="' + a.a_img + '" alt="답 슬라이드"><div class="wq-slide-cap">원본 카드 슬라이드</div></div>' : '');
             var ans = document.getElementById('wq-answer');
             ans.innerHTML = html; ans.hidden = false;
