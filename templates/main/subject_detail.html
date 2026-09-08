@@ -1619,11 +1619,6 @@
 
 {% block content %}
 <div class="wrap">
-    <div class="breadcrumb fade-up">
-        <a href="{% url 'main:subject_list' %}">학년별 교과목</a>
-        <span class="sep">/</span>
-        <span>{{ subject.name }}</span>
-    </div>
 
     <div class="page-header fade-up">
         <span class="grade-badge g{{ subject.grade }}">{{ subject.get_grade_display }}</span>
