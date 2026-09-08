@@ -236,6 +236,28 @@
     .wq-actions { display: flex; gap: 8px; }
     .wq-next { flex: 1; padding: 12px; border: none; border-radius: 8px; background: #2d6a4f; color: #fff; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
     .wq-stop { padding: 12px 16px; border: 1px solid #ccc; border-radius: 8px; background: #fff; color: #666; cursor: pointer; }
+    /* 잡초 전체 목록 */
+    .wq-list { margin-top: 14px; background: #fff; border: 1px solid #e0e6e0; border-radius: 12px; overflow: hidden; }
+    .wq-list-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #f4f8f4; border-bottom: 1px solid #e0e6e0; font-size: 0.85rem; color: #555; }
+    .wq-list-head b { color: #1b4332; }
+    .wq-list-close { margin-left: auto; background: none; border: 1px solid #ccc; border-radius: 6px; padding: 4px 12px; font-size: 0.8rem; color: #666; cursor: pointer; }
+    .wq-table-wrap { max-height: 70vh; overflow: auto; }
+    .wq-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    .wq-table th { position: sticky; top: 0; background: #1b4332; color: #fff; font-weight: 600; padding: 8px 10px; text-align: left; white-space: nowrap; }
+    .wq-table td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; color: #333; }
+    .wq-table tr:hover td { background: #f7fbf7; }
+    .wq-table .wq-t-no { color: #999; width: 46px; }
+    .wq-table .wq-t-name { font-weight: 700; color: #1b4332; cursor: pointer; text-decoration: none; white-space: nowrap; }
+    .wq-table .wq-t-name:hover { text-decoration: underline; }
+    .wq-table .wq-t-cnt { color: #e65100; font-weight: 700; white-space: nowrap; }
+    .wq-table .wq-t-state { white-space: nowrap; font-size: 0.78rem; }
+    .wq-table .wq-t-state.ok { color: #2e7d32; }
+    .wq-table .wq-t-state.wrong { color: #c62828; font-weight: 700; }
+    @media (max-width: 700px) {
+        .wq-table .wq-t-habitat, .wq-table .wq-t-life { display: none; }
+        .wq-table th.h-habitat, .wq-table th.h-life { display: none; }
+    }
+
     .wq-done { background: #fff; border: 1px solid #e0e6e0; border-radius: 12px; padding: 24px; text-align: center; font-size: 0.95rem; color: #333; line-height: 1.8; }
     .wq-done b { color: #1b4332; font-size: 1.2rem; }
     @media (max-width: 700px) {
@@ -1885,7 +1907,7 @@
                         <div class="wq-choices" id="wq-choices"></div>
                         <div class="wq-actions" id="wq-actions" hidden>
                             <button type="button" class="wq-next" onclick="weedNext()">다음 문제 ›</button>
-                            <button type="button" class="wq-stop" onclick="weedStop()">그만하기</button>
+                            <button type="button" class="wq-stop" onclick="weedList()">목록</button>
                         </div>
                     </div>
                 </div>
@@ -1893,6 +1915,18 @@
             </div>
         </div>
         <div id="wq-done" class="wq-done" hidden></div>
+        <div id="wq-list" class="wq-list" hidden>
+            <div class="wq-list-head">
+                <span>잡초 목록 <b id="wq-list-n">{{ weed_count }}</b>종 · 종명을 누르면 그 잡초 문제로 갑니다</span>
+                <button type="button" class="wq-list-close" onclick="document.getElementById('wq-list').hidden = true">닫기</button>
+            </div>
+            <div class="wq-table-wrap">
+                <table class="wq-table">
+                    <thead><tr><th>번호</th><th>종명</th><th>과명</th><th>생활형</th><th>발생지</th><th>출제</th><th>상태</th></tr></thead>
+                    <tbody id="wq-list-body"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
     {% endif %}
 
@@ -2828,6 +2862,61 @@
     window.weedStop = function() {
         document.getElementById('wq-area').hidden = true;
         _wqShowDone('여기까지 ' + _wq.n + '문제 중 ' + _wq.ok + '문제를 맞혔습니다.');
+    };
+    /* 전체 목록 — 종명을 누르면 그 잡초 문제로 간다 */
+    window.weedList = function() {
+        var box = document.getElementById('wq-list');
+        if (!box.hidden) { box.hidden = true; return; }
+        var body = document.getElementById('wq-list-body');
+        box.hidden = false;
+        if (!body.dataset.loaded) {
+            body.innerHTML = '<tr><td colspan="7">불러오는 중…</td></tr>';
+            fetch('{% url "main:api_weed_quiz_list" subject.pk %}', { credentials: 'same-origin' })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    body.dataset.loaded = '1';
+                    body.innerHTML = d.items.map(function(it) {
+                        var st = it.state === 'wrong' ? '<span class="wq-t-state wrong">오답</span>'
+                               : it.state === 'ok' ? '<span class="wq-t-state ok">정답</span>' : '';
+                        return '<tr>'
+                             + '<td class="wq-t-no">' + it.no + '</td>'
+                             + '<td><a class="wq-t-name" onclick="weedGo(' + it.id + ')">' + _wqEsc(it.name) + '</a></td>'
+                             + '<td>' + _wqEsc(it.family) + '</td>'
+                             + '<td class="wq-t-life">' + _wqEsc(it.life_form) + '</td>'
+                             + '<td class="wq-t-habitat">' + _wqEsc(it.habitat) + '</td>'
+                             + '<td class="wq-t-cnt">' + (it.exam_count ? it.exam_count + '회' : '') + '</td>'
+                             + '<td>' + st + '</td>'
+                             + '</tr>';
+                    }).join('');
+                })
+                .catch(function() { body.innerHTML = '<tr><td colspan="7">목록을 불러오지 못했습니다.</td></tr>'; });
+        }
+        box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    /* 목록에서 고른 잡초를 문제로 낸다 */
+    window.weedGo = function(cardId) {
+        document.getElementById('wq-list').hidden = true;
+        document.getElementById('wq-done').hidden = true;
+        document.getElementById('wq-area').hidden = false;
+        fetch('{% url "main:api_weed_quiz_card" subject.pk 0 %}'.replace('/card/0/', '/card/' + cardId + '/'),
+              { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                _wq.card = d.card;
+                document.getElementById('wq-pos').textContent = '목록에서 고른 문제';
+                document.getElementById('wq-score').textContent = _wq.n ? ('정답 ' + _wq.ok + ' / ' + _wq.n) : '';
+                document.getElementById('wq-img').src = d.card.q_img;
+                var box = document.getElementById('wq-choices');
+                box.className = 'wq-choices';
+                box.innerHTML = d.choices.map(function(c) {
+                    return '<div class="wq-choice" data-id="' + c.id + '" onclick="weedPick(this)">' + _wqEsc(c.name) + '</div>';
+                }).join('');
+                document.getElementById('wq-answer').hidden = true;
+                document.getElementById('wq-answer').innerHTML = '';
+                document.getElementById('wq-actions').hidden = true;
+                document.getElementById('wq-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            })
+            .catch(function() { alert('문제를 불러오지 못했습니다.'); });
     };
     function _wqShowDone(msg) {
         var d = document.getElementById('wq-done');

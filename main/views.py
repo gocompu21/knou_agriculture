@@ -1073,6 +1073,49 @@ def api_weed_quiz_next(request, pk):
 
 
 @login_required
+def api_weed_quiz_list(request, pk):
+    """전체 카드 목록 — 종명·과명·생활형·발생지, 내 풀이 상태."""
+    subject = get_object_or_404(Subject, pk=pk)
+    wrong = _weed_latest_wrong_ids(request.user, subject)
+    done = set(WeedQuizAttempt.objects.filter(user=request.user, card__subject=subject)
+               .values_list("card_id", flat=True))
+    items = []
+    for c in WeedCard.objects.filter(subject=subject).order_by("order"):
+        items.append({
+            "id": c.pk, "no": c.card_no, "name": c.name, "family": c.family,
+            "life_form": c.life_form, "habitat": c.habitat,
+            "exam_count": c.exam_count,
+            "state": "wrong" if c.pk in wrong else ("ok" if c.pk in done else ""),
+        })
+    return JsonResponse({"items": items})
+
+
+@login_required
+def api_weed_quiz_card(request, pk, card_id):
+    """목록에서 고른 카드 한 장을 문제로 낸다 (보기는 같은 과 우선)."""
+    subject = get_object_or_404(Subject, pk=pk)
+    card = get_object_or_404(WeedCard, pk=card_id, subject=subject)
+    cards = list(WeedCard.objects.filter(subject=subject).exclude(pk=card.pk))
+    same = [c for c in cards if c.family and c.family == card.family]
+    random.shuffle(same)
+    random.shuffle(cards)
+    picked = same[:3]
+    for c in cards:
+        if len(picked) >= 3:
+            break
+        if c not in picked:
+            picked.append(c)
+    choices = picked + [card]
+    random.shuffle(choices)
+    return JsonResponse({
+        "done": False,
+        "card": {"id": card.pk, "q_img": card.q_image.url if card.q_image else ""},
+        "choices": [{"id": c.pk, "name": c.name} for c in choices],
+        "remaining": 1, "total": 1,
+    })
+
+
+@login_required
 @require_POST
 def api_weed_quiz_answer(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
