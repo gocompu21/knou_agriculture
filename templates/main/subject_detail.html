@@ -244,6 +244,9 @@
     .wq-table-wrap { max-height: 70vh; overflow: auto; }
     .wq-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
     .wq-table th { position: sticky; top: 0; background: #1b4332; color: #fff; font-weight: 600; padding: 8px 10px; text-align: left; white-space: nowrap; }
+    .wq-table th.wq-sortable { cursor: pointer; user-select: none; }
+    .wq-table th.wq-sortable:hover { background: #2d6a4f; }
+    .wq-sort-i { display: inline-block; width: 12px; margin-left: 3px; color: #a5d6a7; font-size: 0.8em; }
     .wq-table td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; color: #333; }
     .wq-table tr:hover td { background: #f7fbf7; }
     .wq-table .wq-t-no { color: #999; width: 46px; }
@@ -1922,7 +1925,15 @@
             </div>
             <div class="wq-table-wrap">
                 <table class="wq-table">
-                    <thead><tr><th>번호</th><th>종명</th><th>과명</th><th>생활형</th><th>발생지</th><th>출제</th><th>상태</th></tr></thead>
+                    <thead><tr>
+                        <th class="wq-sortable" onclick="weedSort('no')">번호<span class="wq-sort-i"></span></th>
+                        <th class="wq-sortable" onclick="weedSort('name')">종명<span class="wq-sort-i"></span></th>
+                        <th class="wq-sortable" onclick="weedSort('family')">과명<span class="wq-sort-i"></span></th>
+                        <th class="wq-sortable h-life" onclick="weedSort('life_form')">생활형<span class="wq-sort-i"></span></th>
+                        <th class="wq-sortable h-habitat" onclick="weedSort('habitat')">발생지<span class="wq-sort-i"></span></th>
+                        <th class="wq-sortable" onclick="weedSort('exam_count')">출제<span class="wq-sort-i"></span></th>
+                        <th class="wq-sortable" onclick="weedSort('state')">상태<span class="wq-sort-i"></span></th>
+                    </tr></thead>
                     <tbody id="wq-list-body"></tbody>
                 </table>
             </div>
@@ -2863,7 +2874,42 @@
         document.getElementById('wq-area').hidden = true;
         _wqShowDone('여기까지 ' + _wq.n + '문제 중 ' + _wq.ok + '문제를 맞혔습니다.');
     };
-    /* 전체 목록 — 종명을 누르면 그 잡초 문제로 간다 */
+    /* 전체 목록 — 종명을 누르면 그 잡초 문제로 간다. 열 제목을 누르면 정렬 */
+    var _wqItems = [], _wqSort = { key: 'no', asc: true };
+    function _wqRenderList() {
+        var body = document.getElementById('wq-list-body');
+        body.innerHTML = _wqItems.map(function(it) {
+            var st = it.state === 'wrong' ? '<span class="wq-t-state wrong">오답</span>'
+                   : it.state === 'ok' ? '<span class="wq-t-state ok">정답</span>' : '';
+            return '<tr>'
+                 + '<td class="wq-t-no">' + it.no + '</td>'
+                 + '<td><a class="wq-t-name" onclick="weedGo(' + it.id + ')">' + _wqEsc(it.name) + '</a></td>'
+                 + '<td>' + _wqEsc(it.family) + '</td>'
+                 + '<td class="wq-t-life">' + _wqEsc(it.life_form) + '</td>'
+                 + '<td class="wq-t-habitat">' + _wqEsc(it.habitat) + '</td>'
+                 + '<td class="wq-t-cnt">' + (it.exam_count ? it.exam_count + '회' : '') + '</td>'
+                 + '<td>' + st + '</td>'
+                 + '</tr>';
+        }).join('');
+        // 열 제목의 정렬 표시
+        var keys = ['no', 'name', 'family', 'life_form', 'habitat', 'exam_count', 'state'];
+        document.querySelectorAll('#wq-list .wq-sort-i').forEach(function(el, i) {
+            el.textContent = keys[i] === _wqSort.key ? (_wqSort.asc ? '▲' : '▼') : '';
+        });
+    }
+    window.weedSort = function(key) {
+        if (_wqSort.key === key) _wqSort.asc = !_wqSort.asc;
+        else { _wqSort.key = key; _wqSort.asc = true; }
+        var dir = _wqSort.asc ? 1 : -1;
+        var order = { wrong: 0, ok: 1, '': 2 };      // 상태는 오답 → 정답 → 안 푼 것
+        _wqItems.sort(function(a, b) {
+            var x = a[key], y = b[key];
+            if (key === 'state') { x = order[x]; y = order[y]; }
+            if (typeof x === 'number' && typeof y === 'number') return (x - y) * dir;
+            return String(x).localeCompare(String(y), 'ko') * dir;
+        });
+        _wqRenderList();
+    };
     window.weedList = function() {
         var box = document.getElementById('wq-list');
         if (!box.hidden) { box.hidden = true; return; }
@@ -2875,19 +2921,8 @@
                 .then(function(r) { return r.json(); })
                 .then(function(d) {
                     body.dataset.loaded = '1';
-                    body.innerHTML = d.items.map(function(it) {
-                        var st = it.state === 'wrong' ? '<span class="wq-t-state wrong">오답</span>'
-                               : it.state === 'ok' ? '<span class="wq-t-state ok">정답</span>' : '';
-                        return '<tr>'
-                             + '<td class="wq-t-no">' + it.no + '</td>'
-                             + '<td><a class="wq-t-name" onclick="weedGo(' + it.id + ')">' + _wqEsc(it.name) + '</a></td>'
-                             + '<td>' + _wqEsc(it.family) + '</td>'
-                             + '<td class="wq-t-life">' + _wqEsc(it.life_form) + '</td>'
-                             + '<td class="wq-t-habitat">' + _wqEsc(it.habitat) + '</td>'
-                             + '<td class="wq-t-cnt">' + (it.exam_count ? it.exam_count + '회' : '') + '</td>'
-                             + '<td>' + st + '</td>'
-                             + '</tr>';
-                    }).join('');
+                    _wqItems = d.items;
+                    _wqRenderList();
                 })
                 .catch(function() { body.innerHTML = '<tr><td colspan="7">목록을 불러오지 못했습니다.</td></tr>'; });
         }
