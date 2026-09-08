@@ -209,8 +209,10 @@
     .wq-quiz { display: flex; gap: 18px; align-items: flex-start; }
     .wq-photo { flex: 1; min-width: 0; text-align: center; }
     /* 손그림을 사진 모서리에 붙이려면 래퍼가 사진 크기와 같아야 한다.
-       inline-block 은 글꼴 baseline 때문에 아래가 몇 px 남으므로 flex 로 감싼다 */
-    .wq-photo-in { position: relative; display: inline-flex; max-width: 100%; }
+       inline-block 은 글꼴 baseline 때문에 아래가 몇 px 남으므로 flex 로 감싼다.
+       메모 그라데이션이 모서리 밖으로 새지 않도록 사진과 같은 둥글기로 잘라 낸다 */
+    .wq-photo-in { position: relative; display: inline-flex; max-width: 100%;
+                   border-radius: 8px; overflow: hidden; }
     .wq-photo img { max-width: 100%; max-height: 68vh; border-radius: 8px; border: 1px solid #ddd; }
     .wq-side { flex: 0 0 260px; display: flex; flex-direction: column; gap: 14px; }
     .wq-choices { display: flex; flex-direction: column; gap: 10px; }
@@ -240,12 +242,15 @@
     .wq-slide img { width: 100%; border-radius: 8px; border: 1px solid #ddd; }
     .wq-slide .wq-slide-cap { font-size: 0.75rem; color: #888; margin-top: 4px; }
     /* 교수 메모 — 답을 고른 뒤 문제 사진 위쪽에 흰 상자로 겹쳐 보인다 */
-    .wq-notes-ov { position: absolute; left: 8px; right: 8px; top: 8px;
-                   background: rgba(255, 255, 255, .93); border-radius: 6px;
-                   padding: 8px 12px 8px 10px; text-align: left;
-                   font-size: 0.8rem; line-height: 1.45; color: #222;
-                   box-shadow: 0 2px 8px rgba(0, 0, 0, .18); max-height: 60%; overflow-y: auto; }
-    .wq-notes-ov ul { margin: 0; padding-left: 16px; }
+    /* 배경 상자 없이 사진 위에 흰 글씨로 얹는다. 억새·개구리밥처럼 밝은 사진이 있어
+       글자 그림자만으로는 부족하므로, 글 뒤에만 옅은 어둠을 깔아 준다(그라데이션) */
+    .wq-notes-ov { position: absolute; left: 0; top: 0; max-width: 78%; text-align: left;
+                   padding: 10px 16px 16px 12px; font-size: 0.8rem; line-height: 1.5;
+                   color: #fff; font-weight: 600;
+                   text-shadow: 0 1px 2px rgba(0, 0, 0, .9), 0 0 6px rgba(0, 0, 0, .75);
+                   background: linear-gradient(160deg, rgba(0, 0, 0, .55) 0%, rgba(0, 0, 0, .38) 55%, rgba(0, 0, 0, 0) 100%);
+                   border-radius: 8px 0 40px 0; pointer-events: none; }
+    .wq-notes-ov ul { margin: 0; padding-left: 15px; }
     .wq-notes-ov li { margin: 1px 0; }
     /* 카드 손그림 — 답을 고른 뒤 문제 사진 오른쪽 아래에 겹쳐 보인다 */
     .wq-sketch-ov { position: absolute; right: 8px; bottom: 8px; width: 34%; max-width: 190px;
@@ -287,7 +292,7 @@
         .wq-side { flex: none; width: 100%; }
         .wq-photo img { max-height: 52vh; }
         .wq-sketch-ov { width: 38%; max-width: 150px; right: 6px; bottom: 6px; }
-        .wq-notes-ov { font-size: 0.76rem; padding: 6px 9px 6px 8px; left: 6px; right: 6px; top: 6px; }
+        .wq-notes-ov { font-size: 0.74rem; left: 8px; top: 6px; max-width: 80%; }
     }
     .content-box img.note-img {
         display: block; max-width: min(100%, 520px); height: auto;
