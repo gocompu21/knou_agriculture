@@ -241,24 +241,22 @@
     .wq-sec b { display: block; font-size: 0.8rem; color: #1b4332; margin-bottom: 2px; }
     .wq-sec ul { margin: 0; padding-left: 18px; }
     .wq-sec li { margin: 2px 0; }
-    .wq-slide { margin-top: 10px; }
-    .wq-slide img { width: 100%; border-radius: 8px; border: 1px solid #ddd; }
-    .wq-slide .wq-slide-cap { font-size: 0.75rem; color: #888; margin-top: 4px; }
     /* 교수 메모 — 답을 고른 뒤 문제 사진 위쪽에 흰 상자로 겹쳐 보인다 */
     /* 배경 상자 없이 사진 위에 흰 글씨로 얹는다. 억새·개구리밥처럼 밝은 사진이 있어
-       글자 그림자만으로는 부족하므로, 글 뒤에만 옅은 어둠을 깔아 준다(그라데이션) */
-    .wq-notes-ov { position: absolute; left: 0; top: 0; max-width: 78%; text-align: left;
-                   padding: 10px 16px 16px 12px; font-size: 0.8rem; line-height: 1.5;
+       글자 그림자만으로는 부족하므로, 글 뒤에만 옅은 어둠을 깔아 준다(그라데이션).
+       왼쪽 아래 — 오른쪽 아래의 손그림과 좌우로 나뉜다 */
+    .wq-notes-ov { position: absolute; left: 0; bottom: 0; max-width: 58%; text-align: left;
+                   padding: 16px 16px 10px 12px; font-size: 0.8rem; line-height: 1.5;
                    color: #fff; font-weight: 600;
                    text-shadow: 0 1px 2px rgba(0, 0, 0, .9), 0 0 6px rgba(0, 0, 0, .75);
-                   background: linear-gradient(160deg, rgba(0, 0, 0, .55) 0%, rgba(0, 0, 0, .38) 55%, rgba(0, 0, 0, 0) 100%);
-                   border-radius: 8px 0 40px 0; pointer-events: none; }
+                   background: linear-gradient(20deg, rgba(0, 0, 0, .55) 0%, rgba(0, 0, 0, .38) 55%, rgba(0, 0, 0, 0) 100%);
+                   border-radius: 0 40px 8px 0; pointer-events: none; }
     .wq-notes-ov ul { margin: 0; padding-left: 15px; }
     .wq-notes-ov li { margin: 1px 0; }
     /* 카드 손그림 — 답을 고른 뒤 문제 사진 오른쪽 아래에 겹쳐 보인다 */
     .wq-sketch-ov { position: absolute; right: 8px; bottom: 8px; width: 34%; max-width: 190px;
                     border-radius: 6px; border: 1px solid #cfd8cf; background: #fff;
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, .28); }
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, .28); z-index: 1; }
     /* display:flex 는 [hidden] 을 이기므로 숨김을 따로 지정해야 한다 */
     .wq-actions { display: flex; gap: 8px; }
     .wq-actions[hidden] { display: none; }
@@ -297,7 +295,7 @@
         .wq-side { flex: none; width: 100%; }
         .wq-photo img { max-height: 52vh; }
         .wq-sketch-ov { width: 38%; max-width: 150px; right: 6px; bottom: 6px; }
-        .wq-notes-ov { font-size: 0.74rem; left: 8px; top: 6px; max-width: 80%; }
+        .wq-notes-ov { font-size: 0.74rem; max-width: 58%; }
     }
     .content-box img.note-img {
         display: block; max-width: min(100%, 520px); height: auto;
@@ -3084,8 +3082,7 @@
                      + '</div>'
                      + (a.features ? '<div class="wq-sec"><b>식별 포인트</b>' + _wqEsc(a.features) + '</div>' : '')
                      + (a.similar ? '<div class="wq-sec"><b>헷갈리는 종과 구별</b>' + _wqEsc(a.similar) + '</div>' : '')
-                     + (a.control ? '<div class="wq-sec"><b>방제·비고</b>' + _wqEsc(a.control) + '</div>' : '')
-                     + (a.a_img ? '<div class="wq-slide"><img src="' + a.a_img + '" alt="답 슬라이드"><div class="wq-slide-cap">원본 카드 슬라이드</div></div>' : '');
+                     + (a.control ? '<div class="wq-sec"><b>방제·비고</b>' + _wqEsc(a.control) + '</div>' : '');
             var ans = document.getElementById('wq-answer');
             ans.innerHTML = html; ans.hidden = false;
             document.getElementById('wq-actions').hidden = false;
