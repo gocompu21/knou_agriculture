@@ -24,7 +24,9 @@ from google import genai
 from pydantic import BaseModel, Field
 
 from accounts.models import LoginLog
-from exam.models import Attempt, Question, StudyNote
+import random
+
+from exam.models import Attempt, Question, StudyNote, WeedCard, WeedQuizAttempt
 from gisa.models import GisaAttempt, GisaQuestion
 from .forms import SubjectForm
 from .models import FavoriteSubject, QnaQuestion, Subject, SubjectMaterial
@@ -520,6 +522,22 @@ def subject_detail(request, pk):
     materials = SubjectMaterial.objects.filter(subject=subject).order_by('-created_at')
     materials_count = materials.count()
 
+    # 잡초 동정 퀴즈 (카드가 있는 과목만 탭이 보인다)
+    weed_count = WeedCard.objects.filter(subject=subject).count()
+    weed_stats = None
+    if weed_count:
+        my = WeedQuizAttempt.objects.filter(user=request.user, card__subject=subject)
+        answered = my.values("card").distinct().count()
+        total_try = my.count()
+        wrong_ids = _weed_latest_wrong_ids(request.user, subject)
+        weed_stats = {
+            "answered": answered,
+            "tries": total_try,
+            "correct_rate": round(my.filter(is_correct=True).count() / total_try * 100) if total_try else 0,
+            "wrong": len(wrong_ids),
+            "freq": WeedCard.objects.filter(subject=subject, exam_count__gt=0).count(),
+        }
+
     # 쪽집게 노트 절 ↔ 질의응답 연결: 절 번호별 질문 목록 (노트 탭에서 절 아래에 펼친다)
     qna_by_sec = {}
     if active_tab == "notes":
@@ -549,6 +567,8 @@ def subject_detail(request, pk):
             "materials": materials,
             "materials_count": materials_count,
             "qna_by_sec_json": json.dumps(qna_by_sec, ensure_ascii=False),
+            "weed_count": weed_count,
+            "weed_stats": weed_stats,
             # 질의응답 탭 — 그 과목 질문만 보여 준다
             "qna_items": QnaQuestion.objects.filter(
                 subject=subject).select_related("user")[:15],
@@ -982,6 +1002,97 @@ def api_note_questions(request, pk):
             "choice_exps": [q.choice_1_exp, q.choice_2_exp, q.choice_3_exp, q.choice_4_exp],
         })
     return JsonResponse({"questions": out})
+
+
+## ══════════ 잡초 동정 퀴즈 (사진 → 이름 4지선다) ══════════ ##
+
+
+def _weed_latest_wrong_ids(user, subject):
+    """카드별 최신 풀이가 틀린 카드 id 집합."""
+    latest = (WeedQuizAttempt.objects.filter(user=user, card__subject=subject)
+              .values("card").annotate(latest_id=Max("id"))
+              .values_list("latest_id", flat=True))
+    return set(WeedQuizAttempt.objects.filter(pk__in=latest, is_correct=False)
+               .values_list("card_id", flat=True))
+
+
+def _weed_card_payload(c):
+    return {
+        "id": c.pk, "card_no": c.card_no, "name": c.name, "family": c.family,
+        "life_form": c.life_form, "habitat": c.habitat, "features": c.features,
+        "similar": c.similar, "control": c.control,
+        "notes": [n for n in c.notes.split("\n") if n.strip()],
+        "exam_count": c.exam_count,
+        "a_img": c.a_image.url if c.a_image else "",
+    }
+
+
+@login_required
+def api_weed_quiz_next(request, pk):
+    """다음 문제 한 건. ?mode=all|freq|wrong&seen=1,2,3
+    - all: 전체에서 무작위 / freq: 출제된 카드만, 출제 횟수로 가중 / wrong: 최신 풀이가 틀린 카드만
+    - seen 에 든 카드는 다시 내지 않는다 (한 바퀴 돌면 done)
+    - 보기는 정답 + 같은 과에서 우선 고른 3개"""
+    subject = get_object_or_404(Subject, pk=pk)
+    mode = request.GET.get("mode", "all")
+    seen = {int(x) for x in request.GET.get("seen", "").split(",") if x.isdigit()}
+    cards = list(WeedCard.objects.filter(subject=subject))
+    if not cards:
+        return JsonResponse({"done": True, "total": 0})
+    pool = cards
+    if mode == "wrong":
+        wrong = _weed_latest_wrong_ids(request.user, subject)
+        pool = [c for c in cards if c.pk in wrong]
+    elif mode == "freq":
+        pool = [c for c in cards if c.exam_count > 0]
+    remaining = [c for c in pool if c.pk not in seen]
+    if not remaining:
+        return JsonResponse({"done": True, "total": len(pool)})
+    if mode == "freq":
+        card = random.choices(remaining, weights=[c.exam_count for c in remaining])[0]
+    else:
+        card = random.choice(remaining)
+    others = [c for c in cards if c.pk != card.pk]
+    same = [c for c in others if c.family and c.family == card.family]
+    random.shuffle(same)
+    random.shuffle(others)
+    picked = same[:3]
+    for c in others:
+        if len(picked) >= 3:
+            break
+        if c not in picked:
+            picked.append(c)
+    choices = picked + [card]
+    random.shuffle(choices)
+    return JsonResponse({
+        "done": False,
+        "card": {"id": card.pk, "q_img": card.q_image.url if card.q_image else ""},
+        "choices": [{"id": c.pk, "name": c.name} for c in choices],
+        "remaining": len(remaining), "total": len(pool),
+    })
+
+
+@login_required
+@require_POST
+def api_weed_quiz_answer(request, pk):
+    subject = get_object_or_404(Subject, pk=pk)
+    try:
+        card = WeedCard.objects.get(pk=int(request.POST.get("card", 0)), subject=subject)
+        selected = WeedCard.objects.get(pk=int(request.POST.get("selected", 0)), subject=subject)
+    except (ValueError, WeedCard.DoesNotExist):
+        return JsonResponse({"error": "잘못된 요청"}, status=400)
+    correct = card.pk == selected.pk
+    WeedQuizAttempt.objects.create(user=request.user, card=card, selected=selected, is_correct=correct)
+    return JsonResponse({"correct": correct, "selected_name": selected.name,
+                         "answer": _weed_card_payload(card)})
+
+
+@login_required
+@require_POST
+def api_weed_quiz_reset(request, pk):
+    subject = get_object_or_404(Subject, pk=pk)
+    n, _ = WeedQuizAttempt.objects.filter(user=request.user, card__subject=subject).delete()
+    return JsonResponse({"ok": True, "deleted": n})
 
 
 ## ══════════ 쪽집게 노트 관리자 편집 ══════════ ##

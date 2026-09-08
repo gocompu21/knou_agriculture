@@ -961,6 +961,25 @@ PREFIX_MAP = {
 - **2020 이전 문항이 없는 과목은 기출학습·기출풀기·모의고사 탭이 전체 연도를 쓴다**
   (`subject_detail`, `mock_exam_take`). 그 밖의 과목은 종전대로 2020 미만만
 
+### 잡초 동정 퀴즈 (방송대 subject_detail ?tab=weeds)
+
+교수 배포 `02. 잡초방제학 카드(방송대).pdf`(250쪽, 잡초 122종 × 문제쪽·답쪽)를 Claude가
+직접 읽어 만든 **사진 → 이름 4지선다**. 카드가 있는 과목(잡초방제학 pk 51)에만 탭이 보인다.
+
+- 모델 `exam.WeedCard`(subject·card_no 고유; name·family·life_form·habitat·features·similar·
+  control(직접 작성)·notes(슬라이드 글자 층의 교수 메모)·exam_count('N회 출제' 배지)·
+  q_image(문제쪽 사진 부분)·a_image(답쪽 슬라이드 전체)), `WeedQuizAttempt`(카드별 최신
+  기록이 틀리면 오답)
+- API: `api_weed_quiz_next`(`?mode=all|freq|wrong&seen=`; 보기는 정답 + 같은 과 우선 3개,
+  freq 는 exam_count 가중), `api_weed_quiz_answer`(POST card·selected → 정답·보충 정보),
+  `api_weed_quiz_reset`
+- 데이터: `_weed_cards.json` + `load_weed_cards.py --apply`. 이미지는 `media/weeds/s51/`
+  (q###.jpg 244장, git 밖 — 서버에는 tar 로 올렸다). PDF 판독 규칙: 앞쪽 96쪽은 Q·A 가
+  번갈아 오지만 97쪽부터 순서가 뒤집히고 보조 쪽(사진 출처·비교 격자)이 끼어 있어 쪽마다
+  눈으로 분류했다. 출제 배지는 앞부분 48종에만 있다
+- 화면: 범위 버튼(전체/출제된 것 우선/오답만) → 사진 + 보기 4개 → 고르면 정답 표시와
+  이름·과·생활형·발생지·출제횟수·식별 포인트·유사종 구별·방제·교수 메모·원본 슬라이드
+
 ### 쪽집게 노트 관리자 편집 (방송대 subject_detail)
 
 스태프는 쪽집게 노트 탭에서 장(StudyNote 레코드)마다 **수정**·**이 장 삭제**·**새 장 추가**를

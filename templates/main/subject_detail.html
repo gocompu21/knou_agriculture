@@ -190,6 +190,52 @@
         color: #333; background: none; line-height: 30px;
     }
     .content-box u { text-decoration: underline; text-underline-offset: 2px; text-decoration-color: #2d6a4f; }
+
+    /* ══════════ 잡초 동정 퀴즈 ══════════ */
+    .wq-top { background: #fff; border: 1px solid #e0e6e0; border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+    .wq-stats { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; font-size: 0.85rem; color: #555; }
+    .wq-stats b { color: #1b4332; font-size: 1rem; }
+    .wq-reset { margin-left: auto; background: none; border: none; color: #999; font-size: 0.75rem; cursor: pointer; text-decoration: underline; }
+    .wq-modes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .wq-mode-btn { padding: 8px 16px; border: none; border-radius: 8px; background: #2d6a4f; color: #fff; font-size: 0.88rem; font-weight: 600; cursor: pointer; }
+    .wq-mode-btn:hover { background: #1b4332; }
+    .wq-mode-btn.wrong { background: #b71c1c; }
+    .wq-mode-btn.wrong:hover { background: #8e1515; }
+    .wq-hint { margin-top: 10px; font-size: 0.8rem; color: #777; line-height: 1.6; }
+    .wq-progress { display: flex; justify-content: space-between; font-size: 0.82rem; color: #666; margin: 0 4px 8px; }
+    .wq-score { color: #1b4332; font-weight: 600; }
+    .wq-card { background: #fff; border: 1px solid #e0e6e0; border-radius: 12px; padding: 16px; }
+    .wq-photo { text-align: center; }
+    .wq-photo img { max-width: min(100%, 420px); border-radius: 8px; border: 1px solid #ddd; }
+    .wq-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+    .wq-choice { padding: 12px 10px; border: 1.5px solid #cfd8cf; border-radius: 8px; background: #fafcfa; font-size: 0.95rem; font-weight: 600; color: #222; cursor: pointer; text-align: center; transition: background .15s; }
+    .wq-choice:hover { background: #eef5ee; }
+    .wq-choices.done .wq-choice { cursor: default; }
+    .wq-choice.picked { border-color: #333; background: #333; color: #fff; }
+    .wq-choice.right { border-color: #2e7d32; background: #2e7d32; color: #fff; }
+    .wq-choice.picked.miss { border-color: #d93025; background: #d93025; color: #fff; }
+    .wq-answer { margin-top: 14px; }
+    .wq-verdict { font-weight: 700; font-size: 1rem; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; }
+    .wq-verdict.ok { background: #e8f5e9; color: #1b5e20; }
+    .wq-verdict.no { background: #fdecea; color: #b71c1c; }
+    .wq-name { font-size: 1.35rem; font-weight: 800; color: #1b4332; margin-bottom: 6px; }
+    .wq-name small { font-size: 0.75rem; color: #999; font-weight: 400; margin-left: 6px; }
+    .wq-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .wq-meta span { font-size: 0.78rem; padding: 3px 10px; border-radius: 12px; background: #f0f4f0; color: #2d6a4f; }
+    .wq-meta span.cnt { background: #fff3e0; color: #e65100; font-weight: 700; }
+    .wq-sec { margin-bottom: 10px; font-size: 0.88rem; line-height: 1.75; color: #333; }
+    .wq-sec b { display: block; font-size: 0.8rem; color: #1b4332; margin-bottom: 2px; }
+    .wq-sec ul { margin: 0; padding-left: 18px; }
+    .wq-sec li { margin: 2px 0; }
+    .wq-slide { margin-top: 10px; }
+    .wq-slide img { width: 100%; border-radius: 8px; border: 1px solid #ddd; }
+    .wq-slide .wq-slide-cap { font-size: 0.75rem; color: #888; margin-top: 4px; }
+    .wq-actions { display: flex; gap: 8px; margin-top: 14px; }
+    .wq-next { flex: 1; padding: 12px; border: none; border-radius: 8px; background: #2d6a4f; color: #fff; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+    .wq-stop { padding: 12px 16px; border: 1px solid #ccc; border-radius: 8px; background: #fff; color: #666; cursor: pointer; }
+    .wq-done { background: #fff; border: 1px solid #e0e6e0; border-radius: 12px; padding: 24px; text-align: center; font-size: 0.95rem; color: #333; line-height: 1.8; }
+    .wq-done b { color: #1b4332; font-size: 1.2rem; }
+    @media (max-width: 480px) { .wq-choices { grid-template-columns: 1fr; } .wq-photo img { max-width: 100%; } }
     .content-box img.note-img {
         display: block; max-width: min(100%, 520px); height: auto;
         margin: 10px auto; border-radius: 6px; border: 1px solid #e3e3e3;
@@ -1643,6 +1689,13 @@
             오답 노트
             {% if wrong_count > 0 %}<span class="tab-badge badge-wrong">{{ wrong_count }}</span>{% endif %}
         </button>
+        {% if weed_count %}
+        <button class="tab-btn{% if active_tab == 'weeds' %} active{% endif %}" data-tab="weeds"
+            onclick="switchTab('weeds')">
+            잡초 동정
+            <span class="tab-badge" style="background:#5b8c3a;">{{ weed_count }}</span>
+        </button>
+        {% endif %}
         <button class="tab-btn{% if active_tab == 'latest' %} active{% endif %}" data-tab="latest"
             onclick="switchTab('latest')">
             최신기출
@@ -1797,6 +1850,40 @@
             <a class="mock-start-btn" href="{% url 'exam:mock_exam_take' subject.pk %}">모의고사 시작</a>
         </div>
     </div>
+
+    {% if weed_count %}
+    <!-- Tab: 잡초 동정 (사진 → 이름 4지선다) -->
+    <div class="tab-content{% if active_tab == 'weeds' %} active{% endif %}" id="tab-weeds">
+        <div class="wq-top">
+            <div class="wq-stats">
+                <span>카드 <b>{{ weed_count }}</b>종</span>
+                <span>푼 카드 <b id="wq-answered">{{ weed_stats.answered }}</b></span>
+                <span>정답률 <b id="wq-rate">{{ weed_stats.correct_rate }}</b>%</span>
+                <span>오답 <b id="wq-wrong">{{ weed_stats.wrong }}</b></span>
+                <button type="button" class="wq-reset" onclick="weedReset()">기록 지우기</button>
+            </div>
+            <div class="wq-modes">
+                <button type="button" class="wq-mode-btn" onclick="weedStart('all')">전체 {{ weed_count }}종</button>
+                <button type="button" class="wq-mode-btn" onclick="weedStart('freq')">출제된 것 우선 ({{ weed_stats.freq }})</button>
+                <button type="button" class="wq-mode-btn wrong" onclick="weedStart('wrong')">오답만 (<span id="wq-wrong2">{{ weed_stats.wrong }}</span>)</button>
+            </div>
+            <div class="wq-hint">사진을 보고 잡초 이름을 고르세요. 고르면 정답과 함께 과·생활형·발생지·식별 포인트·유사종 구별·교수 메모·원본 슬라이드가 펼쳐집니다.</div>
+        </div>
+        <div id="wq-area" hidden>
+            <div class="wq-progress"><span id="wq-pos"></span><span class="wq-score" id="wq-score"></span></div>
+            <div class="wq-card">
+                <div class="wq-photo"><img id="wq-img" alt="잡초 사진"></div>
+                <div class="wq-choices" id="wq-choices"></div>
+                <div class="wq-answer" id="wq-answer" hidden></div>
+                <div class="wq-actions" id="wq-actions" hidden>
+                    <button type="button" class="wq-next" onclick="weedNext()">다음 문제 ›</button>
+                    <button type="button" class="wq-stop" onclick="weedStop()">그만하기</button>
+                </div>
+            </div>
+        </div>
+        <div id="wq-done" class="wq-done" hidden></div>
+    </div>
+    {% endif %}
 
     <!-- Tab 4: 오답 노트 -->
     <div class="tab-content{% if active_tab == 'wrong' %} active{% endif %}" id="tab-wrong">
@@ -2716,6 +2803,107 @@
         });
         var diff = el.getBoundingClientRect().top - topBefore;
         if (diff !== 0) window.scrollBy(0, diff);
+    };
+
+    /* ── 잡초 동정 퀴즈 (사진 → 이름 4지선다) ── */
+    var _wq = { mode: 'all', seen: [], n: 0, ok: 0, card: null, busy: false };
+    function _wqEsc(x) { return String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    window.weedStart = function(mode) {
+        _wq = { mode: mode, seen: [], n: 0, ok: 0, card: null, busy: false };
+        document.getElementById('wq-done').hidden = true;
+        document.getElementById('wq-area').hidden = false;
+        weedNext();
+    };
+    window.weedStop = function() {
+        document.getElementById('wq-area').hidden = true;
+        _wqShowDone('여기까지 ' + _wq.n + '문제 중 ' + _wq.ok + '문제를 맞혔습니다.');
+    };
+    function _wqShowDone(msg) {
+        var d = document.getElementById('wq-done');
+        d.innerHTML = '<div>' + _wqEsc(msg) + '</div><div style="margin-top:10px;font-size:0.82rem;color:#777;">위의 범위 버튼으로 다시 시작할 수 있습니다.</div>';
+        d.hidden = false;
+        d.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    window.weedNext = function() {
+        if (_wq.busy) return;
+        _wq.busy = true;
+        var url = '{% url "main:api_weed_quiz_next" subject.pk %}?mode=' + _wq.mode + '&seen=' + _wq.seen.join(',');
+        fetch(url, { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(d) {
+            _wq.busy = false;
+            if (d.done) {
+                document.getElementById('wq-area').hidden = true;
+                if (!d.total) {
+                    _wqShowDone(_wq.mode === 'wrong' ? '오답으로 남은 카드가 없습니다.' : '이 범위에는 카드가 없습니다.');
+                } else {
+                    _wqShowDone('한 바퀴 다 풀었습니다. ' + _wq.n + '문제 중 ' + _wq.ok + '문제 정답 (' + Math.round(_wq.ok / Math.max(1, _wq.n) * 100) + '%).');
+                }
+                return;
+            }
+            _wq.card = d.card;
+            document.getElementById('wq-pos').textContent = (_wq.n + 1) + ' / ' + d.total + (d.total - d.remaining ? '' : '');
+            document.getElementById('wq-score').textContent = _wq.n ? ('정답 ' + _wq.ok + ' / ' + _wq.n) : '';
+            document.getElementById('wq-img').src = d.card.q_img;
+            var box = document.getElementById('wq-choices');
+            box.className = 'wq-choices';
+            box.innerHTML = d.choices.map(function(c) {
+                return '<div class="wq-choice" data-id="' + c.id + '" onclick="weedPick(this)">' + _wqEsc(c.name) + '</div>';
+            }).join('');
+            document.getElementById('wq-answer').hidden = true;
+            document.getElementById('wq-answer').innerHTML = '';
+            document.getElementById('wq-actions').hidden = true;
+            document.getElementById('wq-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }).catch(function() { _wq.busy = false; alert('문제를 불러오지 못했습니다.'); });
+    };
+    window.weedPick = function(el) {
+        var box = document.getElementById('wq-choices');
+        if (box.classList.contains('done') || _wq.busy) return;
+        _wq.busy = true;
+        box.classList.add('done');
+        el.classList.add('picked');
+        var fd = new URLSearchParams({ card: _wq.card.id, selected: el.dataset.id });
+        fetch('{% url "main:api_weed_quiz_answer" subject.pk %}', {
+            method: 'POST', body: fd,
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' }
+        }).then(function(r) { return r.json(); }).then(function(d) {
+            _wq.busy = false;
+            if (d.error) { alert(d.error); return; }
+            _wq.n += 1; if (d.correct) _wq.ok += 1;
+            _wq.seen.push(_wq.card.id);
+            box.querySelectorAll('.wq-choice').forEach(function(c) {
+                if (parseInt(c.dataset.id) === d.answer.id) c.classList.add('right');
+            });
+            if (!d.correct) el.classList.add('miss');
+            var a = d.answer;
+            var html = '<div class="wq-verdict ' + (d.correct ? 'ok' : 'no') + '">'
+                     + (d.correct ? '정답입니다.' : '오답입니다. 고른 것: ' + _wqEsc(d.selected_name) + ' → 정답은 ' + _wqEsc(a.name)) + '</div>'
+                     + '<div class="wq-name">' + _wqEsc(a.name) + '<small>카드 ' + a.card_no + '</small></div>'
+                     + '<div class="wq-meta">'
+                     +   (a.family ? '<span>' + _wqEsc(a.family) + '</span>' : '')
+                     +   (a.life_form ? '<span>' + _wqEsc(a.life_form) + '</span>' : '')
+                     +   (a.habitat ? '<span>' + _wqEsc(a.habitat) + '</span>' : '')
+                     +   (a.exam_count ? '<span class="cnt">' + a.exam_count + '회 출제</span>' : '')
+                     + '</div>'
+                     + (a.features ? '<div class="wq-sec"><b>식별 포인트</b>' + _wqEsc(a.features) + '</div>' : '')
+                     + (a.similar ? '<div class="wq-sec"><b>헷갈리는 종과 구별</b>' + _wqEsc(a.similar) + '</div>' : '')
+                     + (a.control ? '<div class="wq-sec"><b>방제·비고</b>' + _wqEsc(a.control) + '</div>' : '')
+                     + (a.notes && a.notes.length ? '<div class="wq-sec"><b>교수 메모(카드 원문)</b><ul>' + a.notes.map(function(n) { return '<li>' + _wqEsc(n) + '</li>'; }).join('') + '</ul></div>' : '')
+                     + (a.a_img ? '<div class="wq-slide"><img src="' + a.a_img + '" alt="답 슬라이드"><div class="wq-slide-cap">원본 카드 슬라이드</div></div>' : '');
+            var ans = document.getElementById('wq-answer');
+            ans.innerHTML = html; ans.hidden = false;
+            document.getElementById('wq-actions').hidden = false;
+            document.getElementById('wq-score').textContent = '정답 ' + _wq.ok + ' / ' + _wq.n;
+            // 상단 통계 갱신
+            var an = document.getElementById('wq-answered');
+            if (an && _wq.seen.length) an.textContent = Math.max(parseInt(an.textContent) || 0, 0);
+            var wrongEls = [document.getElementById('wq-wrong'), document.getElementById('wq-wrong2')];
+            if (!d.correct) wrongEls.forEach(function(e) { if (e) e.textContent = (parseInt(e.textContent) || 0) + 1; });
+            ans.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }).catch(function() { _wq.busy = false; alert('채점하지 못했습니다.'); });
+    };
+    window.weedReset = function() {
+        if (!confirm('잡초 동정 풀이 기록을 모두 지울까요?')) return;
+        fetch('{% url "main:api_weed_quiz_reset" subject.pk %}', { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+            .then(function(r) { return r.json(); }).then(function() { location.href = '?tab=weeds'; });
     };
 
     /* ── 노트 절 ↔ 질의응답 연결 ──

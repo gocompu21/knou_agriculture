@@ -85,6 +85,55 @@ class Attempt(models.Model):
         return f"{self.user} - {self.question} ({'O' if self.is_correct else 'X'})"
 
 
+class WeedCard(models.Model):
+    """잡초 동정 카드 — 사진을 보고 이름을 맞히는 퀴즈용.
+
+    원본은 교수 배포 '잡초방제학 카드' PDF(잡초 122종). q_image 는 이름을 가린
+    쪽의 사진 부분, a_image 는 이름·메모·세밀화가 다 보이는 슬라이드 전체다.
+    family~control 은 답 화면에 함께 보여 주는 보충 정보(직접 작성)이고,
+    notes 는 슬라이드의 교수 메모(글자 층이 있는 카드만), exam_count 는
+    슬라이드의 'N회 출제' 배지다.
+    """
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='weed_cards', verbose_name='과목')
+    order = models.PositiveIntegerField('순서', default=0)
+    card_no = models.PositiveIntegerField('카드 번호')
+    name = models.CharField('잡초명', max_length=50)
+    family = models.CharField('과', max_length=50, blank=True, default='')
+    life_form = models.CharField('생활형', max_length=50, blank=True, default='')
+    habitat = models.CharField('발생지', max_length=100, blank=True, default='')
+    features = models.TextField('식별 포인트', blank=True, default='')
+    similar = models.TextField('유사종 구별', blank=True, default='')
+    control = models.TextField('방제·비고', blank=True, default='')
+    notes = models.TextField('교수 메모', blank=True, default='')
+    exam_count = models.PositiveIntegerField('출제 횟수', default=0)
+    q_image = models.ImageField('문제 사진', upload_to='weeds/', blank=True)
+    a_image = models.ImageField('답 슬라이드', upload_to='weeds/', blank=True)
+
+    class Meta:
+        verbose_name = '잡초 카드'
+        verbose_name_plural = '잡초 카드'
+        ordering = ['subject', 'order']
+        unique_together = [('subject', 'card_no')]
+
+    def __str__(self):
+        return f'{self.subject.name} #{self.card_no} {self.name}'
+
+
+class WeedQuizAttempt(models.Model):
+    """잡초 동정 퀴즈 풀이 기록. 카드별 최신 기록이 틀렸으면 오답으로 본다."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='사용자')
+    card = models.ForeignKey(WeedCard, on_delete=models.CASCADE, related_name='attempts', verbose_name='카드')
+    selected = models.ForeignKey(WeedCard, on_delete=models.SET_NULL, null=True, blank=True,
+                                 related_name='+', verbose_name='고른 카드')
+    is_correct = models.BooleanField('정답 여부')
+    created_at = models.DateTimeField('풀이 시각', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '잡초 퀴즈 기록'
+        verbose_name_plural = '잡초 퀴즈 기록'
+        indexes = [models.Index(fields=['user', 'card', '-id'])]
+
+
 class StudyNote(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, verbose_name='과목', related_name='study_notes')
     title = models.CharField('제목', max_length=200)
