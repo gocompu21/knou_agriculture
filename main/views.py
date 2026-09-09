@@ -73,10 +73,12 @@ def parse_note_chapters(content, subject_pk, cache_version=None):
         body = re.sub(r"\*\*관련 문제\*\*:.*", "", text, flags=re.DOTALL).strip()
         body = re.sub(r"\*\*관련 기출문제\*\*.*", "", body, flags=re.DOTALL).strip()
         body = re.sub(r"\*\*핵심 정리\*\*", "", body)
-        # 이미지: ![설명](url) → <img>
+        # 이미지: ![설명](url) → <img>. 확대 버튼을 모서리에 붙이려면 감싸는 칸이 있어야 한다
         body = re.sub(
             r"!\[([^\]]*)\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)",
-            r'<img class="note-img" src="\2" alt="\1">', body)
+            r'<span class="note-img-wrap"><img class="note-img" src="\2" alt="\1">'
+            r'<button type="button" class="note-img-zoom" title="크게 보기" '
+            r'onclick="noteZoom(this)">+</button></span>', body)
         # WYSIWYG 편집기가 넣는 마크다운 이스케이프(\~ \_ \* 등) 제거. 표 구분자 \| 는 보존
         body = body.replace("\\|", "&#124;")
         body = re.sub(r"\\([~_*#\[\]()!<>\-.`])", r"\1", body)
@@ -105,7 +107,12 @@ def parse_note_chapters(content, subject_pk, cache_version=None):
             joined = " ".join(para_lines)
             joined = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", joined)
             joined = re.sub(r"\*(.+?)\*", r"<em>\1</em>", joined)
-            html_lines.append(f"<p>{joined}</p>")
+            # 이미지만 있는 줄은 <p> 로 감싸지 않는다 — <p> 의 양끝 정렬·줄높이가
+            # 이미지 위 확대 버튼의 자리를 흐트러뜨린다
+            if re.fullmatch(r'\s*(<span class="note-img-wrap">.*?</span>\s*)+', joined, re.S):
+                html_lines.append(joined)
+            else:
+                html_lines.append(f"<p>{joined}</p>")
             para_lines = []
 
         for raw_line in body.split("\n"):

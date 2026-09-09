@@ -331,10 +331,43 @@
         .wq-notes-ov { font-size: 0.74rem; max-width: 58%; left: 8px; bottom: 6px;
                        -webkit-text-stroke-width: 0.5px; }
     }
+    /* 노트 이미지 — 오른쪽 위 + 버튼으로 크게 볼 수 있다.
+       파서가 이미지만 있는 줄은 <p> 없이 내보내므로 여기서 가운데로 놓는다 */
+    /* fit-content 는 이미지가 줄어들기 전 폭(원본 1100px)을 잡으므로 래퍼가 사진보다
+       넓어져 버튼이 허공에 뜬다. 이미지와 같은 상한을 걸어야 폭이 맞는다 */
+    .note-img-wrap { display: block; position: relative;
+                     width: fit-content; max-width: min(100%, 520px);
+                     line-height: 0; margin: 10px auto; }
     .content-box img.note-img {
         display: block; max-width: min(100%, 520px); height: auto;
-        margin: 10px auto; border-radius: 6px; border: 1px solid #e3e3e3;
+        border-radius: 6px; border: 1px solid #e3e3e3;
     }
+    .note-img-zoom {
+        position: absolute; top: 6px; right: 6px; width: 26px; height: 26px;
+        border: none; border-radius: 6px; background: rgba(27, 67, 50, .72); color: #fff;
+        font-size: 1.05rem; font-weight: 700; line-height: 1; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        opacity: 0; transition: opacity .15s;
+    }
+    .note-img-wrap:hover .note-img-zoom { opacity: 1; }
+    .note-img-zoom:hover { background: rgba(27, 67, 50, .92); }
+    /* 손가락으로 쓰는 화면에는 hover 가 없다 — 늘 보인다 */
+    @media (hover: none) { .note-img-zoom { opacity: .85; } }
+
+    /* 크게 보기 */
+    .note-lightbox {
+        position: fixed; inset: 0; z-index: 1000; background: rgba(0, 0, 0, .82);
+        display: flex; align-items: center; justify-content: center; padding: 24px;
+        cursor: zoom-out;
+    }
+    .note-lightbox img { max-width: 100%; max-height: 100%; border-radius: 6px;
+                         box-shadow: 0 6px 30px rgba(0, 0, 0, .5); }
+    .note-lightbox-close {
+        position: absolute; top: 14px; right: 18px; width: 38px; height: 38px;
+        border: none; border-radius: 50%; background: rgba(255, 255, 255, .14);
+        color: #fff; font-size: 1.4rem; line-height: 1; cursor: pointer;
+    }
+    .note-lightbox-close:hover { background: rgba(255, 255, 255, .28); }
     .note-editor-hint { font-size: 0.74rem; color: #777; margin: 6px 0 8px; line-height: 1.6; }
     .note-editor-hint code { background: #eef3ee; padding: 0 4px; border-radius: 3px; }
     .note-editor-actions { display: flex; gap: 8px; align-items: center; }
@@ -2605,6 +2638,29 @@
             }, 50);
         }
     })();
+
+    /* 노트 이미지 크게 보기 — 인포그래픽은 글씨가 작아 원본 크기로 봐야 읽힌다 */
+    window.noteZoom = function(btn) {
+        var img = btn.parentElement.querySelector('img');
+        if (!img) return;
+        var box = document.createElement('div');
+        box.className = 'note-lightbox';
+        box.innerHTML = '<button type="button" class="note-lightbox-close" title="닫기">✕</button>'
+                      + '<img src="' + img.getAttribute('src') + '" alt="">';
+        function close() {
+            box.remove();
+            document.body.style.overflow = '';
+            document.removeEventListener('keydown', onKey);
+        }
+        function onKey(e) { if (e.key === 'Escape') close(); }
+        box.addEventListener('click', function(e) {
+            /* 그림 자체를 누르면 닫지 않는다 — 확대해 놓고 들여다보는 중일 수 있다 */
+            if (e.target.tagName !== 'IMG') close();
+        });
+        document.addEventListener('keydown', onKey);
+        document.body.appendChild(box);
+        document.body.style.overflow = 'hidden';
+    };
 
     var _notesExpanded = false;
     window.toggleAllNotes = function() {
