@@ -24,6 +24,7 @@ from django.utils import timezone
 # 토큰만 먹고 답이 산만해진다.
 NOTE_BUDGET = 2500
 DAILY_LIMIT = 20
+UNLIMITED = 10 ** 6      # 관리자 — 화면이 남은 수를 그대로 쓰므로 큰 수로 둔다
 
 _STOP = set("""무엇 어떻게 하는 이란 인가 인지 대해 대하여 관해 관하여 알려 설명
 주세요 하나요 인가요 뭔가요 뭐예요 뭐야 그리고 하지만 있는 없는 것은 것이 되는
@@ -278,7 +279,13 @@ def ask_gemini(q):
 
 
 def remaining_today(user):
-    """오늘 남은 질문 수 — 비용보다 오남용을 막기 위한 것이다."""
+    """오늘 남은 질문 수 — 비용보다 오남용을 막기 위한 것이다.
+
+    관리자는 세지 않는다. 쪽집게 노트를 보완하려고 절마다 질문을 다는 일이
+    잦아 한도에 금방 닿는데, 그건 오남용이 아니라 자료를 만드는 작업이다.
+    """
+    if user.is_staff:
+        return UNLIMITED
     from .models import QnaQuestion
     used = QnaQuestion.objects.filter(
         user=user, created_at__date=timezone.localdate()).count()
