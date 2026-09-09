@@ -225,7 +225,9 @@
     .wq-choice.picked { border-color: #333; background: #333; color: #fff; }
     .wq-choice.right { border-color: #2e7d32; background: #2e7d32; color: #fff; }
     .wq-choice.picked.miss { border-color: #d93025; background: #d93025; color: #fff; }
-    .wq-answer { margin-top: 14px; }
+    /* 답 내용을 사각 박스로 묶는다 — 사진·보기 영역과 눈으로 구분된다 */
+    .wq-answer { margin-top: 14px; border: 1px solid #dce8dc; border-radius: 10px;
+                 padding: 14px 16px; background: #fbfdfb; }
     .wq-verdict { font-weight: 700; font-size: 1rem; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; }
     .wq-verdict.ok { background: #e8f5e9; color: #1b5e20; }
     .wq-verdict.no { background: #fdecea; color: #b71c1c; }
