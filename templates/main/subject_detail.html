@@ -230,9 +230,9 @@
     .wq-verdict.ok { background: #e8f5e9; color: #1b5e20; }
     .wq-verdict.no { background: #fdecea; color: #b71c1c; }
     .wq-name { font-size: 1.35rem; font-weight: 800; color: #1b4332; margin-bottom: 6px; }
-    .wq-name small { font-size: 0.75rem; color: #999; font-weight: 400; margin-left: 6px; }
-    /* 출제 횟수 별 — 노란 별에 옅은 테두리를 줘 흰 바탕에서도 또렷하게 */
-    .wq-stars { color: #f5b301; margin-left: 6px; letter-spacing: 1px; font-size: 0.9em;
+    /* 출제 횟수 별 — 이름 오른쪽 위에 작게 붙인다(윗첨자) */
+    .wq-stars { color: #f5b301; margin-left: 3px; letter-spacing: 0; font-size: 0.5em;
+                vertical-align: super; line-height: 1;
                 text-shadow: 0 0 1px rgba(140, 100, 0, .45); }
     .wq-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
     .wq-meta span { font-size: 0.78rem; padding: 3px 10px; border-radius: 12px; background: #f0f4f0; color: #2d6a4f; }
@@ -309,7 +309,8 @@
     .wq-table .wq-t-name { font-weight: 700; color: #1b4332; cursor: pointer; text-decoration: none; white-space: nowrap; }
     .wq-table .wq-t-name:hover { text-decoration: underline; }
     .wq-table .wq-t-cnt { color: #e65100; font-weight: 700; white-space: nowrap; }
-    .wq-table .wq-stars { margin-left: 4px; font-size: 0.8em; letter-spacing: 0; }
+    /* 표에서는 이름과 나란히 두는 편이 읽기 좋다 (답 화면의 윗첨자를 되돌린다) */
+    .wq-table .wq-stars { margin-left: 4px; font-size: 0.8em; vertical-align: baseline; }
     .wq-table .wq-t-state { white-space: nowrap; font-size: 0.78rem; }
     .wq-table .wq-t-state.ok { color: #2e7d32; }
     .wq-table .wq-t-state.wrong { color: #c62828; font-weight: 700; }
@@ -3182,7 +3183,7 @@
             } else { nov.hidden = true; nov.innerHTML = ''; }
             var html = '<div class="wq-verdict ' + (d.correct ? 'ok' : 'no') + '">'
                      + (d.correct ? '정답입니다.' : '오답입니다. 고른 것: ' + _wqEsc(d.selected_name) + ' → 정답은 ' + _wqEsc(a.name)) + '</div>'
-                     + '<div class="wq-name">' + _wqEsc(a.name) + _wqStars(a.exam_count) + '<small>카드 ' + a.card_no + '</small></div>'
+                     + '<div class="wq-name">' + _wqEsc(a.name) + _wqStars(a.exam_count) + '</div>'
                      + '<div class="wq-meta">'
                      +   (a.family ? '<span>' + _wqEsc(a.family) + '</span>' : '')
                      +   (a.life_form ? '<span>' + _wqEsc(a.life_form) + '</span>' : '')
