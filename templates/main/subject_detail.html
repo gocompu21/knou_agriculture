@@ -3364,13 +3364,36 @@
         var wrap = box.querySelector('.sec-qna-list');
         if (!list.length) { wrap.innerHTML = ''; return; }
         wrap.innerHTML = list.map(function(q) {
+            /* 삭제는 본인 또는 관리자 (서버 qna_delete 도 같은 조건으로 막는다) */
+            var del = (_isStaff || q.mine)
+                ? '<button type="button" class="qi-del" title="이 질문 삭제"'
+                  + ' onclick="event.stopPropagation(); deleteSecQna(this,' + q.pk + ')">✕</button>'
+                : '';
             return '<div class="sq-item" data-pk="' + q.pk + '">'
                  +   '<div class="sq-q" onclick="this.parentElement.classList.toggle(\'open\')"><span class="sq-arrow">›</span><span class="sq-title">' + _secQnaEsc(q.title) + '</span>'
-                 +     '<span class="sq-meta">' + _secQnaEsc(q.who) + ' · ' + _secQnaEsc(q.when) + '</span></div>'
+                 +     '<span class="sq-meta">' + _secQnaEsc(q.who) + ' · ' + _secQnaEsc(q.when) + '</span>' + del + '</div>'
                  +   '<div class="sq-a">' + qnaRender(q.answer) + '</div>'
                  + '</div>';
         }).join('');
     }
+    /* 절 아래 질문 삭제 — 지우면 그 절 목록과 개수 배지를 함께 고친다 */
+    window.deleteSecQna = function(btn, pk) {
+        if (!confirm('이 질문과 답을 삭제할까요?')) return;
+        var box = btn.closest('.sec-qna');
+        fetch('/qna/' + pk + '/delete/', {
+            method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        }).then(function(r) { return r.json(); }).then(function(d) {
+            if (!d.ok) { alert(d.error || '삭제하지 못했습니다.'); return; }
+            var no = box.dataset.sec;
+            _qnaBySec[no] = (_qnaBySec[no] || []).filter(function(q) { return q.pk !== pk; });
+            box.querySelector('.sec-qna-n').textContent = _qnaBySec[no].length;
+            renderSecQna(box);
+            /* 질문이 하나도 없고 관리자도 아니면 상자를 둘 이유가 없다 */
+            if (!_qnaBySec[no].length && !_isStaff) box.remove();
+            var tab = document.querySelector('.qna-item[data-pk="' + pk + '"]');
+            if (tab) tab.remove();                    // 질의응답 탭 목록에서도 뺀다
+        }).catch(function() { alert('삭제하지 못했습니다.'); });
+    };
     window.openSecQnaAsk = function(btn) {
         var box = btn.closest('.sec-qna');
         var ask = box.querySelector('.sec-qna-ask');
@@ -3429,6 +3452,16 @@
                 e.textContent = '아직 질문이 없습니다. 첫 질문을 남겨 보세요.';
                 list.parentNode.insertBefore(e, list.nextSibling);
             }
+            /* 노트 탭의 절 아래 목록에도 같은 질문이 있으면 함께 뺀다 */
+            Object.keys(_qnaBySec || {}).forEach(function(no) {
+                if (!_qnaBySec[no].some(function(q) { return q.pk === pk; })) return;
+                _qnaBySec[no] = _qnaBySec[no].filter(function(q) { return q.pk !== pk; });
+                var box = document.querySelector('.sec-qna[data-sec="' + no + '"]');
+                if (!box) return;
+                box.querySelector('.sec-qna-n').textContent = _qnaBySec[no].length;
+                renderSecQna(box);
+                if (!_qnaBySec[no].length && !_isStaff) box.remove();
+            });
         }).catch(function() { alert('삭제하지 못했습니다.'); });
     };
 
