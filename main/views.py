@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from datetime import date, datetime, time, timedelta
-from html import escape
+from html import escape, unescape
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
@@ -1200,6 +1200,19 @@ def _clean_weed_html(raw):
     return "" if re.fullmatch(r"(<(p|div|br)>|</(p|div)>|\s|&nbsp;)*", text or "") else text
 
 
+def _weed_notes_lines(raw):
+    """편집기가 보낸 HTML 을 줄 단위 교수 메모로 되돌린다.
+
+    Chrome 의 contenteditable 은 Enter 를 누르면 **첫 줄은 태그 없이 두고 둘째
+    줄부터** <div> 로 감싼다("첫 줄<div>둘째 줄</div>"). 닫는 태그에서만 자르면
+    첫 줄과 둘째 줄이 붙으므로 여는 태그에서도 잘라야 한다.
+    """
+    html = _clean_weed_html(raw)
+    lines = re.split(r"</?(?:li|br|p|div)\s*/?>", html)
+    lines = [unescape(re.sub(r"<[^>]+>", "", x)).replace("\xa0", " ").strip() for x in lines]
+    return "\n".join(x for x in lines if x)
+
+
 @login_required
 @user_passes_test(staff_required)
 @require_POST
@@ -1217,10 +1230,7 @@ def api_weed_card_update(request, pk, card_id):
             setattr(card, f, _clean_weed_html(request.POST[f]))
 
     if "notes" in request.POST:
-        html = _clean_weed_html(request.POST["notes"])
-        lines = re.split(r"</li>|<br>|</p>|</div>", html)
-        lines = [re.sub(r"<[^>]+>", "", x).strip() for x in lines]
-        card.notes = "\n".join(x for x in lines if x)
+        card.notes = _weed_notes_lines(request.POST["notes"])
 
     card.save()
     return JsonResponse({"ok": True, "card": _weed_card_payload(card)})

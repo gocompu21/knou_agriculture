@@ -3226,8 +3226,10 @@
         var a = _wqAns;
         var html = '<div class="wq-edit"><div class="wq-edit-head">답안 수정 — ' + _wqEsc(a.name) + '</div>';
         _WQ_FIELDS.forEach(function(f) {
+            /* 메모는 줄마다 <div> 로 넣는다. <br> 로 넣으면 Chrome 이 편집 중에
+               <div> 로 바꿔 놓아 첫 줄만 태그가 없는 어정쩡한 상태가 된다 */
             var v = f.key === 'notes'
-                  ? (a.notes || []).map(function(n) { return _wqEsc(n); }).join('<br>')
+                  ? ((a.notes || []).map(function(n) { return '<div>' + _wqEsc(n) + '</div>'; }).join('') || '<div><br></div>')
                   : _wqBody(a[f.key]);
             var tools = f.plain ? '' :
                   '<div class="wq-ed-tools">'
