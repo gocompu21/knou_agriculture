@@ -542,8 +542,9 @@ def subject_detail(request, pk):
     # 쪽집게 노트 절 ↔ 질의응답 연결: 절 번호별 질문 목록 (노트 탭에서 절 아래에 펼친다)
     qna_by_sec = {}
     if active_tab == "notes":
+        # 절 아래 질문은 물어본 차례대로 — 새 질문이 목록 끝에 붙는다
         for qq in (QnaQuestion.objects.filter(subject=subject).exclude(note_sec="")
-                   .exclude(answer="").select_related("user").order_by("-created_at")):
+                   .exclude(answer="").select_related("user").order_by("created_at")):
             qna_by_sec.setdefault(qq.note_sec, []).append({
                 "pk": qq.pk, "title": qq.title, "answer": qq.answer,
                 "who": qq.user.first_name or qq.user.username,

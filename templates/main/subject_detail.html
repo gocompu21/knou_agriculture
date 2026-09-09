@@ -3397,11 +3397,16 @@
             inp.value = '';
             box.querySelector('.sec-qna-ask').hidden = true;
             var no = box.dataset.sec;
-            (_qnaBySec[no] = _qnaBySec[no] || []).unshift({ pk: d.pk, title: d.title, answer: d.answer, who: d.who, when: d.when, mine: true });
+            /* 물어본 차례대로 쌓인다 — 방금 한 질문이 목록 끝에 붙는다 */
+            (_qnaBySec[no] = _qnaBySec[no] || []).push({ pk: d.pk, title: d.title, answer: d.answer, who: d.who, when: d.when, mine: true });
             box.querySelector('.sec-qna-n').textContent = _qnaBySec[no].length;
             renderSecQna(box);
-            var first = box.querySelector('.sq-item');
-            if (first) first.classList.add('open');   // 방금 받은 답은 펼쳐 둔다
+            var items = box.querySelectorAll('.sq-item');
+            var last = items[items.length - 1];       // 방금 받은 답은 목록 끝에 있다
+            if (last) {
+                last.classList.add('open');           // 펼쳐 두고 눈에 보이게 옮겨 준다
+                last.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
             if (typeof qnaPrepend === 'function') qnaPrepend(d);   // 질의응답 탭 목록에도 넣는다
         }).catch(function(e) { msg.className = 'sec-qna-msg err'; msg.textContent = e.message; })
           .finally(function() { btn.disabled = false; btn.textContent = '물어보기'; });
