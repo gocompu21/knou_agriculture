@@ -241,6 +241,33 @@
     .wq-sec b { display: block; font-size: 0.8rem; color: #1b4332; margin-bottom: 2px; }
     .wq-sec ul { margin: 0; padding-left: 18px; }
     .wq-sec li { margin: 2px 0; }
+    /* 답안 수정 (스태프) — Toast UI 는 마크다운이라 글 색을 못 넣어 여기서는 쓰지 않는다 */
+    .wq-edit-bar { margin-top: 14px; text-align: right; }
+    .wq-edit-btn { background: none; border: 1px solid #cfd8cf; color: #2d6a4f; border-radius: 7px;
+                   padding: 5px 12px; font-size: 0.8rem; cursor: pointer; }
+    .wq-edit-btn:hover { background: #f0f4f0; }
+    .wq-edit { margin-top: 14px; border: 1px solid #dce8dc; border-radius: 10px; padding: 14px;
+               background: #fafcfa; }
+    .wq-edit-head { font-size: 0.9rem; font-weight: 700; color: #1b4332; margin-bottom: 10px; }
+    .wq-ef { margin-bottom: 12px; }
+    .wq-ef label { display: block; font-size: 0.78rem; color: #2d6a4f; font-weight: 600; margin-bottom: 4px; }
+    .wq-ed-tools { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
+    .wq-ed-tools button { width: 26px; height: 26px; border: 1px solid #d7ddd7; background: #fff;
+                          border-radius: 5px; cursor: pointer; font-size: 0.8rem; line-height: 1;
+                          padding: 0; color: #333; }
+    .wq-ed-tools button:hover { background: #eef3ee; }
+    .wq-ed-tools .wq-col { border: 1px solid rgba(0, 0, 0, .25); width: 22px; height: 22px;
+                           align-self: center; border-radius: 50%; }
+    .wq-ed { min-height: 62px; border: 1px solid #ccd5cc; border-radius: 7px; padding: 8px 10px;
+             background: #fff; font-size: 0.86rem; line-height: 1.7; color: #333; outline: none; }
+    .wq-ed:focus { border-color: #2d6a4f; box-shadow: 0 0 0 2px rgba(45, 106, 79, .12); }
+    .wq-edit-actions { display: flex; align-items: center; gap: 8px; }
+    .wq-save { background: #2d6a4f; color: #fff; border: none; border-radius: 7px;
+               padding: 7px 18px; font-size: 0.84rem; font-weight: 600; cursor: pointer; }
+    .wq-cancel { background: #eee; color: #555; border: none; border-radius: 7px;
+                 padding: 7px 14px; font-size: 0.84rem; cursor: pointer; }
+    .wq-edit-msg { font-size: 0.8rem; color: #666; }
+    .wq-edit-msg.err { color: #b91c1c; }
     /* 교수 메모 — 답을 고른 뒤 문제 사진 위쪽에 흰 상자로 겹쳐 보인다 */
     /* 배경 상자 없이 사진 위에 흰 글씨로 얹는다. 억새·개구리밥처럼 밝은 사진이 있어
        글자 그림자만으로는 부족하므로, 글 뒤에만 옅은 어둠을 깔아 준다(그라데이션).
@@ -2897,7 +2924,24 @@
 
     /* ── 잡초 동정 퀴즈 (사진 → 이름 4지선다) ── */
     var _wq = { mode: 'all', seen: [], n: 0, ok: 0, card: null, busy: false };
+    var _WQ_STAFF = {% if request.user.is_staff %}true{% else %}false{% endif %};
+    var _wqAns = null;      // 지금 화면에 있는 답 (수정 시 되돌리기·저장에 쓴다)
     function _wqEsc(x) { return String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    /* 서술 항목은 관리자가 글 색·밑줄을 넣을 수 있어 HTML 을 그대로 그린다(서버가
+       허용 태그만 남겨 저장한다). 아직 서식을 넣지 않은 평문은 줄바꿈만 살린다. */
+    function _wqBody(v) {
+        v = v || '';
+        return /<[a-z][^>]*>/i.test(v) ? v : _wqEsc(v).replace(/\n/g, '<br>');
+    }
+    function _wqSec(field, label, v) {
+        if (!v && !_WQ_STAFF) return '';
+        return '<div class="wq-sec" data-field="' + field + '"><b>' + label + '</b>'
+             + '<div class="wq-sec-body">' + _wqBody(v) + '</div></div>';
+    }
+    function _wqEditBar() {
+        if (!_WQ_STAFF) return '';
+        return '<div class="wq-edit-bar"><button type="button" class="wq-edit-btn" onclick="weedEdit()">답안 수정</button></div>';
+    }
     // 출제 횟수를 별로 — 5회↑ ★★★ / 3~4 ★★ / 2 ★ / 1 ☆ (실기 쪽집게 노트와 같은 기준)
     function _wqStars(n) {
         if (!n) return '';
@@ -3001,6 +3045,7 @@
                 }).join('');
                 document.getElementById('wq-answer').hidden = true;
                 document.getElementById('wq-answer').innerHTML = '';
+                _wqAns = null;
                 document.getElementById('wq-actions').hidden = true;
                 document.getElementById('wq-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
             })
@@ -3040,6 +3085,7 @@
             }).join('');
             document.getElementById('wq-answer').hidden = true;
             document.getElementById('wq-answer').innerHTML = '';
+            _wqAns = null;
             document.getElementById('wq-actions').hidden = true;
             document.getElementById('wq-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }).catch(function() { _wq.busy = false; alert('문제를 불러오지 못했습니다.'); });
@@ -3064,6 +3110,7 @@
             });
             if (!d.correct) el.classList.add('miss');
             var a = d.answer;
+            _wqAns = a;
             var ov = document.getElementById('wq-sketch-ov');   // 사진 위 손그림
             if (a.sketch) { ov.src = a.sketch; ov.hidden = false; } else { ov.hidden = true; }
             var nov = document.getElementById('wq-notes-ov');   // 사진 위 교수 메모
@@ -3080,9 +3127,10 @@
                      +   (a.habitat ? '<span>' + _wqEsc(a.habitat) + '</span>' : '')
                      +   (a.exam_count ? '<span class="cnt">' + a.exam_count + '회 출제</span>' : '')
                      + '</div>'
-                     + (a.features ? '<div class="wq-sec"><b>식별 포인트</b>' + _wqEsc(a.features) + '</div>' : '')
-                     + (a.similar ? '<div class="wq-sec"><b>헷갈리는 종과 구별</b>' + _wqEsc(a.similar) + '</div>' : '')
-                     + (a.control ? '<div class="wq-sec"><b>방제·비고</b>' + _wqEsc(a.control) + '</div>' : '');
+                     + _wqSec('features', '식별 포인트', a.features)
+                     + _wqSec('similar', '헷갈리는 종과 구별', a.similar)
+                     + _wqSec('control', '방제·비고', a.control)
+                     + _wqEditBar();
             var ans = document.getElementById('wq-answer');
             ans.innerHTML = html; ans.hidden = false;
             document.getElementById('wq-actions').hidden = false;
@@ -3095,6 +3143,108 @@
             ans.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }).catch(function() { _wq.busy = false; alert('채점하지 못했습니다.'); });
     };
+    /* ── 답안 수정 (스태프) ──
+       Toast UI 는 마크다운 기반이라 글 색을 못 넣는다. 여기서 필요한 건 색과
+       밑줄뿐이라 contenteditable + execCommand 로 충분하다. */
+    var _WQ_FIELDS = [
+        { key: 'features', label: '식별 포인트' },
+        { key: 'similar',  label: '헷갈리는 종과 구별' },
+        { key: 'control',  label: '방제·비고' },
+        /* 메모는 사진 위 흰 글씨라 색·굵기가 먹지 않는다. 줄 단위로만 저장한다 */
+        { key: 'notes',    label: '교수 메모 (사진 위에 표시 · 한 줄에 하나, 서식은 적용되지 않음)', plain: true }
+    ];
+    var _WQ_COLORS = ['#c62828', '#1565c0', '#1b5e20', '#e65100', '#6a1b9a', '#333333'];
+
+    function _wqExec(cmd, val) { document.execCommand(cmd, false, val || null); }
+
+    window.weedEditCmd = function(btn, cmd, val) {
+        var ed = btn.closest('.wq-ef').querySelector('.wq-ed');
+        ed.focus();
+        _wqExec(cmd, val);
+    };
+
+    window.weedEdit = function() {
+        if (!_wqAns) return;
+        var a = _wqAns;
+        var html = '<div class="wq-edit"><div class="wq-edit-head">답안 수정 — ' + _wqEsc(a.name) + '</div>';
+        _WQ_FIELDS.forEach(function(f) {
+            var v = f.key === 'notes'
+                  ? (a.notes || []).map(function(n) { return _wqEsc(n); }).join('<br>')
+                  : _wqBody(a[f.key]);
+            var tools = f.plain ? '' :
+                  '<div class="wq-ed-tools">'
+                  +   '<button type="button" onclick="weedEditCmd(this,\'bold\')" title="굵게"><b>B</b></button>'
+                  +   '<button type="button" onclick="weedEditCmd(this,\'underline\')" title="밑줄"><u>U</u></button>'
+                  +   '<button type="button" onclick="weedEditCmd(this,\'italic\')" title="기울임"><i>I</i></button>'
+                  +   _WQ_COLORS.map(function(c) {
+                          return '<button type="button" class="wq-col" style="background:' + c + '"'
+                               + ' title="글자색" onclick="weedEditCmd(this,\'foreColor\',\'' + c + '\')"></button>';
+                      }).join('')
+                  +   '<button type="button" onclick="weedEditCmd(this,\'removeFormat\')" title="서식 지우기">✕</button>'
+                  + '</div>';
+            html += '<div class="wq-ef" data-field="' + f.key + '">'
+                  + '<label>' + f.label + '</label>' + tools
+                  + '<div class="wq-ed" contenteditable="true">' + v + '</div>'
+                  + '</div>';
+        });
+        html += '<div class="wq-edit-actions">'
+              + '<button type="button" class="wq-save" onclick="weedEditSave(this)">저장</button>'
+              + '<button type="button" class="wq-cancel" onclick="weedEditCancel()">취소</button>'
+              + '<span class="wq-edit-msg"></span></div></div>';
+        var ans = document.getElementById('wq-answer');
+        ans.querySelector('.wq-edit-bar').hidden = true;
+        ans.insertAdjacentHTML('beforeend', html);
+        /* 다른 데서 복사해 오면 글꼴·크기까지 딸려 온다. 글자만 받는다 */
+        ans.querySelectorAll('.wq-ed').forEach(function(ed) {
+            ed.addEventListener('paste', function(e) {
+                e.preventDefault();
+                var t = (e.clipboardData || window.clipboardData).getData('text');
+                document.execCommand('insertText', false, t);
+            });
+        });
+        ans.querySelector('.wq-ed').focus();
+    };
+
+    window.weedEditCancel = function() {
+        var ans = document.getElementById('wq-answer');
+        var box = ans.querySelector('.wq-edit');
+        if (box) box.remove();
+        var bar = ans.querySelector('.wq-edit-bar');
+        if (bar) bar.hidden = false;
+    };
+
+    window.weedEditSave = function(btn) {
+        var ans = document.getElementById('wq-answer');
+        var msg = ans.querySelector('.wq-edit-msg');
+        var fd = new URLSearchParams();
+        ans.querySelectorAll('.wq-ef').forEach(function(ef) {
+            fd.append(ef.dataset.field, ef.querySelector('.wq-ed').innerHTML);
+        });
+        btn.disabled = true; msg.textContent = '저장 중…'; msg.className = 'wq-edit-msg';
+        fetch('{% url "main:api_weed_card_update" subject.pk 0 %}'.replace('/weed-card/0/', '/weed-card/' + _wqAns.id + '/'), {
+            method: 'POST', body: fd,
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' }
+        }).then(function(r) { return r.json(); }).then(function(d) {
+            btn.disabled = false;
+            if (!d.ok) { msg.textContent = d.error || '저장하지 못했습니다.'; msg.className = 'wq-edit-msg err'; return; }
+            _wqAns = d.card;
+            weedEditCancel();
+            // 화면에 바로 반영 — 서술 3항목과 사진 위 메모
+            _WQ_FIELDS.forEach(function(f) {
+                if (f.key === 'notes') return;
+                var sec = ans.querySelector('.wq-sec[data-field="' + f.key + '"]');
+                if (sec) sec.querySelector('.wq-sec-body').innerHTML = _wqBody(d.card[f.key]);
+            });
+            var nov = document.getElementById('wq-notes-ov');
+            if (d.card.notes && d.card.notes.length) {
+                nov.innerHTML = '<ul>' + d.card.notes.map(function(n) { return '<li>' + _wqEsc(n) + '</li>'; }).join('') + '</ul>';
+                nov.hidden = false;
+            } else { nov.hidden = true; nov.innerHTML = ''; }
+        }).catch(function() {
+            btn.disabled = false; msg.textContent = '저장하지 못했습니다.'; msg.className = 'wq-edit-msg err';
+        });
+    };
+
     window.weedReset = function() {
         if (!confirm('잡초 동정 풀이 기록을 모두 지울까요?')) return;
         fetch('{% url "main:api_weed_quiz_reset" subject.pk %}', { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })

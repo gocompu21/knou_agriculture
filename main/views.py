@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from datetime import date, datetime, time, timedelta
+from html import escape
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
@@ -1137,6 +1138,92 @@ def api_weed_quiz_reset(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     n, _ = WeedQuizAttempt.objects.filter(user=request.user, card__subject=subject).delete()
     return JsonResponse({"ok": True, "deleted": n})
+
+
+# 답 화면 서술 항목에 허용하는 서식. 글 색과 밑줄이 목적이라 이만큼이면 충분하다.
+_WEED_TAGS = {"b", "strong", "i", "em", "u", "s", "br", "span", "mark", "ul", "ol", "li", "div", "p"}
+_WEED_DROP = {"script", "style", "iframe", "object", "embed", "template", "noscript"}
+_WEED_COLOR = re.compile(r"^#[0-9a-fA-F]{3,6}$|^rgb\([\d,\s]+\)$")
+
+
+def _clean_weed_html(raw):
+    """편집기가 보낸 HTML 에서 허용 태그·색만 남긴다.
+
+    style 은 색(color·background-color)만 통과시킨다. 글꼴 크기나 위치까지
+    허용하면 답 화면 서식이 카드마다 제각각이 된다.
+    """
+    from html.parser import HTMLParser
+
+    class Cleaner(HTMLParser):
+        def __init__(self):
+            super().__init__(convert_charrefs=True)
+            self.out = []
+            self.skip = 0            # 허용하지 않는 태그의 안쪽 깊이
+
+        def _style(self, value):
+            keep = []
+            for part in (value or "").split(";"):
+                if ":" not in part:
+                    continue
+                prop, _, val = part.partition(":")
+                prop, val = prop.strip().lower(), val.strip()
+                if prop in ("color", "background-color") and _WEED_COLOR.match(val):
+                    keep.append(f"{prop}: {val}")
+            return "; ".join(keep)
+
+        def handle_starttag(self, tag, attrs):
+            if tag in _WEED_DROP:            # 태그도 내용도 버린다
+                self.skip += 1
+                return
+            if tag not in _WEED_TAGS:        # 태그만 벗기고 글은 남긴다
+                return
+            style = self._style(dict(attrs).get("style"))
+            self.out.append(f'<{tag} style="{style}">' if style else f"<{tag}>")
+
+        def handle_endtag(self, tag):
+            if tag in _WEED_DROP:
+                if self.skip:
+                    self.skip -= 1
+                return
+            if tag in _WEED_TAGS and tag != "br":
+                self.out.append(f"</{tag}>")
+
+        def handle_data(self, data):
+            if not self.skip:                 # script·style 안의 글은 버린다
+                self.out.append(escape(data))
+
+    c = Cleaner()
+    c.feed(raw or "")
+    c.close()
+    text = "".join(c.out).strip()
+    # 편집기가 남기는 빈 껍데기는 지운다
+    return "" if re.fullmatch(r"(<(p|div|br)>|</(p|div)>|\s|&nbsp;)*", text or "") else text
+
+
+@login_required
+@user_passes_test(staff_required)
+@require_POST
+def api_weed_card_update(request, pk, card_id):
+    """잡초 카드의 서술 항목을 고친다 (스태프 전용).
+
+    글 색·밑줄을 쓸 수 있도록 HTML 을 받되 허용 태그만 남긴다.
+    교수 메모는 줄 단위로 저장하는 필드라 <li>·<br> 을 줄바꿈으로 되돌린다.
+    """
+    subject = get_object_or_404(Subject, pk=pk)
+    card = get_object_or_404(WeedCard, pk=card_id, subject=subject)
+
+    for f in ("features", "similar", "control"):
+        if f in request.POST:
+            setattr(card, f, _clean_weed_html(request.POST[f]))
+
+    if "notes" in request.POST:
+        html = _clean_weed_html(request.POST["notes"])
+        lines = re.split(r"</li>|<br>|</p>|</div>", html)
+        lines = [re.sub(r"<[^>]+>", "", x).strip() for x in lines]
+        card.notes = "\n".join(x for x in lines if x)
+
+    card.save()
+    return JsonResponse({"ok": True, "card": _weed_card_payload(card)})
 
 
 ## ══════════ 쪽집게 노트 관리자 편집 ══════════ ##
