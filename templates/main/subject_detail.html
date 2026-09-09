@@ -1709,7 +1709,14 @@
     .sq-a p { margin: 0 0 6px; }
     .sq-a ul { padding-left: 19px; margin: 4px 0 8px; }
     .sq-a h3 { font-size: 0.88rem; color: #1b4332; margin: 10px 0 4px; }
+    .sq-a h4 { font-size: 0.84rem; color: #1b4332; font-weight: 700; margin: 11px 0 4px;
+        padding-left: 8px; border-left: 3px solid #a8c5b0; }
+    .sq-a h4:first-child { margin-top: 2px; }
+    .sq-a ol { padding-left: 21px; margin: 4px 0 8px; }
+    .sq-a h4 + ul, .sq-a h4 + ol { margin-top: 2px; }
+    .sq-a ul ul, .sq-a ol ol, .sq-a ul ol, .sq-a ol ul { margin: 2px 0; }
     .sq-a strong { color: #1b4332; }
+    .sq-a em { font-style: italic; color: #37503f; }
     .sec-qna-ask { margin-top: 8px; display: flex; gap: 6px; }
     .sec-qna-ask input { flex: 1; padding: 7px 10px; border: 1px solid #c9a7d9; border-radius: 6px; font-size: 0.86rem; }
     .sec-qna-ask input:focus { outline: none; border-color: #7b3fa0; }
@@ -1729,10 +1736,18 @@
         line-height: 1.8; color: #263; }
     .qna-item.open .qi-full { display: block; }
     .qi-full h3 { font-size: 0.9rem; color: #1b4332; margin: 12px 0 5px; }
+    /* "1. 소제목" 줄. 아래 항목과 한 덩어리로 보이도록 왼쪽에 띠를 둔다 */
+    .qi-full h4 { font-size: 0.86rem; color: #1b4332; font-weight: 700;
+        margin: 14px 0 5px; padding-left: 9px; border-left: 3px solid #a8c5b0; }
+    .qi-full h4:first-child { margin-top: 2px; }
     .qi-full p { margin: 0 0 8px; }
-    .qi-full ul { padding-left: 19px; margin: 5px 0 10px; }
+    .qi-full ul, .qi-full ol { padding-left: 21px; margin: 5px 0 10px; }
+    .qi-full h4 + ul, .qi-full h4 + ol { margin-top: 2px; }
+    .qi-full ul ul, .qi-full ol ol, .qi-full ul ol, .qi-full ol ul { margin: 2px 0; }
     .qi-full li { margin: 3px 0; }
+    .qi-full li::marker { color: #7fa88c; }
     .qi-full strong { color: #1b4332; }
+    .qi-full em { font-style: italic; color: #37503f; }
     .qi-note-ref { font-size: 0.75rem; color: #6b8a72; background: #f1f7ee;
         display: inline-block; padding: 2px 9px; border-radius: 9px;
         margin-bottom: 8px; }
@@ -2833,25 +2848,68 @@
         var esc = function (x) {
             return x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         };
-        var out = [], ul = false;
-        t.split('\n').forEach(function (rawLine) {
-            var line = rawLine.trim();
-            if (!line) { if (ul) { out.push('</ul>'); ul = false; } return; }
-            var h = esc(line)
+        /* "1. 소제목" 아래에 "- 항목"이 딸리는 형태로 답이 온다. 번호줄까지 불렛으로
+           만들면 소제목과 항목이 한 층이 되어 무엇이 묶음인지 안 보인다.
+           번호줄은 소제목으로 세우고, 들여쓴 불렛은 한 단계 안으로 넣는다. */
+        var out = [], stack = [];         // 지금 열려 있는 목록 태그들
+        function closeTo(n) { while (stack.length > n) { out.push('</' + stack.pop() + '>'); } }
+        function openTo(n, tag) {
+            while (stack.length < n) { out.push('<' + tag + '>'); stack.push(tag); }
+        }
+
+        /* 번호줄을 소제목으로 세울지 판단한다. "1. 첫째 / 2. 둘째" 처럼 번호만
+           죽 나열한 것까지 소제목이 되면 오히려 어수선하다. 바로 뒤에 불렛이
+           딸려 있을 때만 묶음의 머리로 본다. */
+        var lines = t.split('\n');
+        function leadsGroup(i) {
+            for (var j = i + 1; j < lines.length; j++) {
+                var nx = lines[j].trim();
+                if (!nx) continue;
+                return /^[*\-•]\s/.test(nx);
+            }
+            return false;
+        }
+
+        lines.forEach(function (rawLine, li) {
+            var line = rawLine.replace(/\s+$/, '');
+            if (!line.trim()) { closeTo(0); return; }
+            var indent = (line.match(/^[ \t]*/) || [''])[0].replace(/\t/g, '  ').length;
+            var body = line.trim();
+            var h = esc(body)
                 .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>')
                 .replace(/`([^`]+)`/g, '<code>$1</code>');
-            if (/^#{1,4}\s/.test(line)) {
-                if (ul) { out.push('</ul>'); ul = false; }
+
+            if (/^#{1,4}\s/.test(body)) {
+                closeTo(0);
                 out.push('<h3>' + h.replace(/^#{1,4}\s*/, '') + '</h3>');
-            } else if (/^[*\-•]\s/.test(line) || /^\d+\.\s/.test(line)) {
-                if (!ul) { out.push('<ul>'); ul = true; }
-                out.push('<li>' + h.replace(/^([*\-•]|\d+\.)\s*/, '') + '</li>');
+            } else if (/^\d+[.)]\s/.test(body) && indent === 0 && leadsGroup(li)) {
+                closeTo(0);                                   // 번호줄 = 소제목
+                out.push('<h4>' + h.replace(/^\d+[.)]\s*/, '') + '</h4>');
+            } else if (/^[*\-•]\s/.test(body) || /^\d+[.)]\s/.test(body)) {
+                var lvl = indent >= 2 ? 2 : 1;                // 들여쓴 불렛은 한 단계 안으로
+                var tag = /^\d+[.)]\s/.test(body) ? 'ol' : 'ul';
+                if (stack.length >= lvl && stack[lvl - 1] !== tag) closeTo(lvl - 1);
+                openTo(lvl, tag);
+                closeTo(lvl);
+                var item = h.replace(/^([*\-•]|\d+[.)])\s*/, '');
+                /* "분류: 마디풀과…" 처럼 앞머리가 라벨이면 굵게. 이미 볼드면 두지 않는다.
+                   라벨에 학명 <em> 이 낀 경우가 있어 태그는 허용하되, 콜론이 문장
+                   한복판에 있는 것을 집지 않도록 글자 수를 센다(태그 길이는 빼고). */
+                if (!/^<strong>/.test(item)) {
+                    item = item.replace(/^([^:：]+?)([:：])(\s)/, function(all, head, colon, sp) {
+                        var plain = head.replace(/<[^>]+>/g, '');
+                        return (plain.length >= 2 && plain.length <= 24)
+                             ? '<strong>' + head + '</strong>' + colon + sp : all;
+                    });
+                }
+                out.push('<li>' + item + '</li>');
             } else {
-                if (ul) { out.push('</ul>'); ul = false; }
+                closeTo(0);
                 out.push('<p>' + h + '</p>');
             }
         });
-        if (ul) out.push('</ul>');
+        closeTo(0);
         return out.join('');
     }
 
