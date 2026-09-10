@@ -38,6 +38,8 @@ def main():
     ap.add_argument("--prompt-file", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--ref", default="", help="참고 그림 — 주면 이것을 고쳐 그린다")
+    ap.add_argument("--mask", default="",
+                    help="--ref 와 같은 크기의 PNG. 투명한 곳만 고치고 나머지는 두게 한다")
     ap.add_argument("--size", default=DEFAULT_SIZE)
     ap.add_argument("--quality", default="high",
                     choices=["low", "medium", "high", "xhigh", "max", "auto"])
@@ -66,10 +68,14 @@ def main():
     print(f"모델 {model} | 크기 {args.size} | 품질 {args.quality}")
     if args.ref:
         print("참고 그림:", args.ref)
+        kw = {}
+        if args.mask:
+            print("마스크:", args.mask)
+            kw["mask"] = open(args.mask, "rb")
         with open(args.ref, "rb") as f:
             resp = client.images.edit(
                 model=model, image=f, prompt=prompt,
-                size=args.size, quality=args.quality,
+                size=args.size, quality=args.quality, **kw,
             )
     else:
         resp = client.images.generate(
