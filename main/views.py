@@ -4,7 +4,7 @@ from html import escape, unescape
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.files.base import ContentFile
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_POST
@@ -1207,6 +1207,7 @@ class WeedInfo(BaseModel):
     넣어 달라고 해도 "…보인다.잎은…" 처럼 붙여 놓는다.
     """
 
+    sci_name: str = Field(description="학명(속명 종소명). 예: Echinochloa crus-galli")
     family: str = Field(description="과명. 예: 벼과(화본과), 국화과, 사초과")
     life_form: str = Field(description="생활형. 예: 하계 일년생, 다년생 수생, 월년생")
     habitat: str = Field(description="주로 나는 곳. 예: 논·수로·습지, 밭·과수원·길가")
@@ -1222,6 +1223,8 @@ _WEED_INFO_PROMPT = """너는 한국 농학과 잡초방제학 교수다. 아래
 
 규칙
 - 한국에서 실제로 문제가 되는 잡초 기준으로 쓴다.
+- 학명은 "속명 종소명" 두 낱말만 쓴다(명명자·아종은 빼고). 사진을 찾는 데
+  쓰므로 가장 널리 통하는 이름으로 적는다.
 - 식별 포인트는 사진을 보고 구별할 수 있는 것(잎 모양·잎집·엽설·줄기 단면·꽃·
   땅속 기관 등)을 한 항목에 한 가지씩 적는다.
 - 유사종 구별은 실제로 헷갈리는 종 이름을 대고 어디가 다른지 적는다.
@@ -1307,10 +1310,193 @@ def _weed_compose(files, layout, width=900, gap=12):
     return canvas
 
 
+_WIKI_UA = "HanulStudy/1.0 (https://hanulstudy.kr; gocompu21@gmail.com)"
+
+
+def _wiki_json(url):
+    import json as _json
+    import urllib.request
+
+    req = urllib.request.Request(url, headers={"User-Agent": _WIKI_UA})
+    with urllib.request.urlopen(req, timeout=12) as resp:
+        return _json.load(resp)
+
+
+def _weed_web_photos(name, sci_name="", limit=12):
+    """위키미디어 공용에서 그 잡초 사진을 찾는다.
+
+    **학명으로 찾아야 한다** — 한국어 이름으로는 거의 안 나오고(흰명아주·올방개
+    모두 0장), 학명을 주면 잘 나온다. 학명이 없으면 한국어 위키백과 → 위키데이터
+    (P225)로 찾아본다.
+
+    CC 라이선스라 쓸 수 있지만 저작자 표시가 필요하므로 라이선스·저작자를 함께 준다.
+    """
+    import urllib.parse
+
+    terms = []
+    if sci_name:
+        terms.append(sci_name.strip())
+    if not terms:
+        try:
+            d = _wiki_json("https://ko.wikipedia.org/w/api.php?action=query&format=json"
+                           "&prop=pageprops&redirects=1&titles=" + urllib.parse.quote(name))
+            for page in (d.get("query", {}).get("pages") or {}).values():
+                qid = (page.get("pageprops") or {}).get("wikibase_item")
+                if not qid:
+                    continue
+                wd = _wiki_json("https://www.wikidata.org/w/api.php?action=wbgetclaims"
+                                "&format=json&property=P225&entity=" + qid)
+                claims = wd.get("claims", {}).get("P225") or []
+                if claims:
+                    terms.append(claims[0]["mainsnak"]["datavalue"]["value"])
+        except Exception:
+            logger.exception("학명 조회 실패")
+    terms.append(name)
+
+    out, seen = [], set()
+    for term in terms:
+        if len(out) >= limit:
+            break
+        try:
+            d = _wiki_json(
+                "https://commons.wikimedia.org/w/api.php?action=query&format=json"
+                "&generator=search&gsrnamespace=6&gsrlimit=%d&gsrsearch=%s"
+                "&prop=imageinfo&iiprop=url|extmetadata|size&iiurlwidth=480"
+                % (limit, urllib.parse.quote(term)))
+        except Exception:
+            logger.exception("공용 사진 검색 실패: %s", term)
+            continue
+        for page in (d.get("query", {}).get("pages") or {}).values():
+            info = (page.get("imageinfo") or [{}])[0]
+            url = info.get("thumburl")
+            # 그림·도해·표본 스캔은 걸러 낸다 — 동정 카드에는 사진이 필요하다
+            title = page.get("title", "")
+            if not url or url in seen:
+                continue
+            if any(w in title.lower() for w in ("illustration", "drawing", ".svg", "herbarium")):
+                continue
+            seen.add(url)
+            meta = info.get("extmetadata") or {}
+            author = re.sub(r"<[^>]+>", "", (meta.get("Artist") or {}).get("value", ""))
+            # 추적 파라미터를 떼고, 카드에 넣을 것은 더 큰 판으로 받는다.
+            # 위키는 요청한 폭(480)이 아니라 가까운 규격(500px)으로 줄 때가 있어
+            # 숫자를 못 박지 않고 정규식으로 바꾼다
+            clean = url.split("?")[0]
+            out.append({
+                "thumb": clean,
+                "full": re.sub(r"/\d+px-", "/1280px-", clean),
+                "title": title.replace("File:", ""),
+                "license": (meta.get("LicenseShortName") or {}).get("value", ""),
+                "author": author.strip()[:60],
+                "page": info.get("descriptionurl", ""),
+            })
+            if len(out) >= limit:
+                break
+    return out
+
+
+def _weed_nature_photos(name, limit=8):
+    """국립수목원 국가생물종지식정보시스템에서 사진을 찾는다.
+
+    공공데이터포털 키(`NATURE_API_KEY`)가 있어야 한다. 없으면 건너뛴다 —
+    위키미디어만으로도 등록은 된다.
+    """
+    key = getattr(settings, "NATURE_API_KEY", "")
+    if not key:
+        return []
+    import urllib.parse
+    import urllib.request
+    from xml.etree import ElementTree
+
+    base = "http://api.nature.go.kr/openapi/service/rest/PlantService"
+    try:
+        url = ("%s/plantPilbkSearch?serviceKey=%s&st=1&sw=%s&numOfRows=%d"
+               % (base, key, urllib.parse.quote(name), limit))
+        req = urllib.request.Request(url, headers={"User-Agent": _WIKI_UA})
+        with urllib.request.urlopen(req, timeout=12) as resp:
+            root = ElementTree.fromstring(resp.read())
+    except Exception:
+        logger.exception("국립수목원 조회 실패")
+        return []
+
+    out = []
+    for item in root.iter("item"):
+        img = (item.findtext("imgUrl") or "").strip()
+        if not img:
+            continue
+        out.append({
+            "thumb": img, "full": img,
+            "title": (item.findtext("plantGnrlNm") or name).strip(),
+            "license": "공공누리", "author": "국립수목원",
+            "page": (item.findtext("plantPilbkNo") or ""),
+        })
+        if len(out) >= limit:
+            break
+    return out
+
+
+@user_passes_test(lambda u: u.is_staff)
+def api_weed_web_photos(request, pk):
+    """등록 화면용 — 인터넷에서 그 잡초 사진 후보를 찾아 준다."""
+    get_object_or_404(Subject, pk=pk)
+    name = (request.GET.get("name") or "").strip()
+    if not name:
+        return JsonResponse({"photos": []})
+    # 한국 자생종 사진이 정확하므로 국립수목원을 앞에 둔다 (키가 없으면 빈 목록)
+    photos = _weed_nature_photos(name) + _weed_web_photos(name, (request.GET.get("sci") or "").strip())
+    return JsonResponse({"photos": photos})
+
+
+@user_passes_test(lambda u: u.is_staff)
+def api_weed_fetch_photo(request, pk):
+    """고른 사진을 서버가 받아 브라우저로 넘겨준다 (다른 도메인이라 canvas 가 막힌다)."""
+    import urllib.request
+
+    get_object_or_404(Subject, pk=pk)
+    # 사진을 내려주는 곳만 받는다 (아무 주소나 받으면 SSRF 통로가 된다)
+    url = request.GET.get("url") or ""
+    if not url.startswith(("https://upload.wikimedia.org/", "https://thumb.wikimedia.org/",
+                           "http://www.nature.go.kr/", "https://www.nature.go.kr/")):
+        return JsonResponse({"ok": False, "error": "허용되지 않은 주소입니다."}, status=400)
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": _WIKI_UA})
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            data = resp.read(12 * 1024 * 1024)
+            ctype = resp.headers.get("Content-Type", "image/jpeg")
+    except Exception as e:
+        logger.exception("사진 내려받기 실패")
+        return JsonResponse({"ok": False, "error": str(e)}, status=502)
+    return HttpResponse(data, content_type=ctype)
+
+
 def _weed_plain(raw):
     """textarea 가 보낸 평문의 줄바꿈을 고른다 (\\r\\n → \\n, 빈 줄 정리)."""
     text = (raw or "").replace("\r\n", "\n").replace("\r", "\n")
     return "\n".join(line.strip() for line in text.split("\n") if line.strip())
+
+
+def _weed_control_with_credits(control, credits_json):
+    """방제·비고 끝에 사진 출처를 적는다.
+
+    위키미디어 사진은 CC 라이선스라 **저작자와 라이선스를 밝혀야 쓸 수 있다**.
+    따로 필드를 만들지 않고 이미 화면에 보이는 '방제·비고' 끝에 붙인다.
+    """
+    text = _weed_plain(control)
+    try:
+        items = json.loads(credits_json or "[]")
+    except (TypeError, ValueError):
+        items = []
+    lines = []
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        bits = [b for b in (it.get("title"), it.get("author"), it.get("license")) if b]
+        if bits:
+            where = "국립수목원" if it.get("license") == "공공누리" else "위키미디어 공용"
+            lines.append("사진: " + " / ".join(str(b)[:80] for b in bits) + " (%s)" % where)
+    if not lines:
+        return text
+    return (text + "\n" if text else "") + "\n".join(lines)
 
 
 @user_passes_test(lambda u: u.is_staff)
@@ -1359,7 +1545,8 @@ def api_weed_card_create(request, pk):
         # (textarea 는 \r\n 을 보내는데 그대로 두면 화면에서 빈 줄이 생긴다)
         features=_weed_plain(request.POST.get("features")),
         similar=_weed_plain(request.POST.get("similar")),
-        control=_weed_plain(request.POST.get("control")),
+        control=_weed_control_with_credits(request.POST.get("control"),
+                                           request.POST.get("credits")),
         notes=_weed_plain(request.POST.get("notes")),
     )
     buf = io.BytesIO()

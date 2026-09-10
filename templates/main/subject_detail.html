@@ -412,6 +412,9 @@
     .wq-pool-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .wq-pool-item.used { opacity: .35; cursor: default; }
     .wq-pool-add { width: 84px; height: 64px; display: flex; align-items: center; justify-content: center; border: 1px dashed #9ec2a8; border-radius: 6px; font-size: 0.72rem; color: #2d6a4f; cursor: pointer; text-align: center; background: #fff; }
+    .wq-pool-busy { width: 100%; padding: 18px 0; text-align: center; font-size: 0.78rem; color: #7b8f80; }
+    /* 인터넷에서 가져온 사진임을 표시 — 출처를 밝혀야 하는 CC 사진이다 */
+    .wq-pool-tag { position: absolute; left: 3px; bottom: 3px; padding: 1px 5px; border-radius: 3px; background: rgba(27,67,50,.85); color: #fff; font-size: 0.6rem; font-weight: 600; }
 
     /* 배열 칸 — 끌어다 놓는 자리 */
     .wq-lay-stage { display: grid; gap: 6px; margin-top: 10px; background: #f4f8f4; border-radius: 8px; padding: 6px; }
@@ -3621,12 +3624,39 @@
                 document.getElementById('wq-add-fields').hidden = false;
                 document.getElementById('wq-add-photos').hidden = false;
                 _wqAddSync();
+                _wqWebPhotos(name, (d.info || {}).sci_name || '');
             })
             .catch(function() {
                 btn.disabled = false; btn.textContent = '확인·조회';
                 _wqAddMsg('확인하지 못했습니다.', true);
             });
     };
+
+    /* 인터넷(위키미디어 공용)에서 사진 후보를 찾아 목록에 담는다.
+       학명으로 찾아야 나온다 — 한국어 이름으로는 거의 안 걸린다.
+       실제 파일은 고를 때(칸에 놓을 때) 받는다 — 12장을 미리 다 받으면 느리다. */
+    function _wqWebPhotos(name, sci) {
+        var pool = document.getElementById('wq-pool');
+        var busy = document.createElement('div');
+        busy.className = 'wq-pool-busy';
+        busy.textContent = '인터넷에서 사진을 찾는 중…';
+        pool.appendChild(busy);
+        fetch('{% url "main:api_weed_web_photos" subject.pk %}?name=' + encodeURIComponent(name)
+              + '&sci=' + encodeURIComponent(sci), { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                busy.remove();
+                (d.photos || []).forEach(function(p) {
+                    _wqAdd.files.push({ web: p, url: p.thumb, file: null });
+                });
+                _wqPool();
+                if (d.photos && d.photos.length) {
+                    _wqAddMsg('인터넷에서 사진 ' + d.photos.length + '장을 찾았습니다. '
+                            + '쓸 것을 칸으로 끌어다 놓으세요 (직접 올린 사진도 함께 쓸 수 있습니다).');
+                }
+            })
+            .catch(function() { busy.remove(); });
+    }
 
     /* 배열 고르기 단추 */
     function _wqLayPicks() {
@@ -3691,10 +3721,13 @@
         _wqAdd.files.forEach(function(f, i) {
             var used = _wqAdd.slots.indexOf(f) >= 0;
             var el = document.createElement('div');
-            el.className = 'wq-pool-item' + (used ? ' used' : '');
+            el.className = 'wq-pool-item' + (used ? ' used' : '') + (f.web ? ' web' : '');
             el.draggable = !used;
             el.dataset.i = i;
-            el.innerHTML = '<img src="' + f.url + '" alt="">';
+            el.title = f.web ? (f.web.title + '\n' + f.web.license + ' · ' + f.web.author) : f.file.name;
+            var tag = f.web ? (f.web.license === '공공누리' ? '수목원' : '위키') : '';
+            el.innerHTML = '<img src="' + f.url + '" alt="">'
+                         + (tag ? '<span class="wq-pool-tag">' + tag + '</span>' : '');
             el.addEventListener('dragstart', function(e) {
                 e.dataTransfer.setData('text/plain', String(i));
             });
@@ -3715,7 +3748,33 @@
         if (was >= 0) _wqAdd.slots[was] = null;
         _wqAdd.slots[i] = f;
         _wqLayStage(); _wqPool(); _wqAddSync();
+        // 인터넷 사진은 이때 큰 판을 받아 둔다 (등록할 때 올려야 하므로)
+        if (f.web && !f.file) _wqFetchWeb(f);
     };
+
+    /* 웹 사진을 서버를 거쳐 받아 온다 — 다른 도메인이라 브라우저가 직접 못 읽는다 */
+    function _wqFetchWeb(f) {
+        f.loading = true;
+        _wqAddSync();
+        fetch('{% url "main:api_weed_fetch_photo" subject.pk %}?url=' + encodeURIComponent(f.web.full),
+              { credentials: 'same-origin' })
+            .then(function(r) {
+                if (!r.ok) throw 0;
+                return r.blob();
+            })
+            .then(function(blob) {
+                f.file = new File([blob], (f.web.title || 'photo') + '.jpg', { type: 'image/jpeg' });
+                f.loading = false;
+                _wqAddSync();
+            })
+            .catch(function() {
+                f.loading = false;
+                var at = _wqAdd.slots.indexOf(f);
+                if (at >= 0) _wqAdd.slots[at] = null;
+                _wqLayStage(); _wqPool(); _wqAddSync();
+                _wqAddMsg('그 사진을 받지 못했습니다. 다른 사진을 골라 주세요.', true);
+            });
+    }
     window.weedSlotClear = function(i) {
         _wqAdd.slots[i] = null;
         _wqLayStage(); _wqPool(); _wqAddSync();
@@ -3723,16 +3782,19 @@
 
     /* 등록 단추를 켤 수 있는 상태인지 */
     function _wqAddSync() {
-        var ok = !!_wqAdd.checked && !!_wqAdd.layout
-              && _wqAdd.slots.length > 0 && _wqAdd.slots.every(function(s) { return !!s; });
+        var filled = _wqAdd.slots.length > 0 && _wqAdd.slots.every(function(s) { return !!s; });
+        // 인터넷 사진은 받아 오는 동안 file 이 없다 — 다 받아야 등록할 수 있다
+        var loading = _wqAdd.slots.filter(function(s) { return s && !s.file; }).length;
+        var ok = !!_wqAdd.checked && !!_wqAdd.layout && filled && !loading;
         document.getElementById('wq-add-go').disabled = !ok;
         var hint = document.getElementById('wq-add-hint');
         if (!_wqAdd.checked) hint.textContent = '종명을 넣고 확인·조회를 누르세요.';
         else if (!_wqAdd.layout) hint.textContent = '사진 배열을 고르세요.';
-        else if (!ok) {
+        else if (!filled) {
             var left = _wqAdd.slots.filter(function(s) { return !s; }).length;
             hint.textContent = '빈 칸이 ' + left + '개 있습니다. 사진을 끌어다 놓으세요.';
-        } else hint.textContent = '사진 ' + _wqAdd.slots.length + '장으로 등록합니다.';
+        } else if (loading) hint.textContent = '사진을 받는 중입니다…';
+        else hint.textContent = '사진 ' + _wqAdd.slots.length + '장으로 등록합니다.';
     }
 
     window.weedAddSubmit = function() {
@@ -3750,6 +3812,10 @@
         fd.append('control', document.getElementById('wq-add-control').value);
         fd.append('notes', document.getElementById('wq-add-notes').value);
         _wqAdd.slots.forEach(function(s) { fd.append('photos', s.file); });
+        // CC 사진은 출처를 밝혀야 한다 — 서버가 '방제·비고' 끝에 적어 둔다
+        fd.append('credits', JSON.stringify(_wqAdd.slots.filter(function(s) { return s.web; })
+            .map(function(s) { return { title: s.web.title, license: s.web.license,
+                                        author: s.web.author, page: s.web.page }; })));
 
         fetch('{% url "main:api_weed_card_create" subject.pk %}', {
             method: 'POST', body: fd, credentials: 'same-origin',

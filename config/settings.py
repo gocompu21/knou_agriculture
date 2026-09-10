@@ -107,6 +107,11 @@ GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 OPENAI_IMAGE_MODEL = os.getenv('OPENAI_IMAGE_MODEL', 'gpt-image-2.5-sunburst')
 
+# 잡초 카드 등록 때 사진 후보를 가져올 곳.
+# 위키미디어 공용은 키가 필요 없다. 국립수목원(국가생물종지식정보시스템)은
+# 공공데이터포털에서 키를 받아 넣으면 한국 자생종 사진이 함께 나온다.
+NATURE_API_KEY = os.getenv('NATURE_API_KEY', '')
+
 # 실기 필답형 기능에서 쓰는 모델 (용도별 분리)
 # - 채점: 채점 기준표를 프롬프트로 주므로 판단 여지가 좁다. 최신 stable flash로 충분.
 # - 손글씨 판독: 이미지 판독 정확도가 중요하므로 상위 모델을 쓴다.
