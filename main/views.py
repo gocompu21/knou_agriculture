@@ -3,6 +3,7 @@ from datetime import date, datetime, time, timedelta
 from html import escape, unescape
 
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.files.base import ContentFile
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.clickjacking import xframe_options_sameorigin
@@ -1142,13 +1143,32 @@ def _weed_photo_boxes(path, min_side=40, gap_ratio=0.92):
     faint = (arr.max(axis=2) - arr.min(axis=2)) < 45   # 색이 짙으면 사진이다
     gap = bright & faint
 
-    boxes = []
-    for y0, y1 in _weed_gap_runs(gap.mean(axis=1) > gap_ratio, min_side):
-        band = gap[y0:y1]
-        cols = _weed_gap_runs(band.mean(axis=0) > gap_ratio, min_side)
-        for x0, x1 in (cols or [[0, width]]):
-            boxes.append([x0, y0, x1, y1])
-    return boxes
+    def split(box, horizontal):
+        """한 덩어리를 가로(또는 세로) 틈으로 나눈다. 더 못 나누면 자기 자신."""
+        x0, y0, x1, y1 = box
+        win = gap[y0:y1, x0:x1]
+        axis = 1 if horizontal else 0
+        runs = _weed_gap_runs(win.mean(axis=axis) > gap_ratio, min_side)
+        if len(runs) <= 1:
+            return [box]
+        if horizontal:
+            return [[x0, y0 + a, x1, y0 + b] for a, b in runs]
+        return [[x0 + a, y0, x0 + b, y1] for a, b in runs]
+
+    # 가로로 먼저 켜를 나누는 배열도, 세로로 먼저 나누는 배열도 있다(좌1-우2 꼴).
+    # 두 순서를 다 해 보고 더 잘게 갈리는 쪽을 쓴다.
+    best = None
+    for first_h in (True, False):
+        boxes = []
+        for box in split([0, 0, width, height], first_h):
+            boxes.extend(split(box, not first_h))
+        # 한 번 더 — 3단 이상 섞인 배열(좌1-우2 안의 우측 두 장 등)
+        deeper = []
+        for box in boxes:
+            deeper.extend(split(box, first_h))
+        if best is None or len(deeper) > len(best):
+            best = deeper
+    return best or [[0, 0, width, height]]
 
 
 @user_passes_test(lambda u: u.is_staff)
@@ -1178,6 +1198,175 @@ def api_weed_card_photos(request, pk, card_id):
             photos.append({"url": url, "crop": None, "w": width, "h": height,
                            "label": "사진", "suffix": ""})
     return JsonResponse({"name": card.name, "photos": photos})
+
+
+class WeedInfo(BaseModel):
+    """새 잡초 카드에 채워 넣을 정보 (Gemini 구조화 응답).
+
+    여러 줄짜리 항목은 **리스트로 받는다** — 한 문자열로 받으면 줄바꿈을
+    넣어 달라고 해도 "…보인다.잎은…" 처럼 붙여 놓는다.
+    """
+
+    family: str = Field(description="과명. 예: 벼과(화본과), 국화과, 사초과")
+    life_form: str = Field(description="생활형. 예: 하계 일년생, 다년생 수생, 월년생")
+    habitat: str = Field(description="주로 나는 곳. 예: 논·수로·습지, 밭·과수원·길가")
+    features: list[str] = Field(description="식별 포인트. 한 항목에 한 가지씩 2~4개")
+    similar: list[str] = Field(description="헷갈리는 종과 구별하는 법. 0~3개")
+    control: list[str] = Field(description="방제 요령·비고. 1~3개")
+
+
+_WEED_INFO_PROMPT = """너는 한국 농학과 잡초방제학 교수다. 아래 잡초에 대해
+방송대 학생용 동정 카드에 넣을 정보를 쓴다.
+
+잡초 이름: {name}
+
+규칙
+- 한국에서 실제로 문제가 되는 잡초 기준으로 쓴다.
+- 식별 포인트는 사진을 보고 구별할 수 있는 것(잎 모양·잎집·엽설·줄기 단면·꽃·
+  땅속 기관 등)을 한 항목에 한 가지씩 적는다.
+- 유사종 구별은 실제로 헷갈리는 종 이름을 대고 어디가 다른지 적는다.
+- 방제는 생태적 특성에 근거해 실무적으로 적는다.
+- 모든 내용은 한국어. 불렛 기호(-, •)나 번호는 붙이지 않는다.
+- 한 항목은 한 문장으로 짧게. 여러 문장을 한 항목에 몰아넣지 않는다.
+- 확실하지 않으면 지어내지 말고 그 항목을 비운다."""
+
+
+@user_passes_test(lambda u: u.is_staff)
+def api_weed_name_check(request, pk):
+    """새 카드용 종명 확인 — 중복을 막고, 없으면 Gemini 로 정보를 채운다."""
+    subject = get_object_or_404(Subject, pk=pk)
+    name = (request.GET.get("name") or "").strip()
+    if not name:
+        return JsonResponse({"ok": False, "error": "종명을 입력하세요."})
+
+    dup = WeedCard.objects.filter(subject=subject, name__iexact=name).first()
+    if dup:
+        return JsonResponse({"ok": False, "duplicate": True,
+                             "error": "이미 등록된 종입니다 (카드 %d번)." % dup.card_no})
+
+    api_key = settings.GEMINI_API_KEY
+    if not api_key:
+        return JsonResponse({"ok": True, "info": None,
+                             "warn": "GEMINI_API_KEY 가 없어 자동 조회를 건너뜁니다."})
+    try:
+        client = genai.Client(api_key=api_key)
+        resp = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=_WEED_INFO_PROMPT.format(name=name),
+            config={"response_mime_type": "application/json",
+                    "response_schema": WeedInfo},
+        )
+        info = WeedInfo.model_validate_json(resp.text).model_dump()
+        # 화면에서는 줄 단위 텍스트로 다룬다
+        for f in ("features", "similar", "control"):
+            info[f] = "\n".join(s.strip() for s in info[f] if s.strip())
+    except Exception as e:
+        logger.exception("잡초 정보 조회 실패")
+        return JsonResponse({"ok": True, "info": None,
+                             "warn": "자동 조회에 실패했습니다: %s" % e})
+    return JsonResponse({"ok": True, "info": info})
+
+
+# 사진을 어떻게 늘어놓을지 — 칸마다 (x, y, 폭, 높이) 비율, 그리고 전체 세로:가로 비
+# 기존 카드가 대개 세로로 길쭉하므로(452x630 꼴) 그에 맞춘다
+_WEED_LAYOUTS = {
+    "1":    ([(0, 0, 1, 1)], 0.72),
+    "1t1b": ([(0, 0, 1, .5), (0, .5, 1, .5)], 1.40),
+    "1t2b": ([(0, 0, 1, .5), (0, .5, .5, .5), (.5, .5, .5, .5)], 1.30),
+    "2t2b": ([(0, 0, .5, .5), (.5, 0, .5, .5), (0, .5, .5, .5), (.5, .5, .5, .5)], 1.00),
+    "1l2r": ([(0, 0, .5, 1), (.5, 0, .5, .5), (.5, .5, .5, .5)], 0.75),
+    "2l2r": ([(0, 0, .5, .5), (0, .5, .5, .5), (.5, 0, .5, .5), (.5, .5, .5, .5)], 1.00),
+}
+
+
+def _weed_compose(files, layout, width=900, gap=12):
+    """올린 사진들을 고른 배열대로 한 장에 붙인다.
+
+    낱장 가르기(`_weed_photo_boxes`)가 다시 찾아낼 수 있도록 칸 사이를 흰
+    여백으로 띄운다. 사진은 자르지 않고 칸 안에 통째로 넣는다.
+    """
+    from PIL import Image
+
+    cells, ratio = _WEED_LAYOUTS.get(layout) or _WEED_LAYOUTS["1"]
+    height = int(width * ratio)
+
+    canvas = Image.new("RGB", (width, height), (255, 255, 255))
+    for cell, f in zip(cells, files):
+        cx, cy, cw, ch = cell
+        x0 = int(cx * width) + (gap if cx > 0 else 0)
+        y0 = int(cy * height) + (gap if cy > 0 else 0)
+        x1 = int((cx + cw) * width) - gap
+        y1 = int((cy + ch) * height) - gap
+        bw, bh = max(1, x1 - x0), max(1, y1 - y0)
+
+        photo = Image.open(f).convert("RGB")
+        scale = min(bw / photo.width, bh / photo.height)
+        nw, nh = max(1, round(photo.width * scale)), max(1, round(photo.height * scale))
+        photo = photo.resize((nw, nh), Image.LANCZOS)
+        canvas.paste(photo, (x0 + (bw - nw) // 2, y0 + (bh - nh) // 2))
+    return canvas
+
+
+def _weed_plain(raw):
+    """textarea 가 보낸 평문의 줄바꿈을 고른다 (\\r\\n → \\n, 빈 줄 정리)."""
+    text = (raw or "").replace("\r\n", "\n").replace("\r", "\n")
+    return "\n".join(line.strip() for line in text.split("\n") if line.strip())
+
+
+@user_passes_test(lambda u: u.is_staff)
+@require_POST
+def api_weed_card_create(request, pk):
+    """새 잡초 카드를 등록한다 — 사진 여러 장을 고른 배열대로 한 장에 붙인다."""
+    import io
+
+    subject = get_object_or_404(Subject, pk=pk)
+    name = (request.POST.get("name") or "").strip()
+    if not name:
+        return JsonResponse({"ok": False, "error": "종명을 입력하세요."})
+    if WeedCard.objects.filter(subject=subject, name__iexact=name).exists():
+        return JsonResponse({"ok": False, "error": "이미 등록된 종입니다."})
+
+    photos = request.FILES.getlist("photos")
+    if not photos:
+        return JsonResponse({"ok": False, "error": "사진을 한 장 이상 올리세요."})
+
+    layout = request.POST.get("layout") or "1"
+    spec = _WEED_LAYOUTS.get(layout)
+    if not spec:
+        return JsonResponse({"ok": False, "error": "사진 배열을 고르세요."})
+    cells = spec[0]
+    if len(photos) != len(cells):
+        return JsonResponse({"ok": False,
+                             "error": "이 배열은 사진 %d장이 필요합니다 (지금 %d장)."
+                                      % (len(cells), len(photos))})
+
+    try:
+        composed = _weed_compose(photos, layout)
+    except Exception as e:
+        logger.exception("잡초 사진 합성 실패")
+        return JsonResponse({"ok": False, "error": "사진을 붙이지 못했습니다: %s" % e})
+
+    last = WeedCard.objects.filter(subject=subject).order_by("-card_no").first()
+    card = WeedCard(
+        subject=subject,
+        card_no=(last.card_no + 1) if last else 1,
+        order=(last.order + 1) if last else 1,
+        name=name,
+        family=(request.POST.get("family") or "").strip(),
+        life_form=(request.POST.get("life_form") or "").strip(),
+        habitat=(request.POST.get("habitat") or "").strip(),
+        # 등록 화면은 평문 textarea 다. HTML 정리는 필요 없고 줄바꿈만 고른다
+        # (textarea 는 \r\n 을 보내는데 그대로 두면 화면에서 빈 줄이 생긴다)
+        features=_weed_plain(request.POST.get("features")),
+        similar=_weed_plain(request.POST.get("similar")),
+        control=_weed_plain(request.POST.get("control")),
+        notes=_weed_plain(request.POST.get("notes")),
+    )
+    buf = io.BytesIO()
+    composed.save(buf, format="JPEG", quality=92)
+    card.q_image.save("q_%s.jpg" % uuid.uuid4().hex[:10], ContentFile(buf.getvalue()), save=False)
+    card.save()
+    return JsonResponse({"ok": True, "card_no": card.card_no, "name": card.name})
 
 
 @login_required

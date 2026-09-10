@@ -310,6 +310,10 @@
     .wq-list { margin-top: 14px; background: #fff; border: 1px solid #e0e6e0; border-radius: 12px; overflow: hidden; }
     .wq-list-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #f4f8f4; border-bottom: 1px solid #e0e6e0; font-size: 0.85rem; color: #555; }
     .wq-list-head b { color: #1b4332; }
+    /* 등록·닫기를 오른쪽으로 몰되 등록이 닫기 앞에 온다 */
+    .wq-list-add { margin-left: auto; background: #2d6a4f; border: 1px solid #2d6a4f; border-radius: 6px; padding: 4px 12px; font-size: 0.8rem; color: #fff; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .wq-list-add:hover { background: #1b4332; }
+    .wq-list-add + .wq-list-close { margin-left: 0; }
     .wq-list-close { margin-left: auto; background: none; border: 1px solid #ccc; border-radius: 6px; padding: 4px 12px; font-size: 0.8rem; color: #666; cursor: pointer; }
     .wq-table-wrap { max-height: 70vh; overflow: auto; }
     .wq-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
@@ -367,6 +371,54 @@
     .wq-save-go:disabled { opacity: .6; cursor: default; }
     .wq-save-msg { padding: 0 16px 12px; font-size: 0.8rem; color: #2e7d32; line-height: 1.5; }
     .wq-save-msg.warn { color: #b26a00; }
+
+    /* ── 새 잡초 등록 ── */
+    .wq-add-box { width: min(880px, 100%); }
+    .wq-add-body { padding: 14px 16px; overflow-y: auto; }
+    .wq-add-row { display: flex; gap: 8px; align-items: center; }
+    .wq-add-row label { font-size: 0.85rem; color: #555; }
+    .wq-add-row input { flex: 1; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; }
+    .wq-add-row input:focus { outline: none; border-color: #2d6a4f; }
+    .wq-add-check { padding: 8px 14px; border: none; border-radius: 6px; background: #2d6a4f; color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .wq-add-check:disabled { opacity: .6; cursor: default; }
+    .wq-add-msg { margin-top: 8px; font-size: 0.8rem; line-height: 1.5; color: #2e7d32; }
+    .wq-add-msg.warn { color: #c62828; }
+    .wq-add-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .wq-add-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; color: #555; }
+    .wq-add-grid .wq-add-wide { grid-column: 1 / -1; }
+    .wq-add-grid input, .wq-add-grid textarea { padding: 7px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85rem; font-family: inherit; resize: vertical; }
+    .wq-add-grid input:focus, .wq-add-grid textarea:focus { outline: none; border-color: #2d6a4f; }
+    .wq-add-sub { margin: 16px 0 8px; font-size: 0.82rem; font-weight: 700; color: #1b4332; }
+    .wq-add-photos > .wq-add-sub:first-child { margin-top: 12px; }
+    /* 상세는 접어 둔다 — 등록의 핵심은 사진이라 사진이 먼저 보여야 한다 */
+    .wq-add-more { margin-top: 16px; border: 1px solid #e0e6e0; border-radius: 8px; }
+    .wq-add-more[hidden] { display: none; }
+    .wq-add-more > summary { padding: 9px 12px; font-size: 0.8rem; font-weight: 600; color: #1b4332; cursor: pointer; background: #f4f8f4; border-radius: 7px; }
+    .wq-add-more[open] > summary { border-radius: 7px 7px 0 0; border-bottom: 1px solid #e0e6e0; }
+    .wq-add-more .wq-add-grid { margin: 0; padding: 12px; }
+
+    /* 배열 고르기 — 작은 그림으로 모양을 보여 준다 */
+    .wq-lay-picks { display: flex; flex-wrap: wrap; gap: 8px; }
+    .wq-lay-pick { width: 78px; cursor: pointer; text-align: center; border: 2px solid #e0e6e0; border-radius: 8px; padding: 6px 4px; background: #fff; }
+    .wq-lay-pick.on { border-color: #2d6a4f; background: #f4faf5; }
+    .wq-lay-mini { display: grid; gap: 2px; height: 46px; margin-bottom: 4px; }
+    .wq-lay-mini i { background: #cfe0d3; border-radius: 2px; display: block; }
+    .wq-lay-pick.on .wq-lay-mini i { background: #7fae90; }
+    .wq-lay-cap { font-size: 0.68rem; color: #555; line-height: 1.3; }
+
+    /* 올린 사진 목록 — 여기서 칸으로 끌어다 놓는다 */
+    .wq-pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 72px; padding: 8px; border: 1px dashed #cbd8cd; border-radius: 8px; background: #fafcfa; }
+    .wq-pool-item { width: 84px; height: 64px; border-radius: 6px; overflow: hidden; position: relative; cursor: grab; border: 2px solid transparent; }
+    .wq-pool-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .wq-pool-item.used { opacity: .35; cursor: default; }
+    .wq-pool-add { width: 84px; height: 64px; display: flex; align-items: center; justify-content: center; border: 1px dashed #9ec2a8; border-radius: 6px; font-size: 0.72rem; color: #2d6a4f; cursor: pointer; text-align: center; background: #fff; }
+
+    /* 배열 칸 — 끌어다 놓는 자리 */
+    .wq-lay-stage { display: grid; gap: 6px; margin-top: 10px; background: #f4f8f4; border-radius: 8px; padding: 6px; }
+    .wq-slot { position: relative; min-height: 70px; border: 2px dashed #c3d4c7; border-radius: 6px; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; color: #9bb0a0; overflow: hidden; }
+    .wq-slot.over { border-color: #2d6a4f; background: #eaf4ec; }
+    .wq-slot img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .wq-slot-x { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border: none; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; font-size: 0.7rem; cursor: pointer; line-height: 1; }
     @media (max-width: 700px) {
         .wq-table .wq-t-habitat, .wq-table .wq-t-life { display: none; }
         .wq-table th.h-habitat, .wq-table th.h-life { display: none; }
@@ -2103,6 +2155,7 @@
         <div id="wq-list" class="wq-list" hidden>
             <div class="wq-list-head">
                 <span>잡초 목록 <b id="wq-list-n">{{ weed_count }}</b>종 · 줄을 누르면 그 잡초 문제로 갑니다</span>
+                {% if request.user.is_staff %}<button type="button" class="wq-list-add" onclick="weedAddOpen()">+ 등록</button>{% endif %}
                 <button type="button" class="wq-list-close" onclick="document.getElementById('wq-list').hidden = true">닫기</button>
             </div>
             <div class="wq-table-wrap">
@@ -2141,6 +2194,56 @@
                     <button type="button" class="wq-save-go" id="wq-save-go" onclick="weedSaveDo()">저장</button>
                 </div>
                 <div class="wq-save-msg" id="wq-save-msg"></div>
+            </div>
+        </div>
+
+        <!-- 관리자: 새 잡초 카드 등록 -->
+        <div id="wq-add" class="wq-save" hidden>
+            <div class="wq-save-box wq-add-box">
+                <div class="wq-save-head">
+                    새 잡초 등록
+                    <button type="button" class="wq-save-x" onclick="weedAddClose()">✕</button>
+                </div>
+                <div class="wq-add-body">
+                    <div class="wq-add-row">
+                        <label for="wq-add-name">종명</label>
+                        <input type="text" id="wq-add-name" maxlength="50" spellcheck="false"
+                               placeholder="예: 흰명아주" onkeydown="if(event.key==='Enter'){event.preventDefault();weedAddCheck();}">
+                        <button type="button" class="wq-add-check" onclick="weedAddCheck()">확인·조회</button>
+                    </div>
+                    <div class="wq-add-msg" id="wq-add-msg"></div>
+
+                    <div class="wq-add-photos" id="wq-add-photos" hidden>
+                        <div class="wq-add-sub">사진 배열</div>
+                        <div class="wq-lay-picks" id="wq-lay-picks"></div>
+
+                        <div class="wq-add-sub">사진 (아래 목록에서 칸으로 끌어다 놓으세요)</div>
+                        <div class="wq-pool" id="wq-pool">
+                            <label class="wq-pool-add">
+                                + 사진 추가
+                                <input type="file" accept="image/*" multiple hidden onchange="weedAddFiles(this)">
+                            </label>
+                        </div>
+                        <div class="wq-lay-stage" id="wq-lay-stage"></div>
+                    </div>
+                    <details class="wq-add-more" id="wq-add-fields" hidden>
+                        <summary>과명·생활형·발생지·식별 포인트 (AI 가 채움 — 눌러서 확인·수정)</summary>
+                    <div class="wq-add-grid">
+                            <label>과명<input type="text" id="wq-add-family" maxlength="50"></label>
+                            <label>생활형<input type="text" id="wq-add-life" maxlength="50"></label>
+                            <label class="wq-add-wide">발생지<input type="text" id="wq-add-habitat" maxlength="100"></label>
+                            <label class="wq-add-wide">식별 포인트<textarea id="wq-add-features" rows="4"></textarea></label>
+                            <label class="wq-add-wide">헷갈리는 종과 구별<textarea id="wq-add-similar" rows="3"></textarea></label>
+                            <label class="wq-add-wide">방제·비고<textarea id="wq-add-control" rows="3"></textarea></label>
+                            <label class="wq-add-wide">교수 메모 (사진 위에 흰 글씨로 얹힙니다)<textarea id="wq-add-notes" rows="2"></textarea></label>
+                        </div>
+                    </details>
+
+                </div>
+                <div class="wq-save-foot">
+                    <span class="wq-save-where" id="wq-add-hint">종명을 넣고 확인·조회를 누르세요.</span>
+                    <button type="button" class="wq-save-go" id="wq-add-go" onclick="weedAddSubmit()" disabled>등록</button>
+                </div>
             </div>
         </div>
         {% endif %}
@@ -3455,6 +3558,215 @@
             .then(function(fh) { return fh.createWritable(); })
             .then(function(w) { return w.write(blob).then(function() { return w.close(); }); });
     }
+
+    /* ══════ 관리자: 새 잡초 등록 ══════
+       배열은 서버의 _WEED_LAYOUTS 와 짝이 맞아야 한다(칸 수·차례). */
+    var _WQ_LAYOUTS = [
+        { key: '1',    cap: '전체 1개',      cols: '1fr',     rows: '1fr',     cells: [[1, 1]] },
+        { key: '1t1b', cap: '상1 · 하1',     cols: '1fr',     rows: '1fr 1fr', cells: [[1, 1], [1, 1]] },
+        { key: '1t2b', cap: '상1 · 하2',     cols: '1fr 1fr', rows: '1fr 1fr', cells: [[2, 1], [1, 1], [1, 1]] },
+        { key: '2t2b', cap: '상2 · 하2',     cols: '1fr 1fr', rows: '1fr 1fr', cells: [[1, 1], [1, 1], [1, 1], [1, 1]] },
+        { key: '1l2r', cap: '좌1 · 우2',     cols: '1fr 1fr', rows: '1fr 1fr', cells: [[1, 2], [1, 1], [1, 1]] },
+        { key: '2l2r', cap: '좌2 · 우2',     cols: '1fr 1fr', rows: '1fr 1fr', cells: [[1, 1], [1, 1], [1, 1], [1, 1]] },
+    ];
+    var _wqAdd = { layout: null, files: [], slots: [], checked: '' };
+
+    window.weedAddOpen = function() {
+        _wqAdd = { layout: null, files: [], slots: [], checked: '' };
+        document.getElementById('wq-add-name').value = '';
+        ['family', 'life', 'habitat', 'features', 'similar', 'control', 'notes'].forEach(function(f) {
+            var el = document.getElementById('wq-add-' + f);
+            if (el) el.value = '';
+        });
+        document.getElementById('wq-add-fields').hidden = true;
+        document.getElementById('wq-add-photos').hidden = true;
+        document.getElementById('wq-add-go').disabled = true;
+        _wqAddMsg('');
+        document.getElementById('wq-add-hint').textContent = '종명을 넣고 확인·조회를 누르세요.';
+        _wqLayPicks();
+        document.getElementById('wq-add').hidden = false;
+        setTimeout(function() { document.getElementById('wq-add-name').focus(); }, 50);
+    };
+    window.weedAddClose = function() { document.getElementById('wq-add').hidden = true; };
+
+    function _wqAddMsg(text, warn) {
+        var el = document.getElementById('wq-add-msg');
+        el.textContent = text;
+        el.classList.toggle('warn', !!warn);
+    }
+
+    /* 종명 확인 — 중복이면 막고, 아니면 AI 가 나머지를 채운다 */
+    window.weedAddCheck = function() {
+        var name = document.getElementById('wq-add-name').value.trim();
+        if (!name) { _wqAddMsg('종명을 입력하세요.', true); return; }
+        var btn = document.querySelector('.wq-add-check');
+        btn.disabled = true; btn.textContent = '조회 중…';
+        _wqAddMsg('');
+        fetch('{% url "main:api_weed_name_check" subject.pk %}?name=' + encodeURIComponent(name),
+              { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                btn.disabled = false; btn.textContent = '확인·조회';
+                if (!d.ok) { _wqAddMsg(d.error || '확인하지 못했습니다.', true); return; }
+                _wqAdd.checked = name;
+                if (d.info) {
+                    document.getElementById('wq-add-family').value = d.info.family || '';
+                    document.getElementById('wq-add-life').value = d.info.life_form || '';
+                    document.getElementById('wq-add-habitat').value = d.info.habitat || '';
+                    document.getElementById('wq-add-features').value = d.info.features || '';
+                    document.getElementById('wq-add-similar').value = d.info.similar || '';
+                    document.getElementById('wq-add-control').value = d.info.control || '';
+                }
+                _wqAddMsg(d.warn ? d.warn : '쓸 수 있는 이름입니다. 내용을 확인하고 고치세요.', !!d.warn);
+                document.getElementById('wq-add-fields').hidden = false;
+                document.getElementById('wq-add-photos').hidden = false;
+                _wqAddSync();
+            })
+            .catch(function() {
+                btn.disabled = false; btn.textContent = '확인·조회';
+                _wqAddMsg('확인하지 못했습니다.', true);
+            });
+    };
+
+    /* 배열 고르기 단추 */
+    function _wqLayPicks() {
+        document.getElementById('wq-lay-picks').innerHTML = _WQ_LAYOUTS.map(function(L, i) {
+            var mini = L.cells.map(function(c) {
+                return '<i style="grid-column:span ' + c[0] + ';grid-row:span ' + c[1] + '"></i>';
+            }).join('');
+            return '<div class="wq-lay-pick" data-i="' + i + '" onclick="weedLayPick(' + i + ')">'
+                 + '<div class="wq-lay-mini" style="grid-template-columns:' + L.cols
+                 + ';grid-template-rows:' + L.rows + '">' + mini + '</div>'
+                 + '<div class="wq-lay-cap">' + L.cap + '</div></div>';
+        }).join('');
+    }
+
+    window.weedLayPick = function(i) {
+        var L = _WQ_LAYOUTS[i];
+        _wqAdd.layout = L;
+        _wqAdd.slots = L.cells.map(function() { return null; });
+        document.querySelectorAll('.wq-lay-pick').forEach(function(el, j) {
+            el.classList.toggle('on', i === j);
+        });
+        _wqLayStage();
+        _wqAddSync();
+    };
+
+    /* 배열 칸 그리기 — 여기에 사진을 끌어다 놓는다 */
+    function _wqLayStage() {
+        var stage = document.getElementById('wq-lay-stage');
+        var L = _wqAdd.layout;
+        if (!L) { stage.innerHTML = ''; return; }
+        stage.style.gridTemplateColumns = L.cols;
+        stage.style.gridTemplateRows = L.rows;
+        stage.innerHTML = L.cells.map(function(c, i) {
+            var f = _wqAdd.slots[i];
+            var inner = f
+                ? '<img src="' + f.url + '" alt=""><button type="button" class="wq-slot-x"'
+                  + ' onclick="event.stopPropagation();weedSlotClear(' + i + ')">✕</button>'
+                : '사진 ' + (i + 1);
+            return '<div class="wq-slot" data-i="' + i + '"'
+                 + ' style="grid-column:span ' + c[0] + ';grid-row:span ' + c[1] + '"'
+                 + ' ondragover="weedSlotOver(event,' + i + ')"'
+                 + ' ondragleave="weedSlotLeave(event)"'
+                 + ' ondrop="weedSlotDrop(event,' + i + ')">' + inner + '</div>';
+        }).join('');
+    }
+
+    /* 사진 올리기 */
+    window.weedAddFiles = function(input) {
+        Array.prototype.forEach.call(input.files, function(f) {
+            if (!/^image\//.test(f.type)) return;
+            _wqAdd.files.push({ file: f, url: URL.createObjectURL(f) });
+        });
+        input.value = '';
+        _wqPool();
+        _wqAddSync();
+    };
+
+    function _wqPool() {
+        var pool = document.getElementById('wq-pool');
+        var add = pool.querySelector('.wq-pool-add');
+        pool.querySelectorAll('.wq-pool-item').forEach(function(el) { el.remove(); });
+        _wqAdd.files.forEach(function(f, i) {
+            var used = _wqAdd.slots.indexOf(f) >= 0;
+            var el = document.createElement('div');
+            el.className = 'wq-pool-item' + (used ? ' used' : '');
+            el.draggable = !used;
+            el.dataset.i = i;
+            el.innerHTML = '<img src="' + f.url + '" alt="">';
+            el.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('text/plain', String(i));
+            });
+            pool.insertBefore(el, add);
+        });
+    }
+
+    window.weedSlotOver = function(e, i) { e.preventDefault(); e.currentTarget.classList.add('over'); };
+    window.weedSlotLeave = function(e) { e.currentTarget.classList.remove('over'); };
+    window.weedSlotDrop = function(e, i) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('over');
+        var idx = +e.dataTransfer.getData('text/plain');
+        var f = _wqAdd.files[idx];
+        if (!f) return;
+        // 이미 다른 칸에 있으면 옮긴다 (한 사진이 두 칸에 들어가면 안 된다)
+        var was = _wqAdd.slots.indexOf(f);
+        if (was >= 0) _wqAdd.slots[was] = null;
+        _wqAdd.slots[i] = f;
+        _wqLayStage(); _wqPool(); _wqAddSync();
+    };
+    window.weedSlotClear = function(i) {
+        _wqAdd.slots[i] = null;
+        _wqLayStage(); _wqPool(); _wqAddSync();
+    };
+
+    /* 등록 단추를 켤 수 있는 상태인지 */
+    function _wqAddSync() {
+        var ok = !!_wqAdd.checked && !!_wqAdd.layout
+              && _wqAdd.slots.length > 0 && _wqAdd.slots.every(function(s) { return !!s; });
+        document.getElementById('wq-add-go').disabled = !ok;
+        var hint = document.getElementById('wq-add-hint');
+        if (!_wqAdd.checked) hint.textContent = '종명을 넣고 확인·조회를 누르세요.';
+        else if (!_wqAdd.layout) hint.textContent = '사진 배열을 고르세요.';
+        else if (!ok) {
+            var left = _wqAdd.slots.filter(function(s) { return !s; }).length;
+            hint.textContent = '빈 칸이 ' + left + '개 있습니다. 사진을 끌어다 놓으세요.';
+        } else hint.textContent = '사진 ' + _wqAdd.slots.length + '장으로 등록합니다.';
+    }
+
+    window.weedAddSubmit = function() {
+        var btn = document.getElementById('wq-add-go');
+        btn.disabled = true; btn.textContent = '등록 중…';
+        var fd = new FormData();
+        fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        fd.append('name', _wqAdd.checked);
+        fd.append('layout', _wqAdd.layout.key);
+        fd.append('family', document.getElementById('wq-add-family').value);
+        fd.append('life_form', document.getElementById('wq-add-life').value);
+        fd.append('habitat', document.getElementById('wq-add-habitat').value);
+        fd.append('features', document.getElementById('wq-add-features').value);
+        fd.append('similar', document.getElementById('wq-add-similar').value);
+        fd.append('control', document.getElementById('wq-add-control').value);
+        fd.append('notes', document.getElementById('wq-add-notes').value);
+        _wqAdd.slots.forEach(function(s) { fd.append('photos', s.file); });
+
+        fetch('{% url "main:api_weed_card_create" subject.pk %}', {
+            method: 'POST', body: fd, credentials: 'same-origin',
+        }).then(function(r) { return r.json(); }).then(function(d) {
+            btn.disabled = false; btn.textContent = '등록';
+            if (!d.ok) { _wqAddMsg(d.error || '등록하지 못했습니다.', true); return; }
+            weedAddClose();
+            // 목록을 다시 받아 새 카드가 보이게 한다
+            var body = document.getElementById('wq-list-body');
+            delete body.dataset.loaded;
+            document.getElementById('wq-list').hidden = true;
+            weedList();
+        }).catch(function() {
+            btn.disabled = false; btn.textContent = '등록';
+            _wqAddMsg('등록하지 못했습니다.', true);
+        });
+    };
 
     window.weedList = function() {
         var box = document.getElementById('wq-list');
