@@ -102,6 +102,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 
+# 쪽집게 노트 인포그래픽 생성용. 한글이 많이 들어가 정확도가 중요하므로
+# 속도(flare)가 아니라 품질(sunburst) 쪽을 쓴다.
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
+OPENAI_IMAGE_MODEL = os.getenv('OPENAI_IMAGE_MODEL', 'gpt-image-2.5-sunburst')
+
 # 실기 필답형 기능에서 쓰는 모델 (용도별 분리)
 # - 채점: 채점 기준표를 프롬프트로 주므로 판단 여지가 좁다. 최신 stable flash로 충분.
 # - 손글씨 판독: 이미지 판독 정확도가 중요하므로 상위 모델을 쓴다.
