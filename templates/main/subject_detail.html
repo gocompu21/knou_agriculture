@@ -205,8 +205,14 @@
     .wq-modes:has(.on) .wq-mode-btn:not(.on) { opacity: .45; }
     .wq-modes:has(.on) .wq-mode-btn:not(.on):hover { opacity: 1; }
     .wq-hint { margin-top: 10px; font-size: 0.8rem; color: #777; line-height: 1.6; }
-    .wq-progress { display: flex; justify-content: space-between; font-size: 0.82rem; color: #666; margin: 0 4px 8px; }
-    .wq-score { color: #1b4332; font-weight: 600; }
+    /* 진행·점수를 사진 위 모서리에 얹는다 — 교수 메모와 같은 흰 글씨 + 검은 테두리 */
+    .wq-pos-ov, .wq-score-ov {
+        position: absolute; top: 7px; font-size: 0.8rem; font-weight: 700; color: #fff;
+        -webkit-text-stroke: 0.6px rgba(0, 0, 0, .85); paint-order: stroke fill;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, .9); pointer-events: none; line-height: 1.2;
+    }
+    .wq-pos-ov { left: 10px; }
+    .wq-score-ov { right: 10px; }
     .wq-card { background: #fff; border: 1px solid #e0e6e0; border-radius: 12px; padding: 16px; }
     /* 사진과 보기를 좌우로 나눠 사진이 세로 공간을 넓게 쓰게 한다 */
     .wq-quiz { display: flex; gap: 18px; align-items: flex-start; }
@@ -2016,11 +2022,12 @@
             <div class="wq-hint">사진을 보고 잡초 이름을 고르세요. 고르면 사진 위에 교수 메모와 카드 손그림이 겹쳐 보이고, 아래에 정답과 함께 과·생활형·발생지·식별 포인트·유사종 구별·원본 슬라이드가 펼쳐집니다.</div>
         </div>
         <div id="wq-area" hidden>
-            <div class="wq-progress"><span id="wq-pos"></span><span class="wq-score" id="wq-score"></span></div>
             <div class="wq-card">
                 <div class="wq-quiz">
                     <div class="wq-photo"><span class="wq-photo-in">
                         <img id="wq-img" alt="잡초 사진">
+                        <span class="wq-pos-ov" id="wq-pos"></span>
+                        <span class="wq-score-ov" id="wq-score"></span>
                         <div id="wq-notes-ov" class="wq-notes-ov" hidden></div>
                         <img id="wq-sketch-ov" class="wq-sketch-ov" alt="카드 손그림" hidden>
                     </span></div>
