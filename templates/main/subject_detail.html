@@ -2109,12 +2109,12 @@
                     <thead><tr>
                         <th class="wq-sortable" onclick="weedSort('no')">번호<span class="wq-sort-i"></span></th>
                         <th class="wq-sortable" onclick="weedSort('name')">종명<span class="wq-sort-i"></span></th>
+                        {% if request.user.is_staff %}<th class="wq-t-save-h">저장</th>{% endif %}
                         <th class="wq-sortable" onclick="weedSort('family')">과명<span class="wq-sort-i"></span></th>
                         <th class="wq-sortable h-life" onclick="weedSort('life_form')">생활형<span class="wq-sort-i"></span></th>
                         <th class="wq-sortable h-habitat" onclick="weedSort('habitat')">발생지<span class="wq-sort-i"></span></th>
                         <th class="wq-sortable" onclick="weedSort('exam_count')">출제<span class="wq-sort-i"></span></th>
                         <th class="wq-sortable" onclick="weedSort('state')">상태<span class="wq-sort-i"></span></th>
-                        {% if request.user.is_staff %}<th class="wq-t-save-h">저장</th>{% endif %}
                     </tr></thead>
                     <tbody id="wq-list-body"></tbody>
                 </table>
@@ -3191,14 +3191,14 @@
             return '<tr class="wq-t-row" onclick="weedGo(' + it.id + ')">'
                  + '<td class="wq-t-no">' + it.no + '</td>'
                  + '<td><span class="wq-t-name">' + _wqEsc(it.name) + '</span>' + _wqStars(it.exam_count) + '</td>'
+                 // 저장은 줄 이동과 겹치므로 버튼에서 클릭을 멈춘다
+                 + (_WQ_STAFF ? '<td class="wq-t-save"><button type="button" class="wq-save-btn"'
+                     + ' onclick="event.stopPropagation(); weedSavePick(' + it.id + ')">저장</button></td>' : '')
                  + '<td>' + _wqEsc(it.family) + '</td>'
                  + '<td class="wq-t-life">' + _wqEsc(it.life_form) + '</td>'
                  + '<td class="wq-t-habitat">' + _wqEsc(it.habitat) + '</td>'
                  + '<td class="wq-t-cnt">' + (it.exam_count ? it.exam_count + '회' : '') + '</td>'
                  + '<td>' + st + '</td>'
-                 // 저장은 줄 이동과 겹치므로 버튼에서 클릭을 멈춘다
-                 + (_WQ_STAFF ? '<td class="wq-t-save"><button type="button" class="wq-save-btn"'
-                     + ' onclick="event.stopPropagation(); weedSavePick(' + it.id + ')">저장</button></td>' : '')
                  + '</tr>';
         }).join('');
         // 열 제목의 정렬 표시
