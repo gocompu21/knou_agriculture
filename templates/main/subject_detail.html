@@ -352,7 +352,7 @@
     /* 낱장 미리보기 — 원본의 그 부분만 보이게 잘라 낸다. 높이를 픽셀로 주면
        미리보기가 줄어든 만큼 어긋나므로 padding-top 비율로 잡는다 */
     .wq-sv-clip { display: block; position: relative; overflow: hidden; border-radius: 4px; width: 100%; }
-    .wq-sv-clip img { position: absolute; left: 0; width: 100%; border-radius: 0; }
+    .wq-sv-clip img { position: absolute; max-width: none; border-radius: 0; }
     .wq-sv-cap { display: block; margin-top: 5px; font-size: 0.78rem; color: #333; font-weight: 600; }
     .wq-save-fname { padding: 10px 16px 0; display: flex; align-items: center; gap: 8px; font-size: 0.83rem; }
     .wq-save-fname label { color: #666; }
@@ -3302,13 +3302,15 @@
         body.innerHTML = d.photos.map(function(p, i) {
             var thumb;
             if (p.crop && p.h) {
-                /* 상자는 aspect-ratio 로 낱장 비율(폭:높이)을 잡고, 그 안의 이미지는
-                   상자 높이의 몇 배인지로 키워 위로 민다. % 를 쓰면 기준이 폭이냐
-                   높이냐로 갈려 어긋나므로, 배수(em 아닌 순수 비율)로만 센다. */
-                var band = p.crop[1] - p.crop[0];
-                thumb = '<span class="wq-sv-clip" style="aspect-ratio:' + p.w + '/' + band + '">'
-                      + '<img src="' + p.url + '" style="height:' + (p.h / band * 100) + '%;'
-                      + 'top:' + (-p.crop[0] / band * 100) + '%" alt=""></span>';
+                /* crop 은 [x0, y0, x1, y1]. 상자는 aspect-ratio 로 낱장 비율을 잡고,
+                   그 안의 이미지를 낱장 크기의 몇 배로 키워 왼쪽·위로 민다. % 를 쓰면
+                   속성마다 기준이 폭이냐 높이냐로 갈리므로 각 축의 낱장 크기로 나눈다. */
+                var cw = p.crop[2] - p.crop[0], ch = p.crop[3] - p.crop[1];
+                thumb = '<span class="wq-sv-clip" style="aspect-ratio:' + cw + '/' + ch + '">'
+                      + '<img src="' + p.url + '" style="width:' + (p.w / cw * 100) + '%;'
+                      + 'height:' + (p.h / ch * 100) + '%;'
+                      + 'left:' + (-p.crop[0] / cw * 100) + '%;'
+                      + 'top:' + (-p.crop[1] / ch * 100) + '%" alt=""></span>';
             } else {
                 thumb = '<img src="' + p.url + '" alt="">';
             }
@@ -3429,10 +3431,11 @@
             var img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = function() {
-                var h = p.crop[1] - p.crop[0];
+                var x = p.crop[0], y = p.crop[1];
+                var w = p.crop[2] - x, h = p.crop[3] - y;
                 var cv = document.createElement('canvas');
-                cv.width = img.naturalWidth; cv.height = h;
-                cv.getContext('2d').drawImage(img, 0, p.crop[0], img.naturalWidth, h, 0, 0, img.naturalWidth, h);
+                cv.width = w; cv.height = h;
+                cv.getContext('2d').drawImage(img, x, y, w, h, 0, 0, w, h);
                 cv.toBlob(function(b) { b ? res(b) : rej('canvas'); }, 'image/jpeg', 0.95);
             };
             img.onerror = function() { rej('이미지를 읽지 못했습니다'); };

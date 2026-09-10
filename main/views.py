@@ -1100,11 +1100,32 @@ def api_weed_quiz_list(request, pk):
     return JsonResponse({"items": items})
 
 
-def _weed_photo_bands(path, min_h=40, gap_ratio=0.92, tol=22):
-    """세로로 붙은 문제 사진에서 낱장의 위·아래 좌표를 찾는다.
+def _weed_gap_runs(is_gap, min_len):
+    """틈(True)으로 나뉜 덩어리들의 [시작, 끝]을 돌려준다."""
+    out, start = [], None
+    for i, gap in enumerate(is_gap):
+        if not gap and start is None:
+            start = i
+        if gap and start is not None:
+            if i - start > min_len:
+                out.append([start, i])
+            start = None
+    if start is not None and len(is_gap) - start > min_len:
+        out.append([start, len(is_gap)])
+    return out
 
-    사진 사이는 흰 여백이다. '거의 흰 행'이 이어지는 곳을 틈으로 본다 —
-    사진 안에도 밝은 하늘이 있으므로 행 전체(92%)가 희어야 한다.
+
+def _weed_photo_boxes(path, min_side=40, gap_ratio=0.92):
+    """붙어 있는 문제 사진에서 낱장의 사각 좌표 [x0, y0, x1, y1] 를 찾는다.
+
+    **틈이 한 가지 색이 아니다.** 바깥 여백은 흰색인데 사진 사이는 원본
+    슬라이드의 연녹색 판이 남아 있는 카드가 있다(강피의 좌우 두 장 사이가
+    (225,234,207) 이고 바깥은 (255,255,255) 이었다). 그래서 '희다'로도
+    '바탕색과 같다'로도 부족하고, **밝으면서 색이 옅은 화소**를 틈으로 본다 —
+    사진은 초록이 짙어 채도가 높고 틈은 판 색이라 옅다.
+
+    먼저 가로로 켜(층)를 나눈 뒤, 켜마다 세로 틈으로 다시 나눈다. 사진 안에도
+    밝은 하늘이 있으므로 줄 전체(92%)가 틈이어야 자른다.
     """
     try:
         from PIL import Image
@@ -1115,19 +1136,19 @@ def _weed_photo_bands(path, min_h=40, gap_ratio=0.92, tol=22):
         arr = np.asarray(Image.open(path).convert("RGB")).astype(int)
     except Exception:
         return []
-    height = arr.shape[0]
-    gap = (np.abs(arr - 255).max(axis=2) < tol).mean(axis=1) > gap_ratio
-    out, start = [], None
-    for y in range(height):
-        if not gap[y] and start is None:
-            start = y
-        if gap[y] and start is not None:
-            if y - start > min_h:
-                out.append([start, y])
-            start = None
-    if start is not None and height - start > min_h:
-        out.append([start, height])
-    return out
+
+    height, width = arr.shape[:2]
+    bright = arr.min(axis=2) > 180               # 어두운 곳은 사진이다
+    faint = (arr.max(axis=2) - arr.min(axis=2)) < 45   # 색이 짙으면 사진이다
+    gap = bright & faint
+
+    boxes = []
+    for y0, y1 in _weed_gap_runs(gap.mean(axis=1) > gap_ratio, min_side):
+        band = gap[y0:y1]
+        cols = _weed_gap_runs(band.mean(axis=0) > gap_ratio, min_side)
+        for x0, x1 in (cols or [[0, width]]):
+            boxes.append([x0, y0, x1, y1])
+    return boxes
 
 
 @user_passes_test(lambda u: u.is_staff)
@@ -1148,10 +1169,10 @@ def api_weed_card_photos(request, pk, card_id):
             width, height = card.q_image.width, card.q_image.height
         except Exception:
             width = height = 0
-        bands = _weed_photo_bands(card.q_image.path)
-        if len(bands) > 1:
-            for i, (y0, y1) in enumerate(bands, 1):
-                photos.append({"url": url, "crop": [y0, y1], "w": width, "h": height,
+        boxes = _weed_photo_boxes(card.q_image.path)
+        if len(boxes) > 1:
+            for i, box in enumerate(boxes, 1):
+                photos.append({"url": url, "crop": box, "w": width, "h": height,
                                "label": "사진 %d" % i, "suffix": "_%d" % i})
         else:
             photos.append({"url": url, "crop": None, "w": width, "h": height,
