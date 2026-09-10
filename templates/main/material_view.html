@@ -4,13 +4,17 @@
 
 {% block extra_css %}
 <style>
+    /* 자료를 보는 화면이라 세로를 최대한 쓴다. base.html 의 main 여백
+       (위 28px·아래 56px)이 크므로 이 페이지에서만 줄인다 */
+    main { padding-top: 10px !important; padding-bottom: 12px !important; }
+
     .pdf-page {
         width: 100%; max-width: 1100px; margin: 0 auto;
         padding: 0 12px;
     }
     .pdf-header {
         display: flex; justify-content: space-between; align-items: center;
-        padding: 14px 0; border-bottom: 1px solid #e5e9e6; margin-bottom: 14px;
+        padding: 4px 0 8px; border-bottom: 1px solid #e5e9e6; margin-bottom: 8px;
         flex-wrap: wrap; gap: 10px;
     }
     .pdf-title {
@@ -31,8 +35,8 @@
 
     .pdf-notice {
         background: #fff8e1; border-left: 3px solid #f5b042;
-        padding: 8px 14px; font-size: 0.82rem; color: #6b4d12;
-        margin-top: 12px; border-radius: 4px;
+        padding: 6px 12px; font-size: 0.78rem; color: #6b4d12;
+        margin-top: 8px; border-radius: 4px;
     }
 
     .pdf-toolbar {
@@ -59,8 +63,10 @@
     .pdf-canvas-wrap {
         background: #4a4a4a;
         border-radius: 0 0 8px 8px;
-        padding: 16px;
-        max-height: 78vh;
+        padding: 12px;
+        /* 위아래 여백을 줄인 만큼 본문을 키운다 (툴바·머리글·경고 문구를 뺀 나머지) */
+        height: calc(100vh - 210px);
+        min-height: 360px;
         overflow-y: auto;
         text-align: center;
         position: relative;
@@ -127,7 +133,8 @@
     }
 
     @media (max-width: 768px) {
-        .pdf-canvas-wrap { padding: 8px; max-height: 70vh; }
+        main { padding-top: 6px !important; padding-bottom: 8px !important; }
+        .pdf-canvas-wrap { padding: 8px; height: calc(100vh - 190px); }
         .pdf-title { font-size: 0.95rem; }
         .pdf-toolbar { flex-wrap: wrap; gap: 6px; padding: 6px; }
         .pdf-toolbar button { padding: 4px 8px; font-size: 0.78rem; }
