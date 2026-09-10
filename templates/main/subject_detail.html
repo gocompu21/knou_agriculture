@@ -319,9 +319,11 @@
     .wq-sort-i { display: inline-block; width: 12px; margin-left: 3px; color: #a5d6a7; font-size: 0.8em; }
     .wq-table td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; color: #333; }
     .wq-table tr:hover td { background: #f7fbf7; }
+    /* 줄 전체가 누르는 자리다 */
+    .wq-table .wq-t-row { cursor: pointer; }
+    .wq-table .wq-t-row:hover .wq-t-name { text-decoration: underline; }
     .wq-table .wq-t-no { color: #999; width: 46px; }
-    .wq-table .wq-t-name { font-weight: 700; color: #1b4332; cursor: pointer; text-decoration: none; white-space: nowrap; }
-    .wq-table .wq-t-name:hover { text-decoration: underline; }
+    .wq-table .wq-t-name { font-weight: 700; color: #1b4332; white-space: nowrap; }
     .wq-table .wq-t-cnt { color: #e65100; font-weight: 700; white-space: nowrap; }
     /* 표에서는 이름과 나란히 두는 편이 읽기 좋다 (답 화면의 윗첨자를 되돌린다) */
     .wq-table .wq-stars { margin-left: 4px; font-size: 0.8em; vertical-align: baseline; }
@@ -2062,7 +2064,7 @@
         <div id="wq-done" class="wq-done" hidden></div>
         <div id="wq-list" class="wq-list" hidden>
             <div class="wq-list-head">
-                <span>잡초 목록 <b id="wq-list-n">{{ weed_count }}</b>종 · 종명을 누르면 그 잡초 문제로 갑니다</span>
+                <span>잡초 목록 <b id="wq-list-n">{{ weed_count }}</b>종 · 줄을 누르면 그 잡초 문제로 갑니다</span>
                 <button type="button" class="wq-list-close" onclick="document.getElementById('wq-list').hidden = true">닫기</button>
             </div>
             <div class="wq-table-wrap">
@@ -3124,9 +3126,10 @@
         body.innerHTML = _wqItems.map(function(it) {
             var st = it.state === 'wrong' ? '<span class="wq-t-state wrong">오답</span>'
                    : it.state === 'ok' ? '<span class="wq-t-state ok">정답</span>' : '';
-            return '<tr>'
+            // 줄 어디를 눌러도 그 잡초 문제로 간다 — 종명만 누르게 하면 과녁이 너무 좁다
+            return '<tr class="wq-t-row" onclick="weedGo(' + it.id + ')">'
                  + '<td class="wq-t-no">' + it.no + '</td>'
-                 + '<td><a class="wq-t-name" onclick="weedGo(' + it.id + ')">' + _wqEsc(it.name) + '</a>' + _wqStars(it.exam_count) + '</td>'
+                 + '<td><span class="wq-t-name">' + _wqEsc(it.name) + '</span>' + _wqStars(it.exam_count) + '</td>'
                  + '<td>' + _wqEsc(it.family) + '</td>'
                  + '<td class="wq-t-life">' + _wqEsc(it.life_form) + '</td>'
                  + '<td class="wq-t-habitat">' + _wqEsc(it.habitat) + '</td>'
