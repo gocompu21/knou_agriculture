@@ -343,7 +343,11 @@
         /* 답을 고른 뒤에는 보기를 감춘다 — 정답과 풀이는 아래 답 영역에 있고,
            좁은 화면에서는 그 자리를 답에 쓰는 편이 낫다 */
         .wq-choices.done { display: none; }
-        .wq-photo img { max-height: 52vh; }
+        /* 사진 원본이 450px 안팎이라 그대로 두면 보기 버튼보다 좁다.
+           좁은 화면에서는 칸 폭에 맞춰 늘리되, 세로로 너무 길어지지 않게 묶는다
+           (쇠별꽃은 사진 3장이라 비율이 2.1 이다) */
+        .wq-photo-in { width: 100%; }
+        .wq-photo img { width: 100%; max-height: 62vh; object-fit: contain; }
         .wq-sketch-ov { width: 38%; max-width: 150px; right: 6px; bottom: 6px; }
         .wq-notes-ov { font-size: 0.74rem; max-width: 58%; left: 8px; bottom: 6px;
                        -webkit-text-stroke-width: 0.5px; }
