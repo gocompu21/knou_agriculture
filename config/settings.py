@@ -135,6 +135,9 @@ LOGOUT_REDIRECT_URL = "/"
 
 # django-allauth
 AUTHENTICATION_BACKENDS = [
+    # 모바일 키보드가 아이디 첫 글자를 대문자로 바꿔 폰에서만 로그인이 안 되는
+    # 일이 있었다. 대소문자를 무시하는 백엔드를 앞에 둔다.
+    "accounts.backends.CaseInsensitiveUsernameBackend",
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]

@@ -155,7 +155,7 @@ def user_login(request):
         else:
             # 비활성 계정인지 별도 체크해 안내 메시지 차별화
             username = request.POST.get("username", "").strip()
-            inactive = User.objects.filter(username=username, is_active=False).exists()
+            inactive = User.objects.filter(username__iexact=username, is_active=False).exists()
             if inactive:
                 err = "이메일 인증이 완료되지 않은 계정입니다. 가입 시 받은 메일의 인증 링크를 확인해 주세요."
             else:
@@ -171,11 +171,14 @@ def user_logout(request):
 
 def password_reset_request(request):
     if request.method == "POST":
-        username = request.POST.get("username")
-        email = request.POST.get("email")
+        # 모바일 키보드가 첫 글자를 대문자로 바꾸고 자동완성이 공백을 붙이는 일이
+        # 잦다. 그대로 찾으면 PC 에서는 되는데 폰에서만 "찾을 수 없다"가 된다.
+        # 아이디는 대소문자를 무시하고, 이메일은 원래 대소문자를 안 가린다.
+        username = (request.POST.get("username") or "").strip()
+        email = (request.POST.get("email") or "").strip()
 
         try:
-            user = User.objects.get(username=username, email=email)
+            user = User.objects.get(username__iexact=username, email__iexact=email)
 
             length = 8
             chars = string.ascii_letters + string.digits
