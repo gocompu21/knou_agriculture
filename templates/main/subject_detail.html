@@ -2136,7 +2136,7 @@
                 </div>
                 <div class="wq-save-foot">
                     <span class="wq-save-where">저장 위치: <b id="wq-save-where">다운로드 폴더</b></span>
-                    <button type="button" class="wq-save-dir" onclick="weedSaveFolder()">폴더 지정…</button>
+                    <button type="button" class="wq-save-dir" onclick="weedSaveFolder()">다른 폴더로…</button>
                     <button type="button" class="wq-save-go" id="wq-save-go" onclick="weedSaveDo()">저장</button>
                 </div>
                 <div class="wq-save-msg" id="wq-save-msg"></div>
@@ -3332,10 +3332,12 @@
 
     window.weedSaveClose = function() { document.getElementById('wq-save').hidden = true; };
 
-    /* Chrome 은 다운로드·바탕화면·사진 같은 '시스템 폴더' 자체에는 웹페이지가 쓰지
-       못하게 막는다("이 폴더를 열 수 없음"). 하위 폴더는 된다. 브라우저 정책이라
-       우회할 수 없으므로 사진 폴더에서 시작해 그 안의 폴더를 고르게 안내하고,
-       막히면 기본 다운로드 방식으로 돌아간다 — 그때도 저장 자체는 된다. */
+    /* 두 가지를 섞지 말 것.
+       ① 그냥 저장 = <a download> → 다운로드 폴더에 아무 제약 없이 받아진다.
+       ② 폴더 지정 = showDirectoryPicker → 웹페이지가 폴더를 직접 열어 쓰는 것이라
+          권한이 다르다. Chrome 은 다운로드·바탕화면·사진 폴더 *자체* 를 거부한다
+          ("이 폴더를 열 수 없음"). 그 안의 하위 폴더는 된다.
+       거부당하면(AbortError 가 아닌 오류) ① 로 돌아간다 — 저장은 그대로 된다. */
     window.weedSaveFolder = function() {
         if (!window.showDirectoryPicker) {
             _wqSaveMsg('이 브라우저는 폴더 지정을 지원하지 않습니다. 다운로드 폴더로 받습니다.', true);
@@ -3353,8 +3355,9 @@
                 if (e && e.name === 'AbortError') return;
                 _wqDir = null;
                 document.getElementById('wq-save-where').textContent = '다운로드 폴더';
-                _wqSaveMsg('이 폴더에는 브라우저가 쓸 수 없습니다(사진·다운로드·바탕화면 등 시스템 폴더 자체). '
-                         + '그 안에 새 폴더를 만들어 고르시거나, 그냥 저장하면 다운로드 폴더로 받습니다.', true);
+                _wqSaveMsg('사진·다운로드·바탕화면 폴더 자체는 지정할 수 없습니다(브라우저 정책). '
+                         + '그 안에 새 폴더를 만들어 고르세요. 폴더를 지정하지 않고 그냥 저장하면 '
+                         + '다운로드 폴더에 정상 저장됩니다.', true);
             });
     };
 
