@@ -348,10 +348,16 @@
     .wq-sv-item:has(input:checked) { border-color: #2d6a4f; background: #f4faf5; }
     .wq-sv-item input { margin-bottom: 6px; }
     .wq-sv-item img { width: 100%; display: block; border-radius: 4px; }
-    /* 낱장 미리보기 — 원본의 그 부분만 보이게 잘라 낸다 */
-    .wq-sv-clip { display: block; overflow: hidden; border-radius: 4px; }
-    .wq-sv-clip img { border-radius: 0; }
+    /* 낱장 미리보기 — 원본의 그 부분만 보이게 잘라 낸다. 높이를 픽셀로 주면
+       미리보기가 줄어든 만큼 어긋나므로 padding-top 비율로 잡는다 */
+    .wq-sv-clip { display: block; position: relative; overflow: hidden; border-radius: 4px; width: 100%; }
+    .wq-sv-clip img { position: absolute; left: 0; width: 100%; border-radius: 0; }
     .wq-sv-cap { display: block; margin-top: 5px; font-size: 0.78rem; color: #333; font-weight: 600; }
+    .wq-save-fname { padding: 10px 16px 0; display: flex; align-items: center; gap: 8px; font-size: 0.83rem; }
+    .wq-save-fname label { color: #666; }
+    .wq-save-fname input { flex: 1; padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85rem; }
+    .wq-save-fname input:focus { outline: none; border-color: #2d6a4f; }
+    .wq-save-ext { color: #999; }
     .wq-save-foot { padding: 12px 16px; border-top: 1px solid #eee; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .wq-save-where { font-size: 0.8rem; color: #666; }
     .wq-save-where b { color: #1b4332; }
@@ -2123,8 +2129,13 @@
                     <button type="button" class="wq-save-x" onclick="weedSaveClose()">✕</button>
                 </div>
                 <div class="wq-save-body" id="wq-save-body"></div>
+                <div class="wq-save-fname">
+                    <label for="wq-save-fname">이름</label>
+                    <input type="text" id="wq-save-fname" maxlength="80" spellcheck="false">
+                    <span class="wq-save-ext">.jpg</span>
+                </div>
                 <div class="wq-save-foot">
-                    <span class="wq-save-where">저장 위치: <b id="wq-save-where">다운로드 폴더</b></span>
+                    <span class="wq-save-where">저장 위치: <b id="wq-save-where">브라우저 기본 폴더</b></span>
                     <button type="button" class="wq-save-dir" onclick="weedSaveFolder()">폴더 지정…</button>
                     <button type="button" class="wq-save-go" id="wq-save-go" onclick="weedSaveDo()">저장</button>
                 </div>
@@ -3286,23 +3297,38 @@
         document.getElementById('wq-save-name').textContent = d.name;
         if (!d.photos.length) { body.innerHTML = '<div class="wq-save-load">이 카드에는 사진이 없습니다.</div>'; return; }
         body.innerHTML = d.photos.map(function(p, i) {
-            // 낱장은 원본의 일부라 미리보기에서도 그 부분만 보이게 감싼다
-            var thumb = p.crop
-                ? '<span class="wq-sv-clip"><img src="' + p.url + '" style="margin-top:-' + p.crop[0] + 'px" alt=""></span>'
-                : '<img src="' + p.url + '" alt="">';
+            /* 낱장은 원본의 일부만 보여야 한다. 미리보기는 폭에 맞춰 줄어드므로
+               원본 픽셀 좌표를 그대로 쓰면 엉뚱한 데가 잘린다 — 모두 비율로 센다.
+               상자 높이는 padding-top 비율(낱장 높이 ÷ 폭)로 잡고, 이미지는
+               그 안에서 위로 밀어 올린다(top 도 폭 대비 비율). */
+            var thumb;
+            if (p.crop && p.h) {
+                /* 상자는 aspect-ratio 로 낱장 비율(폭:높이)을 잡고, 그 안의 이미지는
+                   상자 높이의 몇 배인지로 키워 위로 민다. % 를 쓰면 기준이 폭이냐
+                   높이냐로 갈려 어긋나므로, 배수(em 아닌 순수 비율)로만 센다. */
+                var band = p.crop[1] - p.crop[0];
+                thumb = '<span class="wq-sv-clip" style="aspect-ratio:' + p.w + '/' + band + '">'
+                      + '<img src="' + p.url + '" style="height:' + (p.h / band * 100) + '%;'
+                      + 'top:' + (-p.crop[0] / band * 100) + '%" alt=""></span>';
+            } else {
+                thumb = '<img src="' + p.url + '" alt="">';
+            }
             return '<label class="wq-sv-item"><input type="radio" name="wq-sv" value="' + i + '"'
-                 + (i === 0 ? ' checked' : '') + '>' + thumb
+                 + (i === 0 ? ' checked' : '') + ' onchange="weedSaveName()">' + thumb
                  + '<span class="wq-sv-cap">' + _wqEsc(p.label) + '</span></label>';
         }).join('');
-        // 고른 사진의 잘라낼 높이를 미리보기 상자에 알려 준다
-        d.photos.forEach(function(p, i) {
-            if (!p.crop) return;
-            var clip = body.querySelectorAll('.wq-sv-clip')[
-                d.photos.slice(0, i).filter(function(q) { return q.crop; }).length];
-            if (clip) clip.style.height = (p.crop[1] - p.crop[0]) + 'px';
-        });
         body.dataset.payload = JSON.stringify(d);
+        weedSaveName();
     }
+
+    /* 저장될 이름을 미리 보여 준다 — 기본은 종명이고 그 자리에서 고칠 수 있다 */
+    window.weedSaveName = function() {
+        var body = document.getElementById('wq-save-body');
+        var d = JSON.parse(body.dataset.payload || '{"photos":[]}');
+        var sel = body.querySelector('input[name="wq-sv"]:checked');
+        if (!sel) return;
+        document.getElementById('wq-save-fname').value = d.name + (d.photos[+sel.value].suffix || '');
+    };
 
     window.weedSaveClose = function() { document.getElementById('wq-save').hidden = true; };
 
@@ -3312,7 +3338,7 @@
        막히면 기본 다운로드 방식으로 돌아간다 — 그때도 저장 자체는 된다. */
     window.weedSaveFolder = function() {
         if (!window.showDirectoryPicker) {
-            _wqSaveMsg('이 브라우저는 폴더 지정을 지원하지 않습니다. 기본 다운로드 폴더로 받습니다.', true);
+            _wqSaveMsg('이 브라우저는 폴더 지정을 지원하지 않습니다. 브라우저 기본 폴더로 받습니다.', true);
             return;
         }
         window.showDirectoryPicker({ mode: 'readwrite', startIn: 'pictures' })
@@ -3326,9 +3352,9 @@
                 // AbortError = 사용자가 취소. 그 밖은 브라우저가 막은 것이다
                 if (e && e.name === 'AbortError') return;
                 _wqDir = null;
-                document.getElementById('wq-save-where').textContent = '다운로드 폴더';
+                document.getElementById('wq-save-where').textContent = '브라우저 기본 폴더';
                 _wqSaveMsg('이 폴더에는 브라우저가 쓸 수 없습니다(사진·다운로드·바탕화면 등 시스템 폴더 자체). '
-                         + '그 안에 새 폴더를 만들어 고르시거나, 그냥 저장하면 다운로드 폴더로 받습니다.', true);
+                         + '그 안에 새 폴더를 만들어 고르시거나, 그냥 저장하면 브라우저 기본 폴더로 받습니다.', true);
             });
     };
 
@@ -3338,7 +3364,9 @@
         var sel = body.querySelector('input[name="wq-sv"]:checked');
         if (!sel) return;
         var p = d.photos[+sel.value];
-        var fname = d.name + (p.suffix || '') + '.jpg';
+        // 이름은 고칠 수 있다. 비워 두면 종명으로 되돌리고, 파일명에 못 쓰는 글자는 뺀다
+        var typed = document.getElementById('wq-save-fname').value.trim().replace(/[\\/:*?"<>|]/g, '');
+        var fname = (typed || d.name + (p.suffix || '')) + '.jpg';
         var btn = document.getElementById('wq-save-go');
         btn.disabled = true; btn.textContent = '저장 중…';
 

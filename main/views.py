@@ -1140,22 +1140,22 @@ def api_weed_card_photos(request, pk, card_id):
     subject = get_object_or_404(Subject, pk=pk)
     card = get_object_or_404(WeedCard, pk=card_id, subject=subject)
 
+    # 쓸모 있는 것은 잡초 사진뿐이다 — 손그림·답 슬라이드는 내려받을 일이 없다
     photos = []
     if card.q_image:
         url = card.q_image.url
-        bands = _weed_photo_bands(card.q_image.path) if card.q_image else []
+        try:
+            width, height = card.q_image.width, card.q_image.height
+        except Exception:
+            width = height = 0
+        bands = _weed_photo_bands(card.q_image.path)
         if len(bands) > 1:
             for i, (y0, y1) in enumerate(bands, 1):
-                photos.append({"url": url, "crop": [y0, y1],
+                photos.append({"url": url, "crop": [y0, y1], "w": width, "h": height,
                                "label": "사진 %d" % i, "suffix": "_%d" % i})
         else:
-            photos.append({"url": url, "crop": None, "label": "문제 사진", "suffix": ""})
-    if card.sketch_image:
-        photos.append({"url": card.sketch_image.url, "crop": None,
-                       "label": "손그림", "suffix": "_손그림"})
-    if card.a_image:
-        photos.append({"url": card.a_image.url, "crop": None,
-                       "label": "답 슬라이드", "suffix": "_슬라이드"})
+            photos.append({"url": url, "crop": None, "w": width, "h": height,
+                           "label": "사진", "suffix": ""})
     return JsonResponse({"name": card.name, "photos": photos})
 
 
