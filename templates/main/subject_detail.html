@@ -201,9 +201,13 @@
     .wq-mode-btn:hover { background: #1b4332; }
     .wq-mode-btn.wrong { background: #b71c1c; }
     .wq-mode-btn.wrong:hover { background: #8e1515; }
-    /* 지금 풀고 있는 범위만 진하게 — 들어오자마자 '전체'로 시작하므로 어느 범위인지 보여야 한다 */
-    .wq-modes:has(.on) .wq-mode-btn:not(.on) { opacity: .45; }
-    .wq-modes:has(.on) .wq-mode-btn:not(.on):hover { opacity: 1; }
+    /* 목록은 푸는 범위가 아니라 여닫는 것이라 색을 달리한다 */
+    .wq-mode-btn.list { background: #fff; color: #2d6a4f; border: 1.5px solid #b7cdbc; }
+    .wq-mode-btn.list:hover { background: #eef5ef; }
+    /* 지금 풀고 있는 범위만 진하게 — 들어오자마자 '전체'로 시작하므로 어느 범위인지 보여야 한다.
+       목록 버튼은 범위가 아니므로 흐려지지 않는다 */
+    .wq-modes:has(.on) .wq-mode-btn:not(.on):not(.list) { opacity: .45; }
+    .wq-modes:has(.on) .wq-mode-btn:not(.on):not(.list):hover { opacity: 1; }
     .wq-hint { margin-top: 10px; font-size: 0.8rem; color: #777; line-height: 1.6; }
     /* 진행·점수를 사진 위 모서리에 얹는다 — 교수 메모와 같은 흰 글씨 + 검은 테두리 */
     .wq-pos-ov, .wq-score-ov {
@@ -2030,6 +2034,7 @@
                 <button type="button" class="wq-mode-btn" data-mode="all" onclick="weedStart('all')">전체 {{ weed_count }}종</button>
                 <button type="button" class="wq-mode-btn" data-mode="freq" onclick="weedStart('freq')">출제된 것 우선 ({{ weed_stats.freq }})</button>
                 <button type="button" class="wq-mode-btn wrong" data-mode="wrong" onclick="weedStart('wrong')">오답만 (<span id="wq-wrong2">{{ weed_stats.wrong }}</span>)</button>
+                <button type="button" class="wq-mode-btn list" onclick="weedList()">목록</button>
             </div>
             <div class="wq-hint">사진을 보고 잡초 이름을 고르세요. 고르면 사진 위에 교수 메모와 카드 손그림이 겹쳐 보이고, 아래에 정답과 함께 과·생활형·발생지·식별 포인트·유사종 구별·원본 슬라이드가 펼쳐집니다.</div>
         </div>
