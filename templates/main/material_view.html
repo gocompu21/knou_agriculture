@@ -12,26 +12,23 @@
         width: 100%; max-width: 1100px; margin: 0 auto;
         padding: 0 12px;
     }
-    .pdf-header {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 4px 0 8px; border-bottom: 1px solid #e5e9e6; margin-bottom: 8px;
-        flex-wrap: wrap; gap: 10px;
-    }
+    /* 제목은 툴바 안 왼쪽. 길면 줄이되 기능 버튼 자리를 뺏지 않는다 */
     .pdf-title {
-        font-size: 1.05rem; color: var(--forest); font-weight: 700;
+        font-size: 0.92rem; color: #fff; font-weight: 700;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        min-width: 0; flex: 1;
     }
     .pdf-title .subj {
-        font-size: 0.82rem; color: #777; font-weight: 500; margin-right: 6px;
+        font-size: 0.78rem; color: #b7d3bf; font-weight: 500; margin-right: 6px;
     }
-    .pdf-actions {
-        display: flex; gap: 6px; align-items: center;
+    .tb-tools { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .tb-sep { opacity: 0.45; margin: 0 2px; }
+    .pdf-toolbar .tb-link {
+        text-decoration: none; background: rgba(255,255,255,0.15); color: #fff;
+        padding: 5px 10px; border-radius: 5px; font-size: 0.82rem; font-weight: 600;
+        white-space: nowrap;
     }
-    .pdf-actions a, .pdf-actions button {
-        text-decoration: none; padding: 7px 14px; border-radius: 7px;
-        background: #e8f5df; color: var(--forest); font-size: 0.84rem;
-        font-weight: 700; border: none; cursor: pointer; font-family: inherit;
-    }
-    .pdf-actions a:hover, .pdf-actions button:hover { background: #d4ebc8; }
+    .pdf-toolbar .tb-link:hover { background: rgba(255,255,255,0.25); }
 
     .pdf-notice {
         background: #fff8e1; border-left: 3px solid #f5b042;
@@ -40,8 +37,8 @@
     }
 
     .pdf-toolbar {
-        display: flex; justify-content: center; align-items: center;
-        gap: 10px; padding: 8px;
+        display: flex; justify-content: space-between; align-items: center;
+        gap: 14px; padding: 7px 12px;
         background: #1b4332; color: #fff;
         border-radius: 8px 8px 0 0;
         font-size: 0.85rem;
@@ -65,7 +62,7 @@
         border-radius: 0 0 8px 8px;
         padding: 12px;
         /* 위아래 여백을 줄인 만큼 본문을 키운다 (툴바·머리글·경고 문구를 뺀 나머지) */
-        height: calc(100vh - 210px);
+        height: calc(100vh - 165px);
         min-height: 360px;
         overflow-y: auto;
         text-align: center;
@@ -134,10 +131,13 @@
 
     @media (max-width: 768px) {
         main { padding-top: 6px !important; padding-bottom: 8px !important; }
-        .pdf-canvas-wrap { padding: 8px; height: calc(100vh - 190px); }
-        .pdf-title { font-size: 0.95rem; }
-        .pdf-toolbar { flex-wrap: wrap; gap: 6px; padding: 6px; }
+        .pdf-canvas-wrap { padding: 8px; height: calc(100vh - 185px); }
+        /* 좁은 화면에서는 제목과 기능을 두 줄로 나눈다 */
+        .pdf-toolbar { flex-wrap: wrap; gap: 6px; padding: 6px 8px; }
+        .pdf-title { font-size: 0.84rem; flex: 1 1 100%; }
+        .tb-tools { flex: 1 1 100%; justify-content: center; flex-wrap: wrap; }
         .pdf-toolbar button { padding: 4px 8px; font-size: 0.78rem; }
+        .pdf-toolbar .tb-link { padding: 4px 8px; font-size: 0.78rem; }
         .pdf-page-frame .pdf-watermark .wm-main { font-size: 1.8rem; }
         .pdf-page-frame .pdf-watermark .wm-sub  { font-size: 0.7rem; }
     }
@@ -146,29 +146,27 @@
 
 {% block content %}
 <div class="pdf-page" id="pdfPage">
-    <div class="pdf-header">
+    <!-- 제목과 기능을 한 줄에 둔다 — 제목은 왼쪽, 쪽 이동·확대·인쇄·자료실은 오른쪽 -->
+    <div class="pdf-toolbar">
         <div class="pdf-title">
             <span class="subj">[{{ subject.name }}]</span>{{ material.title }}
         </div>
-        <div class="pdf-actions">
-            <a href="{% url 'main:subject_detail' subject.pk %}?tab=study">← 과목으로</a>
+        <div class="tb-tools">
+            <button type="button" id="prevPage" title="이전">◀</button>
+            <span class="page-info">
+                <input type="number" id="pageNum" min="1" value="1" />
+                / <span id="pageCount">-</span>
+            </span>
+            <button type="button" id="nextPage" title="다음">▶</button>
+            <span class="tb-sep">|</span>
+            <button type="button" id="zoomOut" title="축소">－</button>
+            <span id="zoomLevel">100%</span>
+            <button type="button" id="zoomIn" title="확대">＋</button>
+            <button type="button" id="zoomFit" title="너비맞춤">↔</button>
+            <span class="tb-sep">|</span>
+            <button type="button" id="printBtn" title="인쇄">🖨 인쇄</button>
+            <a class="tb-link" href="{% url 'main:subject_detail' subject.pk %}?tab=materials">📁 자료실</a>
         </div>
-    </div>
-
-    <div class="pdf-toolbar">
-        <button type="button" id="prevPage" title="이전">◀</button>
-        <span class="page-info">
-            <input type="number" id="pageNum" min="1" value="1" />
-            / <span id="pageCount">-</span>
-        </span>
-        <button type="button" id="nextPage" title="다음">▶</button>
-        <span style="margin: 0 8px; opacity: 0.5;">|</span>
-        <button type="button" id="zoomOut" title="축소">－</button>
-        <span id="zoomLevel">100%</span>
-        <button type="button" id="zoomIn" title="확대">＋</button>
-        <button type="button" id="zoomFit" title="너비맞춤">↔</button>
-        <span style="margin: 0 8px; opacity: 0.5;">|</span>
-        <button type="button" id="printBtn" title="인쇄">🖨 인쇄</button>
     </div>
 
     <div class="pdf-canvas-wrap" id="canvasWrap" data-watermark="한울회 A+ 학습 시스템">
