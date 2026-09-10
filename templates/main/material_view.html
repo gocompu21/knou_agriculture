@@ -206,7 +206,8 @@
 
     let pdfDoc = null;
     let currentPage = 1;
-    let scale = 1.3;
+    // 1.0 = 화면 폭에 꼭 맞춤 (렌더 크기 = scale * fitScale)
+    let scale = 1.0;
     let pageSlots = [];        // 쪽마다 { frame, canvas, rendered, rendering }
     let fitScale = 1;          // 폭 맞춤 배율 (렌더 크기 = scale * fitScale)
     let scrollTimer = null;
