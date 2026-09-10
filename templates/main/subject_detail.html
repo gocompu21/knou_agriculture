@@ -336,6 +336,8 @@
     .wq-save-btn:hover { background: #eef5ef; }
     /* 사진 고르기 창 */
     .wq-save { position: fixed; inset: 0; z-index: 1200; background: rgba(0, 0, 0, .5); display: flex; align-items: center; justify-content: center; padding: 16px; }
+    /* display:flex 는 [hidden] 을 이긴다 — 없으면 탭에 들어오자마자 빈 창이 뜬다 */
+    .wq-save[hidden] { display: none; }
     .wq-save-box { background: #fff; border-radius: 12px; width: min(680px, 100%); max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; }
     .wq-save-head { padding: 12px 16px; background: #1b4332; color: #fff; font-size: 0.92rem; display: flex; align-items: center; gap: 8px; }
     .wq-save-x { margin-left: auto; background: none; border: none; color: #fff; font-size: 1rem; cursor: pointer; }
@@ -1812,6 +1814,7 @@
     .sq-a strong { color: #1b4332; }
     .sq-a em { font-style: italic; color: #37503f; }
     .sec-qna-ask { margin-top: 8px; display: flex; gap: 6px; }
+    .sec-qna-ask[hidden] { display: none; }   /* flex 는 [hidden] 을 이긴다 */
     .sec-qna-ask input { flex: 1; padding: 7px 10px; border: 1px solid #c9a7d9; border-radius: 6px; font-size: 0.86rem; }
     .sec-qna-ask input:focus { outline: none; border-color: #7b3fa0; }
     .sec-qna-ask button { padding: 7px 14px; background: #7b3fa0; color: #fff; border: none; border-radius: 6px; font-size: 0.82rem; cursor: pointer; }
@@ -3214,7 +3217,7 @@
        서버는 폴더를 정할 수 없다. Chrome·Edge 는 showDirectoryPicker() 로 사용자가
        고른 폴더에 바로 쓸 수 있고(한 번 고르면 그 자리를 기억한다), 그 밖의
        브라우저는 <a download> 로 기본 다운로드 폴더에 받는다. */
-    var _wqDir = null;                       // 이번 세션에 고른 폴더
+    var _wqDir = null;                       // 지금 쓰는 폴더
     function _wqCols() { return _WQ_STAFF ? 8 : 7; }
     function _wqSaveMsg(text, warn) {
         var el = document.getElementById('wq-save-msg');
@@ -3222,11 +3225,53 @@
         el.classList.toggle('warn', !!warn);
     }
 
+    /* 고른 폴더는 다음에 와서도 그대로 쓴다. 폴더 손잡이(handle)는 문자열이
+       아니라서 localStorage 에 못 넣는다 — IndexedDB 는 객체째 넣을 수 있다. */
+    function _wqDb() {
+        return new Promise(function(res, rej) {
+            var q = indexedDB.open('weedsave', 1);
+            q.onupgradeneeded = function() { q.result.createObjectStore('dir'); };
+            q.onsuccess = function() { res(q.result); };
+            q.onerror = function() { rej(q.error); };
+        });
+    }
+    function _wqDirSave(h) {
+        return _wqDb().then(function(db) {
+            db.transaction('dir', 'readwrite').objectStore('dir').put(h, 'last');
+        }).catch(function() { /* 저장 못 해도 이번 판은 쓴다 */ });
+    }
+    function _wqDirLoad() {
+        if (!window.indexedDB) return Promise.resolve(null);
+        return _wqDb().then(function(db) {
+            return new Promise(function(res) {
+                var g = db.transaction('dir').objectStore('dir').get('last');
+                g.onsuccess = function() { res(g.result || null); };
+                g.onerror = function() { res(null); };
+            });
+        }).catch(function() { return null; });
+    }
+    /* 지난번 폴더를 되살린다. 권한은 브라우저가 언제든 거둘 수 있어 다시 확인한다 */
+    function _wqDirRestore() {
+        return _wqDirLoad().then(function(h) {
+            if (!h || !h.queryPermission) return null;
+            return h.queryPermission({ mode: 'readwrite' }).then(function(p) {
+                return p === 'granted' ? h : null;
+            });
+        }).catch(function() { return null; });
+    }
+
     window.weedSavePick = function(cardId) {
         var box = document.getElementById('wq-save');
         var body = document.getElementById('wq-save-body');
         box.hidden = false;
         _wqSaveMsg('');                       // 앞서 띄운 안내는 지운다
+        if (!_wqDir) {                        // 지난번에 고른 폴더가 있으면 되살린다
+            _wqDirRestore().then(function(h) {
+                if (!h) return;
+                _wqDir = h;
+                document.getElementById('wq-save-where').textContent = h.name + ' 폴더';
+            });
+        }
         body.innerHTML = '<div class="wq-save-load">사진을 불러오는 중…</div>';
         fetch('{% url "main:api_weed_card_photos" subject.pk 0 %}'.replace('/weed-card/0/', '/weed-card/' + cardId + '/'),
               { credentials: 'same-origin' })
@@ -3260,27 +3305,28 @@
 
     window.weedSaveClose = function() { document.getElementById('wq-save').hidden = true; };
 
-    /* Chrome 은 다운로드·바탕화면·문서 같은 '시스템 폴더'에는 웹페이지가 쓰지
-       못하게 막는다("이 폴더를 열 수 없음"). 브라우저 정책이라 우회할 수 없으므로
-       그 안에 하위 폴더를 하나 만들어 고르게 안내한다. 막히면 기본 다운로드 방식으로
-       돌아간다 — 그때도 저장 자체는 된다. */
+    /* Chrome 은 다운로드·바탕화면·사진 같은 '시스템 폴더' 자체에는 웹페이지가 쓰지
+       못하게 막는다("이 폴더를 열 수 없음"). 하위 폴더는 된다. 브라우저 정책이라
+       우회할 수 없으므로 사진 폴더에서 시작해 그 안의 폴더를 고르게 안내하고,
+       막히면 기본 다운로드 방식으로 돌아간다 — 그때도 저장 자체는 된다. */
     window.weedSaveFolder = function() {
         if (!window.showDirectoryPicker) {
             _wqSaveMsg('이 브라우저는 폴더 지정을 지원하지 않습니다. 기본 다운로드 폴더로 받습니다.', true);
             return;
         }
-        window.showDirectoryPicker({ mode: 'readwrite', startIn: 'documents' })
+        window.showDirectoryPicker({ mode: 'readwrite', startIn: 'pictures' })
             .then(function(h) {
                 _wqDir = h;
                 document.getElementById('wq-save-where').textContent = h.name + ' 폴더';
                 _wqSaveMsg('');
+                _wqDirSave(h);                // 다음에 와도 이 폴더를 쓴다
             })
             .catch(function(e) {
                 // AbortError = 사용자가 취소. 그 밖은 브라우저가 막은 것이다
                 if (e && e.name === 'AbortError') return;
                 _wqDir = null;
                 document.getElementById('wq-save-where').textContent = '다운로드 폴더';
-                _wqSaveMsg('이 폴더에는 브라우저가 쓸 수 없습니다(다운로드·바탕화면 등 시스템 폴더). '
+                _wqSaveMsg('이 폴더에는 브라우저가 쓸 수 없습니다(사진·다운로드·바탕화면 등 시스템 폴더 자체). '
                          + '그 안에 새 폴더를 만들어 고르시거나, 그냥 저장하면 다운로드 폴더로 받습니다.', true);
             });
     };
@@ -3334,7 +3380,14 @@
     }
 
     function _wqWriteToDir(blob, fname) {
-        return _wqDir.getFileHandle(fname, { create: true })
+        // 되살린 폴더는 권한이 사라졌을 수 있다. 없으면 한 번 더 묻는다
+        var ask = _wqDir.requestPermission
+            ? _wqDir.requestPermission({ mode: 'readwrite' })
+            : Promise.resolve('granted');
+        return ask.then(function(p) {
+            if (p !== 'granted') throw '폴더에 쓸 권한이 없습니다';
+            return _wqDir.getFileHandle(fname, { create: true });
+        })
             .then(function(fh) { return fh.createWritable(); })
             .then(function(w) { return w.write(blob).then(function() { return w.close(); }); });
     }
