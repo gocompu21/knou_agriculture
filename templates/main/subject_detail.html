@@ -355,7 +355,8 @@
     .wq-save-dir { margin-left: auto; padding: 7px 14px; border: 1px solid #b7cdbc; border-radius: 7px; background: #fff; color: #2d6a4f; font-size: 0.83rem; cursor: pointer; }
     .wq-save-go { padding: 7px 20px; border: none; border-radius: 7px; background: #2d6a4f; color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
     .wq-save-go:disabled { opacity: .6; cursor: default; }
-    .wq-save-msg { padding: 0 16px 12px; font-size: 0.8rem; color: #2e7d32; }
+    .wq-save-msg { padding: 0 16px 12px; font-size: 0.8rem; color: #2e7d32; line-height: 1.5; }
+    .wq-save-msg.warn { color: #b26a00; }
     @media (max-width: 700px) {
         .wq-table .wq-t-habitat, .wq-table .wq-t-life { display: none; }
         .wq-table th.h-habitat, .wq-table th.h-life { display: none; }
@@ -3215,11 +3216,17 @@
        브라우저는 <a download> 로 기본 다운로드 폴더에 받는다. */
     var _wqDir = null;                       // 이번 세션에 고른 폴더
     function _wqCols() { return _WQ_STAFF ? 8 : 7; }
+    function _wqSaveMsg(text, warn) {
+        var el = document.getElementById('wq-save-msg');
+        el.textContent = text;
+        el.classList.toggle('warn', !!warn);
+    }
 
     window.weedSavePick = function(cardId) {
         var box = document.getElementById('wq-save');
         var body = document.getElementById('wq-save-body');
         box.hidden = false;
+        _wqSaveMsg('');                       // 앞서 띄운 안내는 지운다
         body.innerHTML = '<div class="wq-save-load">사진을 불러오는 중…</div>';
         fetch('{% url "main:api_weed_card_photos" subject.pk 0 %}'.replace('/weed-card/0/', '/weed-card/' + cardId + '/'),
               { credentials: 'same-origin' })
@@ -3253,17 +3260,29 @@
 
     window.weedSaveClose = function() { document.getElementById('wq-save').hidden = true; };
 
+    /* Chrome 은 다운로드·바탕화면·문서 같은 '시스템 폴더'에는 웹페이지가 쓰지
+       못하게 막는다("이 폴더를 열 수 없음"). 브라우저 정책이라 우회할 수 없으므로
+       그 안에 하위 폴더를 하나 만들어 고르게 안내한다. 막히면 기본 다운로드 방식으로
+       돌아간다 — 그때도 저장 자체는 된다. */
     window.weedSaveFolder = function() {
         if (!window.showDirectoryPicker) {
-            alert('이 브라우저는 폴더 지정을 지원하지 않습니다. 기본 다운로드 폴더로 받습니다.');
+            _wqSaveMsg('이 브라우저는 폴더 지정을 지원하지 않습니다. 기본 다운로드 폴더로 받습니다.', true);
             return;
         }
-        window.showDirectoryPicker({ mode: 'readwrite', startIn: 'downloads' })
+        window.showDirectoryPicker({ mode: 'readwrite', startIn: 'documents' })
             .then(function(h) {
                 _wqDir = h;
                 document.getElementById('wq-save-where').textContent = h.name + ' 폴더';
+                _wqSaveMsg('');
             })
-            .catch(function() { /* 사용자가 취소한 것 — 아무 것도 하지 않는다 */ });
+            .catch(function(e) {
+                // AbortError = 사용자가 취소. 그 밖은 브라우저가 막은 것이다
+                if (e && e.name === 'AbortError') return;
+                _wqDir = null;
+                document.getElementById('wq-save-where').textContent = '다운로드 폴더';
+                _wqSaveMsg('이 폴더에는 브라우저가 쓸 수 없습니다(다운로드·바탕화면 등 시스템 폴더). '
+                         + '그 안에 새 폴더를 만들어 고르시거나, 그냥 저장하면 다운로드 폴더로 받습니다.', true);
+            });
     };
 
     window.weedSaveDo = function() {
@@ -3285,10 +3304,10 @@
             setTimeout(function() { URL.revokeObjectURL(a.href); }, 4000);
         }).then(function() {
             btn.disabled = false; btn.textContent = '저장';
-            document.getElementById('wq-save-msg').textContent = fname + ' 저장했습니다.';
+            _wqSaveMsg(fname + ' 저장했습니다.');
         }).catch(function(e) {
             btn.disabled = false; btn.textContent = '저장';
-            document.getElementById('wq-save-msg').textContent = '저장하지 못했습니다: ' + e;
+            _wqSaveMsg('저장하지 못했습니다: ' + e, true);
         });
     };
 
