@@ -1691,3 +1691,45 @@ STT 오타 사례표, 일본어 음독 → 한자 표기 매핑(20개), docx 스
 실패 사례와 대응표, `vurl` 필터로 브라우저 캐시 무력화, 장당 $0.13 비용.
 
 
+
+
+## 노트 인포그래픽 생성 (OpenAI / Gemini)
+
+쪽집게 노트 절에 넣는 인포그래픽을 만든다. 두 갈래가 있고 **OpenAI 쪽이 기본**이다.
+
+| 스크립트 | 모델 | 장당 | 한글 |
+|----------|------|------|------|
+| `gen_note_image_gpt.py` | `gpt-image-2.5-sunburst` | 약 $0.04 | 시험에서 오타 0 |
+| `gen_note_image.py` | `gemini-3-pro-image-preview` | 약 $0.13 | 오타로 재생성이 잦았다 |
+
+```bash
+python gen_note_image_gpt.py --prompt-file _p.txt --out _out.png
+python gen_note_image_gpt.py --prompt-file _p.txt --out _out.png --ref 고칠그림.png
+python gen_note_image_gpt.py --prompt-file _p.txt --out _out.png --round 2   # _out_r2.png
+```
+
+- 인자는 Gemini 판과 같다. 다른 점은 `--aspect` 대신 **`--size`**(픽셀 크기).
+  기본 `1536x1024`, 세로 `1024x1536`, 정사각 `1024x1024`. 커스텀은 16의 배수·비율 1:3~3:1
+- `--quality` 는 `low`~`max` 6단계, 기본 `high`
+- `--ref` 를 주면 그 그림을 고쳐 그린다(`images.edits`)
+- 키는 `.env` 의 `OPENAI_API_KEY`. `settings.OPENAI_IMAGE_MODEL` 로 모델 교체 가능
+
+### 만든 뒤 Claude 가 눈으로 검증한다
+
+**생성으로 끝내지 말 것.** 만든 그림을 Read 로 열어 아래를 보고, 하나라도 걸리면
+프롬프트를 고쳐 다시 만든다. 사람에게 "확인해 보세요"라고 넘기지 않는다.
+
+| 보는 것 | 불합격 예 |
+|---------|-----------|
+| 한글 글자 | 없는 글자, 자모가 깨진 글자, 프롬프트와 다른 낱말 |
+| 내용 중복 | 같은 항목이 두 칸에 나옴 |
+| 사실 오류 | 배에 유근이 둘, 잎차례가 설명과 다름 — 학술 그림은 특히 |
+| 빠진 항목 | 프롬프트에 적은 항목이 그림에 없음 |
+| 판독성 | 글자가 너무 작거나 배경에 묻힘 |
+
+다시 만들 때는 `--round 2` 로 앞 회차를 남긴다 — 무엇이 나아졌는지 견줘야 한다.
+잘 안 고쳐지는 항목은 프롬프트에 **정확한 문자열을 따옴표로 박아** 준다
+("제목(정확히 이 글자): …", "글자가 깨지거나 없는 글자를 만들지 마세요").
+
+넣기는 `insert_note_image.py` — Windows 에서 `/media/...` 경로가 변환되지 않도록
+`MSYS_NO_PATHCONV=1` 을 붙인다.
