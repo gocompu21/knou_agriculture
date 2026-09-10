@@ -76,10 +76,14 @@
         height: auto;
         pointer-events: none;
     }
+    /* 쪽을 세로로 이어 붙인다. 가운데 정렬 + 쪽 사이 간격 */
     .pdf-canvas-wrap .pdf-page-frame {
         box-shadow: 0 4px 14px rgba(0,0,0,0.3);
         background: #fff;
+        position: relative;
+        margin: 0 auto 14px;
     }
+    .pdf-canvas-wrap .pdf-page-frame:last-child { margin-bottom: 0; }
     .pdf-loading {
         color: #fff; padding: 40px; text-align: center;
         font-size: 0.95rem;
@@ -196,51 +200,48 @@
     let pdfDoc = null;
     let currentPage = 1;
     let scale = 1.3;
-    let rendering = false;
-    let pendingPage = null;
+    let pageSlots = [];        // 쪽마다 { frame, canvas, rendered, rendering }
+    let fitScale = 1;          // 폭 맞춤 배율 (렌더 크기 = scale * fitScale)
+    let scrollTimer = null;
 
-    async function renderPage(num) {
+    /* 전체 쪽을 세로로 이어 붙인다. 114쪽짜리도 있어 한 번에 다 그리면 메모리가
+       감당하지 못하므로, 빈 칸(frame)만 미리 만들어 두고 화면 근처의 쪽만 그린다.
+       멀어진 쪽은 canvas 를 비워 메모리를 돌려준다. */
+
+    async function layoutPages() {
         if (!pdfDoc) return;
-        if (rendering) { pendingPage = num; return; }
-        rendering = true;
-
-        const page = await pdfDoc.getPage(num);
-        const viewport = page.getViewport({ scale });
-        const wrapWidth = wrap.clientWidth - 32;
-        let renderScale = scale;
-        if (viewport.width > wrapWidth) {
-            renderScale = scale * (wrapWidth / viewport.width);
-        }
-        const finalViewport = page.getViewport({ scale: renderScale });
-
-        // 고해상도 디스플레이 대응 (DPR 적용 + 줌 시 추가 oversample)
-        const dpr = window.devicePixelRatio || 1;
-        // 사용자가 확대했을 때(scale > 1.0) 추가 oversample로 픽셀 깨짐 방지
-        const oversample = Math.min(Math.max(scale, 1), 2);
-        const outputScale = dpr * oversample;
-
-        // 기존 page-frame(워터마크 포함) 제거
         wrap.querySelectorAll('.pdf-page-frame').forEach(f => f.remove());
-        wrap.querySelectorAll('canvas').forEach(c => c.remove());
         if (loading) loading.style.display = 'none';
+        pageSlots = [];
 
-        // 페이지 프레임(canvas + 워터마크) 생성
-        const frame = document.createElement('div');
-        frame.className = 'pdf-page-frame';
-        const dispW = Math.floor(finalViewport.width);
-        const dispH = Math.floor(finalViewport.height);
-        frame.style.width = dispW + 'px';
-        frame.style.height = dispH + 'px';
+        // 첫 쪽 크기로 폭 맞춤 배율을 정한다(대개 모든 쪽이 같은 규격이다)
+        const first = await pdfDoc.getPage(1);
+        const base = first.getViewport({ scale: 1 });
+        const wrapWidth = wrap.clientWidth - 32;
+        fitScale = wrapWidth / base.width;
 
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.floor(finalViewport.width * outputScale);
-        canvas.height = Math.floor(finalViewport.height * outputScale);
-        canvas.style.width = dispW + 'px';
-        canvas.style.height = dispH + 'px';
-        canvas.style.display = 'block';
-        frame.appendChild(canvas);
+        for (let n = 1; n <= pdfDoc.numPages; n++) {
+            const page = await pdfDoc.getPage(n);
+            const vp = page.getViewport({ scale: scale * fitScale });
+            const frame = document.createElement('div');
+            frame.className = 'pdf-page-frame';
+            frame.dataset.page = n;
+            frame.style.width = Math.floor(vp.width) + 'px';
+            frame.style.height = Math.floor(vp.height) + 'px';
 
-        // 워터마크 — 용지(canvas) 가운데에 정확히 배치 (메인 + 사용자/시각)
+            const canvas = document.createElement('canvas');
+            canvas.style.display = 'block';
+            frame.appendChild(canvas);
+            frame.appendChild(makeWatermark());
+            wrap.appendChild(frame);
+
+            pageSlots.push({ frame: frame, canvas: canvas, rendered: false, rendering: false });
+        }
+        zoomLevelSpan.textContent = Math.round(scale * 100) + '%';
+        renderVisible();
+    }
+
+    function makeWatermark() {
         const wm = document.createElement('span');
         wm.className = 'pdf-watermark';
         const wmMain = document.createElement('span');
@@ -251,53 +252,108 @@
         wmSub.textContent = watermarkSub();
         wm.appendChild(wmMain);
         wm.appendChild(wmSub);
-        frame.appendChild(wm);
+        return wm;
+    }
 
-        wrap.appendChild(frame);
+    async function drawPage(n) {
+        const slot = pageSlots[n - 1];
+        if (!slot || slot.rendered || slot.rendering) return;
+        slot.rendering = true;
 
-        const ctx = canvas.getContext('2d');
-        const transform = outputScale !== 1
-            ? [outputScale, 0, 0, outputScale, 0, 0]
-            : null;
+        const page = await pdfDoc.getPage(n);
+        const vp = page.getViewport({ scale: scale * fitScale });
+        // 고해상도 대응 — 확대했을 때 픽셀이 깨지지 않게 추가 oversample
+        const dpr = window.devicePixelRatio || 1;
+        const outputScale = dpr * Math.min(Math.max(scale, 1), 2);
+
+        const canvas = slot.canvas;
+        canvas.width = Math.floor(vp.width * outputScale);
+        canvas.height = Math.floor(vp.height * outputScale);
+        canvas.style.width = Math.floor(vp.width) + 'px';
+        canvas.style.height = Math.floor(vp.height) + 'px';
+
         await page.render({
-            canvasContext: ctx,
-            viewport: finalViewport,
-            transform: transform,
+            canvasContext: canvas.getContext('2d'),
+            viewport: vp,
+            transform: outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null,
         }).promise;
 
-        currentPage = num;
-        pageNumInput.value = num;
-        zoomLevelSpan.textContent = Math.round(scale * 100) + '%';
+        slot.rendered = true;
+        slot.rendering = false;
+    }
 
-        rendering = false;
-        if (pendingPage !== null) {
-            const next = pendingPage; pendingPage = null;
-            renderPage(next);
+    /* 화면에 보이는 쪽과 앞뒤 한 쪽씩 그린다. 그보다 멀어진 쪽은 비운다. */
+    function renderVisible() {
+        if (!pdfDoc || !pageSlots.length) return;
+        const top = wrap.scrollTop;
+        const bottom = top + wrap.clientHeight;
+
+        pageSlots.forEach((slot, i) => {
+            const a = slot.frame.offsetTop;
+            const b = a + slot.frame.offsetHeight;
+            // 화면 위아래로 한 화면씩 여유를 둬 스크롤이 빈 칸을 만나지 않게 한다
+            const near = b > top - wrap.clientHeight && a < bottom + wrap.clientHeight;
+            if (near) {
+                drawPage(i + 1);
+            } else if (slot.rendered) {
+                // 멀어진 쪽은 canvas 를 비워 메모리를 돌려준다 (틀은 그대로 둔다)
+                slot.canvas.width = 0;
+                slot.canvas.height = 0;
+                slot.rendered = false;
+            }
+        });
+
+        // 화면 위쪽 경계에 걸린 쪽을 지금 보는 쪽으로 삼는다
+        let firstVisible = pageSlots.length;
+        for (let i = 0; i < pageSlots.length; i++) {
+            const f = pageSlots[i].frame;
+            if (f.offsetTop + f.offsetHeight > top + 40) { firstVisible = i + 1; break; }
+        }
+        if (firstVisible !== currentPage) {
+            currentPage = firstVisible;
+            if (document.activeElement !== pageNumInput) pageNumInput.value = currentPage;
         }
     }
 
+    function goToPage(n) {
+        const slot = pageSlots[n - 1];
+        if (!slot) return;
+        wrap.scrollTo({ top: slot.frame.offsetTop - 8, behavior: 'smooth' });
+    }
+
+    wrap.addEventListener('scroll', () => {
+        if (scrollTimer) clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(renderVisible, 80);
+    });
+
     document.getElementById('prevPage').addEventListener('click', () => {
-        if (currentPage > 1) renderPage(currentPage - 1);
+        if (currentPage > 1) goToPage(currentPage - 1);
     });
     document.getElementById('nextPage').addEventListener('click', () => {
-        if (pdfDoc && currentPage < pdfDoc.numPages) renderPage(currentPage + 1);
+        if (pdfDoc && currentPage < pdfDoc.numPages) goToPage(currentPage + 1);
     });
     pageNumInput.addEventListener('change', () => {
         const n = parseInt(pageNumInput.value, 10);
-        if (pdfDoc && n >= 1 && n <= pdfDoc.numPages) renderPage(n);
+        if (pdfDoc && n >= 1 && n <= pdfDoc.numPages) goToPage(n);
         else pageNumInput.value = currentPage;
     });
+
+    /* 줌은 모든 쪽의 틀 크기를 다시 잡아야 해서 통째로 다시 배치한다.
+       보던 자리를 잃지 않도록 배치 뒤 그 쪽으로 되돌아간다. */
+    async function rezoom(v) {
+        const keep = currentPage;
+        scale = v;
+        await layoutPages();
+        goToPage(keep);
+    }
     document.getElementById('zoomIn').addEventListener('click', () => {
-        scale = Math.min(scale + 0.2, 3.0);
-        renderPage(currentPage);
+        rezoom(Math.min(scale + 0.2, 3.0));
     });
     document.getElementById('zoomOut').addEventListener('click', () => {
-        scale = Math.max(scale - 0.2, 0.5);
-        renderPage(currentPage);
+        rezoom(Math.max(scale - 0.2, 0.5));
     });
     document.getElementById('zoomFit').addEventListener('click', () => {
-        scale = 1.3;
-        renderPage(currentPage);
+        rezoom(1.0);
     });
 
     // 인쇄: 숨겨진 iframe에 페이지 이미지를 모아 contentWindow.print() 호출
@@ -407,10 +463,10 @@
         if (e.target.tagName === 'INPUT') return;
         if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
             e.preventDefault();
-            if (currentPage > 1) renderPage(currentPage - 1);
+            if (currentPage > 1) goToPage(currentPage - 1);
         } else if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
             e.preventDefault();
-            if (pdfDoc && currentPage < pdfDoc.numPages) renderPage(currentPage + 1);
+            if (pdfDoc && currentPage < pdfDoc.numPages) goToPage(currentPage + 1);
         }
     });
 
@@ -435,7 +491,7 @@
         pdfDoc = await loadingTask.promise;
         pageCountSpan.textContent = pdfDoc.numPages;
         pageNumInput.max = pdfDoc.numPages;
-        await renderPage(1);
+        await layoutPages();
     } catch (err) {
         console.error('PDF 로드 실패:', err);
         wrap.innerHTML = '<div class="pdf-error">PDF를 불러올 수 없습니다.<br><small>' + (err.message || '') + '</small></div>';
