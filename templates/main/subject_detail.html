@@ -220,8 +220,10 @@
     /* 손그림을 사진 모서리에 붙이려면 래퍼가 사진 크기와 같아야 한다.
        inline-block 은 글꼴 baseline 때문에 아래가 몇 px 남으므로 flex 로 감싼다.
        메모 그라데이션이 모서리 밖으로 새지 않도록 사진과 같은 둥글기로 잘라 낸다 */
-    .wq-photo-in { position: relative; display: inline-flex; max-width: 100%;
-                   border-radius: 8px; overflow: hidden; }
+    /* inline-flex 는 text-align 으로 가운데가 잘 안 잡힌다(부모 폭·내용 폭이
+       서로 물려 몇 px 씩 치우친다). 블록으로 두고 좌우 auto 여백으로 놓는다 */
+    .wq-photo-in { position: relative; display: flex; width: fit-content; max-width: 100%;
+                   margin: 0 auto; border-radius: 8px; overflow: hidden; }
     .wq-photo img { max-width: 100%; max-height: 68vh; border-radius: 8px; border: 1px solid #ddd; }
     .wq-side { flex: 0 0 260px; display: flex; flex-direction: column; gap: 14px; }
     .wq-choices { display: flex; flex-direction: column; gap: 10px; }
@@ -331,6 +333,9 @@
     .wq-done b { color: #1b4332; font-size: 1.2rem; }
     @media (max-width: 700px) {
         .wq-quiz { flex-direction: column; gap: 12px; }
+        /* 세로 flex 에서 flex:1 은 높이를 뜻한다. 사진 칸에 폭을 주지 않으면
+           내용 폭에 맞춰져 text-align:center 가 소용없어진다 */
+        .wq-photo { width: 100%; align-self: stretch; }
         .wq-side { flex: none; width: 100%; }
         /* 보기가 사진 아래로 내려오므로 2열로 묶어 세로 길이를 줄인다 */
         .wq-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
