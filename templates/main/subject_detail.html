@@ -335,6 +335,7 @@
     .wq-table th.wq-t-save-h, .wq-table .wq-t-save { width: 1%; text-align: center; white-space: nowrap; }
     .wq-save-btn { padding: 3px 10px; border: 1px solid #b7cdbc; border-radius: 6px; background: #fff; color: #2d6a4f; font-size: 0.76rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .wq-save-btn:hover { background: #eef5ef; }
+    .wq-save-btn.done { background: #2d6a4f; color: #fff; border-color: #2d6a4f; }
     /* 사진 고르기 창 */
     .wq-save { position: fixed; inset: 0; z-index: 1200; background: rgba(0, 0, 0, .5); display: flex; align-items: center; justify-content: center; padding: 16px; }
     /* display:flex 는 [hidden] 을 이긴다 — 없으면 탭에 들어오자마자 빈 창이 뜬다 */
@@ -3193,7 +3194,7 @@
                  + '<td><span class="wq-t-name">' + _wqEsc(it.name) + '</span>' + _wqStars(it.exam_count) + '</td>'
                  // 저장은 줄 이동과 겹치므로 버튼에서 클릭을 멈춘다
                  + (_WQ_STAFF ? '<td class="wq-t-save"><button type="button" class="wq-save-btn"'
-                     + ' onclick="event.stopPropagation(); weedSavePick(' + it.id + ')">저장</button></td>' : '')
+                     + ' onclick="event.stopPropagation(); weedSavePick(' + it.id + ', this)">저장</button></td>' : '')
                  + '<td>' + _wqEsc(it.family) + '</td>'
                  + '<td class="wq-t-life">' + _wqEsc(it.life_form) + '</td>'
                  + '<td class="wq-t-habitat">' + _wqEsc(it.habitat) + '</td>'
@@ -3272,7 +3273,9 @@
         }).catch(function() { return null; });
     }
 
-    window.weedSavePick = function(cardId) {
+    var _wqSaveBtn = null;                   // 방금 누른 줄의 저장 버튼
+    window.weedSavePick = function(cardId, btn) {
+        _wqSaveBtn = btn || null;
         var box = document.getElementById('wq-save');
         var body = document.getElementById('wq-save-body');
         box.hidden = false;
@@ -3297,10 +3300,6 @@
         document.getElementById('wq-save-name').textContent = d.name;
         if (!d.photos.length) { body.innerHTML = '<div class="wq-save-load">이 카드에는 사진이 없습니다.</div>'; return; }
         body.innerHTML = d.photos.map(function(p, i) {
-            /* 낱장은 원본의 일부만 보여야 한다. 미리보기는 폭에 맞춰 줄어드므로
-               원본 픽셀 좌표를 그대로 쓰면 엉뚱한 데가 잘린다 — 모두 비율로 센다.
-               상자 높이는 padding-top 비율(낱장 높이 ÷ 폭)로 잡고, 이미지는
-               그 안에서 위로 밀어 올린다(top 도 폭 대비 비율). */
             var thumb;
             if (p.crop && p.h) {
                 /* 상자는 aspect-ratio 로 낱장 비율(폭:높이)을 잡고, 그 안의 이미지는
@@ -3313,7 +3312,8 @@
             } else {
                 thumb = '<img src="' + p.url + '" alt="">';
             }
-            return '<label class="wq-sv-item"><input type="radio" name="wq-sv" value="' + i + '"'
+            // 여러 장을 한 번에 받을 수 있다 — 낱장이 2~3장이면 대개 다 필요하다
+            return '<label class="wq-sv-item"><input type="checkbox" name="wq-sv" value="' + i + '"'
                  + (i === 0 ? ' checked' : '') + ' onchange="weedSaveName()">' + thumb
                  + '<span class="wq-sv-cap">' + _wqEsc(p.label) + '</span></label>';
         }).join('');
@@ -3321,14 +3321,28 @@
         weedSaveName();
     }
 
-    /* 저장될 이름을 미리 보여 준다 — 기본은 종명이고 그 자리에서 고칠 수 있다 */
+    /* 저장될 이름을 미리 보여 준다. 한 장이면 그 자리에서 고칠 수 있고,
+       여러 장이면 이름이 여럿이라 고칠 수 없으므로 잠그고 종명만 보인다 */
     window.weedSaveName = function() {
         var body = document.getElementById('wq-save-body');
         var d = JSON.parse(body.dataset.payload || '{"photos":[]}');
-        var sel = body.querySelector('input[name="wq-sv"]:checked');
-        if (!sel) return;
-        document.getElementById('wq-save-fname').value = d.name + (d.photos[+sel.value].suffix || '');
+        var sel = _wqSaveSel();
+        var box = document.getElementById('wq-save-fname');
+        var go = document.getElementById('wq-save-go');
+        go.disabled = !sel.length;
+        if (sel.length === 1) {
+            box.disabled = false;
+            box.value = d.name + (d.photos[sel[0]].suffix || '');
+        } else {
+            box.disabled = true;
+            box.value = sel.length ? d.name + '_1 … ' + sel.length + '장' : '';
+        }
     };
+    function _wqSaveSel() {
+        return Array.prototype.map.call(
+            document.querySelectorAll('#wq-save-body input[name="wq-sv"]:checked'),
+            function(el) { return +el.value; });
+    }
 
     window.weedSaveClose = function() { document.getElementById('wq-save').hidden = true; };
 
@@ -3364,28 +3378,43 @@
     window.weedSaveDo = function() {
         var body = document.getElementById('wq-save-body');
         var d = JSON.parse(body.dataset.payload || '{"photos":[]}');
-        var sel = body.querySelector('input[name="wq-sv"]:checked');
-        if (!sel) return;
-        var p = d.photos[+sel.value];
-        // 이름은 고칠 수 있다. 비워 두면 종명으로 되돌리고, 파일명에 못 쓰는 글자는 뺀다
-        var typed = document.getElementById('wq-save-fname').value.trim().replace(/[\\/:*?"<>|]/g, '');
-        var fname = (typed || d.name + (p.suffix || '')) + '.jpg';
+        var sel = _wqSaveSel();
+        if (!sel.length) return;
+        // 이름은 한 장일 때만 고칠 수 있다. 파일명에 못 쓰는 글자는 뺀다
+        var typed = sel.length === 1
+            ? document.getElementById('wq-save-fname').value.trim().replace(/[\\/:*?"<>|]/g, '')
+            : '';
         var btn = document.getElementById('wq-save-go');
         btn.disabled = true; btn.textContent = '저장 중…';
 
-        _wqBlob(p).then(function(blob) {
-            if (_wqDir) return _wqWriteToDir(blob, fname);
-            var a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = fname;
-            a.click();
-            setTimeout(function() { URL.revokeObjectURL(a.href); }, 4000);
-        }).then(function() {
+        // 한 장씩 차례로 — 한꺼번에 내려받으면 브라우저가 뒤엣것을 막는다
+        var done = 0;
+        sel.reduce(function(chain, idx) {
+            return chain.then(function() {
+                var p = d.photos[idx];
+                var fname = (typed || d.name + (p.suffix || '')) + '.jpg';
+                return _wqBlob(p).then(function(blob) {
+                    if (_wqDir) return _wqWriteToDir(blob, fname);
+                    var a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = fname;
+                    a.click();
+                    setTimeout(function() { URL.revokeObjectURL(a.href); }, 4000);
+                    // 잇달아 받을 때 브라우저가 놓치지 않도록 잠깐 쉰다
+                    return new Promise(function(r) { setTimeout(r, 250); });
+                }).then(function() { done++; });
+            });
+        }, Promise.resolve()).then(function() {
             btn.disabled = false; btn.textContent = '저장';
-            _wqSaveMsg(fname + ' 저장했습니다.');
+            weedSaveClose();                  // 다 받았으면 창을 닫는다
+            if (_wqSaveBtn) {                 // 어느 줄을 받았는지 그 자리에 잠깐 남긴다
+                var b = _wqSaveBtn;
+                b.textContent = '받음 ✓'; b.classList.add('done');
+                setTimeout(function() { b.textContent = '저장'; b.classList.remove('done'); }, 2500);
+            }
         }).catch(function(e) {
             btn.disabled = false; btn.textContent = '저장';
-            _wqSaveMsg('저장하지 못했습니다: ' + e, true);
+            _wqSaveMsg((done ? done + '장까지 받고 멈췄습니다. ' : '') + '저장하지 못했습니다: ' + e, true);
         });
     };
 
