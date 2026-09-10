@@ -19,6 +19,7 @@ urlpatterns = [
     path("subjects/<int:pk>/api/weed-quiz/list/", views.api_weed_quiz_list, name="api_weed_quiz_list"),
     path("subjects/<int:pk>/api/weed-quiz/card/<int:card_id>/", views.api_weed_quiz_card, name="api_weed_quiz_card"),
     path("subjects/<int:pk>/api/weed-card/<int:card_id>/update/", views.api_weed_card_update, name="api_weed_card_update"),
+    path("subjects/<int:pk>/api/weed-card/<int:card_id>/photos/", views.api_weed_card_photos, name="api_weed_card_photos"),
     path("subjects/notes/<int:note_pk>/update/", views.note_update, name="note_update"),
     path("subjects/notes/<int:note_pk>/delete/", views.note_delete, name="note_delete"),
     path("subjects/notes/upload-image/", views.note_image_upload, name="note_image_upload"),

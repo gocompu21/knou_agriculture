@@ -330,6 +330,32 @@
     .wq-table .wq-t-state { white-space: nowrap; font-size: 0.78rem; }
     .wq-table .wq-t-state.ok { color: #2e7d32; }
     .wq-table .wq-t-state.wrong { color: #c62828; font-weight: 700; }
+    /* 관리자 저장 열 */
+    .wq-table th.wq-t-save-h, .wq-table .wq-t-save { width: 58px; text-align: center; }
+    .wq-save-btn { padding: 3px 10px; border: 1px solid #b7cdbc; border-radius: 6px; background: #fff; color: #2d6a4f; font-size: 0.76rem; font-weight: 600; cursor: pointer; }
+    .wq-save-btn:hover { background: #eef5ef; }
+    /* 사진 고르기 창 */
+    .wq-save { position: fixed; inset: 0; z-index: 1200; background: rgba(0, 0, 0, .5); display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .wq-save-box { background: #fff; border-radius: 12px; width: min(680px, 100%); max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; }
+    .wq-save-head { padding: 12px 16px; background: #1b4332; color: #fff; font-size: 0.92rem; display: flex; align-items: center; gap: 8px; }
+    .wq-save-x { margin-left: auto; background: none; border: none; color: #fff; font-size: 1rem; cursor: pointer; }
+    .wq-save-body { padding: 14px 16px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 12px; }
+    .wq-save-load { color: #777; font-size: 0.85rem; padding: 10px 0; }
+    .wq-sv-item { width: 150px; cursor: pointer; text-align: center; border: 2px solid transparent; border-radius: 8px; padding: 6px; }
+    .wq-sv-item:has(input:checked) { border-color: #2d6a4f; background: #f4faf5; }
+    .wq-sv-item input { margin-bottom: 6px; }
+    .wq-sv-item img { width: 100%; display: block; border-radius: 4px; }
+    /* 낱장 미리보기 — 원본의 그 부분만 보이게 잘라 낸다 */
+    .wq-sv-clip { display: block; overflow: hidden; border-radius: 4px; }
+    .wq-sv-clip img { border-radius: 0; }
+    .wq-sv-cap { display: block; margin-top: 5px; font-size: 0.78rem; color: #333; font-weight: 600; }
+    .wq-save-foot { padding: 12px 16px; border-top: 1px solid #eee; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .wq-save-where { font-size: 0.8rem; color: #666; }
+    .wq-save-where b { color: #1b4332; }
+    .wq-save-dir { margin-left: auto; padding: 7px 14px; border: 1px solid #b7cdbc; border-radius: 7px; background: #fff; color: #2d6a4f; font-size: 0.83rem; cursor: pointer; }
+    .wq-save-go { padding: 7px 20px; border: none; border-radius: 7px; background: #2d6a4f; color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .wq-save-go:disabled { opacity: .6; cursor: default; }
+    .wq-save-msg { padding: 0 16px 12px; font-size: 0.8rem; color: #2e7d32; }
     @media (max-width: 700px) {
         .wq-table .wq-t-habitat, .wq-table .wq-t-life { display: none; }
         .wq-table th.h-habitat, .wq-table th.h-life { display: none; }
@@ -2077,11 +2103,30 @@
                         <th class="wq-sortable h-habitat" onclick="weedSort('habitat')">발생지<span class="wq-sort-i"></span></th>
                         <th class="wq-sortable" onclick="weedSort('exam_count')">출제<span class="wq-sort-i"></span></th>
                         <th class="wq-sortable" onclick="weedSort('state')">상태<span class="wq-sort-i"></span></th>
+                        {% if request.user.is_staff %}<th class="wq-t-save-h">저장</th>{% endif %}
                     </tr></thead>
                     <tbody id="wq-list-body"></tbody>
                 </table>
             </div>
         </div>
+        {% if request.user.is_staff %}
+        <!-- 관리자: 카드 사진 내려받기 -->
+        <div id="wq-save" class="wq-save" hidden>
+            <div class="wq-save-box">
+                <div class="wq-save-head">
+                    <b id="wq-save-name"></b> 사진 저장
+                    <button type="button" class="wq-save-x" onclick="weedSaveClose()">✕</button>
+                </div>
+                <div class="wq-save-body" id="wq-save-body"></div>
+                <div class="wq-save-foot">
+                    <span class="wq-save-where">저장 위치: <b id="wq-save-where">다운로드 폴더</b></span>
+                    <button type="button" class="wq-save-dir" onclick="weedSaveFolder()">폴더 지정…</button>
+                    <button type="button" class="wq-save-go" id="wq-save-go" onclick="weedSaveDo()">저장</button>
+                </div>
+                <div class="wq-save-msg" id="wq-save-msg"></div>
+            </div>
+        </div>
+        {% endif %}
     </div>
     {% endif %}
 
@@ -3135,6 +3180,9 @@
                  + '<td class="wq-t-habitat">' + _wqEsc(it.habitat) + '</td>'
                  + '<td class="wq-t-cnt">' + (it.exam_count ? it.exam_count + '회' : '') + '</td>'
                  + '<td>' + st + '</td>'
+                 // 저장은 줄 이동과 겹치므로 버튼에서 클릭을 멈춘다
+                 + (_WQ_STAFF ? '<td class="wq-t-save"><button type="button" class="wq-save-btn"'
+                     + ' onclick="event.stopPropagation(); weedSavePick(' + it.id + ')">저장</button></td>' : '')
                  + '</tr>';
         }).join('');
         // 열 제목의 정렬 표시
@@ -3161,13 +3209,124 @@
         else { _wqSort.key = key; _wqSort.asc = true; }
         _wqApplySort();
     };
+    /* ── 관리자: 카드 사진 내려받기 ──
+       서버는 폴더를 정할 수 없다. Chrome·Edge 는 showDirectoryPicker() 로 사용자가
+       고른 폴더에 바로 쓸 수 있고(한 번 고르면 그 자리를 기억한다), 그 밖의
+       브라우저는 <a download> 로 기본 다운로드 폴더에 받는다. */
+    var _wqDir = null;                       // 이번 세션에 고른 폴더
+    function _wqCols() { return _WQ_STAFF ? 8 : 7; }
+
+    window.weedSavePick = function(cardId) {
+        var box = document.getElementById('wq-save');
+        var body = document.getElementById('wq-save-body');
+        box.hidden = false;
+        body.innerHTML = '<div class="wq-save-load">사진을 불러오는 중…</div>';
+        fetch('{% url "main:api_weed_card_photos" subject.pk 0 %}'.replace('/weed-card/0/', '/weed-card/' + cardId + '/'),
+              { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) { _wqSaveRender(d); })
+            .catch(function() { body.innerHTML = '<div class="wq-save-load">사진을 불러오지 못했습니다.</div>'; });
+    };
+
+    function _wqSaveRender(d) {
+        var body = document.getElementById('wq-save-body');
+        document.getElementById('wq-save-name').textContent = d.name;
+        if (!d.photos.length) { body.innerHTML = '<div class="wq-save-load">이 카드에는 사진이 없습니다.</div>'; return; }
+        body.innerHTML = d.photos.map(function(p, i) {
+            // 낱장은 원본의 일부라 미리보기에서도 그 부분만 보이게 감싼다
+            var thumb = p.crop
+                ? '<span class="wq-sv-clip"><img src="' + p.url + '" style="margin-top:-' + p.crop[0] + 'px" alt=""></span>'
+                : '<img src="' + p.url + '" alt="">';
+            return '<label class="wq-sv-item"><input type="radio" name="wq-sv" value="' + i + '"'
+                 + (i === 0 ? ' checked' : '') + '>' + thumb
+                 + '<span class="wq-sv-cap">' + _wqEsc(p.label) + '</span></label>';
+        }).join('');
+        // 고른 사진의 잘라낼 높이를 미리보기 상자에 알려 준다
+        d.photos.forEach(function(p, i) {
+            if (!p.crop) return;
+            var clip = body.querySelectorAll('.wq-sv-clip')[
+                d.photos.slice(0, i).filter(function(q) { return q.crop; }).length];
+            if (clip) clip.style.height = (p.crop[1] - p.crop[0]) + 'px';
+        });
+        body.dataset.payload = JSON.stringify(d);
+    }
+
+    window.weedSaveClose = function() { document.getElementById('wq-save').hidden = true; };
+
+    window.weedSaveFolder = function() {
+        if (!window.showDirectoryPicker) {
+            alert('이 브라우저는 폴더 지정을 지원하지 않습니다. 기본 다운로드 폴더로 받습니다.');
+            return;
+        }
+        window.showDirectoryPicker({ mode: 'readwrite', startIn: 'downloads' })
+            .then(function(h) {
+                _wqDir = h;
+                document.getElementById('wq-save-where').textContent = h.name + ' 폴더';
+            })
+            .catch(function() { /* 사용자가 취소한 것 — 아무 것도 하지 않는다 */ });
+    };
+
+    window.weedSaveDo = function() {
+        var body = document.getElementById('wq-save-body');
+        var d = JSON.parse(body.dataset.payload || '{"photos":[]}');
+        var sel = body.querySelector('input[name="wq-sv"]:checked');
+        if (!sel) return;
+        var p = d.photos[+sel.value];
+        var fname = d.name + (p.suffix || '') + '.jpg';
+        var btn = document.getElementById('wq-save-go');
+        btn.disabled = true; btn.textContent = '저장 중…';
+
+        _wqBlob(p).then(function(blob) {
+            if (_wqDir) return _wqWriteToDir(blob, fname);
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = fname;
+            a.click();
+            setTimeout(function() { URL.revokeObjectURL(a.href); }, 4000);
+        }).then(function() {
+            btn.disabled = false; btn.textContent = '저장';
+            document.getElementById('wq-save-msg').textContent = fname + ' 저장했습니다.';
+        }).catch(function(e) {
+            btn.disabled = false; btn.textContent = '저장';
+            document.getElementById('wq-save-msg').textContent = '저장하지 못했습니다: ' + e;
+        });
+    };
+
+    /* 낱장이면 canvas 로 그 부분만 잘라 낸다 */
+    function _wqBlob(p) {
+        return new Promise(function(res, rej) {
+            if (!p.crop) {
+                fetch(p.url, { credentials: 'same-origin' })
+                    .then(function(r) { return r.blob(); }).then(res).catch(rej);
+                return;
+            }
+            var img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                var h = p.crop[1] - p.crop[0];
+                var cv = document.createElement('canvas');
+                cv.width = img.naturalWidth; cv.height = h;
+                cv.getContext('2d').drawImage(img, 0, p.crop[0], img.naturalWidth, h, 0, 0, img.naturalWidth, h);
+                cv.toBlob(function(b) { b ? res(b) : rej('canvas'); }, 'image/jpeg', 0.95);
+            };
+            img.onerror = function() { rej('이미지를 읽지 못했습니다'); };
+            img.src = p.url;
+        });
+    }
+
+    function _wqWriteToDir(blob, fname) {
+        return _wqDir.getFileHandle(fname, { create: true })
+            .then(function(fh) { return fh.createWritable(); })
+            .then(function(w) { return w.write(blob).then(function() { return w.close(); }); });
+    }
+
     window.weedList = function() {
         var box = document.getElementById('wq-list');
         if (!box.hidden) { box.hidden = true; return; }
         var body = document.getElementById('wq-list-body');
         box.hidden = false;
         if (!body.dataset.loaded) {
-            body.innerHTML = '<tr><td colspan="7">불러오는 중…</td></tr>';
+            body.innerHTML = '<tr><td colspan="' + _wqCols() + '">불러오는 중…</td></tr>';
             fetch('{% url "main:api_weed_quiz_list" subject.pk %}', { credentials: 'same-origin' })
                 .then(function(r) { return r.json(); })
                 .then(function(d) {
@@ -3175,7 +3334,7 @@
                     _wqItems = d.items;
                     _wqApplySort();
                 })
-                .catch(function() { body.innerHTML = '<tr><td colspan="7">목록을 불러오지 못했습니다.</td></tr>'; });
+                .catch(function() { body.innerHTML = '<tr><td colspan="' + _wqCols() + '">목록을 불러오지 못했습니다.</td></tr>'; });
         }
         box.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };

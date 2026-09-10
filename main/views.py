@@ -1100,6 +1100,65 @@ def api_weed_quiz_list(request, pk):
     return JsonResponse({"items": items})
 
 
+def _weed_photo_bands(path, min_h=40, gap_ratio=0.92, tol=22):
+    """세로로 붙은 문제 사진에서 낱장의 위·아래 좌표를 찾는다.
+
+    사진 사이는 흰 여백이다. '거의 흰 행'이 이어지는 곳을 틈으로 본다 —
+    사진 안에도 밝은 하늘이 있으므로 행 전체(92%)가 희어야 한다.
+    """
+    try:
+        from PIL import Image
+        import numpy as np
+    except ImportError:
+        return []
+    try:
+        arr = np.asarray(Image.open(path).convert("RGB")).astype(int)
+    except Exception:
+        return []
+    height = arr.shape[0]
+    gap = (np.abs(arr - 255).max(axis=2) < tol).mean(axis=1) > gap_ratio
+    out, start = [], None
+    for y in range(height):
+        if not gap[y] and start is None:
+            start = y
+        if gap[y] and start is not None:
+            if y - start > min_h:
+                out.append([start, y])
+            start = None
+    if start is not None and height - start > min_h:
+        out.append([start, height])
+    return out
+
+
+@user_passes_test(lambda u: u.is_staff)
+def api_weed_card_photos(request, pk, card_id):
+    """카드 한 장에 딸린 사진들 — 관리자가 골라 내려받는다.
+
+    문제 사진은 여러 장이 세로로 붙은 한 장이라 낱장 좌표(crop)를 함께 준다.
+    자르기는 브라우저가 하므로 서버에 새 파일을 만들지 않는다.
+    """
+    subject = get_object_or_404(Subject, pk=pk)
+    card = get_object_or_404(WeedCard, pk=card_id, subject=subject)
+
+    photos = []
+    if card.q_image:
+        url = card.q_image.url
+        bands = _weed_photo_bands(card.q_image.path) if card.q_image else []
+        if len(bands) > 1:
+            for i, (y0, y1) in enumerate(bands, 1):
+                photos.append({"url": url, "crop": [y0, y1],
+                               "label": "사진 %d" % i, "suffix": "_%d" % i})
+        else:
+            photos.append({"url": url, "crop": None, "label": "문제 사진", "suffix": ""})
+    if card.sketch_image:
+        photos.append({"url": card.sketch_image.url, "crop": None,
+                       "label": "손그림", "suffix": "_손그림"})
+    if card.a_image:
+        photos.append({"url": card.a_image.url, "crop": None,
+                       "label": "답 슬라이드", "suffix": "_슬라이드"})
+    return JsonResponse({"name": card.name, "photos": photos})
+
+
 @login_required
 def api_weed_quiz_card(request, pk, card_id):
     """목록에서 고른 카드 한 장을 문제로 낸다 (보기는 같은 과 우선)."""
