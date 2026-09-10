@@ -340,6 +340,9 @@
         /* 보기가 사진 아래로 내려오므로 2열로 묶어 세로 길이를 줄인다 */
         .wq-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .wq-choice { padding: 12px 6px; font-size: 0.9rem; }
+        /* 답을 고른 뒤에는 보기를 감춘다 — 정답과 풀이는 아래 답 영역에 있고,
+           좁은 화면에서는 그 자리를 답에 쓰는 편이 낫다 */
+        .wq-choices.done { display: none; }
         .wq-photo img { max-height: 52vh; }
         .wq-sketch-ov { width: 38%; max-width: 150px; right: 6px; bottom: 6px; }
         .wq-notes-ov { font-size: 0.74rem; max-width: 58%; left: 8px; bottom: 6px;
