@@ -2135,7 +2135,7 @@
                     <span class="wq-save-ext">.jpg</span>
                 </div>
                 <div class="wq-save-foot">
-                    <span class="wq-save-where">저장 위치: <b id="wq-save-where">브라우저 기본 폴더</b></span>
+                    <span class="wq-save-where">저장 위치: <b id="wq-save-where">다운로드 폴더</b></span>
                     <button type="button" class="wq-save-dir" onclick="weedSaveFolder()">폴더 지정…</button>
                     <button type="button" class="wq-save-go" id="wq-save-go" onclick="weedSaveDo()">저장</button>
                 </div>
@@ -3338,7 +3338,7 @@
        막히면 기본 다운로드 방식으로 돌아간다 — 그때도 저장 자체는 된다. */
     window.weedSaveFolder = function() {
         if (!window.showDirectoryPicker) {
-            _wqSaveMsg('이 브라우저는 폴더 지정을 지원하지 않습니다. 브라우저 기본 폴더로 받습니다.', true);
+            _wqSaveMsg('이 브라우저는 폴더 지정을 지원하지 않습니다. 다운로드 폴더로 받습니다.', true);
             return;
         }
         window.showDirectoryPicker({ mode: 'readwrite', startIn: 'pictures' })
@@ -3352,9 +3352,9 @@
                 // AbortError = 사용자가 취소. 그 밖은 브라우저가 막은 것이다
                 if (e && e.name === 'AbortError') return;
                 _wqDir = null;
-                document.getElementById('wq-save-where').textContent = '브라우저 기본 폴더';
+                document.getElementById('wq-save-where').textContent = '다운로드 폴더';
                 _wqSaveMsg('이 폴더에는 브라우저가 쓸 수 없습니다(사진·다운로드·바탕화면 등 시스템 폴더 자체). '
-                         + '그 안에 새 폴더를 만들어 고르시거나, 그냥 저장하면 브라우저 기본 폴더로 받습니다.', true);
+                         + '그 안에 새 폴더를 만들어 고르시거나, 그냥 저장하면 다운로드 폴더로 받습니다.', true);
             });
     };
 
