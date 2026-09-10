@@ -3118,7 +3118,7 @@
         weedStart('all');
     };
     /* 전체 목록 — 종명을 누르면 그 잡초 문제로 간다. 열 제목을 누르면 정렬 */
-    var _wqItems = [], _wqSort = { key: 'no', asc: true };
+    var _wqItems = [], _wqSort = { key: 'name', asc: true };   // 기본은 종명 가나다순
     function _wqRenderList() {
         var body = document.getElementById('wq-list-body');
         body.innerHTML = _wqItems.map(function(it) {
@@ -3140,10 +3140,10 @@
             el.textContent = keys[i] === _wqSort.key ? (_wqSort.asc ? '▲' : '▼') : '';
         });
     }
-    window.weedSort = function(key) {
-        if (_wqSort.key === key) _wqSort.asc = !_wqSort.asc;
-        else { _wqSort.key = key; _wqSort.asc = true; }
-        var dir = _wqSort.asc ? 1 : -1;
+    /* 지금 정렬 기준대로 다시 늘어놓는다. 열 제목을 누를 때와 처음 불러올 때가
+       같은 길을 쓰도록 따로 뺐다 — weedSort 를 부르면 방향이 뒤집힌다 */
+    function _wqApplySort() {
+        var key = _wqSort.key, dir = _wqSort.asc ? 1 : -1;
         var order = { wrong: 0, ok: 1, '': 2 };      // 상태는 오답 → 정답 → 안 푼 것
         _wqItems.sort(function(a, b) {
             var x = a[key], y = b[key];
@@ -3152,6 +3152,11 @@
             return String(x).localeCompare(String(y), 'ko') * dir;
         });
         _wqRenderList();
+    }
+    window.weedSort = function(key) {
+        if (_wqSort.key === key) _wqSort.asc = !_wqSort.asc;
+        else { _wqSort.key = key; _wqSort.asc = true; }
+        _wqApplySort();
     };
     window.weedList = function() {
         var box = document.getElementById('wq-list');
@@ -3165,7 +3170,7 @@
                 .then(function(d) {
                     body.dataset.loaded = '1';
                     _wqItems = d.items;
-                    _wqRenderList();
+                    _wqApplySort();
                 })
                 .catch(function() { body.innerHTML = '<tr><td colspan="7">목록을 불러오지 못했습니다.</td></tr>'; });
         }
