@@ -326,6 +326,9 @@
     @media (max-width: 700px) {
         .wq-quiz { flex-direction: column; gap: 12px; }
         .wq-side { flex: none; width: 100%; }
+        /* 보기가 사진 아래로 내려오므로 2열로 묶어 세로 길이를 줄인다 */
+        .wq-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .wq-choice { padding: 12px 6px; font-size: 0.9rem; }
         .wq-photo img { max-height: 52vh; }
         .wq-sketch-ov { width: 38%; max-width: 150px; right: 6px; bottom: 6px; }
         .wq-notes-ov { font-size: 0.74rem; max-width: 58%; left: 8px; bottom: 6px;
