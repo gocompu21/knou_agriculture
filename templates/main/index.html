@@ -5,28 +5,55 @@
 
 {% block extra_css %}
 <style>
+    /* ══════════════════════════════════════════════════════════
+       테마: 땅과 새싹
+       농학과답게 흙빛 바탕에 새싹 초록을 얹는다. HTML 구조는 그대로 두고
+       색과 질감만 바꾼다. 변수를 이 페이지에서만 덮어쓰므로 다른 화면은
+       종전 색을 그대로 쓴다.
+       ══════════════════════════════════════════════════════════ */
+    :root {
+        --forest: #3f6212;        /* 올리브 그린 — 제목과 강조 */
+        --forest-dark: #2f4a0d;
+        --leaf: #65a30d;          /* 새싹 — 불렛과 작은 표시 */
+        --accent: #b45309;        /* 황갈색 — 포인트 */
+        --muted: #7c7259;         /* 흙빛이 도는 회색 — 보조 글 */
+        --line: #ddd6c4;          /* 테두리 */
+        --paper: #f7f4ed;         /* 바탕 */
+    }
+
+    /* 바탕을 따뜻한 모래빛으로. 위쪽에 옅은 햇빛, 아래로 갈수록 흙빛이 짙어진다. */
+    body {
+        background:
+            radial-gradient(circle at 12% 8%, #fdf9ee 0%, transparent 38%),
+            radial-gradient(circle at 88% 2%, #f2f0e2 0%, transparent 42%),
+            linear-gradient(150deg, #faf7f0 0%, #f2eee2 100%) !important;
+    }
+
+    /* 머리띠도 같은 결로 */
+    .site-header { background: rgba(253, 251, 245, 0.92) !important; }
+
     /* ══════════ 전체 사용현황 띠 ══════════ */
     .site-stats { margin-top: 18px; display: grid; gap: 0;
-        grid-template-columns: repeat(6, 1fr); background: #fff;
-        border: 1px solid #dbe7dc; border-radius: 14px; overflow: hidden; }
-    .site-stat { padding: 16px 20px; border-left: 1px solid #e6efe7; }
+        grid-template-columns: repeat(6, 1fr); background: #fffdf8;
+        border: 1px solid #e3dcca; border-radius: 14px; overflow: hidden; }
+    .site-stat { padding: 16px 20px; border-left: 1px solid #ede7d8; }
     .site-stat:first-child { border-left: 0; }
-    .site-stat .v { display: block; font-size: 1.45rem; font-weight: 800; color: #1b4332;
+    .site-stat .v { display: block; font-size: 1.45rem; font-weight: 800; color: #3f4a16;
         letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.2; }
-    .site-stat .v small { font-size: 0.6em; font-weight: 600; color: #4f6357; margin-left: 2px; }
-    .site-stat .l { display: block; margin-top: 4px; font-size: 0.8rem; color: #6b7d70; }
+    .site-stat .v small { font-size: 0.6em; font-weight: 600; color: #7c7259; margin-left: 2px; }
+    .site-stat .l { display: block; margin-top: 4px; font-size: 0.8rem; color: #8a7f66; }
     @media (max-width: 900px) {
         .site-stats { grid-template-columns: repeat(3, 1fr); }
         .site-stat:nth-child(4) { border-left: 0; }
-        .site-stat:nth-child(n+4) { border-top: 1px solid #e6efe7; }
+        .site-stat:nth-child(n+4) { border-top: 1px solid #ede7d8; }
     }
     @media (max-width: 480px) {
         .site-stats { grid-template-columns: repeat(2, 1fr); margin-top: 12px; }
         .site-stat { padding: 12px 14px; }
         .site-stat .v { font-size: 1.2rem; }
-        .site-stat:nth-child(4) { border-left: 1px solid #e6efe7; }
+        .site-stat:nth-child(4) { border-left: 1px solid #ede7d8; }
         .site-stat:nth-child(odd) { border-left: 0; }
-        .site-stat:nth-child(n+3) { border-top: 1px solid #e6efe7; }
+        .site-stat:nth-child(n+3) { border-top: 1px solid #ede7d8; }
     }
 
     /* ══════════ Hero ══════════ */
@@ -37,14 +64,15 @@
         align-items: stretch;
     }
 
+    /* 흙에서 새싹으로 — 아래가 짙은 갈녹색, 위로 갈수록 밝은 올리브 */
     .hero-left {
-        background: linear-gradient(160deg, #1a5e3e 0%, #27784f 55%, #3a9a62 100%);
+        background: linear-gradient(160deg, #3f4a16 0%, #4d6118 48%, #6b8523 100%);
         border-radius: 24px;
         padding: 40px 36px;
-        color: #f2f9ef;
+        color: #faf8ee;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 16px 40px rgba(20, 60, 38, 0.3);
+        box-shadow: 0 16px 40px rgba(48, 42, 16, 0.28);
     }
 
     .hero-left::before {
@@ -88,7 +116,7 @@
     }
 
     .hero h1 .highlight {
-        color: #b5f0c0;
+        color: #d9f99d;   /* 갓 난 새싹 */
     }
 
     .hero-desc {
@@ -96,7 +124,7 @@
         font-size: 0.98rem;
         line-height: 1.7;
         max-width: 40ch;
-        color: rgba(240, 255, 240, 0.88);
+        color: rgba(250, 248, 235, 0.88);
     }
 
     .hero-tags {
@@ -107,8 +135,8 @@
     }
 
     .hero-tags span {
-        background: rgba(16, 40, 26, 0.35);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(40, 34, 12, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.22);
         padding: 6px 12px;
         border-radius: 10px;
         font-size: 0.82rem;
@@ -123,10 +151,10 @@
 
     .login-card {
         background: #fff;
-        border: 1px solid #d4e5d6;
+        border: 1px solid #e0d9c7;
         border-radius: 20px;
         padding: 32px 28px;
-        box-shadow: 0 8px 24px rgba(30, 70, 42, 0.08);
+        box-shadow: 0 8px 24px rgba(60, 52, 24, 0.08);
         width: 100%;
         max-width: 360px;
     }
@@ -153,32 +181,32 @@
         display: block;
         font-size: 0.82rem;
         font-weight: 700;
-        color: #3a5a42;
+        color: #4f5a2a;
         margin-bottom: 5px;
     }
 
     .login-field input {
         width: 100%;
         padding: 10px 14px;
-        border: 1.5px solid #c8d8c9;
+        border: 1.5px solid #ddd6c4;
         border-radius: 10px;
         font-size: 0.92rem;
         font-family: "SUIT", sans-serif;
-        background: #f8fbf6;
+        background: #fcfaf2;
         transition: border-color 0.2s, box-shadow 0.2s;
         outline: none;
     }
 
     .login-field input:focus {
         border-color: var(--forest);
-        box-shadow: 0 0 0 3px rgba(31, 106, 71, 0.1);
+        box-shadow: 0 0 0 3px rgba(77, 97, 24, 0.12);
         background: #fff;
     }
 
     .login-btn {
         width: 100%;
         padding: 12px;
-        background: linear-gradient(135deg, #1f6a47, #2d8a56);
+        background: linear-gradient(135deg, #4d6118, #6b8523);
         color: #fff;
         border: none;
         border-radius: 12px;
@@ -187,13 +215,13 @@
         font-family: "SUIT", sans-serif;
         cursor: pointer;
         transition: transform 0.15s, box-shadow 0.15s;
-        box-shadow: 0 4px 14px rgba(31, 106, 71, 0.3);
+        box-shadow: 0 4px 14px rgba(77, 97, 24, 0.3);
         margin-top: 4px;
     }
 
     .login-btn:hover {
         transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(31, 106, 71, 0.4);
+        box-shadow: 0 6px 20px rgba(77, 97, 24, 0.4);
     }
 
     .login-error {
@@ -208,17 +236,17 @@
     }
 
     .notice-card {
-        background: linear-gradient(180deg, #fff 0%, #f6faf3 100%);
-        border: 1px solid #c8dcc8;
+        background: linear-gradient(180deg, #fff 0%, #fbf8ee 100%);
+        border: 1px solid #ddd4bf;
         border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 8px 28px rgba(30, 70, 42, 0.1);
+        box-shadow: 0 8px 28px rgba(60, 52, 24, 0.1);
         width: 100%;
         display: flex;
         flex-direction: column;
     }
     .notice-card-header {
-        background: linear-gradient(135deg, #1b4332, #2d6a4f);
+        background: linear-gradient(135deg, #3f4a16, #5c7420);
         padding: 12px 16px;
         display: flex;
         align-items: center;
@@ -251,13 +279,13 @@
         text-decoration: none;
         color: #333;
         transition: background 0.12s;
-        border-bottom: 1px solid #eef3ec;
+        border-bottom: 1px solid #f0ebdd;
     }
     .notice-card-item:last-child { border-bottom: none; }
-    .notice-card-item:hover { background: #eef5e8; }
+    .notice-card-item:hover { background: #f5f1e2; }
     .nc-dot {
         width: 5px; height: 5px;
-        background: #6cba6c;
+        background: #84a83e;
         border-radius: 50%;
         flex-shrink: 0;
     }
@@ -304,10 +332,10 @@
     .section {
         margin-top: 28px;
         background: #fff;
-        border: 1px solid #dbe7dc;
+        border: 1px solid #e3dcca;
         border-radius: 22px;
         padding: 28px;
-        box-shadow: 0 10px 28px rgba(33, 77, 47, 0.06);
+        box-shadow: 0 10px 28px rgba(60, 52, 24, 0.06);
     }
 
     .section-header {
@@ -348,8 +376,8 @@
     }
 
     .subject-card {
-        border: 1px solid #d7e3d7;
-        background: linear-gradient(180deg, #ffffff 0%, #f8fcf5 100%);
+        border: 1px solid #e0d9c7;
+        background: linear-gradient(180deg, #ffffff 0%, #fdfaf1 100%);
         border-radius: 16px;
         padding: 18px;
         transition: transform 0.2s, box-shadow 0.2s;
@@ -357,7 +385,7 @@
 
     .subject-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(30, 70, 42, 0.1);
+        box-shadow: 0 8px 20px rgba(60, 52, 24, 0.1);
     }
 
     .subject-label {
@@ -371,31 +399,31 @@
     }
 
     .grade-1 .subject-label {
-        background: #4caf7a;
+        background: #6b9c3f;
     }
 
     .grade-2 .subject-label {
-        background: #3d9ed6;
+        background: #3f7f9e;
     }
 
     .grade-3 .subject-label {
-        background: #e0943a;
+        background: #c98a2e;
     }
 
     .grade-4 .subject-label {
-        background: #c4604a;
+        background: #a8563c;
     }
 
     .subject-card h3 {
         font-size: 1rem;
-        color: #1d5536;
+        color: #41500f;
         margin-bottom: 8px;
     }
 
     .subject-list {
         list-style: none;
         font-size: 0.85rem;
-        color: #4f6555;
+        color: #6b6350;
         line-height: 1.7;
     }
 
@@ -414,20 +442,20 @@
     }
 
     .exam-card {
-        border: 1px solid #d7e3d7;
-        background: linear-gradient(180deg, #fff 0%, #fafdf7 100%);
+        border: 1px solid #e0d9c7;
+        background: linear-gradient(180deg, #fff 0%, #fdfbf3 100%);
         border-radius: 16px;
         padding: 20px;
     }
 
     .exam-card h3 {
         font-size: 1rem;
-        color: #1d5536;
+        color: #41500f;
         margin-bottom: 8px;
     }
 
     .exam-card p {
-        color: #4f6555;
+        color: #6b6350;
         font-size: 0.9rem;
         line-height: 1.6;
     }
@@ -446,7 +474,7 @@
         font-size: 0.8rem;
         padding: 5px 12px;
         border-radius: 8px;
-        border: 1px solid #c8e4c2;
+        border: 1px solid #dcd6b8;
     }
 
     /* ══════════ Study Loop ══════════ */
@@ -484,42 +512,42 @@
     .loop-step p {
         font-size: 0.82rem;
         line-height: 1.5;
-        color: #4a5c4f;
+        color: #665f4c;
     }
 
     .step-1 {
-        background: #e5f5e0;
+        background: #f2eed9;
     }
 
     .step-1 .loop-num {
-        background: #3da06a;
+        background: #6b9c3f;
         color: #fff;
     }
 
     .step-2 {
-        background: #f5f5d8;
+        background: #f3f0dc;
     }
 
     .step-2 .loop-num {
-        background: #b5a32e;
+        background: #a89a35;
         color: #fff;
     }
 
     .step-3 {
-        background: #fdecd8;
+        background: #faeacf;
     }
 
     .step-3 .loop-num {
-        background: #d18a3a;
+        background: #c4832f;
         color: #fff;
     }
 
     .step-4 {
-        background: #fde0d5;
+        background: #f7ddc9;
     }
 
     .step-4 .loop-num {
-        background: #c45a42;
+        background: #ad5a3c;
         color: #fff;
     }
 
@@ -529,7 +557,7 @@
         top: 50%;
         transform: translateY(-50%);
         font-size: 1.2rem;
-        color: #9db8a0;
+        color: #b8ae93;
         font-weight: 700;
     }
 
@@ -557,18 +585,18 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #1f6a47, #2d8a56);
+        background: linear-gradient(135deg, #4d6118, #6b8523);
         color: #fff;
-        box-shadow: 0 4px 14px rgba(31, 106, 71, 0.3);
+        box-shadow: 0 4px 14px rgba(77, 97, 24, 0.3);
     }
 
     .btn-primary:hover {
-        box-shadow: 0 6px 20px rgba(31, 106, 71, 0.4);
+        box-shadow: 0 6px 20px rgba(77, 97, 24, 0.4);
     }
 
     .btn-outline {
         background: #fff;
-        border: 2px solid #b4d4b8;
+        border: 2px solid #cdc5aa;
         color: var(--forest);
     }
 
@@ -586,13 +614,13 @@
     .join-card {
         padding: 22px;
         border-radius: 16px;
-        border: 1px dashed #adc8b0;
-        background: #f6faf4;
+        border: 1px dashed #c9c0a5;
+        background: #fbf9f1;
         transition: background 0.2s;
     }
 
     .join-card:hover {
-        background: #eef5eb;
+        background: #f4f0e4;
     }
 
     .join-card h3 {
@@ -603,7 +631,7 @@
 
     .join-card p {
         font-size: 0.88rem;
-        color: #4f6555;
+        color: #6b6350;
         line-height: 1.6;
         margin-bottom: 10px;
     }
@@ -648,7 +676,7 @@
         .hero-left {
             padding: 22px 18px;
             border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(20, 60, 38, 0.25);
+            box-shadow: 0 8px 24px rgba(48, 42, 16, 0.25);
             overflow: hidden;
         }
         .hero-left::before { width: 140px; height: 140px; right: -30px; top: -30px; }
@@ -794,7 +822,7 @@
                     <button type="submit" class="login-btn">로그인</button>
                 </form>
                 <div style="margin-top:14px; text-align:center; font-size:0.82rem; color:#64748b;">
-                    아직 계정이 없으신가요? <a href="{% url 'accounts:user_signup' %}" style="color:#2d6a4f; font-weight:700; text-decoration:none;">회원가입</a>
+                    아직 계정이 없으신가요? <a href="{% url 'accounts:user_signup' %}" style="color:#4d6118; font-weight:700; text-decoration:none;">회원가입</a>
                 </div>
                 <div style="margin-top:6px; text-align:center; font-size:0.78rem;">
                     <a href="{% url 'accounts:password_reset' %}" style="color:#94a3b8; text-decoration:none;">비밀번호를 잊으셨나요?</a>
@@ -901,7 +929,7 @@
     <!-- ══════════ 학습 루프 ══════════ -->
     <section id="study-loop" class="section fade-up">
         <div class="section-header">
-            <div class="section-icon" style="background:#fde8d8;">
+            <div class="section-icon" style="background:#f9e7cf;">
                 <span style="font-size:1.1rem;">&#8634;</span>
             </div>
             <h2>핵심 학습 루프</h2>
