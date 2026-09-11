@@ -389,6 +389,7 @@
     .wq-add-grid input, .wq-add-grid textarea { padding: 7px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85rem; font-family: inherit; resize: vertical; }
     .wq-add-grid input:focus, .wq-add-grid textarea:focus { outline: none; border-color: #2d6a4f; }
     .wq-add-sub { margin: 16px 0 8px; font-size: 0.82rem; font-weight: 700; color: #1b4332; }
+    .wq-add-tip { font-weight: 400; color: #7b8f80; font-size: 0.76rem; }
     .wq-add-photos > .wq-add-sub:first-child { margin-top: 12px; }
     /* 상세는 접어 둔다 — 등록의 핵심은 사진이라 사진이 먼저 보여야 한다 */
     .wq-add-more { margin-top: 16px; border: 1px solid #e0e6e0; border-radius: 8px; }
@@ -407,16 +408,18 @@
     .wq-lay-cap { font-size: 0.68rem; color: #555; line-height: 1.3; }
 
     /* 올린 사진 목록 — 여기서 칸으로 끌어다 놓는다 */
-    .wq-pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 72px; padding: 8px; border: 1px dashed #cbd8cd; border-radius: 8px; background: #fafcfa; }
-    .wq-pool-item { width: 84px; height: 64px; border-radius: 6px; overflow: hidden; position: relative; cursor: grab; border: 2px solid transparent; }
+    .wq-pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 100px; padding: 8px; border: 1px dashed #cbd8cd; border-radius: 8px; background: #fafcfa; transition: background .12s, border-color .12s; }
+    /* 파일을 끌어다 놓는 중 */
+    .wq-pool.over { border-color: #2d6a4f; background: #eaf4ec; }
+    .wq-pool-item { width: 120px; height: 92px; border-radius: 6px; overflow: hidden; position: relative; cursor: grab; border: 2px solid transparent; }
     .wq-pool-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .wq-pool-item.used { opacity: .35; cursor: default; }
-    .wq-pool-add { width: 84px; height: 64px; display: flex; align-items: center; justify-content: center; border: 1px dashed #9ec2a8; border-radius: 6px; font-size: 0.72rem; color: #2d6a4f; cursor: pointer; text-align: center; background: #fff; }
+    .wq-pool-add { width: 120px; height: 92px; display: flex; align-items: center; justify-content: center; border: 1px dashed #9ec2a8; border-radius: 6px; font-size: 0.72rem; color: #2d6a4f; cursor: pointer; text-align: center; background: #fff; }
     .wq-pool-busy { width: 100%; padding: 18px 0; text-align: center; font-size: 0.78rem; color: #7b8f80; }
     /* 인터넷에서 가져온 사진임을 표시 — 출처를 밝혀야 하는 CC 사진이다 */
     .wq-pool-tag { position: absolute; left: 3px; bottom: 3px; padding: 1px 5px; border-radius: 3px; background: rgba(27,67,50,.85); color: #fff; font-size: 0.6rem; font-weight: 600; }
     /* 크게 보기 — 썸네일이 작아 무슨 사진인지 구별이 안 된다 */
-    .wq-pool-zoom { position: absolute; right: 2px; top: 2px; width: 20px; height: 20px; border: none; border-radius: 50%; background: rgba(0,0,0,.5); color: #fff; font-size: 0.8rem; line-height: 1; cursor: zoom-in; padding: 0; }
+    .wq-pool-zoom { position: absolute; right: 3px; top: 3px; width: 24px; height: 24px; border: none; border-radius: 50%; background: rgba(0,0,0,.5); color: #fff; font-size: 0.8rem; line-height: 1; cursor: zoom-in; padding: 0; }
     .wq-pool-item:hover .wq-pool-zoom { background: rgba(0,0,0,.75); }
     .wq-zoom { position: fixed; inset: 0; z-index: 1300; background: rgba(0,0,0,.82); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; cursor: zoom-out; }
     .wq-zoom[hidden] { display: none; }
@@ -2228,7 +2231,7 @@
                         <div class="wq-add-sub">사진 배열</div>
                         <div class="wq-lay-picks" id="wq-lay-picks"></div>
 
-                        <div class="wq-add-sub">사진 (아래 목록에서 칸으로 끌어다 놓으세요)</div>
+                        <div class="wq-add-sub">사진 <span class="wq-add-tip">— 파일을 끌어다 놓거나 붙여넣기(Ctrl+V)로 추가할 수 있습니다. 쓸 사진은 아래 칸으로 끌어다 놓으세요</span></div>
                         <div class="wq-pool" id="wq-pool">
                             <label class="wq-pool-add">
                                 + 사진 추가
@@ -3597,6 +3600,7 @@
             if (el) el.value = '';
         });
         document.getElementById('wq-add-fields').hidden = false;
+        document.getElementById('wq-add-fields').open = false;   // 조회하면 펼친다
         document.getElementById('wq-add-photos').hidden = false;
         document.getElementById('wq-add-go').disabled = true;
         document.getElementById('wq-pool').querySelectorAll('.wq-pool-item')
@@ -3642,6 +3646,8 @@
                     ? '국립수목원 도감에서 학명·과명을 확인했습니다 (' + d.official.sci_full + ').'
                     : '국립수목원 도감에 없는 이름입니다 — 내용을 꼼꼼히 확인하세요.';
                 _wqAddMsg(d.warn ? d.warn : src, !!d.warn || !d.official);
+                // 조회한 내용을 바로 확인할 수 있게 상세를 펼친다
+                document.getElementById('wq-add-fields').open = true;
                 _wqAddSync();
                 _wqWebPhotos(name, (d.info || {}).sci_name || '');
             })
@@ -3727,16 +3733,64 @@
         }).join('');
     }
 
-    /* 사진 올리기 */
+    /* 사진 올리기 — 단추로 고르거나, 끌어다 놓거나, 붙여넣는다 */
     window.weedAddFiles = function(input) {
-        Array.prototype.forEach.call(input.files, function(f) {
-            if (!/^image\//.test(f.type)) return;
-            _wqAdd.files.push({ file: f, url: URL.createObjectURL(f) });
-        });
+        _wqTakeFiles(input.files);
         input.value = '';
-        _wqPool();
-        _wqAddSync();
     };
+
+    function _wqTakeFiles(list) {
+        var n = 0;
+        Array.prototype.forEach.call(list || [], function(f) {
+            if (!f || !/^image\//.test(f.type)) return;
+            _wqAdd.files.push({ file: f, url: URL.createObjectURL(f) });
+            n++;
+        });
+        if (n) { _wqPool(); _wqAddSync(); }
+        return n;
+    }
+
+    /* 사진 목록에 끌어다 놓기 / 붙여넣기.
+       목록 안에서 칸으로 옮기는 드래그(내부 이동)와 섞이지 않도록,
+       바깥에서 온 파일(dataTransfer.files)이 있을 때만 받는다. */
+    (function bindPoolDrop() {
+        var pool = document.getElementById('wq-pool');
+        if (!pool) return;                       // 스태프가 아니면 요소가 없다
+        ['dragenter', 'dragover'].forEach(function(ev) {
+            pool.addEventListener(ev, function(e) {
+                if (!e.dataTransfer || !Array.prototype.includes.call(e.dataTransfer.types || [], 'Files')) return;
+                e.preventDefault();
+                pool.classList.add('over');
+            });
+        });
+        pool.addEventListener('dragleave', function(e) {
+            if (e.target === pool) pool.classList.remove('over');
+        });
+        pool.addEventListener('drop', function(e) {
+            var dt = e.dataTransfer;
+            if (!dt || !dt.files || !dt.files.length) return;   // 내부 이동은 그냥 둔다
+            e.preventDefault();
+            pool.classList.remove('over');
+            if (!_wqTakeFiles(dt.files)) _wqAddMsg('사진 파일만 넣을 수 있습니다.', true);
+        });
+        // 등록 창이 떠 있을 때만 붙여넣기를 받는다
+        document.addEventListener('paste', function(e) {
+            var box = document.getElementById('wq-add');
+            if (!box || box.hidden) return;
+            var items = (e.clipboardData || {}).items || [];
+            var files = [];
+            Array.prototype.forEach.call(items, function(it) {
+                if (it.kind === 'file') {
+                    var f = it.getAsFile();
+                    if (f) files.push(f);
+                }
+            });
+            if (!files.length) return;
+            e.preventDefault();
+            var got = _wqTakeFiles(files);
+            if (got) _wqAddMsg('붙여넣은 사진 ' + got + '장을 목록에 넣었습니다.');
+        });
+    })();
 
     function _wqPool() {
         var pool = document.getElementById('wq-pool');
