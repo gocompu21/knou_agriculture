@@ -2262,7 +2262,7 @@
                             <label class="wq-add-wide">식별 포인트<textarea id="wq-add-features" rows="4"></textarea></label>
                             <label class="wq-add-wide">헷갈리는 종과 구별<textarea id="wq-add-similar" rows="3"></textarea></label>
                             <label class="wq-add-wide">방제·비고<textarea id="wq-add-control" rows="3"></textarea></label>
-                            <label class="wq-add-wide">교수 메모 (사진 위에 흰 글씨로 얹힙니다)<textarea id="wq-add-notes" rows="2"></textarea></label>
+                            <label class="wq-add-wide">교수 메모 (사진 위에 흰 글씨로 얹힙니다 — 짧게)<textarea id="wq-add-notes" rows="3"></textarea></label>
                         </div>
                     </details>
 
@@ -3659,6 +3659,9 @@
                     document.getElementById('wq-add-features').value = d.info.features || '';
                     document.getElementById('wq-add-similar').value = d.info.similar || '';
                     document.getElementById('wq-add-control').value = d.info.control || '';
+                    // 교수 메모가 없는 종이므로 AI 가 줄인 식별 포인트로 채운다.
+                    // 사진 위에 겹쳐 보이는 쪽지라 짧아야 한다
+                    document.getElementById('wq-add-notes').value = d.info.memo || '';
                 }
                 var src = d.official
                     ? '국립수목원 도감에서 학명·과명을 확인했습니다 (' + d.official.sci_full + ').'

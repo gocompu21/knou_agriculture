@@ -1241,6 +1241,10 @@ class WeedInfo(BaseModel):
     life_form: str = Field(description="생활형. 예: 하계 일년생, 다년생 수생, 월년생")
     habitat: str = Field(description="주로 나는 곳. 예: 논·수로·습지, 밭·과수원·길가")
     features: list[str] = Field(description="식별 포인트. 한 항목에 한 가지씩 2~4개")
+    memo: list[str] = Field(
+        description="사진 위에 겹쳐 보일 짧은 메모. 사진만 보고 이 종이라고 "
+                    "짚어 낼 결정적인 특징을 12자 안팎으로 2~3개. "
+                    "예: '잎집에 흰 털', '줄기 속이 빔', '꽃이 한쪽으로 치우침'")
     similar: list[str] = Field(description="헷갈리는 종과 구별하는 법. 0~3개")
     control: list[str] = Field(description="방제 요령·비고. 1~3개")
 
@@ -1260,6 +1264,8 @@ _WEED_INFO_PROMPT = """너는 한국 농학과 잡초방제학 교수다. 아래
 - 방제는 생태적 특성에 근거해 실무적으로 적는다.
 - 모든 내용은 한국어. 불렛 기호(-, •)나 번호는 붙이지 않는다.
 - 한 항목은 한 문장으로 짧게. 여러 문장을 한 항목에 몰아넣지 않는다.
+- memo 는 **사진 위에 겹쳐 놓을 쪽지**다. 식별 포인트에서 가장 결정적인 것만
+  골라 12자 안팎의 구(句)로 줄인다. 문장을 쓰지 말고 "잎집에 흰 털"처럼 적는다.
 - 확실하지 않으면 지어내지 말고 그 항목을 비운다.
 - **국립수목원 자료가 주어졌으면 학명·과명은 그대로 따르고**, 형태 설명도 그것을
   근거로 삼는다. 다만 도감 문장을 그대로 옮기지 말고 **밭·논에서 눈으로 구별하는
@@ -1309,7 +1315,7 @@ def api_weed_name_check(request, pk):
         )
         info = WeedInfo.model_validate_json(resp.text).model_dump()
         # 화면에서는 줄 단위 텍스트로 다룬다
-        for f in ("features", "similar", "control"):
+        for f in ("features", "similar", "control", "memo"):
             info[f] = "\n".join(s.strip() for s in info[f] if s.strip())
     except Exception as e:
         logger.exception("잡초 정보 조회 실패")
