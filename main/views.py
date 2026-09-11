@@ -1316,19 +1316,21 @@ def _weed_compose(files, layout, width=900, gap=10):
     보였다). 열마다 사진을 폭에 맞춰 줄인 뒤 그 높이를 그대로 쓴다.
 
     낱장 가르기(`_weed_photo_boxes`)가 다시 찾아낼 수 있도록 칸 사이는 흰
-    여백으로 띄우되, 구별될 만큼만 둔다. 사진은 자르지 않는다.
+    여백으로 띄우되, 구별될 만큼만 둔다. **바깥 여백도 칸 사이와 같게** 둬
+    상하좌우가 고르게 보이도록 한다. 사진은 자르지 않는다.
     """
     from PIL import Image
 
     cells, _ratio = _WEED_LAYOUTS.get(layout) or _WEED_LAYOUTS["1"]
     photos = [Image.open(f).convert("RGB") for f in files]
+    inner = max(1, width - gap * 2)          # 사진이 놓이는 폭 (바깥 여백 뺀 것)
 
     # 칸마다 폭을 정하고, 그 폭에 맞춘 사진 높이를 구한다
     plan = []
     for cell, photo in zip(cells, photos):
         cx, cy, cw, ch = cell
-        x0 = int(cx * width) + (gap if cx > 0 else 0)
-        x1 = int((cx + cw) * width) - (gap if cx + cw < 1 else 0)
+        x0 = gap + int(cx * inner) + (gap // 2 if cx > 0 else 0)
+        x1 = gap + int((cx + cw) * inner) - (gap // 2 if cx + cw < 1 else 0)
         bw = max(1, x1 - x0)
         nh = max(1, round(photo.height * bw / photo.width))
         plan.append({"cell": cell, "photo": photo, "x0": x0, "w": bw, "h": nh})
@@ -1343,11 +1345,11 @@ def _weed_compose(files, layout, width=900, gap=10):
         hs = [p["h"] for p in plan
               if round(p["cell"][1], 3) == r and p["cell"][3] <= one_row]
         row_h[r] = max(hs) if hs else max(p["h"] for p in plan)
-    row_y, y = {}, 0
+    row_y, y = {}, gap                       # 위쪽 바깥 여백부터 시작
     for r in rows:
         row_y[r] = y
         y += row_h[r] + gap
-    height = max(1, y - gap)
+    height = max(1, y)                       # 마지막 gap 이 아래쪽 바깥 여백
 
     canvas = Image.new("RGB", (width, height), (255, 255, 255))
     for p in plan:
