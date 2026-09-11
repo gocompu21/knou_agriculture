@@ -412,7 +412,7 @@
     /* 파일을 끌어다 놓는 중 */
     .wq-pool.over { border-color: #2d6a4f; background: #eaf4ec; }
     .wq-pool-item { width: 120px; height: 92px; border-radius: 6px; overflow: hidden; position: relative; cursor: grab; border: 2px solid transparent; }
-    .wq-pool-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .wq-pool-item img { width: 100%; height: 100%; object-fit: cover; display: block; -webkit-user-drag: none; user-select: none; pointer-events: none; }
     .wq-pool-item.used { opacity: .35; cursor: default; }
     .wq-pool-add { width: 120px; height: 92px; display: flex; align-items: center; justify-content: center; border: 1px dashed #9ec2a8; border-radius: 6px; font-size: 0.72rem; color: #2d6a4f; cursor: pointer; text-align: center; background: #fff; }
     .wq-pool-busy { width: 100%; padding: 18px 0; text-align: center; font-size: 0.78rem; color: #7b8f80; }
@@ -437,7 +437,7 @@
     .wq-lay-stage { display: grid; gap: 6px; margin-top: 10px; background: #f4f8f4; border-radius: 8px; padding: 6px; }
     .wq-slot { position: relative; min-height: 70px; border: 2px dashed #c3d4c7; border-radius: 6px; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; color: #9bb0a0; overflow: hidden; }
     .wq-slot.over { border-color: #2d6a4f; background: #eaf4ec; }
-    .wq-slot img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .wq-slot img { width: 100%; height: 100%; object-fit: contain; display: block; -webkit-user-drag: none; user-select: none; pointer-events: none; }
     .wq-slot-x { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border: none; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; font-size: 0.7rem; cursor: pointer; line-height: 1; }
     @media (max-width: 700px) {
         .wq-table .wq-t-habitat, .wq-table .wq-t-life { display: none; }
@@ -3596,10 +3596,10 @@
         { key: '1l2r', cap: '좌1 · 우2',     cols: '1fr 1fr', rows: '1fr 1fr', cells: [[1, 2], [1, 1], [1, 1]] },
         { key: '2l2r', cap: '좌2 · 우2',     cols: '1fr 1fr', rows: '1fr 1fr', cells: [[1, 1], [1, 1], [1, 1], [1, 1]] },
     ];
-    var _wqAdd = { layout: null, files: [], slots: [], checked: '', busy: false };
+    var _wqAdd = { layout: null, files: [], slots: [], checked: '', busy: false, dragging: false };
 
     window.weedAddOpen = function() {
-        _wqAdd = { layout: null, files: [], slots: [], checked: '', busy: false };
+        _wqAdd = { layout: null, files: [], slots: [], checked: '', busy: false, dragging: false };
         document.getElementById('wq-add-name').value = '';
         ['family', 'life', 'habitat', 'features', 'similar', 'control', 'notes'].forEach(function(f) {
             var el = document.getElementById('wq-add-' + f);
@@ -3771,6 +3771,7 @@
         if (!pool) return;                       // 스태프가 아니면 요소가 없다
         ['dragenter', 'dragover'].forEach(function(ev) {
             pool.addEventListener(ev, function(e) {
+                if (_wqAdd.dragging) return;      // 목록 안에서 끄는 중이면 표시하지 않는다
                 if (!e.dataTransfer || !Array.prototype.includes.call(e.dataTransfer.types || [], 'Files')) return;
                 e.preventDefault();
                 pool.classList.add('over');
@@ -3781,7 +3782,13 @@
         });
         pool.addEventListener('drop', function(e) {
             var dt = e.dataTransfer;
-            if (!dt || !dt.files || !dt.files.length) return;   // 내부 이동은 그냥 둔다
+            // 목록에서 시작한 드래그는 여기서 받지 않는다 (자기를 자기에게 넣는 꼴)
+            if (_wqAdd.dragging || (dt && Array.prototype.includes.call(
+                    dt.types || [], 'application/x-wq-pool'))) {
+                _wqAdd.dragging = false;
+                return;
+            }
+            if (!dt || !dt.files || !dt.files.length) return;   // 그 밖의 내부 이동도 둔다
             e.preventDefault();
             pool.classList.remove('over');
             if (!_wqTakeFiles(dt.files)) _wqAddMsg('사진 파일만 넣을 수 있습니다.', true);
@@ -3825,7 +3832,12 @@
                          + ' onclick="event.stopPropagation(); weedZoom(' + i + ')">⊕</button>';
             el.addEventListener('dragstart', function(e) {
                 e.dataTransfer.setData('text/plain', String(i));
+                // 목록 안에서 시작한 드래그임을 표시한다 — 목록에 도로 놓아도
+                // 새 사진으로 들어가지 않게 한다(브라우저가 <img> 를 파일처럼 넘긴다)
+                e.dataTransfer.setData('application/x-wq-pool', String(i));
+                _wqAdd.dragging = true;
             });
+            el.addEventListener('dragend', function() { _wqAdd.dragging = false; });
             pool.insertBefore(el, add);
         });
     }
