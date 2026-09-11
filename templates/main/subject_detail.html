@@ -124,6 +124,7 @@
         font-weight: 700;
         margin-left: 6px;
         vertical-align: 1px;
+        color: #fff;                 /* 배경이 진하다 — 상속된 회색은 안 읽힌다 */
     }
 
     .tab-btn .badge-wrong {
@@ -1964,17 +1965,6 @@
     <div class="tab-nav fade-up">
         <button class="tab-btn{% if active_tab == 'notes' %} active{% endif %}" data-tab="notes"
             onclick="switchTab('notes')">쪽집게 정리{% if study_notes_count %}<sup style="font-size:0.7em;color:#2d6a4f;font-weight:700;margin-left:2px;">{{ study_notes_count }}</sup>{% endif %}</button>
-        <button class="tab-btn{% if active_tab == 'study' %} active{% endif %}" data-tab="study"
-            onclick="switchTab('study')">기출학습</button>
-        <button class="tab-btn{% if active_tab == 'solve' %} active{% endif %}" data-tab="solve"
-            onclick="switchTab('solve')">기출풀기</button>
-        <button class="tab-btn{% if active_tab == 'mock' %} active{% endif %}" data-tab="mock"
-            onclick="switchTab('mock')">모의고사</button>
-        <button class="tab-btn{% if active_tab == 'wrong' %} active{% endif %}" data-tab="wrong"
-            onclick="switchTab('wrong')">
-            오답 노트
-            {% if wrong_count > 0 %}<span class="tab-badge badge-wrong">{{ wrong_count }}</span>{% endif %}
-        </button>
         {% if weed_count %}
         <button class="tab-btn{% if active_tab == 'weeds' %} active{% endif %}" data-tab="weeds"
             onclick="switchTab('weeds')">
@@ -1982,6 +1972,17 @@
             <span class="tab-badge" style="background:#5b8c3a;">{{ weed_count }}</span>
         </button>
         {% endif %}
+        <button class="tab-btn{% if active_tab == 'study' %} active{% endif %}" data-tab="study"
+            onclick="switchTab('study')">기출학습</button>
+        <button class="tab-btn{% if active_tab == 'solve' %} active{% endif %}" data-tab="solve"
+            onclick="switchTab('solve')">기출풀기</button>
+        <button class="tab-btn{% if active_tab == 'wrong' %} active{% endif %}" data-tab="wrong"
+            onclick="switchTab('wrong')">
+            오답 노트
+            {% if wrong_count > 0 %}<span class="tab-badge badge-wrong">{{ wrong_count }}</span>{% endif %}
+        </button>
+        <button class="tab-btn{% if active_tab == 'mock' %} active{% endif %}" data-tab="mock"
+            onclick="switchTab('mock')">모의고사</button>
         <button class="tab-btn{% if active_tab == 'latest' %} active{% endif %}" data-tab="latest"
             onclick="switchTab('latest')">
             최신기출
