@@ -228,7 +228,7 @@
        서로 물려 몇 px 씩 치우친다). 블록으로 두고 좌우 auto 여백으로 놓는다 */
     .wq-photo-in { position: relative; display: flex; width: fit-content; max-width: 100%;
                    margin: 0 auto; border-radius: 8px; overflow: hidden; }
-    .wq-photo img { max-width: 100%; max-height: 68vh; border-radius: 8px; border: 1px solid #ddd; }
+    .wq-photo img { max-width: 100%; max-height: 68vh; border-radius: 8px; border: 1px solid #ddd; cursor: zoom-in; }
     .wq-side { flex: 0 0 260px; display: flex; flex-direction: column; gap: 14px; }
     .wq-choices { display: flex; flex-direction: column; gap: 10px; }
     .wq-choice { padding: 12px 10px; border: 1.5px solid #cfd8cf; border-radius: 8px; background: #fafcfa; font-size: 0.95rem; font-weight: 600; color: #222; cursor: pointer; text-align: center; transition: background .15s; }
@@ -2157,7 +2157,7 @@
             <div class="wq-card">
                 <div class="wq-quiz">
                     <div class="wq-photo"><span class="wq-photo-in">
-                        <img id="wq-img" alt="잡초 사진">
+                        <img id="wq-img" alt="잡초 사진" onclick="weedPhotoZoom()" title="눌러서 크게 보기">
                         <span class="wq-pos-ov" id="wq-pos"></span>
                         <span class="wq-score-ov" id="wq-score"></span>
                         <div id="wq-notes-ov" class="wq-notes-ov" hidden></div>
@@ -2269,14 +2269,14 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
-        <!-- 사진 크게 보기 -->
+        <!-- 사진 크게 보기 (등록 화면과 문제 사진이 함께 쓴다) -->
         <div id="wq-zoom" class="wq-zoom" hidden onclick="weedZoomClose()">
             <img id="wq-zoom-img" alt="" onclick="event.stopPropagation()">
             <div class="wq-zoom-cap" id="wq-zoom-cap"></div>
             <button type="button" class="wq-zoom-x" onclick="weedZoomClose()">✕</button>
         </div>
-        {% endif %}
     </div>
     {% endif %}
 
@@ -3870,6 +3870,15 @@
     window.weedZoomClose = function() {
         document.getElementById('wq-zoom').hidden = true;
         document.getElementById('wq-zoom-img').src = '';
+    };
+    /* 문제 사진 크게 보기 — 작은 특징(잎가장자리·엽설)을 살펴볼 때 쓴다.
+       답을 고르기 전에도 볼 수 있어야 한다(그게 문제를 푸는 일이다). */
+    window.weedPhotoZoom = function() {
+        var img = document.getElementById('wq-img');
+        if (!img || !img.src) return;
+        document.getElementById('wq-zoom-img').src = img.src;
+        document.getElementById('wq-zoom-cap').textContent = '';
+        document.getElementById('wq-zoom').hidden = false;
     };
 
     window.weedSlotOver = function(e, i) { e.preventDefault(); e.currentTarget.classList.add('over'); };
