@@ -2165,7 +2165,7 @@
                 <button type="button" class="wq-reset" onclick="weedReset()">기록 지우기</button>
             </div>
             <div class="wq-modes">
-                <button type="button" class="wq-mode-btn" data-mode="all" onclick="weedStart('all')">전체 {{ weed_count }}종</button>
+                <button type="button" class="wq-mode-btn" data-mode="all" onclick="weedStart('all')">전체 <span id="wq-all-n">{{ weed_count }}</span>종</button>
                 <button type="button" class="wq-mode-btn" data-mode="freq" onclick="weedStart('freq')">출제된 것 우선 ({{ weed_stats.freq }})</button>
                 <button type="button" class="wq-mode-btn wrong" data-mode="wrong" onclick="weedStart('wrong')">오답만 (<span id="wq-wrong2">{{ weed_stats.wrong }}</span>)</button>
                 <button type="button" class="wq-mode-btn list" onclick="weedList()">목록</button>
@@ -4078,6 +4078,16 @@
         else hint.textContent = '사진 ' + _wqAdd.slots.length + '장으로 등록합니다.';
     }
 
+    /* 카드를 하나 넣었으니 화면의 종 수도 올린다 (서버에서 다시 받지 않는다) */
+    function _wqBumpCount() {
+        ['wq-all-n', 'wq-list-n'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            var n = parseInt(el.textContent, 10);
+            if (!isNaN(n)) el.textContent = n + 1;
+        });
+    }
+
     window.weedAddSubmit = function() {
         var btn = document.getElementById('wq-add-go');
         btn.disabled = true; btn.textContent = '등록 중…';
@@ -4104,11 +4114,13 @@
             btn.disabled = false; btn.textContent = '등록';
             if (!d.ok) { _wqAddMsg(d.error || '등록하지 못했습니다.', true); return; }
             weedAddClose();
-            // 목록을 다시 받아 새 카드가 보이게 한다
-            var body = document.getElementById('wq-list-body');
-            delete body.dataset.loaded;
+            // 목록은 새로 받도록 표시만 해 두고, 방금 넣은 카드로 바로 문제를 낸다 —
+            // 사진이 제대로 붙었는지 그 자리에서 확인하는 편이 낫다
+            delete document.getElementById('wq-list-body').dataset.loaded;
             document.getElementById('wq-list').hidden = true;
-            weedList();
+            _wqBumpCount();              // '전체 N종' 과 목록 머리글을 하나 올린다
+            if (d.id) weedGo(d.id);
+            else weedList();
         }).catch(function() {
             btn.disabled = false; btn.textContent = '등록';
             _wqAddMsg('등록하지 못했습니다.', true);

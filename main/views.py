@@ -1737,7 +1737,9 @@ def api_weed_card_create(request, pk):
     composed.save(buf, format="JPEG", quality=92)
     card.q_image.save("q_%s.jpg" % uuid.uuid4().hex[:10], ContentFile(buf.getvalue()), save=False)
     card.save()
-    return JsonResponse({"ok": True, "card_no": card.card_no, "name": card.name})
+    # 등록한 카드로 바로 문제를 내려면 id 가 필요하다
+    return JsonResponse({"ok": True, "id": card.pk,
+                         "card_no": card.card_no, "name": card.name})
 
 
 @login_required
