@@ -3736,11 +3736,12 @@
         stage.style.gridTemplateColumns = L.cols;
         stage.style.gridTemplateRows = L.rows;
         /* 배열을 고르면 그 비율의 직사각 틀이 먼저 잡히고, 사진은 이 안에서 맞춰진다.
-           높이를 못 박지 않으면 사진 원본 비율대로 늘어나 창을 넘어간다.
-           서버가 만들 카드와 같은 모양이라 미리보기가 결과와 일치한다. */
-        var h = 190;
-        stage.style.height = h + 'px';
-        stage.style.width = Math.round(h / L.ratio) + 'px';
+           크기를 못 박지 않으면 사진 원본 비율대로 늘어나 창을 넘어간다.
+           **폭을 기준으로** 잡는다 — 높이를 기준으로 하면 세로로 긴 배열(상1·하1)이
+           가로로 지나치게 넓어진다. 서버가 만들 카드와 같은 비율이다. */
+        var w = 300;
+        stage.style.width = w + 'px';
+        stage.style.height = Math.round(w * L.ratio) + 'px';
         stage.innerHTML = L.cells.map(function(c, i) {
             var f = _wqAdd.slots[i];
             var inner = f
