@@ -49,10 +49,15 @@ def guess_layout(boxes, size):
     if n == 2:
         return '1t1b' if len(rows) == 2 else None      # 좌우 2칸 배열은 없다
     if n == 3:
-        if len(rows) == 2 and len(cols) == 2:
-            # 위가 한 장이면 상1·하2, 왼쪽이 한 장이면 좌1·우2
-            top = [b for b in boxes if b[1] == rows[0]]
-            return '1t2b' if len(top) == 1 else '1l2r'
+        # 위가 한 장이면 상1·하2, 왼쪽이 한 장이면 좌1·우2.
+        # 줄·열 좌표가 몇 px 씩 어긋나므로 (테두리를 그리면 더 그렇다)
+        # 정확히 같은 값이 아니라 '가까운가'로 묶는다
+        top = [b for b in boxes if b[1] - rows[0] < 40]
+        left = [b for b in boxes if b[0] - cols[0] < 40]
+        if len(top) == 1 and len(left) == 2:
+            return '1t2b'
+        if len(left) == 1 and len(top) == 2:
+            return '1l2r'
         return None
     if n == 4:
         return '2t2b' if len(rows) == 2 else None
