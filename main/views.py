@@ -1308,31 +1308,61 @@ _WEED_LAYOUTS = {
 }
 
 
-def _weed_compose(files, layout, width=900, gap=12):
+def _weed_compose(files, layout, width=900, gap=10):
     """올린 사진들을 고른 배열대로 한 장에 붙인다.
 
-    낱장 가르기(`_weed_photo_boxes`)가 다시 찾아낼 수 있도록 칸 사이를 흰
-    여백으로 띄운다. 사진은 자르지 않고 칸 안에 통째로 넣는다.
+    **높이는 사진에 맞춰 정한다** — 배열 비율로 틀을 먼저 못 박으면 사진이
+    칸보다 납작할 때 위아래에 큰 빈 자리가 남는다(상·하 사진 사이가 벌어져
+    보였다). 열마다 사진을 폭에 맞춰 줄인 뒤 그 높이를 그대로 쓴다.
+
+    낱장 가르기(`_weed_photo_boxes`)가 다시 찾아낼 수 있도록 칸 사이는 흰
+    여백으로 띄우되, 구별될 만큼만 둔다. 사진은 자르지 않는다.
     """
     from PIL import Image
 
-    cells, ratio = _WEED_LAYOUTS.get(layout) or _WEED_LAYOUTS["1"]
-    height = int(width * ratio)
+    cells, _ratio = _WEED_LAYOUTS.get(layout) or _WEED_LAYOUTS["1"]
+    photos = [Image.open(f).convert("RGB") for f in files]
 
-    canvas = Image.new("RGB", (width, height), (255, 255, 255))
-    for cell, f in zip(cells, files):
+    # 칸마다 폭을 정하고, 그 폭에 맞춘 사진 높이를 구한다
+    plan = []
+    for cell, photo in zip(cells, photos):
         cx, cy, cw, ch = cell
         x0 = int(cx * width) + (gap if cx > 0 else 0)
-        y0 = int(cy * height) + (gap if cy > 0 else 0)
-        x1 = int((cx + cw) * width) - gap
-        y1 = int((cy + ch) * height) - gap
-        bw, bh = max(1, x1 - x0), max(1, y1 - y0)
+        x1 = int((cx + cw) * width) - (gap if cx + cw < 1 else 0)
+        bw = max(1, x1 - x0)
+        nh = max(1, round(photo.height * bw / photo.width))
+        plan.append({"cell": cell, "photo": photo, "x0": x0, "w": bw, "h": nh})
 
-        photo = Image.open(f).convert("RGB")
-        scale = min(bw / photo.width, bh / photo.height)
+    # 줄(row)마다 그 줄에서 가장 높은 사진에 맞춘다. cy 가 같은 것이 한 줄이다.
+    # 여러 줄을 차지하는 사진(좌1·우2 의 왼쪽)은 줄 높이 계산에서 뺀다 —
+    # 그것까지 넣으면 오른쪽 두 장 사이가 그만큼 벌어진다
+    rows = sorted({round(p["cell"][1], 3) for p in plan})
+    one_row = 1.0 / len(rows) + 1e-6 if rows else 1.0
+    row_h = {}
+    for r in rows:
+        hs = [p["h"] for p in plan
+              if round(p["cell"][1], 3) == r and p["cell"][3] <= one_row]
+        row_h[r] = max(hs) if hs else max(p["h"] for p in plan)
+    row_y, y = {}, 0
+    for r in rows:
+        row_y[r] = y
+        y += row_h[r] + gap
+    height = max(1, y - gap)
+
+    canvas = Image.new("RGB", (width, height), (255, 255, 255))
+    for p in plan:
+        cx, cy, cw, ch = p["cell"]
+        r = round(cy, 3)
+        # 차지하는 줄들의 높이 합
+        span = [rr for rr in rows if cy - 1e-6 <= rr < cy + ch - 1e-6]
+        bh = sum(row_h[rr] for rr in span) + gap * (len(span) - 1)
+        photo = p["photo"]
+        scale = min(p["w"] / photo.width, bh / photo.height)
         nw, nh = max(1, round(photo.width * scale)), max(1, round(photo.height * scale))
         photo = photo.resize((nw, nh), Image.LANCZOS)
-        canvas.paste(photo, (x0 + (bw - nw) // 2, y0 + (bh - nh) // 2))
+        # 남는 자리는 **아래로** 몰아 사진을 위에 붙인다. 가운데 두면 여러 줄을
+        # 차지하는 사진(좌1·우2 의 왼쪽)의 위아래가 다 떠 보인다
+        canvas.paste(photo, (p["x0"] + (p["w"] - nw) // 2, row_y[r]))
     return canvas
 
 
