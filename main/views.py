@@ -1037,6 +1037,9 @@ def _weed_q_parts(card):
         return []
     from django.core.cache import cache
 
+    # 사진을 바꾸면 파일 이름이 달라져 캐시가 저절로 새것을 잰다. 다만 낱장이
+    # 0개로 잡히는 일(파일이 아직 안 써진 상태 등)은 캐시하지 않는다 — 그대로
+    # 굳으면 확대할 때 전체가 뜬다
     key = "weedparts:%s" % card.q_image.name
     hit = cache.get(key)
     if hit is not None:
@@ -1050,7 +1053,8 @@ def _weed_q_parts(card):
     except Exception:
         logger.exception("문제 사진 낱장 좌표 실패")
         parts = []
-    cache.set(key, parts, 60 * 60 * 24 * 7)
+    if parts:                       # 빈 결과는 굳히지 않는다
+        cache.set(key, parts, 60 * 60 * 24 * 7)
     return parts
 
 
