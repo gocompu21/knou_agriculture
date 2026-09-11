@@ -429,7 +429,7 @@
     .wq-pool-item:hover .wq-pool-zoom { background: rgba(0,0,0,.75); }
     .wq-zoom { position: fixed; inset: 0; z-index: 1300; background: rgba(0,0,0,.82); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; cursor: zoom-out; }
     .wq-zoom[hidden] { display: none; }
-    .wq-zoom img { max-width: 100%; max-height: 82vh; border-radius: 6px; background: #fff; cursor: default; }
+    .wq-zoom img { max-width: 100%; max-height: 82vh; border-radius: 6px; background: #fff; cursor: zoom-out; }
     .wq-zoom-cap { color: #eee; font-size: 0.8rem; text-align: center; max-width: 760px; line-height: 1.5; }
     .wq-zoom-x { position: absolute; top: 14px; right: 18px; width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(255,255,255,.2); color: #fff; font-size: 1rem; cursor: pointer; }
 
@@ -2273,7 +2273,7 @@
 
         <!-- 사진 크게 보기 (등록 화면과 문제 사진이 함께 쓴다) -->
         <div id="wq-zoom" class="wq-zoom" hidden onclick="weedZoomClose()">
-            <img id="wq-zoom-img" alt="" onclick="event.stopPropagation()">
+            <img id="wq-zoom-img" alt="" title="눌러서 닫기">
             <div class="wq-zoom-cap" id="wq-zoom-cap"></div>
             <button type="button" class="wq-zoom-x" onclick="weedZoomClose()">✕</button>
         </div>
