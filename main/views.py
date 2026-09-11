@@ -1211,6 +1211,8 @@ def api_weed_card_detail(request, pk, card_id):
         "features": card.features, "similar": card.similar, "control": card.control,
         "notes": card.notes, "exam_count": card.exam_count,
         "q_img": card.q_image.url if card.q_image else "",
+        # 수정 창이 기존 사진을 낱장으로 목록에 담을 수 있게 좌표를 준다
+        "parts": _weed_q_parts(card),
     })
 
 
@@ -1867,6 +1869,9 @@ def api_weed_card_update(request, pk, card_id):
     for f in ("features", "similar", "control"):
         if f in request.POST:
             setattr(card, f, _clean_weed_html(request.POST[f]))
+
+    if request.POST.get("credits"):     # 인터넷 사진을 썼으면 출처를 적는다
+        card.control = _weed_control_with_credits(card.control, request.POST["credits"])
 
     if "notes" in request.POST:
         card.notes = _weed_notes_lines(request.POST["notes"])

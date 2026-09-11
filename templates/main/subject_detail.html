@@ -343,6 +343,9 @@
     .wq-row-edit { margin-left: 4px; padding: 3px 10px; border: 1px solid #cdc0b7; border-radius: 6px; background: #fff; color: #8a6d3b; font-size: 0.76rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .wq-row-edit:hover { background: #faf6f0; }
     .wq-edit-now { text-align: center; }
+    .wq-refetch { margin-left: 8px; padding: 3px 10px; border: 1px solid #b7cdbc; border-radius: 6px; background: #fff; color: #2d6a4f; font-size: 0.74rem; font-weight: 600; cursor: pointer; }
+    .wq-refetch:hover { background: #eef5ef; }
+    .wq-refetch:disabled { opacity: .6; cursor: default; }
     .wq-edit-now img { max-width: 260px; max-height: 300px; border: 1px solid #ddd; border-radius: 6px; }
     .wq-save-btn.done { background: #2d6a4f; color: #fff; border-color: #2d6a4f; }
     /* 사진 고르기 창 */
@@ -2308,7 +2311,10 @@
                             <div class="wq-add-sub">새 사진 배열</div>
                             <div class="wq-lay-picks" id="wq-elay-picks"></div>
 
-                            <div class="wq-add-sub">사진 <span class="wq-add-tip">— 끌어다 놓거나 붙여넣기(Ctrl+V)</span></div>
+                            <div class="wq-add-sub">사진
+                                <span class="wq-add-tip">— 끌어다 놓거나 붙여넣기(Ctrl+V)</span>
+                                <button type="button" class="wq-refetch" onclick="weedEditRefetch()">인터넷에서 가져오기</button>
+                            </div>
                             <div class="wq-pool" id="wq-epool">
                                 <label class="wq-pool-add">
                                     + 사진 추가
@@ -4097,8 +4103,11 @@
             var el = document.createElement('div');
             el.className = 'wq-pool-item' + (used ? ' used' : '');
             el.draggable = !used;
-            el.title = f.file ? f.file.name : '';
-            el.innerHTML = '<img src="' + f.url + '" alt="">';
+            el.title = f.web ? (f.web.title + ' / ' + f.web.license)
+                              : (f.file ? f.file.name : '');
+            var tag = f.web ? '위키' : (f.old ? '기존' : '');
+            el.innerHTML = '<img src="' + f.url + '" alt="">'
+                         + (tag ? '<span class="wq-pool-tag">' + tag + '</span>' : '');
             el.addEventListener('dragstart', function(e) {
                 e.dataTransfer.setData('text/plain', String(i));
                 e.dataTransfer.setData('application/x-wq-epool', String(i));
@@ -4177,6 +4186,7 @@
         if (was >= 0) _wqEdit.slots[was] = null;
         _wqEdit.slots[i] = f;
         _wqEstage(); _wqEpool(); _wqEditSync();
+        if (f.web && !f.file) _wqEditFetchWeb(f);
     };
     window.weedEditSlotClear = function(i) {
         _wqEdit.slots[i] = null;
@@ -4190,9 +4200,12 @@
             return;
         }
         var left = _wqEdit.slots.filter(function(s) { return !s; }).length;
+        var loading = _wqEdit.slots.filter(function(s) { return s && !s.file; }).length;
         hint.textContent = left
             ? '사진 칸이 ' + left + '개 비었습니다 — 채우거나 배열을 다시 고르세요.'
-            : '사진 ' + _wqEdit.slots.length + '장으로 바꿔 저장합니다.';
+            : (loading ? '사진을 받는 중입니다…'
+                       : '사진 ' + _wqEdit.slots.length + '장으로 바꿔 저장합니다.');
+        document.getElementById('wq-edit-go').disabled = !!loading;
     }
 
     /* 수정 창의 사진 목록에도 끌어다 놓기·붙여넣기 */
@@ -4234,6 +4247,82 @@
         });
     })();
 
+    /* 기존 사진을 낱장으로 잘라 목록에 담는다 — 그대로 다시 쓰거나 한 장만
+       갈아 끼울 수 있다. 서버가 준 좌표(비율)로 canvas 에서 자른다. */
+    function _wqEditLoadParts(url, parts) {
+        if (!url) return;
+        var img = new Image();
+        img.onload = function() {
+            var list = parts.length ? parts : [{ x: 0, y: 0, w: 1, h: 1 }];
+            list.forEach(function(p, i) {
+                var cw = Math.max(1, Math.round(img.naturalWidth * p.w));
+                var ch = Math.max(1, Math.round(img.naturalHeight * p.h));
+                var cv = document.createElement('canvas');
+                cv.width = cw; cv.height = ch;
+                cv.getContext('2d').drawImage(img,
+                    Math.round(img.naturalWidth * p.x), Math.round(img.naturalHeight * p.y),
+                    cw, ch, 0, 0, cw, ch);
+                cv.toBlob(function(blob) {
+                    if (!blob) return;
+                    var f = new File([blob], '기존_' + (i + 1) + '.jpg', { type: 'image/jpeg' });
+                    _wqEdit.files.push({ file: f, url: URL.createObjectURL(f), old: true });
+                    _wqEpool();
+                }, 'image/jpeg', 0.95);
+            });
+        };
+        img.src = url;
+    }
+
+    /* 인터넷에서 사진을 다시 가져온다 — 등록 화면과 같은 길이지만
+       이미 아는 종명으로 찾는다(학명은 서버가 도감에서 찾아 준다). */
+    window.weedEditRefetch = function() {
+        var name = document.getElementById('wq-edit-name').value.trim();
+        if (!name) { _wqEditMsg('종명을 먼저 확인하세요.', true); return; }
+        var btn = document.querySelector('.wq-refetch');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="wq-spin dark"></span>찾는 중…';
+        fetch('{% url "main:api_weed_web_photos" subject.pk %}?name=' + encodeURIComponent(name),
+              { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                btn.disabled = false; btn.textContent = '인터넷에서 가져오기';
+                var got = (d.photos || []).length;
+                if (!got) { _wqEditMsg('인터넷에 쓸 만한 사진이 없습니다.', true); return; }
+                d.photos.forEach(function(p) {
+                    _wqEdit.files.push({ web: p, file: null,
+                        url: '{% url "main:api_weed_fetch_photo" subject.pk %}?url='
+                             + encodeURIComponent(p.thumb) });
+                });
+                _wqEpool();
+                _wqEditMsg('사진 ' + got + '장을 찾았습니다 — 쓸 것을 칸으로 끌어다 놓으세요.');
+            })
+            .catch(function() {
+                btn.disabled = false; btn.textContent = '인터넷에서 가져오기';
+                _wqEditMsg('가져오지 못했습니다.', true);
+            });
+    };
+
+    /* 웹 사진은 칸에 놓을 때 큰 판을 받아 둔다 (등록 화면과 같다) */
+    function _wqEditFetchWeb(f) {
+        f.loading = true;
+        _wqEditSync();
+        fetch('{% url "main:api_weed_fetch_photo" subject.pk %}?url=' + encodeURIComponent(f.web.full),
+              { credentials: 'same-origin' })
+            .then(function(r) { if (!r.ok) throw 0; return r.blob(); })
+            .then(function(blob) {
+                f.file = new File([blob], (f.web.title || 'photo') + '.jpg', { type: 'image/jpeg' });
+                f.loading = false;
+                _wqEditSync();
+            })
+            .catch(function() {
+                f.loading = false;
+                var at = _wqEdit.slots.indexOf(f);
+                if (at >= 0) _wqEdit.slots[at] = null;
+                _wqEstage(); _wqEpool(); _wqEditSync();
+                _wqEditMsg('그 사진을 받지 못했습니다. 다른 것을 골라 주세요.', true);
+            });
+    }
+
     window.weedEditOpen = function(cardId) {
         _wqEditId = cardId;
         var box = document.getElementById('wq-edit');
@@ -4268,6 +4357,7 @@
                 document.getElementById('wq-edit-control').value = _wqStripTags(d.control);
                 document.getElementById('wq-edit-notes').value = d.notes || '';
                 document.getElementById('wq-edit-cur').src = d.q_img || '';
+                _wqEditLoadParts(d.q_img, d.parts || []);
                 _wqEditSync();
             })
             .catch(function() { _wqEditMsg('불러오지 못했습니다.', true); });
@@ -4310,9 +4400,14 @@
         fd.append('control', document.getElementById('wq-edit-control').value);
         fd.append('notes', document.getElementById('wq-edit-notes').value);
         // 배열을 골라 칸을 다 채웠을 때만 사진을 바꾼다
-        if (_wqEdit.layout && _wqEdit.slots.length && _wqEdit.slots.every(function(x) { return !!x; })) {
+        if (_wqEdit.layout && _wqEdit.slots.length
+            && _wqEdit.slots.every(function(x) { return x && x.file; })) {
             fd.append('layout', _wqEdit.layout.key);
             _wqEdit.slots.forEach(function(x) { fd.append('photos', x.file); });
+            // 인터넷 사진은 CC 라 출처를 밝혀야 한다 (방제·비고 끝에 적힌다)
+            fd.append('credits', JSON.stringify(_wqEdit.slots.filter(function(x) { return x.web; })
+                .map(function(x) { return { title: x.web.title, license: x.web.license,
+                                            author: x.web.author, page: x.web.page }; })));
         }
         fetch('{% url "main:api_weed_card_update" subject.pk 0 %}'.replace('/weed-card/0/', '/weed-card/' + _wqEditId + '/'), {
             method: 'POST', body: fd, credentials: 'same-origin',
