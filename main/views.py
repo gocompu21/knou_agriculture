@@ -1061,6 +1061,8 @@ def _weed_card_payload(c):
         "similar": c.similar, "control": c.control,
         "notes": [n for n in c.notes.split("\n") if n.strip()],
         "exam_count": c.exam_count,
+        # 사진을 바꾸면 주소가 달라진다 — 화면이 그것으로 다시 그린다
+        "q_img": c.q_image.url if c.q_image else "",
         "a_img": c.a_image.url if c.a_image else "",
         "sketch": c.sketch_image.url if c.sketch_image else "",
     }
@@ -1872,9 +1874,14 @@ def api_weed_card_update(request, pk, card_id):
     subject = get_object_or_404(Subject, pk=pk)
     card = get_object_or_404(WeedCard, pk=card_id, subject=subject)
 
+    # 수정 창은 평문 textarea 다 — HTML 정리를 태우면 따옴표·& 가 엔티티로
+    # 바뀌어 화면에 &#x27; 로 그대로 보인다(화면이 평문을 한 번 더 이스케이프한다).
+    # 답 화면의 편집기는 태그를 보내므로 그때만 정리한다.
+    plain = request.POST.get("plain") == "1"
     for f in ("features", "similar", "control"):
         if f in request.POST:
-            setattr(card, f, _clean_weed_html(request.POST[f]))
+            raw = request.POST[f]
+            setattr(card, f, _weed_plain(raw) if plain else _clean_weed_html(raw))
 
     if request.POST.get("credits"):     # 인터넷 사진을 썼으면 출처를 적는다
         card.control = _weed_control_with_credits(card.control, request.POST["credits"])

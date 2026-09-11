@@ -4488,9 +4488,13 @@
                 nov.innerHTML = '<ul>' + card.notes.map(function(n) { return '<li>' + _wqEsc(n) + '</li>'; }).join('') + '</ul>';
                 nov.hidden = false;
             } else { nov.hidden = true; nov.innerHTML = ''; }
-            // 사진을 바꿨으면 다시 받는다 (주소가 같아도 캐시를 피한다)
+            // 사진을 바꿨으면 새 주소로 다시 그린다. 주소가 그대로면 건드리지 않는다 —
+            // 옛 주소에 ?v= 만 붙이면 이미 지워진 파일을 부르게 된다
             var img = document.getElementById('wq-img');
-            if (img && img.src) img.src = img.src.split('?')[0] + '?v=' + Date.now();
+            if (img && card.q_img && img.src.split('?')[0] !== card.q_img) {
+                img.src = card.q_img;
+                _wqParts = [];        // 낱장 좌표는 다음 출제 때 새로 받는다
+            }
         }
         var list = document.getElementById('wq-list');
         if (!list.hidden || !onAnswer) {           // 목록을 보는 중이면 새로 받는다
@@ -4506,6 +4510,7 @@
         btn.disabled = true; btn.textContent = '저장 중…';
         var fd = new FormData();
         fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        fd.append('plain', '1');          // 이 창은 평문으로 고친다
         fd.append('name', document.getElementById('wq-edit-name').value);
         fd.append('family', document.getElementById('wq-edit-family').value);
         fd.append('life_form', document.getElementById('wq-edit-life').value);
