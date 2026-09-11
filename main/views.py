@@ -1220,7 +1220,7 @@ _WEED_INFO_PROMPT = """너는 한국 농학과 잡초방제학 교수다. 아래
 방송대 학생용 동정 카드에 넣을 정보를 쓴다.
 
 잡초 이름: {name}
-
+{official}
 규칙
 - 한국에서 실제로 문제가 되는 잡초 기준으로 쓴다.
 - 학명은 "속명 종소명" 두 낱말만 쓴다(명명자·아종은 빼고). 사진을 찾는 데
@@ -1231,7 +1231,10 @@ _WEED_INFO_PROMPT = """너는 한국 농학과 잡초방제학 교수다. 아래
 - 방제는 생태적 특성에 근거해 실무적으로 적는다.
 - 모든 내용은 한국어. 불렛 기호(-, •)나 번호는 붙이지 않는다.
 - 한 항목은 한 문장으로 짧게. 여러 문장을 한 항목에 몰아넣지 않는다.
-- 확실하지 않으면 지어내지 말고 그 항목을 비운다."""
+- 확실하지 않으면 지어내지 말고 그 항목을 비운다.
+- **국립수목원 자료가 주어졌으면 학명·과명은 그대로 따르고**, 형태 설명도 그것을
+  근거로 삼는다. 다만 도감 문장을 그대로 옮기지 말고 **밭·논에서 눈으로 구별하는
+  요령**으로 고쳐 쓴다 — 카드는 사진을 보고 이름을 맞히는 데 쓴다."""
 
 
 @user_passes_test(lambda u: u.is_staff)
@@ -1247,15 +1250,31 @@ def api_weed_name_check(request, pk):
         return JsonResponse({"ok": False, "duplicate": True,
                              "error": "이미 등록된 종입니다 (카드 %d번)." % dup.card_no})
 
+    # 국립수목원 도감을 먼저 본다 — 학명·과명이 정확하고, 형태·분포 글이
+    # AI 가 지어내는 것보다 믿을 만하다 (사진은 주지 않는다)
+    official = _weed_nature_info(name)
+    block = ""
+    if official:
+        rows = [("학명", official.get("sci_full")),
+                ("과명", official.get("family")),
+                ("APG 과명", official.get("apg_family")),
+                ("형태(도감)", (official.get("shape") or "")[:900]),
+                ("분포(도감)", (official.get("dstrb") or "")[:300]),
+                ("유사식물(도감)", (official.get("similar") or "")[:400]),
+                ("비고(도감)", (official.get("note") or "")[:400])]
+        lines = ["%s: %s" % (k, v) for k, v in rows if v]
+        if lines:
+            block = "\n[국립수목원 국가표준식물목록 자료]\n" + "\n".join(lines) + "\n"
+
     api_key = settings.GEMINI_API_KEY
     if not api_key:
-        return JsonResponse({"ok": True, "info": None,
+        return JsonResponse({"ok": True, "info": None, "official": official,
                              "warn": "GEMINI_API_KEY 가 없어 자동 조회를 건너뜁니다."})
     try:
         client = genai.Client(api_key=api_key)
         resp = client.models.generate_content(
             model="gemini-2.5-flash",
-            contents=_WEED_INFO_PROMPT.format(name=name),
+            contents=_WEED_INFO_PROMPT.format(name=name, official=block),
             config={"response_mime_type": "application/json",
                     "response_schema": WeedInfo},
         )
@@ -1265,9 +1284,16 @@ def api_weed_name_check(request, pk):
             info[f] = "\n".join(s.strip() for s in info[f] if s.strip())
     except Exception as e:
         logger.exception("잡초 정보 조회 실패")
-        return JsonResponse({"ok": True, "info": None,
+        return JsonResponse({"ok": True, "info": None, "official": official,
                              "warn": "자동 조회에 실패했습니다: %s" % e})
-    return JsonResponse({"ok": True, "info": info})
+
+    # 학명·과명은 도감 값으로 덮어쓴다 — AI 는 호출마다 달리 답할 때가 있다
+    if official:
+        if official.get("sci_name"):
+            info["sci_name"] = official["sci_name"]
+        if official.get("family"):
+            info["family"] = official["family"]
+    return JsonResponse({"ok": True, "info": info, "official": official})
 
 
 # 사진을 어떻게 늘어놓을지 — 칸마다 (x, y, 폭, 높이) 비율, 그리고 전체 세로:가로 비
@@ -1395,44 +1421,85 @@ def _weed_web_photos(name, sci_name="", limit=12):
     return out
 
 
-def _weed_nature_photos(name, limit=8):
-    """국립수목원 국가생물종지식정보시스템에서 사진을 찾는다.
+_NATURE_BASE = "https://apis.data.go.kr/1400119/PlantResource"
 
-    공공데이터포털 키(`NATURE_API_KEY`)가 있어야 한다. 없으면 건너뛴다 —
-    위키미디어만으로도 등록은 된다.
+
+def _nature_xml(path, **params):
+    """국립수목원 식물자원 API 호출.
+
+    키는 **이미 URL 인코딩된 상태로 발급**되므로 그대로 붙인다 —
+    `urlencode` 로 다시 인코딩하면 403 이 난다.
     """
-    key = getattr(settings, "NATURE_API_KEY", "")
-    if not key:
-        return []
     import urllib.parse
     import urllib.request
     from xml.etree import ElementTree
 
-    base = "http://api.nature.go.kr/openapi/service/rest/PlantService"
-    try:
-        url = ("%s/plantPilbkSearch?serviceKey=%s&st=1&sw=%s&numOfRows=%d"
-               % (base, key, urllib.parse.quote(name), limit))
-        req = urllib.request.Request(url, headers={"User-Agent": _WIKI_UA})
-        with urllib.request.urlopen(req, timeout=12) as resp:
-            root = ElementTree.fromstring(resp.read())
-    except Exception:
-        logger.exception("국립수목원 조회 실패")
-        return []
+    key = getattr(settings, "NATURE_API_KEY", "")
+    if not key:
+        return None
+    qs = "&".join("%s=%s" % (k, urllib.parse.quote(str(v))) for k, v in params.items())
+    url = "%s%s?%s&serviceKey=%s" % (_NATURE_BASE, path, qs, key)
+    req = urllib.request.Request(url, headers={"User-Agent": _WIKI_UA})
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        return ElementTree.fromstring(resp.read())
 
-    out = []
+
+def _weed_nature_info(name):
+    """국립수목원 식물도감에서 그 식물의 공식 자료를 가져온다.
+
+    **사진은 없다** — 학명·과명과 형태·분포·유사식물 같은 도감 글이다. AI 추정보다
+    정확하므로 이것을 먼저 받아 AI 프롬프트의 바탕으로 쓴다.
+
+    이름이 들어간 종이 여럿 걸리므로("바랭이" → 갯바랭이·왕바랭이…) 국명이 정확히
+    같은 것을 고르고, 없으면 이명(notRcmmGnrlNm)까지 본다. '강피'처럼 표준 국명이
+    아닌 이름은 아예 안 걸린다 — 그때는 AI 만으로 채운다.
+    """
+    if not name:
+        return None
+    try:
+        root = _nature_xml("/plantPilbkSearch", reqSearchWrd=name, numOfRows=30, pageNo=1)
+    except Exception:
+        logger.exception("국립수목원 목록 검색 실패")
+        return None
+    if root is None:
+        return None
+
+    exact = alias = None
     for item in root.iter("item"):
-        img = (item.findtext("imgUrl") or "").strip()
-        if not img:
-            continue
-        out.append({
-            "thumb": img, "full": img,
-            "title": (item.findtext("plantGnrlNm") or name).strip(),
-            "license": "공공누리", "author": "국립수목원",
-            "page": (item.findtext("plantPilbkNo") or ""),
-        })
-        if len(out) >= limit:
+        if (item.findtext("plantGnrlNm") or "").strip() == name:
+            exact = item
             break
-    return out
+        if alias is None:
+            others = [o.strip() for o in (item.findtext("notRcmmGnrlNm") or "").split(",")]
+            if name in others:
+                alias = item
+    item = exact if exact is not None else alias
+    if item is None:
+        return None
+
+    info = {
+        "std_name": (item.findtext("plantGnrlNm") or "").strip(),
+        "sci_full": (item.findtext("plantSpecsScnm") or "").strip(),
+        "family": (item.findtext("familyKorNm") or "").strip(),
+        "apg_family": (item.findtext("apgFamilyKorNm") or "").strip(),
+        "no": (item.findtext("plantPilbkNo") or "").strip(),
+        "matched": "exact" if exact is not None else "alias",
+    }
+    # 학명에서 명명자를 떼어 "속명 종소명"만 남긴다 (사진 검색에 쓴다)
+    parts = info["sci_full"].split()
+    info["sci_name"] = " ".join(parts[:2]) if len(parts) >= 2 else info["sci_full"]
+
+    if info["no"]:
+        try:
+            detail = _nature_xml("/plantPilbkInfo", reqPlantPilbkNo=info["no"])
+            node = next(detail.iter("item"), None) if detail is not None else None
+            if node is not None:
+                for key, tag in (("shape", "shpe"), ("dstrb", "dstrb"),
+                                 ("similar", "smlrPlntDesc"), ("note", "note")):
+                    info[key] = (node.findtext(tag) or "").strip()
+        except Exception:
+            logger.exception("국립수목원 상세 조회 실패")
+    return info
 
 
 @user_passes_test(lambda u: u.is_staff)
@@ -1442,9 +1509,12 @@ def api_weed_web_photos(request, pk):
     name = (request.GET.get("name") or "").strip()
     if not name:
         return JsonResponse({"photos": []})
-    # 한국 자생종 사진이 정확하므로 국립수목원을 앞에 둔다 (키가 없으면 빈 목록)
-    photos = _weed_nature_photos(name) + _weed_web_photos(name, (request.GET.get("sci") or "").strip())
-    return JsonResponse({"photos": photos})
+    # 학명으로 찾아야 잘 나온다. 화면이 안 보내 주면 도감에서 찾아본다
+    sci = (request.GET.get("sci") or "").strip()
+    if not sci:
+        official = _weed_nature_info(name)
+        sci = (official or {}).get("sci_name", "")
+    return JsonResponse({"photos": _weed_web_photos(name, sci)})
 
 
 @user_passes_test(lambda u: u.is_staff)
@@ -1459,7 +1529,10 @@ def api_weed_fetch_photo(request, pk):
                            "http://www.nature.go.kr/", "https://www.nature.go.kr/")):
         return JsonResponse({"ok": False, "error": "허용되지 않은 주소입니다."}, status=400)
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": _WIKI_UA})
+        req = urllib.request.Request(url, headers={
+            "User-Agent": _WIKI_UA,
+            "Referer": "https://commons.wikimedia.org/",
+        })
         with urllib.request.urlopen(req, timeout=20) as resp:
             data = resp.read(12 * 1024 * 1024)
             ctype = resp.headers.get("Content-Type", "image/jpeg")
