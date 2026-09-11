@@ -3359,7 +3359,7 @@
     }
     function _wqEditBar() {
         if (!_WQ_STAFF) return '';
-        return '<div class="wq-edit-bar"><button type="button" class="wq-edit-btn" onclick="weedEdit()">답안 수정</button></div>';
+        return '<div class="wq-edit-bar"><button type="button" class="wq-edit-btn" onclick="weedEditFromAnswer()">수정</button></div>';
     }
     // 출제 횟수를 별로 — 5회↑ ★★★ / 3~4 ★★ / 2 ★ / 1 ☆ (실기 쪽집게 노트와 같은 기준)
     function _wqStars(n) {
@@ -4415,6 +4415,35 @@
         el.classList.toggle('warn', !!warn);
     }
 
+    /* 수정 뒤 화면 되살리기 — 어디서 열었느냐에 따라 다르다.
+       답을 보는 중이면 그 답 화면을 고치고, 목록을 보는 중이면 목록을 새로 받는다. */
+    function _wqAfterEdit(card) {
+        var ans = document.getElementById('wq-answer');
+        var onAnswer = _wqAns && card && _wqAns.id === card.id && ans && !ans.hidden;
+        if (onAnswer) {
+            _wqAns = card;
+            _WQ_FIELDS.forEach(function(f) {
+                if (f.key === 'notes') return;
+                var sec = ans.querySelector('.wq-sec[data-field="' + f.key + '"]');
+                if (sec) sec.querySelector('.wq-sec-body').innerHTML = _wqBody(card[f.key]);
+            });
+            var nov = document.getElementById('wq-notes-ov');
+            if (card.notes && card.notes.length) {
+                nov.innerHTML = '<ul>' + card.notes.map(function(n) { return '<li>' + _wqEsc(n) + '</li>'; }).join('') + '</ul>';
+                nov.hidden = false;
+            } else { nov.hidden = true; nov.innerHTML = ''; }
+            // 사진을 바꿨으면 다시 받는다 (주소가 같아도 캐시를 피한다)
+            var img = document.getElementById('wq-img');
+            if (img && img.src) img.src = img.src.split('?')[0] + '?v=' + Date.now();
+        }
+        var list = document.getElementById('wq-list');
+        if (!list.hidden || !onAnswer) {           // 목록을 보는 중이면 새로 받는다
+            var body = document.getElementById('wq-list-body');
+            delete body.dataset.loaded;
+            if (!list.hidden) { list.hidden = true; weedList(); }
+        }
+    }
+
     window.weedEditSubmit = function() {
         if (!_wqEditId) return;
         var btn = document.getElementById('wq-edit-go');
@@ -4446,10 +4475,7 @@
             btn.disabled = false; btn.textContent = '저장';
             if (!d.ok) { _wqEditMsg(d.error || '저장하지 못했습니다.', true); return; }
             weedEditWinClose();
-            var body = document.getElementById('wq-list-body');   // 목록을 새로 받는다
-            delete body.dataset.loaded;
-            document.getElementById('wq-list').hidden = true;
-            weedList();
+            _wqAfterEdit(d.card);
         }).catch(function() {
             btn.disabled = false; btn.textContent = '저장';
             _wqEditMsg('저장하지 못했습니다.', true);
@@ -4614,6 +4640,15 @@
         var ed = btn.closest('.wq-ef').querySelector('.wq-ed');
         ed.focus();
         _wqExec(cmd, val);
+    };
+
+    /* 답 화면의 '수정' — 목록의 수정 창을 연다.
+       예전의 붙박이 편집기(weedEdit)는 서술 항목만 고쳤다. 새 창은 종명·과명·
+       사진까지 고치므로 그쪽으로 모은다. 글자 색·밑줄은 못 쓰게 되는데,
+       132종 가운데 실제로 쓴 곳이 한 군데뿐이라 잃는 것이 적다. */
+    window.weedEditFromAnswer = function() {
+        if (!_wqAns || !_wqAns.id) return;
+        weedEditOpen(_wqAns.id);
     };
 
     window.weedEdit = function() {
