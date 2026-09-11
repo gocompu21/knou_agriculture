@@ -1026,6 +1026,34 @@ def _weed_latest_wrong_ids(user, subject):
                .values_list("card_id", flat=True))
 
 
+def _weed_q_parts(card):
+    """문제 사진의 낱장 좌표를 비율로 돌려준다 (크게 볼 때 쓴다).
+
+    문제 사진은 여러 장이 붙은 한 장이라, 누른 자리의 낱장만 크게 보여 주려면
+    좌표가 필요하다. 이미지를 열어 재는 일이라 캐시해 둔다 — 사진을 바꾸면
+    파일 이름이 달라지므로 캐시 키에 이름을 넣으면 저절로 새로 잰다.
+    """
+    if not card.q_image:
+        return []
+    from django.core.cache import cache
+
+    key = "weedparts:%s" % card.q_image.name
+    hit = cache.get(key)
+    if hit is not None:
+        return hit
+    try:
+        boxes = _weed_photo_boxes(card.q_image.path)
+        w, h = card.q_image.width, card.q_image.height
+        parts = [{"x": b[0] / w, "y": b[1] / h,
+                  "w": (b[2] - b[0]) / w, "h": (b[3] - b[1]) / h}
+                 for b in boxes] if w and h else []
+    except Exception:
+        logger.exception("문제 사진 낱장 좌표 실패")
+        parts = []
+    cache.set(key, parts, 60 * 60 * 24 * 7)
+    return parts
+
+
 def _weed_card_payload(c):
     return {
         "id": c.pk, "card_no": c.card_no, "name": c.name, "family": c.family,
@@ -1077,7 +1105,8 @@ def api_weed_quiz_next(request, pk):
     random.shuffle(choices)
     return JsonResponse({
         "done": False,
-        "card": {"id": card.pk, "q_img": card.q_image.url if card.q_image else ""},
+        "card": {"id": card.pk, "q_img": card.q_image.url if card.q_image else "",
+                 "parts": _weed_q_parts(card)},
         "choices": [{"id": c.pk, "name": c.name} for c in choices],
         "remaining": len(remaining), "total": len(pool),
     })
@@ -1700,7 +1729,8 @@ def api_weed_quiz_card(request, pk, card_id):
     random.shuffle(choices)
     return JsonResponse({
         "done": False,
-        "card": {"id": card.pk, "q_img": card.q_image.url if card.q_image else ""},
+        "card": {"id": card.pk, "q_img": card.q_image.url if card.q_image else "",
+                 "parts": _weed_q_parts(card)},
         "choices": [{"id": c.pk, "name": c.name} for c in choices],
         "remaining": 1, "total": 1,
     })

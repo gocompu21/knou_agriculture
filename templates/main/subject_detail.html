@@ -429,7 +429,10 @@
     .wq-pool-item:hover .wq-pool-zoom { background: rgba(0,0,0,.75); }
     .wq-zoom { position: fixed; inset: 0; z-index: 1300; background: rgba(0,0,0,.82); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; cursor: zoom-out; }
     .wq-zoom[hidden] { display: none; }
-    .wq-zoom img { max-width: 100%; max-height: 82vh; border-radius: 6px; background: #fff; cursor: zoom-out; }
+    /* 원본이 작아도(낱장은 450px 안팎) 크게 키워 본다 — 그게 확대다.
+       width 를 정해 줘야 커진다(auto 면 원본 크기에 머문다) */
+    .wq-zoom img { width: min(92vw, 1000px); height: auto; max-height: 86vh; object-fit: contain;
+                   border-radius: 6px; background: #fff; cursor: zoom-out; }
     .wq-zoom-cap { color: #eee; font-size: 0.8rem; text-align: center; max-width: 760px; line-height: 1.5; }
     .wq-zoom-x { position: absolute; top: 14px; right: 18px; width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(255,255,255,.2); color: #fff; font-size: 1rem; cursor: pointer; }
 
@@ -2157,7 +2160,7 @@
             <div class="wq-card">
                 <div class="wq-quiz">
                     <div class="wq-photo"><span class="wq-photo-in">
-                        <img id="wq-img" alt="잡초 사진" onclick="weedPhotoZoom()" title="눌러서 크게 보기">
+                        <img id="wq-img" alt="잡초 사진" onclick="weedPhotoZoom(event)" title="눌러서 크게 보기">
                         <span class="wq-pos-ov" id="wq-pos"></span>
                         <span class="wq-score-ov" id="wq-score"></span>
                         <div id="wq-notes-ov" class="wq-notes-ov" hidden></div>
@@ -3872,13 +3875,48 @@
         document.getElementById('wq-zoom-img').src = '';
     };
     /* 문제 사진 크게 보기 — 작은 특징(잎가장자리·엽설)을 살펴볼 때 쓴다.
-       답을 고르기 전에도 볼 수 있어야 한다(그게 문제를 푸는 일이다). */
-    window.weedPhotoZoom = function() {
+       답을 고르기 전에도 볼 수 있어야 한다(그게 문제를 푸는 일이다).
+
+       문제 사진은 여러 장이 붙은 한 장이라 **누른 자리의 낱장만** 크게 보여
+       준다(상단을 누르면 상단만). 서버가 준 낱장 좌표(비율)로 어디를 눌렀는지
+       가려내고 그 부분을 canvas 로 잘라 띄운다. */
+    var _wqParts = [];
+    window.weedPhotoZoom = function(e) {
         var img = document.getElementById('wq-img');
         if (!img || !img.src) return;
-        document.getElementById('wq-zoom-img').src = img.src;
+        var zoom = document.getElementById('wq-zoom');
+        var zimg = document.getElementById('wq-zoom-img');
         document.getElementById('wq-zoom-cap').textContent = '';
-        document.getElementById('wq-zoom').hidden = false;
+
+        var part = null;
+        if (e && _wqParts.length > 1) {
+            var box = img.getBoundingClientRect();
+            var rx = (e.clientX - box.left) / box.width;
+            var ry = (e.clientY - box.top) / box.height;
+            for (var i = 0; i < _wqParts.length; i++) {
+                var p = _wqParts[i];
+                if (rx >= p.x && rx <= p.x + p.w && ry >= p.y && ry <= p.y + p.h) { part = p; break; }
+            }
+        }
+        if (!part) {                       // 낱장 밖(여백)을 눌렀으면 전체를 보여 준다
+            zimg.src = img.src;
+            zoom.hidden = false;
+            return;
+        }
+        var src = new Image();             // 같은 서버 이미지라 canvas 가 막히지 않는다
+        src.onload = function() {
+            var cw = Math.round(src.naturalWidth * part.w);
+            var ch = Math.round(src.naturalHeight * part.h);
+            var cv = document.createElement('canvas');
+            cv.width = cw; cv.height = ch;
+            cv.getContext('2d').drawImage(src,
+                Math.round(src.naturalWidth * part.x), Math.round(src.naturalHeight * part.y),
+                cw, ch, 0, 0, cw, ch);
+            zimg.src = cv.toDataURL('image/jpeg', 0.92);
+            zoom.hidden = false;
+        };
+        src.onerror = function() { zimg.src = img.src; zoom.hidden = false; };
+        src.src = img.src;
     };
 
     window.weedSlotOver = function(e, i) { e.preventDefault(); e.currentTarget.classList.add('over'); };
@@ -4012,6 +4050,7 @@
                 document.getElementById('wq-pos').textContent = '목록에서 고른 문제';
                 document.getElementById('wq-score').textContent = _wq.n ? ('정답 ' + _wq.ok + ' / ' + _wq.n) : '';
                 document.getElementById('wq-img').src = d.card.q_img;
+                _wqParts = d.card.parts || [];        // 낱장 좌표 (크게 볼 때 쓴다)
                 document.getElementById('wq-sketch-ov').hidden = true;
                 document.getElementById('wq-notes-ov').hidden = true;
                 var box = document.getElementById('wq-choices');
@@ -4052,6 +4091,7 @@
             document.getElementById('wq-pos').textContent = (_wq.n + 1) + ' / ' + d.total + (d.total - d.remaining ? '' : '');
             document.getElementById('wq-score').textContent = _wq.n ? ('정답 ' + _wq.ok + ' / ' + _wq.n) : '';
             document.getElementById('wq-img').src = d.card.q_img;
+            _wqParts = d.card.parts || [];        // 낱장 좌표 (크게 볼 때 쓴다)
             document.getElementById('wq-sketch-ov').hidden = true;
             document.getElementById('wq-notes-ov').hidden = true;
             var box = document.getElementById('wq-choices');
