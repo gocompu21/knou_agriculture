@@ -415,6 +415,14 @@
     .wq-pool-busy { width: 100%; padding: 18px 0; text-align: center; font-size: 0.78rem; color: #7b8f80; }
     /* 인터넷에서 가져온 사진임을 표시 — 출처를 밝혀야 하는 CC 사진이다 */
     .wq-pool-tag { position: absolute; left: 3px; bottom: 3px; padding: 1px 5px; border-radius: 3px; background: rgba(27,67,50,.85); color: #fff; font-size: 0.6rem; font-weight: 600; }
+    /* 크게 보기 — 썸네일이 작아 무슨 사진인지 구별이 안 된다 */
+    .wq-pool-zoom { position: absolute; right: 2px; top: 2px; width: 20px; height: 20px; border: none; border-radius: 50%; background: rgba(0,0,0,.5); color: #fff; font-size: 0.8rem; line-height: 1; cursor: zoom-in; padding: 0; }
+    .wq-pool-item:hover .wq-pool-zoom { background: rgba(0,0,0,.75); }
+    .wq-zoom { position: fixed; inset: 0; z-index: 1300; background: rgba(0,0,0,.82); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; cursor: zoom-out; }
+    .wq-zoom[hidden] { display: none; }
+    .wq-zoom img { max-width: 100%; max-height: 82vh; border-radius: 6px; background: #fff; cursor: default; }
+    .wq-zoom-cap { color: #eee; font-size: 0.8rem; text-align: center; max-width: 760px; line-height: 1.5; }
+    .wq-zoom-x { position: absolute; top: 14px; right: 18px; width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(255,255,255,.2); color: #fff; font-size: 1rem; cursor: pointer; }
 
     /* 배열 칸 — 끌어다 놓는 자리 */
     .wq-lay-stage { display: grid; gap: 6px; margin-top: 10px; background: #f4f8f4; border-radius: 8px; padding: 6px; }
@@ -2249,6 +2257,13 @@
                 </div>
             </div>
         </div>
+
+        <!-- 사진 크게 보기 -->
+        <div id="wq-zoom" class="wq-zoom" hidden onclick="weedZoomClose()">
+            <img id="wq-zoom-img" alt="" onclick="event.stopPropagation()">
+            <div class="wq-zoom-cap" id="wq-zoom-cap"></div>
+            <button type="button" class="wq-zoom-x" onclick="weedZoomClose()">✕</button>
+        </div>
         {% endif %}
     </div>
     {% endif %}
@@ -3581,9 +3596,12 @@
             var el = document.getElementById('wq-add-' + f);
             if (el) el.value = '';
         });
-        document.getElementById('wq-add-fields').hidden = true;
-        document.getElementById('wq-add-photos').hidden = true;
+        document.getElementById('wq-add-fields').hidden = false;
+        document.getElementById('wq-add-photos').hidden = false;
         document.getElementById('wq-add-go').disabled = true;
+        document.getElementById('wq-pool').querySelectorAll('.wq-pool-item')
+            .forEach(function(el) { el.remove(); });
+        document.getElementById('wq-lay-stage').innerHTML = '';
         _wqAddMsg('');
         document.getElementById('wq-add-hint').textContent = '종명을 넣고 확인·조회를 누르세요.';
         _wqLayPicks();
@@ -3624,8 +3642,6 @@
                     ? '국립수목원 도감에서 학명·과명을 확인했습니다 (' + d.official.sci_full + ').'
                     : '국립수목원 도감에 없는 이름입니다 — 내용을 꼼꼼히 확인하세요.';
                 _wqAddMsg(d.warn ? d.warn : src, !!d.warn || !d.official);
-                document.getElementById('wq-add-fields').hidden = false;
-                document.getElementById('wq-add-photos').hidden = false;
                 _wqAddSync();
                 _wqWebPhotos(name, (d.info || {}).sci_name || '');
             })
@@ -3657,12 +3673,11 @@
                              + encodeURIComponent(p.thumb) });
                 });
                 _wqPool();
-                if (d.photos && d.photos.length) {
-                    // 앞의 도감 안내를 지우지 않고 뒤에 잇는다
-                    var el = document.getElementById('wq-add-msg');
-                    el.textContent = (el.textContent + ' 인터넷에서 사진 ' + d.photos.length
-                                    + '장을 찾았습니다 — 쓸 것을 칸으로 끌어다 놓으세요.').trim();
-                }
+                // 앞의 도감 안내를 지우지 않고 뒤에 잇는다
+                var el = document.getElementById('wq-add-msg');
+                el.textContent = (el.textContent + (d.photos && d.photos.length
+                    ? ' 인터넷에서 사진 ' + d.photos.length + '장을 찾았습니다 — 쓸 것을 칸으로 끌어다 놓으세요.'
+                    : ' 인터넷에 쓸 만한 사진이 없습니다 — 직접 올려 주세요.')).trim();
             })
             .catch(function() { busy.remove(); });
     }
@@ -3735,14 +3750,38 @@
             el.dataset.i = i;
             el.title = f.web ? (f.web.title + '\n' + f.web.license + ' · ' + f.web.author) : f.file.name;
             var tag = f.web ? (f.web.license === '공공누리' ? '수목원' : '위키') : '';
+            // 썸네일이 작아 무슨 사진인지 안 보인다 — 돋보기로 크게 본다.
+            // 드래그와 겹치지 않게 버튼을 따로 두고 클릭을 멈춘다
             el.innerHTML = '<img src="' + f.url + '" alt="">'
-                         + (tag ? '<span class="wq-pool-tag">' + tag + '</span>' : '');
+                         + (tag ? '<span class="wq-pool-tag">' + tag + '</span>' : '')
+                         + '<button type="button" class="wq-pool-zoom" title="크게 보기"'
+                         + ' onclick="event.stopPropagation(); weedZoom(' + i + ')">⊕</button>';
             el.addEventListener('dragstart', function(e) {
                 e.dataTransfer.setData('text/plain', String(i));
             });
             pool.insertBefore(el, add);
         });
     }
+
+    /* 사진 크게 보기 — 어떤 사진인지 썸네일로는 알기 어렵다 */
+    window.weedZoom = function(i) {
+        var f = _wqAdd.files[i];
+        if (!f) return;
+        var box = document.getElementById('wq-zoom');
+        // 큰 판을 보여 준다(웹 사진은 full, 직접 올린 것은 그대로)
+        var src = f.web
+            ? '{% url "main:api_weed_fetch_photo" subject.pk %}?url=' + encodeURIComponent(f.web.full)
+            : f.url;
+        document.getElementById('wq-zoom-img').src = src;
+        document.getElementById('wq-zoom-cap').textContent = f.web
+            ? f.web.title + ' — ' + (f.web.author || '') + ' / ' + f.web.license
+            : (f.file ? f.file.name : '');
+        box.hidden = false;
+    };
+    window.weedZoomClose = function() {
+        document.getElementById('wq-zoom').hidden = true;
+        document.getElementById('wq-zoom-img').src = '';
+    };
 
     window.weedSlotOver = function(e, i) { e.preventDefault(); e.currentTarget.classList.add('over'); };
     window.weedSlotLeave = function(e) { e.currentTarget.classList.remove('over'); };

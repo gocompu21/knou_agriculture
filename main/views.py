@@ -1384,22 +1384,33 @@ def _weed_web_photos(name, sci_name="", limit=12):
         if len(out) >= limit:
             break
         try:
+            # filetype:bitmap 으로 PDF·DjVu(옛 책 스캔)를 애초에 뺀다
             d = _wiki_json(
                 "https://commons.wikimedia.org/w/api.php?action=query&format=json"
                 "&generator=search&gsrnamespace=6&gsrlimit=%d&gsrsearch=%s"
                 "&prop=imageinfo&iiprop=url|extmetadata|size&iiurlwidth=480"
-                % (limit, urllib.parse.quote(term)))
+                % (limit, urllib.parse.quote(term + " filetype:bitmap")))
         except Exception:
             logger.exception("공용 사진 검색 실패: %s", term)
             continue
         for page in (d.get("query", {}).get("pages") or {}).values():
             info = (page.get("imageinfo") or [{}])[0]
             url = info.get("thumburl")
-            # 그림·도해·표본 스캔은 걸러 낸다 — 동정 카드에는 사진이 필요하다
             title = page.get("title", "")
             if not url or url in seen:
                 continue
-            if any(w in title.lower() for w in ("illustration", "drawing", ".svg", "herbarium")):
+            # 학명 사진이 없으면 **옛 식물학 책 스캔**이 잔뜩 걸린다(선피막이가 그랬다 —
+            # 12장이 모두 표지·본문 PDF 였다). 동정 카드에는 살아 있는 사진이 필요하다
+            low = title.lower()
+            if any(w in low for w in (".pdf", ".svg", ".djvu", ".tif",
+                                      "illustration", "drawing", "herbarium",
+                                      "plate ", "catalogue", "flora of ", "naturalist",
+                                      " list of ", "jstor-", "(ia ", "botanicum",
+                                      "journal", "bulletin", "magazine")):
+                continue
+            # 학명으로 찾았는데 제목에 그 학명이 없으면 대개 딴 사진이다
+            # (선피막이는 사진이 없어 수족관 사진 한 장이 걸렸다)
+            if term != name and term.lower().split()[0] not in low:
                 continue
             seen.add(url)
             meta = info.get("extmetadata") or {}
