@@ -2309,6 +2309,18 @@
                     <details class="wq-add-more" id="wq-edit-photos">
                         <summary>사진 바꾸기 (지금 사진을 그대로 두려면 열지 마세요)</summary>
                         <div style="padding:12px">
+                            <!-- 지금 사진과 새 배치를 나란히, 맨 위에 — 무엇이 어떻게 바뀌는지 먼저 본다 -->
+                            <div class="wq-edit-compare">
+                                <div>
+                                    <div class="wq-add-sub">지금 사진</div>
+                                    <div class="wq-edit-now"><img id="wq-edit-cur" alt=""></div>
+                                </div>
+                                <div>
+                                    <div class="wq-add-sub">새 배치</div>
+                                    <div class="wq-lay-stage" id="wq-elay-stage"></div>
+                                </div>
+                            </div>
+
                             <div class="wq-add-sub">새 사진 배열</div>
                             <div class="wq-lay-picks" id="wq-elay-picks"></div>
 
@@ -2321,18 +2333,6 @@
                                     + 사진 추가
                                     <input type="file" accept="image/*" multiple hidden onchange="weedEditFiles(this)">
                                 </label>
-                            </div>
-
-                            <!-- 지금 사진과 새 배치를 나란히 — 무엇이 어떻게 바뀌는지 한눈에 -->
-                            <div class="wq-edit-compare">
-                                <div>
-                                    <div class="wq-add-sub">지금 사진</div>
-                                    <div class="wq-edit-now"><img id="wq-edit-cur" alt=""></div>
-                                </div>
-                                <div>
-                                    <div class="wq-add-sub">새 배치</div>
-                                    <div class="wq-lay-stage" id="wq-elay-stage"></div>
-                                </div>
                             </div>
                         </div>
                     </details>
@@ -3674,6 +3674,7 @@
         { key: '1t1b', cap: '상1 · 하1',     cols: '1fr',     rows: '1fr 1fr', ratio: 1.40, cells: [[1, 1], [1, 1]] },
         { key: '1t2b', cap: '상1 · 하2',     cols: '1fr 1fr', rows: '1fr 1fr', ratio: 1.30, cells: [[2, 1], [1, 1], [1, 1]] },
         { key: '2t2b', cap: '상2 · 하2',     cols: '1fr 1fr', rows: '1fr 1fr', ratio: 1.00, cells: [[1, 1], [1, 1], [1, 1], [1, 1]] },
+        { key: '1l1r', cap: '좌1 · 우1',     cols: '1fr 1fr', rows: '1fr',     ratio: 0.40, cells: [[1, 1], [1, 1]] },
         { key: '1l2r', cap: '좌1 · 우2',     cols: '1fr 1fr', rows: '1fr 1fr', ratio: 0.75, cells: [[1, 2], [1, 1], [1, 1]] },
         { key: '2l2r', cap: '좌2 · 우2',     cols: '1fr 1fr', rows: '1fr 1fr', ratio: 1.00, cells: [[1, 1], [1, 1], [1, 1], [1, 1]] },
     ];
@@ -4216,10 +4217,13 @@
         }
         var left = _wqEdit.slots.filter(function(s) { return !s; }).length;
         var loading = _wqEdit.slots.filter(function(s) { return s && !s.file; }).length;
+        // 기존 사진 그대로면 바뀌는 게 없다는 뜻이다
+        var same = !left && !loading && _wqEdit.slots.every(function(s) { return s.old; });
         hint.textContent = left
             ? '사진 칸이 ' + left + '개 비었습니다 — 채우거나 배열을 다시 고르세요.'
             : (loading ? '사진을 받는 중입니다…'
-                       : '사진 ' + _wqEdit.slots.length + '장으로 바꿔 저장합니다.');
+               : same ? '사진은 지금 그대로입니다 (바꾸려면 칸의 사진을 갈아 끼우세요).'
+                      : '사진 ' + _wqEdit.slots.length + '장으로 바꿔 저장합니다.');
         document.getElementById('wq-edit-go').disabled = !!loading;
     }
 
@@ -4264,11 +4268,36 @@
 
     /* 기존 사진을 낱장으로 잘라 목록에 담는다 — 그대로 다시 쓰거나 한 장만
        갈아 끼울 수 있다. 서버가 준 좌표(비율)로 canvas 에서 자른다. */
+    /* 지금 사진이 어떤 배열인지 되짚어 그것을 기본으로 고른다 — 대개 배열은
+       그대로 두고 사진 한 장만 갈아 끼우므로, 매번 다시 고르게 할 일이 아니다.
+       낱장 좌표(비율)로 판단한다. */
+    function _wqGuessLayout(parts) {
+        var n = parts.length;
+        if (n <= 1) return '1';
+        var rows = [], cols = [];
+        parts.forEach(function(p) {
+            if (!rows.some(function(v) { return Math.abs(v - p.y) < 0.06; })) rows.push(p.y);
+            if (!cols.some(function(v) { return Math.abs(v - p.x) < 0.06; })) cols.push(p.x);
+        });
+        if (n === 2) return rows.length === 2 ? '1t1b' : '1l1r';
+        if (n === 3) {
+            // 위가 한 장이면 상1·하2, 왼쪽이 한 장이면 좌1·우2
+            var top = parts.filter(function(p) { return p.y < 0.3; });
+            return top.length === 1 && cols.length === 2 ? '1t2b' : '1l2r';
+        }
+        if (n === 4) return '2t2b';
+        return null;
+    }
+
     function _wqEditLoadParts(url, parts) {
         if (!url) return;
         var img = new Image();
         img.onload = function() {
             var list = parts.length ? parts : [{ x: 0, y: 0, w: 1, h: 1 }];
+            // toBlob 이 비동기라 끝나는 차례가 뒤섞인다 — 자리를 먼저 잡아 두고 채운다
+            var base = _wqEdit.files.length;
+            list.forEach(function() { _wqEdit.files.push(null); });
+            var left = list.length;
             list.forEach(function(p, i) {
                 var cw = Math.max(1, Math.round(img.naturalWidth * p.w));
                 var ch = Math.max(1, Math.round(img.naturalHeight * p.h));
@@ -4278,14 +4307,38 @@
                     Math.round(img.naturalWidth * p.x), Math.round(img.naturalHeight * p.y),
                     cw, ch, 0, 0, cw, ch);
                 cv.toBlob(function(blob) {
-                    if (!blob) return;
-                    var f = new File([blob], '기존_' + (i + 1) + '.jpg', { type: 'image/jpeg' });
-                    _wqEdit.files.push({ file: f, url: URL.createObjectURL(f), old: true });
-                    _wqEpool();
+                    if (blob) {
+                        var f = new File([blob], '기존_' + (i + 1) + '.jpg', { type: 'image/jpeg' });
+                        _wqEdit.files[base + i] = { file: f, url: URL.createObjectURL(f), old: true };
+                    }
+                    if (--left === 0) {
+                        _wqEdit.files = _wqEdit.files.filter(Boolean);
+                        _wqEpool();
+                        _wqEditUseCurrent(base, list.length);
+                    }
                 }, 'image/jpeg', 0.95);
             });
         };
         img.src = url;
+    }
+
+    /* 지금과 같은 배열을 골라 기존 사진을 그대로 앉혀 둔다.
+       사진 한 장만 갈아 끼우는 일이 많아, 매번 처음부터 짜게 할 일이 아니다. */
+    function _wqEditUseCurrent(base, n) {
+        var key = _wqEdit.guess;
+        if (!key) return;
+        var idx = -1;
+        _WQ_LAYOUTS.forEach(function(L, i) { if (L.key === key) idx = i; });
+        if (idx < 0) return;
+        weedEditLayPick(idx);
+        if (_wqEdit.slots.length === n) {
+            for (var i = 0; i < n; i++) _wqEdit.slots[i] = _wqEdit.files[base + i] || null;
+            // 처음 앉힌 그대로인지 나중에 견주려고 적어 둔다 (안 바뀌었으면 사진을
+            // 다시 만들지 않는다 — JPEG 를 거듭 인코딩하면 화질이 깎인다)
+            _wqEdit.initial = _wqEdit.slots.slice();
+            _wqEdit.initialKey = key;
+            _wqEstage(); _wqEpool(); _wqEditSync();
+        }
     }
 
     /* 인터넷에서 사진을 다시 가져온다 — 등록 화면과 같은 길이지만
@@ -4365,7 +4418,8 @@
             });
         _wqEditMsg('');
         // 사진 영역은 접은 채로 비워 둔다 — 열지 않으면 사진을 건드리지 않는다
-        _wqEdit = { layout: null, files: [], slots: [], dragging: false };
+        _wqEdit = { layout: null, files: [], slots: [], dragging: false,
+                    guess: null, initial: null, initialKey: null };
         document.getElementById('wq-edit-photos').open = false;
         document.getElementById('wq-epool').querySelectorAll('.wq-pool-item')
             .forEach(function(el) { el.remove(); });
@@ -4389,6 +4443,8 @@
                 document.getElementById('wq-edit-notes').value = d.notes || '';
                 document.getElementById('wq-edit-cur').src = d.q_img || '';
                 _wqEditLoadParts(d.q_img, d.parts || []);
+                // 지금과 같은 배열을 미리 골라 둔다 (사진이 다 담긴 뒤 칸에 넣는다)
+                _wqEdit.guess = _wqGuessLayout(d.parts || []);
                 _wqEditSync();
             })
             .catch(function() { _wqEditMsg('불러오지 못했습니다.', true); });
@@ -4460,7 +4516,13 @@
         fd.append('control', document.getElementById('wq-edit-control').value);
         fd.append('notes', document.getElementById('wq-edit-notes').value);
         // 배열을 골라 칸을 다 채웠을 때만 사진을 바꾼다
-        if (_wqEdit.layout && _wqEdit.slots.length
+        // 창을 열었을 때 앉혀 둔 그대로면 아무것도 바뀌지 않은 것이다 —
+        // 그때 다시 합성하면 JPEG 를 거듭 인코딩해 화질만 깎인다
+        var untouched = _wqEdit.initial && _wqEdit.layout
+            && _wqEdit.layout.key === _wqEdit.initialKey
+            && _wqEdit.slots.length === _wqEdit.initial.length
+            && _wqEdit.slots.every(function(x, i) { return x === _wqEdit.initial[i]; });
+        if (!untouched && _wqEdit.layout && _wqEdit.slots.length
             && _wqEdit.slots.every(function(x) { return x && x.file; })) {
             fd.append('layout', _wqEdit.layout.key);
             _wqEdit.slots.forEach(function(x) { fd.append('photos', x.file); });
