@@ -25,6 +25,10 @@ from main.views import _weed_compose, _weed_photo_boxes
 APPLY = '--apply' in sys.argv
 FROM_NO = 144          # 등록 기능으로 만든 첫 카드
 
+# 낱장 가르기가 헷갈리는 카드는 배열을 직접 일러 준다.
+# 양미역취의 잎 표본 사진은 배경이 희어 잎 세 장으로 잘게 갈린다
+FORCE = {'양미역취': ('1t2b', 3)}
+
 
 def guess_layout(boxes, size):
     """낱장 좌표로 배열을 되짚는다."""
@@ -71,7 +75,27 @@ for card in WeedCard.objects.filter(subject_id=51, card_no__gte=FROM_NO).order_b
     path = card.q_image.path
     im = Image.open(path).convert('RGB')
     boxes = _weed_photo_boxes(path)
-    layout = guess_layout(boxes, im.size)
+
+    if card.name in FORCE:
+        # 잘게 갈린 것을 사람이 일러 준 칸 수로 묶는다 — 가까이 붙은 것끼리 합친다
+        _, want = FORCE[card.name]
+        boxes = sorted(boxes, key=lambda b: (b[1], b[0]))
+        while len(boxes) > want:
+            # 세로로 가장 가까운 두 낱장을 하나로 합친다
+            best, gapmin = None, None
+            for i in range(len(boxes) - 1):
+                a, c = boxes[i], boxes[i + 1]
+                if abs(a[0] - c[0]) > 40:          # 다른 열이면 합치지 않는다
+                    continue
+                d = c[1] - a[3]
+                if gapmin is None or d < gapmin:
+                    best, gapmin = i, d
+            if best is None:
+                break
+            a, c = boxes[best], boxes[best + 1]
+            boxes[best:best + 2] = [[min(a[0], c[0]), min(a[1], c[1]),
+                                     max(a[2], c[2]), max(a[3], c[3])]]
+    layout = FORCE[card.name][0] if card.name in FORCE else guess_layout(boxes, im.size)
     if not layout:
         print(f'  {card.card_no} {card.name:12s} 낱장 {len(boxes)} — 배열을 알 수 없어 건너뜀')
         skip += 1
