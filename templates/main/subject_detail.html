@@ -416,6 +416,12 @@
     .wq-pool-item.used { opacity: .35; cursor: default; }
     .wq-pool-add { width: 120px; height: 92px; display: flex; align-items: center; justify-content: center; border: 1px dashed #9ec2a8; border-radius: 6px; font-size: 0.72rem; color: #2d6a4f; cursor: pointer; text-align: center; background: #fff; }
     .wq-pool-busy { width: 100%; padding: 18px 0; text-align: center; font-size: 0.78rem; color: #7b8f80; }
+    /* 조회 중 도는 아이콘 — 몇 초 걸리므로 멈춘 것처럼 보이면 안 된다 */
+    .wq-spin { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px;
+               border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%;
+               animation: wqspin .7s linear infinite; }
+    .wq-spin.dark { border-color: rgba(45,106,79,.25); border-top-color: #2d6a4f; }
+    @keyframes wqspin { to { transform: rotate(360deg); } }
     /* 인터넷에서 가져온 사진임을 표시 — 출처를 밝혀야 하는 CC 사진이다 */
     .wq-pool-tag { position: absolute; left: 3px; bottom: 3px; padding: 1px 5px; border-radius: 3px; background: rgba(27,67,50,.85); color: #fff; font-size: 0.6rem; font-weight: 600; }
     /* 크게 보기 — 썸네일이 작아 무슨 사진인지 구별이 안 된다 */
@@ -3590,10 +3596,10 @@
         { key: '1l2r', cap: '좌1 · 우2',     cols: '1fr 1fr', rows: '1fr 1fr', cells: [[1, 2], [1, 1], [1, 1]] },
         { key: '2l2r', cap: '좌2 · 우2',     cols: '1fr 1fr', rows: '1fr 1fr', cells: [[1, 1], [1, 1], [1, 1], [1, 1]] },
     ];
-    var _wqAdd = { layout: null, files: [], slots: [], checked: '' };
+    var _wqAdd = { layout: null, files: [], slots: [], checked: '', busy: false };
 
     window.weedAddOpen = function() {
-        _wqAdd = { layout: null, files: [], slots: [], checked: '' };
+        _wqAdd = { layout: null, files: [], slots: [], checked: '', busy: false };
         document.getElementById('wq-add-name').value = '';
         ['family', 'life', 'habitat', 'features', 'similar', 'control', 'notes'].forEach(function(f) {
             var el = document.getElementById('wq-add-' + f);
@@ -3625,14 +3631,19 @@
         var name = document.getElementById('wq-add-name').value.trim();
         if (!name) { _wqAddMsg('종명을 입력하세요.', true); return; }
         var btn = document.querySelector('.wq-add-check');
-        btn.disabled = true; btn.textContent = '조회 중…';
+        _wqAdd.busy = true;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="wq-spin"></span>조회 중…';
         _wqAddMsg('');
+        document.getElementById('wq-add-hint').innerHTML =
+            '<span class="wq-spin dark"></span>국립수목원 도감과 AI 로 조회하는 중입니다…';
         fetch('{% url "main:api_weed_name_check" subject.pk %}?name=' + encodeURIComponent(name),
               { credentials: 'same-origin' })
             .then(function(r) { return r.json(); })
             .then(function(d) {
+                _wqAdd.busy = false;
                 btn.disabled = false; btn.textContent = '확인·조회';
-                if (!d.ok) { _wqAddMsg(d.error || '확인하지 못했습니다.', true); return; }
+                if (!d.ok) { _wqAddMsg(d.error || '확인하지 못했습니다.', true); _wqAddSync(); return; }
                 _wqAdd.checked = name;
                 if (d.info) {
                     document.getElementById('wq-add-family').value = d.info.family || '';
@@ -3652,8 +3663,10 @@
                 _wqWebPhotos(name, (d.info || {}).sci_name || '');
             })
             .catch(function() {
+                _wqAdd.busy = false;
                 btn.disabled = false; btn.textContent = '확인·조회';
                 _wqAddMsg('확인하지 못했습니다.', true);
+                _wqAddSync();
             });
     };
 
@@ -3664,7 +3677,7 @@
         var pool = document.getElementById('wq-pool');
         var busy = document.createElement('div');
         busy.className = 'wq-pool-busy';
-        busy.textContent = '인터넷에서 사진을 찾는 중…';
+        busy.innerHTML = '<span class="wq-spin dark"></span>인터넷에서 사진을 찾는 중…';
         pool.appendChild(busy);
         fetch('{% url "main:api_weed_web_photos" subject.pk %}?name=' + encodeURIComponent(name)
               + '&sci=' + encodeURIComponent(sci), { credentials: 'same-origin' })
@@ -3889,6 +3902,7 @@
         var loading = _wqAdd.slots.filter(function(s) { return s && !s.file; }).length;
         var ok = !!_wqAdd.checked && !!_wqAdd.layout && filled && !loading;
         document.getElementById('wq-add-go').disabled = !ok;
+        if (_wqAdd.busy) return;          // 조회 중 안내를 지우지 않는다
         var hint = document.getElementById('wq-add-hint');
         if (!_wqAdd.checked) hint.textContent = '종명을 넣고 확인·조회를 누르세요.';
         else if (!_wqAdd.layout) hint.textContent = '사진 배열을 고르세요.';
