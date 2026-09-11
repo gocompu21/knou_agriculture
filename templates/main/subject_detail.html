@@ -340,6 +340,8 @@
     .wq-table th.wq-t-save-h, .wq-table .wq-t-save { width: 1%; text-align: center; white-space: nowrap; }
     .wq-save-btn { padding: 3px 10px; border: 1px solid #b7cdbc; border-radius: 6px; background: #fff; color: #2d6a4f; font-size: 0.76rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .wq-save-btn:hover { background: #eef5ef; }
+    .wq-row-edit { margin-left: 4px; padding: 3px 10px; border: 1px solid #cdc0b7; border-radius: 6px; background: #fff; color: #8a6d3b; font-size: 0.76rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .wq-row-edit:hover { background: #faf6f0; }
     .wq-save-btn.done { background: #2d6a4f; color: #fff; border-color: #2d6a4f; }
     /* 사진 고르기 창 */
     .wq-save { position: fixed; inset: 0; z-index: 1200; background: rgba(0, 0, 0, .5); display: flex; align-items: center; justify-content: center; padding: 16px; }
@@ -2190,7 +2192,7 @@
                     <thead><tr>
                         <th class="wq-sortable" onclick="weedSort('no')">번호<span class="wq-sort-i"></span></th>
                         <th class="wq-sortable" onclick="weedSort('name')">종명<span class="wq-sort-i"></span></th>
-                        {% if request.user.is_staff %}<th class="wq-t-save-h">저장</th>{% endif %}
+                        {% if request.user.is_staff %}<th class="wq-t-save-h">관리</th>{% endif %}
                         <th class="wq-sortable" onclick="weedSort('family')">과명<span class="wq-sort-i"></span></th>
                         <th class="wq-sortable h-life" onclick="weedSort('life_form')">생활형<span class="wq-sort-i"></span></th>
                         <th class="wq-sortable h-habitat" onclick="weedSort('habitat')">발생지<span class="wq-sort-i"></span></th>
@@ -2270,6 +2272,34 @@
                 <div class="wq-save-foot">
                     <span class="wq-save-where" id="wq-add-hint">종명을 넣고 확인·조회를 누르세요.</span>
                     <button type="button" class="wq-save-go" id="wq-add-go" onclick="weedAddSubmit()" disabled>등록</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 관리자: 카드 내용 수정 -->
+        <div id="wq-edit" class="wq-save" hidden>
+            <div class="wq-save-box wq-add-box">
+                <div class="wq-save-head">
+                    <b id="wq-edit-title"></b> 수정
+                    <button type="button" class="wq-save-x" onclick="weedEditWinClose()">✕</button>
+                </div>
+                <div class="wq-add-body">
+                    <div class="wq-add-grid">
+                        <label>종명<input type="text" id="wq-edit-name" maxlength="50"></label>
+                        <label>과명<input type="text" id="wq-edit-family" maxlength="50"></label>
+                        <label>생활형<input type="text" id="wq-edit-life" maxlength="50"></label>
+                        <label>출제 횟수<input type="number" id="wq-edit-exam" min="0" max="99"></label>
+                        <label class="wq-add-wide">발생지<input type="text" id="wq-edit-habitat" maxlength="100"></label>
+                        <label class="wq-add-wide">식별 포인트<textarea id="wq-edit-features" rows="4"></textarea></label>
+                        <label class="wq-add-wide">헷갈리는 종과 구별<textarea id="wq-edit-similar" rows="3"></textarea></label>
+                        <label class="wq-add-wide">방제·비고<textarea id="wq-edit-control" rows="3"></textarea></label>
+                        <label class="wq-add-wide">교수 메모 (사진 위에 흰 글씨로 얹힙니다 — 짧게)<textarea id="wq-edit-notes" rows="3"></textarea></label>
+                    </div>
+                    <div class="wq-add-msg" id="wq-edit-msg"></div>
+                </div>
+                <div class="wq-save-foot">
+                    <span class="wq-save-where" id="wq-edit-hint">내용을 고치고 저장하세요.</span>
+                    <button type="button" class="wq-save-go" id="wq-edit-go" onclick="weedEditSubmit()">저장</button>
                 </div>
             </div>
         </div>
@@ -3330,8 +3360,12 @@
                  + '<td class="wq-t-no">' + it.no + '</td>'
                  + '<td><span class="wq-t-name">' + _wqEsc(it.name) + '</span>' + _wqStars(it.exam_count) + '</td>'
                  // 저장은 줄 이동과 겹치므로 버튼에서 클릭을 멈춘다
-                 + (_WQ_STAFF ? '<td class="wq-t-save"><button type="button" class="wq-save-btn"'
-                     + ' onclick="event.stopPropagation(); weedSavePick(' + it.id + ', this)">저장</button></td>' : '')
+                 + (_WQ_STAFF ? '<td class="wq-t-save">'
+                     + '<button type="button" class="wq-save-btn"'
+                     + ' onclick="event.stopPropagation(); weedSavePick(' + it.id + ', this)">저장</button>'
+                     + '<button type="button" class="wq-row-edit"'
+                     + ' onclick="event.stopPropagation(); weedEditOpen(' + it.id + ')">수정</button>'
+                     + '</td>' : '')
                  + '<td>' + _wqEsc(it.family) + '</td>'
                  + '<td class="wq-t-life">' + _wqEsc(it.life_form) + '</td>'
                  + '<td class="wq-t-habitat">' + _wqEsc(it.habitat) + '</td>'
@@ -4020,6 +4054,93 @@
         }).catch(function() {
             btn.disabled = false; btn.textContent = '등록';
             _wqAddMsg('등록하지 못했습니다.', true);
+        });
+    };
+
+    /* ══════ 관리자: 목록에서 카드 내용 수정 ══════
+       답 화면의 '답안 수정'은 서술 항목만 고친다. 여기서는 종명·과명·생활형·
+       발생지·출제 횟수까지 고칠 수 있다(목록에 보이는 값들이다). */
+    var _wqEditId = null;
+
+    window.weedEditOpen = function(cardId) {
+        _wqEditId = cardId;
+        var box = document.getElementById('wq-edit');
+        document.getElementById('wq-edit-title').textContent = '불러오는 중…';
+        ['name', 'family', 'life', 'habitat', 'features', 'similar', 'control', 'notes', 'exam']
+            .forEach(function(f) {
+                var el = document.getElementById('wq-edit-' + f);
+                if (el) el.value = '';
+            });
+        _wqEditMsg('');
+        box.hidden = false;
+        fetch('{% url "main:api_weed_card_detail" subject.pk 0 %}'.replace('/weed-card/0/', '/weed-card/' + cardId + '/'),
+              { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                document.getElementById('wq-edit-title').textContent = d.name + ' (카드 ' + d.card_no + ')';
+                document.getElementById('wq-edit-name').value = d.name || '';
+                document.getElementById('wq-edit-family').value = d.family || '';
+                document.getElementById('wq-edit-life').value = d.life_form || '';
+                document.getElementById('wq-edit-habitat').value = d.habitat || '';
+                document.getElementById('wq-edit-exam').value = d.exam_count || 0;
+                // 서술 항목은 HTML 이 섞여 있을 수 있다 — 편집은 평문으로 한다
+                document.getElementById('wq-edit-features').value = _wqStripTags(d.features);
+                document.getElementById('wq-edit-similar').value = _wqStripTags(d.similar);
+                document.getElementById('wq-edit-control').value = _wqStripTags(d.control);
+                document.getElementById('wq-edit-notes').value = d.notes || '';
+            })
+            .catch(function() { _wqEditMsg('불러오지 못했습니다.', true); });
+    };
+
+    /* 답 화면 편집기가 남긴 태그를 걷어 낸다 — 이 창은 평문으로 고친다 */
+    function _wqStripTags(html) {
+        if (!html) return '';
+        if (html.indexOf('<') < 0) return html;
+        var t = html.replace(/<\/(li|p|div)>/gi, '\n')
+                    .replace(/<br\s*\/?>/gi, '\n');
+        var el = document.createElement('div');
+        el.innerHTML = t;
+        return (el.textContent || '').split('\n')
+                   .map(function(x) { return x.trim(); })
+                   .filter(Boolean).join('\n');
+    }
+
+    window.weedEditWinClose = function() { document.getElementById('wq-edit').hidden = true; };
+
+    function _wqEditMsg(text, warn) {
+        var el = document.getElementById('wq-edit-msg');
+        el.textContent = text;
+        el.classList.toggle('warn', !!warn);
+    }
+
+    window.weedEditSubmit = function() {
+        if (!_wqEditId) return;
+        var btn = document.getElementById('wq-edit-go');
+        btn.disabled = true; btn.textContent = '저장 중…';
+        var fd = new FormData();
+        fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        fd.append('name', document.getElementById('wq-edit-name').value);
+        fd.append('family', document.getElementById('wq-edit-family').value);
+        fd.append('life_form', document.getElementById('wq-edit-life').value);
+        fd.append('habitat', document.getElementById('wq-edit-habitat').value);
+        fd.append('exam_count', document.getElementById('wq-edit-exam').value || '0');
+        fd.append('features', document.getElementById('wq-edit-features').value);
+        fd.append('similar', document.getElementById('wq-edit-similar').value);
+        fd.append('control', document.getElementById('wq-edit-control').value);
+        fd.append('notes', document.getElementById('wq-edit-notes').value);
+        fetch('{% url "main:api_weed_card_update" subject.pk 0 %}'.replace('/weed-card/0/', '/weed-card/' + _wqEditId + '/'), {
+            method: 'POST', body: fd, credentials: 'same-origin',
+        }).then(function(r) { return r.json(); }).then(function(d) {
+            btn.disabled = false; btn.textContent = '저장';
+            if (!d.ok) { _wqEditMsg(d.error || '저장하지 못했습니다.', true); return; }
+            weedEditWinClose();
+            var body = document.getElementById('wq-list-body');   // 목록을 새로 받는다
+            delete body.dataset.loaded;
+            document.getElementById('wq-list').hidden = true;
+            weedList();
+        }).catch(function() {
+            btn.disabled = false; btn.textContent = '저장';
+            _wqEditMsg('저장하지 못했습니다.', true);
         });
     };
 

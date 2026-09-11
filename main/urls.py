@@ -20,6 +20,7 @@ urlpatterns = [
     path("subjects/<int:pk>/api/weed-quiz/card/<int:card_id>/", views.api_weed_quiz_card, name="api_weed_quiz_card"),
     path("subjects/<int:pk>/api/weed-card/<int:card_id>/update/", views.api_weed_card_update, name="api_weed_card_update"),
     path("subjects/<int:pk>/api/weed-card/<int:card_id>/photos/", views.api_weed_card_photos, name="api_weed_card_photos"),
+    path("subjects/<int:pk>/api/weed-card/<int:card_id>/detail/", views.api_weed_card_detail, name="api_weed_card_detail"),
     path("subjects/<int:pk>/api/weed-card/name-check/", views.api_weed_name_check, name="api_weed_name_check"),
     path("subjects/<int:pk>/api/weed-card/create/", views.api_weed_card_create, name="api_weed_card_create"),
     path("subjects/<int:pk>/api/weed-card/web-photos/", views.api_weed_web_photos, name="api_weed_web_photos"),

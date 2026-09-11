@@ -1201,6 +1201,19 @@ def _weed_photo_boxes(path, min_side=40, gap_ratio=0.92):
 
 
 @user_passes_test(lambda u: u.is_staff)
+def api_weed_card_detail(request, pk, card_id):
+    """카드 한 장의 내용 — 목록의 '수정' 화면이 채워 넣을 값."""
+    subject = get_object_or_404(Subject, pk=pk)
+    card = get_object_or_404(WeedCard, pk=card_id, subject=subject)
+    return JsonResponse({
+        "id": card.pk, "card_no": card.card_no, "name": card.name,
+        "family": card.family, "life_form": card.life_form, "habitat": card.habitat,
+        "features": card.features, "similar": card.similar, "control": card.control,
+        "notes": card.notes, "exam_count": card.exam_count,
+    })
+
+
+@user_passes_test(lambda u: u.is_staff)
 def api_weed_card_photos(request, pk, card_id):
     """카드 한 장에 딸린 사진들 — 관리자가 골라 내려받는다.
 
@@ -1856,6 +1869,27 @@ def api_weed_card_update(request, pk, card_id):
 
     if "notes" in request.POST:
         card.notes = _weed_notes_lines(request.POST["notes"])
+
+    # 목록의 '수정' 화면은 한 줄짜리 항목도 고친다 (답 화면의 편집기는 안 보낸다)
+    for f in ("family", "life_form", "habitat"):
+        if f in request.POST:
+            setattr(card, f, (request.POST[f] or "").strip()[:100])
+
+    if "name" in request.POST:
+        name = (request.POST["name"] or "").strip()
+        if not name:
+            return JsonResponse({"ok": False, "error": "종명을 입력하세요."})
+        dup = WeedCard.objects.filter(subject=subject, name__iexact=name).exclude(pk=card.pk).first()
+        if dup:
+            return JsonResponse({"ok": False,
+                                 "error": "같은 이름의 카드가 있습니다 (카드 %d번)." % dup.card_no})
+        card.name = name[:50]
+
+    if "exam_count" in request.POST:
+        try:
+            card.exam_count = max(0, int(request.POST["exam_count"] or 0))
+        except (TypeError, ValueError):
+            pass
 
     card.save()
     return JsonResponse({"ok": True, "card": _weed_card_payload(card)})
