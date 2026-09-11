@@ -1319,7 +1319,7 @@ def _weed_compose(files, layout, width=900, gap=10):
     여백으로 띄우되, 구별될 만큼만 둔다. **바깥 여백도 칸 사이와 같게** 둬
     상하좌우가 고르게 보이도록 한다. 사진은 자르지 않는다.
     """
-    from PIL import Image
+    from PIL import Image, ImageDraw
 
     cells, _ratio = _WEED_LAYOUTS.get(layout) or _WEED_LAYOUTS["1"]
     photos = [Image.open(f).convert("RGB") for f in files]
@@ -1352,6 +1352,7 @@ def _weed_compose(files, layout, width=900, gap=10):
     height = max(1, y)                       # 마지막 gap 이 아래쪽 바깥 여백
 
     canvas = Image.new("RGB", (width, height), (255, 255, 255))
+    placed = []
     for p in plan:
         cx, cy, cw, ch = p["cell"]
         r = round(cy, 3)
@@ -1364,7 +1365,15 @@ def _weed_compose(files, layout, width=900, gap=10):
         photo = photo.resize((nw, nh), Image.LANCZOS)
         # 남는 자리는 **아래로** 몰아 사진을 위에 붙인다. 가운데 두면 여러 줄을
         # 차지하는 사진(좌1·우2 의 왼쪽)의 위아래가 다 떠 보인다
-        canvas.paste(photo, (p["x0"] + (p["w"] - nw) // 2, row_y[r]))
+        px, py = p["x0"] + (p["w"] - nw) // 2, row_y[r]
+        canvas.paste(photo, (px, py))
+        placed.append((px, py, px + nw, py + nh))
+
+    # 사진마다 테두리를 그린다 — 밝은 사진은 흰 바탕과 경계가 안 보인다.
+    # 검정은 너무 세서 옅은 회색을 쓴다
+    draw = ImageDraw.Draw(canvas)
+    for x0, y0, x1, y1 in placed:
+        draw.rectangle([x0, y0, x1 - 1, y1 - 1], outline=(170, 170, 170), width=1)
     return canvas
 
 

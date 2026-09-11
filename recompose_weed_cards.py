@@ -33,6 +33,10 @@ FROM_NO = 144          # 등록 기능으로 만든 첫 카드
 # 양미역취의 잎 표본 사진은 배경이 희어 잎 세 장으로 잘게 갈린다
 FORCE = {'양미역취': ('1t2b', 3)}
 
+# 다시 붙이면 망가지는 카드는 건너뛴다.
+# 양미역취는 FORCE 로 묶는 과정이 두 번째부터 엉뚱하게 합쳐진다
+SKIP = {'양미역취'}
+
 
 def guess_layout(boxes, size):
     """낱장 좌표로 배열을 되짚는다."""
@@ -75,6 +79,10 @@ def order_for(layout, boxes):
 done = skip = 0
 for card in WeedCard.objects.filter(subject_id=51, card_no__gte=FROM_NO).order_by('card_no'):
     if not card.q_image:
+        continue
+    if card.name in SKIP:
+        print(f'  {card.card_no} {card.name:12s} 건너뜀 (다시 붙이면 망가진다)')
+        skip += 1
         continue
     path = card.q_image.path
     im = Image.open(path).convert('RGB')
