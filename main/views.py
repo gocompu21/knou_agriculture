@@ -1469,7 +1469,10 @@ def _weed_web_photos(name, sci_name="", limit=12):
                     terms.append(claims[0]["mainsnak"]["datavalue"]["value"])
         except Exception:
             logger.exception("학명 조회 실패")
-    terms.append(name)
+    # 학명을 모를 때만 한국어 이름으로 찾는다. 한국어는 딴 뜻으로 걸리는 일이
+    # 잦다 — '가래'는 영어로 sputum(객담)이라 의학 사진이 쏟아진다
+    if not terms:
+        terms.append(name)
 
     out, seen = [], set()
     for term in terms:
@@ -1617,7 +1620,9 @@ def api_weed_web_photos(request, pk):
     if not sci:
         official = _weed_nature_info(name)
         sci = (official or {}).get("sci_name", "")
-    return JsonResponse({"photos": _weed_web_photos(name, sci)})
+    # 학명을 끝내 못 찾으면 한국어로 찾는데, 딴 뜻으로 걸리는 일이 잦다
+    # ('가래'는 영어로 sputum). 화면이 그 사실을 알리도록 함께 내려준다
+    return JsonResponse({"photos": _weed_web_photos(name, sci), "sci": sci})
 
 
 @user_passes_test(lambda u: u.is_staff)

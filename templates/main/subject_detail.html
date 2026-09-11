@@ -3768,6 +3768,7 @@
                 var el = document.getElementById('wq-add-msg');
                 el.textContent = (el.textContent + (d.photos && d.photos.length
                     ? ' 인터넷에서 사진 ' + d.photos.length + '장을 찾았습니다 — 쓸 것을 칸으로 끌어다 놓으세요.'
+                      + (d.sci ? '' : ' (학명을 못 찾아 이름으로 찾았습니다 — 딴 사진이 섞일 수 있습니다)')
                     : ' 인터넷에 쓸 만한 사진이 없습니다 — 직접 올려 주세요.')).trim();
             })
             .catch(function() { busy.remove(); });
@@ -4288,13 +4289,14 @@
                 btn.disabled = false; btn.textContent = '인터넷에서 가져오기';
                 var got = (d.photos || []).length;
                 if (!got) { _wqEditMsg('인터넷에 쓸 만한 사진이 없습니다.', true); return; }
+                var warn = d.sci ? '' : ' (학명을 못 찾아 이름으로 찾았습니다 — 딴 사진이 섞일 수 있습니다)';
                 d.photos.forEach(function(p) {
                     _wqEdit.files.push({ web: p, file: null,
                         url: '{% url "main:api_weed_fetch_photo" subject.pk %}?url='
                              + encodeURIComponent(p.thumb) });
                 });
                 _wqEpool();
-                _wqEditMsg('사진 ' + got + '장을 찾았습니다 — 쓸 것을 칸으로 끌어다 놓으세요.');
+                _wqEditMsg('사진 ' + got + '장을 찾았습니다 — 쓸 것을 칸으로 끌어다 놓으세요.' + warn, !d.sci);
             })
             .catch(function() {
                 btn.disabled = false; btn.textContent = '인터넷에서 가져오기';
