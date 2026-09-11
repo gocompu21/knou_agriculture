@@ -342,11 +342,15 @@
     .wq-save-btn:hover { background: #eef5ef; }
     .wq-row-edit { margin-left: 4px; padding: 3px 10px; border: 1px solid #cdc0b7; border-radius: 6px; background: #fff; color: #8a6d3b; font-size: 0.76rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .wq-row-edit:hover { background: #faf6f0; }
+    .wq-edit-compare { display: flex; gap: 20px; align-items: flex-start; margin-top: 4px; }
+    .wq-edit-compare > div { flex: 0 0 auto; }
+    .wq-edit-compare .wq-add-sub { margin-top: 12px; }
+    .wq-edit-compare .wq-lay-stage { margin-top: 0; }
     .wq-edit-now { text-align: center; }
     .wq-refetch { margin-left: 8px; padding: 3px 10px; border: 1px solid #b7cdbc; border-radius: 6px; background: #fff; color: #2d6a4f; font-size: 0.74rem; font-weight: 600; cursor: pointer; }
     .wq-refetch:hover { background: #eef5ef; }
     .wq-refetch:disabled { opacity: .6; cursor: default; }
-    .wq-edit-now img { max-width: 260px; max-height: 300px; border: 1px solid #ddd; border-radius: 6px; }
+    .wq-edit-now img { max-width: 300px; max-height: 420px; border: 1px solid #ddd; border-radius: 6px; }
     .wq-save-btn.done { background: #2d6a4f; color: #fff; border-color: #2d6a4f; }
     /* 사진 고르기 창 */
     .wq-save { position: fixed; inset: 0; z-index: 1200; background: rgba(0, 0, 0, .5); display: flex; align-items: center; justify-content: center; padding: 16px; }
@@ -419,7 +423,7 @@
     .wq-pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 100px; padding: 8px; border: 1px dashed #cbd8cd; border-radius: 8px; background: #fafcfa; transition: background .12s, border-color .12s; }
     /* 파일을 끌어다 놓는 중 */
     .wq-pool.over { border-color: #2d6a4f; background: #eaf4ec; }
-    .wq-pool-item { width: 120px; height: 92px; border-radius: 6px; overflow: hidden; position: relative; cursor: grab; border: 2px solid transparent; }
+    .wq-pool-item { width: 120px; height: 92px; border-radius: 6px; overflow: hidden; position: relative; cursor: zoom-in; border: 2px solid transparent; }
     .wq-pool-item img { width: 100%; height: 100%; object-fit: cover; display: block; -webkit-user-drag: none; user-select: none; pointer-events: none; }
     .wq-pool-item.used { opacity: .35; cursor: default; }
     .wq-pool-add { width: 120px; height: 92px; display: flex; align-items: center; justify-content: center; border: 1px dashed #9ec2a8; border-radius: 6px; font-size: 0.72rem; color: #2d6a4f; cursor: pointer; text-align: center; background: #fff; }
@@ -2305,14 +2309,11 @@
                     <details class="wq-add-more" id="wq-edit-photos">
                         <summary>사진 바꾸기 (지금 사진을 그대로 두려면 열지 마세요)</summary>
                         <div style="padding:12px">
-                            <div class="wq-add-sub">지금 사진</div>
-                            <div class="wq-edit-now"><img id="wq-edit-cur" alt=""></div>
-
                             <div class="wq-add-sub">새 사진 배열</div>
                             <div class="wq-lay-picks" id="wq-elay-picks"></div>
 
                             <div class="wq-add-sub">사진
-                                <span class="wq-add-tip">— 끌어다 놓거나 붙여넣기(Ctrl+V)</span>
+                                <span class="wq-add-tip">— 끌어다 놓거나 붙여넣기(Ctrl+V), 누르면 크게 보입니다</span>
                                 <button type="button" class="wq-refetch" onclick="weedEditRefetch()">인터넷에서 가져오기</button>
                             </div>
                             <div class="wq-pool" id="wq-epool">
@@ -2321,7 +2322,18 @@
                                     <input type="file" accept="image/*" multiple hidden onchange="weedEditFiles(this)">
                                 </label>
                             </div>
-                            <div class="wq-lay-stage" id="wq-elay-stage"></div>
+
+                            <!-- 지금 사진과 새 배치를 나란히 — 무엇이 어떻게 바뀌는지 한눈에 -->
+                            <div class="wq-edit-compare">
+                                <div>
+                                    <div class="wq-add-sub">지금 사진</div>
+                                    <div class="wq-edit-now"><img id="wq-edit-cur" alt=""></div>
+                                </div>
+                                <div>
+                                    <div class="wq-add-sub">새 배치</div>
+                                    <div class="wq-lay-stage" id="wq-elay-stage"></div>
+                                </div>
+                            </div>
                         </div>
                     </details>
                 </div>
@@ -4109,6 +4121,8 @@
             var tag = f.web ? '위키' : (f.old ? '기존' : '');
             el.innerHTML = '<img src="' + f.url + '" alt="">'
                          + (tag ? '<span class="wq-pool-tag">' + tag + '</span>' : '');
+            // 사진을 누르면 크게 본다 (끌어다 놓기는 그대로 된다 — 클릭과 드래그는 다르다)
+            el.addEventListener('click', function() { weedEditZoom(i); });
             el.addEventListener('dragstart', function(e) {
                 e.dataTransfer.setData('text/plain', String(i));
                 e.dataTransfer.setData('application/x-wq-epool', String(i));
@@ -4276,6 +4290,21 @@
 
     /* 인터넷에서 사진을 다시 가져온다 — 등록 화면과 같은 길이지만
        이미 아는 종명으로 찾는다(학명은 서버가 도감에서 찾아 준다). */
+    /* 수정 창 목록의 사진 크게 보기 — 썸네일로는 무슨 사진인지 알기 어렵다.
+       다시 누르면 닫힌다(확대 창 전체가 그렇게 동작한다). */
+    window.weedEditZoom = function(i) {
+        var f = _wqEdit.files[i];
+        if (!f) return;
+        var src = f.web
+            ? '{% url "main:api_weed_fetch_photo" subject.pk %}?url=' + encodeURIComponent(f.web.full)
+            : f.url;
+        document.getElementById('wq-zoom-img').src = src;
+        document.getElementById('wq-zoom-cap').textContent = f.web
+            ? f.web.title + ' — ' + (f.web.author || '') + ' / ' + f.web.license
+            : (f.file ? f.file.name : '');
+        document.getElementById('wq-zoom').hidden = false;
+    };
+
     window.weedEditRefetch = function() {
         var name = document.getElementById('wq-edit-name').value.trim();
         if (!name) { _wqEditMsg('종명을 먼저 확인하세요.', true); return; }
