@@ -1210,6 +1210,7 @@ def api_weed_card_detail(request, pk, card_id):
         "family": card.family, "life_form": card.life_form, "habitat": card.habitat,
         "features": card.features, "similar": card.similar, "control": card.control,
         "notes": card.notes, "exam_count": card.exam_count,
+        "q_img": card.q_image.url if card.q_image else "",
     })
 
 
@@ -1890,6 +1891,36 @@ def api_weed_card_update(request, pk, card_id):
             card.exam_count = max(0, int(request.POST["exam_count"] or 0))
         except (TypeError, ValueError):
             pass
+
+    # 사진을 함께 보냈으면 새로 합성해 갈아 끼운다 (등록 화면과 같은 방식)
+    photos = request.FILES.getlist("photos")
+    if photos:
+        import io
+
+        layout = request.POST.get("layout") or "1"
+        spec = _WEED_LAYOUTS.get(layout)
+        if not spec:
+            return JsonResponse({"ok": False, "error": "사진 배열을 고르세요."})
+        if len(photos) != len(spec[0]):
+            return JsonResponse({"ok": False,
+                                 "error": "이 배열은 사진 %d장이 필요합니다 (지금 %d장)."
+                                          % (len(spec[0]), len(photos))})
+        try:
+            composed = _weed_compose(photos, layout)
+        except Exception as e:
+            logger.exception("잡초 사진 합성 실패")
+            return JsonResponse({"ok": False, "error": "사진을 붙이지 못했습니다: %s" % e})
+        buf = io.BytesIO()
+        composed.save(buf, format="JPEG", quality=92)
+        old = card.q_image.name
+        card.q_image.save("q_%s.jpg" % uuid.uuid4().hex[:10],
+                          ContentFile(buf.getvalue()), save=False)
+        # 옛 파일은 지운다 — 카드마다 한 장뿐이라 남겨 둘 이유가 없다
+        if old and old != card.q_image.name:
+            try:
+                card.q_image.storage.delete(old)
+            except Exception:
+                logger.exception("옛 사진 삭제 실패: %s", old)
 
     card.save()
     return JsonResponse({"ok": True, "card": _weed_card_payload(card)})
