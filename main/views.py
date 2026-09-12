@@ -1058,34 +1058,45 @@ def _weed_q_parts(card):
     return parts
 
 
-def _weed_exam_refs(c):
-    """이 종이 기출 문제나 선지 ①~④ 에 나오는 문항의 (연도, 번호) 목록.
+def _weed_exam_matcher(subject):
+    """종명 → 그 종이 기출 문제나 선지 ①~④ 에 나오는 문항 [(연도, 번호)] 를 주는 함수.
+
+    문항을 한 번만 읽어 두고 종마다 파이썬에서 대조한다 — 목록은 카드 136장을
+    한꺼번에 그리므로 종마다 DB 를 치면 136번 질의가 된다.
 
     종명이 문제 본문이나 선지 어디에든 있으면 출제된 것으로 본다.
     '피'·'띠' 같은 한 글자 이름은 '피해'·'피복'·'허리띠' 에도 걸리므로,
     앞뒤가 한글 음절이 아닐 때만 인정한다. 두 글자 이상은 그대로 찾는다
     ('물피'·'돌피' 는 '피' 로도 잡히는 편이 오히려 맞다).
     """
-    name = (c.name or "").strip()
-    if not name:
-        return []
-    cond = Q(text__contains=name)
-    for i in range(1, 5):
-        cond |= Q(**{f"choice_{i}__contains": name})
-    qs = Question.objects.filter(cond, subject=c.subject).only(
-        "year", "number", "text", "choice_1", "choice_2", "choice_3", "choice_4")
-    if len(name) == 1:
-        pat = re.compile(rf"(?<![가-힣]){re.escape(name)}(?![가-힣])")
-        qs = [q for q in qs if pat.search(" ".join(
-            [q.text, q.choice_1, q.choice_2, q.choice_3, q.choice_4]))]
-    seen, out = set(), []
-    for q in sorted(qs, key=lambda q: (q.year, q.number)):
-        key = (q.year, q.number)
-        if key in seen:
-            continue
-        seen.add(key)
-        out.append({"year": q.year, "number": q.number, "ref": f"{q.year}-{q.number}"})
-    return out
+    rows = [(q.year, q.number, " ".join([q.text, q.choice_1, q.choice_2, q.choice_3, q.choice_4]))
+            for q in Question.objects.filter(subject=subject)
+            .only("year", "number", "text", "choice_1", "choice_2", "choice_3", "choice_4")
+            .order_by("year", "number")]
+
+    def refs_for(name):
+        name = (name or "").strip()
+        if not name:
+            return []
+        if len(name) == 1:
+            pat = re.compile(rf"(?<![가-힣]){re.escape(name)}(?![가-힣])")
+            hit = lambda s: bool(pat.search(s))        # noqa: E731
+        else:
+            hit = lambda s: name in s                   # noqa: E731
+        seen, out = set(), []
+        for year, number, blob in rows:
+            if (year, number) in seen or not hit(blob):
+                continue
+            seen.add((year, number))
+            out.append({"year": year, "number": number, "ref": f"{year}-{number}"})
+        return out
+
+    return refs_for
+
+
+def _weed_exam_refs(c):
+    """카드 한 장의 기출 (연도-번호) 목록 — 답 화면용."""
+    return _weed_exam_matcher(c.subject)(c.name)
 
 
 def _weed_card_payload(c):
@@ -1156,12 +1167,14 @@ def api_weed_quiz_list(request, pk):
     wrong = _weed_latest_wrong_ids(request.user, subject)
     done = set(WeedQuizAttempt.objects.filter(user=request.user, card__subject=subject)
                .values_list("card_id", flat=True))
+    refs_for = _weed_exam_matcher(subject)      # 문항은 한 번만 읽는다
     items = []
     for c in WeedCard.objects.filter(subject=subject).order_by("order"):
         items.append({
             "id": c.pk, "no": c.card_no, "name": c.name, "family": c.family,
             "life_form": c.life_form, "habitat": c.habitat,
             "exam_count": c.exam_count,
+            "exam_refs": [r["ref"] for r in refs_for(c.name)],   # 목록의 기출 배지
             "state": "wrong" if c.pk in wrong else ("ok" if c.pk in done else ""),
         })
     return JsonResponse({"items": items})

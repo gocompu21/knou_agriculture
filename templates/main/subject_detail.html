@@ -262,6 +262,10 @@
     .wq-meta span.ref.on { background: #1a4d8f; color: #fff; }
     .wq-refs-list { margin: 0 0 12px; }
     .wq-refs-list[hidden] { display: none; }
+    /* 목록 출제 칸의 기출 배지 — 답 화면 배지와 같은 색, 더 작게 */
+    .wq-t-refs { display: inline-flex; flex-wrap: wrap; gap: 3px; margin-left: 6px; vertical-align: middle; }
+    .wq-t-refs span { font-size: 0.7rem; padding: 1px 6px; border-radius: 9px; background: #e8f0fe; color: #1a4d8f;
+        font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .wq-sec { margin-bottom: 10px; font-size: 0.88rem; line-height: 1.75; color: #333; }
     .wq-sec b { display: block; font-size: 0.8rem; color: #1b4332; margin-bottom: 2px; }
     .wq-sec ul { margin: 0; padding-left: 18px; }
@@ -3457,7 +3461,12 @@
                  + '<td>' + _wqEsc(it.family) + '</td>'
                  + '<td class="wq-t-life">' + _wqEsc(it.life_form) + '</td>'
                  + '<td class="wq-t-habitat">' + _wqEsc(it.habitat) + '</td>'
-                 + '<td class="wq-t-cnt">' + (it.exam_count ? it.exam_count + '회' : '') + '</td>'
+                 // 출제 칸: 횟수 뒤에 기출 배지(연도-번호). 줄 클릭이 그 카드로 가므로 배지는 눌리지 않는다
+                 + '<td class="wq-t-cnt">' + (it.exam_count ? it.exam_count + '회' : '')
+                 +   ((it.exam_refs || []).length
+                        ? '<span class="wq-t-refs">' + it.exam_refs.map(function(r) { return '<span>' + _wqEsc(r) + '</span>'; }).join('') + '</span>'
+                        : '')
+                 + '</td>'
                  + '<td>' + st + '</td>'
                  + '</tr>';
         }).join('');
