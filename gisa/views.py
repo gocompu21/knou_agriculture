@@ -382,14 +382,17 @@ def certification_list(request):
 
     cards = []
     for cert in certifications:
-        cards.append({
-            "cert": cert,
-            "kind": "필기",
-            "url": reverse("gisa:certification_detail", args=[cert.pk]),
-            "exam_count": cert.exam_count,
-            "question_count": cert.question_count,
-            "description": cert.description,
-        })
+        # 실기만 있는 자격증(조경산업기사)은 필기 카드를 만들지 않는다 — 0문항 카드가
+        # 목록에 남으면 눌러 봐야 빈 화면이다.
+        if cert.question_count:
+            cards.append({
+                "cert": cert,
+                "kind": "필기",
+                "url": reverse("gisa:certification_detail", args=[cert.pk]),
+                "exam_count": cert.exam_count,
+                "question_count": cert.question_count,
+                "description": cert.description,
+            })
         total = essay_totals.get(cert.pk)
         if total:
             cards.append({

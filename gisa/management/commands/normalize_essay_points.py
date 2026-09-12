@@ -16,7 +16,7 @@ from django.db import transaction
 
 from gisa.models import Certification, GisaEssayQuestion
 
-TARGET = 45.0
+TARGET = 45.0          # 자연생태복원기사 필답 만점. 조경(산업)기사는 40점이라 --total 로 준다
 STEP = 0.5
 MIN_POINTS = 1.0
 
@@ -26,9 +26,12 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--cert', default='자연생태복원기사')
+        parser.add_argument('--total', type=float, default=TARGET,
+                            help='회차 합계로 맞출 점수 (기본 45, 조경(산업)기사는 40)')
         parser.add_argument('--dry-run', action='store_true')
 
     def handle(self, *args, **opt):
+        target = opt['total']          # 자격증마다 필답 만점이 다르다
         cert = Certification.objects.filter(name=opt['cert']).first()
         if not cert:
             self.stderr.write(f'자격증 없음: {opt["cert"]}')
@@ -46,7 +49,7 @@ class Command(BaseCommand):
 
             pts = {q.pk: float(q.points) for q in qs}
             total = sum(pts.values())
-            diff = TARGET - total
+            diff = target - total
 
             # 배점이 큰 문항부터(동점이면 번호 순) 0.5씩 가감
             order = sorted(qs, key=lambda q: (-pts[q.pk], q.number))
