@@ -7,6 +7,7 @@
 {% block extra_css_links %}{% include "gisa/_katex.html" %}{% endblock %}
 {% block extra_css %}
 <style>
+    {% if weed_count %}{% include "main/_weed_css.html" %}{% endif %}
     /* ── 기출검색 결과 ── */
     .sr-card { padding: 8px 0; border-bottom: 1px solid #eee; }
     .sr-card.sr-folded .sr-choices { display: none; }
@@ -1062,7 +1063,7 @@
         <button class="hamburger-btn hero-hamburger" onclick="toggleMobileMenu()" aria-label="메뉴">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
-        <span class="mobile-tab-label hero-tab-label">{% if active_tab == 'textbook' %}쪽집게 노트{% elif active_tab == 'study' %}기출학습{% elif active_tab == 'solve' %}기출고사{% elif active_tab == 'mock' %}모의고사{% elif active_tab == 'wrong' %}오답노트{% elif active_tab == 'history' %}시험이력{% elif active_tab == 'latest' %}최신기출{% elif active_tab == 'glossary' %}용어집{% elif active_tab == 'qna' %}질의응답{% endif %}</span>
+        <span class="mobile-tab-label hero-tab-label">{% if active_tab == 'textbook' %}쪽집게 노트{% elif active_tab == 'weeds' %}잡초 동정{% elif active_tab == 'study' %}기출학습{% elif active_tab == 'solve' %}기출고사{% elif active_tab == 'mock' %}모의고사{% elif active_tab == 'wrong' %}오답노트{% elif active_tab == 'history' %}시험이력{% elif active_tab == 'latest' %}최신기출{% elif active_tab == 'glossary' %}용어집{% elif active_tab == 'qna' %}질의응답{% endif %}</span>
         <h1 style="color:#fff;">{{ cert.name }} <span style="font-size:0.6em; font-weight:400; opacity:0.8;">{{ cert.get_category_display }}</span></h1>
         <div class="hero-stats" style="color:#fff;">
             <span>시험 <strong style="color:#fff;">{{ exams.count }}회</strong></span>
@@ -1078,13 +1079,14 @@
         <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="메뉴">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
-        <span class="mobile-tab-label">{% if active_tab == 'textbook' %}쪽집게 노트{% elif active_tab == 'study' %}기출학습{% elif active_tab == 'solve' %}기출고사{% elif active_tab == 'mock' %}모의고사{% elif active_tab == 'wrong' %}오답노트{% elif active_tab == 'history' %}시험이력{% elif active_tab == 'latest' %}최신기출{% elif active_tab == 'glossary' %}용어집{% elif active_tab == 'qna' %}질의응답{% endif %}</span>
+        <span class="mobile-tab-label">{% if active_tab == 'textbook' %}쪽집게 노트{% elif active_tab == 'weeds' %}잡초 동정{% elif active_tab == 'study' %}기출학습{% elif active_tab == 'solve' %}기출고사{% elif active_tab == 'mock' %}모의고사{% elif active_tab == 'wrong' %}오답노트{% elif active_tab == 'history' %}시험이력{% elif active_tab == 'latest' %}최신기출{% elif active_tab == 'glossary' %}용어집{% elif active_tab == 'qna' %}질의응답{% endif %}</span>
         {% if active_tab == 'wrong' and wrong_count %}<span class="tab-badge">{{ wrong_count }}</span>{% endif %}
     </div>
 
     <!-- Tab Navigation -->
     <div class="tab-nav">
         <button class="tab-btn{% if active_tab == 'textbook' %} active{% endif %}" onclick="switchTab('textbook')">쪽집게 노트</button>
+        {% if weed_count %}<button class="tab-btn{% if active_tab == 'weeds' %} active{% endif %}" onclick="switchTab('weeds')">잡초 동정<span class="tab-badge" style="background:#2d6a4f;">{{ weed_count }}</span></button>{% endif %}
         <button class="tab-btn{% if active_tab == 'study' %} active{% endif %}" onclick="switchTab('study')">기출학습</button>
         <button class="tab-btn{% if active_tab == 'solve' %} active{% endif %}" onclick="switchTab('solve')">기출고사</button>
         <button class="tab-btn{% if active_tab == 'mock' %} active{% endif %}" onclick="switchTab('mock')">모의고사</button>
@@ -1106,6 +1108,7 @@
                 <button class="drawer-close" onclick="toggleMobileMenu()" aria-label="닫기">&times;</button>
             </div>
             <button class="drawer-item{% if active_tab == 'textbook' %} active{% endif %}" onclick="switchTab('textbook')">쪽집게 노트</button>
+            {% if weed_count %}<button class="drawer-item{% if active_tab == 'weeds' %} active{% endif %}" onclick="switchTab('weeds')">잡초 동정<span class="tab-badge" style="background:#2d6a4f;">{{ weed_count }}</span></button>{% endif %}
             <button class="drawer-item{% if active_tab == 'study' %} active{% endif %}" onclick="switchTab('study')">기출학습</button>
             <button class="drawer-item{% if active_tab == 'solve' %} active{% endif %}" onclick="switchTab('solve')">기출고사</button>
             <button class="drawer-item{% if active_tab == 'mock' %} active{% endif %}" onclick="switchTab('mock')">모의고사</button>
@@ -1116,6 +1119,8 @@
             <button class="drawer-item{% if active_tab == 'qna' %} active{% endif %}" onclick="switchTab('qna')">질의응답{% if qna_count %}<span class="tab-badge" style="background:#8a5cf6;">{{ qna_count }}</span>{% endif %}</button>
         </nav>
     </div>
+
+    {% include "main/_weed_tab.html" %}
 
     <!-- ══════════ 쪽집게 노트 탭 ══════════ -->
     <div id="tab-textbook" class="tab-content{% if active_tab == 'textbook' %} active{% endif %}">
@@ -1606,9 +1611,16 @@
 
 {% block extra_js %}
 <script>
+{% if weed_count %}{% include "main/_weed_js.html" %}{% endif %}
+
 function switchTab(tabName) {
     window.location.href = '?tab=' + tabName;
 }
+/* 잡초 동정 탭으로 들어왔으면 바로 첫 문제를 낸다 (과목 페이지와 같다) */
+document.addEventListener('DOMContentLoaded', function() {
+    var box = document.getElementById('tab-weeds');
+    if (box && box.classList.contains('active') && window.weedAutoStart) weedAutoStart();
+});
 
 function toggleMobileMenu() {
     var drawer = document.getElementById('mobileDrawer');

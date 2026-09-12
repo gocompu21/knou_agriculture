@@ -1,0 +1,220 @@
+{% comment %}잡초 동정 탭 — 방송대 과목 페이지(main/subject_detail)와 기사 필기 페이지
+   (gisa/certification_detail)가 함께 쓴다. 쓰는 쪽이 넣어야 할 것:
+   weed_subject(잡초 카드가 달린 Subject) · weed_count · weed_stats · weed_modes.
+   main.views.weed_tab_context() 가 그대로 만들어 준다.{% endcomment %}
+{% if weed_count %}
+    <!-- Tab: 잡초 동정 (사진 → 이름 4지선다) -->
+    <div class="tab-content{% if active_tab == 'weeds' %} active{% endif %}" id="tab-weeds">
+        <div class="wd-top">
+            <div class="wd-stats">
+                <span>카드 <b>{{ weed_count }}</b>종</span>
+                <span>푼 카드 <b id="wd-answered">{{ weed_stats.answered }}</b></span>
+                <span>정답률 <b id="wd-rate">{{ weed_stats.correct_rate }}</b>%</span>
+                <span>오답 <b id="wd-wrong">{{ weed_stats.wrong }}</b></span>
+                <button type="button" class="wd-reset" onclick="weedReset()">기록 지우기</button>
+            </div>
+            {% comment %}범위 버튼 차례는 서버가 정한다 (weed_tab_context) — 기사 페이지에서는
+               그 자격증의 필기가 맨 앞, '전체' 는 '오답만' 바로 왼쪽에 온다{% endcomment %}
+            <div class="wd-modes">
+                {% for m in weed_modes %}
+                <button type="button" class="wd-mode-btn{% if m.key == 'wrong' %} wrong{% endif %}"
+                        data-mode="{{ m.key }}" onclick="weedStart('{{ m.key }}')"
+                        {% if m.title %}title="{{ m.title }}"{% endif %}>{{ m.label }} {{ m.pre }}<span{% if m.span_id %} id="{{ m.span_id }}"{% endif %}>{{ m.n }}</span>{{ m.post }}</button>
+                {% endfor %}
+                <button type="button" class="wd-mode-btn list" onclick="weedList()">목록</button>
+            </div>
+            <div class="wd-hint">사진을 보고 잡초 이름을 고르세요. 고르면 사진 위에 교수 메모와 카드 손그림이 겹쳐 보이고, 아래에 정답과 함께 과·생활형·발생지·식별 포인트·유사종 구별·원본 슬라이드가 펼쳐집니다.</div>
+        </div>
+        <div id="wd-area" hidden>
+            <div class="wd-card">
+                <div class="wd-quiz">
+                    <div class="wd-photo"><span class="wd-photo-in">
+                        <img id="wd-img" alt="잡초 사진" onclick="weedPhotoZoom(event)" title="눌러서 크게 보기">
+                        <span class="wd-pos-ov" id="wd-pos"></span>
+                        <span class="wd-score-ov" id="wd-score"></span>
+                        <div id="wd-notes-ov" class="wd-notes-ov" hidden></div>
+                        <img id="wd-sketch-ov" class="wd-sketch-ov" alt="카드 손그림" hidden>
+                    </span></div>
+                    <div class="wd-side">
+                        <div class="wd-choices" id="wd-choices"></div>
+                        <div class="wd-actions" id="wd-actions" hidden>
+                            <button type="button" class="wd-next" onclick="weedNext()">다음 문제 ›</button>
+                            <button type="button" class="wd-stop" onclick="weedList()">목록</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="wd-answer" id="wd-answer" hidden></div>
+            </div>
+        </div>
+        <div id="wd-done" class="wd-done" hidden></div>
+        <div id="wd-list" class="wd-list" hidden>
+            <div class="wd-list-head">
+                <span>잡초 목록 <b id="wd-list-n">{{ weed_count }}</b>종 · 줄을 누르면 그 잡초 문제로 갑니다</span>
+                {% if request.user.is_staff %}<button type="button" class="wd-list-add" onclick="weedAddOpen()">+ 등록</button>{% endif %}
+                <button type="button" class="wd-list-close" onclick="document.getElementById('wd-list').hidden = true">닫기</button>
+            </div>
+            <div class="wd-table-wrap">
+                <table class="wd-table">
+                    <thead><tr>
+                        <th class="wd-sortable" onclick="weedSort('no')">번호<span class="wd-sort-i"></span></th>
+                        <th class="wd-sortable" onclick="weedSort('name')">종명<span class="wd-sort-i"></span></th>
+                        {% if request.user.is_staff %}<th class="wd-t-save-h">관리</th>{% endif %}
+                        <th class="wd-sortable" onclick="weedSort('family')">과명<span class="wd-sort-i"></span></th>
+                        <th class="wd-sortable h-life" onclick="weedSort('life_form')">생활형<span class="wd-sort-i"></span></th>
+                        <th class="wd-sortable h-habitat" onclick="weedSort('habitat')">발생지<span class="wd-sort-i"></span></th>
+                        <th class="wd-sortable" onclick="weedSort('gisa_total')">출제<span class="wd-sort-i"></span></th>
+                        <th class="wd-sortable" onclick="weedSort('state')">상태<span class="wd-sort-i"></span></th>
+                    </tr></thead>
+                    <tbody id="wd-list-body"></tbody>
+                </table>
+            </div>
+        </div>
+        {% if request.user.is_staff %}
+        <!-- 관리자: 카드 사진 내려받기 -->
+        <div id="wd-save" class="wd-save" hidden>
+            <div class="wd-save-box">
+                <div class="wd-save-head">
+                    <b id="wd-save-name"></b> 사진 저장
+                    <button type="button" class="wd-save-x" onclick="weedSaveClose()">✕</button>
+                </div>
+                <div class="wd-save-body" id="wd-save-body"></div>
+                <div class="wd-save-fname">
+                    <label for="wd-save-fname">이름</label>
+                    <input type="text" id="wd-save-fname" maxlength="80" spellcheck="false">
+                    <span class="wd-save-ext">.jpg</span>
+                </div>
+                <div class="wd-save-foot">
+                    <span class="wd-save-where">저장 위치: <b id="wd-save-where">다운로드 폴더</b></span>
+                    <button type="button" class="wd-save-dir" onclick="weedSaveFolder()">다른 폴더로…</button>
+                    <button type="button" class="wd-save-go" id="wd-save-go" onclick="weedSaveDo()">저장</button>
+                </div>
+                <div class="wd-save-msg" id="wd-save-msg"></div>
+            </div>
+        </div>
+
+        <!-- 관리자: 새 잡초 카드 등록 -->
+        <div id="wd-add" class="wd-save" hidden>
+            <div class="wd-save-box wd-add-box">
+                <div class="wd-save-head">
+                    새 잡초 등록
+                    <button type="button" class="wd-save-x" onclick="weedAddClose()">✕</button>
+                </div>
+                <div class="wd-add-body">
+                    <div class="wd-add-row">
+                        <label for="wd-add-name">종명</label>
+                        <input type="text" id="wd-add-name" maxlength="50" spellcheck="false"
+                               placeholder="예: 흰명아주" onkeydown="if(event.key==='Enter'){event.preventDefault();weedAddCheck();}">
+                        <button type="button" class="wd-add-check" onclick="weedAddCheck()">확인·조회</button>
+                    </div>
+                    <div class="wd-add-msg" id="wd-add-msg"></div>
+
+                    <div class="wd-add-photos" id="wd-add-photos" hidden>
+                        <!-- 배치가 왼쪽, 배열 고르기가 오른쪽 — 만들 모양을 보며 고른다 -->
+                        <div class="wd-add-top">
+                            <div>
+                                <div class="wd-add-sub">배치</div>
+                                <div class="wd-lay-stage" id="wd-lay-stage"></div>
+                            </div>
+                            <div>
+                                <div class="wd-add-sub">사진 배열</div>
+                                <div class="wd-lay-picks" id="wd-lay-picks"></div>
+                            </div>
+                        </div>
+
+                        <div class="wd-add-sub">사진 <span class="wd-add-tip">— 파일을 끌어다 놓거나 붙여넣기(Ctrl+V)로 추가할 수 있습니다. 쓸 사진은 배치 칸으로 끌어다 놓으세요</span></div>
+                        <div class="wd-pool" id="wd-pool">
+                            <label class="wd-pool-add">
+                                + 사진 추가
+                                <input type="file" accept="image/*" multiple hidden onchange="weedAddFiles(this)">
+                            </label>
+                        </div>
+                    </div>
+                    <details class="wd-add-more" id="wd-add-fields" hidden>
+                        <summary>과명·생활형·발생지·식별 포인트 (AI 가 채움 — 눌러서 확인·수정)</summary>
+                    <div class="wd-add-grid">
+                            <label>과명<input type="text" id="wd-add-family" maxlength="50"></label>
+                            <label>생활형<input type="text" id="wd-add-life" maxlength="50"></label>
+                            <label class="wd-add-wide">발생지<input type="text" id="wd-add-habitat" maxlength="100"></label>
+                            <label class="wd-add-wide">식별 포인트<textarea id="wd-add-features" rows="4"></textarea></label>
+                            <label class="wd-add-wide">헷갈리는 종과 구별<textarea id="wd-add-similar" rows="3"></textarea></label>
+                            <label class="wd-add-wide">방제·비고<textarea id="wd-add-control" rows="3"></textarea></label>
+                            <label class="wd-add-wide">교수 메모 (사진 위에 흰 글씨로 얹힙니다 — 짧게)<textarea id="wd-add-notes" rows="3"></textarea></label>
+                        </div>
+                    </details>
+
+                </div>
+                <div class="wd-save-foot">
+                    <span class="wd-save-where" id="wd-add-hint">종명을 넣고 확인·조회를 누르세요.</span>
+                    <button type="button" class="wd-save-go" id="wd-add-go" onclick="weedAddSubmit()" disabled>등록</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 관리자: 카드 내용 수정 -->
+        <div id="wd-edit" class="wd-save" hidden>
+            <div class="wd-save-box wd-add-box">
+                <div class="wd-save-head">
+                    <b id="wd-edit-title"></b> 수정
+                    <button type="button" class="wd-save-x" onclick="weedEditWinClose()">✕</button>
+                </div>
+                <div class="wd-add-body">
+                    <div class="wd-add-grid">
+                        <label>종명<input type="text" id="wd-edit-name" maxlength="50"></label>
+                        <label>과명<input type="text" id="wd-edit-family" maxlength="50"></label>
+                        <label>생활형<input type="text" id="wd-edit-life" maxlength="50"></label>
+                        <label>기사 실기 출제(화면 표시 안 함)<input type="number" id="wd-edit-exam" min="0" max="99"></label>
+                        <label class="wd-add-wide">발생지<input type="text" id="wd-edit-habitat" maxlength="100"></label>
+                        <label class="wd-add-wide">식별 포인트<textarea id="wd-edit-features" rows="4"></textarea></label>
+                        <label class="wd-add-wide">헷갈리는 종과 구별<textarea id="wd-edit-similar" rows="3"></textarea></label>
+                        <label class="wd-add-wide">방제·비고<textarea id="wd-edit-control" rows="3"></textarea></label>
+                        <label class="wd-add-wide">교수 메모 (사진 위에 흰 글씨로 얹힙니다 — 짧게)<textarea id="wd-edit-notes" rows="3"></textarea></label>
+                    </div>
+                    <div class="wd-add-msg" id="wd-edit-msg"></div>
+
+                    <details class="wd-add-more" id="wd-edit-photos">
+                        <summary>사진 바꾸기 (지금 사진을 그대로 두려면 열지 마세요)</summary>
+                        <div style="padding:12px">
+                            <!-- 지금 사진과 새 배치를 나란히, 맨 위에 — 무엇이 어떻게 바뀌는지 먼저 본다 -->
+                            <div class="wd-edit-compare">
+                                <div>
+                                    <div class="wd-add-sub">지금 사진</div>
+                                    <div class="wd-edit-now"><img id="wd-edit-cur" alt=""></div>
+                                </div>
+                                <div>
+                                    <div class="wd-add-sub">새 배치</div>
+                                    <div class="wd-lay-stage" id="wd-elay-stage"></div>
+                                </div>
+                            </div>
+
+                            <div class="wd-add-sub">새 사진 배열</div>
+                            <div class="wd-lay-picks" id="wd-elay-picks"></div>
+
+                            <div class="wd-add-sub">사진
+                                <span class="wd-add-tip">— 끌어다 놓거나 붙여넣기(Ctrl+V), 누르면 크게 보입니다</span>
+                                <button type="button" class="wd-refetch" onclick="weedEditRefetch()">인터넷에서 가져오기</button>
+                            </div>
+                            <div class="wd-pool" id="wd-epool">
+                                <label class="wd-pool-add">
+                                    + 사진 추가
+                                    <input type="file" accept="image/*" multiple hidden onchange="weedEditFiles(this)">
+                                </label>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+                <div class="wd-save-foot">
+                    <span class="wd-save-where" id="wd-edit-hint">내용을 고치고 저장하세요.</span>
+                    <button type="button" class="wd-save-go" id="wd-edit-go" onclick="weedEditSubmit()">저장</button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 사진 크게 보기 (등록 화면과 문제 사진이 함께 쓴다) -->
+        <div id="wd-zoom" class="wd-zoom" hidden onclick="weedZoomClose()">
+            <img id="wd-zoom-img" alt="" title="눌러서 닫기">
+            <div class="wd-zoom-cap" id="wd-zoom-cap"></div>
+            <button type="button" class="wd-zoom-x" onclick="weedZoomClose()">✕</button>
+        </div>
+    </div>
+{% endif %}

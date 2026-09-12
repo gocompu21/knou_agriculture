@@ -1,0 +1,359 @@
+{% comment %}잡초 동정 탭 — 방송대 과목 페이지(main/subject_detail)와 기사 필기 페이지
+   (gisa/certification_detail)가 함께 쓴다. 쓰는 쪽이 넣어야 할 것:
+   weed_subject(잡초 카드가 달린 Subject) · weed_count · weed_stats · weed_modes.
+   main.views.weed_tab_context() 가 그대로 만들어 준다.{% endcomment %}
+    /* ══════════ 잡초 동정 퀴즈 ══════════ */
+    .wd-top { background: #fff; border: 1px solid #e0e6e0; border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+    .wd-stats { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; font-size: 0.85rem; color: #555; }
+    .wd-stats b { color: #1b4332; font-size: 1rem; }
+    .wd-reset { margin-left: auto; background: none; border: none; color: #999; font-size: 0.75rem; cursor: pointer; text-decoration: underline; }
+    .wd-modes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .wd-mode-btn { padding: 8px 16px; border: none; border-radius: 8px; background: #2d6a4f; color: #fff; font-size: 0.88rem; font-weight: 600; cursor: pointer; }
+    .wd-mode-btn:hover { background: #1b4332; }
+    .wd-mode-btn.wrong { background: #b71c1c; }
+    .wd-mode-btn.wrong:hover { background: #8e1515; }
+    /* 목록은 푸는 범위가 아니라 여닫는 것이라 색을 달리한다 */
+    .wd-mode-btn.list { background: #fff; color: #2d6a4f; border: 1.5px solid #b7cdbc; }
+    .wd-mode-btn.list:hover { background: #eef5ef; }
+    /* 지금 풀고 있는 범위만 진하게 — 들어오자마자 '전체'로 시작하므로 어느 범위인지 보여야 한다.
+       목록 버튼은 범위가 아니므로 흐려지지 않는다 */
+    .wd-modes:has(.on) .wd-mode-btn:not(.on):not(.list) { opacity: .45; }
+    .wd-modes:has(.on) .wd-mode-btn:not(.on):not(.list):hover { opacity: 1; }
+    .wd-hint { margin-top: 10px; font-size: 0.8rem; color: #777; line-height: 1.6; }
+    /* 진행·점수를 사진 위 모서리에 얹는다 — 교수 메모와 같은 흰 글씨 + 검은 테두리 */
+    .wd-pos-ov, .wd-score-ov {
+        position: absolute; top: 9px; font-size: 0.8rem; font-weight: 700; color: #fff;
+        -webkit-text-stroke: 0.6px rgba(0, 0, 0, .85); paint-order: stroke fill;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, .9); pointer-events: none; line-height: 1.2;
+    }
+    .wd-pos-ov { left: 15px; }
+    .wd-score-ov { right: 19px; }
+    .wd-card { background: #fff; border: 1px solid #e0e6e0; border-radius: 12px; padding: 16px; }
+    /* 사진과 보기를 좌우로 나눠 사진이 세로 공간을 넓게 쓰게 한다 */
+    .wd-quiz { display: flex; gap: 18px; align-items: flex-start; }
+    .wd-photo { flex: 1; min-width: 0; text-align: center; }
+    /* 손그림을 사진 모서리에 붙이려면 래퍼가 사진 크기와 같아야 한다.
+       inline-block 은 글꼴 baseline 때문에 아래가 몇 px 남으므로 flex 로 감싼다.
+       메모 그라데이션이 모서리 밖으로 새지 않도록 사진과 같은 둥글기로 잘라 낸다 */
+    /* inline-flex 는 text-align 으로 가운데가 잘 안 잡힌다(부모 폭·내용 폭이
+       서로 물려 몇 px 씩 치우친다). 블록으로 두고 좌우 auto 여백으로 놓는다 */
+    .wd-photo-in { position: relative; display: flex; width: fit-content; max-width: 100%;
+                   margin: 0 auto; border-radius: 8px; overflow: hidden; }
+    .wd-photo img { max-width: 100%; max-height: 68vh; border-radius: 8px; border: 1px solid #ddd; cursor: zoom-in; }
+    .wd-side { flex: 0 0 260px; display: flex; flex-direction: column; gap: 14px; }
+    .wd-choices { display: flex; flex-direction: column; gap: 10px; }
+    .wd-choice { padding: 12px 10px; border: 1.5px solid #cfd8cf; border-radius: 8px; background: #fafcfa; font-size: 0.95rem; font-weight: 600; color: #222; cursor: pointer; text-align: center; transition: background .15s; }
+    .wd-choice:hover { background: #eef5ee; }
+    .wd-choices.done .wd-choice { cursor: default; }
+    .wd-choice.picked { border-color: #333; background: #333; color: #fff; }
+    .wd-choice.right { border-color: #2e7d32; background: #2e7d32; color: #fff; }
+    .wd-choice.picked.miss { border-color: #d93025; background: #d93025; color: #fff; }
+    /* 답 내용을 사각 박스로 묶는다 — 사진·보기 영역과 눈으로 구분된다 */
+    .wd-answer { margin-top: 14px; border: 1px solid #dce8dc; border-radius: 10px;
+                 padding: 14px 16px; background: #fbfdfb; }
+    .wd-verdict { font-weight: 700; font-size: 1rem; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; }
+    .wd-verdict.ok { background: #e8f5e9; color: #1b5e20; }
+    .wd-verdict.no { background: #fdecea; color: #b71c1c; }
+    .wd-name { font-size: 1.35rem; font-weight: 800; color: #1b4332; margin-bottom: 6px; }
+    /* 출제 횟수 별 — 이름 오른쪽 위에 작게 붙인다(윗첨자) */
+    .wd-stars { color: #f5b301; margin-left: 3px; letter-spacing: 0; font-size: 0.5em;
+                vertical-align: super; line-height: 1;
+                text-shadow: 0 0 1px rgba(140, 100, 0, .45); }
+    .wd-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .wd-meta span { font-size: 0.78rem; padding: 3px 10px; border-radius: 12px; background: #f0f4f0; color: #2d6a4f; }
+    .wd-meta span.cnt { background: #fff3e0; color: #e65100; font-weight: 700; }
+    /* 기출 배지 — 이 종이 문제나 선지에 나온 문항(연도-번호). 오른쪽으로 몰아 둔다.
+       누르면 아래에 그 문항이 쪽집게 노트와 같은 카드로 펼쳐진다 */
+    .wd-meta .wd-refs { margin-left: auto; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .wd-meta .wd-refs .lbl { background: none; color: #6b7d70; padding: 3px 2px 3px 0; }
+    .wd-meta span.ref { background: #e8f0fe; color: #1a4d8f; font-weight: 700; cursor: pointer;
+        font-variant-numeric: tabular-nums; }
+    .wd-meta span.ref:hover { background: #d2e3fc; }
+    .wd-meta span.ref.on { background: #1a4d8f; color: #fff; }
+    .wd-refs-list { margin: 0 0 12px; }
+    .wd-refs-list[hidden] { display: none; }
+    /* 목록 출제 칸의 기출 배지 — 답 화면 배지와 같은 색, 더 작게 */
+    .wd-t-refs { display: inline-flex; flex-wrap: wrap; gap: 3px; margin-left: 6px; vertical-align: middle; }
+    .wd-t-refs span { font-size: 0.7rem; padding: 1px 6px; border-radius: 9px; background: #e8f0fe; color: #1a4d8f;
+        font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    /* 식물보호기사 필기 배지 — 방송대 기출(파랑)과 구별되게 보라. 건수만 적는다 */
+    .wd-meta span.ref.g, .wd-t-refs span.g { background: #efe6fb; color: #5b2d8f; }
+    .wd-meta span.ref.g:hover { background: #e2d3f7; }
+    .wd-meta span.ref.g.on { background: #5b2d8f; color: #fff; }
+    .wd-refs-g { margin-left: 8px; }
+    .wd-more { display: block; width: 100%; margin: 6px 0 2px; padding: 8px; border: 1px dashed #b9c9bb; border-radius: 8px;
+        background: #f6faf6; color: #2d6a4f; font-weight: 700; cursor: pointer; }
+    .wd-more:hover { background: #eef5ee; }
+    .wd-more:disabled { color: #999; cursor: default; }
+    /* 펼친 문항 속 종명 강조 — 형광펜 */
+    mark.wd-hl { background: #fff176; color: inherit; padding: 0 2px; border-radius: 3px; font-weight: 700; }
+    .wd-sec { margin-bottom: 10px; font-size: 0.88rem; line-height: 1.75; color: #333; }
+    .wd-sec b { display: block; font-size: 0.8rem; color: #1b4332; margin-bottom: 2px; }
+    .wd-sec ul { margin: 0; padding-left: 18px; }
+    .wd-sec li { margin: 2px 0; }
+    /* 답안 수정 (스태프) — Toast UI 는 마크다운이라 글 색을 못 넣어 여기서는 쓰지 않는다 */
+    .wd-edit-bar { margin-top: 14px; text-align: right; }
+    .wd-edit-btn { background: none; border: 1px solid #cfd8cf; color: #2d6a4f; border-radius: 7px;
+                   padding: 5px 12px; font-size: 0.8rem; cursor: pointer; }
+    .wd-edit-btn:hover { background: #f0f4f0; }
+    .wd-edit { margin-top: 14px; border: 1px solid #dce8dc; border-radius: 10px; padding: 14px;
+               background: #fafcfa; }
+    .wd-edit-head { font-size: 0.9rem; font-weight: 700; color: #1b4332; margin-bottom: 10px; }
+    .wd-ef { margin-bottom: 12px; }
+    .wd-ef label { display: block; font-size: 0.78rem; color: #2d6a4f; font-weight: 600; margin-bottom: 4px; }
+    .wd-ed-tools { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
+    .wd-ed-tools button { width: 26px; height: 26px; border: 1px solid #d7ddd7; background: #fff;
+                          border-radius: 5px; cursor: pointer; font-size: 0.8rem; line-height: 1;
+                          padding: 0; color: #333; }
+    .wd-ed-tools button:hover { background: #eef3ee; }
+    .wd-ed-tools .wd-col { border: 1px solid rgba(0, 0, 0, .25); width: 22px; height: 22px;
+                           align-self: center; border-radius: 50%; }
+    .wd-ed { min-height: 62px; border: 1px solid #ccd5cc; border-radius: 7px; padding: 8px 10px;
+             background: #fff; font-size: 0.86rem; line-height: 1.7; color: #333; outline: none; }
+    .wd-ed:focus { border-color: #2d6a4f; box-shadow: 0 0 0 2px rgba(45, 106, 79, .12); }
+    .wd-edit-actions { display: flex; align-items: center; gap: 8px; }
+    .wd-save { background: #2d6a4f; color: #fff; border: none; border-radius: 7px;
+               padding: 7px 18px; font-size: 0.84rem; font-weight: 600; cursor: pointer; }
+    .wd-cancel { background: #eee; color: #555; border: none; border-radius: 7px;
+                 padding: 7px 14px; font-size: 0.84rem; cursor: pointer; }
+    .wd-edit-msg { font-size: 0.8rem; color: #666; }
+    .wd-edit-msg.err { color: #b91c1c; }
+    /* 교수 메모 — 답을 고른 뒤 문제 사진 위쪽에 흰 상자로 겹쳐 보인다 */
+    /* 배경 없이 사진 위에 흰 글씨로 얹는다. 억새·개구리밥처럼 밝은 사진에서도 읽히도록
+       글자에 검은 테두리(text-stroke)를 두르고 그림자를 더한다.
+       왼쪽 아래 — 오른쪽 아래의 손그림과 좌우로 나뉜다 */
+    .wd-notes-ov { position: absolute; left: 10px; bottom: 8px; max-width: 58%; text-align: left;
+                   font-size: 0.8rem; line-height: 1.55; color: #fff; font-weight: 700;
+                   -webkit-text-stroke: 0.6px rgba(0, 0, 0, .85);
+                   paint-order: stroke fill;
+                   text-shadow: 0 1px 3px rgba(0, 0, 0, .9);
+                   pointer-events: none; }
+    /* ::marker 에는 text-stroke 가 먹지 않아 불렛만 흐려진다. 직접 그린다 */
+    .wd-notes-ov ul { margin: 0; padding-left: 12px; list-style: none; }
+    .wd-notes-ov li { margin: 1px 0; position: relative; }
+    .wd-notes-ov li::before { content: '·'; position: absolute; left: -9px; top: -0.06em;
+                              font-weight: 900; font-size: 1.15em; }
+    /* 카드 손그림 — 답을 고른 뒤 문제 사진 오른쪽 아래에 겹쳐 보인다 */
+    .wd-sketch-ov { position: absolute; right: 8px; bottom: 8px; width: 34%; max-width: 190px;
+                    border-radius: 6px; border: 1px solid #cfd8cf; background: #fff;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, .28); z-index: 1; }
+    /* display:flex 는 [hidden] 을 이기므로 숨김을 따로 지정해야 한다 */
+    .wd-actions { display: flex; gap: 8px; }
+    .wd-actions[hidden] { display: none; }
+    .wd-next { flex: 1; padding: 12px; border: none; border-radius: 8px; background: #2d6a4f; color: #fff; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+    .wd-stop { padding: 12px 16px; border: 1px solid #ccc; border-radius: 8px; background: #fff; color: #666; cursor: pointer; }
+    /* 잡초 전체 목록 */
+    .wd-list { margin-top: 14px; background: #fff; border: 1px solid #e0e6e0; border-radius: 12px; overflow: hidden; }
+    .wd-list-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #f4f8f4; border-bottom: 1px solid #e0e6e0; font-size: 0.85rem; color: #555; }
+    .wd-list-head b { color: #1b4332; }
+    /* 등록·닫기를 오른쪽으로 몰되 등록이 닫기 앞에 온다 */
+    .wd-list-add { margin-left: auto; background: #2d6a4f; border: 1px solid #2d6a4f; border-radius: 6px; padding: 4px 12px; font-size: 0.8rem; color: #fff; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .wd-list-add:hover { background: #1b4332; }
+    .wd-list-add + .wd-list-close { margin-left: 0; }
+    .wd-list-close { margin-left: auto; background: none; border: 1px solid #ccc; border-radius: 6px; padding: 4px 12px; font-size: 0.8rem; color: #666; cursor: pointer; }
+    .wd-table-wrap { max-height: 70vh; overflow: auto; }
+    .wd-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    .wd-table th { position: sticky; top: 0; background: #1b4332; color: #fff; font-weight: 600; padding: 8px 10px; text-align: left; white-space: nowrap; }
+    .wd-table th.wd-sortable { cursor: pointer; user-select: none; }
+    .wd-table th.wd-sortable:hover { background: #2d6a4f; }
+    .wd-sort-i { display: inline-block; width: 12px; margin-left: 3px; color: #a5d6a7; font-size: 0.8em; }
+    .wd-table td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; color: #333; }
+    .wd-table tr:hover td { background: #f7fbf7; }
+    /* 줄 전체가 누르는 자리다 */
+    .wd-table .wd-t-row { cursor: pointer; }
+    .wd-table .wd-t-row:hover .wd-t-name { text-decoration: underline; }
+    .wd-table .wd-t-no { color: #999; width: 46px; }
+    .wd-table .wd-t-name { font-weight: 700; color: #1b4332; white-space: nowrap; }
+    .wd-table .wd-t-cnt { color: #e65100; font-weight: 700; white-space: nowrap; }
+    /* 표에서는 이름과 나란히 두는 편이 읽기 좋다 (답 화면의 윗첨자를 되돌린다) */
+    .wd-table .wd-stars { margin-left: 4px; font-size: 0.8em; vertical-align: baseline; }
+    .wd-table .wd-t-state { white-space: nowrap; font-size: 0.78rem; }
+    .wd-table .wd-t-state.ok { color: #2e7d32; }
+    .wd-table .wd-t-state.wrong { color: #c62828; font-weight: 700; }
+    /* 관리자 저장 열 */
+    /* 열이 좁으면 '저 / 장' 으로 접힌다 — 글자와 칸 모두 줄바꿈을 막는다 */
+    .wd-table th.wd-t-save-h, .wd-table .wd-t-save { width: 1%; text-align: center; white-space: nowrap; }
+    .wd-save-btn { padding: 3px 10px; border: 1px solid #b7cdbc; border-radius: 6px; background: #fff; color: #2d6a4f; font-size: 0.76rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .wd-save-btn:hover { background: #eef5ef; }
+    .wd-row-edit { margin-left: 4px; padding: 3px 10px; border: 1px solid #cdc0b7; border-radius: 6px; background: #fff; color: #8a6d3b; font-size: 0.76rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .wd-row-edit:hover { background: #faf6f0; }
+    .wd-add-top { display: flex; gap: 20px; align-items: flex-start; }
+    .wd-add-top > div:first-child { flex: 0 0 auto; }
+    .wd-add-top > div:last-child { flex: 1; min-width: 0; }
+    .wd-add-top .wd-lay-stage { margin-top: 0; }
+    .wd-edit-compare { display: flex; gap: 20px; align-items: flex-start; margin-top: 4px; }
+    .wd-edit-compare > div { flex: 0 0 auto; }
+    .wd-edit-compare .wd-add-sub { margin-top: 12px; }
+    .wd-edit-compare .wd-lay-stage { margin-top: 0; }
+    .wd-edit-now { text-align: center; }
+    .wd-refetch { margin-left: 8px; padding: 3px 10px; border: 1px solid #b7cdbc; border-radius: 6px; background: #fff; color: #2d6a4f; font-size: 0.74rem; font-weight: 600; cursor: pointer; }
+    .wd-refetch:hover { background: #eef5ef; }
+    .wd-refetch:disabled { opacity: .6; cursor: default; }
+    .wd-edit-now img { max-width: 300px; max-height: 420px; border: 1px solid #ddd; border-radius: 6px; }
+    .wd-save-btn.done { background: #2d6a4f; color: #fff; border-color: #2d6a4f; }
+    /* 사진 고르기 창 */
+    .wd-save { position: fixed; inset: 0; z-index: 1200; background: rgba(0, 0, 0, .5); display: flex; align-items: center; justify-content: center; padding: 16px; }
+    /* display:flex 는 [hidden] 을 이긴다 — 없으면 탭에 들어오자마자 빈 창이 뜬다 */
+    .wd-save[hidden] { display: none; }
+    .wd-save-box { background: #fff; border-radius: 12px; width: min(680px, 100%); max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; }
+    .wd-save-head { padding: 12px 16px; background: #1b4332; color: #fff; font-size: 0.92rem; display: flex; align-items: center; gap: 8px; }
+    .wd-save-x { margin-left: auto; background: none; border: none; color: #fff; font-size: 1rem; cursor: pointer; }
+    .wd-save-body { padding: 14px 16px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 12px; }
+    .wd-save-load { color: #777; font-size: 0.85rem; padding: 10px 0; }
+    .wd-sv-item { width: 150px; cursor: pointer; text-align: center; border: 2px solid transparent; border-radius: 8px; padding: 6px; }
+    .wd-sv-item:has(input:checked) { border-color: #2d6a4f; background: #f4faf5; }
+    .wd-sv-item input { margin-bottom: 6px; }
+    .wd-sv-item img { width: 100%; display: block; border-radius: 4px; }
+    /* 낱장 미리보기 — 원본의 그 부분만 보이게 잘라 낸다. 높이를 픽셀로 주면
+       미리보기가 줄어든 만큼 어긋나므로 padding-top 비율로 잡는다 */
+    .wd-sv-clip { display: block; position: relative; overflow: hidden; border-radius: 4px; width: 100%; }
+    .wd-sv-clip img { position: absolute; max-width: none; border-radius: 0; }
+    .wd-sv-cap { display: block; margin-top: 5px; font-size: 0.78rem; color: #333; font-weight: 600; }
+    .wd-save-fname { padding: 10px 16px 0; display: flex; align-items: center; gap: 8px; font-size: 0.83rem; }
+    .wd-save-fname label { color: #666; }
+    .wd-save-fname input { flex: 1; padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85rem; }
+    .wd-save-fname input:focus { outline: none; border-color: #2d6a4f; }
+    .wd-save-ext { color: #999; }
+    .wd-save-foot { padding: 12px 16px; border-top: 1px solid #eee; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .wd-save-where { font-size: 0.8rem; color: #666; }
+    .wd-save-where b { color: #1b4332; }
+    .wd-save-dir { margin-left: auto; padding: 7px 14px; border: 1px solid #b7cdbc; border-radius: 7px; background: #fff; color: #2d6a4f; font-size: 0.83rem; cursor: pointer; }
+    .wd-save-go { padding: 7px 20px; border: none; border-radius: 7px; background: #2d6a4f; color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .wd-save-go:disabled { opacity: .6; cursor: default; }
+    .wd-save-msg { padding: 0 16px 12px; font-size: 0.8rem; color: #2e7d32; line-height: 1.5; }
+    .wd-save-msg.warn { color: #b26a00; }
+
+    /* ── 새 잡초 등록 ── */
+    .wd-add-box { width: min(880px, 100%); }
+    .wd-add-body { padding: 14px 16px; overflow-y: auto; }
+    .wd-add-row { display: flex; gap: 8px; align-items: center; }
+    .wd-add-row label { font-size: 0.85rem; color: #555; }
+    .wd-add-row input { flex: 1; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; }
+    .wd-add-row input:focus { outline: none; border-color: #2d6a4f; }
+    .wd-add-check { padding: 8px 14px; border: none; border-radius: 6px; background: #2d6a4f; color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .wd-add-check:disabled { opacity: .6; cursor: default; }
+    .wd-add-msg { margin-top: 8px; font-size: 0.8rem; line-height: 1.5; color: #2e7d32; }
+    .wd-add-msg.warn { color: #c62828; }
+    .wd-add-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .wd-add-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; color: #555; }
+    .wd-add-grid .wd-add-wide { grid-column: 1 / -1; }
+    .wd-add-grid input, .wd-add-grid textarea { padding: 7px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85rem; font-family: inherit; resize: vertical; }
+    .wd-add-grid input:focus, .wd-add-grid textarea:focus { outline: none; border-color: #2d6a4f; }
+    .wd-add-sub { margin: 16px 0 8px; font-size: 0.82rem; font-weight: 700; color: #1b4332; }
+    .wd-add-tip { font-weight: 400; color: #7b8f80; font-size: 0.76rem; }
+    .wd-add-photos > .wd-add-sub:first-child { margin-top: 12px; }
+    /* 상세는 접어 둔다 — 등록의 핵심은 사진이라 사진이 먼저 보여야 한다 */
+    .wd-add-more { margin-top: 16px; border: 1px solid #e0e6e0; border-radius: 8px; }
+    .wd-add-more[hidden] { display: none; }
+    .wd-add-more > summary { padding: 9px 12px; font-size: 0.8rem; font-weight: 600; color: #1b4332; cursor: pointer; background: #f4f8f4; border-radius: 7px; }
+    .wd-add-more[open] > summary { border-radius: 7px 7px 0 0; border-bottom: 1px solid #e0e6e0; }
+    .wd-add-more .wd-add-grid { margin: 0; padding: 12px; }
+
+    /* 배열 고르기 — 작은 그림으로 모양을 보여 준다 */
+    .wd-lay-picks { display: flex; flex-wrap: wrap; gap: 8px; }
+    .wd-lay-pick { width: 78px; cursor: pointer; text-align: center; border: 2px solid #e0e6e0; border-radius: 8px; padding: 6px 4px; background: #fff; }
+    .wd-lay-pick.on { border-color: #2d6a4f; background: #f4faf5; }
+    .wd-lay-mini { display: grid; gap: 2px; height: 46px; margin-bottom: 4px; }
+    .wd-lay-mini i { background: #cfe0d3; border-radius: 2px; display: block; }
+    .wd-lay-pick.on .wd-lay-mini i { background: #7fae90; }
+    .wd-lay-cap { font-size: 0.68rem; color: #555; line-height: 1.3; }
+
+    /* 올린 사진 목록 — 여기서 칸으로 끌어다 놓는다 */
+    .wd-pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 100px; padding: 8px; border: 1px dashed #cbd8cd; border-radius: 8px; background: #fafcfa; transition: background .12s, border-color .12s; }
+    /* 파일을 끌어다 놓는 중 */
+    .wd-pool.over { border-color: #2d6a4f; background: #eaf4ec; }
+    .wd-pool-item { width: 120px; height: 92px; border-radius: 6px; overflow: hidden; position: relative; cursor: zoom-in; border: 2px solid transparent; }
+    .wd-pool-item img { width: 100%; height: 100%; object-fit: cover; display: block; -webkit-user-drag: none; user-select: none; pointer-events: none; }
+    .wd-pool-item.used { opacity: .35; cursor: default; }
+    .wd-pool-add { width: 120px; height: 92px; display: flex; align-items: center; justify-content: center; border: 1px dashed #9ec2a8; border-radius: 6px; font-size: 0.72rem; color: #2d6a4f; cursor: pointer; text-align: center; background: #fff; }
+    .wd-pool-busy { width: 100%; padding: 18px 0; text-align: center; font-size: 0.78rem; color: #7b8f80; }
+    /* 조회 중 도는 아이콘 — 몇 초 걸리므로 멈춘 것처럼 보이면 안 된다 */
+    .wd-spin { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px;
+               border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%;
+               animation: wqspin .7s linear infinite; }
+    .wd-spin.dark { border-color: rgba(45,106,79,.25); border-top-color: #2d6a4f; }
+    @keyframes wqspin { to { transform: rotate(360deg); } }
+    /* 인터넷에서 가져온 사진임을 표시 — 출처를 밝혀야 하는 CC 사진이다 */
+    .wd-pool-tag { position: absolute; left: 3px; bottom: 3px; padding: 1px 5px; border-radius: 3px; background: rgba(27,67,50,.85); color: #fff; font-size: 0.6rem; font-weight: 600; }
+    /* 크게 보기 — 썸네일이 작아 무슨 사진인지 구별이 안 된다 */
+    .wd-pool-zoom { position: absolute; right: 3px; top: 3px; width: 24px; height: 24px; border: none; border-radius: 50%; background: rgba(0,0,0,.5); color: #fff; font-size: 0.8rem; line-height: 1; cursor: zoom-in; padding: 0; }
+    .wd-pool-item:hover .wd-pool-zoom { background: rgba(0,0,0,.75); }
+    .wd-zoom { position: fixed; inset: 0; z-index: 1300; background: rgba(0,0,0,.82); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; cursor: zoom-out; }
+    .wd-zoom[hidden] { display: none; }
+    /* 원본이 작아도(낱장은 450px 안팎) 크게 키워 본다 — 그게 확대다.
+       width 를 정해 줘야 커진다(auto 면 원본 크기에 머문다) */
+    .wd-zoom img { width: min(92vw, 1000px); height: auto; max-height: 86vh; object-fit: contain;
+                   border-radius: 6px; background: #fff; cursor: zoom-out; }
+    .wd-zoom-cap { color: #eee; font-size: 0.8rem; text-align: center; max-width: 760px; line-height: 1.5; }
+    .wd-zoom-x { position: absolute; top: 14px; right: 18px; width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(255,255,255,.2); color: #fff; font-size: 1rem; cursor: pointer; }
+
+    /* 배열 칸 — 끌어다 놓는 자리 */
+    /* 배열 미리보기 — 사진을 넣으면 원본 비율대로 늘어나 창을 넘어갔다.
+       전체 높이를 못 박고 칸은 그 안에서 나눠 갖는다 */
+    .wd-lay-stage { display: grid; gap: 6px; margin: 10px auto 0; background: #f4f8f4; border-radius: 8px; padding: 6px;
+                    max-width: 100%; }
+    .wd-slot { position: relative; min-height: 0; border: 2px dashed #c3d4c7; border-radius: 6px; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; color: #9bb0a0; overflow: hidden; }
+    .wd-slot.over { border-color: #2d6a4f; background: #eaf4ec; }
+    .wd-slot img { width: 100%; height: 100%; object-fit: contain; display: block; -webkit-user-drag: none; user-select: none; pointer-events: none; }
+    .wd-slot-x { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border: none; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; font-size: 0.7rem; cursor: pointer; line-height: 1; }
+    @media (max-width: 700px) {
+        .wd-table .wd-t-habitat, .wd-table .wd-t-life { display: none; }
+        .wd-table th.h-habitat, .wd-table th.h-life { display: none; }
+    }
+
+    .wd-done { background: #fff; border: 1px solid #e0e6e0; border-radius: 12px; padding: 24px; text-align: center; font-size: 0.95rem; color: #333; line-height: 1.8; }
+    .wd-done b { color: #1b4332; font-size: 1.2rem; }
+    @media (max-width: 700px) {
+        .wd-quiz { flex-direction: column; gap: 12px; }
+        /* 세로 flex 에서 flex:1 은 높이를 뜻한다. 사진 칸에 폭을 주지 않으면
+           내용 폭에 맞춰져 text-align:center 가 소용없어진다 */
+        .wd-photo { width: 100%; align-self: stretch; }
+        .wd-side { flex: none; width: 100%; }
+        /* 보기가 사진 아래로 내려오므로 2열로 묶어 세로 길이를 줄인다 */
+        .wd-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .wd-choice { padding: 12px 6px; font-size: 0.9rem; }
+        /* 답을 고른 뒤에는 보기를 감춘다 — 정답과 풀이는 아래 답 영역에 있고,
+           좁은 화면에서는 그 자리를 답에 쓰는 편이 낫다 */
+        .wd-choices.done { display: none; }
+        /* 사진 원본이 450px 안팎이라 그대로 두면 보기 버튼보다 좁다.
+           좁은 화면에서는 칸 폭에 맞춰 늘리되, 세로로 너무 길어지지 않게 묶는다
+           (쇠별꽃은 사진 3장이라 비율이 2.1 이다) */
+        .wd-photo-in { width: 100%; }
+        .wd-photo img { width: 100%; max-height: 62vh; object-fit: contain; }
+        .wd-sketch-ov { width: 38%; max-width: 150px; right: 6px; bottom: 6px; }
+        .wd-notes-ov { font-size: 0.74rem; max-width: 58%; left: 8px; bottom: 6px;
+                       -webkit-text-stroke-width: 0.5px; }
+    }
+
+    /* 관련 문제 카드 — 기출 배지를 눌러 펼친 문항. 쪽집게 노트 카드와 같은 꼴이되
+       이름을 따로 둔다(기사 페이지에 같은 이름의 제 것이 있다) */
+    /* 관련 문제 — 탭 안에서 펼쳐 푼다 (이동 없음). 학습모드(study_mode) 카드와 같은 꼴 */
+    .wdn-list { flex-basis: 100%; width: 100%; margin-top: 6px; background: #fff;
+        border: 1px solid #e4e9e4; border-radius: 8px; padding: 12px 6px 4px; }
+    .wdn-loading, .wdn-empty { font-size: 0.82rem; color: #777; padding: 6px 10px; }
+    .wdn-card { padding: 4px 12px 0; margin-bottom: 18px; }
+    .wdn-q { font-weight: bold; font-size: 0.88rem; line-height: 1.7; color: #222;
+        padding-left: 1.3em; text-indent: -1.3em; margin-bottom: 8px; white-space: pre-wrap; word-break: keep-all; }
+    .wdn-badge { display: inline-block; text-indent: 0; margin-left: 8px; vertical-align: 2px;
+        background: #fff3e0; color: #e65100; padding: 2px 9px; border-radius: 12px;
+        font-size: 0.72em; font-weight: 600; white-space: nowrap; }
+    .wdn-choices { padding-left: 10px; }
+    .wdn-choice { display: flex; align-items: flex-start; margin-bottom: 4px; padding: 4px 8px;
+        border-radius: 5px; cursor: pointer; line-height: 1.6; font-size: 0.88rem; color: #222;
+        transition: background 0.15s; }
+    .wdn-choice:last-child { margin-bottom: 0; }
+    .wdn-choice:hover { background: #f0f7f4; }
+    .wdn-choice.selected { background: transparent; }
+    .wdn-num { display: inline-flex; justify-content: center; align-items: center; width: 18px; height: 18px;
+        border-radius: 50%; border: 1.5px solid #333; font-size: 0.68rem; font-weight: 600;
+        margin-right: 6px; margin-top: 2px; background: #fff; color: #333; flex-shrink: 0; }
+    .wdn-choice.selected .wdn-num { background: #333; color: #fff; }
+    .wdn-num.correct { background: #d93025; color: #fff; border-color: #d93025; }
+    .wdn-ctext { flex: 1; white-space: pre-wrap; word-break: keep-all; }
+    .wdn-exp { display: none; margin-top: 3px; padding: 2px 0; font-size: 0.84rem; font-weight: 400;
+        color: #555; line-height: 1.65; white-space: pre-wrap; }
+    .wdn-card.exp-open .wdn-exp { display: block; }
+    .wdn-exp.correct-exp { color: #111; }
+    .wdn-exp .exp-arrow { color: #888; }
+    .wdn-exp.correct-exp .exp-arrow { color: #d93025; }
+    .wdn-exp.correct-exp .exp-text-inner { background: linear-gradient(to top, #fff176 40%, transparent 40%); }

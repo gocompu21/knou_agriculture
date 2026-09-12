@@ -1,0 +1,1742 @@
+{% comment %}잡초 동정 탭 — 방송대 과목 페이지(main/subject_detail)와 기사 필기 페이지
+   (gisa/certification_detail)가 함께 쓴다. 쓰는 쪽이 넣어야 할 것:
+   weed_subject(잡초 카드가 달린 Subject) · weed_count · weed_stats · weed_modes.
+   main.views.weed_tab_context() 가 그대로 만들어 준다.{% endcomment %}
+    /* ── 잡초 동정 퀴즈 (사진 → 이름 4지선다) ── */
+    var _wq = { mode: 'all', seen: [], n: 0, ok: 0, card: null, busy: false };
+    var _WQ_STAFF = {% if request.user.is_staff %}true{% else %}false{% endif %};
+    /* 이 페이지의 기본 출제 범위 — 기사 필기 페이지는 그 자격증 필기부터 낸다 */
+    var _WD_FIRST = '{{ weed_first|default:"" }}';
+    var _wqAns = null;      // 지금 화면에 있는 답 (수정 시 되돌리기·저장에 쓴다)
+    function _wqEsc(x) { return String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    /* 서술 항목은 관리자가 글 색·밑줄을 넣을 수 있어 HTML 을 그대로 그린다(서버가
+       허용 태그만 남겨 저장한다). 아직 서식을 넣지 않은 평문은 줄바꿈만 살린다. */
+    function _wqBody(v) {
+        v = v || '';
+        return /<[a-z][^>]*>/i.test(v) ? v : _wqEsc(v).replace(/\n/g, '<br>');
+    }
+    function _wqSec(field, label, v) {
+        if (!v && !_WQ_STAFF) return '';
+        return '<div class="wd-sec" data-field="' + field + '"><b>' + label + '</b>'
+             + '<div class="wd-sec-body">' + _wqBody(v) + '</div></div>';
+    }
+    function _wqEditBar() {
+        if (!_WQ_STAFF) return '';
+        return '<div class="wd-edit-bar"><button type="button" class="wd-edit-btn" onclick="weedEditFromAnswer()">수정</button></div>';
+    }
+    /* 기출 배지 — 종명이 문제·선지에 나온 문항. 서버가 (연도-번호) 로 준다.
+       배지 줄 오른쪽에 두고, 누르면 그 문항을 아래에 펼친다(쪽집게 노트의 관련 문제와 같은 카드) */
+    function _wqRefs(refs, gisa) {
+        var html = '';
+        if (refs && refs.length) {
+            html += '<span class="wd-refs"><span class="lbl">기출</span>'
+                  + refs.map(function(r) {
+                        return '<span class="ref" data-ref="' + _wqEsc(r.ref) + '" onclick="weedRefOpen(this)" title="'
+                             + r.year + '년 ' + r.number + '번 문제 보기">' + _wqEsc(r.ref) + '</span>';
+                    }).join('')
+                  + '</span>';
+        }
+        /* 식물보호기사 필기는 종당 수십~수백 건이라 낱개가 아니라 건수로 붙인다.
+           누르면 10건씩 펼친다 */
+        if (gisa && gisa.length) {
+            html += '<span class="wd-refs wd-refs-g"><span class="lbl">필기</span>'
+                  + gisa.map(function(g) {
+                        return '<span class="ref g" data-cert="' + g.cert + '" onclick="weedGisaOpen(this)" title="식물보호'
+                             + _wqEsc(g.label) + ' 필기에서 ' + g.count + '건 보기">' + _wqEsc(g.label) + ' ' + g.count + '</span>';
+                    }).join('')
+                  + '</span>';
+        }
+        return html;
+    }
+    /* 펼친 문항의 문제·선지에서 종명을 형광펜으로 표시한다. 카드 이름뿐 아니라 문항이
+       쓰는 다른 표기(뚝새풀 ← 둑새풀 같은 이명·오기, payload 의 names)도 함께 칠한다.
+       글자 노드만 바꾸므로 원번호·배지·해설 마크업은 건드리지 않는다. 한 글자 이름
+       ('피'·'띠')과 '새삼' 같은 짧은 별칭(names_strict)은 서버와 같은 규칙으로 앞뒤가
+       한글 음절이 아닐 때만 칠한다 — '피해'·'실새삼'까지 노랗게 되면 안 된다 */
+    function _wqHighlight(root, names, strict, josa) {
+        if (!root || !names) return;
+        var list = (typeof names === 'string' ? [names] : names).filter(Boolean)
+                     .sort(function(a, b) { return b.length - a.length; });   // 긴 표기를 먼저 본다
+        if (!list.length) return;
+        var tight = {};
+        (strict || []).forEach(function(n) { tight[n] = true; });
+        var JOSA = josa || '';
+        var isH = function(ch) { return !!ch && /[가-힣]/.test(ch); };
+        // 서버(_weed_name_re)와 같은 판정: 앞이 한글이면 다른 종, 뒤가 한글이면 조사일 때만
+        var ok = function(s, at, name) {
+            if (isH(s[at - 1])) return false;
+            var nx = s[at + name.length];
+            if (!isH(nx)) return true;
+            return !tight[name] && name.length > 1 && JOSA.indexOf(nx) >= 0;
+        };
+        var has = function(s) { return list.some(function(w) { return s.indexOf(w) >= 0; }); };
+        var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: function(n) {
+            var p = n.parentNode;
+            if (!p || p.closest('.wdn-badge, .wdn-exp, mark.wd-hl')) return NodeFilter.FILTER_REJECT;
+            if (!p.closest('.wdn-q, .wdn-ctext')) return NodeFilter.FILTER_SKIP;
+            return has(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+        } });
+        var nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(function(n) {
+            var s = n.nodeValue, frag = document.createDocumentFragment(), i = 0, hit = false;
+            while (i < s.length) {
+                var at = -1, name = '';
+                list.forEach(function(w) {           // 가장 앞선 자리의 표기를 고른다 (같으면 긴 쪽)
+                    var k = s.indexOf(w, i);
+                    if (k >= 0 && (at < 0 || k < at)) { at = k; name = w; }
+                });
+                if (at < 0) break;
+                var end = at + name.length;
+                if (!ok(s, at, name)) {         // '네가래' 의 '가래', '피해' 의 '피'
+                    frag.appendChild(document.createTextNode(s.slice(i, end))); i = end; continue;
+                }
+                frag.appendChild(document.createTextNode(s.slice(i, at)));
+                var m = document.createElement('mark'); m.className = 'wd-hl'; m.textContent = name;
+                frag.appendChild(m); i = end; hit = true;
+            }
+            if (!hit) return;
+            frag.appendChild(document.createTextNode(s.slice(i)));
+            n.parentNode.replaceChild(frag, n);
+        });
+    }
+    function _wqHlNames(list) {     // 지금 답 카드의 표기로 칠한다
+        if (_wqAns) _wqHighlight(list, _wqAns.names || _wqAns.name, _wqAns.names_strict, _wqAns.josa);
+    }
+    function _wqRefsClose() {
+        var list = document.getElementById('wd-refs-list');
+        document.querySelectorAll('.wd-meta span.ref.on').forEach(function(s) { s.classList.remove('on'); });
+        if (list) { list.hidden = true; list.innerHTML = ''; delete list.dataset.cert; }
+    }
+    window.weedRefOpen = function(el) {
+        var list = document.getElementById('wd-refs-list');
+        if (!list) return;
+        var ref = el.dataset.ref;
+        var wasOn = el.classList.contains('on');
+        _wqRefsClose();
+        if (wasOn) return;                                   // 같은 배지를 다시 누르면 접는다
+        el.classList.add('on');
+        list.hidden = false;
+        list.innerHTML = '<div class="wdn-loading">문제를 불러오는 중…</div>';
+        fetch('{% url "main:api_note_questions" weed_subject.pk %}?ref=' + encodeURIComponent(ref), { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) { _wdnRender(list, d.questions || []); _wqHlNames(list); })
+            .catch(function() { list.innerHTML = '<div class="wdn-empty">문제를 불러오지 못했습니다.</div>'; });
+    };
+    /* 기사 필기 문항 — 10건씩. '더 보기' 를 누르면 다음 10건을 아래에 잇는다 */
+    window.weedGisaOpen = function(el) {
+        var list = document.getElementById('wd-refs-list');
+        if (!list || !_wqAns) return;
+        var wasOn = el.classList.contains('on');
+        _wqRefsClose();
+        if (wasOn) return;
+        el.classList.add('on');
+        list.hidden = false;
+        list.dataset.cert = el.dataset.cert;
+        list.innerHTML = '<div class="wdn-loading">문제를 불러오는 중…</div>';
+        _wqGisaFetch(list, 1, false);
+    };
+    function _wqGisaFetch(list, page, append) {
+        var url = '{% url "main:api_weed_gisa_questions" weed_subject.pk %}?name=' + encodeURIComponent(_wqAns.name)
+                + '&cert=' + encodeURIComponent(list.dataset.cert) + '&page=' + page;
+        fetch(url, { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                var qs = d.questions || [];
+                var more = list.querySelector('.wd-more');
+                if (more) more.remove();
+                if (append) {
+                    var tmp = document.createElement('div');
+                    _wdnRender(tmp, qs);
+                    // 문항 번호를 앞 쪽에 이어 붙인다 (_wdnRender 는 1부터 다시 센다)
+                    var base = list.querySelectorAll('.wdn-card').length;
+                    tmp.querySelectorAll('.wdn-card .wdn-q').forEach(function(el, i) {
+                        el.firstChild.nodeValue = (base + i + 1) + '. ' + el.firstChild.nodeValue.replace(/^\d+\.\s*/, '');
+                    });
+                    while (tmp.firstChild) list.appendChild(tmp.firstChild);
+                } else {
+                    _wdnRender(list, qs);
+                }
+                _wqHlNames(list);       // 이미 칠한 곳은 건너뛰므로 이어 붙여도 겹치지 않는다
+                if (d.page < d.pages) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button'; btn.className = 'wd-more';
+                    btn.textContent = '더 보기 (' + list.querySelectorAll('.wdn-card').length + ' / ' + d.total + ')';
+                    btn.onclick = function() { btn.disabled = true; btn.textContent = '불러오는 중…'; _wqGisaFetch(list, d.page + 1, true); };
+                    list.appendChild(btn);
+                }
+            })
+            .catch(function() { list.innerHTML = '<div class="wdn-empty">문제를 불러오지 못했습니다.</div>'; });
+    }
+    /* 별은 **필기(식보+산기) 문항 수**로 매긴다 — 이 카드로 공부해 볼 값어치를 가장 잘
+       나타내는 값이다. 카드 123장 기준 50+ 16장 · 20~49 21장 · 5~19 37장 · 1~4 21장 ·
+       0건 28장으로 갈린다 */
+    function _wqGisaTotal(x) {
+        return ((x && x.gisa) || []).reduce(function(s, g) { return s + g.count; }, 0);
+    }
+    function _wqStars(n) {
+        if (!n) return '';
+        var s = n >= 50 ? '★★★' : n >= 20 ? '★★' : n >= 5 ? '★' : '☆';
+        return '<span class="wd-stars" title="필기 ' + n + '문항">' + s + '</span>';
+    }
+    window.weedStart = function(mode) {
+        _wq = { mode: mode, seen: [], n: 0, ok: 0, card: null, busy: false };
+        document.querySelectorAll('.wd-mode-btn').forEach(function(b) {
+            b.classList.toggle('on', b.dataset.mode === mode);
+        });
+        document.getElementById('wd-done').hidden = true;
+        document.getElementById('wd-area').hidden = false;
+        document.getElementById('wd-list').hidden = true;
+        weedNext();
+    };
+    window.weedStop = function() {
+        document.getElementById('wd-area').hidden = true;
+        _wqShowDone('여기까지 ' + _wq.n + '문제 중 ' + _wq.ok + '문제를 맞혔습니다.');
+    };
+    /* 잡초 동정 탭에 들어오면 바로 첫 문제를 낸다 — 과목 페이지는 전체, 기사 필기
+       페이지는 그 자격증의 필기 범위로. 이미 풀고 있거나 목록을 보는 중이면 건드리지 않는다. */
+    window.weedAutoStart = function() {
+        if (_wq.card || !document.getElementById('wd-area').hidden) return;
+        if (!document.getElementById('wd-list').hidden) return;
+        weedStart(_WD_FIRST || 'all');
+    };
+    /* 전체 목록 — 종명을 누르면 그 잡초 문제로 간다. 열 제목을 누르면 정렬 */
+    var _wqItems = [], _wqSort = { key: 'name', asc: true };   // 기본은 종명 가나다순
+    function _wqRenderList() {
+        var body = document.getElementById('wd-list-body');
+        body.innerHTML = _wqItems.map(function(it) {
+            var st = it.state === 'wrong' ? '<span class="wd-t-state wrong">오답</span>'
+                   : it.state === 'ok' ? '<span class="wd-t-state ok">정답</span>' : '';
+            // 줄 어디를 눌러도 그 잡초 문제로 간다 — 종명만 누르게 하면 과녁이 너무 좁다
+            return '<tr class="wd-t-row" onclick="weedGo(' + it.id + ')">'
+                 + '<td class="wd-t-no">' + it.no + '</td>'
+                 + '<td><span class="wd-t-name">' + _wqEsc(it.name) + '</span>' + _wqStars(it.gisa_total) + '</td>'
+                 // 저장은 줄 이동과 겹치므로 버튼에서 클릭을 멈춘다
+                 + (_WQ_STAFF ? '<td class="wd-t-save">'
+                     + '<button type="button" class="wd-save-btn"'
+                     + ' onclick="event.stopPropagation(); weedSavePick(' + it.id + ', this)">저장</button>'
+                     + '<button type="button" class="wd-row-edit"'
+                     + ' onclick="event.stopPropagation(); weedEditOpen(' + it.id + ')">수정</button>'
+                     + '</td>' : '')
+                 + '<td>' + _wqEsc(it.family) + '</td>'
+                 + '<td class="wd-t-life">' + _wqEsc(it.life_form) + '</td>'
+                 + '<td class="wd-t-habitat">' + _wqEsc(it.habitat) + '</td>'
+                 // 출제 칸: 기출 배지(연도-번호)와 필기 건수. 줄 클릭이 그 카드로 가므로 배지는 눌리지 않는다
+                 + '<td class="wd-t-cnt">'
+                 +   ((it.exam_refs || []).length || (it.gisa || []).length
+                        ? '<span class="wd-t-refs">'
+                          + (it.exam_refs || []).map(function(r) { return '<span>' + _wqEsc(r) + '</span>'; }).join('')
+                          + (it.gisa || []).map(function(g) { return '<span class="g">' + _wqEsc(g.label) + ' ' + g.count + '</span>'; }).join('')
+                          + '</span>'
+                        : '')
+                 + '</td>'
+                 + '<td>' + st + '</td>'
+                 + '</tr>';
+        }).join('');
+        // 열 제목의 정렬 표시
+        var keys = ['no', 'name', 'family', 'life_form', 'habitat', 'gisa_total', 'state'];
+        document.querySelectorAll('#wd-list .wd-sort-i').forEach(function(el, i) {
+            el.textContent = keys[i] === _wqSort.key ? (_wqSort.asc ? '▲' : '▼') : '';
+        });
+    }
+    /* 지금 정렬 기준대로 다시 늘어놓는다. 열 제목을 누를 때와 처음 불러올 때가
+       같은 길을 쓰도록 따로 뺐다 — weedSort 를 부르면 방향이 뒤집힌다 */
+    function _wqApplySort() {
+        var key = _wqSort.key, dir = _wqSort.asc ? 1 : -1;
+        var order = { wrong: 0, ok: 1, '': 2 };      // 상태는 오답 → 정답 → 안 푼 것
+        _wqItems.sort(function(a, b) {
+            var x = a[key], y = b[key];
+            if (key === 'state') { x = order[x]; y = order[y]; }
+            if (typeof x === 'number' && typeof y === 'number') return (x - y) * dir;
+            return String(x).localeCompare(String(y), 'ko') * dir;
+        });
+        _wqRenderList();
+    }
+    window.weedSort = function(key) {
+        if (_wqSort.key === key) _wqSort.asc = !_wqSort.asc;
+        else { _wqSort.key = key; _wqSort.asc = true; }
+        _wqApplySort();
+    };
+    /* ── 관리자: 카드 사진 내려받기 ──
+       서버는 폴더를 정할 수 없다. Chrome·Edge 는 showDirectoryPicker() 로 사용자가
+       고른 폴더에 바로 쓸 수 있고(한 번 고르면 그 자리를 기억한다), 그 밖의
+       브라우저는 <a download> 로 기본 다운로드 폴더에 받는다. */
+    var _wqDir = null;                       // 지금 쓰는 폴더
+    function _wqCols() { return _WQ_STAFF ? 8 : 7; }
+    function _wqSaveMsg(text, warn) {
+        var el = document.getElementById('wd-save-msg');
+        el.textContent = text;
+        el.classList.toggle('warn', !!warn);
+    }
+
+    /* 고른 폴더는 다음에 와서도 그대로 쓴다. 폴더 손잡이(handle)는 문자열이
+       아니라서 localStorage 에 못 넣는다 — IndexedDB 는 객체째 넣을 수 있다. */
+    function _wqDb() {
+        return new Promise(function(res, rej) {
+            var q = indexedDB.open('weedsave', 1);
+            q.onupgradeneeded = function() { q.result.createObjectStore('dir'); };
+            q.onsuccess = function() { res(q.result); };
+            q.onerror = function() { rej(q.error); };
+        });
+    }
+    function _wqDirSave(h) {
+        return _wqDb().then(function(db) {
+            db.transaction('dir', 'readwrite').objectStore('dir').put(h, 'last');
+        }).catch(function() { /* 저장 못 해도 이번 판은 쓴다 */ });
+    }
+    function _wqDirLoad() {
+        if (!window.indexedDB) return Promise.resolve(null);
+        return _wqDb().then(function(db) {
+            return new Promise(function(res) {
+                var g = db.transaction('dir').objectStore('dir').get('last');
+                g.onsuccess = function() { res(g.result || null); };
+                g.onerror = function() { res(null); };
+            });
+        }).catch(function() { return null; });
+    }
+    /* 지난번 폴더를 되살린다. 권한은 브라우저가 언제든 거둘 수 있어 다시 확인한다 */
+    function _wqDirRestore() {
+        return _wqDirLoad().then(function(h) {
+            if (!h || !h.queryPermission) return null;
+            return h.queryPermission({ mode: 'readwrite' }).then(function(p) {
+                return p === 'granted' ? h : null;
+            });
+        }).catch(function() { return null; });
+    }
+
+    var _wqSaveBtn = null;                   // 방금 누른 줄의 저장 버튼
+    window.weedSavePick = function(cardId, btn) {
+        _wqSaveBtn = btn || null;
+        var box = document.getElementById('wd-save');
+        var body = document.getElementById('wd-save-body');
+        box.hidden = false;
+        _wqSaveMsg('');                       // 앞서 띄운 안내는 지운다
+        if (!_wqDir) {                        // 지난번에 고른 폴더가 있으면 되살린다
+            _wqDirRestore().then(function(h) {
+                if (!h) return;
+                _wqDir = h;
+                document.getElementById('wd-save-where').textContent = h.name + ' 폴더';
+            });
+        }
+        body.innerHTML = '<div class="wd-save-load">사진을 불러오는 중…</div>';
+        fetch('{% url "main:api_weed_card_photos" weed_subject.pk 0 %}'.replace('/weed-card/0/', '/weed-card/' + cardId + '/'),
+              { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) { _wqSaveRender(d); })
+            .catch(function() { body.innerHTML = '<div class="wd-save-load">사진을 불러오지 못했습니다.</div>'; });
+    };
+
+    function _wqSaveRender(d) {
+        var body = document.getElementById('wd-save-body');
+        document.getElementById('wd-save-name').textContent = d.name;
+        if (!d.photos.length) { body.innerHTML = '<div class="wd-save-load">이 카드에는 사진이 없습니다.</div>'; return; }
+        body.innerHTML = d.photos.map(function(p, i) {
+            var thumb;
+            if (p.crop && p.h) {
+                /* crop 은 [x0, y0, x1, y1]. 상자는 aspect-ratio 로 낱장 비율을 잡고,
+                   그 안의 이미지를 낱장 크기의 몇 배로 키워 왼쪽·위로 민다. % 를 쓰면
+                   속성마다 기준이 폭이냐 높이냐로 갈리므로 각 축의 낱장 크기로 나눈다. */
+                var cw = p.crop[2] - p.crop[0], ch = p.crop[3] - p.crop[1];
+                thumb = '<span class="wd-sv-clip" style="aspect-ratio:' + cw + '/' + ch + '">'
+                      + '<img src="' + p.url + '" style="width:' + (p.w / cw * 100) + '%;'
+                      + 'height:' + (p.h / ch * 100) + '%;'
+                      + 'left:' + (-p.crop[0] / cw * 100) + '%;'
+                      + 'top:' + (-p.crop[1] / ch * 100) + '%" alt=""></span>';
+            } else {
+                thumb = '<img src="' + p.url + '" alt="">';
+            }
+            // 여러 장을 한 번에 받을 수 있다 — 낱장이 2~3장이면 대개 다 필요하다
+            return '<label class="wd-sv-item"><input type="checkbox" name="wd-sv" value="' + i + '"'
+                 + (i === 0 ? ' checked' : '') + ' onchange="weedSaveName()">' + thumb
+                 + '<span class="wd-sv-cap">' + _wqEsc(p.label) + '</span></label>';
+        }).join('');
+        body.dataset.payload = JSON.stringify(d);
+        weedSaveName();
+    }
+
+    /* 저장될 이름을 미리 보여 준다. 한 장이면 그 자리에서 고칠 수 있고,
+       여러 장이면 이름이 여럿이라 고칠 수 없으므로 잠그고 종명만 보인다 */
+    window.weedSaveName = function() {
+        var body = document.getElementById('wd-save-body');
+        var d = JSON.parse(body.dataset.payload || '{"photos":[]}');
+        var sel = _wqSaveSel();
+        var box = document.getElementById('wd-save-fname');
+        var go = document.getElementById('wd-save-go');
+        go.disabled = !sel.length;
+        if (sel.length === 1) {
+            box.disabled = false;
+            box.value = d.name + (d.photos[sel[0]].suffix || '');
+        } else {
+            box.disabled = true;
+            box.value = sel.length ? d.name + '_1 … ' + sel.length + '장' : '';
+        }
+    };
+    function _wqSaveSel() {
+        return Array.prototype.map.call(
+            document.querySelectorAll('#wd-save-body input[name="wd-sv"]:checked'),
+            function(el) { return +el.value; });
+    }
+
+    window.weedSaveClose = function() { document.getElementById('wd-save').hidden = true; };
+
+    /* 두 가지를 섞지 말 것.
+       ① 그냥 저장 = <a download> → 다운로드 폴더에 아무 제약 없이 받아진다.
+       ② 폴더 지정 = showDirectoryPicker → 웹페이지가 폴더를 직접 열어 쓰는 것이라
+          권한이 다르다. Chrome 은 다운로드·바탕화면·사진 폴더 *자체* 를 거부한다
+          ("이 폴더를 열 수 없음"). 그 안의 하위 폴더는 된다.
+       거부당하면(AbortError 가 아닌 오류) ① 로 돌아간다 — 저장은 그대로 된다. */
+    window.weedSaveFolder = function() {
+        if (!window.showDirectoryPicker) {
+            _wqSaveMsg('이 브라우저는 폴더 지정을 지원하지 않습니다. 다운로드 폴더로 받습니다.', true);
+            return;
+        }
+        window.showDirectoryPicker({ mode: 'readwrite', startIn: 'pictures' })
+            .then(function(h) {
+                _wqDir = h;
+                document.getElementById('wd-save-where').textContent = h.name + ' 폴더';
+                _wqSaveMsg('');
+                _wqDirSave(h);                // 다음에 와도 이 폴더를 쓴다
+            })
+            .catch(function(e) {
+                // AbortError = 사용자가 취소. 그 밖은 브라우저가 막은 것이다
+                if (e && e.name === 'AbortError') return;
+                _wqDir = null;
+                document.getElementById('wd-save-where').textContent = '다운로드 폴더';
+                _wqSaveMsg('사진·다운로드·바탕화면 폴더 자체는 지정할 수 없습니다(브라우저 정책). '
+                         + '그 안에 새 폴더를 만들어 고르세요. 폴더를 지정하지 않고 그냥 저장하면 '
+                         + '다운로드 폴더에 정상 저장됩니다.', true);
+            });
+    };
+
+    window.weedSaveDo = function() {
+        var body = document.getElementById('wd-save-body');
+        var d = JSON.parse(body.dataset.payload || '{"photos":[]}');
+        var sel = _wqSaveSel();
+        if (!sel.length) return;
+        // 이름은 한 장일 때만 고칠 수 있다. 파일명에 못 쓰는 글자는 뺀다
+        var typed = sel.length === 1
+            ? document.getElementById('wd-save-fname').value.trim().replace(/[\\/:*?"<>|]/g, '')
+            : '';
+        var btn = document.getElementById('wd-save-go');
+        btn.disabled = true; btn.textContent = '저장 중…';
+
+        // 한 장씩 차례로 — 한꺼번에 내려받으면 브라우저가 뒤엣것을 막는다
+        var done = 0;
+        sel.reduce(function(chain, idx) {
+            return chain.then(function() {
+                var p = d.photos[idx];
+                var fname = (typed || d.name + (p.suffix || '')) + '.jpg';
+                return _wqBlob(p).then(function(blob) {
+                    if (_wqDir) return _wqWriteToDir(blob, fname);
+                    var a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = fname;
+                    a.click();
+                    setTimeout(function() { URL.revokeObjectURL(a.href); }, 4000);
+                    // 잇달아 받을 때 브라우저가 놓치지 않도록 잠깐 쉰다
+                    return new Promise(function(r) { setTimeout(r, 250); });
+                }).then(function() { done++; });
+            });
+        }, Promise.resolve()).then(function() {
+            btn.disabled = false; btn.textContent = '저장';
+            weedSaveClose();                  // 다 받았으면 창을 닫는다
+            if (_wqSaveBtn) {                 // 어느 줄을 받았는지 그 자리에 잠깐 남긴다
+                var b = _wqSaveBtn;
+                b.textContent = '받음 ✓'; b.classList.add('done');
+                setTimeout(function() { b.textContent = '저장'; b.classList.remove('done'); }, 2500);
+            }
+        }).catch(function(e) {
+            btn.disabled = false; btn.textContent = '저장';
+            _wqSaveMsg((done ? done + '장까지 받고 멈췄습니다. ' : '') + '저장하지 못했습니다: ' + e, true);
+        });
+    };
+
+    /* 낱장이면 canvas 로 그 부분만 잘라 낸다 */
+    function _wqBlob(p) {
+        return new Promise(function(res, rej) {
+            if (!p.crop) {
+                fetch(p.url, { credentials: 'same-origin' })
+                    .then(function(r) { return r.blob(); }).then(res).catch(rej);
+                return;
+            }
+            var img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                var x = p.crop[0], y = p.crop[1];
+                var w = p.crop[2] - x, h = p.crop[3] - y;
+                var cv = document.createElement('canvas');
+                cv.width = w; cv.height = h;
+                cv.getContext('2d').drawImage(img, x, y, w, h, 0, 0, w, h);
+                cv.toBlob(function(b) { b ? res(b) : rej('canvas'); }, 'image/jpeg', 0.95);
+            };
+            img.onerror = function() { rej('이미지를 읽지 못했습니다'); };
+            img.src = p.url;
+        });
+    }
+
+    function _wqWriteToDir(blob, fname) {
+        // 되살린 폴더는 권한이 사라졌을 수 있다. 없으면 한 번 더 묻는다
+        var ask = _wqDir.requestPermission
+            ? _wqDir.requestPermission({ mode: 'readwrite' })
+            : Promise.resolve('granted');
+        return ask.then(function(p) {
+            if (p !== 'granted') throw '폴더에 쓸 권한이 없습니다';
+            return _wqDir.getFileHandle(fname, { create: true });
+        })
+            .then(function(fh) { return fh.createWritable(); })
+            .then(function(w) { return w.write(blob).then(function() { return w.close(); }); });
+    }
+
+    /* ══════ 관리자: 새 잡초 등록 ══════
+       배열은 서버의 _WEED_LAYOUTS 와 짝이 맞아야 한다(칸 수·차례). */
+    var _WQ_LAYOUTS = [
+        { key: '1',    cap: '전체 1개',      cols: '1fr',     rows: '1fr',     ratio: 0.72, cells: [[1, 1]] },
+        { key: '1t1b', cap: '상1 · 하1',     cols: '1fr',     rows: '1fr 1fr', ratio: 1.40, cells: [[1, 1], [1, 1]] },
+        { key: '1t2b', cap: '상1 · 하2',     cols: '1fr 1fr', rows: '1fr 1fr', ratio: 1.30, cells: [[2, 1], [1, 1], [1, 1]] },
+        { key: '2t2b', cap: '상2 · 하2',     cols: '1fr 1fr', rows: '1fr 1fr', ratio: 1.00, cells: [[1, 1], [1, 1], [1, 1], [1, 1]] },
+        { key: '1l1r', cap: '좌1 · 우1',     cols: '1fr 1fr', rows: '1fr',     ratio: 0.40, cells: [[1, 1], [1, 1]] },
+        { key: '1l2r', cap: '좌1 · 우2',     cols: '1fr 1fr', rows: '1fr 1fr', ratio: 0.75, cells: [[1, 2], [1, 1], [1, 1]] },
+        { key: '2l2r', cap: '좌2 · 우2',     cols: '1fr 1fr', rows: '1fr 1fr', ratio: 1.00, cells: [[1, 1], [1, 1], [1, 1], [1, 1]] },
+    ];
+    var _wqAdd = { layout: null, files: [], slots: [], checked: '', busy: false, dragging: false };
+
+    /* 교수 메모는 사진 위에 줄마다 글머리표가 붙은 불릿으로 그려진다. 등록 창에서도 같은
+       모양으로 적게 해 어떻게 보일지 바로 알 수 있게 한다 — 저장할 때는 떼고 보낸다
+       (붙은 채 저장되면 사진 위에서 불릿이 두 겹이 된다. 서버도 한 번 더 뗀다) */
+    var _WQ_BUL = '· ';
+    function _wqMemoStrip(text) {       // 글머리표를 뗀 알맹이 — 저장용
+        return (text || '').replace(/\r\n?/g, '\n').split('\n')
+            .map(function(ln) { return ln.replace(/^\s*[·•‧∙*\-]+\s*/, '').trim(); })
+            .filter(function(ln) { return ln; }).join('\n');
+    }
+    function _wqMemoShow(text) {        // 줄마다 글머리표를 붙인 모양 — 화면용
+        var s = _wqMemoStrip(text);
+        return s ? s.split('\n').map(function(ln) { return _WQ_BUL + ln; }).join('\n') : '';
+    }
+    function _wqMemoInit(ta) {
+        if (!ta || ta.dataset.memo === '1') return;
+        ta.dataset.memo = '1';
+        ta.placeholder = _WQ_BUL + '한 줄에 하나씩';
+        ta.addEventListener('focus', function() { if (!ta.value.trim()) ta.value = _WQ_BUL; });
+        ta.addEventListener('keydown', function(e) {
+            // Enter 로 줄을 바꾸면 새 줄에도 글머리표를 얹는다 (한글 조합 중에는 손대지 않는다)
+            if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+            e.preventDefault();
+            ta.setRangeText('\n' + _WQ_BUL, ta.selectionStart, ta.selectionEnd, 'end');
+        });
+        ta.addEventListener('paste', function() {
+            setTimeout(function() {         // 붙여넣은 뒤에 줄을 고른다
+                ta.value = _wqMemoShow(ta.value);
+                ta.setSelectionRange(ta.value.length, ta.value.length);
+            }, 0);
+        });
+        ta.addEventListener('blur', function() { ta.value = _wqMemoShow(ta.value); });
+    }
+
+    window.weedAddOpen = function() {
+        _wqAdd = { layout: null, files: [], slots: [], checked: '', busy: false, dragging: false };
+        document.getElementById('wd-add-name').value = '';
+        ['family', 'life', 'habitat', 'features', 'similar', 'control', 'notes'].forEach(function(f) {
+            var el = document.getElementById('wd-add-' + f);
+            if (el) el.value = '';
+        });
+        _wqMemoInit(document.getElementById('wd-add-notes'));
+        document.getElementById('wd-add-fields').hidden = false;
+        document.getElementById('wd-add-fields').open = false;   // 조회하면 펼친다
+        document.getElementById('wd-add-photos').hidden = false;
+        document.getElementById('wd-add-go').disabled = true;
+        document.getElementById('wd-pool').querySelectorAll('.wd-pool-item')
+            .forEach(function(el) { el.remove(); });
+        document.getElementById('wd-lay-stage').innerHTML = '';
+        _wqAddMsg('');
+        document.getElementById('wd-add-hint').textContent = '종명을 넣고 확인·조회를 누르세요.';
+        _wqLayPicks();
+        // 상1·하1 을 기본으로 — 카드 대부분이 위아래 두 장이다
+        var deft = 0;
+        _WQ_LAYOUTS.forEach(function(L, i) { if (L.key === '1t1b') deft = i; });
+        weedLayPick(deft);
+        document.getElementById('wd-add').hidden = false;
+        setTimeout(function() { document.getElementById('wd-add-name').focus(); }, 50);
+    };
+    window.weedAddClose = function() { document.getElementById('wd-add').hidden = true; };
+
+    function _wqAddMsg(text, warn) {
+        var el = document.getElementById('wd-add-msg');
+        el.textContent = text;
+        el.classList.toggle('warn', !!warn);
+    }
+
+    /* 종명 확인 — 중복이면 막고, 아니면 AI 가 나머지를 채운다 */
+    window.weedAddCheck = function() {
+        var name = document.getElementById('wd-add-name').value.trim();
+        if (!name) { _wqAddMsg('종명을 입력하세요.', true); return; }
+        var btn = document.querySelector('.wd-add-check');
+        _wqAdd.busy = true;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="wd-spin"></span>조회 중…';
+        _wqAddMsg('');
+        document.getElementById('wd-add-hint').innerHTML =
+            '<span class="wd-spin dark"></span>국립수목원 도감과 AI 로 조회하는 중입니다…';
+        fetch('{% url "main:api_weed_name_check" weed_subject.pk %}?name=' + encodeURIComponent(name),
+              { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                _wqAdd.busy = false;
+                btn.disabled = false; btn.textContent = '확인·조회';
+                if (!d.ok) { _wqAddMsg(d.error || '확인하지 못했습니다.', true); _wqAddSync(); return; }
+                _wqAdd.checked = name;
+                if (d.info) {
+                    document.getElementById('wd-add-family').value = d.info.family || '';
+                    document.getElementById('wd-add-life').value = d.info.life_form || '';
+                    document.getElementById('wd-add-habitat').value = d.info.habitat || '';
+                    document.getElementById('wd-add-features').value = d.info.features || '';
+                    document.getElementById('wd-add-similar').value = d.info.similar || '';
+                    document.getElementById('wd-add-control').value = d.info.control || '';
+                    // 교수 메모가 없는 종이므로 AI 가 줄인 식별 포인트로 채운다.
+                    // 사진 위에 겹쳐 보이는 쪽지라 짧아야 한다
+                    document.getElementById('wd-add-notes').value = _wqMemoShow(d.info.memo);
+                }
+                var src = d.official
+                    ? '국립수목원 도감에서 학명·과명을 확인했습니다 (' + d.official.sci_full + ').'
+                    : '국립수목원 도감에 없는 이름입니다 — 내용을 꼼꼼히 확인하세요.';
+                _wqAddMsg(d.warn ? d.warn : src, !!d.warn || !d.official);
+                // 조회한 내용을 바로 확인할 수 있게 상세를 펼친다
+                document.getElementById('wd-add-fields').open = true;
+                _wqAddSync();
+                _wqWebPhotos(name, (d.info || {}).sci_name || '');
+            })
+            .catch(function() {
+                _wqAdd.busy = false;
+                btn.disabled = false; btn.textContent = '확인·조회';
+                _wqAddMsg('확인하지 못했습니다.', true);
+                _wqAddSync();
+            });
+    };
+
+    /* 인터넷(위키미디어 공용)에서 사진 후보를 찾아 목록에 담는다.
+       학명으로 찾아야 나온다 — 한국어 이름으로는 거의 안 걸린다.
+       실제 파일은 고를 때(칸에 놓을 때) 받는다 — 12장을 미리 다 받으면 느리다. */
+    function _wqWebPhotos(name, sci) {
+        var pool = document.getElementById('wd-pool');
+        var busy = document.createElement('div');
+        busy.className = 'wd-pool-busy';
+        busy.innerHTML = '<span class="wd-spin dark"></span>인터넷에서 사진을 찾는 중…';
+        pool.appendChild(busy);
+        fetch('{% url "main:api_weed_web_photos" weed_subject.pk %}?name=' + encodeURIComponent(name)
+              + '&sci=' + encodeURIComponent(sci), { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                busy.remove();
+                (d.photos || []).forEach(function(p) {
+                    // 썸네일도 서버를 거쳐 보여 준다 — 위키미디어가 다른 사이트에서
+                    // 바로 불러 가는 것(핫링크)을 막아 그림이 안 뜨는 것이 있다
+                    _wqAdd.files.push({ web: p, file: null,
+                        url: '{% url "main:api_weed_fetch_photo" weed_subject.pk %}?url='
+                             + encodeURIComponent(p.thumb) });
+                });
+                _wqPool();
+                // 앞의 도감 안내를 지우지 않고 뒤에 잇는다
+                var el = document.getElementById('wd-add-msg');
+                el.textContent = (el.textContent + (d.photos && d.photos.length
+                    ? ' 인터넷에서 사진 ' + d.photos.length + '장을 찾았습니다 — 쓸 것을 칸으로 끌어다 놓으세요.'
+                      + (d.sci ? '' : ' (학명을 못 찾아 이름으로 찾았습니다 — 딴 사진이 섞일 수 있습니다)')
+                    : ' 인터넷에 쓸 만한 사진이 없습니다 — 직접 올려 주세요.')).trim();
+            })
+            .catch(function() { busy.remove(); });
+    }
+
+    /* 배열 고르기 단추 */
+    function _wqLayPicks() {
+        document.getElementById('wd-lay-picks').innerHTML = _WQ_LAYOUTS.map(function(L, i) {
+            var mini = L.cells.map(function(c) {
+                return '<i style="grid-column:span ' + c[0] + ';grid-row:span ' + c[1] + '"></i>';
+            }).join('');
+            return '<div class="wd-lay-pick" data-i="' + i + '" onclick="weedLayPick(' + i + ')">'
+                 + '<div class="wd-lay-mini" style="grid-template-columns:' + L.cols
+                 + ';grid-template-rows:' + L.rows + '">' + mini + '</div>'
+                 + '<div class="wd-lay-cap">' + L.cap + '</div></div>';
+        }).join('');
+    }
+
+    window.weedLayPick = function(i) {
+        var L = _WQ_LAYOUTS[i];
+        _wqAdd.layout = L;
+        _wqAdd.slots = L.cells.map(function() { return null; });
+        document.querySelectorAll('.wd-lay-pick').forEach(function(el, j) {
+            el.classList.toggle('on', i === j);
+        });
+        _wqLayStage();
+        _wqAddSync();
+    };
+
+    /* 배열 칸 그리기 — 여기에 사진을 끌어다 놓는다 */
+    function _wqLayStage() {
+        var stage = document.getElementById('wd-lay-stage');
+        var L = _wqAdd.layout;
+        if (!L) { stage.innerHTML = ''; return; }
+        stage.style.gridTemplateColumns = L.cols;
+        stage.style.gridTemplateRows = L.rows;
+        /* 배열을 고르면 그 비율의 직사각 틀이 먼저 잡히고, 사진은 이 안에서 맞춰진다.
+           크기를 못 박지 않으면 사진 원본 비율대로 늘어나 창을 넘어간다.
+           **폭을 기준으로** 잡는다 — 높이를 기준으로 하면 세로로 긴 배열(상1·하1)이
+           가로로 지나치게 넓어진다. 서버가 만들 카드와 같은 비율이다. */
+        var w = 300;
+        stage.style.width = w + 'px';
+        stage.style.height = Math.round(w * L.ratio) + 'px';
+        stage.innerHTML = L.cells.map(function(c, i) {
+            var f = _wqAdd.slots[i];
+            var inner = f
+                ? '<img src="' + f.url + '" alt=""><button type="button" class="wd-slot-x"'
+                  + ' onclick="event.stopPropagation();weedSlotClear(' + i + ')">✕</button>'
+                : '사진 ' + (i + 1);
+            return '<div class="wd-slot" data-i="' + i + '"'
+                 + ' style="grid-column:span ' + c[0] + ';grid-row:span ' + c[1] + '"'
+                 + ' ondragover="weedSlotOver(event,' + i + ')"'
+                 + ' ondragleave="weedSlotLeave(event)"'
+                 + ' ondrop="weedSlotDrop(event,' + i + ')">' + inner + '</div>';
+        }).join('');
+    }
+
+    /* 사진 올리기 — 단추로 고르거나, 끌어다 놓거나, 붙여넣는다 */
+    window.weedAddFiles = function(input) {
+        _wqTakeFiles(input.files);
+        input.value = '';
+    };
+
+    function _wqTakeFiles(list) {
+        var n = 0;
+        Array.prototype.forEach.call(list || [], function(f) {
+            if (!f || !/^image\//.test(f.type)) return;
+            _wqAdd.files.push({ file: f, url: URL.createObjectURL(f) });
+            n++;
+        });
+        if (n) { _wqPool(); _wqAddSync(); }
+        return n;
+    }
+
+    /* 사진 목록에 끌어다 놓기 / 붙여넣기.
+       목록 안에서 칸으로 옮기는 드래그(내부 이동)와 섞이지 않도록,
+       바깥에서 온 파일(dataTransfer.files)이 있을 때만 받는다. */
+    (function bindPoolDrop() {
+        var pool = document.getElementById('wd-pool');
+        if (!pool) return;                       // 스태프가 아니면 요소가 없다
+        ['dragenter', 'dragover'].forEach(function(ev) {
+            pool.addEventListener(ev, function(e) {
+                if (_wqAdd.dragging) return;      // 목록 안에서 끄는 중이면 표시하지 않는다
+                if (!e.dataTransfer || !Array.prototype.includes.call(e.dataTransfer.types || [], 'Files')) return;
+                e.preventDefault();
+                pool.classList.add('over');
+            });
+        });
+        pool.addEventListener('dragleave', function(e) {
+            if (e.target === pool) pool.classList.remove('over');
+        });
+        pool.addEventListener('drop', function(e) {
+            var dt = e.dataTransfer;
+            // 목록에서 시작한 드래그는 여기서 받지 않는다 (자기를 자기에게 넣는 꼴)
+            if (_wqAdd.dragging || (dt && Array.prototype.includes.call(
+                    dt.types || [], 'application/x-wd-pool'))) {
+                _wqAdd.dragging = false;
+                return;
+            }
+            if (!dt || !dt.files || !dt.files.length) return;   // 그 밖의 내부 이동도 둔다
+            e.preventDefault();
+            pool.classList.remove('over');
+            if (!_wqTakeFiles(dt.files)) _wqAddMsg('사진 파일만 넣을 수 있습니다.', true);
+        });
+        // 등록 창이 떠 있을 때만 붙여넣기를 받는다
+        document.addEventListener('paste', function(e) {
+            var box = document.getElementById('wd-add');
+            if (!box || box.hidden) return;
+            var items = (e.clipboardData || {}).items || [];
+            var files = [];
+            Array.prototype.forEach.call(items, function(it) {
+                if (it.kind === 'file') {
+                    var f = it.getAsFile();
+                    if (f) files.push(f);
+                }
+            });
+            if (!files.length) return;
+            e.preventDefault();
+            var got = _wqTakeFiles(files);
+            if (got) _wqAddMsg('붙여넣은 사진 ' + got + '장을 목록에 넣었습니다.');
+        });
+    })();
+
+    function _wqPool() {
+        var pool = document.getElementById('wd-pool');
+        var add = pool.querySelector('.wd-pool-add');
+        pool.querySelectorAll('.wd-pool-item').forEach(function(el) { el.remove(); });
+        _wqAdd.files.forEach(function(f, i) {
+            var used = _wqAdd.slots.indexOf(f) >= 0;
+            var el = document.createElement('div');
+            el.className = 'wd-pool-item' + (used ? ' used' : '') + (f.web ? ' web' : '');
+            el.draggable = !used;
+            el.dataset.i = i;
+            el.title = f.web ? (f.web.title + '\n' + f.web.license + ' · ' + f.web.author) : f.file.name;
+            var tag = f.web ? (f.web.license === '공공누리' ? '수목원' : '위키') : '';
+            // 썸네일이 작아 무슨 사진인지 안 보인다 — 돋보기로 크게 본다.
+            // 드래그와 겹치지 않게 버튼을 따로 두고 클릭을 멈춘다
+            el.innerHTML = '<img src="' + f.url + '" alt="">'
+                         + (tag ? '<span class="wd-pool-tag">' + tag + '</span>' : '')
+                         + '<button type="button" class="wd-pool-zoom" title="크게 보기"'
+                         + ' onclick="event.stopPropagation(); weedZoom(' + i + ')">⊕</button>';
+            el.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('text/plain', String(i));
+                // 목록 안에서 시작한 드래그임을 표시한다 — 목록에 도로 놓아도
+                // 새 사진으로 들어가지 않게 한다(브라우저가 <img> 를 파일처럼 넘긴다)
+                e.dataTransfer.setData('application/x-wd-pool', String(i));
+                _wqAdd.dragging = true;
+            });
+            el.addEventListener('dragend', function() { _wqAdd.dragging = false; });
+            pool.insertBefore(el, add);
+        });
+    }
+
+    /* 사진 크게 보기 — 어떤 사진인지 썸네일로는 알기 어렵다 */
+    window.weedZoom = function(i) {
+        var f = _wqAdd.files[i];
+        if (!f) return;
+        var box = document.getElementById('wd-zoom');
+        // 큰 판을 보여 준다(웹 사진은 full, 직접 올린 것은 그대로)
+        var src = f.web
+            ? '{% url "main:api_weed_fetch_photo" weed_subject.pk %}?url=' + encodeURIComponent(f.web.full)
+            : f.url;
+        document.getElementById('wd-zoom-img').src = src;
+        document.getElementById('wd-zoom-cap').textContent = f.web
+            ? f.web.title + ' — ' + (f.web.author || '') + ' / ' + f.web.license
+            : (f.file ? f.file.name : '');
+        box.hidden = false;
+    };
+    window.weedZoomClose = function() {
+        document.getElementById('wd-zoom').hidden = true;
+        document.getElementById('wd-zoom-img').src = '';
+    };
+    /* 문제 사진 크게 보기 — 작은 특징(잎가장자리·엽설)을 살펴볼 때 쓴다.
+       답을 고르기 전에도 볼 수 있어야 한다(그게 문제를 푸는 일이다).
+
+       문제 사진은 여러 장이 붙은 한 장이라 **누른 자리의 낱장만** 크게 보여
+       준다(상단을 누르면 상단만). 서버가 준 낱장 좌표(비율)로 어디를 눌렀는지
+       가려내고 그 부분을 canvas 로 잘라 띄운다. */
+    var _wqParts = [];
+    window.weedPhotoZoom = function(e) {
+        var img = document.getElementById('wd-img');
+        if (!img || !img.src) return;
+        var zoom = document.getElementById('wd-zoom');
+        var zimg = document.getElementById('wd-zoom-img');
+        document.getElementById('wd-zoom-cap').textContent = '';
+
+        var part = null;
+        if (e && _wqParts.length > 1) {
+            var box = img.getBoundingClientRect();
+            var rx = (e.clientX - box.left) / box.width;
+            var ry = (e.clientY - box.top) / box.height;
+            for (var i = 0; i < _wqParts.length; i++) {
+                var p = _wqParts[i];
+                if (rx >= p.x && rx <= p.x + p.w && ry >= p.y && ry <= p.y + p.h) { part = p; break; }
+            }
+        }
+        if (!part) {                       // 낱장 밖(여백)을 눌렀으면 전체를 보여 준다
+            zimg.src = img.src;
+            zoom.hidden = false;
+            return;
+        }
+        var src = new Image();             // 같은 서버 이미지라 canvas 가 막히지 않는다
+        src.onload = function() {
+            var cw = Math.round(src.naturalWidth * part.w);
+            var ch = Math.round(src.naturalHeight * part.h);
+            var cv = document.createElement('canvas');
+            cv.width = cw; cv.height = ch;
+            cv.getContext('2d').drawImage(src,
+                Math.round(src.naturalWidth * part.x), Math.round(src.naturalHeight * part.y),
+                cw, ch, 0, 0, cw, ch);
+            zimg.src = cv.toDataURL('image/jpeg', 0.92);
+            zoom.hidden = false;
+        };
+        src.onerror = function() { zimg.src = img.src; zoom.hidden = false; };
+        src.src = img.src;
+    };
+
+    window.weedSlotOver = function(e, i) { e.preventDefault(); e.currentTarget.classList.add('over'); };
+    window.weedSlotLeave = function(e) { e.currentTarget.classList.remove('over'); };
+    window.weedSlotDrop = function(e, i) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('over');
+        var idx = +e.dataTransfer.getData('text/plain');
+        var f = _wqAdd.files[idx];
+        if (!f) return;
+        // 이미 다른 칸에 있으면 옮긴다 (한 사진이 두 칸에 들어가면 안 된다)
+        var was = _wqAdd.slots.indexOf(f);
+        if (was >= 0) _wqAdd.slots[was] = null;
+        _wqAdd.slots[i] = f;
+        _wqLayStage(); _wqPool(); _wqAddSync();
+        // 인터넷 사진은 이때 큰 판을 받아 둔다 (등록할 때 올려야 하므로)
+        if (f.web && !f.file) _wqFetchWeb(f);
+    };
+
+    /* 웹 사진을 서버를 거쳐 받아 온다 — 다른 도메인이라 브라우저가 직접 못 읽는다 */
+    function _wqFetchWeb(f) {
+        f.loading = true;
+        _wqAddSync();
+        fetch('{% url "main:api_weed_fetch_photo" weed_subject.pk %}?url=' + encodeURIComponent(f.web.full),
+              { credentials: 'same-origin' })
+            .then(function(r) {
+                if (!r.ok) throw 0;
+                return r.blob();
+            })
+            .then(function(blob) {
+                f.file = new File([blob], (f.web.title || 'photo') + '.jpg', { type: 'image/jpeg' });
+                f.loading = false;
+                _wqAddSync();
+            })
+            .catch(function() {
+                f.loading = false;
+                var at = _wqAdd.slots.indexOf(f);
+                if (at >= 0) _wqAdd.slots[at] = null;
+                _wqLayStage(); _wqPool(); _wqAddSync();
+                _wqAddMsg('그 사진을 받지 못했습니다. 다른 사진을 골라 주세요.', true);
+            });
+    }
+    window.weedSlotClear = function(i) {
+        _wqAdd.slots[i] = null;
+        _wqLayStage(); _wqPool(); _wqAddSync();
+    };
+
+    /* 등록 단추를 켤 수 있는 상태인지 */
+    function _wqAddSync() {
+        var filled = _wqAdd.slots.length > 0 && _wqAdd.slots.every(function(s) { return !!s; });
+        // 인터넷 사진은 받아 오는 동안 file 이 없다 — 다 받아야 등록할 수 있다
+        var loading = _wqAdd.slots.filter(function(s) { return s && !s.file; }).length;
+        var ok = !!_wqAdd.checked && !!_wqAdd.layout && filled && !loading;
+        document.getElementById('wd-add-go').disabled = !ok;
+        if (_wqAdd.busy) return;          // 조회 중 안내를 지우지 않는다
+        var hint = document.getElementById('wd-add-hint');
+        if (!_wqAdd.checked) hint.textContent = '종명을 넣고 확인·조회를 누르세요.';
+        else if (!_wqAdd.layout) hint.textContent = '사진 배열을 고르세요.';
+        else if (!filled) {
+            var left = _wqAdd.slots.filter(function(s) { return !s; }).length;
+            hint.textContent = '빈 칸이 ' + left + '개 있습니다. 사진을 끌어다 놓으세요.';
+        } else if (loading) hint.textContent = '사진을 받는 중입니다…';
+        else hint.textContent = '사진 ' + _wqAdd.slots.length + '장으로 등록합니다.';
+    }
+
+    /* 카드를 하나 넣었으니 화면의 종 수도 올린다 (서버에서 다시 받지 않는다) */
+    function _wqBumpCount() {
+        ['wd-all-n', 'wd-list-n'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            var n = parseInt(el.textContent, 10);
+            if (!isNaN(n)) el.textContent = n + 1;
+        });
+    }
+
+    window.weedAddSubmit = function() {
+        var btn = document.getElementById('wd-add-go');
+        btn.disabled = true; btn.textContent = '등록 중…';
+        var fd = new FormData();
+        fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        fd.append('name', _wqAdd.checked);
+        fd.append('layout', _wqAdd.layout.key);
+        fd.append('family', document.getElementById('wd-add-family').value);
+        fd.append('life_form', document.getElementById('wd-add-life').value);
+        fd.append('habitat', document.getElementById('wd-add-habitat').value);
+        fd.append('features', document.getElementById('wd-add-features').value);
+        fd.append('similar', document.getElementById('wd-add-similar').value);
+        fd.append('control', document.getElementById('wd-add-control').value);
+        fd.append('notes', _wqMemoStrip(document.getElementById('wd-add-notes').value));
+        _wqAdd.slots.forEach(function(s) { fd.append('photos', s.file); });
+        // CC 사진은 출처를 밝혀야 한다 — 서버가 '방제·비고' 끝에 적어 둔다
+        fd.append('credits', JSON.stringify(_wqAdd.slots.filter(function(s) { return s.web; })
+            .map(function(s) { return { title: s.web.title, license: s.web.license,
+                                        author: s.web.author, page: s.web.page }; })));
+
+        fetch('{% url "main:api_weed_card_create" weed_subject.pk %}', {
+            method: 'POST', body: fd, credentials: 'same-origin',
+        }).then(function(r) { return r.json(); }).then(function(d) {
+            btn.disabled = false; btn.textContent = '등록';
+            if (!d.ok) { _wqAddMsg(d.error || '등록하지 못했습니다.', true); return; }
+            weedAddClose();
+            // 목록은 새로 받도록 표시만 해 두고, 방금 넣은 카드로 바로 문제를 낸다 —
+            // 사진이 제대로 붙었는지 그 자리에서 확인하는 편이 낫다
+            delete document.getElementById('wd-list-body').dataset.loaded;
+            document.getElementById('wd-list').hidden = true;
+            _wqBumpCount();              // '전체 N종' 과 목록 머리글을 하나 올린다
+            if (d.id) weedGo(d.id);
+            else weedList();
+        }).catch(function() {
+            btn.disabled = false; btn.textContent = '등록';
+            _wqAddMsg('등록하지 못했습니다.', true);
+        });
+    };
+
+    /* ══════ 관리자: 목록에서 카드 내용 수정 ══════
+       답 화면의 '답안 수정'은 서술 항목만 고친다. 여기서는 종명·과명·생활형·
+       발생지·출제 횟수까지 고칠 수 있다(목록에 보이는 값들이다). */
+    var _wqEditId = null;
+
+    /* 수정 창의 사진 바꾸기 — 등록 화면과 같은 방식이지만 상태를 따로 둔다
+       (하나를 같이 쓰면 두 창을 오갈 때 서로 망가진다) */
+    var _wqEdit = { layout: null, files: [], slots: [] };
+
+    function _wqEpool() {
+        var pool = document.getElementById('wd-epool');
+        var add = pool.querySelector('.wd-pool-add');
+        pool.querySelectorAll('.wd-pool-item').forEach(function(el) { el.remove(); });
+        _wqEdit.files.forEach(function(f, i) {
+            var used = _wqEdit.slots.indexOf(f) >= 0;
+            var el = document.createElement('div');
+            el.className = 'wd-pool-item' + (used ? ' used' : '');
+            el.draggable = !used;
+            el.title = f.web ? (f.web.title + ' / ' + f.web.license)
+                              : (f.file ? f.file.name : '');
+            var tag = f.web ? '위키' : (f.old ? '기존' : '');
+            el.innerHTML = '<img src="' + f.url + '" alt="">'
+                         + (tag ? '<span class="wd-pool-tag">' + tag + '</span>' : '');
+            // 사진을 누르면 크게 본다 (끌어다 놓기는 그대로 된다 — 클릭과 드래그는 다르다)
+            el.addEventListener('click', function() { weedEditZoom(i); });
+            el.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('text/plain', String(i));
+                e.dataTransfer.setData('application/x-wd-epool', String(i));
+                _wqEdit.dragging = true;
+            });
+            el.addEventListener('dragend', function() { _wqEdit.dragging = false; });
+            pool.insertBefore(el, add);
+        });
+    }
+
+    function _wqEstage() {
+        var stage = document.getElementById('wd-elay-stage');
+        var L = _wqEdit.layout;
+        if (!L) { stage.innerHTML = ''; stage.style.width = ''; stage.style.height = ''; return; }
+        stage.style.gridTemplateColumns = L.cols;
+        stage.style.gridTemplateRows = L.rows;
+        var w = 300;
+        stage.style.width = w + 'px';
+        stage.style.height = Math.round(w * L.ratio) + 'px';
+        stage.innerHTML = L.cells.map(function(c, i) {
+            var f = _wqEdit.slots[i];
+            var inner = f
+                ? '<img src="' + f.url + '" alt=""><button type="button" class="wd-slot-x"'
+                  + ' onclick="event.stopPropagation();weedEditSlotClear(' + i + ')">✕</button>'
+                : '사진 ' + (i + 1);
+            return '<div class="wd-slot" style="grid-column:span ' + c[0] + ';grid-row:span ' + c[1] + '"'
+                 + ' ondragover="weedSlotOver(event)"'
+                 + ' ondragleave="weedSlotLeave(event)"'
+                 + ' ondrop="weedEditSlotDrop(event,' + i + ')">' + inner + '</div>';
+        }).join('');
+    }
+
+    function _wqElayPicks() {
+        document.getElementById('wd-elay-picks').innerHTML = _WQ_LAYOUTS.map(function(L, i) {
+            var mini = L.cells.map(function(c) {
+                return '<i style="grid-column:span ' + c[0] + ';grid-row:span ' + c[1] + '"></i>';
+            }).join('');
+            return '<div class="wd-lay-pick" onclick="weedEditLayPick(' + i + ')">'
+                 + '<div class="wd-lay-mini" style="grid-template-columns:' + L.cols
+                 + ';grid-template-rows:' + L.rows + '">' + mini + '</div>'
+                 + '<div class="wd-lay-cap">' + L.cap + '</div></div>';
+        }).join('');
+    }
+
+    window.weedEditLayPick = function(i) {
+        _wqEdit.layout = _WQ_LAYOUTS[i];
+        _wqEdit.slots = _WQ_LAYOUTS[i].cells.map(function() { return null; });
+        document.querySelectorAll('#wd-elay-picks .wd-lay-pick').forEach(function(el, j) {
+            el.classList.toggle('on', i === j);
+        });
+        _wqEstage(); _wqEpool(); _wqEditSync();
+    };
+
+    window.weedEditFiles = function(input) {
+        _wqEditTake(input.files);
+        input.value = '';
+    };
+
+    function _wqEditTake(list) {
+        var n = 0;
+        Array.prototype.forEach.call(list || [], function(f) {
+            if (!f || !/^image\//.test(f.type)) return;
+            _wqEdit.files.push({ file: f, url: URL.createObjectURL(f) });
+            n++;
+        });
+        if (n) { _wqEpool(); _wqEditSync(); }
+        return n;
+    }
+
+    window.weedEditSlotDrop = function(e, i) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('over');
+        var f = _wqEdit.files[+e.dataTransfer.getData('text/plain')];
+        if (!f) return;
+        var was = _wqEdit.slots.indexOf(f);
+        if (was >= 0) _wqEdit.slots[was] = null;
+        _wqEdit.slots[i] = f;
+        _wqEstage(); _wqEpool(); _wqEditSync();
+        if (f.web && !f.file) _wqEditFetchWeb(f);
+    };
+    window.weedEditSlotClear = function(i) {
+        _wqEdit.slots[i] = null;
+        _wqEstage(); _wqEpool(); _wqEditSync();
+    };
+
+    function _wqEditSync() {
+        var hint = document.getElementById('wd-edit-hint');
+        if (!_wqEdit.layout) {
+            hint.textContent = '내용을 고치고 저장하세요. (사진은 그대로 둡니다)';
+            return;
+        }
+        var left = _wqEdit.slots.filter(function(s) { return !s; }).length;
+        var loading = _wqEdit.slots.filter(function(s) { return s && !s.file; }).length;
+        // 기존 사진 그대로면 바뀌는 게 없다는 뜻이다
+        var same = !left && !loading && _wqEdit.slots.every(function(s) { return s.old; });
+        hint.textContent = left
+            ? '사진 칸이 ' + left + '개 비었습니다 — 채우거나 배열을 다시 고르세요.'
+            : (loading ? '사진을 받는 중입니다…'
+               : same ? '사진은 지금 그대로입니다 (바꾸려면 칸의 사진을 갈아 끼우세요).'
+                      : '사진 ' + _wqEdit.slots.length + '장으로 바꿔 저장합니다.');
+        document.getElementById('wd-edit-go').disabled = !!loading;
+    }
+
+    /* 수정 창의 사진 목록에도 끌어다 놓기·붙여넣기 */
+    (function bindEditPool() {
+        var pool = document.getElementById('wd-epool');
+        if (!pool) return;
+        ['dragenter', 'dragover'].forEach(function(ev) {
+            pool.addEventListener(ev, function(e) {
+                if (_wqEdit.dragging) return;
+                if (!e.dataTransfer || !Array.prototype.includes.call(e.dataTransfer.types || [], 'Files')) return;
+                e.preventDefault();
+                pool.classList.add('over');
+            });
+        });
+        pool.addEventListener('dragleave', function(e) { if (e.target === pool) pool.classList.remove('over'); });
+        pool.addEventListener('drop', function(e) {
+            var dt = e.dataTransfer;
+            if (_wqEdit.dragging || (dt && Array.prototype.includes.call(
+                    dt.types || [], 'application/x-wd-epool'))) {
+                _wqEdit.dragging = false;
+                return;
+            }
+            if (!dt || !dt.files || !dt.files.length) return;
+            e.preventDefault();
+            pool.classList.remove('over');
+            _wqEditTake(dt.files);
+        });
+        document.addEventListener('paste', function(e) {
+            var box = document.getElementById('wd-edit');
+            if (!box || box.hidden) return;
+            var items = (e.clipboardData || {}).items || [];
+            var files = [];
+            Array.prototype.forEach.call(items, function(it) {
+                if (it.kind === 'file') { var f = it.getAsFile(); if (f) files.push(f); }
+            });
+            if (!files.length) return;
+            e.preventDefault();
+            _wqEditTake(files);
+        });
+    })();
+
+    /* 기존 사진을 낱장으로 잘라 목록에 담는다 — 그대로 다시 쓰거나 한 장만
+       갈아 끼울 수 있다. 서버가 준 좌표(비율)로 canvas 에서 자른다. */
+    /* 지금 사진이 어떤 배열인지 되짚어 그것을 기본으로 고른다 — 대개 배열은
+       그대로 두고 사진 한 장만 갈아 끼우므로, 매번 다시 고르게 할 일이 아니다.
+       낱장 좌표(비율)로 판단한다. */
+    function _wqGuessLayout(parts) {
+        var n = parts.length;
+        if (n <= 1) return '1';
+        var rows = [], cols = [];
+        parts.forEach(function(p) {
+            if (!rows.some(function(v) { return Math.abs(v - p.y) < 0.06; })) rows.push(p.y);
+            if (!cols.some(function(v) { return Math.abs(v - p.x) < 0.06; })) cols.push(p.x);
+        });
+        if (n === 2) return rows.length === 2 ? '1t1b' : '1l1r';
+        if (n === 3) {
+            // 위가 한 장이면 상1·하2, 왼쪽이 한 장이면 좌1·우2
+            var top = parts.filter(function(p) { return p.y < 0.3; });
+            return top.length === 1 && cols.length === 2 ? '1t2b' : '1l2r';
+        }
+        if (n === 4) return '2t2b';
+        return null;
+    }
+
+    function _wqEditLoadParts(url, parts) {
+        if (!url) return;
+        var img = new Image();
+        img.onload = function() {
+            var list = parts.length ? parts : [{ x: 0, y: 0, w: 1, h: 1 }];
+            // toBlob 이 비동기라 끝나는 차례가 뒤섞인다 — 자리를 먼저 잡아 두고 채운다
+            var base = _wqEdit.files.length;
+            list.forEach(function() { _wqEdit.files.push(null); });
+            var left = list.length;
+            list.forEach(function(p, i) {
+                var cw = Math.max(1, Math.round(img.naturalWidth * p.w));
+                var ch = Math.max(1, Math.round(img.naturalHeight * p.h));
+                var cv = document.createElement('canvas');
+                cv.width = cw; cv.height = ch;
+                cv.getContext('2d').drawImage(img,
+                    Math.round(img.naturalWidth * p.x), Math.round(img.naturalHeight * p.y),
+                    cw, ch, 0, 0, cw, ch);
+                cv.toBlob(function(blob) {
+                    if (blob) {
+                        var f = new File([blob], '기존_' + (i + 1) + '.jpg', { type: 'image/jpeg' });
+                        _wqEdit.files[base + i] = { file: f, url: URL.createObjectURL(f), old: true };
+                    }
+                    if (--left === 0) {
+                        _wqEdit.files = _wqEdit.files.filter(Boolean);
+                        _wqEpool();
+                        _wqEditUseCurrent(base, list.length);
+                    }
+                }, 'image/jpeg', 0.95);
+            });
+        };
+        img.src = url;
+    }
+
+    /* 지금과 같은 배열을 골라 기존 사진을 그대로 앉혀 둔다.
+       사진 한 장만 갈아 끼우는 일이 많아, 매번 처음부터 짜게 할 일이 아니다. */
+    function _wqEditUseCurrent(base, n) {
+        var key = _wqEdit.guess;
+        if (!key) return;
+        var idx = -1;
+        _WQ_LAYOUTS.forEach(function(L, i) { if (L.key === key) idx = i; });
+        if (idx < 0) return;
+        weedEditLayPick(idx);
+        if (_wqEdit.slots.length === n) {
+            for (var i = 0; i < n; i++) _wqEdit.slots[i] = _wqEdit.files[base + i] || null;
+            // 처음 앉힌 그대로인지 나중에 견주려고 적어 둔다 (안 바뀌었으면 사진을
+            // 다시 만들지 않는다 — JPEG 를 거듭 인코딩하면 화질이 깎인다)
+            _wqEdit.initial = _wqEdit.slots.slice();
+            _wqEdit.initialKey = key;
+            _wqEstage(); _wqEpool(); _wqEditSync();
+        }
+    }
+
+    /* 인터넷에서 사진을 다시 가져온다 — 등록 화면과 같은 길이지만
+       이미 아는 종명으로 찾는다(학명은 서버가 도감에서 찾아 준다). */
+    /* 수정 창 목록의 사진 크게 보기 — 썸네일로는 무슨 사진인지 알기 어렵다.
+       다시 누르면 닫힌다(확대 창 전체가 그렇게 동작한다). */
+    window.weedEditZoom = function(i) {
+        var f = _wqEdit.files[i];
+        if (!f) return;
+        var src = f.web
+            ? '{% url "main:api_weed_fetch_photo" weed_subject.pk %}?url=' + encodeURIComponent(f.web.full)
+            : f.url;
+        document.getElementById('wd-zoom-img').src = src;
+        document.getElementById('wd-zoom-cap').textContent = f.web
+            ? f.web.title + ' — ' + (f.web.author || '') + ' / ' + f.web.license
+            : (f.file ? f.file.name : '');
+        document.getElementById('wd-zoom').hidden = false;
+    };
+
+    window.weedEditRefetch = function() {
+        var name = document.getElementById('wd-edit-name').value.trim();
+        if (!name) { _wqEditMsg('종명을 먼저 확인하세요.', true); return; }
+        var btn = document.querySelector('.wd-refetch');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="wd-spin dark"></span>찾는 중…';
+        fetch('{% url "main:api_weed_web_photos" weed_subject.pk %}?name=' + encodeURIComponent(name),
+              { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                btn.disabled = false; btn.textContent = '인터넷에서 가져오기';
+                var got = (d.photos || []).length;
+                if (!got) { _wqEditMsg('인터넷에 쓸 만한 사진이 없습니다.', true); return; }
+                var warn = d.sci ? '' : ' (학명을 못 찾아 이름으로 찾았습니다 — 딴 사진이 섞일 수 있습니다)';
+                d.photos.forEach(function(p) {
+                    _wqEdit.files.push({ web: p, file: null,
+                        url: '{% url "main:api_weed_fetch_photo" weed_subject.pk %}?url='
+                             + encodeURIComponent(p.thumb) });
+                });
+                _wqEpool();
+                _wqEditMsg('사진 ' + got + '장을 찾았습니다 — 쓸 것을 칸으로 끌어다 놓으세요.' + warn, !d.sci);
+            })
+            .catch(function() {
+                btn.disabled = false; btn.textContent = '인터넷에서 가져오기';
+                _wqEditMsg('가져오지 못했습니다.', true);
+            });
+    };
+
+    /* 웹 사진은 칸에 놓을 때 큰 판을 받아 둔다 (등록 화면과 같다) */
+    function _wqEditFetchWeb(f) {
+        f.loading = true;
+        _wqEditSync();
+        fetch('{% url "main:api_weed_fetch_photo" weed_subject.pk %}?url=' + encodeURIComponent(f.web.full),
+              { credentials: 'same-origin' })
+            .then(function(r) { if (!r.ok) throw 0; return r.blob(); })
+            .then(function(blob) {
+                f.file = new File([blob], (f.web.title || 'photo') + '.jpg', { type: 'image/jpeg' });
+                f.loading = false;
+                _wqEditSync();
+            })
+            .catch(function() {
+                f.loading = false;
+                var at = _wqEdit.slots.indexOf(f);
+                if (at >= 0) _wqEdit.slots[at] = null;
+                _wqEstage(); _wqEpool(); _wqEditSync();
+                _wqEditMsg('그 사진을 받지 못했습니다. 다른 것을 골라 주세요.', true);
+            });
+    }
+
+    window.weedEditOpen = function(cardId) {
+        _wqEditId = cardId;
+        var box = document.getElementById('wd-edit');
+        document.getElementById('wd-edit-title').textContent = '불러오는 중…';
+        ['name', 'family', 'life', 'habitat', 'features', 'similar', 'control', 'notes', 'exam']
+            .forEach(function(f) {
+                var el = document.getElementById('wd-edit-' + f);
+                if (el) el.value = '';
+            });
+        _wqEditMsg('');
+        _wqMemoInit(document.getElementById('wd-edit-notes'));
+        // 사진 영역은 접은 채로 비워 둔다 — 열지 않으면 사진을 건드리지 않는다
+        _wqEdit = { layout: null, files: [], slots: [], dragging: false,
+                    guess: null, initial: null, initialKey: null };
+        document.getElementById('wd-edit-photos').open = false;
+        document.getElementById('wd-epool').querySelectorAll('.wd-pool-item')
+            .forEach(function(el) { el.remove(); });
+        document.getElementById('wd-elay-stage').innerHTML = '';
+        _wqElayPicks();
+        box.hidden = false;
+        fetch('{% url "main:api_weed_card_detail" weed_subject.pk 0 %}'.replace('/weed-card/0/', '/weed-card/' + cardId + '/'),
+              { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                document.getElementById('wd-edit-title').textContent = d.name + ' (카드 ' + d.card_no + ')';
+                document.getElementById('wd-edit-name').value = d.name || '';
+                document.getElementById('wd-edit-family').value = d.family || '';
+                document.getElementById('wd-edit-life').value = d.life_form || '';
+                document.getElementById('wd-edit-habitat').value = d.habitat || '';
+                document.getElementById('wd-edit-exam').value = d.exam_count || 0;
+                // 서술 항목은 HTML 이 섞여 있을 수 있다 — 편집은 평문으로 한다
+                document.getElementById('wd-edit-features').value = _wqStripTags(d.features);
+                document.getElementById('wd-edit-similar').value = _wqStripTags(d.similar);
+                document.getElementById('wd-edit-control').value = _wqStripTags(d.control);
+                document.getElementById('wd-edit-notes').value = _wqMemoShow(d.notes);
+                document.getElementById('wd-edit-cur').src = d.q_img || '';
+                _wqEditLoadParts(d.q_img, d.parts || []);
+                // 지금과 같은 배열을 미리 골라 둔다 (사진이 다 담긴 뒤 칸에 넣는다)
+                _wqEdit.guess = _wqGuessLayout(d.parts || []);
+                _wqEditSync();
+            })
+            .catch(function() { _wqEditMsg('불러오지 못했습니다.', true); });
+    };
+
+    /* 답 화면 편집기가 남긴 태그를 걷어 낸다 — 이 창은 평문으로 고친다 */
+    function _wqStripTags(html) {
+        if (!html) return '';
+        if (html.indexOf('<') < 0) return html;
+        var t = html.replace(/<\/(li|p|div)>/gi, '\n')
+                    .replace(/<br\s*\/?>/gi, '\n');
+        var el = document.createElement('div');
+        el.innerHTML = t;
+        return (el.textContent || '').split('\n')
+                   .map(function(x) { return x.trim(); })
+                   .filter(Boolean).join('\n');
+    }
+
+    window.weedEditWinClose = function() { document.getElementById('wd-edit').hidden = true; };
+
+    function _wqEditMsg(text, warn) {
+        var el = document.getElementById('wd-edit-msg');
+        el.textContent = text;
+        el.classList.toggle('warn', !!warn);
+    }
+
+    /* 수정 뒤 화면 되살리기 — 어디서 열었느냐에 따라 다르다.
+       답을 보는 중이면 그 답 화면을 고치고, 목록을 보는 중이면 목록을 새로 받는다. */
+    function _wqAfterEdit(card) {
+        var ans = document.getElementById('wd-answer');
+        var onAnswer = _wqAns && card && _wqAns.id === card.id && ans && !ans.hidden;
+        if (onAnswer) {
+            _wqAns = card;
+            _WQ_FIELDS.forEach(function(f) {
+                if (f.key === 'notes') return;
+                var sec = ans.querySelector('.wd-sec[data-field="' + f.key + '"]');
+                if (sec) sec.querySelector('.wd-sec-body').innerHTML = _wqBody(card[f.key]);
+            });
+            var nov = document.getElementById('wd-notes-ov');
+            if (card.notes && card.notes.length) {
+                nov.innerHTML = '<ul>' + card.notes.map(function(n) { return '<li>' + _wqEsc(n) + '</li>'; }).join('') + '</ul>';
+                nov.hidden = false;
+            } else { nov.hidden = true; nov.innerHTML = ''; }
+            // 사진을 바꿨으면 새 주소로 다시 그린다. 주소가 그대로면 건드리지 않는다 —
+            // 옛 주소에 ?v= 만 붙이면 이미 지워진 파일을 부르게 된다
+            // img.src 는 절대 주소이고 card.q_img 는 /media/… 라 경로끼리 견줘야 한다.
+            // 문자열 그대로 견주면 글만 고쳐도 늘 '사진이 바뀐 것'이 되어 낱장 좌표를
+            // 잃고, 그 뒤로는 사진을 눌러도 통째로만 확대됐다
+            var img = document.getElementById('wd-img');
+            var cur = img && img.src ? new URL(img.src, location.href).pathname : '';
+            if (img && card.q_img && cur !== card.q_img) {
+                img.src = card.q_img;
+            }
+            if (card.parts) _wqParts = card.parts;    // 수정 응답이 좌표를 같이 준다
+        }
+        var list = document.getElementById('wd-list');
+        if (!list.hidden || !onAnswer) {           // 목록을 보는 중이면 새로 받는다
+            var body = document.getElementById('wd-list-body');
+            delete body.dataset.loaded;
+            if (!list.hidden) { list.hidden = true; weedList(); }
+        }
+    }
+
+    window.weedEditSubmit = function() {
+        if (!_wqEditId) return;
+        var btn = document.getElementById('wd-edit-go');
+        btn.disabled = true; btn.textContent = '저장 중…';
+        var fd = new FormData();
+        fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        fd.append('plain', '1');          // 이 창은 평문으로 고친다
+        fd.append('name', document.getElementById('wd-edit-name').value);
+        fd.append('family', document.getElementById('wd-edit-family').value);
+        fd.append('life_form', document.getElementById('wd-edit-life').value);
+        fd.append('habitat', document.getElementById('wd-edit-habitat').value);
+        fd.append('exam_count', document.getElementById('wd-edit-exam').value || '0');
+        fd.append('features', document.getElementById('wd-edit-features').value);
+        fd.append('similar', document.getElementById('wd-edit-similar').value);
+        fd.append('control', document.getElementById('wd-edit-control').value);
+        fd.append('notes', _wqMemoStrip(document.getElementById('wd-edit-notes').value));
+        // 배열을 골라 칸을 다 채웠을 때만 사진을 바꾼다
+        // 창을 열었을 때 앉혀 둔 그대로면 아무것도 바뀌지 않은 것이다 —
+        // 그때 다시 합성하면 JPEG 를 거듭 인코딩해 화질만 깎인다
+        var untouched = _wqEdit.initial && _wqEdit.layout
+            && _wqEdit.layout.key === _wqEdit.initialKey
+            && _wqEdit.slots.length === _wqEdit.initial.length
+            && _wqEdit.slots.every(function(x, i) { return x === _wqEdit.initial[i]; });
+        if (!untouched && _wqEdit.layout && _wqEdit.slots.length
+            && _wqEdit.slots.every(function(x) { return x && x.file; })) {
+            fd.append('layout', _wqEdit.layout.key);
+            _wqEdit.slots.forEach(function(x) { fd.append('photos', x.file); });
+            // 인터넷 사진은 CC 라 출처를 밝혀야 한다 (방제·비고 끝에 적힌다)
+            fd.append('credits', JSON.stringify(_wqEdit.slots.filter(function(x) { return x.web; })
+                .map(function(x) { return { title: x.web.title, license: x.web.license,
+                                            author: x.web.author, page: x.web.page }; })));
+        }
+        fetch('{% url "main:api_weed_card_update" weed_subject.pk 0 %}'.replace('/weed-card/0/', '/weed-card/' + _wqEditId + '/'), {
+            method: 'POST', body: fd, credentials: 'same-origin',
+        }).then(function(r) { return r.json(); }).then(function(d) {
+            btn.disabled = false; btn.textContent = '저장';
+            if (!d.ok) { _wqEditMsg(d.error || '저장하지 못했습니다.', true); return; }
+            weedEditWinClose();
+            _wqAfterEdit(d.card);
+        }).catch(function() {
+            btn.disabled = false; btn.textContent = '저장';
+            _wqEditMsg('저장하지 못했습니다.', true);
+        });
+    };
+
+    window.weedList = function() {
+        var box = document.getElementById('wd-list');
+        if (!box.hidden) { box.hidden = true; return; }
+        var body = document.getElementById('wd-list-body');
+        box.hidden = false;
+        if (!body.dataset.loaded) {
+            body.innerHTML = '<tr><td colspan="' + _wqCols() + '">불러오는 중…</td></tr>';
+            fetch('{% url "main:api_weed_quiz_list" weed_subject.pk %}', { credentials: 'same-origin' })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    body.dataset.loaded = '1';
+                    // 별·정렬이 쓰는 필기(식보+산기) 합계를 한 번만 셈해 둔다
+                    _wqItems = (d.items || []).map(function(it) {
+                        it.gisa_total = _wqGisaTotal(it);
+                        return it;
+                    });
+                    _wqApplySort();
+                })
+                .catch(function() { body.innerHTML = '<tr><td colspan="' + _wqCols() + '">목록을 불러오지 못했습니다.</td></tr>'; });
+        }
+        box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    /* 목록에서 고른 잡초를 문제로 낸다 */
+    window.weedGo = function(cardId) {
+        document.getElementById('wd-list').hidden = true;
+        document.getElementById('wd-done').hidden = true;
+        document.getElementById('wd-area').hidden = false;
+        fetch('{% url "main:api_weed_quiz_card" weed_subject.pk 0 %}'.replace('/card/0/', '/card/' + cardId + '/'),
+              { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                _wq.card = d.card;
+                document.getElementById('wd-pos').textContent = '목록에서 고른 문제';
+                document.getElementById('wd-score').textContent = _wq.n ? ('정답 ' + _wq.ok + ' / ' + _wq.n) : '';
+                document.getElementById('wd-img').src = d.card.q_img;
+                _wqParts = d.card.parts || [];        // 낱장 좌표 (크게 볼 때 쓴다)
+                document.getElementById('wd-sketch-ov').hidden = true;
+                document.getElementById('wd-notes-ov').hidden = true;
+                var box = document.getElementById('wd-choices');
+                box.className = 'wd-choices';
+                box.innerHTML = d.choices.map(function(c) {
+                    return '<div class="wd-choice" data-id="' + c.id + '" onclick="weedPick(this)">' + _wqEsc(c.name) + '</div>';
+                }).join('');
+                document.getElementById('wd-answer').hidden = true;
+                document.getElementById('wd-answer').innerHTML = '';
+                _wqAns = null;
+                document.getElementById('wd-actions').hidden = true;
+                document.getElementById('wd-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            })
+            .catch(function() { alert('문제를 불러오지 못했습니다.'); });
+    };
+    function _wqShowDone(msg) {
+        var d = document.getElementById('wd-done');
+        d.innerHTML = '<div>' + _wqEsc(msg) + '</div><div style="margin-top:10px;font-size:0.82rem;color:#777;">위의 범위 버튼으로 다시 시작할 수 있습니다.</div>';
+        d.hidden = false;
+        d.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    window.weedNext = function() {
+        if (_wq.busy) return;
+        _wq.busy = true;
+        var url = '{% url "main:api_weed_quiz_next" weed_subject.pk %}?mode=' + _wq.mode + '&seen=' + _wq.seen.join(',');
+        fetch(url, { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(d) {
+            _wq.busy = false;
+            if (d.done) {
+                document.getElementById('wd-area').hidden = true;
+                if (!d.total) {
+                    _wqShowDone(_wq.mode === 'wrong' ? '오답으로 남은 카드가 없습니다.' : '이 범위에는 카드가 없습니다.');
+                } else {
+                    _wqShowDone('한 바퀴 다 풀었습니다. ' + _wq.n + '문제 중 ' + _wq.ok + '문제 정답 (' + Math.round(_wq.ok / Math.max(1, _wq.n) * 100) + '%).');
+                }
+                return;
+            }
+            _wq.card = d.card;
+            document.getElementById('wd-pos').textContent = (_wq.n + 1) + ' / ' + d.total + (d.total - d.remaining ? '' : '');
+            document.getElementById('wd-score').textContent = _wq.n ? ('정답 ' + _wq.ok + ' / ' + _wq.n) : '';
+            document.getElementById('wd-img').src = d.card.q_img;
+            _wqParts = d.card.parts || [];        // 낱장 좌표 (크게 볼 때 쓴다)
+            document.getElementById('wd-sketch-ov').hidden = true;
+            document.getElementById('wd-notes-ov').hidden = true;
+            var box = document.getElementById('wd-choices');
+            box.className = 'wd-choices';
+            box.innerHTML = d.choices.map(function(c) {
+                return '<div class="wd-choice" data-id="' + c.id + '" onclick="weedPick(this)">' + _wqEsc(c.name) + '</div>';
+            }).join('');
+            document.getElementById('wd-answer').hidden = true;
+            document.getElementById('wd-answer').innerHTML = '';
+            _wqAns = null;
+            document.getElementById('wd-actions').hidden = true;
+            document.getElementById('wd-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }).catch(function() { _wq.busy = false; alert('문제를 불러오지 못했습니다.'); });
+    };
+    window.weedPick = function(el) {
+        var box = document.getElementById('wd-choices');
+        if (box.classList.contains('done') || _wq.busy) return;
+        _wq.busy = true;
+        box.classList.add('done');
+        el.classList.add('picked');
+        var fd = new URLSearchParams({ card: _wq.card.id, selected: el.dataset.id });
+        fetch('{% url "main:api_weed_quiz_answer" weed_subject.pk %}', {
+            method: 'POST', body: fd,
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' }
+        }).then(function(r) { return r.json(); }).then(function(d) {
+            _wq.busy = false;
+            if (d.error) { alert(d.error); return; }
+            _wq.n += 1; if (d.correct) _wq.ok += 1;
+            _wq.seen.push(_wq.card.id);
+            box.querySelectorAll('.wd-choice').forEach(function(c) {
+                if (parseInt(c.dataset.id) === d.answer.id) c.classList.add('right');
+            });
+            if (!d.correct) el.classList.add('miss');
+            var a = d.answer;
+            _wqAns = a;
+            var ov = document.getElementById('wd-sketch-ov');   // 사진 위 손그림
+            if (a.sketch) { ov.src = a.sketch; ov.hidden = false; } else { ov.hidden = true; }
+            var nov = document.getElementById('wd-notes-ov');   // 사진 위 교수 메모
+            if (a.notes && a.notes.length) {
+                nov.innerHTML = '<ul>' + a.notes.map(function(n) { return '<li>' + _wqEsc(n) + '</li>'; }).join('') + '</ul>';
+                nov.hidden = false;
+            } else { nov.hidden = true; nov.innerHTML = ''; }
+            var html = '<div class="wd-verdict ' + (d.correct ? 'ok' : 'no') + '">'
+                     + (d.correct ? '정답입니다.' : '오답입니다. 고른 것: ' + _wqEsc(d.selected_name) + ' → 정답은 ' + _wqEsc(a.name)) + '</div>'
+                     + '<div class="wd-name">' + _wqEsc(a.name) + _wqStars(_wqGisaTotal(a)) + '</div>'
+                     + '<div class="wd-meta">'
+                     +   (a.family ? '<span>' + _wqEsc(a.family) + '</span>' : '')
+                     +   (a.life_form ? '<span>' + _wqEsc(a.life_form) + '</span>' : '')
+                     +   (a.habitat ? '<span>' + _wqEsc(a.habitat) + '</span>' : '')
+                     +   _wqRefs(a.exam_refs, a.gisa)
+                     + '</div>'
+                     + '<div class="wdn-list wd-refs-list" id="wd-refs-list" hidden></div>'
+                     + _wqSec('features', '식별 포인트', a.features)
+                     + _wqSec('similar', '헷갈리는 종과 구별', a.similar)
+                     + _wqSec('control', '방제·비고', a.control)
+                     + _wqEditBar();
+            var ans = document.getElementById('wd-answer');
+            ans.innerHTML = html; ans.hidden = false;
+            document.getElementById('wd-actions').hidden = false;
+            document.getElementById('wd-score').textContent = '정답 ' + _wq.ok + ' / ' + _wq.n;
+            // 상단 통계 갱신
+            var an = document.getElementById('wd-answered');
+            if (an && _wq.seen.length) an.textContent = Math.max(parseInt(an.textContent) || 0, 0);
+            var wrongEls = [document.getElementById('wd-wrong'), document.getElementById('wd-wrong2')];
+            if (!d.correct) wrongEls.forEach(function(e) { if (e) e.textContent = (parseInt(e.textContent) || 0) + 1; });
+            ans.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }).catch(function() { _wq.busy = false; alert('채점하지 못했습니다.'); });
+    };
+    /* ── 답안 수정 (스태프) ──
+       Toast UI 는 마크다운 기반이라 글 색을 못 넣는다. 여기서 필요한 건 색과
+       밑줄뿐이라 contenteditable + execCommand 로 충분하다. */
+    var _WQ_FIELDS = [
+        { key: 'features', label: '식별 포인트' },
+        { key: 'similar',  label: '헷갈리는 종과 구별' },
+        { key: 'control',  label: '방제·비고' },
+        /* 메모는 사진 위 흰 글씨라 색·굵기가 먹지 않는다. 줄 단위로만 저장한다 */
+        { key: 'notes',    label: '교수 메모 (사진 위에 표시 · 한 줄에 하나, 서식은 적용되지 않음)', plain: true }
+    ];
+    var _WQ_COLORS = ['#c62828', '#1565c0', '#1b5e20', '#e65100', '#6a1b9a', '#333333'];
+
+    function _wqExec(cmd, val) { document.execCommand(cmd, false, val || null); }
+
+    window.weedEditCmd = function(btn, cmd, val) {
+        var ed = btn.closest('.wd-ef').querySelector('.wd-ed');
+        ed.focus();
+        _wqExec(cmd, val);
+    };
+
+    /* 답 화면의 '수정' — 목록의 수정 창을 연다.
+       예전의 붙박이 편집기(weedEdit)는 서술 항목만 고쳤다. 새 창은 종명·과명·
+       사진까지 고치므로 그쪽으로 모은다. 글자 색·밑줄은 못 쓰게 되는데,
+       132종 가운데 실제로 쓴 곳이 한 군데뿐이라 잃는 것이 적다. */
+    window.weedEditFromAnswer = function() {
+        if (!_wqAns || !_wqAns.id) return;
+        weedEditOpen(_wqAns.id);
+    };
+
+    window.weedEdit = function() {
+        if (!_wqAns) return;
+        var a = _wqAns;
+        var html = '<div class="wd-edit"><div class="wd-edit-head">답안 수정 — ' + _wqEsc(a.name) + '</div>';
+        _WQ_FIELDS.forEach(function(f) {
+            /* 메모는 줄마다 <div> 로 넣는다. <br> 로 넣으면 Chrome 이 편집 중에
+               <div> 로 바꿔 놓아 첫 줄만 태그가 없는 어정쩡한 상태가 된다 */
+            var v = f.key === 'notes'
+                  ? ((a.notes || []).map(function(n) { return '<div>' + _wqEsc(n) + '</div>'; }).join('') || '<div><br></div>')
+                  : _wqBody(a[f.key]);
+            var tools = f.plain ? '' :
+                  '<div class="wd-ed-tools">'
+                  +   '<button type="button" onclick="weedEditCmd(this,\'bold\')" title="굵게"><b>B</b></button>'
+                  +   '<button type="button" onclick="weedEditCmd(this,\'underline\')" title="밑줄"><u>U</u></button>'
+                  +   '<button type="button" onclick="weedEditCmd(this,\'italic\')" title="기울임"><i>I</i></button>'
+                  +   _WQ_COLORS.map(function(c) {
+                          return '<button type="button" class="wd-col" style="background:' + c + '"'
+                               + ' title="글자색" onclick="weedEditCmd(this,\'foreColor\',\'' + c + '\')"></button>';
+                      }).join('')
+                  +   '<button type="button" onclick="weedEditCmd(this,\'removeFormat\')" title="서식 지우기">✕</button>'
+                  + '</div>';
+            html += '<div class="wd-ef" data-field="' + f.key + '">'
+                  + '<label>' + f.label + '</label>' + tools
+                  + '<div class="wd-ed" contenteditable="true">' + v + '</div>'
+                  + '</div>';
+        });
+        html += '<div class="wd-edit-actions">'
+              + '<button type="button" class="wd-save" onclick="weedEditSave(this)">저장</button>'
+              + '<button type="button" class="wd-cancel" onclick="weedEditCancel()">취소</button>'
+              + '<span class="wd-edit-msg"></span></div></div>';
+        var ans = document.getElementById('wd-answer');
+        ans.querySelector('.wd-edit-bar').hidden = true;
+        ans.insertAdjacentHTML('beforeend', html);
+        /* 다른 데서 복사해 오면 글꼴·크기까지 딸려 온다. 글자만 받는다 */
+        ans.querySelectorAll('.wd-ed').forEach(function(ed) {
+            ed.addEventListener('paste', function(e) {
+                e.preventDefault();
+                var t = (e.clipboardData || window.clipboardData).getData('text');
+                document.execCommand('insertText', false, t);
+            });
+        });
+        ans.querySelector('.wd-ed').focus();
+    };
+
+    window.weedEditCancel = function() {
+        var ans = document.getElementById('wd-answer');
+        var box = ans.querySelector('.wd-edit');
+        if (box) box.remove();
+        var bar = ans.querySelector('.wd-edit-bar');
+        if (bar) bar.hidden = false;
+    };
+
+    window.weedEditSave = function(btn) {
+        var ans = document.getElementById('wd-answer');
+        var msg = ans.querySelector('.wd-edit-msg');
+        var fd = new URLSearchParams();
+        ans.querySelectorAll('.wd-ef').forEach(function(ef) {
+            fd.append(ef.dataset.field, ef.querySelector('.wd-ed').innerHTML);
+        });
+        btn.disabled = true; msg.textContent = '저장 중…'; msg.className = 'wd-edit-msg';
+        fetch('{% url "main:api_weed_card_update" weed_subject.pk 0 %}'.replace('/weed-card/0/', '/weed-card/' + _wqAns.id + '/'), {
+            method: 'POST', body: fd,
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' }
+        }).then(function(r) { return r.json(); }).then(function(d) {
+            btn.disabled = false;
+            if (!d.ok) { msg.textContent = d.error || '저장하지 못했습니다.'; msg.className = 'wd-edit-msg err'; return; }
+            _wqAns = d.card;
+            weedEditCancel();
+            // 화면에 바로 반영 — 서술 3항목과 사진 위 메모
+            _WQ_FIELDS.forEach(function(f) {
+                if (f.key === 'notes') return;
+                var sec = ans.querySelector('.wd-sec[data-field="' + f.key + '"]');
+                if (sec) sec.querySelector('.wd-sec-body').innerHTML = _wqBody(d.card[f.key]);
+            });
+            var nov = document.getElementById('wd-notes-ov');
+            if (d.card.notes && d.card.notes.length) {
+                nov.innerHTML = '<ul>' + d.card.notes.map(function(n) { return '<li>' + _wqEsc(n) + '</li>'; }).join('') + '</ul>';
+                nov.hidden = false;
+            } else { nov.hidden = true; nov.innerHTML = ''; }
+        }).catch(function() {
+            btn.disabled = false; msg.textContent = '저장하지 못했습니다.'; msg.className = 'wd-edit-msg err';
+        });
+    };
+
+    window.weedReset = function() {
+        if (!confirm('잡초 동정 풀이 기록을 모두 지울까요?')) return;
+        fetch('{% url "main:api_weed_quiz_reset" weed_subject.pk %}', { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+            .then(function(r) { return r.json(); }).then(function() { location.href = '?tab=weeds'; });
+    };
+
+    /* 관련 문제 카드 렌더러 — 쪽집게 노트의 _wdnRender·wdnPick 과 같은 코드이되
+       이름을 따로 둔다(기사 페이지에 같은 이름의 제 것이 있어 덮어쓰면 안 된다) */
+    /* ── 쪽집게 노트 관련 문제: 페이지 이동 없이 버튼 아래에 펼친다 ── */
+    function _wdnEsc(s) {
+        return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    /* 학습모드(exam/study_mode.html)의 카드 마크업을 그대로 따른다:
+       "N. 문제 [YYYY년 N번]" → 원번호 보기, 보기마다 해설(↪)이 접혀 있다가 선택 시 펼쳐진다 */
+    function _wdnRender(list, questions) {
+        if (!questions.length) {
+            list.innerHTML = '<div class="wdn-empty">등록된 문항을 찾지 못했습니다.</div>';
+            return;
+        }
+        list.innerHTML = questions.map(function(q, qi) {
+            var answers = String(q.answer || '').split(',');
+            var choices = q.choices.map(function(c, i) {
+                var n = String(i + 1);
+                var exp = (q.choice_exps || [])[i];
+                var expHtml = exp
+                    ? '<div class="wdn-exp' + (answers.indexOf(n) >= 0 ? ' correct-exp' : '') + '">'
+                      + '<span class="exp-arrow">↪ </span><span class="exp-text-inner">' + _wdnEsc(exp) + '</span></div>'
+                    : '';
+                return '<div class="wdn-choice" onclick="wdnPick(this, ' + n + ')">'
+                     +   '<span class="wdn-num" data-choice="' + n + '">' + n + '</span>'
+                     +   '<div class="wdn-ctext">' + _wdnEsc(c) + expHtml + '</div>'
+                     + '</div>';
+            }).join('');
+            return '<div class="wdn-card" data-pk="' + q.pk + '" data-answer="' + _wdnEsc(q.answer) + '">'
+                 +   '<div class="wdn-q">' + (qi + 1) + '. ' + _wdnEsc(q.text)
+                 +     '<span class="wdn-badge">' + (q.label ? _wdnEsc(q.label) : q.year + '년 ' + q.number + '번') + '</span></div>'
+                 +   '<div class="wdn-choices">' + choices + '</div>'
+                 + '</div>';
+        }).join('');
+    }
+    /* 학습모드의 selectChoice 와 같은 규칙: 고른 보기 검은 반전, 틀렸으면 정답 빨간 반전,
+       해설 전부 펼침. 다시 고를 수 있다. 클릭한 보기가 화면에서 같은 자리에 있도록 스크롤 보정 */
+    window.wdnPick = function(el, n) {
+        var card = el.closest('.wdn-card');
+        if (!card) return;
+        var topBefore = el.getBoundingClientRect().top;
+        card.querySelectorAll('.wdn-choice').forEach(function(c) { c.classList.remove('selected'); });
+        el.classList.add('selected');
+        card.classList.add('exp-open');
+        var answers = String(card.dataset.answer || '').split(',').map(function(s) { return s.trim(); });
+        var isCorrect = answers.indexOf(String(n)) >= 0;
+        card.querySelectorAll('.wdn-num').forEach(function(cn) {
+            cn.classList.remove('correct');
+            if (!isCorrect && answers.indexOf(cn.getAttribute('data-choice')) >= 0) cn.classList.add('correct');
+        });
+        var diff = el.getBoundingClientRect().top - topBefore;
+        if (diff !== 0) window.scrollBy(0, diff);
+    };

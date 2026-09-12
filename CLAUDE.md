@@ -961,7 +961,32 @@ PREFIX_MAP = {
 - **2020 이전 문항이 없는 과목은 기출학습·기출풀기·모의고사 탭이 전체 연도를 쓴다**
   (`subject_detail`, `mock_exam_take`). 그 밖의 과목은 종전대로 2020 미만만
 
-### 잡초 동정 퀴즈 (방송대 subject_detail ?tab=weeds)
+### 잡초 동정 퀴즈 (방송대 subject_detail ?tab=weeds · 기사 필기 certification_detail)
+
+**세 페이지가 같은 조각을 쓴다**(2026-09). 방송대 잡초방제학 과목 페이지와
+**식물보호기사·식물보호산업기사 필기** 페이지(쪽집게 노트 바로 오른쪽 탭)에 같은
+탭이 붙는다. 카드는 방송대 과목(pk 51)에 달려 있고 API 도 main 앱 것을 그대로 쓴다.
+
+| 조각 | 넣는 자리 |
+|------|-----------|
+| `main/_weed_css.html` | 쓰는 쪽 `{% block extra_css %}` 의 `<style>` 안 |
+| `main/_weed_tab.html` | 탭 내용 자리 (`{% if weed_count %}` 가 조각 안에 있다) |
+| `main/_weed_js.html` | 쓰는 쪽 `{% block extra_js %}` 의 `<script>` 안 |
+
+- 컨텍스트는 `main.views.weed_tab_context(request, subject, first_mode)` 하나가 만든다 —
+  `weed_subject`·`weed_count`·`weed_stats`·`weed_modes`·`weed_first`. 조각의 URL 은
+  `subject.pk` 가 아니라 **`weed_subject.pk`** 다(기사 페이지에는 subject 가 없다)
+- **범위 버튼 차례를 서버가 정한다**(`weed_modes`). 기사 페이지는 그 자격증 필기가 맨 앞,
+  '전체' 는 '오답만' 바로 왼쪽. 방송대 페이지는 종전대로 '전체' 가 맨 앞.
+  탭에 들어올 때 자동으로 내는 첫 문제도 그 범위다(`_WD_FIRST`)
+- **이름은 `wd-`·`wdn-` 으로 바꿔 두었다.** 기사 페이지에 이미 `.wq-`(오답 문항)와
+  `.nq-`(노트 카드)가 있어 14개가 겹쳤다. 관련 문제 카드 렌더러도 `_wdnRender`·`wdnPick`
+  으로 따로 둔다 — 기사 페이지의 `window.nqPick` 을 덮어쓰면 그쪽 노트 카드가 망가진다
+- 잡초 카드가 없는 자격증(조경기사 등)에서는 조각을 include 하지 않는다 —
+  `weed_subject` 가 없어 URL 역참조가 터진다
+- **Django 의 `{# … #}` 은 한 줄짜리만 주석이다.** 여러 줄로 쓰면 그대로 출력돼 JS 가
+  깨진다(실제로 한 번 당했다). 조각 머리말은 `{% comment %}` 를 쓴다
+
 
 교수 배포 `02. 잡초방제학 카드(방송대).pdf`(250쪽, 잡초 122종 × 문제쪽·답쪽)를 Claude가
 직접 읽어 만든 **사진 → 이름 4지선다**. 카드가 있는 과목(잡초방제학 pk 51)에만 탭이 보인다.

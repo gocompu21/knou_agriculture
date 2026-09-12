@@ -711,11 +711,22 @@ def certification_detail(request, cert_id):
                 "rounds_completed": gen - 1,  # 완주한 라운드 수
             })
 
+    # 잡초 동정 — 식물보호(산업)기사 필기에만 붙인다. 카드는 방송대 잡초방제학 과목에
+    # 달려 있고, 범위 버튼은 그 자격증의 필기가 맨 앞에 오도록 first_mode 를 준다.
+    weed_ctx = {"weed_count": 0}
+    if "식물보호" in cert.name and request.user.is_authenticated:
+        from main.models import Subject
+        from main.views import weed_tab_context
+        weed_ctx = weed_tab_context(
+            request, Subject.objects.filter(name="잡초방제학").first(),
+            first_mode="gisa2" if "산업기사" in cert.name else "gisa1")
+
     return render(
         request,
         "gisa/certification_detail.html",
         {
             "cert": cert,
+            **weed_ctx,          # weed_subject · weed_count · weed_stats · weed_modes
             "exams": exams,
             "subjects": subjects,
             "mock_subjects": mock_subjects,

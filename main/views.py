@@ -533,22 +533,8 @@ def subject_detail(request, pk):
     materials_count = materials.count()
 
     # 잡초 동정 퀴즈 (카드가 있는 과목만 탭이 보인다)
-    weed_count = WeedCard.objects.filter(subject=subject).count()
-    weed_stats = None
-    if weed_count:
-        my = WeedQuizAttempt.objects.filter(user=request.user, card__subject=subject)
-        answered = my.values("card").distinct().count()
-        total_try = my.count()
-        wrong_ids = _weed_latest_wrong_ids(request.user, subject)
-        weed_stats = {
-            "answered": answered,
-            "tries": total_try,
-            "correct_rate": round(my.filter(is_correct=True).count() / total_try * 100) if total_try else 0,
-            "wrong": len(wrong_ids),
-        }
-        # 출제 범위 버튼: 방송대 기출 / 식보 필기 / 산기 필기 에 나온 종 수
-        src = _weed_source_weights(subject)
-        weed_stats.update({m: len(src[m]) for m in ("knou", "gisa1", "gisa2")})
+    weed_ctx = weed_tab_context(request, subject)
+    weed_count, weed_stats = weed_ctx["weed_count"], weed_ctx["weed_stats"]
 
     # 쪽집게 노트 절 ↔ 질의응답 연결: 절 번호별 질문 목록 (노트 탭에서 절 아래에 펼친다)
     qna_by_sec = {}
@@ -580,8 +566,7 @@ def subject_detail(request, pk):
             "materials": materials,
             "materials_count": materials_count,
             "qna_by_sec_json": json.dumps(qna_by_sec, ensure_ascii=False),
-            "weed_count": weed_count,
-            "weed_stats": weed_stats,
+            **weed_ctx,          # weed_subject · weed_count · weed_stats · weed_modes
             # 질의응답 탭 — 그 과목 질문만 보여 준다
             "qna_items": QnaQuestion.objects.filter(
                 subject=subject).select_related("user")[:15],
@@ -1238,6 +1223,56 @@ def _weed_source_weights(subject):
         for g in _weed_gisa_counts(c.name, rows):
             out[f"gisa{g['cert']}"][c.pk] = g["count"]
     cache.set(key, out, 600)
+    return out
+
+
+def weed_tab_context(request, subject, first_mode=""):
+    """잡초 동정 탭이 쓰는 값 한 묶음. 방송대 과목 페이지와 기사 필기 페이지가 같이 쓴다.
+
+    first_mode 로 출제 범위 버튼의 맨 앞을 정한다 — 식물보호기사 필기 페이지에서는
+    'gisa1', 산업기사에서는 'gisa2'. 그때 '전체' 는 '오답만' 바로 왼쪽으로 밀린다.
+    (방송대 과목 페이지는 first_mode 가 없어 종전대로 '전체' 가 맨 앞이다.)
+    """
+    out = {"weed_subject": subject, "weed_count": 0, "weed_stats": None, "weed_modes": []}
+    if subject is None:
+        return out
+    count = WeedCard.objects.filter(subject=subject).count()
+    out["weed_count"] = count
+    if not count:
+        return out
+
+    my = WeedQuizAttempt.objects.filter(user=request.user, card__subject=subject)
+    total_try = my.count()
+    wrong_ids = _weed_latest_wrong_ids(request.user, subject)
+    stats = {
+        "answered": my.values("card").distinct().count(),
+        "tries": total_try,
+        "correct_rate": round(my.filter(is_correct=True).count() / total_try * 100) if total_try else 0,
+        "wrong": len(wrong_ids),
+    }
+    src = _weed_source_weights(subject)          # 방송대 기출·노트 / 식보 필기 / 산기 필기
+    stats.update({m: len(src[m]) for m in ("knou", "gisa1", "gisa2")})
+    out["weed_stats"] = stats
+
+    src_modes = [
+        {"key": "knou", "label": "방송대", "n": stats["knou"],
+         "title": "방송대 잡초방제학 기출·쪽집게 노트에 나온 종만"},
+        {"key": "gisa1", "label": "식보-필기", "n": stats["gisa1"],
+         "title": "식물보호기사 필기의 문제·선지에 나온 종만"},
+        {"key": "gisa2", "label": "산기-필기", "n": stats["gisa2"],
+         "title": "식물보호산업기사 필기의 문제·선지에 나온 종만"},
+    ]
+    if first_mode:                               # 그 페이지의 출처를 맨 앞으로
+        src_modes.sort(key=lambda m: m["key"] != first_mode)
+    all_mode = {"key": "all", "label": "전체", "n": count, "title": "",
+                "pre": "", "post": "종", "span_id": "wq-all-n"}
+    wrong_mode = {"key": "wrong", "label": "오답만", "n": stats["wrong"], "title": "",
+                  "pre": "(", "post": ")", "span_id": "wq-wrong2"}
+    for m in src_modes:
+        m.update({"pre": "(", "post": ")", "span_id": ""})
+    # 기사 페이지는 [그 자격증 필기 … 전체] [오답만], 방송대 페이지는 [전체 …] [오답만]
+    out["weed_modes"] = (src_modes + [all_mode] if first_mode else [all_mode] + src_modes) + [wrong_mode]
+    out["weed_first"] = first_mode
     return out
 
 
