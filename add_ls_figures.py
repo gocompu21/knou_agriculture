@@ -208,7 +208,9 @@ FIG['ls-2023-1-si-2-wall'] = _wall()
 # ── 5. 뿌리분 3형태 (조개·팽이·접시) ───────────────────────────────────────
 def _rootball():
     A, b = 80, []
-    labels = ['① 보통수종 (조개모양)', '② 심근성 (팽이모양)', '③ 천근성 (접시모양)']
+    # 문제문·답이 '일반수종' 이라 그림도 같은 말을 쓴다 — 그림만 '보통수종' 이면
+    # 세 형태를 짝지을 때 한 박자 걸린다.
+    labels = ['① 일반수종 (조개모양)', '② 심근성 (팽이모양)', '③ 천근성 (접시모양)']
     for i, kind in enumerate(['clam', 'top', 'dish']):
         ox = 34 + i * 118                 # 왼쪽에 치수선 자리를 넉넉히
         x1, x2, ty = ox, ox + A, 52
@@ -353,11 +355,57 @@ def _injection():
 FIG['ls-2025-3-gi-11-injection'] = _injection()
 
 
+_KEY = re.compile(r'^ls-(\d{4})-(\d)-(gi|si)-(\d+)-')
+_BLOCK = re.compile(r'\[svg\].*?\[/svg\]', re.DOTALL)
+CERT = {'gi': '조경기사', 'si': '조경산업기사'}
+
+
+def refresh(apply_):
+    """이미 넣은 그림을 지금 코드의 그림으로 갈아 끼운다.
+
+    `[svg]키[/svg]` 자리표시는 한 번 넣으면 사라지므로, 그림을 고쳐도 위의 넣기
+    경로로는 다시 들어가지 않는다. 다행히 키에 `ls-연도-회차-자격증-번호` 가 들어
+    있어 어느 문항의 그림인지 알 수 있다 — 그 문항의 `[svg]…[/svg]` 덩어리를
+    통째로 바꾼다. 한 문항에 그림이 둘이면 어느 것인지 가릴 수 없어 건너뛴다.
+    """
+    n = 0
+    for k, svg in FIG.items():
+        m = _KEY.match(k)
+        if not m:
+            print(f'  !! 키에서 문항을 못 읽는다: {k}')
+            continue
+        year, rnd, cert, num = int(m.group(1)), int(m.group(2)), CERT[m.group(3)], int(m.group(4))
+        q = GisaEssayQuestion.objects.filter(certification__name=cert, year=year,
+                                             round=rnd, number=num).first()
+        if not q:
+            print(f'  !! 문항 없음: {k}')
+            continue
+        blocks = _BLOCK.findall(q.text or '')
+        if len(blocks) != 1:
+            print(f'  !! [svg] 덩어리가 {len(blocks)}개라 건너뛴다: {k}')
+            continue
+        new = q.text.replace(blocks[0], f'[svg]{svg}[/svg]')
+        if new == q.text:
+            continue
+        n += 1
+        print(f'  {"갈아 끼움" if apply_ else "바뀔 것"}: {k} ({cert} {year}-{rnd} {num}번)')
+        if apply_:
+            q.text = new
+            q.save(update_fields=['text'])
+    print(f'\n{n}건' + (' 반영했다.' if apply_ else ' (미반영 — --apply 로 넣는다)'))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--apply', action='store_true')
+    ap.add_argument('--refresh', action='store_true',
+                    help='이미 넣은 그림을 지금 코드의 그림으로 갈아 끼운다')
     ap.add_argument('--html', help='그림만 모아 볼 HTML 경로')
     args = ap.parse_args()
+
+    if args.refresh:
+        refresh(args.apply)
+        return
 
     if args.html:
         parts = ['<meta charset="utf-8"><style>body{font:14px system-ui;padding:18px}'
