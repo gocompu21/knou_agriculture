@@ -1062,16 +1062,61 @@ def _weed_q_parts(card):
     return parts
 
 
+# ── 종명 별칭 ──
+# 문항이 카드와 다른 표기를 쓰면 부분 문자열 대조에 걸리지 않는다. '둑새풀'(뚝새풀의
+# 이명)만으로 기사·산업기사 19문항이 통째로 빠졌다. 이명과 원문 오기를 여기 모은다.
+# **근연종은 넣지 말 것** — 별꽃아재비·진득찰·참새피는 카드(털별꽃아재비·털진득찰·
+# 털물참새피)와 다른 종이라 같은 것으로 세면 안 된다.
+_WEED_ALIASES = {
+    "뚝새풀": ("둑새풀", "독새풀"),          # 둑새풀은 실제로 쓰이는 이명, 독새풀은 오기
+    "새삼덩굴": ("새삼",),                   # 표준 국명은 '새삼' — 카드 이름에만 덩굴이 붙었다
+    "깨풀": ("깻풀",),
+    "논뚝외풀": ("논둑외풀",),
+    "환삼덩굴": ("환상덩굴",),
+    "너도방동사니": ("너동방동사니",),
+    "메꽃": ("매꽃",),
+    "물달개비": ("불달개비",),
+}
+# 앞뒤가 한글 음절이면 인정하지 않는 별칭 — '새삼'은 실새삼·갯실새삼에 걸린다
+_WEED_ALIAS_EXACT = {"새삼"}
+
+
+def _weed_names(name):
+    """종명 + 그 종의 별칭 목록. 화면 형광펜도 같은 목록을 쓴다."""
+    name = (name or "").strip()
+    if not name:
+        return []
+    return [name] + list(_WEED_ALIASES.get(name, ()))
+
+
+def _weed_name_hit(name):
+    """종명(별칭 포함)이 글에 있는지 판정하는 함수. 배지·건수·범위·참조가 모두 이것을 쓴다.
+
+    '피'·'띠' 같은 한 글자 이름은 '피해'·'피복'·'허리띠' 에도 걸리므로 앞뒤가 한글 음절이
+    아닐 때만 인정한다. 두 글자 이상은 그대로 찾는다 — '물피'·'돌피' 가 '피' 로도 잡히는
+    편이 오히려 맞다. 다만 _WEED_ALIAS_EXACT 의 별칭('새삼')은 두 글자여도 앞뒤를 본다.
+    """
+    tests = []
+    for n in _weed_names(name):
+        if len(n) == 1 or n in _WEED_ALIAS_EXACT:
+            pat = re.compile(rf"(?<![가-힣]){re.escape(n)}(?![가-힣])")
+            tests.append(pat.search)
+        else:
+            tests.append(lambda s, n=n: n in s)
+    if not tests:
+        return lambda s: False
+    return lambda s: any(bool(t(s)) for t in tests)
+
+
 def _weed_exam_matcher(subject):
     """종명 → 그 종이 기출 문제나 선지 ①~④ 에 나오는 문항 [(연도, 번호)] 를 주는 함수.
 
     문항을 한 번만 읽어 두고 종마다 파이썬에서 대조한다 — 목록은 카드 136장을
     한꺼번에 그리므로 종마다 DB 를 치면 136번 질의가 된다.
 
-    종명이 문제 본문이나 선지 어디에든 있으면 출제된 것으로 본다.
-    '피'·'띠' 같은 한 글자 이름은 '피해'·'피복'·'허리띠' 에도 걸리므로,
-    앞뒤가 한글 음절이 아닐 때만 인정한다. 두 글자 이상은 그대로 찾는다
-    ('물피'·'돌피' 는 '피' 로도 잡히는 편이 오히려 맞다).
+    종명이 문제 본문이나 선지 어디에든 있으면 출제된 것으로 본다. 판정은
+    _weed_name_hit 에 맡긴다 — 한 글자 이름의 앞뒤 규칙과 별칭(_WEED_ALIASES)이
+    기사 필기 배지와 같아야 한다.
     """
     rows = [(q.year, q.number, " ".join([q.text, q.choice_1, q.choice_2, q.choice_3, q.choice_4]))
             for q in Question.objects.filter(subject=subject)
@@ -1079,14 +1124,9 @@ def _weed_exam_matcher(subject):
             .order_by("year", "number")]
 
     def refs_for(name):
-        name = (name or "").strip()
-        if not name:
+        if not (name or "").strip():
             return []
-        if len(name) == 1:
-            pat = re.compile(rf"(?<![가-힣]){re.escape(name)}(?![가-힣])")
-            hit = lambda s: bool(pat.search(s))        # noqa: E731
-        else:
-            hit = lambda s: name in s                   # noqa: E731
+        hit = _weed_name_hit(name)
         seen, out = set(), []
         for year, number, blob in rows:
             if (year, number) in seen or not hit(blob):
@@ -1109,17 +1149,6 @@ def _weed_exam_refs(c):
 # 누르면 문항을 10건씩 펼친다.
 _WEED_GISA_CERTS = ((1, "기사"), (2, "산업기사"))      # 식물보호기사 / 식물보호산업기사
 _WEED_GISA_PAGE = 10
-
-
-def _weed_name_hit(name):
-    """종명이 글에 있는지 판정하는 함수. 한 글자 이름은 앞뒤가 한글 음절이 아닐 때만."""
-    name = (name or "").strip()
-    if not name:
-        return lambda s: False
-    if len(name) == 1:
-        pat = re.compile(rf"(?<![가-힣]){re.escape(name)}(?![가-힣])")
-        return lambda s: bool(pat.search(s))
-    return lambda s: name in s
 
 
 def _weed_gisa_rows():
@@ -1226,6 +1255,10 @@ def _weed_card_payload(c):
         "exam_count": c.exam_count,
         "exam_refs": _weed_exam_refs(c),        # 기출에 나온 (연도-번호) 배지용
         "gisa": _weed_gisa_counts(c.name),      # 식물보호기사·산업기사 필기 건수 배지용
+        "names": _weed_names(c.name),           # 형광펜이 칠할 표기 (종명 + 이명·오기)
+        # 앞뒤가 한글이면 칠하지 않을 표기 — 화면이 서버와 같은 규칙을 쓰게 한다
+        "names_strict": [n for n in _weed_names(c.name)
+                         if len(n) == 1 or n in _WEED_ALIAS_EXACT],
         # 사진을 바꾸면 주소가 달라진다 — 화면이 그것으로 다시 그린다
         "q_img": c.q_image.url if c.q_image else "",
         "a_img": c.a_image.url if c.a_image else "",

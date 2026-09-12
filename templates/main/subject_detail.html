@@ -3425,29 +3425,42 @@
         }
         return html;
     }
-    /* 펼친 문항의 문제·선지에서 종명을 형광펜으로 표시한다. 글자 노드만 바꾸므로
-       원번호·배지·해설 마크업은 건드리지 않는다. 한 글자 이름('피'·'띠')은 서버와 같은
-       규칙으로 앞뒤가 한글 음절이 아닐 때만 칠한다 — '피해'·'피복'까지 노랗게 되면 안 된다 */
-    function _wqHighlight(root, name) {
-        if (!root || !name) return;
-        var one = name.length === 1;
+    /* 펼친 문항의 문제·선지에서 종명을 형광펜으로 표시한다. 카드 이름뿐 아니라 문항이
+       쓰는 다른 표기(뚝새풀 ← 둑새풀 같은 이명·오기, payload 의 names)도 함께 칠한다.
+       글자 노드만 바꾸므로 원번호·배지·해설 마크업은 건드리지 않는다. 한 글자 이름
+       ('피'·'띠')과 '새삼' 같은 짧은 별칭(names_strict)은 서버와 같은 규칙으로 앞뒤가
+       한글 음절이 아닐 때만 칠한다 — '피해'·'실새삼'까지 노랗게 되면 안 된다 */
+    function _wqHighlight(root, names, strict) {
+        if (!root || !names) return;
+        var list = (typeof names === 'string' ? [names] : names).filter(Boolean)
+                     .sort(function(a, b) { return b.length - a.length; });   // 긴 표기를 먼저 본다
+        if (!list.length) return;
+        var tight = {};
+        (strict || []).forEach(function(n) { tight[n] = true; });
         var isH = function(ch) { return !!ch && /[가-힣]/.test(ch); };
+        var has = function(s) { return list.some(function(w) { return s.indexOf(w) >= 0; }); };
         var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: function(n) {
             var p = n.parentNode;
             if (!p || p.closest('.nq-badge, .nq-exp, mark.wq-hl')) return NodeFilter.FILTER_REJECT;
             if (!p.closest('.nq-q, .nq-ctext')) return NodeFilter.FILTER_SKIP;
-            return n.nodeValue.indexOf(name) >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+            return has(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
         } });
         var nodes = [];
         while (walker.nextNode()) nodes.push(walker.currentNode);
         nodes.forEach(function(n) {
-            var s = n.nodeValue, frag = document.createDocumentFragment(), i = 0, k, hit = false;
-            while ((k = s.indexOf(name, i)) >= 0) {
-                var end = k + name.length;
-                if (one && (isH(s[k - 1]) || isH(s[end]))) {     // '피해' 의 '피' 는 넘어간다
-                    frag.appendChild(document.createTextNode(s.slice(i, end))); i = end; continue;
+            var s = n.nodeValue, frag = document.createDocumentFragment(), i = 0, hit = false;
+            while (i < s.length) {
+                var at = -1, name = '';
+                list.forEach(function(w) {           // 가장 앞선 자리의 표기를 고른다 (같으면 긴 쪽)
+                    var k = s.indexOf(w, i);
+                    if (k >= 0 && (at < 0 || k < at)) { at = k; name = w; }
+                });
+                if (at < 0) break;
+                var end = at + name.length;
+                if ((name.length === 1 || tight[name]) && (isH(s[at - 1]) || isH(s[end]))) {
+                    frag.appendChild(document.createTextNode(s.slice(i, end))); i = end; continue;  // '피해' 의 '피'
                 }
-                frag.appendChild(document.createTextNode(s.slice(i, k)));
+                frag.appendChild(document.createTextNode(s.slice(i, at)));
                 var m = document.createElement('mark'); m.className = 'wq-hl'; m.textContent = name;
                 frag.appendChild(m); i = end; hit = true;
             }
@@ -3455,6 +3468,9 @@
             frag.appendChild(document.createTextNode(s.slice(i)));
             n.parentNode.replaceChild(frag, n);
         });
+    }
+    function _wqHlNames(list) {     // 지금 답 카드의 표기로 칠한다
+        if (_wqAns) _wqHighlight(list, _wqAns.names || _wqAns.name, _wqAns.names_strict);
     }
     function _wqRefsClose() {
         var list = document.getElementById('wq-refs-list');
@@ -3473,7 +3489,7 @@
         list.innerHTML = '<div class="nq-loading">문제를 불러오는 중…</div>';
         fetch('{% url "main:api_note_questions" subject.pk %}?ref=' + encodeURIComponent(ref), { credentials: 'same-origin' })
             .then(function(r) { return r.json(); })
-            .then(function(d) { _nqRender(list, d.questions || []); _wqHighlight(list, _wqAns && _wqAns.name); })
+            .then(function(d) { _nqRender(list, d.questions || []); _wqHlNames(list); })
             .catch(function() { list.innerHTML = '<div class="nq-empty">문제를 불러오지 못했습니다.</div>'; });
     };
     /* 기사 필기 문항 — 10건씩. '더 보기' 를 누르면 다음 10건을 아래에 잇는다 */
@@ -3510,7 +3526,7 @@
                 } else {
                     _nqRender(list, qs);
                 }
-                _wqHighlight(list, _wqAns.name);     // 이미 칠한 곳은 건너뛰므로 이어 붙여도 겹치지 않는다
+                _wqHlNames(list);       // 이미 칠한 곳은 건너뛰므로 이어 붙여도 겹치지 않는다
                 if (d.page < d.pages) {
                     var btn = document.createElement('button');
                     btn.type = 'button'; btn.className = 'wq-more';
