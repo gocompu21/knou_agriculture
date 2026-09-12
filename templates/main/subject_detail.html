@@ -3864,6 +3864,39 @@
     ];
     var _wqAdd = { layout: null, files: [], slots: [], checked: '', busy: false, dragging: false };
 
+    /* 교수 메모는 사진 위에 줄마다 글머리표가 붙은 불릿으로 그려진다. 등록 창에서도 같은
+       모양으로 적게 해 어떻게 보일지 바로 알 수 있게 한다 — 저장할 때는 떼고 보낸다
+       (붙은 채 저장되면 사진 위에서 불릿이 두 겹이 된다. 서버도 한 번 더 뗀다) */
+    var _WQ_BUL = '· ';
+    function _wqMemoStrip(text) {       // 글머리표를 뗀 알맹이 — 저장용
+        return (text || '').replace(/\r\n?/g, '\n').split('\n')
+            .map(function(ln) { return ln.replace(/^\s*[·•‧∙*\-]+\s*/, '').trim(); })
+            .filter(function(ln) { return ln; }).join('\n');
+    }
+    function _wqMemoShow(text) {        // 줄마다 글머리표를 붙인 모양 — 화면용
+        var s = _wqMemoStrip(text);
+        return s ? s.split('\n').map(function(ln) { return _WQ_BUL + ln; }).join('\n') : '';
+    }
+    function _wqMemoInit(ta) {
+        if (!ta || ta.dataset.memo === '1') return;
+        ta.dataset.memo = '1';
+        ta.placeholder = _WQ_BUL + '한 줄에 하나씩';
+        ta.addEventListener('focus', function() { if (!ta.value.trim()) ta.value = _WQ_BUL; });
+        ta.addEventListener('keydown', function(e) {
+            // Enter 로 줄을 바꾸면 새 줄에도 글머리표를 얹는다 (한글 조합 중에는 손대지 않는다)
+            if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+            e.preventDefault();
+            ta.setRangeText('\n' + _WQ_BUL, ta.selectionStart, ta.selectionEnd, 'end');
+        });
+        ta.addEventListener('paste', function() {
+            setTimeout(function() {         // 붙여넣은 뒤에 줄을 고른다
+                ta.value = _wqMemoShow(ta.value);
+                ta.setSelectionRange(ta.value.length, ta.value.length);
+            }, 0);
+        });
+        ta.addEventListener('blur', function() { ta.value = _wqMemoShow(ta.value); });
+    }
+
     window.weedAddOpen = function() {
         _wqAdd = { layout: null, files: [], slots: [], checked: '', busy: false, dragging: false };
         document.getElementById('wq-add-name').value = '';
@@ -3871,6 +3904,7 @@
             var el = document.getElementById('wq-add-' + f);
             if (el) el.value = '';
         });
+        _wqMemoInit(document.getElementById('wq-add-notes'));
         document.getElementById('wq-add-fields').hidden = false;
         document.getElementById('wq-add-fields').open = false;   // 조회하면 펼친다
         document.getElementById('wq-add-photos').hidden = false;
@@ -3924,7 +3958,7 @@
                     document.getElementById('wq-add-control').value = d.info.control || '';
                     // 교수 메모가 없는 종이므로 AI 가 줄인 식별 포인트로 채운다.
                     // 사진 위에 겹쳐 보이는 쪽지라 짧아야 한다
-                    document.getElementById('wq-add-notes').value = d.info.memo || '';
+                    document.getElementById('wq-add-notes').value = _wqMemoShow(d.info.memo);
                 }
                 var src = d.official
                     ? '국립수목원 도감에서 학명·과명을 확인했습니다 (' + d.official.sci_full + ').'
@@ -4273,7 +4307,7 @@
         fd.append('features', document.getElementById('wq-add-features').value);
         fd.append('similar', document.getElementById('wq-add-similar').value);
         fd.append('control', document.getElementById('wq-add-control').value);
-        fd.append('notes', document.getElementById('wq-add-notes').value);
+        fd.append('notes', _wqMemoStrip(document.getElementById('wq-add-notes').value));
         _wqAdd.slots.forEach(function(s) { fd.append('photos', s.file); });
         // CC 사진은 출처를 밝혀야 한다 — 서버가 '방제·비고' 끝에 적어 둔다
         fd.append('credits', JSON.stringify(_wqAdd.slots.filter(function(s) { return s.web; })

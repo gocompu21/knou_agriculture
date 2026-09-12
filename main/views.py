@@ -1868,6 +1868,16 @@ def _weed_plain(raw):
     return "\n".join(line.strip() for line in text.split("\n") if line.strip())
 
 
+# 교수 메모의 글머리표. 화면(등록 창)이 줄마다 '· ' 를 붙여 보여 주고, 사진 위에서도
+# li 불릿으로 그려진다 — 그대로 저장하면 불릿이 두 겹이 되므로 저장 전에 뗀다.
+_WEED_MEMO_BULLET = re.compile(r"^\s*[·•‧∙*\-]+\s*")
+
+
+def _weed_memo_plain(raw):
+    """교수 메모 평문 — 줄바꿈을 고르고 줄머리의 글머리표를 뗀다."""
+    return "\n".join(_WEED_MEMO_BULLET.sub("", ln) for ln in _weed_plain(raw).split("\n"))
+
+
 def _weed_control_with_credits(control, credits_json):
     """방제·비고 끝에 사진 출처를 적는다.
 
@@ -1940,7 +1950,7 @@ def api_weed_card_create(request, pk):
         similar=_weed_plain(request.POST.get("similar")),
         control=_weed_control_with_credits(request.POST.get("control"),
                                            request.POST.get("credits")),
-        notes=_weed_plain(request.POST.get("notes")),
+        notes=_weed_memo_plain(request.POST.get("notes")),
     )
     buf = io.BytesIO()
     composed.save(buf, format="JPEG", quality=92)
@@ -2070,6 +2080,7 @@ def _weed_notes_lines(raw):
     html = _clean_weed_html(raw)
     lines = re.split(r"</?(?:li|br|p|div)\s*/?>", html)
     lines = [unescape(re.sub(r"<[^>]+>", "", x)).replace("\xa0", " ").strip() for x in lines]
+    lines = [_WEED_MEMO_BULLET.sub("", x) for x in lines]   # 글머리표는 화면이 그린다
     return "\n".join(x for x in lines if x)
 
 
