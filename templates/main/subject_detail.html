@@ -4651,6 +4651,7 @@
                 if (el) el.value = '';
             });
         _wqEditMsg('');
+        _wqMemoInit(document.getElementById('wq-edit-notes'));
         // 사진 영역은 접은 채로 비워 둔다 — 열지 않으면 사진을 건드리지 않는다
         _wqEdit = { layout: null, files: [], slots: [], dragging: false,
                     guess: null, initial: null, initialKey: null };
@@ -4674,7 +4675,7 @@
                 document.getElementById('wq-edit-features').value = _wqStripTags(d.features);
                 document.getElementById('wq-edit-similar').value = _wqStripTags(d.similar);
                 document.getElementById('wq-edit-control').value = _wqStripTags(d.control);
-                document.getElementById('wq-edit-notes').value = d.notes || '';
+                document.getElementById('wq-edit-notes').value = _wqMemoShow(d.notes);
                 document.getElementById('wq-edit-cur').src = d.q_img || '';
                 _wqEditLoadParts(d.q_img, d.parts || []);
                 // 지금과 같은 배열을 미리 골라 둔다 (사진이 다 담긴 뒤 칸에 넣는다)
@@ -4757,7 +4758,7 @@
         fd.append('features', document.getElementById('wq-edit-features').value);
         fd.append('similar', document.getElementById('wq-edit-similar').value);
         fd.append('control', document.getElementById('wq-edit-control').value);
-        fd.append('notes', document.getElementById('wq-edit-notes').value);
+        fd.append('notes', _wqMemoStrip(document.getElementById('wq-edit-notes').value));
         // 배열을 골라 칸을 다 채웠을 때만 사진을 바꾼다
         // 창을 열었을 때 앉혀 둔 그대로면 아무것도 바뀌지 않은 것이다 —
         // 그때 다시 합성하면 JPEG 를 거듭 인코딩해 화질만 깎인다
