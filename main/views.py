@@ -545,8 +545,11 @@ def subject_detail(request, pk):
             "tries": total_try,
             "correct_rate": round(my.filter(is_correct=True).count() / total_try * 100) if total_try else 0,
             "wrong": len(wrong_ids),
-            "freq": WeedCard.objects.filter(subject=subject, exam_count__gt=0).count(),
+            "freq": WeedCard.objects.filter(subject=subject, exam_count__gt=0).count(),   # 기사 실기 출제
         }
+        # 출제 범위 버튼: 방송대 기출 / 식보 필기 / 산기 필기 에 나온 종 수
+        src = _weed_source_weights(subject)
+        weed_stats.update({m: len(src[m]) for m in ("knou", "gisa1", "gisa2")})
 
     # 쪽집게 노트 절 ↔ 질의응답 연결: 절 번호별 질문 목록 (노트 탭에서 절 아래에 펼친다)
     qna_by_sec = {}
@@ -1157,6 +1160,30 @@ def _weed_gisa_plain(s):
     return re.sub(r"</?u>", "", s).strip()
 
 
+def _weed_source_weights(subject):
+    """출제 범위 모드별 {card_id: 가중치}. 가중치 = 그 출처에 나온 문항 수.
+
+    - knou : 방송대 잡초방제학 기출(문제·선지에 종명이 있는 문항)
+    - gisa1: 식물보호기사 필기 / gisa2: 식물보호산업기사 필기
+    카드 136장 × 기사 문항 6,800건을 대조하므로 10분 캐시한다.
+    """
+    key = f"weed_src_w_{subject.pk}"
+    got = cache.get(key)
+    if got is not None:
+        return got
+    refs_for = _weed_exam_matcher(subject)
+    rows = _weed_gisa_rows()
+    out = {"knou": {}, "gisa1": {}, "gisa2": {}}
+    for c in WeedCard.objects.filter(subject=subject).only("id", "name"):
+        n = len(refs_for(c.name))
+        if n:
+            out["knou"][c.pk] = n
+        for g in _weed_gisa_counts(c.name, rows):
+            out[f"gisa{g['cert']}"][c.pk] = g["count"]
+    cache.set(key, out, 600)
+    return out
+
+
 @login_required
 def api_weed_gisa_questions(request, pk):
     """?name=종명&cert=1&page=1 → 그 종명이 본문·선지에 나오는 기사 필기 문항, 10건씩."""
@@ -1208,8 +1235,10 @@ def _weed_card_payload(c):
 
 @login_required
 def api_weed_quiz_next(request, pk):
-    """다음 문제 한 건. ?mode=all|freq|wrong&seen=1,2,3
-    - all: 전체에서 무작위 / freq: 출제된 카드만, 출제 횟수로 가중 / wrong: 최신 풀이가 틀린 카드만
+    """다음 문제 한 건. ?mode=all|freq|knou|gisa1|gisa2|wrong&seen=1,2,3
+    - all: 전체에서 무작위 / wrong: 최신 풀이가 틀린 카드만
+    - freq: 기사 실기에 출제된 카드만, 출제 횟수로 가중
+    - knou / gisa1 / gisa2: 방송대 기출 / 식보 필기 / 산기 필기에 나온 카드만, 문항 수로 가중
     - seen 에 든 카드는 다시 내지 않는다 (한 바퀴 돌면 done)
     - 보기는 정답 + 같은 과에서 우선 고른 3개"""
     subject = get_object_or_404(Subject, pk=pk)
@@ -1218,17 +1247,22 @@ def api_weed_quiz_next(request, pk):
     cards = list(WeedCard.objects.filter(subject=subject))
     if not cards:
         return JsonResponse({"done": True, "total": 0})
-    pool = cards
+    pool, weight = cards, None
     if mode == "wrong":
         wrong = _weed_latest_wrong_ids(request.user, subject)
         pool = [c for c in cards if c.pk in wrong]
     elif mode == "freq":
         pool = [c for c in cards if c.exam_count > 0]
+        weight = lambda c: c.exam_count                       # noqa: E731
+    elif mode in ("knou", "gisa1", "gisa2"):
+        w = _weed_source_weights(subject)[mode]
+        pool = [c for c in cards if c.pk in w]
+        weight = lambda c: w[c.pk]                            # noqa: E731
     remaining = [c for c in pool if c.pk not in seen]
     if not remaining:
         return JsonResponse({"done": True, "total": len(pool)})
-    if mode == "freq":
-        card = random.choices(remaining, weights=[c.exam_count for c in remaining])[0]
+    if weight:
+        card = random.choices(remaining, weights=[weight(c) for c in remaining])[0]
     else:
         card = random.choice(remaining)
     others = [c for c in cards if c.pk != card.pk]

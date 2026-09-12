@@ -2191,7 +2191,10 @@
             </div>
             <div class="wq-modes">
                 <button type="button" class="wq-mode-btn" data-mode="all" onclick="weedStart('all')">전체 <span id="wq-all-n">{{ weed_count }}</span>종</button>
-                <button type="button" class="wq-mode-btn" data-mode="freq" onclick="weedStart('freq')">출제된 것 우선 ({{ weed_stats.freq }})</button>
+                <button type="button" class="wq-mode-btn" data-mode="freq" onclick="weedStart('freq')" title="식물보호기사 실기에 출제된 종만, 출제 횟수로 가중">기사-실기 ({{ weed_stats.freq }})</button>
+                <button type="button" class="wq-mode-btn" data-mode="knou" onclick="weedStart('knou')" title="방송대 잡초방제학 기출의 문제·선지에 나온 종만">방송대 ({{ weed_stats.knou }})</button>
+                <button type="button" class="wq-mode-btn" data-mode="gisa1" onclick="weedStart('gisa1')" title="식물보호기사 필기의 문제·선지에 나온 종만">식보-필기 ({{ weed_stats.gisa1 }})</button>
+                <button type="button" class="wq-mode-btn" data-mode="gisa2" onclick="weedStart('gisa2')" title="식물보호산업기사 필기의 문제·선지에 나온 종만">산기-필기 ({{ weed_stats.gisa2 }})</button>
                 <button type="button" class="wq-mode-btn wrong" data-mode="wrong" onclick="weedStart('wrong')">오답만 (<span id="wq-wrong2">{{ weed_stats.wrong }}</span>)</button>
                 <button type="button" class="wq-mode-btn list" onclick="weedList()">목록</button>
             </div>
