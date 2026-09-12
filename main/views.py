@@ -545,7 +545,6 @@ def subject_detail(request, pk):
             "tries": total_try,
             "correct_rate": round(my.filter(is_correct=True).count() / total_try * 100) if total_try else 0,
             "wrong": len(wrong_ids),
-            "freq": WeedCard.objects.filter(subject=subject, exam_count__gt=0).count(),   # 기사 실기 출제
         }
         # 출제 범위 버튼: 방송대 기출 / 식보 필기 / 산기 필기 에 나온 종 수
         src = _weed_source_weights(subject)
@@ -1286,10 +1285,9 @@ def _weed_card_payload(c):
 
 @login_required
 def api_weed_quiz_next(request, pk):
-    """다음 문제 한 건. ?mode=all|freq|knou|gisa1|gisa2|wrong&seen=1,2,3
+    """다음 문제 한 건. ?mode=all|knou|gisa1|gisa2|wrong&seen=1,2,3
     - all: 전체에서 무작위 / wrong: 최신 풀이가 틀린 카드만
-    - freq: 기사 실기에 출제된 카드만, 출제 횟수로 가중
-    - knou / gisa1 / gisa2: 방송대 기출 / 식보 필기 / 산기 필기에 나온 카드만, 문항 수로 가중
+    - knou / gisa1 / gisa2: 방송대(기출+노트) / 식보 필기 / 산기 필기에 나온 카드만, 문항 수로 가중
     - seen 에 든 카드는 다시 내지 않는다 (한 바퀴 돌면 done)
     - 보기는 정답 + 같은 과에서 우선 고른 3개"""
     subject = get_object_or_404(Subject, pk=pk)
@@ -1302,9 +1300,6 @@ def api_weed_quiz_next(request, pk):
     if mode == "wrong":
         wrong = _weed_latest_wrong_ids(request.user, subject)
         pool = [c for c in cards if c.pk in wrong]
-    elif mode == "freq":
-        pool = [c for c in cards if c.exam_count > 0]
-        weight = lambda c: c.exam_count                       # noqa: E731
     elif mode in ("knou", "gisa1", "gisa2"):
         w = _weed_source_weights(subject)[mode]
         pool = [c for c in cards if c.pk in w]

@@ -2191,8 +2191,7 @@
             </div>
             <div class="wq-modes">
                 <button type="button" class="wq-mode-btn" data-mode="all" onclick="weedStart('all')">전체 <span id="wq-all-n">{{ weed_count }}</span>종</button>
-                <button type="button" class="wq-mode-btn" data-mode="freq" onclick="weedStart('freq')" title="식물보호기사 실기에 출제된 종만, 출제 횟수로 가중">기사-실기 ({{ weed_stats.freq }})</button>
-                <button type="button" class="wq-mode-btn" data-mode="knou" onclick="weedStart('knou')" title="방송대 잡초방제학 기출의 문제·선지에 나온 종만">방송대 ({{ weed_stats.knou }})</button>
+                <button type="button" class="wq-mode-btn" data-mode="knou" onclick="weedStart('knou')" title="방송대 잡초방제학 기출·쪽집게 노트에 나온 종만">방송대 ({{ weed_stats.knou }})</button>
                 <button type="button" class="wq-mode-btn" data-mode="gisa1" onclick="weedStart('gisa1')" title="식물보호기사 필기의 문제·선지에 나온 종만">식보-필기 ({{ weed_stats.gisa1 }})</button>
                 <button type="button" class="wq-mode-btn" data-mode="gisa2" onclick="weedStart('gisa2')" title="식물보호산업기사 필기의 문제·선지에 나온 종만">산기-필기 ({{ weed_stats.gisa2 }})</button>
                 <button type="button" class="wq-mode-btn wrong" data-mode="wrong" onclick="weedStart('wrong')">오답만 (<span id="wq-wrong2">{{ weed_stats.wrong }}</span>)</button>
@@ -2237,7 +2236,7 @@
                         <th class="wq-sortable" onclick="weedSort('family')">과명<span class="wq-sort-i"></span></th>
                         <th class="wq-sortable h-life" onclick="weedSort('life_form')">생활형<span class="wq-sort-i"></span></th>
                         <th class="wq-sortable h-habitat" onclick="weedSort('habitat')">발생지<span class="wq-sort-i"></span></th>
-                        <th class="wq-sortable" onclick="weedSort('exam_count')">출제<span class="wq-sort-i"></span></th>
+                        <th class="wq-sortable" onclick="weedSort('gisa_total')">출제<span class="wq-sort-i"></span></th>
                         <th class="wq-sortable" onclick="weedSort('state')">상태<span class="wq-sort-i"></span></th>
                     </tr></thead>
                     <tbody id="wq-list-body"></tbody>
@@ -2337,7 +2336,7 @@
                         <label>종명<input type="text" id="wq-edit-name" maxlength="50"></label>
                         <label>과명<input type="text" id="wq-edit-family" maxlength="50"></label>
                         <label>생활형<input type="text" id="wq-edit-life" maxlength="50"></label>
-                        <label>출제 횟수<input type="number" id="wq-edit-exam" min="0" max="99"></label>
+                        <label>기사 실기 출제(화면 표시 안 함)<input type="number" id="wq-edit-exam" min="0" max="99"></label>
                         <label class="wq-add-wide">발생지<input type="text" id="wq-edit-habitat" maxlength="100"></label>
                         <label class="wq-add-wide">식별 포인트<textarea id="wq-edit-features" rows="4"></textarea></label>
                         <label class="wq-add-wide">헷갈리는 종과 구별<textarea id="wq-edit-similar" rows="3"></textarea></label>
@@ -3537,11 +3536,16 @@
             })
             .catch(function() { list.innerHTML = '<div class="nq-empty">문제를 불러오지 못했습니다.</div>'; });
     }
-    // 출제 횟수를 별로 — 5회↑ ★★★ / 3~4 ★★ / 2 ★ / 1 ☆ (실기 쪽집게 노트와 같은 기준)
+    /* 별은 **필기(식보+산기) 문항 수**로 매긴다 — 이 카드로 공부해 볼 값어치를 가장 잘
+       나타내는 값이다. 카드 123장 기준 50+ 16장 · 20~49 21장 · 5~19 37장 · 1~4 21장 ·
+       0건 28장으로 갈린다 */
+    function _wqGisaTotal(x) {
+        return ((x && x.gisa) || []).reduce(function(s, g) { return s + g.count; }, 0);
+    }
     function _wqStars(n) {
         if (!n) return '';
-        var s = n >= 5 ? '★★★' : n >= 3 ? '★★' : n >= 2 ? '★' : '☆';
-        return '<span class="wq-stars" title="' + n + '회 출제">' + s + '</span>';
+        var s = n >= 50 ? '★★★' : n >= 20 ? '★★' : n >= 5 ? '★' : '☆';
+        return '<span class="wq-stars" title="필기 ' + n + '문항">' + s + '</span>';
     }
     window.weedStart = function(mode) {
         _wq = { mode: mode, seen: [], n: 0, ok: 0, card: null, busy: false };
@@ -3574,7 +3578,7 @@
             // 줄 어디를 눌러도 그 잡초 문제로 간다 — 종명만 누르게 하면 과녁이 너무 좁다
             return '<tr class="wq-t-row" onclick="weedGo(' + it.id + ')">'
                  + '<td class="wq-t-no">' + it.no + '</td>'
-                 + '<td><span class="wq-t-name">' + _wqEsc(it.name) + '</span>' + _wqStars(it.exam_count) + '</td>'
+                 + '<td><span class="wq-t-name">' + _wqEsc(it.name) + '</span>' + _wqStars(it.gisa_total) + '</td>'
                  // 저장은 줄 이동과 겹치므로 버튼에서 클릭을 멈춘다
                  + (_WQ_STAFF ? '<td class="wq-t-save">'
                      + '<button type="button" class="wq-save-btn"'
@@ -3585,8 +3589,8 @@
                  + '<td>' + _wqEsc(it.family) + '</td>'
                  + '<td class="wq-t-life">' + _wqEsc(it.life_form) + '</td>'
                  + '<td class="wq-t-habitat">' + _wqEsc(it.habitat) + '</td>'
-                 // 출제 칸: 횟수 뒤에 기출 배지(연도-번호). 줄 클릭이 그 카드로 가므로 배지는 눌리지 않는다
-                 + '<td class="wq-t-cnt">' + (it.exam_count ? it.exam_count + '회' : '')
+                 // 출제 칸: 기출 배지(연도-번호)와 필기 건수. 줄 클릭이 그 카드로 가므로 배지는 눌리지 않는다
+                 + '<td class="wq-t-cnt">'
                  +   ((it.exam_refs || []).length || (it.gisa || []).length
                         ? '<span class="wq-t-refs">'
                           + (it.exam_refs || []).map(function(r) { return '<span>' + _wqEsc(r) + '</span>'; }).join('')
@@ -3598,7 +3602,7 @@
                  + '</tr>';
         }).join('');
         // 열 제목의 정렬 표시
-        var keys = ['no', 'name', 'family', 'life_form', 'habitat', 'exam_count', 'state'];
+        var keys = ['no', 'name', 'family', 'life_form', 'habitat', 'gisa_total', 'state'];
         document.querySelectorAll('#wq-list .wq-sort-i').forEach(function(el, i) {
             el.textContent = keys[i] === _wqSort.key ? (_wqSort.asc ? '▲' : '▼') : '';
         });
@@ -4799,7 +4803,11 @@
                 .then(function(r) { return r.json(); })
                 .then(function(d) {
                     body.dataset.loaded = '1';
-                    _wqItems = d.items;
+                    // 별·정렬이 쓰는 필기(식보+산기) 합계를 한 번만 셈해 둔다
+                    _wqItems = (d.items || []).map(function(it) {
+                        it.gisa_total = _wqGisaTotal(it);
+                        return it;
+                    });
                     _wqApplySort();
                 })
                 .catch(function() { body.innerHTML = '<tr><td colspan="' + _wqCols() + '">목록을 불러오지 못했습니다.</td></tr>'; });
@@ -4905,12 +4913,11 @@
             } else { nov.hidden = true; nov.innerHTML = ''; }
             var html = '<div class="wq-verdict ' + (d.correct ? 'ok' : 'no') + '">'
                      + (d.correct ? '정답입니다.' : '오답입니다. 고른 것: ' + _wqEsc(d.selected_name) + ' → 정답은 ' + _wqEsc(a.name)) + '</div>'
-                     + '<div class="wq-name">' + _wqEsc(a.name) + _wqStars(a.exam_count) + '</div>'
+                     + '<div class="wq-name">' + _wqEsc(a.name) + _wqStars(_wqGisaTotal(a)) + '</div>'
                      + '<div class="wq-meta">'
                      +   (a.family ? '<span>' + _wqEsc(a.family) + '</span>' : '')
                      +   (a.life_form ? '<span>' + _wqEsc(a.life_form) + '</span>' : '')
                      +   (a.habitat ? '<span>' + _wqEsc(a.habitat) + '</span>' : '')
-                     +   (a.exam_count ? '<span class="cnt">' + a.exam_count + '회 출제</span>' : '')
                      +   _wqRefs(a.exam_refs, a.gisa)
                      + '</div>'
                      + '<div class="nq-list wq-refs-list" id="wq-refs-list" hidden></div>'
