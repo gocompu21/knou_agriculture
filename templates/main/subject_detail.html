@@ -275,6 +275,8 @@
         background: #f6faf6; color: #2d6a4f; font-weight: 700; cursor: pointer; }
     .wq-more:hover { background: #eef5ee; }
     .wq-more:disabled { color: #999; cursor: default; }
+    /* 펼친 문항 속 종명 강조 — 형광펜 */
+    mark.wq-hl { background: #fff176; color: inherit; padding: 0 2px; border-radius: 3px; font-weight: 700; }
     .wq-sec { margin-bottom: 10px; font-size: 0.88rem; line-height: 1.75; color: #333; }
     .wq-sec b { display: block; font-size: 0.8rem; color: #1b4332; margin-bottom: 2px; }
     .wq-sec ul { margin: 0; padding-left: 18px; }
@@ -3420,6 +3422,37 @@
         }
         return html;
     }
+    /* 펼친 문항의 문제·선지에서 종명을 형광펜으로 표시한다. 글자 노드만 바꾸므로
+       원번호·배지·해설 마크업은 건드리지 않는다. 한 글자 이름('피'·'띠')은 서버와 같은
+       규칙으로 앞뒤가 한글 음절이 아닐 때만 칠한다 — '피해'·'피복'까지 노랗게 되면 안 된다 */
+    function _wqHighlight(root, name) {
+        if (!root || !name) return;
+        var one = name.length === 1;
+        var isH = function(ch) { return !!ch && /[가-힣]/.test(ch); };
+        var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: function(n) {
+            var p = n.parentNode;
+            if (!p || p.closest('.nq-badge, .nq-exp, mark.wq-hl')) return NodeFilter.FILTER_REJECT;
+            if (!p.closest('.nq-q, .nq-ctext')) return NodeFilter.FILTER_SKIP;
+            return n.nodeValue.indexOf(name) >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+        } });
+        var nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(function(n) {
+            var s = n.nodeValue, frag = document.createDocumentFragment(), i = 0, k, hit = false;
+            while ((k = s.indexOf(name, i)) >= 0) {
+                var end = k + name.length;
+                if (one && (isH(s[k - 1]) || isH(s[end]))) {     // '피해' 의 '피' 는 넘어간다
+                    frag.appendChild(document.createTextNode(s.slice(i, end))); i = end; continue;
+                }
+                frag.appendChild(document.createTextNode(s.slice(i, k)));
+                var m = document.createElement('mark'); m.className = 'wq-hl'; m.textContent = name;
+                frag.appendChild(m); i = end; hit = true;
+            }
+            if (!hit) return;
+            frag.appendChild(document.createTextNode(s.slice(i)));
+            n.parentNode.replaceChild(frag, n);
+        });
+    }
     function _wqRefsClose() {
         var list = document.getElementById('wq-refs-list');
         document.querySelectorAll('.wq-meta span.ref.on').forEach(function(s) { s.classList.remove('on'); });
@@ -3437,7 +3470,7 @@
         list.innerHTML = '<div class="nq-loading">문제를 불러오는 중…</div>';
         fetch('{% url "main:api_note_questions" subject.pk %}?ref=' + encodeURIComponent(ref), { credentials: 'same-origin' })
             .then(function(r) { return r.json(); })
-            .then(function(d) { _nqRender(list, d.questions || []); })
+            .then(function(d) { _nqRender(list, d.questions || []); _wqHighlight(list, _wqAns && _wqAns.name); })
             .catch(function() { list.innerHTML = '<div class="nq-empty">문제를 불러오지 못했습니다.</div>'; });
     };
     /* 기사 필기 문항 — 10건씩. '더 보기' 를 누르면 다음 10건을 아래에 잇는다 */
@@ -3474,6 +3507,7 @@
                 } else {
                     _nqRender(list, qs);
                 }
+                _wqHighlight(list, _wqAns.name);     // 이미 칠한 곳은 건너뛰므로 이어 붙여도 겹치지 않는다
                 if (d.page < d.pages) {
                     var btn = document.createElement('button');
                     btn.type = 'button'; btn.className = 'wq-more';
