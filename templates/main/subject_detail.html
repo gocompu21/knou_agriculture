@@ -4674,11 +4674,15 @@
             } else { nov.hidden = true; nov.innerHTML = ''; }
             // 사진을 바꿨으면 새 주소로 다시 그린다. 주소가 그대로면 건드리지 않는다 —
             // 옛 주소에 ?v= 만 붙이면 이미 지워진 파일을 부르게 된다
+            // img.src 는 절대 주소이고 card.q_img 는 /media/… 라 경로끼리 견줘야 한다.
+            // 문자열 그대로 견주면 글만 고쳐도 늘 '사진이 바뀐 것'이 되어 낱장 좌표를
+            // 잃고, 그 뒤로는 사진을 눌러도 통째로만 확대됐다
             var img = document.getElementById('wq-img');
-            if (img && card.q_img && img.src.split('?')[0] !== card.q_img) {
+            var cur = img && img.src ? new URL(img.src, location.href).pathname : '';
+            if (img && card.q_img && cur !== card.q_img) {
                 img.src = card.q_img;
-                _wqParts = [];        // 낱장 좌표는 다음 출제 때 새로 받는다
             }
+            if (card.parts) _wqParts = card.parts;    // 수정 응답이 좌표를 같이 준다
         }
         var list = document.getElementById('wq-list');
         if (!list.hidden || !onAnswer) {           // 목록을 보는 중이면 새로 받는다

@@ -2119,7 +2119,10 @@ def api_weed_card_update(request, pk, card_id):
                 logger.exception("옛 사진 삭제 실패: %s", old)
 
     card.save()
-    return JsonResponse({"ok": True, "card": _weed_card_payload(card)})
+    payload = _weed_card_payload(card)
+    # 낱장 좌표를 늘 함께 준다 — 답 화면이 그 자리에서 확대에 쓴다 (캐시라 싸다)
+    payload["parts"] = _weed_q_parts(card)
+    return JsonResponse({"ok": True, "card": payload})
 
 
 ## ══════════ 쪽집게 노트 관리자 편집 ══════════ ##
