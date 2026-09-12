@@ -1058,6 +1058,36 @@ def _weed_q_parts(card):
     return parts
 
 
+def _weed_exam_refs(c):
+    """이 종이 기출 문제나 선지 ①~④ 에 나오는 문항의 (연도, 번호) 목록.
+
+    종명이 문제 본문이나 선지 어디에든 있으면 출제된 것으로 본다.
+    '피'·'띠' 같은 한 글자 이름은 '피해'·'피복'·'허리띠' 에도 걸리므로,
+    앞뒤가 한글 음절이 아닐 때만 인정한다. 두 글자 이상은 그대로 찾는다
+    ('물피'·'돌피' 는 '피' 로도 잡히는 편이 오히려 맞다).
+    """
+    name = (c.name or "").strip()
+    if not name:
+        return []
+    cond = Q(text__contains=name)
+    for i in range(1, 5):
+        cond |= Q(**{f"choice_{i}__contains": name})
+    qs = Question.objects.filter(cond, subject=c.subject).only(
+        "year", "number", "text", "choice_1", "choice_2", "choice_3", "choice_4")
+    if len(name) == 1:
+        pat = re.compile(rf"(?<![가-힣]){re.escape(name)}(?![가-힣])")
+        qs = [q for q in qs if pat.search(" ".join(
+            [q.text, q.choice_1, q.choice_2, q.choice_3, q.choice_4]))]
+    seen, out = set(), []
+    for q in sorted(qs, key=lambda q: (q.year, q.number)):
+        key = (q.year, q.number)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append({"year": q.year, "number": q.number, "ref": f"{q.year}-{q.number}"})
+    return out
+
+
 def _weed_card_payload(c):
     return {
         "id": c.pk, "card_no": c.card_no, "name": c.name, "family": c.family,
@@ -1065,6 +1095,7 @@ def _weed_card_payload(c):
         "similar": c.similar, "control": c.control,
         "notes": [n for n in c.notes.split("\n") if n.strip()],
         "exam_count": c.exam_count,
+        "exam_refs": _weed_exam_refs(c),        # 기출에 나온 (연도-번호) 배지용
         # 사진을 바꾸면 주소가 달라진다 — 화면이 그것으로 다시 그린다
         "q_img": c.q_image.url if c.q_image else "",
         "a_img": c.a_image.url if c.a_image else "",

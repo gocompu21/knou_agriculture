@@ -252,6 +252,16 @@
     .wq-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
     .wq-meta span { font-size: 0.78rem; padding: 3px 10px; border-radius: 12px; background: #f0f4f0; color: #2d6a4f; }
     .wq-meta span.cnt { background: #fff3e0; color: #e65100; font-weight: 700; }
+    /* 기출 배지 — 이 종이 문제나 선지에 나온 문항(연도-번호). 오른쪽으로 몰아 둔다.
+       누르면 아래에 그 문항이 쪽집게 노트와 같은 카드로 펼쳐진다 */
+    .wq-meta .wq-refs { margin-left: auto; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .wq-meta .wq-refs .lbl { background: none; color: #6b7d70; padding: 3px 2px 3px 0; }
+    .wq-meta span.ref { background: #e8f0fe; color: #1a4d8f; font-weight: 700; cursor: pointer;
+        font-variant-numeric: tabular-nums; }
+    .wq-meta span.ref:hover { background: #d2e3fc; }
+    .wq-meta span.ref.on { background: #1a4d8f; color: #fff; }
+    .wq-refs-list { margin: 0 0 12px; }
+    .wq-refs-list[hidden] { display: none; }
     .wq-sec { margin-bottom: 10px; font-size: 0.88rem; line-height: 1.75; color: #333; }
     .wq-sec b { display: block; font-size: 0.8rem; color: #1b4332; margin-bottom: 2px; }
     .wq-sec ul { margin: 0; padding-left: 18px; }
@@ -3373,6 +3383,32 @@
         if (!_WQ_STAFF) return '';
         return '<div class="wq-edit-bar"><button type="button" class="wq-edit-btn" onclick="weedEditFromAnswer()">수정</button></div>';
     }
+    /* 기출 배지 — 종명이 문제·선지에 나온 문항. 서버가 (연도-번호) 로 준다.
+       배지 줄 오른쪽에 두고, 누르면 그 문항을 아래에 펼친다(쪽집게 노트의 관련 문제와 같은 카드) */
+    function _wqRefs(refs) {
+        if (!refs || !refs.length) return '';
+        return '<span class="wq-refs"><span class="lbl">기출</span>'
+             + refs.map(function(r) {
+                   return '<span class="ref" data-ref="' + _wqEsc(r.ref) + '" onclick="weedRefOpen(this)" title="'
+                        + r.year + '년 ' + r.number + '번 문제 보기">' + _wqEsc(r.ref) + '</span>';
+               }).join('')
+             + '</span>';
+    }
+    window.weedRefOpen = function(el) {
+        var list = document.getElementById('wq-refs-list');
+        if (!list) return;
+        var ref = el.dataset.ref;
+        var wasOn = el.classList.contains('on');
+        document.querySelectorAll('.wq-meta span.ref.on').forEach(function(s) { s.classList.remove('on'); });
+        if (wasOn) { list.hidden = true; list.innerHTML = ''; return; }   // 같은 배지를 다시 누르면 접는다
+        el.classList.add('on');
+        list.hidden = false;
+        list.innerHTML = '<div class="nq-loading">문제를 불러오는 중…</div>';
+        fetch('{% url "main:api_note_questions" subject.pk %}?ref=' + encodeURIComponent(ref), { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) { _nqRender(list, d.questions || []); })
+            .catch(function() { list.innerHTML = '<div class="nq-empty">문제를 불러오지 못했습니다.</div>'; });
+    };
     // 출제 횟수를 별로 — 5회↑ ★★★ / 3~4 ★★ / 2 ★ / 1 ☆ (실기 쪽집게 노트와 같은 기준)
     function _wqStars(n) {
         if (!n) return '';
@@ -4700,7 +4736,9 @@
                      +   (a.life_form ? '<span>' + _wqEsc(a.life_form) + '</span>' : '')
                      +   (a.habitat ? '<span>' + _wqEsc(a.habitat) + '</span>' : '')
                      +   (a.exam_count ? '<span class="cnt">' + a.exam_count + '회 출제</span>' : '')
+                     +   _wqRefs(a.exam_refs)
                      + '</div>'
+                     + '<div class="nq-list wq-refs-list" id="wq-refs-list" hidden></div>'
                      + _wqSec('features', '식별 포인트', a.features)
                      + _wqSec('similar', '헷갈리는 종과 구별', a.similar)
                      + _wqSec('control', '방제·비고', a.control)
