@@ -17,6 +17,7 @@ urlpatterns = [
     path("subjects/<int:pk>/api/weed-quiz/answer/", views.api_weed_quiz_answer, name="api_weed_quiz_answer"),
     path("subjects/<int:pk>/api/weed-quiz/reset/", views.api_weed_quiz_reset, name="api_weed_quiz_reset"),
     path("subjects/<int:pk>/api/weed-quiz/list/", views.api_weed_quiz_list, name="api_weed_quiz_list"),
+    path("subjects/<int:pk>/api/weed-quiz/gisa-questions/", views.api_weed_gisa_questions, name="api_weed_gisa_questions"),
     path("subjects/<int:pk>/api/weed-quiz/card/<int:card_id>/", views.api_weed_quiz_card, name="api_weed_quiz_card"),
     path("subjects/<int:pk>/api/weed-card/<int:card_id>/update/", views.api_weed_card_update, name="api_weed_card_update"),
     path("subjects/<int:pk>/api/weed-card/<int:card_id>/photos/", views.api_weed_card_photos, name="api_weed_card_photos"),

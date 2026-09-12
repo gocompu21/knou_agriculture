@@ -266,6 +266,15 @@
     .wq-t-refs { display: inline-flex; flex-wrap: wrap; gap: 3px; margin-left: 6px; vertical-align: middle; }
     .wq-t-refs span { font-size: 0.7rem; padding: 1px 6px; border-radius: 9px; background: #e8f0fe; color: #1a4d8f;
         font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    /* 식물보호기사 필기 배지 — 방송대 기출(파랑)과 구별되게 보라. 건수만 적는다 */
+    .wq-meta span.ref.g, .wq-t-refs span.g { background: #efe6fb; color: #5b2d8f; }
+    .wq-meta span.ref.g:hover { background: #e2d3f7; }
+    .wq-meta span.ref.g.on { background: #5b2d8f; color: #fff; }
+    .wq-refs-g { margin-left: 8px; }
+    .wq-more { display: block; width: 100%; margin: 6px 0 2px; padding: 8px; border: 1px dashed #b9c9bb; border-radius: 8px;
+        background: #f6faf6; color: #2d6a4f; font-weight: 700; cursor: pointer; }
+    .wq-more:hover { background: #eef5ee; }
+    .wq-more:disabled { color: #999; cursor: default; }
     .wq-sec { margin-bottom: 10px; font-size: 0.88rem; line-height: 1.75; color: #333; }
     .wq-sec b { display: block; font-size: 0.8rem; color: #1b4332; margin-bottom: 2px; }
     .wq-sec ul { margin: 0; padding-left: 18px; }
@@ -3327,7 +3336,7 @@
             }).join('');
             return '<div class="nq-card" data-pk="' + q.pk + '" data-answer="' + _nqEsc(q.answer) + '">'
                  +   '<div class="nq-q">' + (qi + 1) + '. ' + _nqEsc(q.text)
-                 +     '<span class="nq-badge">' + q.year + '년 ' + q.number + '번</span></div>'
+                 +     '<span class="nq-badge">' + (q.label ? _nqEsc(q.label) : q.year + '년 ' + q.number + '번') + '</span></div>'
                  +   '<div class="nq-choices">' + choices + '</div>'
                  + '</div>';
         }).join('');
@@ -3389,22 +3398,40 @@
     }
     /* 기출 배지 — 종명이 문제·선지에 나온 문항. 서버가 (연도-번호) 로 준다.
        배지 줄 오른쪽에 두고, 누르면 그 문항을 아래에 펼친다(쪽집게 노트의 관련 문제와 같은 카드) */
-    function _wqRefs(refs) {
-        if (!refs || !refs.length) return '';
-        return '<span class="wq-refs"><span class="lbl">기출</span>'
-             + refs.map(function(r) {
-                   return '<span class="ref" data-ref="' + _wqEsc(r.ref) + '" onclick="weedRefOpen(this)" title="'
-                        + r.year + '년 ' + r.number + '번 문제 보기">' + _wqEsc(r.ref) + '</span>';
-               }).join('')
-             + '</span>';
+    function _wqRefs(refs, gisa) {
+        var html = '';
+        if (refs && refs.length) {
+            html += '<span class="wq-refs"><span class="lbl">기출</span>'
+                  + refs.map(function(r) {
+                        return '<span class="ref" data-ref="' + _wqEsc(r.ref) + '" onclick="weedRefOpen(this)" title="'
+                             + r.year + '년 ' + r.number + '번 문제 보기">' + _wqEsc(r.ref) + '</span>';
+                    }).join('')
+                  + '</span>';
+        }
+        /* 식물보호기사 필기는 종당 수십~수백 건이라 낱개가 아니라 건수로 붙인다.
+           누르면 10건씩 펼친다 */
+        if (gisa && gisa.length) {
+            html += '<span class="wq-refs wq-refs-g"><span class="lbl">필기</span>'
+                  + gisa.map(function(g) {
+                        return '<span class="ref g" data-cert="' + g.cert + '" onclick="weedGisaOpen(this)" title="식물보호'
+                             + _wqEsc(g.label) + ' 필기에서 ' + g.count + '건 보기">' + _wqEsc(g.label) + ' ' + g.count + '</span>';
+                    }).join('')
+                  + '</span>';
+        }
+        return html;
+    }
+    function _wqRefsClose() {
+        var list = document.getElementById('wq-refs-list');
+        document.querySelectorAll('.wq-meta span.ref.on').forEach(function(s) { s.classList.remove('on'); });
+        if (list) { list.hidden = true; list.innerHTML = ''; delete list.dataset.cert; }
     }
     window.weedRefOpen = function(el) {
         var list = document.getElementById('wq-refs-list');
         if (!list) return;
         var ref = el.dataset.ref;
         var wasOn = el.classList.contains('on');
-        document.querySelectorAll('.wq-meta span.ref.on').forEach(function(s) { s.classList.remove('on'); });
-        if (wasOn) { list.hidden = true; list.innerHTML = ''; return; }   // 같은 배지를 다시 누르면 접는다
+        _wqRefsClose();
+        if (wasOn) return;                                   // 같은 배지를 다시 누르면 접는다
         el.classList.add('on');
         list.hidden = false;
         list.innerHTML = '<div class="nq-loading">문제를 불러오는 중…</div>';
@@ -3413,6 +3440,50 @@
             .then(function(d) { _nqRender(list, d.questions || []); })
             .catch(function() { list.innerHTML = '<div class="nq-empty">문제를 불러오지 못했습니다.</div>'; });
     };
+    /* 기사 필기 문항 — 10건씩. '더 보기' 를 누르면 다음 10건을 아래에 잇는다 */
+    window.weedGisaOpen = function(el) {
+        var list = document.getElementById('wq-refs-list');
+        if (!list || !_wqAns) return;
+        var wasOn = el.classList.contains('on');
+        _wqRefsClose();
+        if (wasOn) return;
+        el.classList.add('on');
+        list.hidden = false;
+        list.dataset.cert = el.dataset.cert;
+        list.innerHTML = '<div class="nq-loading">문제를 불러오는 중…</div>';
+        _wqGisaFetch(list, 1, false);
+    };
+    function _wqGisaFetch(list, page, append) {
+        var url = '{% url "main:api_weed_gisa_questions" subject.pk %}?name=' + encodeURIComponent(_wqAns.name)
+                + '&cert=' + encodeURIComponent(list.dataset.cert) + '&page=' + page;
+        fetch(url, { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                var qs = d.questions || [];
+                var more = list.querySelector('.wq-more');
+                if (more) more.remove();
+                if (append) {
+                    var tmp = document.createElement('div');
+                    _nqRender(tmp, qs);
+                    // 문항 번호를 앞 쪽에 이어 붙인다 (_nqRender 는 1부터 다시 센다)
+                    var base = list.querySelectorAll('.nq-card').length;
+                    tmp.querySelectorAll('.nq-card .nq-q').forEach(function(el, i) {
+                        el.firstChild.nodeValue = (base + i + 1) + '. ' + el.firstChild.nodeValue.replace(/^\d+\.\s*/, '');
+                    });
+                    while (tmp.firstChild) list.appendChild(tmp.firstChild);
+                } else {
+                    _nqRender(list, qs);
+                }
+                if (d.page < d.pages) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button'; btn.className = 'wq-more';
+                    btn.textContent = '더 보기 (' + list.querySelectorAll('.nq-card').length + ' / ' + d.total + ')';
+                    btn.onclick = function() { btn.disabled = true; btn.textContent = '불러오는 중…'; _wqGisaFetch(list, d.page + 1, true); };
+                    list.appendChild(btn);
+                }
+            })
+            .catch(function() { list.innerHTML = '<div class="nq-empty">문제를 불러오지 못했습니다.</div>'; });
+    }
     // 출제 횟수를 별로 — 5회↑ ★★★ / 3~4 ★★ / 2 ★ / 1 ☆ (실기 쪽집게 노트와 같은 기준)
     function _wqStars(n) {
         if (!n) return '';
@@ -3463,8 +3534,11 @@
                  + '<td class="wq-t-habitat">' + _wqEsc(it.habitat) + '</td>'
                  // 출제 칸: 횟수 뒤에 기출 배지(연도-번호). 줄 클릭이 그 카드로 가므로 배지는 눌리지 않는다
                  + '<td class="wq-t-cnt">' + (it.exam_count ? it.exam_count + '회' : '')
-                 +   ((it.exam_refs || []).length
-                        ? '<span class="wq-t-refs">' + it.exam_refs.map(function(r) { return '<span>' + _wqEsc(r) + '</span>'; }).join('') + '</span>'
+                 +   ((it.exam_refs || []).length || (it.gisa || []).length
+                        ? '<span class="wq-t-refs">'
+                          + (it.exam_refs || []).map(function(r) { return '<span>' + _wqEsc(r) + '</span>'; }).join('')
+                          + (it.gisa || []).map(function(g) { return '<span class="g">' + _wqEsc(g.label) + ' ' + g.count + '</span>'; }).join('')
+                          + '</span>'
                         : '')
                  + '</td>'
                  + '<td>' + st + '</td>'
@@ -4745,7 +4819,7 @@
                      +   (a.life_form ? '<span>' + _wqEsc(a.life_form) + '</span>' : '')
                      +   (a.habitat ? '<span>' + _wqEsc(a.habitat) + '</span>' : '')
                      +   (a.exam_count ? '<span class="cnt">' + a.exam_count + '회 출제</span>' : '')
-                     +   _wqRefs(a.exam_refs)
+                     +   _wqRefs(a.exam_refs, a.gisa)
                      + '</div>'
                      + '<div class="nq-list wq-refs-list" id="wq-refs-list" hidden></div>'
                      + _wqSec('features', '식별 포인트', a.features)

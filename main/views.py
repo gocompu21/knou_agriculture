@@ -28,6 +28,7 @@ from pydantic import BaseModel, Field
 from accounts.models import LoginLog
 import random
 
+from django.core.cache import cache
 from exam.models import Attempt, Question, StudyNote, WeedCard, WeedQuizAttempt
 from gisa.models import GisaAttempt, GisaQuestion
 from .forms import SubjectForm
@@ -1099,6 +1100,96 @@ def _weed_exam_refs(c):
     return _weed_exam_matcher(c.subject)(c.name)
 
 
+# ── 식물보호기사 필기 배지 ──
+# 방송대 기출은 종당 많아야 4건이라 낱개 배지로 붙지만, 기사 필기는 방동사니 181건·
+# 바랭이 148건처럼 수십~수백 건이 걸린다. 그래서 자격증별 **건수 배지**만 붙이고,
+# 누르면 문항을 10건씩 펼친다.
+_WEED_GISA_CERTS = ((1, "기사"), (2, "산업기사"))      # 식물보호기사 / 식물보호산업기사
+_WEED_GISA_PAGE = 10
+
+
+def _weed_name_hit(name):
+    """종명이 글에 있는지 판정하는 함수. 한 글자 이름은 앞뒤가 한글 음절이 아닐 때만."""
+    name = (name or "").strip()
+    if not name:
+        return lambda s: False
+    if len(name) == 1:
+        pat = re.compile(rf"(?<![가-힣]){re.escape(name)}(?![가-힣])")
+        return lambda s: bool(pat.search(s))
+    return lambda s: name in s
+
+
+def _weed_gisa_rows():
+    """식물보호기사·산업기사 필기 문항 (cert, id, 연도, 회차, 번호, 본문+선지). 10분 캐시.
+
+    6,800건을 요청마다 읽으면 목록이 느려진다. 문항은 거의 바뀌지 않으므로 캐시로 둔다.
+    """
+    rows = cache.get("weed_gisa_rows_v1")
+    if rows is None:
+        rows = [(q.exam.certification_id, q.pk, q.exam.year, q.exam.round, q.number,
+                 " ".join([q.text, q.choice_1, q.choice_2, q.choice_3, q.choice_4]))
+                for q in GisaQuestion.objects
+                .filter(exam__certification_id__in=[c for c, _ in _WEED_GISA_CERTS])
+                .exclude(exam__exam_type="최신")
+                .select_related("exam")
+                .only("text", "choice_1", "choice_2", "choice_3", "choice_4", "number",
+                      "exam__year", "exam__round", "exam__certification_id")
+                .order_by("-exam__year", "-exam__round", "number")]
+        cache.set("weed_gisa_rows_v1", rows, 600)
+    return rows
+
+
+def _weed_gisa_counts(name, rows=None):
+    """종명이 나오는 기사 문항 수를 자격증별로. [{cert, label, count}] (0건은 뺀다)."""
+    hit = _weed_name_hit(name)
+    rows = rows if rows is not None else _weed_gisa_rows()
+    n = {cert: 0 for cert, _ in _WEED_GISA_CERTS}
+    for cert, _qid, _y, _r, _num, blob in rows:
+        if hit(blob):
+            n[cert] += 1
+    return [{"cert": cert, "label": label, "count": n[cert]}
+            for cert, label in _WEED_GISA_CERTS if n[cert]]
+
+
+def _weed_gisa_plain(s):
+    """기사 문항의 [box]·<u> 표식을 평문으로. 잡초 동정 화면에는 qtext 필터가 없다."""
+    s = (s or "").replace("[box]", "\n").replace("[/box]", "\n")
+    return re.sub(r"</?u>", "", s).strip()
+
+
+@login_required
+def api_weed_gisa_questions(request, pk):
+    """?name=종명&cert=1&page=1 → 그 종명이 본문·선지에 나오는 기사 필기 문항, 10건씩."""
+    get_object_or_404(Subject, pk=pk)
+    name = request.GET.get("name", "").strip()
+    try:
+        cert = int(request.GET.get("cert", 1))
+        page = max(1, int(request.GET.get("page", 1)))
+    except ValueError:
+        return JsonResponse({"error": "잘못된 요청"}, status=400)
+    hit = _weed_name_hit(name)
+    ids = [qid for c, qid, _y, _r, _n, blob in _weed_gisa_rows() if c == cert and hit(blob)]
+    total = len(ids)
+    chunk = ids[(page - 1) * _WEED_GISA_PAGE: page * _WEED_GISA_PAGE]
+    found = {q.pk: q for q in GisaQuestion.objects.filter(pk__in=chunk).select_related("exam")}
+    label = dict(_WEED_GISA_CERTS).get(cert, "기사")
+    out = []
+    for qid in chunk:
+        q = found.get(qid)
+        if not q:
+            continue
+        out.append({
+            "pk": q.pk, "year": q.exam.year, "number": q.number,
+            "label": f"{label} {q.exam.year}-{q.exam.round}회 {q.number}번",
+            "text": _weed_gisa_plain(q.text),
+            "choices": [_weed_gisa_plain(x) for x in (q.choice_1, q.choice_2, q.choice_3, q.choice_4)],
+            "answer": q.answer, "explanation": q.explanation,
+            "choice_exps": [q.choice_1_exp, q.choice_2_exp, q.choice_3_exp, q.choice_4_exp],
+        })
+    return JsonResponse({"questions": out, "total": total, "page": page,
+                         "pages": (total + _WEED_GISA_PAGE - 1) // _WEED_GISA_PAGE})
+
+
 def _weed_card_payload(c):
     return {
         "id": c.pk, "card_no": c.card_no, "name": c.name, "family": c.family,
@@ -1107,6 +1198,7 @@ def _weed_card_payload(c):
         "notes": [n for n in c.notes.split("\n") if n.strip()],
         "exam_count": c.exam_count,
         "exam_refs": _weed_exam_refs(c),        # 기출에 나온 (연도-번호) 배지용
+        "gisa": _weed_gisa_counts(c.name),      # 식물보호기사·산업기사 필기 건수 배지용
         # 사진을 바꾸면 주소가 달라진다 — 화면이 그것으로 다시 그린다
         "q_img": c.q_image.url if c.q_image else "",
         "a_img": c.a_image.url if c.a_image else "",
@@ -1168,6 +1260,7 @@ def api_weed_quiz_list(request, pk):
     done = set(WeedQuizAttempt.objects.filter(user=request.user, card__subject=subject)
                .values_list("card_id", flat=True))
     refs_for = _weed_exam_matcher(subject)      # 문항은 한 번만 읽는다
+    gisa_rows = _weed_gisa_rows()
     items = []
     for c in WeedCard.objects.filter(subject=subject).order_by("order"):
         items.append({
@@ -1175,6 +1268,7 @@ def api_weed_quiz_list(request, pk):
             "life_form": c.life_form, "habitat": c.habitat,
             "exam_count": c.exam_count,
             "exam_refs": [r["ref"] for r in refs_for(c.name)],   # 목록의 기출 배지
+            "gisa": _weed_gisa_counts(c.name, gisa_rows),         # 기사 필기 건수 배지
             "state": "wrong" if c.pk in wrong else ("ok" if c.pk in done else ""),
         })
     return JsonResponse({"items": items})
