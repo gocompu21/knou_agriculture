@@ -1069,6 +1069,7 @@ def _weed_q_parts(card):
 # 털물참새피)와 다른 종이라 같은 것으로 세면 안 된다.
 _WEED_ALIASES = {
     "뚝새풀": ("둑새풀", "독새풀"),          # 둑새풀은 실제로 쓰이는 이명, 독새풀은 오기
+    "강피": ("논피",),                       # 쪽집게 노트가 '강피(논피)' 로 적어 둔 이명
     "새삼덩굴": ("새삼",),                   # 표준 국명은 '새삼' — 카드 이름에만 덩굴이 붙었다
     "깨풀": ("깻풀",),
     "논뚝외풀": ("논둑외풀",),
@@ -1077,8 +1078,9 @@ _WEED_ALIASES = {
     "메꽃": ("매꽃",),
     "물달개비": ("불달개비",),
 }
-# 앞뒤가 한글 음절이면 인정하지 않는 별칭 — '새삼'은 실새삼·갯실새삼에 걸린다
-_WEED_ALIAS_EXACT = {"새삼"}
+# 앞뒤가 한글 음절이면 인정하지 않는 별칭 — '새삼'은 실새삼·갯실새삼에,
+# '논피'는 다른 종인 '나도논피'에 걸린다
+_WEED_ALIAS_EXACT = {"새삼", "논피"}    # '논피' 는 다른 종인 '나도논피' 에 걸린다
 
 
 def _weed_names(name):
@@ -1189,11 +1191,26 @@ def _weed_gisa_plain(s):
     return re.sub(r"</?u>", "", s).strip()
 
 
-def _weed_source_weights(subject):
-    """출제 범위 모드별 {card_id: 가중치}. 가중치 = 그 출처에 나온 문항 수.
+def _weed_note_chapters(subject):
+    """쪽집게 노트를 장 단위로 [(order, title, 본문)]. 방송대 범위 판정에 쓴다."""
+    return list(StudyNote.objects.filter(subject=subject)
+                .order_by("order").values_list("order", "title", "content"))
 
-    - knou : 방송대 잡초방제학 기출(문제·선지에 종명이 있는 문항)
-    - gisa1: 식물보호기사 필기 / gisa2: 식물보호산업기사 필기
+
+def _weed_note_hits(name, chapters):
+    """종명이 나오는 노트 장 [(번호, 제목)] — 기출과 같은 이름 규칙(별칭 포함)."""
+    hit = _weed_name_hit(name)
+    return [(o, t) for o, t, body in chapters if hit(body or "")]
+
+
+def _weed_source_weights(subject):
+    """출제 범위 모드별 {card_id: 가중치}.
+
+    - knou : 방송대 — 잡초방제학 **기출 문항 + 쪽집게 노트**. 이 과목은 2013~2019
+      기출이 없어 문항이 172건뿐이라 기출만 보면 13종밖에 안 남는다. 노트에서 다루는
+      종이 곧 시험에 나올 종이므로 노트에 나오면 범위에 넣는다(58종).
+      가중치 = 기출 문항 수 + 노트에서 다룬 장 수 — 둘 다 "얼마나 자주 나오는가"다.
+    - gisa1: 식물보호기사 필기 / gisa2: 식물보호산업기사 필기 (문항 수)
     카드 136장 × 기사 문항 6,800건을 대조하므로 10분 캐시한다.
     """
     key = f"weed_src_w_{subject.pk}"
@@ -1202,9 +1219,10 @@ def _weed_source_weights(subject):
         return got
     refs_for = _weed_exam_matcher(subject)
     rows = _weed_gisa_rows()
+    chapters = _weed_note_chapters(subject)
     out = {"knou": {}, "gisa1": {}, "gisa2": {}}
     for c in WeedCard.objects.filter(subject=subject).only("id", "name"):
-        n = len(refs_for(c.name))
+        n = len(refs_for(c.name)) + len(_weed_note_hits(c.name, chapters))
         if n:
             out["knou"][c.pk] = n
         for g in _weed_gisa_counts(c.name, rows):
