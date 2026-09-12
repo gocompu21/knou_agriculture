@@ -1090,20 +1090,31 @@ def _weed_names(name):
     return [name] + list(_WEED_ALIASES.get(name, ()))
 
 
-def _weed_name_hit(name):
-    """종명(별칭 포함)이 글에 있는지 판정하는 함수. 배지·건수·범위·참조가 모두 이것을 쓴다.
+# 종명 뒤에 붙어도 그 종을 가리키는 글자 — 조사와 분류 접미(과·류)다.
+# 기사 문항 6,800건에서 종명 뒤 한 글자를 세어 보고 추렸다: 과 47 · 의 23 · 에 12 ·
+# 와 11 · 는 10 · 를 8 · 류 7 · 은 4 · 며 3 · 이 3 · 가 3 · 고·나·등 각 1.
+# 여기 없는 글자가 오면 **다른 종의 이름**이다 — 여뀌'바'늘, 별꽃'아'재비, 쑥'부'쟁이, 쑥'갓'.
+_WEED_JOSA = "은는이가을를와과의에도로만며고나등류"
 
-    '피'·'띠' 같은 한 글자 이름은 '피해'·'피복'·'허리띠' 에도 걸리므로 앞뒤가 한글 음절이
-    아닐 때만 인정한다. 두 글자 이상은 그대로 찾는다 — '물피'·'돌피' 가 '피' 로도 잡히는
-    편이 오히려 맞다. 다만 _WEED_ALIAS_EXACT 의 별칭('새삼')은 두 글자여도 앞뒤를 본다.
+
+def _weed_name_re(n):
+    """'정확히 그 이름' 을 찾는 정규식.
+
+    - 앞이 한글이면 **아니다**: 네가래·생이가래·가는가래는 가래가 아니고,
+      알방동사니·너도방동사니는 방동사니가 아니다.
+    - 뒤가 한글이면 조사·분류 접미일 때만 인정한다('올방개는' ○, '여뀌바늘' ✕).
+    - 한 글자 이름('피'·'띠')과 _WEED_ALIAS_EXACT('새삼'·'논피')는 뒤 한글을 아예 막는다 —
+      '피해'·'피복'·'띠며'(동사 띠다)·'실새삼'까지 걸리면 안 된다.
     """
-    tests = []
-    for n in _weed_names(name):
-        if len(n) == 1 or n in _WEED_ALIAS_EXACT:
-            pat = re.compile(rf"(?<![가-힣]){re.escape(n)}(?![가-힣])")
-            tests.append(pat.search)
-        else:
-            tests.append(lambda s, n=n: n in s)
+    esc = re.escape(n)
+    if len(n) == 1 or n in _WEED_ALIAS_EXACT:
+        return re.compile(rf"(?<![가-힣]){esc}(?![가-힣])")
+    return re.compile(rf"(?<![가-힣]){esc}(?:(?![가-힣])|(?=[{_WEED_JOSA}]))")
+
+
+def _weed_name_hit(name):
+    """종명(별칭 포함)이 글에 있는지 판정하는 함수. 배지·건수·범위·참조가 모두 이것을 쓴다."""
+    tests = [_weed_name_re(n).search for n in _weed_names(name)]
     if not tests:
         return lambda s: False
     return lambda s: any(bool(t(s)) for t in tests)
@@ -1273,9 +1284,10 @@ def _weed_card_payload(c):
         "exam_refs": _weed_exam_refs(c),        # 기출에 나온 (연도-번호) 배지용
         "gisa": _weed_gisa_counts(c.name),      # 식물보호기사·산업기사 필기 건수 배지용
         "names": _weed_names(c.name),           # 형광펜이 칠할 표기 (종명 + 이명·오기)
-        # 앞뒤가 한글이면 칠하지 않을 표기 — 화면이 서버와 같은 규칙을 쓰게 한다
+        # 뒤 한글을 아예 막을 표기 — 화면이 서버와 같은 규칙을 쓰게 한다
         "names_strict": [n for n in _weed_names(c.name)
                          if len(n) == 1 or n in _WEED_ALIAS_EXACT],
+        "josa": _WEED_JOSA,      # 종명 뒤에 와도 그 종인 글자 (조사·분류 접미)
         # 사진을 바꾸면 주소가 달라진다 — 화면이 그것으로 다시 그린다
         "q_img": c.q_image.url if c.q_image else "",
         "a_img": c.a_image.url if c.a_image else "",

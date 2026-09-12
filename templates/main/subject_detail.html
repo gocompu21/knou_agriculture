@@ -3429,14 +3429,22 @@
        글자 노드만 바꾸므로 원번호·배지·해설 마크업은 건드리지 않는다. 한 글자 이름
        ('피'·'띠')과 '새삼' 같은 짧은 별칭(names_strict)은 서버와 같은 규칙으로 앞뒤가
        한글 음절이 아닐 때만 칠한다 — '피해'·'실새삼'까지 노랗게 되면 안 된다 */
-    function _wqHighlight(root, names, strict) {
+    function _wqHighlight(root, names, strict, josa) {
         if (!root || !names) return;
         var list = (typeof names === 'string' ? [names] : names).filter(Boolean)
                      .sort(function(a, b) { return b.length - a.length; });   // 긴 표기를 먼저 본다
         if (!list.length) return;
         var tight = {};
         (strict || []).forEach(function(n) { tight[n] = true; });
+        var JOSA = josa || '';
         var isH = function(ch) { return !!ch && /[가-힣]/.test(ch); };
+        // 서버(_weed_name_re)와 같은 판정: 앞이 한글이면 다른 종, 뒤가 한글이면 조사일 때만
+        var ok = function(s, at, name) {
+            if (isH(s[at - 1])) return false;
+            var nx = s[at + name.length];
+            if (!isH(nx)) return true;
+            return !tight[name] && name.length > 1 && JOSA.indexOf(nx) >= 0;
+        };
         var has = function(s) { return list.some(function(w) { return s.indexOf(w) >= 0; }); };
         var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: function(n) {
             var p = n.parentNode;
@@ -3456,8 +3464,8 @@
                 });
                 if (at < 0) break;
                 var end = at + name.length;
-                if ((name.length === 1 || tight[name]) && (isH(s[at - 1]) || isH(s[end]))) {
-                    frag.appendChild(document.createTextNode(s.slice(i, end))); i = end; continue;  // '피해' 의 '피'
+                if (!ok(s, at, name)) {         // '네가래' 의 '가래', '피해' 의 '피'
+                    frag.appendChild(document.createTextNode(s.slice(i, end))); i = end; continue;
                 }
                 frag.appendChild(document.createTextNode(s.slice(i, at)));
                 var m = document.createElement('mark'); m.className = 'wq-hl'; m.textContent = name;
@@ -3469,7 +3477,7 @@
         });
     }
     function _wqHlNames(list) {     // 지금 답 카드의 표기로 칠한다
-        if (_wqAns) _wqHighlight(list, _wqAns.names || _wqAns.name, _wqAns.names_strict);
+        if (_wqAns) _wqHighlight(list, _wqAns.names || _wqAns.name, _wqAns.names_strict, _wqAns.josa);
     }
     function _wqRefsClose() {
         var list = document.getElementById('wq-refs-list');
