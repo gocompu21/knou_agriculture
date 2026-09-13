@@ -151,16 +151,30 @@
     <div class="verdict fail">{{ error }}</div>
     {% endif %}
 
+    {% comment %} 작업형이 없는 자격증(식물보호산업기사)은 practical_estimate 가 None 이다 —
+    '작업형에서 N점 더'라는 말이 성립하지 않는다. 필답 만점도 자격증마다 다르므로
+    45 를 박지 않고 session.total_points 를 쓴다. {% endcomment %}
     {% if session.source == '기출' %}
-    <div class="verdict {% if session.practical_estimate == 0 %}pass{% elif session.practical_estimate <= 30 %}near{% else %}fail{% endif %}">
-        필답형 <b>{{ session.score }}점</b> / 45점.
-        {% if session.practical_estimate == 0 %}
-        필답형만으로 합격선(60점)을 넘었습니다.
+        {% if session.has_work_stage %}
+        <div class="verdict {% if session.practical_estimate == 0 %}pass{% elif session.practical_estimate <= 30 %}near{% else %}fail{% endif %}">
+            필답형 <b>{{ session.score }}점</b> / {{ session.total_points }}점.
+            {% if session.practical_estimate == 0 %}
+            필답형만으로 합격선(60점)을 넘었습니다.
+            {% else %}
+            실기 합격(합계 60점)을 위해 작업형에서 <b>{{ session.practical_estimate }}점</b> 이상이
+            필요합니다.
+            {% endif %}
+        </div>
         {% else %}
-        실기 합격(합계 60점)을 위해 작업형에서 <b>{{ session.practical_estimate }}점</b> 이상
-        (55점 만점)이 필요합니다.
+        <div class="verdict {% if session.percent >= 60 %}pass{% elif session.percent >= 45 %}near{% else %}fail{% endif %}">
+            필답형 <b>{{ session.score }}점</b> / {{ session.total_points }}점 ({{ session.percent }}%).
+            {% if session.percent >= 60 %}
+            합격선(60점)을 넘었습니다.
+            {% else %}
+            실기가 필답형 하나뿐이라 <b>60점</b>을 넘어야 합격입니다.
+            {% endif %}
+        </div>
         {% endif %}
-    </div>
     {% endif %}
 
     {% if majors %}

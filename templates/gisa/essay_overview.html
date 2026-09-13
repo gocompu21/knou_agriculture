@@ -84,14 +84,20 @@
            <b>필답형</b>을 다룹니다.</p>
     </div>
 
+    {% comment %} 작업형이 없는 자격증(식물보호산업기사)은 work_points 가 0 이다.
+    조경 기준으로 쓴 '필답에서 25점을 벌면 작업형은…' 문장이 그대로 보이면
+    남의 시험 이야기가 되므로, 작업형 칸을 통째로 가른다. {% endcomment %}
     <div class="kv">
         <div><div class="n">{{ info.essay_points }}점</div><div class="l">필답형 배점</div></div>
+        {% if info.work_points %}
         <div><div class="n">{{ info.work_points }}점</div><div class="l">작업형(도면) 배점</div></div>
+        {% endif %}
         <div><div class="n">{{ essay_time }}</div><div class="l">필답형 시험시간</div></div>
         <div><div class="n">{{ info.pass_line }}점</div><div class="l">합격선 (100점 만점)</div></div>
     </div>
 
     <h2 class="ov">실기 검정방법</h2>
+    {% if info.work_points %}
     <p>복합형입니다. <b>필답형과 작업형(도면)을 같은 날 치러 합계 100점</b>으로 매깁니다.</p>
     <div class="tb-scroll">
     <table class="ov">
@@ -113,6 +119,27 @@
         도면은 제한 시간이라는 변수가 커서, <b>필답에서 벌어 두는 편이 안전합니다.</b><br>
         <small>시험시간 합계 표기는 자료마다 다릅니다 — {{ info.time_note }}</small>
     </div>
+    {% else %}
+    <p><b>필답형 하나뿐입니다.</b> 작업형(도면·작업)이 없어, 실기 점수는 전부 필답에서 나옵니다.</p>
+    <div class="tb-scroll">
+    <table class="ov">
+        <tbody>
+        <tr><td class="lab" style="width:22%">검정방법</td><td>필답형 (작업형 없음)</td></tr>
+        <tr><td class="lab">배점</td><td>{{ info.essay_points }}점</td></tr>
+        <tr><td class="lab">시험시간</td><td>{{ essay_time }}</td></tr>
+        <tr><td class="lab">문항 수</td><td>{{ info.item_count }}</td></tr>
+        <tr><td class="lab">형태</td><td>{{ info.qtypes }}</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <div class="note">
+        <b>합격 기준은 100점 만점에 60점</b>입니다. 메울 다른 과목이 없으므로
+        <b>필답에서 60점을 다 벌어야 합니다.</b> 대신 도면 같은 시간 변수가 없어
+        외운 만큼 그대로 점수가 됩니다.
+        {% if info.time_note %}<br><small>{{ info.time_note }}</small>{% endif %}
+    </div>
+    {% endif %}
 
     <h2 class="ov">필답형은 무엇을 묻나</h2>
     <p>필답 출제범위는 <b>1차 필기시험의 범위와 거의 같습니다.</b> 필기에서 공부한 내용이
@@ -121,19 +148,24 @@
         {% for s in info.essay_scope %}<span>{{ s }}</span>{% endfor %}
     </div>
     <div class="note">
+        {% comment %} 조경은 문항마다 배점이 다르지만 식물보호산업기사는 20문항이
+        똑같이 5점씩이다. 맞지 않는 문장을 보이지 않는다. {% endcomment %}
+        {% if info.varied_points %}
         <b>문제를 골라 푸는 시험이 아닙니다.</b> 문항마다 배점이 다르게 매겨지지만
         전부 풀어서 총점을 올리는 것이 목표이므로, 배점을 보고 풀 문제를 고를 일은 없습니다.<br>
+        {% endif %}
         계산 문제가 <b>{{ info.calc_count }}</b> 나옵니다. 쓰이는 공식이 정해져 있어
         <b>가장 확실하게 점수로 바뀌는 부분</b>입니다.
     </div>
 
     <h2 class="ov">출제기준 — 주요항목과 세부항목</h2>
-    <p>{{ info.period }} 적용 출제기준입니다. 맨 왼쪽 묶음은 이해를 돕기 위해 주요항목을
-       네 갈래로 나눠 본 것입니다.</p>
+    <p>{{ info.period }} 적용 출제기준입니다. {{ info.criteria_note }}</p>
     <div class="tb-scroll">
     <table class="ov">
         <thead><tr>
-            <th style="width:14%">분류</th><th style="width:22%">주요항목</th><th>세부항목</th>
+            <th style="width:14%">{{ info.criteria_heads.0|default:"분류" }}</th>
+            <th style="width:22%">{{ info.criteria_heads.1|default:"주요항목" }}</th>
+            <th>{{ info.criteria_heads.2|default:"세부항목" }}</th>
         </tr></thead>
         <tbody>
         {% for group, items in info.criteria %}
@@ -151,6 +183,15 @@
 
     <h2 class="ov">직무내용</h2>
     <p>{{ info.duty }}</p>
+
+    {% if info.perform %}
+    <h2 class="ov">수행준거</h2>
+    <p>출제기준이 "이만큼은 할 줄 알아야 한다"고 적어 둔 것입니다. 문항이 무엇을 물을지가
+       여기에 드러납니다.</p>
+    <ul>
+        {% for p in info.perform %}<li>{{ p }}</li>{% endfor %}
+    </ul>
+    {% endif %}
 
     <h2 class="ov">필기시험 (참고)</h2>
     <p>실기는 <b>필기 합격자 발표일부터 2년 안에</b> 응시할 수 있습니다. 그 사이에는
@@ -186,19 +227,14 @@
     </div>
     {% endif %}
 
+    {% comment %} 도면·조경사 이야기는 조경에만 맞는다. 자격증마다 다르므로
+    템플릿에 박지 않고 essay_examinfo 의 tips 에서 받는다. {% endcomment %}
+    {% if info.tips %}
     <h2 class="ov">알아 둘 것</h2>
     <ul>
-        <li><b>기사와 산업기사의 범위는 거의 같습니다.</b> 산업기사 필답에는 조경사가 빠질 뿐
-            나머지는 기사와 같아, 갈라서 공부할 필요가 없습니다.</li>
-        <li><b>급수를 넘나들며 되나옵니다.</b> 기사에 나왔던 문제가 조건만 조금 바뀌어
-            산업기사에 나온 적이 있습니다. 자기 급수를 먼저 풀고 다른 급수까지 보면
-            그만큼 범위가 넓어집니다.</li>
-        <li><b>작업형 도면은 미완성이면 채점에서 빠집니다.</b> 요구조건을 다 채우지 못하더라도
-            끝까지 그려 내는 것이 먼저입니다.</li>
-        <li>도면은 선 굵기와 글씨의 위계가 기본입니다. 찢어지거나 더러워지지 않게 하고,
-            찢어졌다면 테이프로 붙여 냅니다.</li>
-        <li>문제지에 적힌 <b>수검자 유의사항</b>도 문제를 푸는 조건의 하나입니다. 먼저 읽습니다.</li>
+        {% for t in info.tips %}<li>{{ t|safe }}</li>{% endfor %}
     </ul>
+    {% endif %}
 
     <div style="margin-top:26px">
         <a class="go" href="{% url 'gisa:essay_list' cert.pk %}">실기 목록으로</a>

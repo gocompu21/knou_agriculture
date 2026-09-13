@@ -198,7 +198,7 @@
 {% block content %}
 <div class="es-header">
     <div class="es-title">
-        {{ title }} <small>· 학습 · {{ questions|length }}문항 · {{ total_points }}점</small>
+        {{ title }} <small>· 학습 · {{ questions|length }}문항 · {{ total_points|floatformat:'-1' }}점</small>
     </div>
     <button class="es-btn on" id="btnAll">정답 모두 보기</button>
 </div>
@@ -216,7 +216,7 @@
             {% endif %}
             {% if study_mode != 'answer' %}<span class="sq-src">{{ q.label }}</span>{% endif %}
             {% if study_mode == 'comeback' %}<span class="sq-wfreq">필기 {{ q.written_freq }}회</span>{% endif %}
-            <span class="sq-pts">{{ q.points }}점</span>
+            <span class="sq-pts">{{ q.points|floatformat:"-1" }}점</span>
         </div>
         <div class="sq-text"><span class="sq-no">{% if study_mode != 'answer' %}{{ forloop.counter }}{% else %}{{ q.number }}{% endif %}.</span> {{ q.text|qtext }}</div>
         {% if q.text_image %}<img class="sq-img" src="{{ q.text_image|vurl }}" alt="">{% endif %}

@@ -104,9 +104,12 @@ def essay_list(request, cert_id):
         if key not in best or s.score > best[key]:
             best[key] = s.score
 
-    # 실제 시험은 15문항 안팎 45점이다. 복원이 일부만 된 회차는
-    # 문항 수와 배점이 그에 못 미치므로 카드에 그 사실을 알린다.
-    FULL_POINTS = 45
+    # 복원이 일부만 된 회차는 배점 합계가 만점에 못 미치므로 카드에 그 사실을
+    # 알린다. **만점은 자격증마다 다르다** — 자연생태복원 45, 조경 40,
+    # 식물보호산업기사 100. 45 를 박아 두었을 때는 40점짜리 조경 회차가 전부
+    # '일부 복원'으로 찍혔다.
+    _einfo = exam_info(cert.name)
+    FULL_POINTS = (_einfo or {}).get('essay_points', 45)
     round_cards = []
     for r in rounds:
         key = (r['year'], r['round'])
@@ -155,9 +158,13 @@ def essay_list(request, cert_id):
 
     return render(request, 'gisa/essay_list.html', {
         'cert': cert,
-        # 배점·시간이 자격증마다 다르다(조경 40+60, 자연생태복원 45+55).
-        # 머리말 문구를 여기서 받아 쓴다 — 개요가 없는 자격증은 종전 문구 그대로.
-        'info': exam_info(cert.name),
+        # 실기에 작업형이 있나. 없으면(식물보호산업기사) 시험이력의
+        # '작업형 필요' 칸이 뜻을 잃어 통째로 뺀다.
+        'has_work_stage': bool(_einfo.get('work_points')) if _einfo else True,
+        # 배점·시간이 자격증마다 다르다(조경 40+60, 자연생태복원 45+55,
+        # 식물보호산업기사는 필답 100점 단독). 머리말 문구를 여기서 받아 쓴다 —
+        # 개요가 없는 자격증은 종전 문구 그대로.
+        'info': _einfo,
         'active_tab': tab,
         'tb': textbook,
         'wrong_items': wrong,
@@ -595,15 +602,21 @@ def essay_overview(request, cert_id):
         t['pct'] = round(t['c'] / max(total, 1) * 100)
 
     # 기사↔산업기사는 필답 범위가 거의 같고 조건만 바꿔 되나오기도 해서,
-    # 다른 급수 기출로 건너갈 수 있게 링크를 만든다.
+    # 다른 급수 기출로 건너갈 수 있게 링크를 만든다. **그쪽에 실기 문항이 있을
+    # 때만** — 식물보호기사는 자격증은 있어도 실기 필답이 아직 0건이라, 링크를
+    # 내면 빈 목록으로 보내게 된다.
     sibling = Certification.objects.filter(name=info.get('sibling', '')).first()
+    if sibling and not GisaEssayQuestion.objects.filter(certification=sibling).exists():
+        sibling = None
 
     return render(request, 'gisa/essay_overview.html', {
         'cert': cert,
         'info': info,
         'sibling': sibling,
         'essay_time': hm(info['essay_minutes']),
-        'work_time': hm(info['work_minutes']),
+        # 작업형이 없는 자격증은 work_minutes 가 0 이다. hm(0) 은 '0분'이라
+        # 그대로 쓰면 안 되므로 빈 문자열로 둔다(화면도 그 칸을 감춘다).
+        'work_time': hm(info['work_minutes']) if info['work_minutes'] else '',
         'total_time': hm(info['essay_minutes'] + info['work_minutes']),
         'round_count': len(rounds),
         'year_from': rounds[0][0] if rounds else '',

@@ -429,7 +429,8 @@
             <div>
                 <h1>{{ cert.name }} <span class="hero-kind">실기</span></h1>
                 {% if info %}
-                <p>필답형은 {{ info.essay_points }}점 만점이며, 작업형 {{ info.work_points }}점과 합쳐 {{ info.pass_line }}점 이상이면 합격입니다.<br>
+                {% comment %} 작업형이 없는 자격증(식물보호산업기사)은 work_points 가 0 이다. {% endcomment %}
+                <p>{% if info.work_points %}필답형은 {{ info.essay_points }}점 만점이며, 작업형 {{ info.work_points }}점과 합쳐 {{ info.pass_line }}점 이상이면 합격입니다.{% else %}실기는 필답형 하나뿐이며, {{ info.essay_points }}점 만점에 {{ info.pass_line }}점 이상이면 합격입니다.{% endif %}<br>
                    인쇄해서 손으로 풀고 사진을 올리거나, 화면에 직접 입력해서 채점받을 수 있습니다.</p>
                 {% else %}
                 <p>필답형은 45점 만점이며, 작업형 55점과 합쳐 60점 이상이면 합격입니다.<br>
@@ -729,7 +730,8 @@
     <!-- ══════════ 시험이력 ══════════ -->
     <div id="tab-history" class="tab-content{% if active_tab == 'history' %} active{% endif %}">
         <div class="sec-title">시험이력
-            <small>필답 45점 기준 · 작업형 필요 = 실기 합격(합계 60점)까지 작업형에서 더 받아야 할 점수</small>
+            {% if has_work_stage %}<small>작업형 필요 = 실기 합격(합계 60점)까지 작업형에서 더 받아야 할 점수</small>
+            {% else %}<small>실기가 필답형 하나뿐이라 필답에서 60점을 넘겨야 합격입니다</small>{% endif %}
         </div>
         <!-- 필기 상세의 history-table 과 같은 표 디자인 — 모드·점수·필요 점수·일시·액션 -->
         <div class="hist-scroll" id="histWrap" {% if not sessions %}hidden{% endif %}>
@@ -739,7 +741,7 @@
                         <th style="width:84px">모드</th>
                         <th style="width:130px">범위</th>
                         <th style="width:84px">점수</th>
-                        <th style="width:96px">작업형 필요</th>
+                        {% if has_work_stage %}<th style="width:96px">작업형 필요</th>{% endif %}
                         <th style="width:150px">일시</th>
                         <th style="width:150px"></th>
                     </tr>
@@ -759,6 +761,7 @@
                             <span class="ht-status">{{ s.get_status_display }}</span>
                             {% endif %}
                         </td>
+                        {% if has_work_stage %}
                         <td>
                             {% if s.status == 'done' and s.source == '기출' %}
                                 {% if s.practical_estimate %}
@@ -768,6 +771,7 @@
                                 {% endif %}
                             {% else %}<span class="ht-dash">—</span>{% endif %}
                         </td>
+                        {% endif %}
                         <td class="ht-when"><div>{{ s.started_at|date:"Y.m.d H:i" }}</div><div class="ht-ago"></div></td>
                         <td class="ht-actions">
                             {% if s.status == 'done' %}

@@ -412,12 +412,28 @@ class GisaEssaySession(models.Model):
     def practical_estimate(self):
         """필답 점수를 실기 합격선(합계 60점) 기준으로 환산.
 
-        작업형 55점 중 몇 점을 받아야 합격인지 알려준다.
+        작업형에서 몇 점을 더 받아야 합격인지 알려준다. 필답과 작업형을 합쳐
+        100점이므로 자격증마다 배점이 갈려도(45+55, 40+60) 셈은 같다.
+
+        **작업형이 없는 자격증에서는 None 이다.** 식물보호산업기사는 실기가
+        필답형 단독이라 '작업형에서 N점 더'라는 말 자체가 성립하지 않는다.
+        화면은 None 이면 그 칸을 감춘다.
         """
+        from .essay_examinfo import exam_info
+        info = exam_info(self.certification.name)
+        if info and not info.get('work_points'):
+            return None
         need = 60 - self.score
         if need <= 0:
             return 0
         return round(need, 1)
+
+    @property
+    def has_work_stage(self):
+        """이 자격증 실기에 작업형이 있나. 개요가 없으면 있다고 본다(종전 동작)."""
+        from .essay_examinfo import exam_info
+        info = exam_info(self.certification.name)
+        return bool(info.get('work_points')) if info else True
 
 
 class GisaEssayAttempt(models.Model):
