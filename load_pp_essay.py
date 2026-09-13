@@ -15,8 +15,10 @@
   · 답     : 다시 씀
   · 해설   : 원문에 없다. 배경과 까닭을 담아 새로 씀
 
-  python load_pp_essay.py            # 검증만
-  python load_pp_essay.py --apply    # DB 반영
+  python load_pp_essay.py                  # 두 자격증 모두 검증만
+  python load_pp_essay.py --apply          # DB 반영
+  python load_pp_essay.py 기사 --apply      # 식물보호기사만
+  python load_pp_essay.py 산업기사 --apply   # 식물보호산업기사만
 """
 import io
 import json
@@ -33,24 +35,39 @@ django.setup()
 
 from gisa.models import Certification, GisaEssayQuestion  # noqa: E402
 
-CERT, CATEGORY, TOTAL = '식물보호산업기사', '산업기사', 100
+TOTAL = 100
 
 # **문항당 배점은 5점으로 고정한다.** 실제 시험이 20문항 100점이므로 한 문항이
 # 5점이다. 합계를 문항 수로 나누면(TOTAL/len) 복원이 덜 된 회차에서 배점이
 # 부풀어 오른다 — 24-3회는 19문항만 복원돼 있어 5.26점씩이 되어 버린다.
 PER_ITEM = 5
 
-# 회차 → 파일
-ROUNDS = {
-    (2023, 1): '_pp_2023_1.json',
-    (2023, 2): '_pp_2023_2.json',
-    (2023, 4): '_pp_2023_4.json',
-    (2024, 1): '_pp_2024_1.json',
-    (2024, 2): '_pp_2024_2.json',
-    (2024, 3): '_pp_2024_3.json',
-    (2025, 1): '_pp_2025_1.json',
-    (2025, 2): '_pp_2025_2.json',
-    (2025, 3): '_pp_2025_3.json',
+# 자격증 → (급수, 회차 → 파일). **파일 앞머리를 급수별로 갈라 두었다** —
+# `_pp_` 는 산업기사, `_ppg_` 는 기사다. 같은 연도·회차가 두 자격증에 모두
+# 있으므로 이름이 겹치면 엉뚱한 회차를 싣게 된다.
+CERTS = {
+    '식물보호산업기사': ('산업기사', {
+        (2023, 1): '_pp_2023_1.json',
+        (2023, 2): '_pp_2023_2.json',
+        (2023, 4): '_pp_2023_4.json',
+        (2024, 1): '_pp_2024_1.json',
+        (2024, 2): '_pp_2024_2.json',
+        (2024, 3): '_pp_2024_3.json',
+        (2025, 1): '_pp_2025_1.json',
+        (2025, 2): '_pp_2025_2.json',
+        (2025, 3): '_pp_2025_3.json',
+    }),
+    '식물보호기사': ('기사', {
+        (2023, 1): '_ppg_2023_1.json',
+        (2023, 2): '_ppg_2023_2.json',
+        (2023, 3): '_ppg_2023_3.json',
+        (2024, 1): '_ppg_2024_1.json',
+        (2024, 2): '_ppg_2024_2.json',
+        (2024, 3): '_ppg_2024_3.json',
+        (2025, 1): '_ppg_2025_1.json',
+        (2025, 2): '_ppg_2025_2.json',
+        (2025, 3): '_ppg_2025_3.json',
+    }),
 }
 
 
@@ -80,17 +97,17 @@ def check(rows):
     return bad
 
 
-def load_round(year, rnd, path, apply_):
+def load_round(cert_name, category, year, rnd, path, apply_):
     rows = json.load(io.open(path, encoding='utf-8'))
     bad = check(rows)
     if bad:
-        print(f'{year}-{rnd}회 검증 실패 — 넣지 않는다')
+        print(f'{cert_name} {year}-{rnd}회 검증 실패 — 넣지 않는다')
         for x in bad:
             print('  ', x)
         return 1
 
     pts = PER_ITEM
-    cert = Certification.objects.get(name=CERT, category=CATEGORY)
+    cert = Certification.objects.get(name=cert_name, category=category)
     have = {q.number: q for q in GisaEssayQuestion.objects.filter(
         certification=cert, source='기출', year=year, round=rnd)}
 
@@ -125,16 +142,25 @@ def load_round(year, rnd, path, apply_):
     tail = '' if total == TOTAL else (
         f'  ← {TOTAL - total}점 모자람(복원 미완'
         + (f', 빠진 번호 {gap}' if gap else '') + ')')
-    print(f'{CERT} {year}-{rnd}회  신규 {add}건 · 수정 {upd}건 '
+    print(f'{cert_name} {year}-{rnd}회  신규 {add}건 · 수정 {upd}건 '
           f'(문항 {len(rows)}개 × {pts:g}점 = {total}점){tail}')
     return 0
 
 
 def main():
     apply_ = '--apply' in sys.argv
+    args = [a for a in sys.argv[1:] if a != '--apply']
+    # '기사'는 '산업기사'의 부분 문자열이라 in 으로 고르면 둘 다 걸린다.
+    # 급수 이름이 정확히 같은 것만 고른다.
+    picked = {n: v for n, v in CERTS.items() if not args or v[0] in args}
+    if not picked:
+        print(f'그런 급수가 없다: {args} (쓸 수 있는 값: '
+              f'{", ".join(v[0] for v in CERTS.values())})')
+        return 1
     rc = 0
-    for (year, rnd), path in sorted(ROUNDS.items()):
-        rc |= load_round(year, rnd, path, apply_)
+    for cert_name, (category, rounds) in picked.items():
+        for (year, rnd), path in sorted(rounds.items()):
+            rc |= load_round(cert_name, category, year, rnd, path, apply_)
     print('반영했다.' if apply_ else '(검증만 했다. --apply 를 붙여야 DB 에 들어간다)')
     return rc
 
