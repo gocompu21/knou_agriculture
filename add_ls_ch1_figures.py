@@ -587,6 +587,203 @@ def _f19_level():
 reg('ls-ch1-19-level', 91, _f19_level())
 
 
+# ── 20번. 터파기 평면도·단면도 — 문제 제시 ────────────────────────────────
+def _f20_pit():
+    """바닥 30m × 30m, 깊이 10m, 비탈 1 : 2 라 한쪽이 5m 씩 벌어져
+    윗면이 40m × 40m 가 된다. 평면도의 모서리 사선이 그 비탈이다."""
+    b = []
+    # 평면도 — 바깥 40, 안쪽 30
+    ox, oy, OS, IN = 44, 40, 108, 81
+    ix, iy = ox + (OS - IN) / 2, oy + (OS - IN) / 2
+    b.append(f'<rect x="{ox}" y="{oy}" width="{OS}" height="{OS}" fill="none" '
+             f'stroke="{INK}" stroke-width="1.3"/>')
+    b.append(f'<rect x="{ix}" y="{iy}" width="{IN}" height="{IN}" fill="#f3f6f3" '
+             f'stroke="{INK}" stroke-width="1.3"/>')
+    for a, z in (((ox, oy), (ix, iy)), ((ox + OS, oy), (ix + IN, iy)),
+                 ((ox, oy + OS), (ix, iy + IN)), ((ox + OS, oy + OS), (ix + IN, iy + IN))):
+        b.append(f'<line x1="{a[0]}" y1="{a[1]}" x2="{z[0]}" y2="{z[1]}" '
+                 f'stroke="{INK}" stroke-width="1"/>')
+    b.append(dim_v(oy, iy, ox - 14, '5m', G))
+    b.append(dim_v(iy, iy + IN, ox - 14, '30m', G))
+    b.append(dim_v(iy + IN, oy + OS, ox - 14, '5m', G))
+    b.append(f'<text x="{ox + OS / 2}" y="{oy + OS + 22}" text-anchor="middle" '
+             f'fill="{INK}" font-size="10">&lt;평 면 도&gt;</text>')
+    # 단면도
+    sx, sy, TW, BW, D = 216, 66, 130, 98, 74
+    tl, tr = sx, sx + TW
+    bl, br = sx + (TW - BW) / 2, sx + TW - (TW - BW) / 2
+    b.append(HATCH)
+    b.append(f'<path d="M{tl} {sy} L{bl} {sy+D} L{br} {sy+D} L{tr} {sy} Z" '
+             f'fill="#f3f6f3" stroke="{INK}" stroke-width="1.4"/>')
+    b.append(f'<line x1="{tl-16}" y1="{sy}" x2="{tr+16}" y2="{sy}" stroke="{INK}" '
+             f'stroke-width="1.2"/>')
+    b.append(dim_h(tl, bl, sy - 14, '5m', G))
+    b.append(dim_h(bl, br, sy - 14, '30m', G))
+    b.append(dim_h(br, tr, sy - 14, '5m', G))
+    b.append(dim_v(sy, sy + D, tl - 14, '10m', G))
+    b.append(f'<text x="{tl+9}" y="{sy+D/2}" fill="{G}" font-size="9" '
+             f'transform="rotate(63 {tl+9} {sy+D/2})">1:2</text>')
+    b.append(f'<text x="{tr-9}" y="{sy+D/2}" text-anchor="end" fill="{G}" '
+             f'font-size="9" transform="rotate(-63 {tr-9} {sy+D/2})">1:2</text>')
+    b.append(f'<text x="{sx + TW / 2}" y="{sy + D + 26}" text-anchor="middle" '
+             f'fill="{INK}" font-size="10">&lt;단 면 도&gt;</text>')
+    return svg(384, 190, ''.join(b))
+
+
+reg('ls-ch1-20-pit', 92, _f20_pit())
+
+
+# ── 21번. 사각분할 + 삼각분할 격자 — 문제 제시 ────────────────────────────
+def _f21_grid():
+    """왼쪽 두 칸(A－B－F－G)은 사각분할, 오른쪽(B－C－D－E－F)은 삼각분할.
+
+    **삼각분할 쪽 대각선은 답의 계수표(1·3·2 / 3·6·2 / 3·3 / 1)에서 역산했다.**
+    한 꼭짓점에 모이는 삼각형 수가 곧 계수이고, Σh₁=16.12 · Σh₂=16.48 ·
+    Σh₃=33.11 · Σh₆=8.02 와 모두 들어맞는 배치는 이 하나뿐이다.
+    경계 D－E－F 는 직선 하나로, 오른쪽 아래를 비스듬히 잘라 낸다.
+    """
+    CW, CH, X0, Y0 = 58, 44, 62, 62
+    ev = [['9.83', '8.96', '7.79', '8.33', '8.02'],
+          ['9.13', '8.60', '8.99', '8.02', '8.46'],
+          ['8.50', '8.31', '8.46', '7.33'],
+          ['8.20', '8.61', '8.33']]
+    def px(c): return X0 + c * CW
+    def py(r): return Y0 + r * CH
+    b = []
+    # 사각분할 — 왼쪽 두 칸 × 세 줄, 대각선 없음
+    for r in range(3):
+        for c in range(2):
+            b.append(f'<rect x="{px(c)}" y="{py(r)}" width="{CW}" height="{CH}" '
+                     f'fill="none" stroke="{INK}" stroke-width="1.1"/>')
+    # 삼각분할 — 온전한 칸 셋에 '/' 대각선
+    for r, c in ((0, 2), (0, 3), (1, 2)):
+        b.append(f'<rect x="{px(c)}" y="{py(r)}" width="{CW}" height="{CH}" '
+                 f'fill="none" stroke="{INK}" stroke-width="1.1"/>')
+        b.append(f'<line x1="{px(c+1)}" y1="{py(r)}" x2="{px(c)}" y2="{py(r+1)}" '
+                 f'stroke="{INK}" stroke-width="1"/>')
+    # 잘린 삼각형 둘 — 경계 D(4,1)→E(3,2)→F(2,3)
+    b.append(f'<polygon points="{px(4)},{py(1)} {px(3)},{py(1)} {px(3)},{py(2)}" '
+             f'fill="none" stroke="{INK}" stroke-width="1.1"/>')
+    b.append(f'<polygon points="{px(3)},{py(2)} {px(2)},{py(2)} {px(2)},{py(3)}" '
+             f'fill="none" stroke="{INK}" stroke-width="1.1"/>')
+    b.append(f'<line x1="{px(4)}" y1="{py(1)}" x2="{px(2)}" y2="{py(3)}" '
+             f'stroke="{INK}" stroke-width="1.5"/>')
+    for r, row in enumerate(ev):
+        for c, v in enumerate(row):
+            b.append(f'<circle cx="{px(c)}" cy="{py(r)}" r="1.8" fill="{INK}"/>')
+            b.append(elev(px(c), py(r), v, dx=16 if c < 4 else 18, dy=-6))
+    for c in range(4):
+        b.append(dim_h(px(c), px(c + 1), Y0 - 30, '30', G))
+    for r in range(3):
+        b.append(dim_v(py(r), py(r + 1), X0 - 16, '20', G))
+    for name, (c, r), dx, dy in (('A', (0, 0), -6, -8), ('B', (2, 0), -6, -8),
+                                 ('C', (4, 0), -8, -8), ('D', (4, 1), -8, -6),
+                                 ('E', (3, 2), -9, -5), ('F', (2, 3), -8, 12),
+                                 ('G', (0, 3), -6, 12)):
+        b.append(f'<text x="{px(c)+dx}" y="{py(r)+dy}" text-anchor="end" fill="{INK}" '
+                 f'font-size="10.5" font-weight="700">{name}</text>')
+    b.append(f'<text x="{px(4)}" y="{py(3)+4}" text-anchor="end" fill="#666" '
+             f'font-size="9">(단위 : m)</text>')
+    return svg(px(4) + 42, py(3) + 34, ''.join(b))
+
+
+reg('ls-ch1-21-grid', 93, _f21_grid())
+
+
+# ── 24번. 기초 평면도·단면도 — 문제 제시 ──────────────────────────────────
+def _f24_foundation():
+    """터파기는 윗면 2,700 × 2,700 · 아랫면 1,900 × 1,900. 그 속의 구조체는
+    밑판 1,500 각 → 절두각뿔(1,500→300) → 기둥 300 각으로 층이 셋이다."""
+    b = []
+    ox, oy, OS, IN = 46, 44, 104, 26
+    ix = iy = None
+    ix, iy = ox + (OS - IN) / 2, oy + (OS - IN) / 2
+    b.append(f'<rect x="{ox}" y="{oy}" width="{OS}" height="{OS}" fill="none" '
+             f'stroke="{INK}" stroke-width="1.3"/>')
+    b.append(f'<rect x="{ix}" y="{iy}" width="{IN}" height="{IN}" fill="#f3f6f3" '
+             f'stroke="{INK}" stroke-width="1.3"/>')
+    for a, z in (((ox, oy), (ix, iy)), ((ox + OS, oy), (ix + IN, iy)),
+                 ((ox, oy + OS), (ix, iy + IN)), ((ox + OS, oy + OS), (ix + IN, iy + IN))):
+        b.append(f'<line x1="{a[0]}" y1="{a[1]}" x2="{z[0]}" y2="{z[1]}" '
+                 f'stroke="{INK}" stroke-width="1"/>')
+    b.append(dim_h(ox, ox + OS, oy - 16, '1,500', G))
+    b.append(dim_h(ix, ix + IN, iy - 8, '300', G))
+    b.append(dim_v(oy, oy + OS, ox - 14, '1,500', G))
+    b.append(f'<text x="{ox + OS / 2}" y="{oy + OS + 24}" text-anchor="middle" '
+             f'fill="{INK}" font-size="10">&lt;평 면 도&gt;</text>')
+    # 단면도 — 터파기 사다리꼴 속에 층 셋
+    sx, GL, TW, BW, D = 214, 42, 132, 93, 84
+    tl, tr = sx, sx + TW
+    bl, br = sx + (TW - BW) / 2, sx + TW - (TW - BW) / 2
+    b.append(f'<path d="M{tl} {GL} L{bl} {GL+D} L{br} {GL+D} L{tr} {GL} Z" '
+             f'fill="#fbfcfb" stroke="{INK}" stroke-width="1.3"/>')
+    b.append(f'<line x1="{tl-14}" y1="{GL}" x2="{tr+14}" y2="{GL}" stroke="{INK}" '
+             f'stroke-width="1.2"/>')
+    b.append(f'<text x="{tl-16}" y="{GL-3}" text-anchor="end" fill="{INK}" '
+             f'font-size="9">G.L</text>')
+    cx = sx + TW / 2
+    # 밑판(1,500 × 400) → 절두각뿔(200) → 기둥(300 × 400)
+    pw, cw = 44, 10
+    b.append(f'<rect x="{cx-pw}" y="{GL+D-22}" width="{pw*2}" height="22" fill="#eef2ee" '
+             f'stroke="{INK}" stroke-width="1.3"/>')
+    b.append(f'<path d="M{cx-pw} {GL+D-22} L{cx-cw} {GL+D-34} L{cx+cw} {GL+D-34} '
+             f'L{cx+pw} {GL+D-22} Z" fill="#eef2ee" stroke="{INK}" stroke-width="1.3"/>')
+    b.append(f'<rect x="{cx-cw}" y="{GL+D-56}" width="{cw*2}" height="22" fill="#eef2ee" '
+             f'stroke="{INK}" stroke-width="1.3"/>')
+    b.append(dim_v(GL, GL + D - 56, tl - 14, '400', G))
+    b.append(dim_v(GL + D - 56, GL + D - 22, tl - 14, '200', G))
+    b.append(dim_v(GL + D - 22, GL + D, tl - 14, '400', G))
+    b.append(dim_h(bl, br, GL + D + 18, '1,900', G))
+    b.append(dim_h(tl, bl, GL - 14, '400', G))
+    b.append(dim_h(br, tr, GL - 14, '400', G))
+    b.append(f'<text x="{sx + TW / 2}" y="{GL + D + 44}" text-anchor="middle" '
+             f'fill="{INK}" font-size="10">&lt;단 면 도&gt;</text>')
+    return svg(384, 200, ''.join(b))
+
+
+reg('ls-ch1-24-foundation', 94, _f24_foundation())
+
+
+# ── 27번. 등고선 단면 (각주공식용) — 문제 제시 ────────────────────────────
+def _f27_contour():
+    """a1(0) 부터 a5(500m²) 까지 5m 간격 다섯 단면. 단면이 홀수 개라
+    각주공식을 쓸 수 있다 — 그림이 그 조건을 보여 준다."""
+    ox, base, step, half = 60, 196, 34, 118
+    vals = ['500m²', '300m²', '100m²', '50m²', '']
+    names = ['a5', 'a4', 'a3', 'a2', 'a1']
+    widths = [1.0, 0.78, 0.5, 0.3, 0.05]
+    b = []
+    for i, (v, n, wf) in enumerate(zip(vals, names, widths)):
+        y = base - i * step
+        hw = half * wf / 2
+        b.append(f'<line x1="{ox}" y1="{y}" x2="{ox+half}" y2="{y}" stroke="{INK}" '
+                 f'stroke-width="1"/>')
+        b.append(f'<text x="{ox-6}" y="{y+3.4}" text-anchor="end" fill="{INK}" '
+                 f'font-size="9.5">{n}</text>')
+        if v:
+            b.append(f'<text x="{ox+half/2}" y="{y-5}" text-anchor="middle" fill="{INK}" '
+                     f'font-size="9.5">{v}</text>')
+        if i:
+            b.append(dim_v(y, y + step, ox + half + 16, 'h', G))
+    cx = ox + half / 2
+    b.append(f'<path d="M{ox} {base} C{ox+18} {base-14} {ox+42} {base-4*step} '
+             f'{cx} {base-4*step} C{ox+half-42} {base-4*step} {ox+half-18} {base-14} '
+             f'{ox+half} {base}" fill="none" stroke="{INK}" stroke-width="1.5"/>')
+    return svg(300, 226, ''.join(b))
+
+
+reg('ls-ch1-27-contour', 96, _f27_contour())
+
+
+PLACE.update({
+    20: ('ls-ch1-20-pit', None),
+    21: ('ls-ch1-21-grid', None),
+    24: ('ls-ch1-24-foundation', None),
+    27: ('ls-ch1-27-contour', None),
+})
+
+
+
 PLACE.update({
     13: ('ls-ch1-13-grid', None),
     14: ('ls-ch1-14-network', 'ls-ch1-14-network-a'),
