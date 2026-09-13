@@ -61,10 +61,11 @@ def essay_list(request, cert_id):
               .annotate(c=Count('id'), p=Sum('points'))
               .order_by('-year', 'round'))
 
-    sections = (qs.filter(source='예상')
-                .values('section')
+    # 영역 카드 — 회차가 없는 문항 묶음(예상문제·구유형 적산)이 여기 실린다
+    sections = (qs.filter(source__in=('예상', '적산'))
+                .values('source', 'section')
                 .annotate(c=Count('id'))
-                .order_by('section'))
+                .order_by('source', 'section'))
 
     # 화면만 열었다 나간 세션은 이력을 어지럽히므로 치운다.
     # 답을 하나도 쓰지 않았고, 인쇄용 시험지도 아니고, 하루가 지난 것.
@@ -160,6 +161,10 @@ def essay_list(request, cert_id):
         'round_cards': round_cards,
         'round_years': round_years,
         'sections': sections,
+        # 영역 카드의 제목. 조경은 구유형 적산, 자연생태복원은 예상문제가 실린다
+        'section_title': ('영역별 구유형 적산'
+                          if sections and all(x['source'] == '적산' for x in sections)
+                          else '영역별 예상문제'),
         'freq_cards': freq_cards,
         'comeback_count': comeback_count,
         'notes': GisaEssayNote.objects.filter(certification=cert),
@@ -356,8 +361,8 @@ def essay_take(request, cert_id):
         code = ''
         if mode == 'paper':
             code = f'{year}-{round_}' if source == '기출' else section[:12]
-        section_val = {'예상': section, '기출': '기출', '모의': mock_label,
-                       '오답': '오답 재풀이'}.get(source, source)
+        section_val = {'예상': section, '적산': section, '기출': '기출',
+                       '모의': mock_label, '오답': '오답 재풀이'}.get(source, source)
         session = GisaEssaySession.objects.create(
             user=request.user, certification=cert,
             source=source, section=section_val,

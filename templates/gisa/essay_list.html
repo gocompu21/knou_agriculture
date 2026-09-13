@@ -546,7 +546,7 @@
         {% endfor %}
 
         {% if sections %}
-        <div class="sec-title">영역별 예상문제 <small>정답 보며 익히기</small></div>
+        <div class="sec-title">{{ section_title }} <small>정답 보며 익히기</small></div>
         <div class="card-grid">
             {% for s in sections %}
             <div class="ec">
@@ -555,7 +555,7 @@
                     <span class="ec-meta">{{ s.c }}문항</span>
                 </div>
                 <div class="ec-actions">
-                    <a class="ec-btn study" href="{% url 'gisa:essay_study' cert.pk %}?source=예상&section={{ s.section|urlencode }}">학습</a>
+                    <a class="ec-btn study" href="{% url 'gisa:essay_study' cert.pk %}?source={{ s.source|urlencode }}&section={{ s.section|urlencode }}">학습</a>
                 </div>
             </div>
             {% endfor %}
