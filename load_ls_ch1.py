@@ -43,8 +43,10 @@ SECTIONS = ['토공량', '기계화 시공', '인력·기계 운반', '재료·�
 
 
 def load():
+    # 판독 배치(_ls_ch1_01.json …)만 읽는다. 같은 앞머리를 쓰는 배포용 파일
+    # (_ls_ch1_fig_deploy.json)까지 삼키면 'section' 이 없어 터진다.
     rows = []
-    for path in sorted(glob.glob('_ls_ch1_*.json')):
+    for path in sorted(glob.glob('_ls_ch1_[0-9][0-9].json')):
         rows.extend(json.load(io.open(path, encoding='utf-8')))
     rows.sort(key=lambda r: r['number'])
     return rows
@@ -103,6 +105,14 @@ def main():
             orig_number=r['number'],
         )
         q = have.get(r['number'])
+        # **그림 자리는 add_ls_ch1_figures.py 가 주인이다.** 배치 JSON 의 본문에는
+        # `[svg]키[/svg]` 자리표시만 있고, 그림 스크립트가 그것을 SVG 로 바꾸거나
+        # (그림이 곧 답인 문항이면) 아예 답 쪽으로 옮겨 놓는다. 이미 있는 문항의
+        # 본문을 여기서 덮으면 그 배치가 통째로 되돌아간다 — 새로 만들 때만 싣고,
+        # 갱신할 때는 손대지 않는다.
+        if q is not None and '[svg]' in fields['text']:
+            fields.pop('text')
+            fields.pop('answer_text', None)
         if q is None:
             add += 1
             if apply_:
