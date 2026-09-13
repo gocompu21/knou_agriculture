@@ -2590,7 +2590,7 @@ def gisa_question_generate_exp(request, pk):
 
         client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
-            model="gemini-3-flash-preview",
+            model=settings.GEMINI_EXPLAIN_MODEL,
             contents=contents,
             config={
                 "response_mime_type": "application/json",

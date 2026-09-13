@@ -86,10 +86,14 @@ class Command(BaseCommand):
         parser.add_argument('--year', type=int, help='출제연도로 필터링 (예: 2019)')
         parser.add_argument('--force', action='store_true', help='이미 해설이 있는 문제도 덮어쓰기')
         parser.add_argument('--delay', type=float, default=0.5, help='API 호출 간 대기 시간(초) (기본: 0.5)')
-        parser.add_argument('--model', type=str, default='gemini-3-flash-preview', help='Gemini 모델 (기본: gemini-3-flash-preview)')
+        parser.add_argument('--model', type=str, default=None,
+                            help='Gemini 모델 (기본: settings.GEMINI_EXPLAIN_MODEL)')
         parser.add_argument('--dry-run', action='store_true', help='실제 API 호출 없이 대상 문제만 확인')
 
     def handle(self, *args, **options):
+        # --model 을 주지 않으면 settings 의 기본 모델. preview 를 코드에
+        # 박아 두면 그 모델이 종료된 날 명령이 통째로 죽는다.
+        model_name = options['model'] or settings.GEMINI_EXPLAIN_MODEL
         qs = Question.objects.select_related('subject').all()
 
         if options['subject']:
@@ -135,7 +139,7 @@ class Command(BaseCommand):
             self.stdout.write(f'[{i}/{total}] {question} ... ', ending='')
 
             try:
-                result = generate_explanation(client, question, options['model'])
+                result = generate_explanation(client, question, model_name)
                 save_explanation(question, result)
                 success += 1
                 self.stdout.write(self.style.SUCCESS('OK'))

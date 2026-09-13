@@ -118,6 +118,12 @@ NATURE_API_KEY = os.getenv('NATURE_API_KEY', '')
 GEMINI_ESSAY_GRADE_MODEL = os.getenv('GEMINI_ESSAY_GRADE_MODEL', 'gemini-3.7-flash')
 GEMINI_ESSAY_OCR_MODEL = os.getenv('GEMINI_ESSAY_OCR_MODEL', 'gemini-3.1-pro-preview')
 
+# 객관식(필기) 선지별 해설 생성. **preview 를 쓰지 않는다** — 예고 없이 종료되는데,
+# 학습모드의 '설명 가져오기'는 관리자가 지금도 누르는 버튼이라 그날로 깨진다.
+# 대량 생성은 이미 끝났고(방송대 8,940 · 기사 6,800여 문항) 지금은 문항을 새로
+# 넣을 때만 돈다. 각 명령의 --model 로 그때그때 바꿀 수 있다.
+GEMINI_EXPLAIN_MODEL = os.getenv('GEMINI_EXPLAIN_MODEL', 'gemini-3.7-flash')
+
 # 사용자당 하루 LLM 호출 한도 (채점·판독 각각)
 ESSAY_DAILY_GRADE_LIMIT = int(os.getenv('ESSAY_DAILY_GRADE_LIMIT', '20'))
 ESSAY_DAILY_OCR_LIMIT = int(os.getenv('ESSAY_DAILY_OCR_LIMIT', '40'))

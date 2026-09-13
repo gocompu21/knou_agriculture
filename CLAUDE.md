@@ -197,7 +197,7 @@ python manage.py generate_explanations --force
 python manage.py generate_explanations --dry-run
 
 # 모델 변경
-python manage.py generate_explanations --model gemini-3-flash-preview
+python manage.py generate_explanations --model gemini-3.7-flash
 ```
 
 ### 병렬 해설 생성
@@ -212,7 +212,8 @@ python generate_all.py
 - `DELAY` 변수로 API 호출 간격 조절 (기본 1.0초)
 - 동명 과목은 `--grade`로 자동 구분
 - Windows 환경에서 CP949 인코딩 에러 방지를 위해 UTF-8 출력 설정 포함
-- 8,940문제 전체 해설 생성 완료 (gemini-2.5-flash 사용, 현재 기본 모델: gemini-3-flash-preview)
+- 8,940문제 전체 해설 생성 완료 (당시 gemini-2.5-flash 사용)
+- **기본 모델은 `settings.GEMINI_EXPLAIN_MODEL`**(`gemini-3.7-flash`). `--model` 로 덮어쓴다
 
 ### 저장 방식
 
@@ -1388,7 +1389,7 @@ staff 사용자가 학습모드에서 문제/보기/정답/해설을 인라인�
 ### Gemini 해설 생성 (신규)
 
 - "설명 가져오기" 버튼 클릭 → `/gisa/manage/question/<pk>/generate-exp/` API 호출
-- `gisa_question_generate_exp` 뷰: Gemini API(`gemini-3-flash-preview`)로 해설 자동 생성
+- `gisa_question_generate_exp` 뷰: Gemini API(`settings.GEMINI_EXPLAIN_MODEL`)로 해설 자동 생성
 - Pydantic 모델로 구조화 응답: explanation + choice_1_exp~choice_4_exp
 - 프롬프트: `generate_gisa_explanations.py`의 `build_prompt()`와 동일
 - 생성된 해설은 편집 폼의 textarea에 자동 채움 + DB 저장
@@ -1444,7 +1445,7 @@ staff 사용자가 학습모드에서 문제/보기/정답/해설을 인라인�
 
 > 과거에 이 개편을 놓쳐 2022년 61~80번(법규·사후관리 문제)이 '경관생태학'으로 잘못 배정된 적이 있다. 연도별 과목표 분리로 수정 완료.
 - 이미지 **340개** (수식·그래프·[보기]박스) — 306문항이 이미지 포함
-- AI 해설: 전체 Gemini 해설 생성 완료 (gemini-3-flash-preview)
+- AI 해설: 전체 Gemini 해설 생성 완료 (당시 gemini-3-flash-preview)
 
 > ⚠️ **로컬 pk=6, 서버 pk=3**으로 다릅니다. 이미지 경로는 로컬 기준 `c6/`으로 생성돼 서버에도 `c6/`로 배포됐습니다(정상 동작). 서버에서 신규 문항을 추가하면 `c3/`로 생성되지만 파일명이 `eco*`로 고유해 충돌 위험은 없습니다.
 
@@ -1693,8 +1694,9 @@ ESSAY_DAILY_GRADE_LIMIT  = 20   # 사용자당 하루 채점 횟수
 ESSAY_DAILY_OCR_LIMIT    = 40   # 사용자당 하루 판독 장수
 ```
 
-> 프로젝트의 기존 해설 생성은 `gemini-3-flash-preview`(preview)를 쓰지만, **신규 코드는
-> stable을 쓴다** — preview 모델은 예고 없이 종료된다. 환경변수로 교체 가능.
+> **preview 모델은 쓰지 않는다** — 예고 없이 종료된다. 객관식 해설 생성도
+> 2026-09 에 `GEMINI_EXPLAIN_MODEL`(`gemini-3.7-flash`)로 옮겼다. 손글씨 판독만
+> 정확도 차이가 커서 preview 를 감수한다. 모두 환경변수로 교체 가능.
 
 ### 화면 (templates/gisa/)
 
