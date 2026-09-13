@@ -26,8 +26,8 @@
         return d.innerHTML;
     }
 
-    /* 농약명 안에서 단서가 되는 조각만 형광펜으로 칠한다. 어미일 때도
-       어두일 때도 있어 위치를 찾아 넣는다(자료가 앞뒤 어느 쪽이든 칠한다). */
+    /* 농약명 안에서 단서가 되는 조각만 빨갛게 쓴다(원본 PPT 와 같은 색).
+       어미일 때도 어두일 때도 있어 위치를 찾아 넣는다. */
     function markHint(name, hint) {
         if (!hint) return esc(name);
         var i = name.indexOf(hint);
@@ -142,7 +142,7 @@
                         '<b>' + esc(d.name) + '</b> 는 통째로 외우세요.</div>';
                 } else {
                     elWhy.innerHTML = '<div class="pc-hint">' + markHint(d.name, d.hint) +
-                        ' — 칠한 <b>' + esc(d.hint) + '</b> 가 ' + esc(d.answer) +
+                        ' — 빨간 <b>' + esc(d.hint) + '</b> 가 ' + esc(d.answer) +
                         '를 가리킵니다.</div>';
                 }
                 elWhy.innerHTML += '<div class="pc-pack">농약 포장은 ' +

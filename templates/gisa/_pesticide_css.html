@@ -98,8 +98,9 @@
     .pc-verdict.o { color: #1b5e20; }
     .pc-verdict.x { color: #c62828; }
     .pc-hint { font-size: 0.9rem; color: #333; line-height: 1.7; }
-    .pc-hint b { background: #fff176; border-radius: 3px; padding: 0 3px;
-        font-weight: 800; }
+    /* 단서는 **빨간 글자**다 — 원본 PPT 가 답 슬라이드에서 그렇게 칠했고,
+       그 색으로 외운 사람이 화면에서도 같은 색을 찾는다 */
+    .pc-hint b, .pc-table b { color: #d32f2f; font-weight: 800; }
     /* 포장 색 규칙 한 줄 — 답 풀이 끝에 붙는다 */
     .pc-pack { margin-top: 7px; font-size: 0.8rem; color: #7b8a80; }
     .pc-pack i { font-style: normal; font-weight: 700; border-radius: 4px;
