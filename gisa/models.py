@@ -626,3 +626,52 @@ class PesticideQuizAttempt(models.Model):
 
     def __str__(self):
         return f'{self.user.username} {self.card.name} {"O" if self.is_correct else "X"}'
+
+
+class PestCard(models.Model):
+    """사진 → 해충 이름 암기 카드 (152종).
+
+    출처는 한울회 배포 해충 슬라이드 152장(2022-V1). 슬라이드는 좌상단 해충명,
+    우상단 설명, 그 아래 사진 여러 장으로 짜여 있어 — **사진 부분만 통째로**
+    잘라 문제로 쓰고 이름과 설명은 답 화면에 보여 준다.
+
+    사진을 낱장으로 가르지 않는 까닭은 실물을 보는 감각이 살기 때문이다.
+    성충·유충·피해 사진이 한 화면에 있어야 그 해충을 안다.
+    """
+    GROUPS = [('농작물', '농작물'), ('수목', '수목')]
+
+    no = models.IntegerField('일련번호', unique=True)
+    slide = models.IntegerField('슬라이드 번호', unique=True)
+    name = models.CharField('해충명', max_length=60, unique=True)
+    group = models.CharField('구분', max_length=10, choices=GROUPS, blank=True)
+    image = models.ImageField('사진', upload_to='pests/')
+    desc = models.TextField('설명', blank=True)
+    note = models.TextField('비고', blank=True)
+
+    class Meta:
+        verbose_name = '해충 암기카드'
+        verbose_name_plural = '해충 암기카드'
+        ordering = ['no']
+
+    def __str__(self):
+        return f'{self.no}. {self.name}'
+
+
+class PestQuizAttempt(models.Model):
+    """해충 카드 풀이 기록. 카드별 최신 기록이 틀리면 오답이다."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                             related_name='pest_attempts', verbose_name='사용자')
+    card = models.ForeignKey(PestCard, on_delete=models.CASCADE,
+                             related_name='attempts', verbose_name='카드')
+    selected = models.CharField('고른 답', max_length=60, blank=True)
+    is_correct = models.BooleanField('정답 여부', default=False)
+    created_at = models.DateTimeField('시각', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '해충 카드 풀이'
+        verbose_name_plural = '해충 카드 풀이'
+        ordering = ['-created_at']
+        indexes = [models.Index(fields=['user', 'card', '-created_at'])]
+
+    def __str__(self):
+        return f'{self.user.username} {self.card.name} {"O" if self.is_correct else "X"}'

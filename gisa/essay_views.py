@@ -27,6 +27,7 @@ from django.views.decorators.http import require_POST
 from .essay_examinfo import exam_info, hm
 from .essay_topics import siblings, topic_groups
 from .pesticide import can_see as pest_can_see, stats as pest_stats
+from .pest import can_see as bug_can_see, stats as bug_stats
 from .essay_grading import grade_answer, grade_session
 from .templatetags.gisa_filters import qtext
 from main.models import QnaQuestion
@@ -154,6 +155,8 @@ def essay_list(request, cert_id):
     _tabs = ['textbook', 'study', 'solve', 'mock', 'wrong', 'history', 'qna']
     if pest_can_see(cert):
         _tabs.append('pesticide')
+    if bug_can_see(cert):
+        _tabs.append('pest')
     if tab not in _tabs:
         tab = 'textbook'
 
@@ -177,6 +180,9 @@ def essay_list(request, cert_id):
         # 92종은 자격증에 매이지 않아 두 급수가 같은 카드를 함께 쓴다.
         'pest_on': pest_can_see(cert),
         'pest_stats': pest_stats(request.user) if pest_can_see(cert) else None,
+        # 해충 DVD — 농약 DVD 바로 옆 탭. 조건은 같다(식물보호 두 급수)
+        'bug_on': bug_can_see(cert),
+        'bug_stats': bug_stats(request.user) if bug_can_see(cert) else None,
         'tb': textbook,
         'wrong_items': wrong,
         'wrong_count': len(wrong),

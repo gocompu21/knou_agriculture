@@ -1,0 +1,220 @@
+{% comment %}
+해충 DVD 암기카드 — 스크립트 조각. 쓰는 쪽 {% block extra_js %} 의 <script> 안에 넣는다.
+이름은 `_bg` 로 시작해 같은 페이지의 다른 조각(`_pc`·`wd`)과 겹치지 않게 한다.
+{% endcomment %}
+(function () {
+    var quiz = document.getElementById('bgQuiz');
+    if (!quiz) return;                       // 이 탭이 없는 자격증
+
+    var CSRF = (document.querySelector('[name=csrfmiddlewaretoken]') || {}).value || '';
+    var _bg = { mode: 'all', seen: [], card: null, busy: false, started: false };
+
+    var elImg = document.getElementById('bgImg'),
+        elCh = document.getElementById('bgChoices'),
+        elAns = document.getElementById('bgAns'),
+        elVerdict = document.getElementById('bgVerdict'),
+        elTitle = document.getElementById('bgTitle'),
+        elDesc = document.getElementById('bgDesc'),
+        elActions = document.getElementById('bgActions'),
+        elStat = document.getElementById('bgStat');
+
+    function esc(s) {
+        var d = document.createElement('div');
+        d.textContent = s == null ? '' : String(s);
+        return d.innerHTML;
+    }
+
+    function drawChoices(names, enabled) {
+        elCh.innerHTML = '';
+        names.forEach(function (c) {
+            var b = document.createElement('button');
+            b.type = 'button'; b.className = 'bg-ch'; b.textContent = c;
+            b.disabled = !enabled;
+            b.addEventListener('click', function () { pick(c, b); });
+            elCh.appendChild(b);
+        });
+    }
+
+    function showStat(s) {
+        if (!s) return;
+        elStat.innerHTML = '푼 것 <b>' + s.solved + '</b> / ' + s.total +
+                           ' · 오답 <b>' + s.wrong + '</b>';
+        var w = document.getElementById('bgWrongBtn');
+        if (w) {
+            w.textContent = '오답만' + (s.wrong ? ' (' + s.wrong + ')' : '');
+            w.disabled = s.wrong === 0 && _bg.mode !== 'wrong';
+        }
+    }
+
+    function next() {
+        if (_bg.busy) return;
+        _bg.busy = true;
+        elAns.hidden = true; elActions.hidden = true;
+        elImg.removeAttribute('src'); elCh.innerHTML = '';
+        fetch('/gisa/pest/next/?mode=' + _bg.mode + '&seen=' + _bg.seen.join(','))
+            .then(function (r) {
+                if (!r.ok) throw new Error('문제를 불러오지 못했습니다 (' + r.status + ')');
+                return r.json();
+            })
+            .then(function (d) {
+                _bg.busy = false;
+                if (d.done) {
+                    quiz.querySelector('.bg-card').innerHTML =
+                        '<div class="bg-done">' +
+                        (d.total ? '이 범위 <b>' + d.total + '종</b>을 모두 풀었습니다.<br>' +
+                                   '범위를 바꾸거나 아래에서 기록을 지우고 다시 도세요.'
+                                 : '이 범위에 낼 문제가 없습니다.') +
+                        '<div class="bg-actions" id="bgActions" style="justify-content:center;' +
+                        'margin-top:14px"><button type="button" class="bg-next" id="bgNext"' +
+                        ' style="flex:0 0 auto">처음부터 다시</button>' +
+                        '<button type="button" class="bg-sub" id="bgSideList">목록</button>' +
+                        '</div></div>';
+                    _bg.seen = [];
+                    return;
+                }
+                _bg.card = d;
+                elImg.src = d.image;
+                drawChoices(d.choices, true);
+            })
+            .catch(function (e) {
+                _bg.busy = false;
+                elCh.innerHTML = '<div class="bg-done">' + esc(e.message) + '</div>';
+            });
+    }
+
+    function pick(choice, btn) {
+        if (!_bg.card || _bg.busy) return;
+        _bg.busy = true;
+        var fd = new FormData();
+        fd.append('card', _bg.card.card);
+        fd.append('selected', choice);
+        fetch('/gisa/pest/answer/', {
+            method: 'POST', headers: { 'X-CSRFToken': CSRF }, body: fd
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                _bg.busy = false;
+                if (!d.ok) throw new Error(d.error || '채점 실패');
+                _bg.seen.push(_bg.card.card);
+
+                Array.prototype.forEach.call(elCh.children, function (b) {
+                    b.disabled = true;
+                    if (b.textContent === d.answer) b.classList.add('right');
+                    else if (b === btn) b.classList.add('wrong');
+                    else b.classList.add('dim');
+                });
+
+                elVerdict.textContent = d.correct ? '정답입니다' : '틀렸습니다';
+                elVerdict.className = 'bg-verdict ' + (d.correct ? 'o' : 'x');
+                elTitle.innerHTML = esc(d.answer) +
+                    (d.group ? '<span class="bg-badge ' + d.group + '">' +
+                               esc(d.group) + '</span>' : '');
+                elDesc.textContent = d.desc || '';
+                elAns.hidden = false;
+                elActions.hidden = false;
+                showStat(d.stats);
+            })
+            .catch(function (e) {
+                _bg.busy = false;
+                elVerdict.textContent = e.message;
+                elVerdict.className = 'bg-verdict x';
+                elAns.hidden = false;
+            });
+    }
+
+    /* 문제를 다 풀면 카드 속을 통째로 갈아 끼우므로 **처음 마크업을 복제해 둔다.** */
+    var CARD_HTML = quiz.querySelector('.bg-card').innerHTML;
+
+    function rebuild() {
+        quiz.querySelector('.bg-card').innerHTML = CARD_HTML;
+        elImg = document.getElementById('bgImg'); elCh = document.getElementById('bgChoices');
+        elAns = document.getElementById('bgAns'); elVerdict = document.getElementById('bgVerdict');
+        elTitle = document.getElementById('bgTitle'); elDesc = document.getElementById('bgDesc');
+        elActions = document.getElementById('bgActions');
+    }
+
+    function goNext() { rebuild(); next(); }
+
+    /* 단추가 카드 안에 있어 다시 그릴 때마다 사라진다 — **위임**으로 받는다 */
+    quiz.addEventListener('click', function (e) {
+        var b = e.target.closest('#bgNext, #bgSideList');
+        if (!b) return;
+        if (b.id === 'bgNext') goNext();
+        else openList();
+    });
+
+    document.querySelectorAll('.bg-mode').forEach(function (b) {
+        b.addEventListener('click', function () {
+            document.querySelectorAll('.bg-mode').forEach(function (x) {
+                x.classList.toggle('on', x === b);
+            });
+            _bg.mode = b.dataset.mode;
+            _bg.seen = [];                 // 범위를 바꾸면 처음부터
+            document.getElementById('bgList').hidden = true;
+            quiz.hidden = false;
+            goNext();
+        });
+    });
+
+    /* 목록 — 사진과 이름만 늘어놓고, 누르면 그 칸만 크게 펴서 설명을 보인다 */
+    function openList() {
+        var list = document.getElementById('bgList');
+        if (!list.dataset.loaded) {
+            fetch('/gisa/pest/list/').then(function (r) { return r.json(); })
+                .then(function (d) {
+                    var h = '';
+                    d.cards.forEach(function (c) {
+                        h += '<div class="bg-item"><img src="' + esc(c.image) +
+                             '" alt="' + esc(c.name) + '" loading="lazy">' +
+                             '<div class="nm">' + esc(c.name) +
+                             (c.group ? '<span class="bg-badge ' + c.group + '">' +
+                                        esc(c.group) + '</span>' : '') + '</div>' +
+                             '<div class="ds" hidden>' + esc(c.desc || '') + '</div></div>';
+                    });
+                    document.getElementById('bgGrid').innerHTML = h;
+                    list.dataset.loaded = '1';
+                    showStat(d.stats);
+                });
+        }
+        list.hidden = false; quiz.hidden = true;
+    }
+
+    document.getElementById('bgGrid').addEventListener('click', function (e) {
+        var it = e.target.closest('.bg-item');
+        if (!it) return;
+        var open = it.classList.toggle('open');
+        it.querySelector('.ds').hidden = !open;
+    });
+
+    document.getElementById('bgListBtn').addEventListener('click', openList);
+    document.getElementById('bgListClose').addEventListener('click', function () {
+        document.getElementById('bgList').hidden = true;
+        quiz.hidden = false;
+    });
+    document.getElementById('bgReset').addEventListener('click', function () {
+        if (!confirm('해충 카드 풀이 기록을 모두 지울까요?')) return;
+        fetch('/gisa/pest/reset/', {
+            method: 'POST', headers: { 'X-CSRFToken': CSRF }
+        }).then(function (r) { return r.json(); })
+          .then(function (d) {
+              showStat(d.stats);
+              _bg.seen = [];
+              document.getElementById('bgList').hidden = true;
+              quiz.hidden = false;
+              goNext();
+          });
+    });
+
+    /* 탭에 들어오면 첫 문제를 바로 낸다 — 잡초·농약 탭과 같은 흐름이다 */
+    function autoStart() {
+        if (_bg.started) return;
+        var box = document.getElementById('tab-pest');
+        if (!box || !box.classList.contains('active')) return;
+        _bg.started = true;
+        next();
+    }
+    autoStart();
+    document.querySelectorAll('.tab-btn').forEach(function (b) {
+        b.addEventListener('click', function () { setTimeout(autoStart, 0); });
+    });
+})();

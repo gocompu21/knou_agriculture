@@ -1,0 +1,99 @@
+{% comment %}
+해충 DVD 암기카드 — 스타일 조각. 이름은 `bg-`(bug) 로 통일했다.
+농약 DVD 가 `pc-` 를 쓰므로 겹치지 않아야 한다.
+{% endcomment %}
+    .bg-wrap { max-width: 760px; margin: 0 auto; }
+    .bg-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+        margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e4ebe6; }
+    .bg-head h3 { font-size: 1.02rem; font-weight: 800; color: #14312a; margin: 0;
+        letter-spacing: -.01em; }
+    .bg-head .sub { font-size: 0.81rem; color: #8b978f; letter-spacing: -.01em; }
+
+    .bg-modes { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .bg-mode { border: 1px solid #dde6e0; background: #fff; color: #5b6b62;
+        border-radius: 17px; padding: 6px 15px; font-size: 0.81rem; font-weight: 600;
+        cursor: pointer; transition: border-color .15s, color .15s, background .15s; }
+    .bg-mode:hover:not(.on):not(:disabled) { border-color: #b9cdc1; color: #2f4a3c; }
+    .bg-mode.on { background: #14312a; border-color: #14312a; color: #fff;
+        box-shadow: 0 1px 6px rgba(20,49,42,.22); }
+    .bg-modes:has(.on) .bg-mode:not(.on) { opacity: .55; }
+    .bg-mode:disabled { opacity: .35; cursor: default; }
+
+    .bg-card { position: relative; border: 1px solid #e6ece8; border-radius: 18px;
+        padding: 18px; background: #fff;
+        box-shadow: 0 1px 2px rgba(20,49,42,.04), 0 8px 24px -12px rgba(20,49,42,.18); }
+
+    /* 사진과 보기를 나란히. 사진이 주인공이라 넓게 쓴다 */
+    .bg-stage { display: flex; gap: 16px; align-items: flex-start; }
+    .bg-photo { flex: 1; min-width: 0; border-radius: 12px; overflow: hidden;
+        background: #f4f7f5; border: 1px solid #eceff0; }
+    .bg-photo img { display: block; width: 100%; height: auto; }
+    .bg-side { flex: 0 0 210px; display: flex; flex-direction: column; gap: 6px; }
+    .bg-choices { display: flex; flex-direction: column; gap: 6px; }
+
+    .bg-ch { border: 1.5px solid #dbe5df; background: #fff; border-radius: 9px;
+        padding: 9px 10px; font-size: 0.86rem; font-weight: 700; color: #2f4a3c;
+        letter-spacing: -.02em; cursor: pointer; text-align: left;
+        transition: background .14s, border-color .14s, transform .1s;
+        box-shadow: 0 1px 2px rgba(20,49,42,.05); }
+    .bg-ch:hover:not(:disabled) { background: #f6faf8; border-color: #bcd2c5;
+        transform: translateY(-1px); }
+    .bg-ch:disabled { cursor: default; }
+    .bg-ch.right { background: #1b5e20; border-color: #1b5e20; color: #fff; }
+    .bg-ch.wrong { background: #c62828; border-color: #c62828; color: #fff; }
+    .bg-ch.dim { opacity: .45; }
+
+    .bg-actions { display: flex; gap: 6px; margin-top: 6px; }
+    .bg-actions[hidden] { display: none; }
+    .bg-next { flex: 1; background: #14312a; color: #fff; border: 0; border-radius: 16px;
+        padding: 7px 14px; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+    .bg-sub { background: #fff; color: #5b6b62; border: 1px solid #dde6e0;
+        border-radius: 16px; padding: 6px 13px; font-size: 0.8rem; font-weight: 600;
+        cursor: pointer; }
+    .bg-sub:hover { border-color: #b9cdc1; color: #2f4a3c; }
+
+    /* 답 */
+    .bg-ans { margin-top: 16px; }
+    .bg-ans[hidden] { display: none; }
+    .bg-verdict { font-weight: 800; font-size: 0.95rem; letter-spacing: -.02em;
+        padding: 9px 13px; border-radius: 10px; text-align: center; }
+    .bg-verdict.o { color: #1b5e20; background: #eef7f0; }
+    .bg-verdict.x { color: #c62828; background: #fdf1f1; }
+    .bg-title { margin-top: 16px; padding-top: 15px; border-top: 1px solid #e8eeea;
+        font-size: 1.12rem; font-weight: 800; color: #14312a; letter-spacing: -.02em; }
+    .bg-badge { display: inline-block; margin-left: 7px; font-size: 0.72rem;
+        font-weight: 700; border-radius: 6px; padding: 2px 8px; border: 1px solid;
+        vertical-align: middle; }
+    .bg-badge.농작물 { background: #eef7f0; color: #256b32; border-color: #d8e9dc; }
+    .bg-badge.수목 { background: #f3f6fa; color: #445570; border-color: #e0e7f0; }
+    .bg-desc { margin-top: 9px; font-size: 0.86rem; color: #35423b; line-height: 1.75;
+        text-align: justify; }
+    .bg-stat { margin-top: 16px; text-align: center; font-size: 0.8rem; color: #97a49c; }
+    .bg-stat b { color: #1b4332; }
+    .bg-done { text-align: center; padding: 30px 16px; color: #55635b;
+        font-size: 0.92rem; line-height: 1.8; }
+
+    /* 목록 */
+    .bg-list { margin-top: 18px; }
+    .bg-list[hidden] { display: none; }
+    .bg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px; max-height: 62vh; overflow-y: auto; padding: 4px; }
+    .bg-item { border: 1px solid #e6ece8; border-radius: 10px; overflow: hidden;
+        background: #fff; cursor: pointer; }
+    .bg-item:hover { border-color: #b9cdc1; }
+    .bg-item img { display: block; width: 100%; height: 92px; object-fit: cover; }
+    .bg-item .nm { padding: 6px 8px; font-size: 0.78rem; font-weight: 700;
+        color: #1d2b24; letter-spacing: -.02em; }
+    /* 설명은 눌렀을 때만 편다 — 152장을 한꺼번에 펼치면 목록이 아니라 책이 된다 */
+    .bg-item .ds { padding: 0 8px 8px; font-size: 0.75rem; color: #55635b;
+        line-height: 1.65; text-align: justify; }
+    .bg-item .ds[hidden] { display: none; }
+    .bg-item.open { border-color: #14312a; grid-column: 1 / -1; }
+    .bg-item.open img { height: auto; max-height: 320px; object-fit: contain;
+        background: #f4f7f5; }
+
+    @media (max-width: 620px) {
+        .bg-stage { flex-direction: column; }
+        .bg-side { flex: 0 0 auto; width: 100%; }
+        .bg-photo { width: 100%; }
+    }

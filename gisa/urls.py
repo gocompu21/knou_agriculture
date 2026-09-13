@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import essay_views, pesticide, views
+from . import essay_views, pest, pesticide, views
 
 app_name = "gisa"
 
@@ -88,4 +88,10 @@ urlpatterns = [
     path("pesticide/answer/", pesticide.api_answer, name="pesticide_answer"),
     path("pesticide/reset/", pesticide.api_reset, name="pesticide_reset"),
     path("pesticide/list/", pesticide.api_list, name="pesticide_list"),
+
+    # 해충 DVD 암기카드 — 농약과 같이 자격증에 매이지 않는다
+    path("pest/next/", pest.api_next, name="pest_next"),
+    path("pest/answer/", pest.api_answer, name="pest_answer"),
+    path("pest/reset/", pest.api_reset, name="pest_reset"),
+    path("pest/list/", pest.api_list, name="pest_list"),
 ]

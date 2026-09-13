@@ -1,0 +1,60 @@
+{% comment %}
+해충 DVD 암기카드 — 탭 내용 조각. 사진을 보고 해충 이름을 고른다.
+카드 152종은 자격증에 매이지 않으므로 식물보호 두 급수가 같은 것을 함께 쓴다.
+{% endcomment %}
+<div class="bg-wrap">
+    <div class="bg-head">
+        <h3>해충 DVD</h3>
+        <span class="sub">사진으로 <b>해충 이름</b>을 가려냅니다 ·
+            152종 (농작물 108 · 수목 44)</span>
+    </div>
+
+    <div class="bg-modes">
+        <button type="button" class="bg-mode on" data-mode="all">전체 152</button>
+        <button type="button" class="bg-mode" data-mode="crop">농작물</button>
+        <button type="button" class="bg-mode" data-mode="tree">수목</button>
+        <button type="button" class="bg-mode" data-mode="wrong" id="bgWrongBtn">오답만
+            {% if bug_stats.wrong %}<span>({{ bug_stats.wrong }})</span>{% endif %}</button>
+        <button type="button" class="bg-sub" id="bgListBtn"
+                style="margin-left:auto;padding:5px 14px;font-size:0.82rem">목록 보기</button>
+    </div>
+
+    <div id="bgQuiz">
+        <div class="bg-card">
+            {% comment %}
+            사진이 왼쪽, 이름 넷이 오른쪽(잡초 동정과 같은 꼴). 좁은 화면에서는
+            사진 아래로 내려간다. **단추가 카드 안에 있으므로** 카드를 다시 그릴 때
+            리스너가 날아간다 — 그래서 눌림은 위임으로 받는다(`_pest_js.html`).
+            {% endcomment %}
+            <div class="bg-stage">
+                <div class="bg-photo">
+                    <img id="bgImg" alt="해충 사진" src=""
+                         style="min-height:200px">
+                </div>
+                <div class="bg-side">
+                    <div class="bg-choices" id="bgChoices"></div>
+                    <div class="bg-actions" id="bgActions" hidden>
+                        <button type="button" class="bg-next" id="bgNext">다음 문제 ›</button>
+                        <button type="button" class="bg-sub" id="bgSideList">목록</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-ans" id="bgAns" hidden>
+                <div class="bg-verdict" id="bgVerdict"></div>
+                <div class="bg-title" id="bgTitle"></div>
+                <div class="bg-desc" id="bgDesc"></div>
+            </div>
+        </div>
+
+        <div class="bg-stat" id="bgStat"></div>
+    </div>
+
+    <div class="bg-list" id="bgList" hidden>
+        <div class="bg-grid" id="bgGrid"></div>
+        <div class="bg-actions" style="margin-top:12px">
+            <button type="button" class="bg-sub" id="bgListClose">문제로 돌아가기</button>
+            <button type="button" class="bg-sub" id="bgReset">내 기록 지우기</button>
+        </div>
+    </div>
+</div>
