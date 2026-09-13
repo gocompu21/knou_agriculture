@@ -775,6 +775,391 @@ def _f27_contour():
 reg('ls-ch1-27-contour', 96, _f27_contour())
 
 
+# ── 9번. 통로박스 터파기 단면 — 문제 제시 ─────────────────────────────────
+def _f9_box():
+    """윗면 11m(3+5+3) · 아랫면 5m · 깊이 6m(여유 1m + 박스 5m), 비탈 1 : 0.5.
+    깊이 6m 에 1:0.5 면 한쪽이 3m 씩 벌어져 윗면이 11m 가 된다 — 터파기양의
+    양단면이 5 와 11 인 까닭이 이 그림에 있다."""
+    SC = 13.5                          # 1m 당 px
+    cx, top = 176, 52
+    bw, tw, d = 5 * SC, 11 * SC, 6 * SC
+    bl, br = cx - bw / 2, cx + bw / 2
+    tl, tr = cx - tw / 2, cx + tw / 2
+    b = [HATCH]
+    b.append(f'<path d="M{tl} {top} L{bl} {top+d} L{br} {top+d} L{tr} {top} Z" '
+             f'fill="#fbfcfb" stroke="{INK}" stroke-width="1.4"/>')
+    b.append(f'<line x1="{tl-20}" y1="{top}" x2="{tr+20}" y2="{top}" stroke="{INK}" '
+             f'stroke-width="1.2"/>')
+    for x in range(int(tl) + 4, int(tr), 9):
+        b.append(f'<line x1="{x}" y1="{top}" x2="{x-5}" y2="{top+7}" '
+                 f'stroke="#9aa69e" stroke-width="0.7"/>')
+    # 통로박스 — 5m 각, 벽 두께를 빗금으로 보인다
+    box = 5 * SC
+    by = top + d - box
+    b.append(f'<rect x="{bl}" y="{by}" width="{box}" height="{box}" '
+             f'fill="url(#hx)" stroke="{INK}" stroke-width="1.4"/>')
+    b.append(f'<rect x="{bl+9}" y="{by+9}" width="{box-18}" height="{box-18}" '
+             f'fill="#fff" stroke="{INK}" stroke-width="1.2"/>')
+    b.append(f'<text x="{cx}" y="{by+box/2+3.6}" text-anchor="middle" fill="{INK}" '
+             f'font-size="9.5">통로박스</text>')
+    b.append(dim_h(bl, br, top - 16, '5m', G))
+    b.append(dim_v(top, by, tl - 16, '1m', G))
+    b.append(dim_v(by, top + d, tl - 16, '5m', G))
+    b.append(f'<text x="{tl+16}" y="{top+d/2}" fill="{G}" font-size="9" '
+             f'transform="rotate(63 {tl+16} {top+d/2})">1:0.5</text>')
+    b.append(f'<text x="{tr-16}" y="{top+d/2}" text-anchor="end" fill="{G}" '
+             f'font-size="9" transform="rotate(-63 {tr-16} {top+d/2})">1:0.5</text>')
+    return svg(352, top + d + 26, ''.join(b))
+
+
+reg('ls-ch1-9-box', 84, _f9_box())
+
+
+# ── 28번. 횡단면 Ⅰ·Ⅱ — 문제 제시 ─────────────────────────────────────────
+def _f28_section():
+    """두 횡단면의 꼭짓점을 **답의 면적 계산식에서 역산했다.**
+
+    Ⅰ : 46×16 − 14×2 − ½(32×2 + 14×4.67 + 14×9.33 + 24×16) = 386.0m²
+    Ⅱ : 44×16 − 18×1.25 − ½(26×1.25 + 18×6.75 + 12×8 + 24×16) = 364.5m²
+
+    빼는 삼각형의 밑변·높이가 곧 꼭짓점 좌표라, 비탈 1:1.5 와도 모두
+    들어맞는다(Ⅰ 왼쪽 14m 에 9.33m, 오른쪽 24m 에 16m).
+    """
+    SC = 3.5                            # 1m 당 px
+    def one(ox, name, tops, bots, depth, dleft, dmid):
+        """tops (왼쪽 구간, 오른쪽 구간) · bots (왼·가운데·오른) · depth 전체 깊이"""
+        w = sum(tops)
+        kink = tops[0]                  # 윗면이 꺾이는 자리
+        b0 = bots[0]                    # 바닥 왼쪽 끝
+        b1 = bots[0] + bots[1]          # 바닥 오른쪽 끝
+        X = lambda m: ox + m * SC       # noqa: E731
+        Y = lambda m: 66 + m * SC       # noqa: E731
+        p = [(X(0), Y(dleft)), (X(kink), Y(dmid)), (X(w), Y(0)),
+             (X(b1), Y(depth)), (X(b0), Y(depth))]
+        s = ['<polygon points="' + ' '.join(f'{x:.1f},{y:.1f}' for x, y in p)
+             + f'" fill="#fbfcfb" stroke="{INK}" stroke-width="1.5"/>']
+        s.append(f'<line x1="{X(0)-6}" y1="{Y(0)}" x2="{X(w)+6}" y2="{Y(0)}" '
+                 f'stroke="{INK}" stroke-width="1.1"/>')
+        # 가운데 깊이 표시 — 기준선에서 윗면 꺾임까지
+        s.append(f'<line x1="{X(kink)}" y1="{Y(0)}" x2="{X(kink)}" y2="{Y(dmid)}" '
+                 f'stroke="{INK}" stroke-width="0.9"/>')
+        s.append(f'<text x="{X(kink)+8}" y="{Y(dmid)+4}" fill="{INK}" '
+                 f'font-size="9">{dmid}m</text>')
+        # 위·아래 치수줄
+        s.append(dim_h(X(0), X(kink), Y(0) - 30, f'{tops[0]}m', G))
+        s.append(dim_h(X(kink), X(w), Y(0) - 30, f'{tops[1]}m', G))
+        yy = Y(depth) + 24
+        s.append(dim_h(X(0), X(b0), yy, f'{bots[0]}m', G))
+        s.append(dim_h(X(b0), X(b1), yy, f'{bots[1]}m', G))
+        s.append(dim_h(X(b1), X(w), yy, f'{bots[2]}m', G))
+        # 비탈 표기
+        s.append(f'<text x="{X(b0/2)-4}" y="{Y((dleft+depth)/2)}" fill="{G}" '
+                 f'font-size="8.5" transform="rotate(34 {X(b0/2)-4} '
+                 f'{Y((dleft+depth)/2)})">1:1.5</text>')
+        s.append(f'<text x="{X((b1+w)/2)}" y="{Y(depth/2)}" fill="{G}" '
+                 f'font-size="8.5" transform="rotate(-34 {X((b1+w)/2)} '
+                 f'{Y(depth/2)})">1:1.5</text>')
+        s.append(f'<text x="{X(w/2)}" y="{Y(depth*0.62)}" text-anchor="middle" '
+                 f'fill="{INK}" font-size="12" font-weight="700">{name}</text>')
+        return ''.join(s)
+
+    b = [one(30, 'Ⅰ', (14, 32), (14, 8, 24), 16, 6.67, 2),
+         one(232, 'Ⅱ', (18, 26), (12, 8, 24), 16, 8, 1.25)]
+    return svg(400, 66 + 16 * SC + 40, ''.join(b))
+
+
+reg('ls-ch1-28-section', 96, _f28_section())
+
+
+# ── 29번. 절·성토 종단 모식도 — 문제 제시 ─────────────────────────────────
+def _f29_fill():
+    """가운데 언덕을 깎아 좌우 두 웅덩이(A·B)를 메운다. 언덕은 위가 점성토
+    6,000m³, 아래가 사질토 7,000m³ 로 두 켜다 — 어느 흙을 어디에 쓰는지가
+    문제의 전부라 켜를 갈라 그린다."""
+    b = []
+    GL = 118                                  # 계획고
+    b.append(f'<line x1="20" y1="{GL}" x2="380" y2="{GL}" stroke="{INK}" '
+             f'stroke-width="1.2"/>')
+    b.append(f'<text x="378" y="{GL-6}" text-anchor="end" fill="{INK}" '
+             f'font-size="9.5">계획고</text>')
+    # A 지역 — 왼쪽 웅덩이(파선)
+    b.append(f'<path d="M40 {GL} C60 {GL+44} 110 {GL+44} 130 {GL}" fill="none" '
+             f'stroke="{INK}" stroke-width="1.2" stroke-dasharray="5 3"/>')
+    b.append(f'<text x="85" y="{GL+26}" text-anchor="middle" fill="{INK}" '
+             f'font-size="10">A</text>')
+    b.append(f'<text x="85" y="{GL+58}" text-anchor="middle" fill="{INK}" '
+             f'font-size="9">사질토 성토 : 3,500m³</text>')
+    # 가운데 언덕 — 아래 사질토, 위 점성토
+    hill = f'M130 {GL} C150 {GL-36} 168 {GL-74} 200 {GL-74} C232 {GL-74} 250 {GL-36} 270 {GL}'
+    b.append(f'<path d="{hill} Z" fill="#f2f6f2" stroke="{INK}" stroke-width="1.4"/>')
+    # 켜 경계는 언덕 안에서만 그린다 — 윤곽보다 길게 그으면 밖으로 삐져나온다
+    b.append(f'<path d="M162 {GL-46} C182 {GL-56} 218 {GL-56} 238 {GL-46}" fill="none" '
+             f'stroke="{INK}" stroke-width="1.1"/>')
+    b.append(f'<text x="200" y="{GL-62}" text-anchor="middle" fill="{INK}" '
+             f'font-size="9">점성토 : 6,000m³</text>')
+    b.append(f'<text x="200" y="{GL-26}" text-anchor="middle" fill="{INK}" '
+             f'font-size="9">사질토 : 7,000m³</text>')
+    # B 지역 — 오른쪽 웅덩이
+    b.append(f'<path d="M270 {GL} C290 {GL+44} 340 {GL+44} 360 {GL}" fill="none" '
+             f'stroke="{INK}" stroke-width="1.2" stroke-dasharray="5 3"/>')
+    b.append(f'<text x="315" y="{GL+26}" text-anchor="middle" fill="{INK}" '
+             f'font-size="10">B</text>')
+    b.append(f'<text x="315" y="{GL+58}" text-anchor="middle" fill="{INK}" '
+             f'font-size="9">점성토 성토 : 4,000m³</text>')
+    return svg(400, GL + 74, ''.join(b))
+
+
+reg('ls-ch1-29-fill', 97, _f29_fill())
+
+
+# ── 30번. 공기–공비 곡선 (M.C.X) — 문제 제시 ──────────────────────────────
+def _f30_cpm():
+    """공기를 줄이면 공비가 오른다. 오른쪽 아래 끝 F 가 표준점(표준공기 C,
+    표준비용 B), 왼쪽 위 끝 E 가 특급점(특급공기 D, 특급비용 A)이다.
+    두 점을 잇는 기울기가 비용구배이며, 26번 M.C.X 가 쓰는 값이 바로 그것이다."""
+    OX, OY, W, H = 78, 214, 216, 168      # 원점과 축 길이
+    ex, ey = OX + 74, OY - 124            # 특급점 E
+    fx, fy = OX + 152, OY - 72            # 표준점 F
+    b = []
+    b.append(f'<line x1="{OX}" y1="{OY}" x2="{OX}" y2="{OY-H}" stroke="{INK}" '
+             f'stroke-width="1.3" marker-end="url(#arw)"/>')
+    b.append(f'<line x1="{OX}" y1="{OY}" x2="{OX+W}" y2="{OY}" stroke="{INK}" '
+             f'stroke-width="1.3" marker-end="url(#arw)"/>')
+    b.append(HATCH)
+    b.append(f'<text x="{OX-4}" y="{OY-H-4}" text-anchor="middle" fill="{INK}" '
+             f'font-size="9.5">공비</text>')
+    b.append(f'<text x="{OX+W+6}" y="{OY+4}" fill="{INK}" font-size="9.5">공기</text>')
+    b.append(f'<path d="M{OX+30} {OY-152} C{OX+56} {OY-128} {ex} {ey} {ex} {ey} '
+             f'C{ex+34} {ey+34} {fx-26} {fy+6} {fx} {fy} '
+             f'C{fx+24} {fy+5} {fx+44} {fy+11} {OX+W-16} {fy+15}" '
+             f'fill="none" stroke="{INK}" stroke-width="1.6"/>')
+    for x, y, n in ((ex, ey, 'E'), (fx, fy, 'F')):
+        b.append(f'<circle cx="{x}" cy="{y}" r="2.6" fill="{INK}"/>'
+                 f'<text x="{x+6}" y="{y-6}" fill="{INK}" font-size="10.5" '
+                 f'font-weight="700">{n}</text>')
+        b.append(f'<line x1="{OX}" y1="{y}" x2="{x}" y2="{y}" stroke="#9aa69e" '
+                 f'stroke-width="0.8" stroke-dasharray="4 3"/>')
+        b.append(f'<line x1="{x}" y1="{y}" x2="{x}" y2="{OY}" stroke="#9aa69e" '
+                 f'stroke-width="0.8" stroke-dasharray="4 3"/>')
+    # 세로 치수 A(특급비용)·B(표준비용)
+    b.append(dim_v(ey, OY, OX - 34, 'A', G))
+    b.append(dim_v(fy, OY, OX - 16, 'B', G))
+    # 가로 치수 D(특급공기)·C(표준공기)
+    b.append(dim_h(OX, ex, OY + 20, 'D', G))
+    b.append(dim_h(OX, fx, OY + 40, 'C', G))
+    return svg(340, OY + 56, ''.join(b))
+
+
+reg('ls-ch1-30-cpm', 98, _f30_cpm())
+
+
+# ── 32번. 독립기초 평면도·단면도 — 문제 제시 ──────────────────────────────
+def _f32_footing():
+    """1,700 각(600+500+600) 기초 10개소. 평면도에 가로근·세로근 D16@200 과
+    대각선근 D16-3 을, 단면도에 밑판 300 + 절두각뿔 400 을 그린다.
+    경사면 기울기가 0.4/0.6 로 tan30° 를 넘어 거푸집을 계상해야 하는데,
+    그 기울기가 곧 이 단면의 모양이다."""
+    b = []
+    ox, oy, S = 44, 44, 108
+    a, mid = S * 600 / 1700, S * 500 / 1700
+    b.append(f'<rect x="{ox}" y="{oy}" width="{S}" height="{S}" fill="none" '
+             f'stroke="{INK}" stroke-width="1.3"/>')
+    ix, iy = ox + a, oy + a
+    b.append(f'<rect x="{ix}" y="{iy}" width="{mid}" height="{mid}" fill="#f3f6f3" '
+             f'stroke="{INK}" stroke-width="1.3"/>')
+    for p, q in (((ox, oy), (ix, iy)), ((ox + S, oy), (ix + mid, iy)),
+                 ((ox, oy + S), (ix, iy + mid)), ((ox + S, oy + S), (ix + mid, iy + mid))):
+        b.append(f'<line x1="{p[0]}" y1="{p[1]}" x2="{q[0]}" y2="{q[1]}" '
+                 f'stroke="{INK}" stroke-width="1"/>')
+    # 배근 — 오른쪽 절반에만 그려 도형을 가리지 않는다(원도와 같다)
+    for i in range(1, 9):
+        t = ox + S / 2 + (S / 2) * i / 9
+        b.append(f'<line x1="{t:.1f}" y1="{oy}" x2="{t:.1f}" y2="{oy+S}" '
+                 f'stroke="#9aa69e" stroke-width="0.6"/>')
+        t2 = oy + (S) * i / 9
+        b.append(f'<line x1="{ox+S/2}" y1="{t2:.1f}" x2="{ox+S}" y2="{t2:.1f}" '
+                 f'stroke="#9aa69e" stroke-width="0.6"/>')
+    for k in range(3):
+        d = 10 + k * 9
+        b.append(f'<line x1="{ox+S/2+d}" y1="{oy}" x2="{ox+S}" y2="{oy+S-d}" '
+                 f'stroke="{G2}" stroke-width="0.9"/>')
+    for t, yy in (('D16-3', oy + 16), ('D16@200', oy + 46), ('D16@200', oy + 80)):
+        b.append(f'<line x1="{ox+S}" y1="{yy}" x2="{ox+S+10}" y2="{yy}" stroke="{INK}" '
+                 f'stroke-width="0.7"/>'
+                 f'<text x="{ox+S+13}" y="{yy+3.4}" fill="{INK}" font-size="9">{t}</text>')
+    b.append(dim_h(ox, ox + S, oy - 26, '1,700', G))
+    b.append(dim_h(ox, ix, oy - 12, '600', G))
+    b.append(dim_h(ix, ix + mid, oy - 12, '500', G))
+    b.append(dim_h(ix + mid, ox + S, oy - 12, '600', G))
+    b.append(dim_v(oy, oy + S, ox - 14, '1,700', G))
+    b.append(f'<text x="{ox+S/2}" y="{oy+S+22}" text-anchor="middle" fill="{INK}" '
+             f'font-size="10">&lt;평 면 도&gt;</text>')
+    # 단면도
+    sx, sy, W2 = 246, 60, 108
+    aa, mm = W2 * 600 / 1700, W2 * 500 / 1700
+    H1, H2 = 26, 34                        # 밑판 300 · 절두각뿔 400
+    cl, cr = sx + aa, sx + aa + mm
+    b.append(f'<path d="M{sx} {sy+H2} L{cl} {sy} L{cr} {sy} L{sx+W2} {sy+H2} Z" '
+             f'fill="#eef2ee" stroke="{INK}" stroke-width="1.3"/>')
+    b.append(f'<rect x="{sx}" y="{sy+H2}" width="{W2}" height="{H1}" fill="#eef2ee" '
+             f'stroke="{INK}" stroke-width="1.3"/>')
+    b.append(dim_h(sx, sx + W2, sy - 26, '1,700', G))
+    b.append(dim_h(sx, cl, sy - 12, '600', G))
+    b.append(dim_h(cl, cr, sy - 12, '500', G))
+    b.append(dim_h(cr, sx + W2, sy - 12, '600', G))
+    b.append(dim_v(sy, sy + H2, sx + W2 + 14, '400', G))
+    b.append(dim_v(sy + H2, sy + H2 + H1, sx + W2 + 14, '300', G))
+    b.append(dim_v(sy, sy + H2 + H1, sx + W2 + 36, '700', G))
+    b.append(f'<text x="{sx+W2/2}" y="{sy+H2+H1+24}" text-anchor="middle" fill="{INK}" '
+             f'font-size="10">&lt;단 면 도&gt;</text>')
+    return svg(400, 190, ''.join(b))
+
+
+reg('ls-ch1-32-footing', 98, _f32_footing())
+
+
+# ── 33번. 승강식 수준측량도 — 문제 제시 ───────────────────────────────────
+def _f33_level():
+    """A 와 C 는 **머리 위 구조물**이라 표척을 거꾸로 세워 읽는다(−3.10, −2.56,
+    −4.21). 그래서 야장에서 빼면 오히려 더해져 A 가 가장 높다(77.15m).
+    그 사실이 그림에 드러나야 문제가 풀린다 — 위쪽 구조물과 거꾸로 선 표척을
+    함께 그린다."""
+    b = ['<defs><pattern id="p33" width="6" height="6" patternUnits="userSpaceOnUse">'
+         '<circle cx="1.6" cy="1.6" r="0.8" fill="#c3cbc4"/>'
+         '<circle cx="4.4" cy="4.4" r="0.7" fill="#c3cbc4"/></pattern></defs>']
+    # 머리 위 구조물 — 왼쪽이 높고 오른쪽이 한 단 낮다
+    b.append(f'<path d="M28 14 L212 14 L246 40 L378 40 L378 0 L28 0 Z" '
+             f'fill="url(#p33)" stroke="{INK}" stroke-width="1.3"/>')
+    # 땅 — 계단식, 오른쪽으로 내려간다
+    b.append(f'<path d="M28 168 L58 168 L58 150 L196 150 L196 166 L238 166 L238 182 '
+             f'L286 182 L286 196 L332 196 L332 210 L378 210 L378 226 L28 226 Z" '
+             f'fill="url(#p33)" stroke="{INK}" stroke-width="1.3"/>')
+    def staff(x, y1, y2):
+        return (f'<rect x="{x-3}" y="{min(y1,y2)}" width="6" height="{abs(y2-y1)}" '
+                f'fill="#fff" stroke="{INK}" stroke-width="1.1"/>')
+    def tripod(x, y, gy):
+        return (f'<line x1="{x}" y1="{y}" x2="{x-10}" y2="{gy}" stroke="{INK}" '
+                f'stroke-width="1"/><line x1="{x}" y1="{y}" x2="{x+10}" y2="{gy}" '
+                f'stroke="{INK}" stroke-width="1"/>'
+                f'<line x1="{x}" y1="{y}" x2="{x}" y2="{gy}" stroke="{INK}" '
+                f'stroke-width="1"/>'
+                f'<rect x="{x-11}" y="{y-6}" width="22" height="9" fill="#fff" '
+                f'stroke="{INK}" stroke-width="1.1"/>')
+    b.append(staff(60, 150, 88))          # B.M — 땅에서 위로
+    b.append(staff(118, 14, 88))          # A — 구조물에서 거꾸로
+    b.append(staff(198, 150, 88))         # B
+    b.append(staff(252, 40, 112))         # C — 아래 구조물에서 거꾸로
+    b.append(staff(340, 196, 112))        # D
+    b.append(tripod(156, 92, 150))
+    b.append(tripod(298, 116, 182))
+    for x, y, t, an in ((66, 84, '1.75', 'start'), (124, 84, '3.10', 'start'),
+                        (192, 84, '1.49', 'end'), (246, 108, '2.56', 'end'),
+                        (258, 108, '4.21', 'start'), (334, 108, '4.20', 'end')):
+        b.append(f'<text x="{x}" y="{y}" text-anchor="{an}" fill="{INK}" '
+                 f'font-size="9.5">{t}</text>')
+    for x, y, t, an in ((62, 180, 'B.M', 'start'), (118, 26, 'A', 'middle'),
+                        (198, 146, 'B', 'middle'), (252, 52, 'C', 'middle'),
+                        (340, 208, 'D', 'middle')):
+        b.append(f'<text x="{x}" y="{y}" text-anchor="{an}" fill="{INK}" '
+                 f'font-size="10" font-weight="700">{t}</text>')
+    return svg(400, 236, ''.join(b))
+
+
+reg('ls-ch1-33-level', 99, _f33_level())
+
+
+# ── 35번. 소광장 정지계획 — 문제 제시 ─────────────────────────────────────
+def _f35_grading():
+    """부지 10,000 × 5,000, 위쪽 두 모서리가 45.5m. 아래로 2% 물매를 주므로
+    5m 에 0.1m 가 내려가 A·B 는 45.4m 가 된다. 파선이 기존 등고선(40~46)이다."""
+    b = []
+    L, R, T, B_ = 118, 268, 96, 172
+    for i, lv in enumerate(range(46, 39, -1)):
+        y = 88 + i * 27
+        b.append(f'<path d="M34 {y+10} C90 {y+2} 150 {y-6} 214 {y-8} '
+                 f'C268 {y-10} 320 {y-4} 374 {y+2}" fill="none" stroke="{INK}" '
+                 f'stroke-width="1" stroke-dasharray="6 4"/>')
+        b.append(f'<text x="28" y="{y+13}" text-anchor="end" fill="{INK}" '
+                 f'font-size="9.5">{lv}</text>')
+    b.append(f'<rect x="{L}" y="{T}" width="{R-L}" height="{B_-T}" fill="#eaf3ea" '
+             f'fill-opacity="0.85" stroke="{INK}" stroke-width="1.6"/>')
+    for x in (L + 12, R - 12):
+        b.append(f'<rect x="{x-14}" y="{T+3}" width="28" height="13" fill="#fff" '
+                 f'stroke="{INK}" stroke-width="0.9"/>'
+                 f'<text x="{x}" y="{T+13}" text-anchor="middle" fill="{INK}" '
+                 f'font-size="9">45.5</text>')
+    cx = (L + R) / 2
+    b.append(f'<line x1="{cx}" y1="{T+22}" x2="{cx}" y2="{B_-10}" stroke="{INK}" '
+             f'stroke-width="1.2" marker-end="url(#arw)"/>')
+    b.append(HATCH)
+    b.append(f'<text x="{cx+5}" y="{(T+B_)/2}" fill="{INK}" font-size="9.5">2%</text>')
+    b.append(f'<text x="{L+3}" y="{B_+12}" fill="{INK}" font-size="10" '
+             f'font-weight="700">A</text>')
+    b.append(f'<text x="{R-3}" y="{B_+12}" text-anchor="end" fill="{INK}" '
+             f'font-size="10" font-weight="700">B</text>')
+    b.append(dim_h(L, R, T - 14, '10,000', G))
+    b.append(dim_v(T, B_, R + 20, '5,000', G))
+    return svg(400, 286, ''.join(b))
+
+
+reg('ls-ch1-35-grading', 100, _f35_grading())
+
+
+# ── 37번. 횡단면적 — 문제 제시 ────────────────────────────────────────────
+def _f37_area():
+    """꼭짓점을 **답의 계산식에서 역산했다** —
+    A = (5.0×3.0 + 6.0×4.0) − ½(2.0×1.0 + 5.0×2.0 + 3.0×4.0 + 6.0×1.0) = 24m².
+    빼는 네 삼각형의 밑변·높이가 곧 좌표라 (0,1)·(5,3)·(11,4)·(8,0)·(2,0) 하나로
+    풀린다. 바닥 눈금은 중심선에서 잰 거리(5.0·3.0·0.0·3.0·6.0)다."""
+    SC, OX, BASE = 24, 60, 178
+    X = lambda m: OX + m * SC          # noqa: E731
+    Y = lambda m: BASE - m * SC        # noqa: E731
+    pts = [(0, 1), (5, 3), (11, 4), (8, 0), (2, 0)]
+    b = ['<polygon points="' + ' '.join(f'{X(x)},{Y(y)}' for x, y in pts)
+         + f'" fill="#f3f6f3" stroke="{INK}" stroke-width="1.6"/>']
+    b.append(f'<line x1="{X(-0.6)}" y1="{BASE}" x2="{X(11.6)}" y2="{BASE}" '
+             f'stroke="{INK}" stroke-width="1"/>')
+    # 중심선과 좌우 끝의 세로 보조선
+    for m, top in ((0, 1), (5, 3), (11, 4)):
+        b.append(f'<line x1="{X(m)}" y1="{Y(top)}" x2="{X(m)}" y2="{BASE}" '
+                 f'stroke="#9aa69e" stroke-width="0.8" stroke-dasharray="4 3"/>')
+    b.append(f'<line x1="{X(5)}" y1="{Y(3)}" x2="{X(5)}" y2="{BASE}" stroke="{INK}" '
+             f'stroke-width="1"/>')
+    for m, t, an in ((0, '1.0', 'end'), (5, '3.0', 'middle'), (11, '4.0', 'start')):
+        top = dict(((0, 1), (5, 3), (11, 4)))[m]
+        b.append(f'<text x="{X(m) + (-5 if an == "end" else 5 if an == "start" else 0)}" '
+                 f'y="{Y(top) - 6}" text-anchor="{an}" fill="{INK}" '
+                 f'font-size="9.5">{t}</text>')
+    for m, t in ((0, '5.0'), (2, '3.0'), (5, '0.0'), (8, '3.0'), (11, '6.0')):
+        b.append(f'<line x1="{X(m)}" y1="{BASE}" x2="{X(m)}" y2="{BASE+6}" '
+                 f'stroke="{INK}" stroke-width="0.9"/>')
+        b.append(f'<text x="{X(m)}" y="{BASE+19}" text-anchor="middle" fill="{INK}" '
+                 f'font-size="9.5">{t}</text>')
+    b.append(f'<text x="{X(11.8)}" y="{BASE+19}" fill="#666" font-size="9">(단위 m)</text>')
+    return svg(X(13.6), BASE + 32, ''.join(b))
+
+
+reg('ls-ch1-37-area', 101, _f37_area())
+
+
+PLACE.update({
+    32: ('ls-ch1-32-footing', None),
+    33: ('ls-ch1-33-level', None),
+    35: ('ls-ch1-35-grading', None),
+    37: ('ls-ch1-37-area', None),
+})
+
+
+
+PLACE.update({
+    9: ('ls-ch1-9-box', None),
+    28: ('ls-ch1-28-section', None),
+    29: ('ls-ch1-29-fill', None),
+    30: ('ls-ch1-30-cpm', None),
+})
+
+
+
 PLACE.update({
     20: ('ls-ch1-20-pit', None),
     21: ('ls-ch1-21-grid', None),
