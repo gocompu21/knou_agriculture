@@ -92,9 +92,10 @@
         width: calc(100% + 20px); max-width: none !important; box-sizing: border-box; }
     .sq-img { display: block; max-width: min(100%, 420px); margin: 8px 0; }
 
-    /* 정답 영역 */
+    /* 정답 영역. .sq-text 안에 있어 매달린 들여쓰기(text-indent:-20px)를 물려받는다.
+     * 그대로 두면 '계산)'·'답)' 의 첫 글자가 왼쪽 초록 띠 위로 올라타 잘려 보인다. */
     .ans { background: #f7faf8; border-left: 3px solid #2d6a4f;
-        border-radius: 0 8px 8px 0; padding: 12px 16px; }
+        border-radius: 0 8px 8px 0; padding: 12px 16px; text-indent: 0; }
     .ans.hidden { display: none; }
     /* ① ② ③ 항목의 매달린 들여쓰기는 qtext 가 줄 단위로 넣는다 */
     .ans-item { font-size: 0.9rem; line-height: 1.8; color: #1f3d30;

@@ -193,21 +193,25 @@ _UNIT = re.compile(
     r"^(?:[gkmcLl]|㎡|m²|m2|본|입|개체|주|ha|㏊|kg|mg|cm|mm|km|년|일|초|회)$")
 _FRAC = re.compile(r"(%s)\s*/\s*(%s)" % (_FRAC_TERM, _FRAC_TERM))
 # 분수는 인라인 블록을 vertical-align:middle 로 앉힌다 — 분수막이 등호·
-# 부등호가 그려지는 x-height 중앙과 같은 높이가 된다. 앞뒤는 &nbsp; 로
-# 띄운다(일반 공백은 렌더링 과정에서 눌려 기호와 분수가 붙어 보였다).
+# 부등호가 그려지는 x-height 중앙과 같은 높이가 된다.
+#
+# 앞뒤 간격은 **margin 으로만** 준다. 예전에는 `&nbsp;` 를 덧대었는데
+# 그것은 줄바꿈이 안 되는 공백이라 `1 ×[분수]= 0.0015인` 이 통째로 한 덩어리가
+# 됐다. 박스 폭을 4px 만 넘겨도 줄이 접히지 못해 가로 스크롤바가 생기고,
+# 스크롤된 채로 보면 줄머리 글자가 잘렸다.
 _FRAC_STYLE = (
     "display:inline-block;vertical-align:middle;text-align:center;"
-    "margin:0 .3em;line-height:1.3;font-size:0.95em;"
+    "margin:0 .45em;line-height:1.25;font-size:0.95em;"
 )
 
 
 def frac_span(num, den):
     """세로 분수 마크업 — [eq] 박스와 학습자료의 공식 줄이 함께 쓴다."""
     return (
-        '&nbsp;<span style="%s">'
-        '<span style="display:block;padding:0 .35em">%s</span>'
+        '<span style="%s">'
+        '<span style="display:block;padding:0 .4em .06em">%s</span>'
         '<span style="display:block;border-top:1px solid currentColor;'
-        'padding:0 .35em">%s</span></span>&nbsp;'
+        'padding:.06em .4em 0">%s</span></span>'
     ) % (_FRAC_STYLE, num, den)
 
 
@@ -238,7 +242,14 @@ _EQ_STYLE = (
     # 떨어져, 박스 안 한글만 본문과 다른 글씨가 됐다.
     "font-family:'Cambria Math','Times New Roman','SUIT',sans-serif;"
     "font-size:1em;"
-    "line-height:2;letter-spacing:0.01em;overflow-x:auto;"
+    "line-height:2;letter-spacing:0.01em;"
+    # text-indent 는 상속된다. 학습 화면의 .sq-text 가 문제번호 정렬로 -20px 를
+    # 주고 있어, 그대로 두면 박스 **첫 줄만** 왼쪽으로 20px 끌려 나가 ㉠ 과 ㉡·㉢
+    # 의 줄머리가 어긋났다. 박스 안에서는 0 으로 되돌린다.
+    "text-indent:0;"
+    # 가로 스크롤 대신 줄을 접는다. overflow-x:auto 를 쓰면 scrollWidth 가 늘
+    # border-left(3px) 만큼 크게 잡혀, 내용이 넘치지 않아도 늘 스크롤바가 그려졌다.
+    "overflow-wrap:anywhere;"
 )
 
 # 붙어 있는 연산 기호는 좌우로 띄운다 — 0.7−0.1+0.3−0.1=0.8 처럼
@@ -348,8 +359,10 @@ def _render_qtext(value):
     # 계산 문항의 '계산)' 아래 풀이는 한 단 들여써서 라벨과 구분한다
     m = re.match(r'계산\)\s*\n(.+)$', text, re.DOTALL)
     if m:
+        # q-box 와 같은 이유로 text-indent 를 0 으로 되돌린다 — 바깥에서 상속된
+        # 매달린 들여쓰기가 이 블록의 첫 줄만 왼쪽으로 끌어낸다.
         text = ('계산)\n<span class="q-calc" style="display:block;'
-                'padding-left:1.1em">' + m.group(1) + '</span>')
+                'text-indent:0;padding-left:1.1em">' + m.group(1) + '</span>')
 
     # ① ② ③ 으로 시작하는 줄은 줄이 넘어갈 때 번호 뒤 글자 자리에서 이어지게
     # 매달린 들여쓰기를 준다(번호 아래로 문장이 들어가면 항목 경계가 흐려진다).
