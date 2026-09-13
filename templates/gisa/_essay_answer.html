@@ -1,0 +1,23 @@
+{% comment %}
+답 영역의 속(答 항목 · 답 서술 · 그림 · 해설).
+
+학습 화면이 처음 그릴 때와, 관리자가 고친 뒤 그 자리만 갈아 끼울 때
+(essay_question_update 가 렌더해 돌려준다) **같은 조각**을 쓴다.
+두 벌로 두면 고칠 때마다 한쪽을 빠뜨린다.
+{% endcomment %}
+{% load gisa_filters %}
+{% for it in q.answer_items %}
+<div class="ans-item">{{ it|qtext }}</div>
+{% endfor %}
+{% if q.answer_text %}<div class="ans-text">{{ q.answer_text|qtext }}</div>{% endif %}
+{% if q.answer_image %}<img class="sq-img" style="margin-left:0" src="{{ q.answer_image|vurl }}" alt="">{% endif %}
+
+{% if q.reference or q.reference_image %}
+<details class="ans-ref">
+    <summary>해설</summary>
+    <div class="body">
+        {% if q.reference %}{{ q.reference|qtext }}{% endif %}
+        {% if q.reference_image %}<img class="sq-img" style="margin-left:0" src="{{ q.reference_image|vurl }}" alt="">{% endif %}
+    </div>
+</details>
+{% endif %}

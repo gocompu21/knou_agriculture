@@ -1070,3 +1070,83 @@ def essay_note(request, cert_id, slug):
         'has_freq': any(x['freq'] for x in items),
         'warned_count': sum(1 for x in items if x['warned']),
     })
+
+
+# ── 관리자 인라인 편집 ────────────────────────────────────────────────────
+# 판독본에 오식이 남아 있고 그림이 원도와 다른 것이 학습 화면에서야 드러난다.
+# 그때마다 스크립트를 새로 써서 고치는 것은 느리고, 무엇을 고쳤는지도 흩어진다.
+# 화면에서 바로 고칠 수 있게 두되 **스태프만** 쓴다.
+_EDIT_FIELDS = ('text', 'answer_text', 'reference')
+
+# 글자 수 상한 — 사람이 손으로 적는 칸은 넉넉히, 답 서술은 자작 SVG 가 통째로
+# 들어가므로(뿌리분 그림이 3,700자다) 훨씬 크게 잡는다.
+_EDIT_MAX = {'text': 20000, 'answer_text': 200000, 'reference': 20000}
+_ITEM_MAX = 8000
+
+
+@login_required
+@require_POST
+def essay_question_update(request, cert_id, question_id):
+    """문제문·답 항목·답 서술·해설을 고친다 (스태프 전용, AJAX).
+
+    고친 뒤에는 **그 자리만 다시 그려 돌려준다** — 새로 고치면 열어 둔 답이
+    도로 접히고 읽던 자리를 잃는다. 문제문은 qtext 를 그대로 태우고, 답 영역은
+    화면과 같은 조각(`gisa/_essay_answer.html`)을 렌더한다.
+    """
+    if not request.user.is_staff:
+        return JsonResponse({'ok': False, 'error': '권한이 없습니다.'}, status=403)
+
+    q = get_object_or_404(GisaEssayQuestion, pk=question_id, certification_id=cert_id)
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({'ok': False, 'error': '본문을 읽지 못했습니다.'}, status=400)
+
+    changed = []
+
+    # 답 항목 — 빈 칸은 버린다(화면에서 × 로 지우지 않고 비워 두는 사람이 있다)
+    if 'items' in data:
+        raw = data['items']
+        if not isinstance(raw, list):
+            return JsonResponse({'ok': False, 'error': '답 항목 형식이 잘못됐습니다.'},
+                                status=400)
+        items = [str(x).strip() for x in raw]
+        items = [x for x in items if x]
+        if any(len(x) > _ITEM_MAX for x in items):
+            return JsonResponse({'ok': False, 'error': '답 항목이 너무 깁니다.'},
+                                status=400)
+        if items != q.answer_items:
+            q.answer_items = items
+            changed.append('answer_items')
+
+    for f in _EDIT_FIELDS:
+        if f not in data:
+            continue
+        v = str(data[f]).strip()
+        if len(v) > _EDIT_MAX[f]:
+            return JsonResponse({'ok': False, 'error': f'{f} 가 너무 깁니다.'}, status=400)
+        if f == 'text' and not v:
+            return JsonResponse({'ok': False, 'error': '문제문은 비울 수 없습니다.'},
+                                status=400)
+        if v != getattr(q, f):
+            setattr(q, f, v)
+            changed.append(f)
+
+    if not changed:
+        return JsonResponse({'ok': True, 'changed': [], 'text_html': qtext(q.text),
+                             'ans_html': _essay_answer_html(q)})
+
+    # 채점 기준표는 답 항목에서 파생된다(`build_rubric`). 답을 고쳤는데 예전
+    # 기준표가 남아 있으면 화면과 채점이 어긋나므로 비워 다시 만들게 한다.
+    if 'answer_items' in changed and q.rubric:
+        q.rubric = []
+        changed.append('rubric')
+
+    q.save(update_fields=changed)
+    return JsonResponse({'ok': True, 'changed': changed, 'text_html': qtext(q.text),
+                         'ans_html': _essay_answer_html(q)})
+
+
+def _essay_answer_html(q):
+    from django.template.loader import render_to_string
+    return render_to_string('gisa/_essay_answer.html', {'q': q})

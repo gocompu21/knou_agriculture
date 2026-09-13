@@ -136,6 +136,40 @@
     .btn-reveal.open .i-show { display: none; }
     .btn-reveal.open .i-hide { display: block; }
 
+    /* 관리자 인라인 편집 — 스태프에게만 보인다 */
+    .btn-edit { width: 30px; height: 30px; padding: 0; margin-left: 6px;
+        border: 1px solid #cfdad3; border-radius: 8px; background: #fff;
+        color: #40624f; cursor: pointer; vertical-align: middle; }
+    .btn-edit:hover { background: #eef2ee; }
+    .btn-edit svg { width: 16px; height: 16px; fill: none; stroke: currentColor;
+        stroke-width: 1.8; vertical-align: middle; }
+    .sq-edit { margin: 8px 0 4px; padding: 12px 14px; border: 1px solid #cfdad3;
+        border-radius: 10px; background: #fbfdfb; }
+    .sq-edit[hidden] { display: none; }
+    .sq-edit label { display: block; font-size: 0.78rem; font-weight: 700;
+        color: #1b4332; margin: 10px 0 4px; }
+    .sq-edit label:first-of-type { margin-top: 0; }
+    .sq-edit textarea { width: 100%; box-sizing: border-box; padding: 7px 9px;
+        border: 1px solid #cfdad3; border-radius: 7px; font: inherit;
+        font-size: 0.86rem; line-height: 1.7; resize: vertical; }
+    .sq-edit textarea:focus { outline: none; border-color: #2d6a4f; }
+    .ef-item { display: flex; gap: 6px; align-items: flex-start; margin-bottom: 6px; }
+    .ef-item textarea { flex: 1; }
+    .ef-del { flex-shrink: 0; width: 26px; height: 26px; margin-top: 3px; padding: 0;
+        border: 1px solid #ddd; border-radius: 6px; background: #fff; color: #999;
+        cursor: pointer; line-height: 1; }
+    .ef-del:hover { color: #c62828; border-color: #e0b4b4; }
+    .ef-add { padding: 4px 10px; border: 1px dashed #b9cbc0; border-radius: 7px;
+        background: #fff; color: #40624f; font-size: 0.78rem; cursor: pointer; }
+    .ef-long > summary { cursor: pointer; font-size: 0.78rem; color: #40624f; }
+    .ef-bar { margin-top: 12px; display: flex; gap: 8px; align-items: center; }
+    .ef-save { padding: 6px 16px; border: 0; border-radius: 8px;
+        background: #1b4332; color: #fff; font-size: 0.82rem; cursor: pointer; }
+    .ef-cancel { padding: 6px 14px; border: 1px solid #cfdad3; border-radius: 8px;
+        background: #fff; color: #555; font-size: 0.82rem; cursor: pointer; }
+    .ef-msg { font-size: 0.78rem; color: #40624f; }
+    .ef-msg.bad { color: #c62828; }
+
     .es-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff;
         border-top: 1px solid #e5e5e5; padding: 9px 16px; z-index: 90;
         display: flex; gap: 10px; align-items: center; justify-content: center; }
@@ -184,25 +218,49 @@
                 <svg class="i-show" viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
                 <svg class="i-hide" viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 4l16 16"/></svg>
             </button>
-        </div>
-
-        <div class="ans hidden" id="ans{{ q.pk }}">
-            {% for it in q.answer_items %}
-            <div class="ans-item">{{ it|qtext }}</div>
-            {% endfor %}
-            {% if q.answer_text %}<div class="ans-text">{{ q.answer_text|qtext }}</div>{% endif %}
-            {% if q.answer_image %}<img class="sq-img" style="margin-left:0" src="{{ q.answer_image|vurl }}" alt="">{% endif %}
-
-            {% if q.reference or q.reference_image %}
-            <details class="ans-ref">
-                <summary>해설</summary>
-                <div class="body">
-                    {% if q.reference %}{{ q.reference|qtext }}{% endif %}
-                    {% if q.reference_image %}<img class="sq-img" style="margin-left:0" src="{{ q.reference_image|vurl }}" alt="">{% endif %}
-                </div>
-            </details>
+            {% if request.user.is_staff %}
+            <button type="button" class="btn-edit" data-edit="{{ q.pk }}"
+                    title="문제·답 수정" aria-label="문제·답 수정">
+                <svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 5l4 4"/></svg>
+            </button>
             {% endif %}
         </div>
+
+        {% if request.user.is_staff %}
+        <form class="sq-edit" id="ed{{ q.pk }}" data-q="{{ q.pk }}" hidden>
+            <label>문제문</label>
+            <textarea name="text" rows="4">{{ q.text }}</textarea>
+
+            <label>답 항목 <span style="font-weight:400;color:#777">— 채점 포인트 하나에 한 칸</span></label>
+            <div class="ef-items">
+                {% for it in q.answer_items %}
+                <div class="ef-item"><textarea rows="2">{{ it }}</textarea>
+                    <button type="button" class="ef-del" title="이 항목 지우기">×</button></div>
+                {% endfor %}
+            </div>
+            <button type="button" class="ef-add">+ 항목 추가</button>
+
+            <label>답 서술 <span style="font-weight:400;color:#777">— 표·계산식·그림처럼 항목으로 못 쪼개는 답</span></label>
+            {% if q.answer_text|length > 400 %}
+            <details class="ef-long"><summary>{{ q.answer_text|length }}자 (그림이 들어 있을 수 있습니다) — 펼쳐서 고치기</summary>
+                <textarea name="answer_text" rows="8" style="margin-top:6px">{{ q.answer_text }}</textarea>
+            </details>
+            {% else %}
+            <textarea name="answer_text" rows="3">{{ q.answer_text }}</textarea>
+            {% endif %}
+
+            <label>해설 <span style="font-weight:400;color:#777">— 채점에 쓰지 않는 학습 자료</span></label>
+            <textarea name="reference" rows="4">{{ q.reference }}</textarea>
+
+            <div class="ef-bar">
+                <button type="submit" class="ef-save">저장</button>
+                <button type="button" class="ef-cancel">취소</button>
+                <span class="ef-msg"></span>
+            </div>
+        </form>
+        {% endif %}
+
+        <div class="ans hidden" id="ans{{ q.pk }}">{% include "gisa/_essay_answer.html" %}</div>
     </div>
     {% endfor %}
 </div>
@@ -249,6 +307,95 @@ document.getElementById('btnAll').addEventListener('click', () => {
 
 /* 첫 진입은 모두 펼친 상태로 — 훑어보기 용도가 많다 */
 document.getElementById('btnAll').click();
+
+/* ── 관리자 인라인 편집 ────────────────────────────────────────────────
+   판독본의 오식·잘못 그린 그림이 이 화면에서야 드러난다. 그때마다 스크립트를
+   새로 쓰는 대신 그 자리에서 고친다. 스태프에게만 폼이 렌더되고, 서버도
+   is_staff 를 다시 본다.                                                */
+(function () {
+    const CSRF = '{{ csrf_token }}';
+    const EDIT_URL = q =>
+        '{% url "gisa:essay_question_update" cert.pk 0 %}'.replace(/0\/$/, q + '/');
+
+    function newItem() {
+        const row = document.createElement('div');
+        row.className = 'ef-item';
+        row.innerHTML = '<textarea rows="2"></textarea>'
+            + '<button type="button" class="ef-del" title="이 항목 지우기">×</button>';
+        return row;
+    }
+
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const form = document.getElementById('ed' + btn.dataset.edit);
+            form.hidden = !form.hidden;
+            /* 고치는 동안에는 지금 답이 보여야 견줄 수 있다 */
+            if (!form.hidden) {
+                const box = document.getElementById('ans' + btn.dataset.edit);
+                box.classList.remove('hidden');
+                setReveal(document.querySelector(
+                    '.btn-reveal[data-n="' + btn.dataset.edit + '"]'), true);
+                form.querySelector('textarea').focus();
+            }
+        });
+    });
+
+    document.querySelectorAll('.sq-edit').forEach(form => {
+        const msg = form.querySelector('.ef-msg');
+        const items = form.querySelector('.ef-items');
+
+        form.querySelector('.ef-add').addEventListener('click', () => {
+            items.appendChild(newItem());
+            items.lastElementChild.querySelector('textarea').focus();
+        });
+        /* 항목은 추가·삭제되므로 위임으로 받는다 */
+        items.addEventListener('click', e => {
+            if (e.target.classList.contains('ef-del')) e.target.closest('.ef-item').remove();
+        });
+        form.querySelector('.ef-cancel').addEventListener('click', () => {
+            form.hidden = true;
+        });
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            const save = form.querySelector('.ef-save');
+            const body = {
+                text: form.querySelector('[name=text]').value,
+                answer_text: form.querySelector('[name=answer_text]').value,
+                reference: form.querySelector('[name=reference]').value,
+                items: [...items.querySelectorAll('textarea')].map(t => t.value)
+            };
+            save.disabled = true;
+            msg.className = 'ef-msg';
+            msg.textContent = '저장하는 중…';
+            fetch(EDIT_URL(form.dataset.q), {
+                method: 'POST',
+                headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            }).then(r => r.json().then(d => ({ ok: r.ok, d })))
+              .then(({ ok, d }) => {
+                save.disabled = false;
+                if (!ok || !d.ok) {
+                    msg.className = 'ef-msg bad';
+                    msg.textContent = (d && d.error) || '저장하지 못했습니다.';
+                    return;
+                }
+                const card = form.closest('.sq');
+                /* 문제번호는 두고 본문만 갈아 끼운다 */
+                const txt = card.querySelector('.sq-text');
+                const no = txt.querySelector('.sq-no').outerHTML;
+                txt.innerHTML = no + ' ' + d.text_html;
+                document.getElementById('ans' + form.dataset.q).innerHTML = d.ans_html;
+                msg.textContent = d.changed.length ? '저장했습니다.' : '바뀐 것이 없습니다.';
+                setTimeout(() => { msg.textContent = ''; }, 2500);
+            }).catch(() => {
+                save.disabled = false;
+                msg.className = 'ef-msg bad';
+                msg.textContent = '통신 오류';
+            });
+        });
+    });
+})();
 
 /* 빈출 배지 클릭 → 같은 주제의 다른 회차 문항을 펼쳐 대조한다.
    같은 개념이 회차마다 어떻게 달리 묻는지 보면 표현에 흔들리지 않는다. */
