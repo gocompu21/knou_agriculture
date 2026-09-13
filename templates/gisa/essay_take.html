@@ -239,10 +239,12 @@
         <small>· {{ questions|length }}문항 · {{ total_points }}점</small>
     </div>
     {% if is_exam %}
-    <!-- 실전이라도 한 문항씩 확인하며 풀고 싶을 때가 있다. 기본은 꺼짐 —
-         켜 두면 실제 시험 감각이 사라진다. 켠 상태는 브라우저가 기억한다 -->
+    <!-- 한 문항씩 확인하며 푸는 것이 기본이다. 실전처럼 끝까지 풀고 한 번에
+         채점받으려면 끄면 되고, 끈 상태는 브라우저가 기억한다.
+         **`checked` 를 서버가 붙여 둔다** — 화면이 그려진 뒤 JS 로 켜면
+         채점 단추가 뒤늦게 나타나 깜빡인다 -->
     <label class="et-toggle" title="문항마다 바로 채점하고 모범답안·해설을 봅니다">
-        <input type="checkbox" id="tgCheck"> 바로 채점
+        <input type="checkbox" id="tgCheck" checked> 바로 채점
     </label>
     {% endif %}
     {% if time_limit %}<div class="et-timer" id="timer">{{ exam_minutes }}:00</div>{% endif %}
@@ -298,8 +300,9 @@
                           placeholder="답안을 입력하세요">{{ q.draft }}</textarea>
 
                 <!-- 학습(예상·오답)은 늘 보이고, 실전(기출·모의)은 머리글의
-                     '바로 채점'을 켰을 때만 나타난다 -->
-                <div class="eq-check"{% if is_exam %} hidden{% endif %}>
+                     '바로 채점'을 따른다. 그 토글이 기본으로 켜져 있으므로
+                     여기도 처음부터 보인다 — 껐던 사람만 JS 가 감춘다 -->
+                <div class="eq-check">
                     <button type="button" class="btn-check" data-qid="{{ q.pk }}">채점</button>
                 </div>
                 <div class="eq-result" id="res_{{ q.pk }}"></div>
@@ -441,10 +444,13 @@ const TG_KEY = 'essayCheckMode';
 function tgApply() {
     document.querySelectorAll('.eq-check').forEach(el => { el.hidden = !tg.checked; });
 }
-try { tg.checked = localStorage.getItem(TG_KEY) === '1'; } catch (e) {}
-tgApply();
+// 기본은 켜짐(서버가 checked 를 붙여 둔다). 스스로 껐던 사람만 꺼진 채로 연다.
+// '' 는 이 기능을 처음 낼 때 쓰던 '꺼짐' 값이라 함께 받아 준다.
+let tgSaved = null;
+try { tgSaved = localStorage.getItem(TG_KEY); } catch (e) {}
+if (tgSaved === '0' || tgSaved === '') { tg.checked = false; tgApply(); }
 tg.addEventListener('change', () => {
-    try { localStorage.setItem(TG_KEY, tg.checked ? '1' : ''); } catch (e) {}
+    try { localStorage.setItem(TG_KEY, tg.checked ? '1' : '0'); } catch (e) {}
     tgApply();
 });
 {% endif %}
