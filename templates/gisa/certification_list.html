@@ -19,36 +19,61 @@
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 20px;
     }
+    /* 필기는 남색, 실기는 다크그린 — 앱이 이미 쓰는 대비를 그대로 가져온다.
+       필기 상세·기출고사가 남색이고 실기 화면이 다크그린이라, 목록에서 고른
+       색이 다음 화면에서 이어진다. 배경은 아주 옅게만 — 아홉 장이 한 화면에
+       들어오므로 진하게 깔면 시끄럽다. 구분은 왼쪽 띠가 맡는다. */
     .cert-card {
-        background: #fff;
-        border: 1px solid #e0e0e0;
+        border: 1px solid;
+        border-left: 5px solid;
         border-radius: 12px;
-        padding: 24px;
-        transition: box-shadow 0.2s, transform 0.15s;
+        padding: 22px 24px;
+        transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
         text-decoration: none;
         color: inherit;
         display: block;
     }
-    .cert-card:hover {
-        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-        transform: translateY(-2px);
+    .cert-card:hover { transform: translateY(-2px); }
+
+    .cert-written {
+        background: #f3f5ff;
+        border-color: #d5dbf3;
+        border-left-color: #3949ab;
     }
+    .cert-written:hover {
+        box-shadow: 0 6px 18px rgba(57, 73, 171, 0.18);
+        border-left-color: #1a237e;
+    }
+    /* 페이지 바탕이 연녹 그라데이션이라 옅은 초록은 그 위에서 묻힌다.
+       흰빛이 아니라 **한 단계 진한 초록**으로 깔아야 카드가 떠 보인다 */
+    .cert-practical {
+        background: #e9f4ec;
+        border-color: #c6dfd0;
+        border-left-color: #2d6a4f;
+    }
+    .cert-practical:hover {
+        box-shadow: 0 6px 18px rgba(27, 67, 50, 0.18);
+        border-left-color: #1b4332;
+    }
+
     .cert-name {
         font-size: 1.2rem;
         font-weight: 700;
-        color: #1a237e;
         margin-bottom: 6px;
     }
+    .cert-written .cert-name { color: #1a237e; }
+    .cert-practical .cert-name { color: #1b4332; }
     .cert-category {
         display: inline-block;
-        background: #e8eaf6;
-        color: #3949ab;
         padding: 2px 10px;
         border-radius: 12px;
         font-size: 0.8rem;
         font-weight: 600;
         margin-bottom: 10px;
     }
+    /* 배지는 카드 바탕보다 진해야 읽힌다 */
+    .cert-written .cert-category { background: #dfe3f7; color: #303f9f; }
+    .cert-practical .cert-category { background: #d0e7d9; color: #1b4332; }
     /* 필기 / 실기 묶음 머리말. 카드에 배지만 달아 두면 아홉 장이 줄줄이
        늘어서 어느 것이 무엇인지 눈에 들어오지 않는다 */
     .sec-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
@@ -57,16 +82,13 @@
     .sec-head p { font-size: 0.86rem; color: #777; margin: 0; }
     .sec-written { border-color: #3949ab; }
     .sec-written h2 { color: #1a237e; }
-    .sec-practical { border-color: #1b4332; margin-top: 36px; }
+    .sec-practical { border-color: #1b4332; margin-top: 40px; }
     .sec-practical h2 { color: #1b4332; }
-    /* 실기 카드는 필기와 한눈에 구분되도록 왼쪽 띠를 준다 */
-    .cert-practical { border-left: 4px solid #1b4332; }
-    .cert-practical .cert-name { color: #1b4332; }
     .cert-stats {
         display: flex;
         gap: 16px;
         font-size: 0.85rem;
-        color: #666;
+        color: #6b7280;
     }
     .cert-stats strong { color: #333; }
     .cert-desc {
@@ -105,7 +127,7 @@
     </div>
     <div class="cert-grid">
         {% for c in written %}
-        <a href="{{ c.url }}" class="cert-card fade-up delay-{{ forloop.counter0 }}">
+        <a href="{{ c.url }}" class="cert-card cert-written fade-up delay-{{ forloop.counter0 }}">
             <span class="cert-category">{{ c.cert.category }}</span>
             <div class="cert-name">{{ c.cert.name }}</div>
             <div class="cert-stats">
