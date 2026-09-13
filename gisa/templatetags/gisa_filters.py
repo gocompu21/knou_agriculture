@@ -181,10 +181,21 @@ def _tables_anywhere(text):
             j = i
             while j < n and lines[j].lstrip().startswith("|"):
                 j += 1
-            block = "\n".join(lines[i:j])
-            tbl = _md_table(block)
+            rows = lines[i:j]
+            # **상자를 닫는 태그가 표 마지막 줄에 붙어 온다.** _render_box 가
+            # `inner + "</div>"` 로 줄바꿈 없이 이어 붙이기 때문인데, 그대로 두면
+            # 표의 한 칸으로 먹혀 `</div>` 가 사라지고 상자가 닫히지 않는다.
+            # 그러면 **뒤따르는 문항이 통째로 그 상자 안으로 말려들어가** 정답
+            # 보기 버튼과 편집 폼까지 화면에서 사라진다(2026-1 7번에서 겪었다).
+            # 떼어 두었다가 표 뒤에 도로 붙인다.
+            tail = ""
+            m = re.search(r"((?:</\w+>)+)\s*$", rows[-1])
+            if m:
+                tail = m.group(1)
+                rows[-1] = rows[-1][:m.start()]
+            tbl = _md_table("\n".join(rows))
             if tbl is not None:
-                out.append(tbl)
+                out.append(tbl + tail)
                 i = j
                 continue
         out.append(lines[i])
