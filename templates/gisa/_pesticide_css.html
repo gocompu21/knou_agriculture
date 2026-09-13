@@ -37,28 +37,35 @@
         filter: drop-shadow(0 3px 6px rgba(20,49,42,.12)); }
 
     /* ── 답을 고른 뒤에만 포장 색이 드러난다 ──
-       **실제 농약 포장 색 규칙**이다(농약관리법) — 살충제 녹색, 살균제 분홍,
-       제초제 황색. 그래서 색을 입히는 것 자체가 외울 거리다.
-       문제를 낼 때는 절대 칠하지 않는다. 병 색으로 답이 새면 문제가 아니다. */
-    .pc-cap, .pc-lab-bg, .pc-lab-band { transition: fill .35s ease; }
+       **실제 농약 포장 색 규칙**이다 — 살충제 녹색, 살균제 분홍, 제초제 황색.
+       실물처럼 **병은 흰색이고 뚜껑과 상표 색면이 물든다.** 색이 입혀지는 것
+       자체가 외울 거리다. 문제를 낼 때는 절대 칠하지 않는다 — 병 색으로 답이
+       새면 문제가 아니다. */
+    .pc-cap, .pc-lab-face, .pc-lab-catbox, .pc-lab-cat, .pc-name {
+        transition: fill .35s ease, color .35s ease; }
 
-    .pc-bottle.ans-살충제 .pc-cap,
-    .pc-bottle.ans-살충제 .pc-lab-band { fill: #2e7d32; }
-    .pc-bottle.ans-살충제 .pc-lab-bg { fill: #e7f4e9; stroke: #2e7d32; }
+    .pc-bottle.ans-살충제 .pc-cap { fill: #2e7d32; }
+    .pc-bottle.ans-살충제 .pc-lab-face { fill: #3f9d43; }
+    .pc-bottle.ans-살충제 .pc-lab-catbox { fill: #1b5e20; }
+    .pc-bottle.ans-살충제 .pc-lab-cat { fill: #fff; }
+    .pc-bottle.ans-살충제 .pc-name { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.25); }
 
-    .pc-bottle.ans-살균제 .pc-cap,
-    .pc-bottle.ans-살균제 .pc-lab-band { fill: #c62828; }
-    .pc-bottle.ans-살균제 .pc-lab-bg { fill: #fdeaea; stroke: #c62828; }
+    .pc-bottle.ans-살균제 .pc-cap { fill: #c62828; }
+    .pc-bottle.ans-살균제 .pc-lab-face { fill: #e8477a; }
+    .pc-bottle.ans-살균제 .pc-lab-catbox { fill: #a81b52; }
+    .pc-bottle.ans-살균제 .pc-lab-cat { fill: #fff; }
+    .pc-bottle.ans-살균제 .pc-name { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.25); }
 
-    /* 노랑은 흰 글자가 묻히므로 띠 글자를 검게 바꾼다 */
-    .pc-bottle.ans-제초제 .pc-cap,
-    .pc-bottle.ans-제초제 .pc-lab-band { fill: #f2b705; }
-    .pc-bottle.ans-제초제 .pc-lab-bg { fill: #fdf7e0; stroke: #d99e00; }
-    .pc-bottle.ans-제초제 text { fill: #4a3a00; }
-    /* 상표 자리 — SVG 의 흰 사각에서 위아래 띠를 뺀 만큼(42,111 ~ 158,217)을
-       **비율로** 얹는다. 픽셀로 두면 폭이 줄어드는 화면에서 어긋난다.
-       viewBox 가 200×282 이므로 left 21% · top 39.4% · width 58% · height 37.6%. */
-    .pc-label { position: absolute; left: 21%; top: 39.4%; width: 58%; height: 37.6%;
+    /* 황색 위에서는 흰 글자가 묻힌다 — 글자를 검게 둔다 */
+    .pc-bottle.ans-제초제 .pc-cap { fill: #f5c400; }
+    .pc-bottle.ans-제초제 .pc-lab-face { fill: #fbd02b; }
+    .pc-bottle.ans-제초제 .pc-lab-catbox { fill: #6b5300; }
+    .pc-bottle.ans-제초제 .pc-lab-cat { fill: #fff; }
+    .pc-bottle.ans-제초제 .pc-name { color: #241c00; }
+
+    /* 상표 글자 자리 — 가운데 색면(41,110 ~ 159,214)에 **비율로** 얹는다.
+       픽셀로 두면 폭이 줄어드는 화면에서 어긋난다(viewBox 200×282). */
+    .pc-label { position: absolute; left: 20.5%; top: 39%; width: 59%; height: 36.9%;
         display: flex; align-items: center; justify-content: center; padding: 0 5px; }
     .pc-name { font-size: 1.15rem; font-weight: 800; color: #14312a;
         letter-spacing: -.03em; line-height: 1.25; word-break: keep-all; }

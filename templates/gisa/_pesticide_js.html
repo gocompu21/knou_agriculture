@@ -133,6 +133,10 @@
                    색이 입혀지는 것 자체가 외울 거리다 */
                 var bt = quiz.querySelector('.pc-bottle');
                 if (bt) bt.className = 'pc-bottle ans-' + d.answer;
+                /* 상표 왼쪽 위 칸은 실물에서 계열명이 찍히는 자리다.
+                   답을 알기 전에는 「농 약」 으로 두었다가 여기서 채운다 */
+                var cat = document.getElementById('pcLabCat');
+                if (cat) cat.textContent = d.answer;
                 if (d.whole) {
                     elWhy.innerHTML = '<div class="pc-whole">이름만으로는 가릴 수 없습니다. ' +
                         '<b>' + esc(d.name) + '</b> 는 통째로 외우세요.</div>';

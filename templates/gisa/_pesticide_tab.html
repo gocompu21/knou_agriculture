@@ -29,55 +29,91 @@
             <div class="pc-bottle">
                 <svg viewBox="0 0 200 282" aria-hidden="true">
                     <defs>
-                        <!-- 반투명 플라스틱 — 가운데가 밝고 가장자리가 어둡다 -->
+                        <!-- 유백색 플라스틱. 실물 농약병은 흰색이고 **색은 라벨과
+                             뚜껑이 낸다** — 병까지 칠하면 실물과 멀어진다 -->
                         <linearGradient id="pcBody" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0" stop-color="#9fc4b6"/>
-                            <stop offset=".18" stop-color="#cfe5dc"/>
-                            <stop offset=".42" stop-color="#f2faf7"/>
-                            <stop offset=".72" stop-color="#d6e8e0"/>
-                            <stop offset="1" stop-color="#93b9ab"/>
-                        </linearGradient>
-                        <!-- 담긴 약액. 아래로 갈수록 짙다 -->
-                        <linearGradient id="pcLiq" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0" stop-color="#bcdbd0" stop-opacity=".55"/>
-                            <stop offset="1" stop-color="#7fb0a0" stop-opacity=".8"/>
+                            <stop offset="0" stop-color="#c9cec9"/>
+                            <stop offset=".14" stop-color="#eceeea"/>
+                            <stop offset=".40" stop-color="#ffffff"/>
+                            <stop offset=".74" stop-color="#eff1ed"/>
+                            <stop offset="1" stop-color="#c2c8c3"/>
                         </linearGradient>
                         <linearGradient id="pcCap" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0" stop-color="#546b62"/>
-                            <stop offset=".35" stop-color="#7e968c"/>
-                            <stop offset="1" stop-color="#496057"/>
+                            <stop offset="0" stop-color="#9aa39c"/>
+                            <stop offset=".35" stop-color="#c3cac4"/>
+                            <stop offset="1" stop-color="#8e9891"/>
                         </linearGradient>
-                        <clipPath id="pcClip">
-                            <path d="M84 52c-13 5-46 11-46 42v152c0 14 9 25 22 25h80c13 0 22-11 22-25V94c0-31-33-37-46-42z"/>
+                        <clipPath id="pcCapClip">
+                            <rect x="70" y="4" width="60" height="30" rx="6"/>
                         </clipPath>
                     </defs>
 
-                    <!-- 놓인 자리 그림자 -->
-                    <ellipse cx="100" cy="273" rx="62" ry="8" fill="#14312a" opacity=".13"/>
+                    <ellipse cx="100" cy="273" rx="60" ry="8" fill="#14312a" opacity=".13"/>
 
+                    <!-- 뚜껑. 답을 고르면 계열 색으로 물든다 -->
                     <rect class="pc-cap" x="70" y="4" width="60" height="30" rx="6" fill="url(#pcCap)"/>
-                    <rect x="70" y="4" width="60" height="8" rx="4" fill="#93a89e" opacity=".8"/>
-                    <rect x="83" y="33" width="34" height="20" fill="#b9cdc4"/>
+                    <!-- 세로 주름(널링) — 손으로 돌려 여는 자리라 실물에 늘 있다.
+                         어두운 선과 밝은 선을 겹쳐 파낸 것처럼 보이게 한다.
+                         뚜껑 색이 답에 따라 바뀌어도 같은 깊이로 보인다. -->
+                    <g clip-path="url(#pcCapClip)" fill="#000" opacity=".22">
+                        <rect x="74.0" y="4" width="1.7" height="30"/>
+                        <rect x="78.3" y="4" width="1.7" height="30"/>
+                        <rect x="82.7" y="4" width="1.7" height="30"/>
+                        <rect x="87.0" y="4" width="1.7" height="30"/>
+                        <rect x="91.3" y="4" width="1.7" height="30"/>
+                        <rect x="95.7" y="4" width="1.7" height="30"/>
+                        <rect x="100.0" y="4" width="1.7" height="30"/>
+                        <rect x="104.3" y="4" width="1.7" height="30"/>
+                        <rect x="108.7" y="4" width="1.7" height="30"/>
+                        <rect x="113.0" y="4" width="1.7" height="30"/>
+                        <rect x="117.3" y="4" width="1.7" height="30"/>
+                        <rect x="121.7" y="4" width="1.7" height="30"/>
+                        <rect x="126.0" y="4" width="1.7" height="30"/>
+                    </g>
+                    <g clip-path="url(#pcCapClip)" fill="#fff" opacity=".18">
+                        <rect x="76.1" y="4" width="1.1" height="30"/>
+                        <rect x="80.4" y="4" width="1.1" height="30"/>
+                        <rect x="84.8" y="4" width="1.1" height="30"/>
+                        <rect x="89.1" y="4" width="1.1" height="30"/>
+                        <rect x="93.4" y="4" width="1.1" height="30"/>
+                        <rect x="97.8" y="4" width="1.1" height="30"/>
+                        <rect x="102.1" y="4" width="1.1" height="30"/>
+                        <rect x="106.4" y="4" width="1.1" height="30"/>
+                        <rect x="110.8" y="4" width="1.1" height="30"/>
+                        <rect x="115.1" y="4" width="1.1" height="30"/>
+                        <rect x="119.4" y="4" width="1.1" height="30"/>
+                        <rect x="123.8" y="4" width="1.1" height="30"/>
+                    </g>
+                    <rect x="70" y="4" width="60" height="6" rx="3" fill="#fff" opacity=".3"/>
+                    <rect x="70" y="30" width="60" height="4" fill="#000" opacity=".13"/>
+                    <rect x="83" y="33" width="34" height="20" fill="#dfe3de"/>
 
                     <path d="M84 52c-13 5-46 11-46 42v152c0 14 9 25 22 25h80c13 0 22-11 22-25V94c0-31-33-37-46-42z"
-                          fill="url(#pcBody)" stroke="#7fa093" stroke-width="1.5"/>
-                    <g clip-path="url(#pcClip)">
-                        <rect x="30" y="132" width="140" height="145" fill="url(#pcLiq)"/>
-                        <!-- 빛 반사 -->
-                        <rect x="58" y="60" width="9" height="200" rx="4.5" fill="#fff" opacity=".55"/>
-                        <rect x="140" y="70" width="5" height="180" rx="2.5" fill="#fff" opacity=".3"/>
-                    </g>
+                          fill="url(#pcBody)" stroke="#b7bfb8" stroke-width="1.2"/>
 
-                    <!-- 상표 — 실제 농약 라벨처럼 위아래에 띠를 두른다.
-                         띠 색은 계열 셋(녹·분홍·황) 어디에도 없는 남색이다 -->
-                    <rect class="pc-lab-bg" x="42" y="96" width="116" height="136" rx="3"
-                          fill="#fff" stroke="#2c3e63" stroke-width="1.2"/>
-                    <rect class="pc-lab-band" x="42" y="96" width="116" height="15" fill="#2c3e63"/>
-                    <rect class="pc-lab-band" x="42" y="217" width="116" height="15" fill="#2c3e63"/>
-                    <text x="100" y="107" text-anchor="middle" fill="#fff"
-                          font-size="8.5" letter-spacing="3">농　약</text>
-                    <text x="100" y="228" text-anchor="middle" fill="#fff"
-                          font-size="7" letter-spacing="1.2">한울회 농약 DVD</text>
+                    {% comment %}
+                    상표. 실물을 따라 **위아래 흰 띠 + 가운데 색면**으로 짠다.
+                    위 띠에는 계열명과 「농약」 표시가, 아래 띠에는 만든 곳이 들어간다.
+                    가운데 색면이 답을 고른 뒤 계열 색으로 물든다.
+                    {% endcomment %}
+                    <rect class="pc-lab-bg" x="41" y="92" width="118" height="144" rx="2"
+                          fill="#fff" stroke="#b0b8b1" stroke-width="1"/>
+                    <rect class="pc-lab-face" x="41" y="110" width="118" height="104" fill="#f1f4f1"/>
+
+                    <!-- 위 띠 — 왼쪽 계열명(답 전에는 비어 있다), 오른쪽 「농약」 -->
+                    <rect class="pc-lab-catbox" x="45" y="96" width="34" height="11" rx="1.5"
+                          fill="#e3e7e3"/>
+                    <text class="pc-lab-cat" id="pcLabCat" x="62" y="104.4"
+                          text-anchor="middle" font-size="7.6" font-weight="700"
+                          fill="#8d968f">농　약</text>
+                    <rect x="121" y="95" width="34" height="13" rx="1.5" fill="#1b7a3e"/>
+                    <text x="138" y="104.6" text-anchor="middle" font-size="8.4"
+                          font-weight="700" fill="#fff">농약</text>
+
+                    <!-- 아래 띠 -->
+                    <text x="100" y="225" text-anchor="middle" font-size="7"
+                          letter-spacing="1" fill="#6b736c">한울회 농약 DVD</text>
+                    <line x1="45" y1="216" x2="155" y2="216" stroke="#cfd5d0" stroke-width="1"/>
                 </svg>
                 <div class="pc-label">
                     <div class="pc-name" id="pcName">불러오는 중…</div>
