@@ -49,17 +49,16 @@
         font-weight: 600;
         margin-bottom: 10px;
     }
-    /* 필기 / 실기 구분 배지 */
-    .cert-kind {
-        display: inline-block;
-        padding: 2px 10px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: 700;
-        margin: 0 0 10px 6px;
-    }
-    .cert-kind.k-written { background: #eceff1; color: #546e7a; }
-    .cert-kind.k-practical { background: #1b4332; color: #fff; }
+    /* 필기 / 실기 묶음 머리말. 카드에 배지만 달아 두면 아홉 장이 줄줄이
+       늘어서 어느 것이 무엇인지 눈에 들어오지 않는다 */
+    .sec-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+        margin: 0 0 16px; padding-left: 12px; border-left: 4px solid; }
+    .sec-head h2 { font-size: 1.15rem; font-weight: 800; margin: 0; }
+    .sec-head p { font-size: 0.86rem; color: #777; margin: 0; }
+    .sec-written { border-color: #3949ab; }
+    .sec-written h2 { color: #1a237e; }
+    .sec-practical { border-color: #1b4332; margin-top: 36px; }
+    .sec-practical h2 { color: #1b4332; }
     /* 실기 카드는 필기와 한눈에 구분되도록 왼쪽 띠를 준다 */
     .cert-practical { border-left: 4px solid #1b4332; }
     .cert-practical .cert-name { color: #1b4332; }
@@ -99,21 +98,19 @@
 </div>
 
 <div class="wrap">
-    {% if cards %}
+    {% if written %}
+    <div class="sec-head sec-written">
+        <h2>필기</h2>
+        <p>객관식 4지선다 · 과목별 기출학습과 모의고사</p>
+    </div>
     <div class="cert-grid">
-        {% for c in cards %}
-        <a href="{{ c.url }}" class="cert-card fade-up delay-{{ forloop.counter0 }}{% if c.kind == '실기' %} cert-practical{% endif %}">
+        {% for c in written %}
+        <a href="{{ c.url }}" class="cert-card fade-up delay-{{ forloop.counter0 }}">
             <span class="cert-category">{{ c.cert.category }}</span>
-            <span class="cert-kind {% if c.kind == '실기' %}k-practical{% else %}k-written{% endif %}">{{ c.kind }}</span>
             <div class="cert-name">{{ c.cert.name }}</div>
             <div class="cert-stats">
-                {% if c.kind == '실기' %}
-                <span>기출 <strong>{{ c.exam_count }}회차</strong></span>
-                <span>문항 <strong>{{ c.question_count|intcomma }}개</strong></span>
-                {% else %}
                 <span>시험 <strong>{{ c.exam_count }}회</strong></span>
                 <span>문제 <strong>{{ c.question_count|intcomma }}개</strong></span>
-                {% endif %}
             </div>
             {% if c.description %}
             <div class="cert-desc">{{ c.description|truncatewords:20 }}</div>
@@ -121,7 +118,28 @@
         </a>
         {% endfor %}
     </div>
-    {% else %}
+    {% endif %}
+
+    {% if practical %}
+    <div class="sec-head sec-practical">
+        <h2>실기</h2>
+        <p>필답형 주관식 · 화면에 입력하거나, 인쇄해서 손으로 푼 뒤 사진으로 채점받습니다</p>
+    </div>
+    <div class="cert-grid">
+        {% for c in practical %}
+        <a href="{{ c.url }}" class="cert-card cert-practical fade-up delay-{{ forloop.counter0 }}">
+            <span class="cert-category">{{ c.cert.category }}</span>
+            <div class="cert-name">{{ c.cert.name }}</div>
+            <div class="cert-stats">
+                <span>기출 <strong>{{ c.exam_count }}회차</strong></span>
+                <span>문항 <strong>{{ c.question_count|intcomma }}개</strong></span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not written and not practical %}
     <div class="empty-msg">등록된 자격증이 없습니다.</div>
     {% endif %}
 </div>

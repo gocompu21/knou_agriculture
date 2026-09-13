@@ -354,10 +354,15 @@ def build_results(attempts):
 
 @login_required
 def certification_list(request):
-    """자격증 목록. 필기와 실기는 성격이 달라 별개 카드로 나눈다.
+    """자격증 목록. 필기와 실기는 성격이 달라 **묶음부터 나눈다.**
 
-    실기(필답형) 문항이 있는 자격증은 "○○기사 · 실기" 카드를 따로 만들어
-    필기 카드와 나란히 놓는다. 실기 카드는 essay_list로 직행한다.
+    한 그리드에 섞어 놓고 카드마다 배지로만 갈라 두었더니, 아홉 장이 줄줄이
+    늘어서 어느 것이 필기이고 어느 것이 실기인지 한눈에 들어오지 않았다.
+    시험 성격·채점 방식·학습 흐름이 모두 다르므로 화면에서도 따로 놓는다.
+    실기 카드는 essay_list 로 직행한다.
+
+    묶음 안은 **자격증 이름순**이다 — pk 순으로 두면 조경기사와 조경산업기사가
+    떨어져 나오고, 필기 묶음과 실기 묶음의 차례도 서로 어긋난다.
     """
     certifications = Certification.objects.annotate(
         exam_count=Count("gisaexam", distinct=True),
@@ -380,12 +385,12 @@ def certification_list(request):
                                .distinct()):
         essay_rounds[cert_id] = essay_rounds.get(cert_id, 0) + 1
 
-    cards = []
+    written, practical = [], []
     for cert in certifications:
         # 실기만 있는 자격증(조경산업기사)은 필기 카드를 만들지 않는다 — 0문항 카드가
         # 목록에 남으면 눌러 봐야 빈 화면이다.
         if cert.question_count:
-            cards.append({
+            written.append({
                 "cert": cert,
                 "kind": "필기",
                 "url": reverse("gisa:certification_detail", args=[cert.pk]),
@@ -395,19 +400,23 @@ def certification_list(request):
             })
         total = essay_totals.get(cert.pk)
         if total:
-            cards.append({
+            practical.append({
                 "cert": cert,
                 "kind": "실기",
                 "url": reverse("gisa:essay_list", args=[cert.pk]),
                 "exam_count": essay_rounds.get(cert.pk, 0),
                 "question_count": total,
-                "description": "필답형 주관식 · 인쇄해서 손으로 풀고 사진으로 채점받을 수 있습니다.",
+                # 설명은 카드마다 되풀이하지 않고 묶음 머리말에 한 번만 둔다
+                "description": "",
             })
+
+    written.sort(key=lambda c: c["cert"].name)
+    practical.sort(key=lambda c: c["cert"].name)
 
     return render(
         request,
         "gisa/certification_list.html",
-        {"cards": cards},
+        {"written": written, "practical": practical},
     )
 
 
