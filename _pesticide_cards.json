@@ -6,7 +6,10 @@
   "hint": "카보",
   "whole": false,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "카바메이트계",
+  "action": "뿌리로 빨려 올라가는 침투이행성. 살선충 효과도 있다",
+  "target": "벼 애멸구·이화명나방, 뿌리혹선충"
  },
  {
   "no": 2,
@@ -15,7 +18,10 @@
   "hint": "프리드",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "네오니코티노이드계",
+  "action": "침투이행성. 신경의 니코틴성 수용체를 건드린다",
+  "target": "진딧물·멸구 같은 흡즙성 해충"
  },
  {
   "no": 3,
@@ -24,7 +30,10 @@
   "hint": "카",
   "whole": false,
   "exam_count": 5,
-  "note": ""
+  "note": "",
+  "family": "벤즈이미다졸계",
+  "action": "침투이행성. 세포분열(튜불린)을 막는다",
+  "target": "잿빛곰팡이병·흰가루병"
  },
  {
   "no": 4,
@@ -33,7 +42,10 @@
   "hint": "프로",
   "whole": false,
   "exam_count": 1,
-  "note": ""
+  "note": "",
+  "family": "이미다졸계",
+  "action": "프로클로라즈의 망간 착염. 종자·경엽 처리",
+  "target": "도열병·모잘록병"
  },
  {
   "no": 5,
@@ -42,7 +54,10 @@
   "hint": "카바",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "카바메이트계",
+  "action": "닿거나 먹으면 듣는다. 과수 적과제로도 쓴다",
+  "target": "나방류·매미충"
  },
  {
   "no": 6,
@@ -51,7 +66,10 @@
   "hint": "랄린",
   "whole": false,
   "exam_count": 3,
-  "note": "원본 표기 \"에틸플루랄린\". 표준명은 에탈플루랄린(Ethalfluralin)이다."
+  "note": "원본 표기 \"에틸플루랄린\". 표준명은 에탈플루랄린(Ethalfluralin)이다.",
+  "family": "다이나이트로아닐린계",
+  "action": "싹트기 전 흙에 처리. 세포분열을 막는다",
+  "target": "일년생 화본과·광엽"
  },
  {
   "no": 7,
@@ -60,7 +78,10 @@
   "hint": "펜사이큐론",
   "whole": true,
   "exam_count": 1,
-  "note": ""
+  "note": "",
+  "family": "페닐요소계",
+  "action": "리조크토니아에만 듣는 좁은 범위의 약",
+  "target": "잎집무늬마름병·잔디 갈색퍼짐병"
  },
  {
   "no": 8,
@@ -69,7 +90,10 @@
   "hint": "티온",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "유기인계",
+  "action": "닿거나 먹으면 듣는 넓은 범위의 약",
+  "target": "나방류·노린재"
  },
  {
   "no": 9,
@@ -78,7 +102,10 @@
   "hint": "사이",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "유기주석계",
+  "action": "응애 전용(살비제)",
+  "target": "점박이응애 등 응애류"
  },
  {
   "no": 10,
@@ -87,7 +114,10 @@
   "hint": "실",
   "whole": false,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "아실알라닌계",
+  "action": "침투이행성. 난균에만 듣는다",
+  "target": "노균병·역병"
  },
  {
   "no": 11,
@@ -96,7 +126,10 @@
   "hint": "제브",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "디티오카바메이트계",
+  "action": "여러 곳을 한꺼번에 건드리는 보호살균제(저항성이 잘 안 생긴다)",
+  "target": "역병·탄저병·검은무늬병"
  },
  {
   "no": 12,
@@ -105,7 +138,10 @@
   "hint": "코퍼",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "구리제",
+  "action": "보호살균. 세균병에도 듣는다",
+  "target": "세균병·탄저병"
  },
  {
   "no": 13,
@@ -114,7 +150,10 @@
   "hint": "미돈",
   "whole": false,
   "exam_count": 1,
-  "note": ""
+  "note": "",
+  "family": "이미다졸리논계",
+  "action": "난균의 호흡을 막는다",
+  "target": "노균병·역병"
  },
  {
   "no": 14,
@@ -123,7 +162,10 @@
   "hint": "존",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "옥사디아졸계",
+  "action": "닿은 자리를 태운다(원형질막 파괴)",
+  "target": "논·잔디의 일년생 잡초"
  },
  {
   "no": 15,
@@ -132,7 +174,10 @@
   "hint": "닐",
   "whole": false,
   "exam_count": 1,
-  "note": "원본 표기 \"마이크로뷰타닐\". 표준명은 마이클로뷰타닐(Myclobutanil)이다."
+  "note": "원본 표기 \"마이크로뷰타닐\". 표준명은 마이클로뷰타닐(Myclobutanil)이다.",
+  "family": "트리아졸계",
+  "action": "침투이행성. 막(에르고스테롤) 합성을 막는다",
+  "target": "흰가루병·녹병"
  },
  {
   "no": 16,
@@ -141,7 +186,10 @@
   "hint": "놀",
   "whole": false,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "트리아졸계",
+  "action": "침투이행성",
+  "target": "녹병·검은별무늬병"
  },
  {
   "no": 17,
@@ -150,7 +198,10 @@
   "hint": "폴펫",
   "whole": true,
   "exam_count": 5,
-  "note": ""
+  "note": "",
+  "family": "프탈이미드계",
+  "action": "보호살균제",
+  "target": "탄저병·역병"
  },
  {
   "no": 18,
@@ -159,7 +210,10 @@
   "hint": "메틸",
   "whole": false,
   "exam_count": 4,
-  "note": "\"메틸\"은 계열을 가리지 못한다 — 메틸브로마이드는 살충제이고 티오파네이트메틸·크레속심메틸은 살균제다. 앞부분으로 가려야 한다."
+  "note": "\"메틸\"은 계열을 가리지 못한다 — 메틸브로마이드는 살충제이고 티오파네이트메틸·크레속심메틸은 살균제다. 앞부분으로 가려야 한다.",
+  "family": "훈증제",
+  "action": "가스로 채워 잡는다. 오존층을 깨 쓰임이 크게 줄었다",
+  "target": "토양 소독·검역 훈증"
  },
  {
   "no": 19,
@@ -168,7 +222,10 @@
   "hint": "스피로",
   "whole": false,
   "exam_count": 5,
-  "note": ""
+  "note": "",
+  "family": "테트람산계",
+  "action": "지질 합성을 막는다. 위아래로 모두 이동한다",
+  "target": "깍지벌레·가루이·진딧물"
  },
  {
   "no": 20,
@@ -177,7 +234,10 @@
   "hint": "이사디",
   "whole": true,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "페녹시계",
+  "action": "식물호르몬을 흐트러뜨린다. 광엽에만 듣는다",
+  "target": "광엽잡초"
  },
  {
   "no": 21,
@@ -186,7 +246,10 @@
   "hint": "졸",
   "whole": false,
   "exam_count": 1,
-  "note": ""
+  "note": "",
+  "family": "트리아졸계",
+  "action": "침투이행성",
+  "target": "흰가루병·검은별무늬병"
  },
  {
   "no": 22,
@@ -195,7 +258,10 @@
   "hint": "밀",
   "whole": false,
   "exam_count": 1,
-  "note": ""
+  "note": "",
+  "family": "벤즈이미다졸계",
+  "action": "침투이행성",
+  "target": "잿빛곰팡이병·균핵병"
  },
  {
   "no": 23,
@@ -204,7 +270,10 @@
   "hint": "이트",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "유기인계",
+  "action": "잎에서 빨려 들어가는 침투이행성",
+  "target": "진딧물·응애"
  },
  {
   "no": 24,
@@ -213,7 +282,10 @@
   "hint": "다조멧",
   "whole": true,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "토양훈증제",
+  "action": "흙 속에서 가스를 내어 병원균·선충·잡초를 한꺼번에 잡는다",
+  "target": "토양 소독"
  },
  {
   "no": 25,
@@ -222,7 +294,10 @@
   "hint": "아이소",
   "whole": false,
   "exam_count": 7,
-  "note": ""
+  "note": "",
+  "family": "유기인계 살균제",
+  "action": "침투이행성",
+  "target": "벼 도열병"
  },
  {
   "no": 26,
@@ -231,7 +306,10 @@
   "hint": "카브",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "카바메이트계",
+  "action": "벼에 뿌려 잡는다",
+  "target": "벼멸구·흰등멸구"
  },
  {
   "no": 27,
@@ -240,7 +318,10 @@
   "hint": "클로르",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "클로로아세트아미드계",
+  "action": "싹트기 전 흙에 처리",
+  "target": "일년생 화본과·방동사니"
  },
  {
   "no": 28,
@@ -249,7 +330,10 @@
   "hint": "마이신",
   "whole": false,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "항생제",
+  "action": "세균의 단백질 합성을 막는다",
+  "target": "무름병·궤양병 등 세균병"
  },
  {
   "no": 29,
@@ -258,7 +342,10 @@
   "hint": "메코프로프",
   "whole": true,
   "exam_count": 8,
-  "note": ""
+  "note": "",
+  "family": "페녹시계",
+  "action": "식물호르몬을 흐트러뜨린다",
+  "target": "잔디밭 광엽잡초"
  },
  {
   "no": 30,
@@ -267,7 +354,10 @@
   "hint": "카브",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "카바메이트계",
+  "action": "속효성",
+  "target": "멸구류"
  },
  {
   "no": 31,
@@ -276,7 +366,10 @@
   "hint": "프리드",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "네오니코티노이드계",
+  "action": "침투이행성",
+  "target": "진딧물·나방·총채벌레"
  },
  {
   "no": 32,
@@ -285,7 +378,10 @@
   "hint": "모르프",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "신남산아마이드계",
+  "action": "난균의 세포벽 형성을 막는다",
+  "target": "역병·노균병"
  },
  {
   "no": 33,
@@ -294,7 +390,10 @@
   "hint": "졸",
   "whole": false,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "이속사졸계",
+  "action": "종자·육묘상 처리",
+  "target": "모잘록병"
  },
  {
   "no": 34,
@@ -303,7 +402,10 @@
   "hint": "이프로",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "디카복시이미드계",
+  "action": "보호·치료 겸용",
+  "target": "잿빛곰팡이병·균핵병"
  },
  {
   "no": 35,
@@ -312,7 +414,10 @@
   "hint": "마이드",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "아마이드계",
+  "action": "싹트기 전 흙에 처리",
+  "target": "일년생 잡초"
  },
  {
   "no": 36,
@@ -321,7 +426,10 @@
   "hint": "존",
   "whole": false,
   "exam_count": 5,
-  "note": ""
+  "note": "",
+  "family": "벤타존+MCPA 혼합",
+  "action": "자란 잡초에 뿌린다",
+  "target": "광엽·방동사니"
  },
  {
   "no": 37,
@@ -330,7 +438,10 @@
   "hint": "코나졸",
   "whole": false,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "트리아졸계",
+  "action": "침투이행성",
+  "target": "흰가루병·녹병·잎집무늬마름병"
  },
  {
   "no": 38,
@@ -339,7 +450,10 @@
   "hint": "트린",
   "whole": false,
   "exam_count": 1,
-  "note": ""
+  "note": "",
+  "family": "피레스로이드계",
+  "action": "닿으면 바로 듣는다(속효성)",
+  "target": "나방류·노린재"
  },
  {
   "no": 39,
@@ -348,7 +462,10 @@
   "hint": "코퍼",
   "whole": false,
   "exam_count": 2,
-  "note": ""
+  "note": "",
+  "family": "구리제+옥신",
+  "action": "보호살균",
+  "target": "세균병·곰팡이병"
  },
  {
   "no": 40,
@@ -357,7 +474,10 @@
   "hint": "주론",
   "whole": false,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "요소계",
+  "action": "광합성을 막는다",
+  "target": "일년생 잡초"
  },
  {
   "no": 41,
@@ -366,7 +486,10 @@
   "hint": "실",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "아실알라닌계",
+  "action": "메탈락실 가운데 듣는 쪽만 뽑은 것",
+  "target": "노균병·역병"
  },
  {
   "no": 42,
@@ -375,7 +498,10 @@
   "hint": "다이아지논",
   "whole": true,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "유기인계",
+  "action": "흙에 섞어 뿌리 둘레의 벌레를 잡는다",
+  "target": "굼벵이·거세미나방"
  },
  {
   "no": 43,
@@ -384,7 +510,10 @@
   "hint": "스트로빈",
   "whole": false,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "스트로빌루린계",
+  "action": "호흡을 막는다(QoI)",
+  "target": "탄저병·흰가루병·잎집무늬마름병"
  },
  {
   "no": 44,
@@ -393,7 +522,10 @@
   "hint": "디캄바",
   "whole": true,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "벤조산계",
+  "action": "식물호르몬을 흐트러뜨린다",
+  "target": "광엽잡초·덩굴"
  },
  {
   "no": 45,
@@ -402,7 +534,10 @@
   "hint": "미돈",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "디카복시이미드계",
+  "action": "침투이행성",
+  "target": "잿빛곰팡이병·균핵병"
  },
  {
   "no": 46,
@@ -411,7 +546,10 @@
   "hint": "마이신",
   "whole": false,
   "exam_count": 7,
-  "note": "23년 3회 산업기사 기출."
+  "note": "23년 3회 산업기사 기출.",
+  "family": "항생제",
+  "action": "단백질 합성을 막는다",
+  "target": "벼 도열병·세균병"
  },
  {
   "no": 47,
@@ -420,7 +558,10 @@
   "hint": "카보",
   "whole": false,
   "exam_count": 6,
-  "note": ""
+  "note": "",
+  "family": "카바메이트계",
+  "action": "몸 안에서 카보퓨란으로 바뀌어 듣는다",
+  "target": "진딧물·선충"
  },
  {
   "no": 48,
@@ -429,7 +570,10 @@
   "hint": "람",
   "whole": false,
   "exam_count": 2,
-  "note": ""
+  "note": "",
+  "family": "디티오카바메이트계",
+  "action": "보호살균제",
+  "target": "역병·탄저병"
  },
  {
   "no": 49,
@@ -438,7 +582,10 @@
   "hint": "코나졸",
   "whole": false,
   "exam_count": 3,
-  "note": "토마토 잎곰팡이병에 쓴다."
+  "note": "토마토 잎곰팡이병에 쓴다.",
+  "family": "트리아졸계",
+  "action": "침투이행성",
+  "target": "흰가루병·녹병·탄저병"
  },
  {
   "no": 50,
@@ -447,7 +594,10 @@
   "hint": "포스",
   "whole": false,
   "exam_count": 6,
-  "note": ""
+  "note": "",
+  "family": "유기인계",
+  "action": "흙에 처리하는 살선충제",
+  "target": "뿌리혹선충·토양해충"
  },
  {
   "no": 51,
@@ -456,7 +606,10 @@
   "hint": "메틸",
   "whole": false,
   "exam_count": 3,
-  "note": "\"메틸\"은 계열을 가리지 못한다 — 메틸브로마이드는 살충제이고 티오파네이트메틸·크레속심메틸은 살균제다. 앞부분으로 가려야 한다."
+  "note": "\"메틸\"은 계열을 가리지 못한다 — 메틸브로마이드는 살충제이고 티오파네이트메틸·크레속심메틸은 살균제다. 앞부분으로 가려야 한다.",
+  "family": "벤즈이미다졸계(전구체)",
+  "action": "몸 안에서 카벤다짐으로 바뀐다",
+  "target": "잿빛곰팡이병·흰가루병"
  },
  {
   "no": 52,
@@ -465,7 +618,10 @@
   "hint": "포스",
   "whole": false,
   "exam_count": 1,
-  "note": ""
+  "note": "",
+  "family": "유기인계",
+  "action": "흙에 처리한다",
+  "target": "토양해충·선충"
  },
  {
   "no": 53,
@@ -474,7 +630,10 @@
   "hint": "코나졸",
   "whole": false,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "트리아졸계",
+  "action": "침투이행성",
+  "target": "검은별무늬병·흰가루병"
  },
  {
   "no": 54,
@@ -483,7 +642,10 @@
   "hint": "알루미늄",
   "whole": false,
   "exam_count": 5,
-  "note": ""
+  "note": "",
+  "family": "훈증제",
+  "action": "물기를 만나 포스핀 가스를 낸다",
+  "target": "저장 곡물 해충"
  },
  {
   "no": 55,
@@ -492,7 +654,10 @@
   "hint": "이트",
   "whole": false,
   "exam_count": 1,
-  "note": ""
+  "note": "",
+  "family": "유기인계",
+  "action": "침투이행성이 좋다",
+  "target": "나방·진딧물·총채벌레"
  },
  {
   "no": 56,
@@ -501,7 +666,10 @@
   "hint": "캡탄",
   "whole": true,
   "exam_count": 1,
-  "note": ""
+  "note": "",
+  "family": "프탈이미드계",
+  "action": "보호살균. 종자 소독에도 쓴다",
+  "target": "모잘록병·탄저병"
  },
  {
   "no": 57,
@@ -510,7 +678,10 @@
   "hint": "람",
   "whole": false,
   "exam_count": 2,
-  "note": ""
+  "note": "",
+  "family": "디티오카바메이트계",
+  "action": "종자 소독제로 널리 쓴다",
+  "target": "모잘록병·종자전염병"
  },
  {
   "no": 58,
@@ -519,7 +690,10 @@
   "hint": "플루아지남",
   "whole": true,
   "exam_count": 5,
-  "note": ""
+  "note": "",
+  "family": "피리디나민계",
+  "action": "호흡(산화적 인산화)을 막는다",
+  "target": "균핵병·역병·검은무늬병"
  },
  {
   "no": 59,
@@ -528,7 +702,10 @@
   "hint": "뷰프로페진",
   "whole": true,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "티아디아진계",
+  "action": "허물벗기를 막는다(키틴 합성 저해). 어린 벌레에 듣는다",
+  "target": "멸구류·깍지벌레·가루이"
  },
  {
   "no": 60,
@@ -537,7 +714,10 @@
   "hint": "졸",
   "whole": false,
   "exam_count": 1,
-  "note": ""
+  "note": "",
+  "family": "멜라닌 생합성 저해제",
+  "action": "곰팡이가 침입에 쓰는 검은 색소를 못 만들게 한다",
+  "target": "벼 도열병"
  },
  {
   "no": 61,
@@ -546,7 +726,10 @@
   "hint": "마이신",
   "whole": false,
   "exam_count": 2,
-  "note": ""
+  "note": "",
+  "family": "항생제",
+  "action": "균사 끝을 비정상으로 자라게 한다",
+  "target": "벼 잎집무늬마름병"
  },
  {
   "no": 62,
@@ -555,7 +738,10 @@
   "hint": "옥",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "퀴놀론계",
+  "action": "세균의 DNA 복제를 막는다",
+  "target": "세균병(벼 흰잎마름병 등)"
  },
  {
   "no": 63,
@@ -564,7 +750,10 @@
   "hint": "이트",
   "whole": false,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "유기인계",
+  "action": "흙에 처리해 뿌리로 빨려 올라간다",
+  "target": "토양해충·진딧물"
  },
  {
   "no": 64,
@@ -573,7 +762,10 @@
   "hint": "스트로빈",
   "whole": false,
   "exam_count": 6,
-  "note": ""
+  "note": "",
+  "family": "스트로빌루린계",
+  "action": "호흡을 막는다(QoI). 범위가 넓다",
+  "target": "탄저병·노균병·흰가루병"
  },
  {
   "no": 65,
@@ -582,7 +774,10 @@
   "hint": "스트로빈",
   "whole": false,
   "exam_count": 5,
-  "note": ""
+  "note": "",
+  "family": "스트로빌루린계",
+  "action": "호흡을 막는다(QoI)",
+  "target": "흰가루병·검은별무늬병"
  },
  {
   "no": 66,
@@ -591,7 +786,10 @@
   "hint": "비알라포스",
   "whole": true,
   "exam_count": 3,
-  "note": "\"~포스\"는 살충제지만 비알라포스와 피페로포스는 예외로 제초제다."
+  "note": "\"~포스\"는 살충제지만 비알라포스와 피페로포스는 예외로 제초제다.",
+  "family": "미생물 유래",
+  "action": "몸 안에서 글루포시네이트로 바뀐다. 가리지 않고 죽인다",
+  "target": "비선택성(경엽처리)"
  },
  {
   "no": 67,
@@ -600,7 +798,10 @@
   "hint": "글",
   "whole": false,
   "exam_count": 2,
-  "note": ""
+  "note": "",
+  "family": "포스피노트리신계",
+  "action": "글루타민 합성을 막아 암모니아가 쌓이게 한다",
+  "target": "비선택성(경엽처리)"
  },
  {
   "no": 68,
@@ -609,7 +810,10 @@
   "hint": "탈린",
   "whole": false,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "다이나이트로아닐린계",
+  "action": "싹트기 전 흙에 처리",
+  "target": "일년생 화본과·광엽"
  },
  {
   "no": 69,
@@ -618,7 +822,10 @@
   "hint": "사이",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "유기주석계",
+  "action": "응애 전용(살비제)",
+  "target": "응애류"
  },
  {
   "no": 70,
@@ -627,7 +834,10 @@
   "hint": "존",
   "whole": false,
   "exam_count": 5,
-  "note": ""
+  "note": "",
+  "family": "벤조티아디아진계",
+  "action": "광합성을 막는다. 닿은 자리에만 듣는다",
+  "target": "광엽·방동사니"
  },
  {
   "no": 71,
@@ -636,7 +846,10 @@
   "hint": "메탈",
   "whole": false,
   "exam_count": 1,
-  "note": ""
+  "note": "",
+  "family": "유인살충제",
+  "action": "미끼로 꾀어 잡는다",
+  "target": "달팽이·민달팽이"
  },
  {
   "no": 72,
@@ -645,7 +858,10 @@
   "hint": "메틸",
   "whole": false,
   "exam_count": 3,
-  "note": "\"메틸\"은 계열을 가리지 못한다 — 메틸브로마이드는 살충제이고 티오파네이트메틸·크레속심메틸은 살균제다. 앞부분으로 가려야 한다."
+  "note": "\"메틸\"은 계열을 가리지 못한다 — 메틸브로마이드는 살충제이고 티오파네이트메틸·크레속심메틸은 살균제다. 앞부분으로 가려야 한다.",
+  "family": "스트로빌루린계",
+  "action": "호흡을 막는다(QoI)",
+  "target": "흰가루병·검은별무늬병"
  },
  {
   "no": 73,
@@ -654,7 +870,10 @@
   "hint": "설폭사플로르",
   "whole": true,
   "exam_count": 1,
-  "note": ""
+  "note": "",
+  "family": "설폭시민계",
+  "action": "침투이행성. 저항성 흡즙해충에 쓴다",
+  "target": "진딧물·가루이·멸구"
  },
  {
   "no": 74,
@@ -663,7 +882,10 @@
   "hint": "프로",
   "whole": false,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "이미다졸계",
+  "action": "침투이행성",
+  "target": "도열병·잿빛곰팡이병"
  },
  {
   "no": 75,
@@ -672,7 +894,10 @@
   "hint": "클로르",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "클로로아세트아미드계",
+  "action": "논에 초기·중기 처리",
+  "target": "피·물달개비·올챙이고랭이"
  },
  {
   "no": 76,
@@ -681,7 +906,10 @@
   "hint": "디티아논",
   "whole": true,
   "exam_count": 3,
-  "note": "다이아지논(유기인계 살충제)과 헷갈리지 말 것 — \"논\"의 \"티\". 벼 흰잎마름병·사과 탄저병·감귤 더뎅이병·배 검은무늬병에 쓴다."
+  "note": "다이아지논(유기인계 살충제)과 헷갈리지 말 것 — \"논\"의 \"티\". 벼 흰잎마름병·사과 탄저병·감귤 더뎅이병·배 검은무늬병에 쓴다.",
+  "family": "퀴논계",
+  "action": "여러 곳을 건드리는 보호살균제",
+  "target": "탄저병·검은별무늬병·더뎅이병"
  },
  {
   "no": 77,
@@ -690,7 +918,10 @@
   "hint": "코퍼",
   "whole": false,
   "exam_count": 1,
-  "note": ""
+  "note": "",
+  "family": "구리제",
+  "action": "보호살균. 세균병에도 듣는다",
+  "target": "세균병·노균병"
  },
  {
   "no": 78,
@@ -699,7 +930,10 @@
   "hint": "포스",
   "whole": false,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "유기인계",
+  "action": "닿거나 먹으면 듣는 넓은 범위의 약",
+  "target": "나방류·토양해충"
  },
  {
   "no": 79,
@@ -708,7 +942,10 @@
   "hint": "네브",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "디티오카바메이트계",
+  "action": "보호살균제",
+  "target": "역병·탄저병"
  },
  {
   "no": 80,
@@ -717,7 +954,10 @@
   "hint": "트린",
   "whole": false,
   "exam_count": 4,
-  "note": "23년 2회 산업기사, 3회 기사 기출."
+  "note": "23년 2회 산업기사, 3회 기사 기출.",
+  "family": "피레스로이드계",
+  "action": "닿으면 바로 듣는다(속효성)",
+  "target": "나방류·노린재"
  },
  {
   "no": 81,
@@ -726,7 +966,10 @@
   "hint": "에토",
   "whole": false,
   "exam_count": 1,
-  "note": ""
+  "note": "",
+  "family": "에테르계(피레스로이드 유사)",
+  "action": "물고기에 덜 해로워 논에 쓴다",
+  "target": "벼멸구·이화명나방"
  },
  {
   "no": 82,
@@ -735,7 +978,10 @@
   "hint": "클로르",
   "whole": false,
   "exam_count": 2,
-  "note": ""
+  "note": "",
+  "family": "클로로아세트아미드계",
+  "action": "논에 처리. 세포 분열·신장을 막는다",
+  "target": "피·일년생 잡초"
  },
  {
   "no": 83,
@@ -744,7 +990,10 @@
   "hint": "포스",
   "whole": false,
   "exam_count": 1,
-  "note": "원본 표기 그대로다. 표준 농약명에서 확인되지 않아 두 성분이 붙어 적혔을 수 있다."
+  "note": "원본 표기 그대로다. 표준 농약명에서 확인되지 않아 두 성분이 붙어 적혔을 수 있다.",
+  "family": "—",
+  "action": "원본 표기 그대로다. 표준 농약명에서 확인되지 않는다",
+  "target": ""
  },
  {
   "no": 84,
@@ -753,7 +1002,10 @@
   "hint": "포스",
   "whole": false,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "유기인계",
+  "action": "흙에 처리하는 살선충제",
+  "target": "뿌리혹선충"
  },
  {
   "no": 85,
@@ -762,7 +1014,10 @@
   "hint": "이트",
   "whole": false,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "유기인계",
+  "action": "닿거나 먹으면 듣는다",
+  "target": "깍지벌레·나방류"
  },
  {
   "no": 86,
@@ -771,7 +1026,10 @@
   "hint": "클로르",
   "whole": false,
   "exam_count": 5,
-  "note": ""
+  "note": "",
+  "family": "클로로아세트아미드계",
+  "action": "싹트기 전 흙에 처리",
+  "target": "일년생 화본과"
  },
  {
   "no": 87,
@@ -780,7 +1038,10 @@
   "hint": "닐",
   "whole": false,
   "exam_count": 3,
-  "note": ""
+  "note": "",
+  "family": "유기염소계",
+  "action": "여러 곳을 건드리는 보호살균제",
+  "target": "탄저병·역병·잿빛곰팡이병"
  },
  {
   "no": 88,
@@ -789,7 +1050,10 @@
   "hint": "디노테퓨란",
   "whole": true,
   "exam_count": 5,
-  "note": ""
+  "note": "",
+  "family": "네오니코티노이드계",
+  "action": "침투이행성이 빠르다",
+  "target": "멸구류·진딧물·노린재"
  },
  {
   "no": 89,
@@ -798,7 +1062,10 @@
   "hint": "옥신",
   "whole": false,
   "exam_count": 2,
-  "note": ""
+  "note": "",
+  "family": "항생제",
+  "action": "키틴 합성을 막는다",
+  "target": "잿빛곰팡이병·흰가루병"
  },
  {
   "no": 90,
@@ -807,7 +1074,10 @@
   "hint": "베닐",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "니트릴계",
+  "action": "셀룰로스 합성을 막는다. 흙에 오래 남는다",
+  "target": "다년생 잡초"
  },
  {
   "no": 91,
@@ -816,7 +1086,10 @@
   "hint": "존",
   "whole": false,
   "exam_count": 4,
-  "note": ""
+  "note": "",
+  "family": "이속사졸리디논계",
+  "action": "카로티노이드를 못 만들게 해 하얗게 만든다",
+  "target": "일년생 잡초"
  },
  {
   "no": 92,
@@ -825,6 +1098,9 @@
   "hint": "피페로포스",
   "whole": true,
   "exam_count": 1,
-  "note": "\"~포스\"는 살충제지만 비알라포스와 피페로포스만 예외로 제초제다."
+  "note": "\"~포스\"는 살충제지만 비알라포스와 피페로포스만 예외로 제초제다.",
+  "family": "유기인계 제초제",
+  "action": "논에 쓴다. \"~포스\"이지만 제초제다",
+  "target": "방동사니·일년생 잡초"
  }
 ]

@@ -45,16 +45,16 @@
         transition: fill .35s ease, color .35s ease; }
 
     .pc-bottle.ans-살충제 .pc-cap { fill: #2e7d32; }
-    .pc-bottle.ans-살충제 .pc-lab-face { fill: #3f9d43; }
+    .pc-bottle.ans-살충제 .pc-lab-face { fill: #8fd39a; }
     .pc-bottle.ans-살충제 .pc-lab-catbox { fill: #1b5e20; }
     .pc-bottle.ans-살충제 .pc-lab-cat { fill: #fff; }
-    .pc-bottle.ans-살충제 .pc-name { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.25); }
+    .pc-bottle.ans-살충제 .pc-name { color: #14310f; }
 
     .pc-bottle.ans-살균제 .pc-cap { fill: #c62828; }
-    .pc-bottle.ans-살균제 .pc-lab-face { fill: #e8477a; }
+    .pc-bottle.ans-살균제 .pc-lab-face { fill: #f7a8c0; }
     .pc-bottle.ans-살균제 .pc-lab-catbox { fill: #a81b52; }
     .pc-bottle.ans-살균제 .pc-lab-cat { fill: #fff; }
-    .pc-bottle.ans-살균제 .pc-name { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.25); }
+    .pc-bottle.ans-살균제 .pc-name { color: #3a0b1c; }
 
     /* 황색 위에서는 흰 글자가 묻힌다 — 글자를 검게 둔다 */
     .pc-bottle.ans-제초제 .pc-cap { fill: #f5c400; }
@@ -73,6 +73,9 @@
        긴 것은 **줄바꿈도 풀어 준다** — 농약명은 한 낱말이라 keep-all 로 두면
        끊을 곳이 없어 가로로 삐져나간다(글루포시네이트암모늄 …). 고유명사라
        아무 데서 끊겨도 읽히고, 실제 농약 상표도 그렇게 앉힌다. */
+    /* 상표 위의 단서도 빨갛다(답을 안 뒤에만 들어간다). 색면을 밝게 잡아
+       검은 이름과 빨간 단서가 함께 읽히게 했다 */
+    .pc-name b { color: #c1121f; font-weight: 900; }
     .pc-name.len6 { font-size: 1.02rem; }
     .pc-name.len8 { font-size: 0.9rem; overflow-wrap: anywhere; word-break: normal; }
     .pc-name.len10 { font-size: 0.8rem; letter-spacing: -.04em;
@@ -101,13 +104,16 @@
     /* 단서는 **빨간 글자**다 — 원본 PPT 가 답 슬라이드에서 그렇게 칠했고,
        그 색으로 외운 사람이 화면에서도 같은 색을 찾는다 */
     .pc-hint b, .pc-table b { color: #d32f2f; font-weight: 800; }
-    /* 포장 색 규칙 한 줄 — 답 풀이 끝에 붙는다 */
-    .pc-pack { margin-top: 7px; font-size: 0.8rem; color: #7b8a80; }
-    .pc-pack i { font-style: normal; font-weight: 700; border-radius: 4px;
-        padding: 1px 5px; }
-    .pc-pack .c1 { background: #e7f4e9; color: #2e7d32; }
-    .pc-pack .c2 { background: #fdeaea; color: #c62828; }
-    .pc-pack .c3 { background: #fdf7e0; color: #8a6d1f; }
+    /* 답 아래 보충 정보 — 잡초 카드의 배지 줄과 같은 꼴이다 */
+    .pc-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+    .pc-meta span { font-size: 0.76rem; font-weight: 700; border-radius: 9px;
+        padding: 3px 9px; }
+    .pc-b1 { background: #eef2f7; color: #3b4a63; }
+    .pc-b2 { background: #eaf2ec; color: #2f6b46; }
+    .pc-b3 { background: #fdf6e0; color: #8a6d1f; }
+    .pc-row { margin-top: 7px; font-size: 0.86rem; color: #3b4740; line-height: 1.65; }
+    .pc-row b { display: inline-block; min-width: 5.6em; font-weight: 700;
+        color: #7b8a80; font-size: 0.92em; }
     .pc-whole { font-size: 0.88rem; color: #8a6d1f; background: #fdf6e0;
         border-radius: 8px; padding: 8px 11px; line-height: 1.6; }
     .pc-note { margin-top: 9px; font-size: 0.86rem; color: #55635b; line-height: 1.65;

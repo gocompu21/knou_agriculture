@@ -27,7 +27,8 @@ from django.db import transaction  # noqa: E402
 from gisa.models import PesticideCard  # noqa: E402
 
 SRC = '_pesticide_cards.json'
-FIELDS = ('name', 'category', 'hint', 'whole', 'exam_count', 'note')
+FIELDS = ('name', 'category', 'hint', 'whole', 'exam_count',
+          'family', 'action', 'target', 'note')
 
 
 def main():

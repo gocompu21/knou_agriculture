@@ -36,12 +36,22 @@
                esc(name.slice(i + hint.length));
     }
 
-    /* 상표 자리는 좁다 — 이름이 길면 글자를 줄인다 */
-    function setName(name) {
+    /* 받침이 있으면 '이', 없으면 '가'. 단서가 '포스'·'메틸'·'실' 처럼 제각각이라
+       조사를 하나로 박아 두면 "메틸 가" 같은 말이 된다. */
+    function josa(word, with_, without) {
+        var c = word.charCodeAt(word.length - 1);
+        if (c < 0xAC00 || c > 0xD7A3) return without;      // 한글이 아니면 그대로
+        return ((c - 0xAC00) % 28) ? with_ : without;
+    }
+
+    /* 상표 자리는 좁다 — 이름이 길면 글자를 줄인다.
+       `hint` 를 주면 **상표 위에서도 단서를 빨갛게** 쓴다(답을 안 뒤에만). */
+    function setName(name, hint) {
         var n = name.length;
         elName.className = 'pc-name' + (n >= 10 ? ' len10' : n >= 8 ? ' len8'
                                         : n >= 6 ? ' len6' : '');
-        elName.textContent = name;
+        if (hint) elName.innerHTML = markHint(name, hint);
+        else elName.textContent = name;
     }
 
     function drawChoices(enabled) {
@@ -137,17 +147,33 @@
                    답을 알기 전에는 「농 약」 으로 두었다가 여기서 채운다 */
                 var cat = document.getElementById('pcLabCat');
                 if (cat) cat.textContent = d.answer;
+                if (!d.whole) setName(d.name, d.hint);   // 상표에도 단서를 빨갛게
                 if (d.whole) {
                     elWhy.innerHTML = '<div class="pc-whole">이름만으로는 가릴 수 없습니다. ' +
                         '<b>' + esc(d.name) + '</b> 는 통째로 외우세요.</div>';
+                } else if (d.hint_mixed) {
+                    /* 계열이 갈리는 단서 — 단서 구실을 못 한다는 사실이 요점이다 */
+                    elWhy.innerHTML = '<div class="pc-hint">' + markHint(d.name, d.hint) +
+                        ' — 빨간 <b>' + esc(d.hint) + '</b>' +
+                        josa(d.hint, '은', '는') + ' 계열을 가리지 못합니다.</div>';
                 } else {
                     elWhy.innerHTML = '<div class="pc-hint">' + markHint(d.name, d.hint) +
-                        ' — 빨간 <b>' + esc(d.hint) + '</b> 가 ' + esc(d.answer) +
+                        ' — 빨간 <b>' + esc(d.hint) + '</b>' +
+                        josa(d.hint, '이', '가') + ' ' + esc(d.answer) +
                         '를 가리킵니다.</div>';
                 }
-                elWhy.innerHTML += '<div class="pc-pack">농약 포장은 ' +
-                    '<i class="c1">살충제 녹색</i> · <i class="c2">살균제 분홍</i> · ' +
-                    '<i class="c3">제초제 황색</i> 으로 갈립니다 — 병 색이 그것입니다.</div>';
+                /* 잡초 카드처럼 이 농약이 무엇인지 곁들인다 */
+                var meta = '';
+                if (d.family) meta += '<span class="pc-b1">' + esc(d.family) + '</span>';
+                meta += '<span class="pc-b2">' + esc(d.answer) + '</span>';
+                if (d.exam_count) meta += '<span class="pc-b3">기출 ' + d.exam_count + '회</span>';
+                var rows = '';
+                if (d.action) rows += '<div class="pc-row"><b>어떻게 듣나</b>' +
+                    esc(d.action) + '</div>';
+                if (d.target) rows += '<div class="pc-row"><b>주요 대상</b>' +
+                    esc(d.target) + '</div>';
+                elWhy.innerHTML += '<div class="pc-meta">' + meta + '</div>' + rows;
+
                 if (d.note) { elNote.textContent = d.note; elNote.hidden = false; }
                 elAns.hidden = false;
                 elActions.hidden = false;

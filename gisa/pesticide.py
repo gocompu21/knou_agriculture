@@ -116,6 +116,15 @@ def api_answer(request):
 
     selected = (request.POST.get('selected') or '').strip()
     correct = selected == card.category
+
+    # 그 단서가 계열을 가르는가. `메틸` 처럼 두 계열에 걸친 단서는 단서 구실을
+    # 못 하므로 "…가 살균제를 가리킵니다" 라고 말하면 안 된다.
+    mixed = False
+    if card.hint and not card.whole:
+        cats = set(PesticideCard.objects
+                   .filter(hint=card.hint, whole=False)
+                   .values_list('category', flat=True))
+        mixed = len(cats) > 1
     PesticideQuizAttempt.objects.create(
         user=request.user, card=card, selected=selected, is_correct=correct)
 
@@ -127,7 +136,13 @@ def api_answer(request):
         # 단서가 이름 전체면 '통암기' — 어미·어두로 가를 수 없는 것들이다
         'hint': card.hint,
         'whole': card.whole,
+        'hint_mixed': mixed,
         'exam_count': card.exam_count,
+        # 답을 맞힌 뒤에 읽는 보충 정보 — 계열을 알면 어미 규칙이 왜 통하는지가
+        # 이어진다('-포스'가 살충제인 까닭은 유기인계이기 때문이다)
+        'family': card.family,
+        'action': card.action,
+        'target': card.target,
         'note': card.note,
         'stats': stats(request.user),
     })
@@ -177,8 +192,9 @@ def api_list(request):
     """카드 92종 목록 — 구분별로 묶어 한눈에 훑는다."""
     cards = list(PesticideCard.objects.all())
     rows = [{'no': c.no, 'name': c.name, 'category': c.category,
-             'hint': c.hint, 'whole': c.whole,
-             'exam_count': c.exam_count, 'note': c.note} for c in cards]
+             'hint': c.hint, 'whole': c.whole, 'exam_count': c.exam_count,
+             'family': c.family, 'action': c.action, 'target': c.target,
+             'note': c.note} for c in cards]
     return JsonResponse({'ok': True, 'cards': rows,
                          'rules': hint_rules(cards),
                          'stats': stats(request.user)})

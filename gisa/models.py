@@ -584,6 +584,12 @@ class PesticideCard(models.Model):
                                 help_text='어미·어두로 못 가르는 것')
     exam_count = models.IntegerField('출제수', default=0,
                                      help_text='2018~2023 기출 빈도')
+    # 잡초 카드처럼 답을 고른 뒤 보여 주는 보충 정보. 계열을 알면 어미 규칙이
+    # 왜 통하는지가 이어진다 — '-포스'가 살충제인 까닭이 유기인계이기 때문이다.
+    family = models.CharField('계열', max_length=40, blank=True)
+    action = models.CharField('작용', max_length=120, blank=True,
+                              help_text='어떻게 듣는가 (침투이행·접촉·훈증 …)')
+    target = models.CharField('주요 대상', max_length=120, blank=True)
     note = models.TextField('비고', blank=True)
 
     class Meta:
