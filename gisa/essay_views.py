@@ -62,10 +62,18 @@ def essay_list(request, cert_id):
               .order_by('-year', 'round'))
 
     # 영역 카드 — 회차가 없는 문항 묶음(예상문제·구유형 적산)이 여기 실린다
-    sections = (qs.filter(source__in=('예상', '적산'))
-                .values('source', 'section')
-                .annotate(c=Count('id'))
-                .order_by('source', 'section'))
+    sections = list(qs.filter(source__in=('예상', '적산'))
+                    .values('source', 'section')
+                    .annotate(c=Count('id'))
+                    .order_by('source', 'section'))
+    # 구유형 적산은 가나다순이면 '측량'이 맨 앞으로 와 흐름이 끊긴다.
+    # 적산이 실제로 진행되는 차례(무엇을 얼마나 옮기나 → 무엇으로 얼마나 드나)로 둔다.
+    _JS_ORDER = ['토공량', '기계화 시공', '인력·기계 운반', '재료·적산',
+                 '수목식재', '포장·시설', '측량·적산일반']
+    sections.sort(key=lambda x: (x['source'] != '적산',
+                                 _JS_ORDER.index(x['section'])
+                                 if x['section'] in _JS_ORDER else 99,
+                                 x['section']))
 
     # 화면만 열었다 나간 세션은 이력을 어지럽히므로 치운다.
     # 답을 하나도 쓰지 않았고, 인쇄용 시험지도 아니고, 하루가 지난 것.
