@@ -23,25 +23,11 @@
     }
 """
 import re
-import unicodedata
 
 from django.conf import settings
 
 # 숫자 허용 오차 (상대)
 NUM_TOLERANCE = 0.02
-
-# 원문자·번호 기호 제거용
-CIRCLED = '①②③④⑤⑥⑦⑧⑨⑩㉠㉡㉢㉣㉤ㄱㄴㄷㄹㅁ'
-
-
-def normalize(s):
-    """비교용 정규화: 공백·문장부호·번호기호 제거, 전각→반각, 소문자화."""
-    if not s:
-        return ''
-    s = unicodedata.normalize('NFKC', str(s))
-    s = re.sub(rf'[{CIRCLED}]', ' ', s)
-    s = re.sub(r'[\s\-_·,./()\[\]{}<>:;!?\'"「」『』]+', '', s)
-    return s.lower().strip()
 
 
 def extract_numbers(s):
@@ -102,20 +88,6 @@ def final_answer_numbers(question):
             seen.add(n)
             out.append(n)
     return out
-
-
-def numbers_match(user, answer_numbers):
-    """정답 수치가 사용자 답안에 모두 있는지 (상대오차 허용)."""
-    if not answer_numbers:
-        return None                      # 수치가 없으면 판정 불가
-    u_nums = extract_numbers(user)
-    if not u_nums:
-        return False
-    for a in answer_numbers:
-        ok = any(abs(u - a) <= max(abs(a) * NUM_TOLERANCE, 1e-9) for u in u_nums)
-        if not ok:
-            return False
-    return True
 
 
 def build_rubric(question):
