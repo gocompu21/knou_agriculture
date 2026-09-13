@@ -18,9 +18,14 @@
     .pc-modes:has(.on) .pc-mode:not(.on) { opacity: .55; }
     .pc-mode:disabled { opacity: .35; cursor: default; }
 
-    /* 문제 — 농약 용기에 상표가 붙은 모습. 이름이 상표 자리에 들어간다 */
-    .pc-card { position: relative; background: #fff; border: 1px solid #dbe7e0;
-        border-radius: 14px; padding: 22px 20px 24px; text-align: center; }
+    /* 문제 — 농약 용기에 상표가 붙은 모습. 이름이 상표 자리에 들어간다.
+       바탕은 약장 선반처럼 옅은 결을 준다 — 흰 바탕에 흰 병에 흰 상표면
+       셋이 한 덩어리로 뭉개져 무엇이 문제인지 눈에 걸리지 않는다. */
+    .pc-card { position: relative; border: 1px solid #cfe0d6; border-radius: 14px;
+        padding: 22px 20px 26px; text-align: center;
+        background:
+            radial-gradient(120% 80% at 50% 0%, #ffffff 0%, #f4f9f6 55%, #e8f1ec 100%);
+        box-shadow: inset 0 1px 0 #fff, 0 2px 10px rgba(20,49,42,.06); }
     /* 출제 횟수는 카드 오른쪽 위 모서리 — 문제(상표)를 가리지 않는 자리다 */
     .pc-freq { position: absolute; top: 12px; right: 12px; font-size: 0.75rem;
         font-weight: 700; color: #8a6d1f; background: #fdf6e0; border-radius: 10px;
@@ -30,10 +35,31 @@
     .pc-bottle { position: relative; width: 190px; margin: 0 auto; }
     .pc-bottle svg { display: block; width: 100%; height: auto;
         filter: drop-shadow(0 3px 6px rgba(20,49,42,.12)); }
-    /* 상표 자리 — SVG 의 흰 사각(46,104 ~ 154,216)에 맞춰 비율로 얹는다.
-       픽셀로 두면 폭이 줄어드는 화면에서 어긋난다. */
-    .pc-label { position: absolute; left: 23%; top: 38.2%; width: 54%; height: 41.2%;
-        display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+
+    /* ── 답을 고른 뒤에만 포장 색이 드러난다 ──
+       **실제 농약 포장 색 규칙**이다(농약관리법) — 살충제 녹색, 살균제 분홍,
+       제초제 황색. 그래서 색을 입히는 것 자체가 외울 거리다.
+       문제를 낼 때는 절대 칠하지 않는다. 병 색으로 답이 새면 문제가 아니다. */
+    .pc-cap, .pc-lab-bg, .pc-lab-band { transition: fill .35s ease; }
+
+    .pc-bottle.ans-살충제 .pc-cap,
+    .pc-bottle.ans-살충제 .pc-lab-band { fill: #2e7d32; }
+    .pc-bottle.ans-살충제 .pc-lab-bg { fill: #e7f4e9; stroke: #2e7d32; }
+
+    .pc-bottle.ans-살균제 .pc-cap,
+    .pc-bottle.ans-살균제 .pc-lab-band { fill: #c62828; }
+    .pc-bottle.ans-살균제 .pc-lab-bg { fill: #fdeaea; stroke: #c62828; }
+
+    /* 노랑은 흰 글자가 묻히므로 띠 글자를 검게 바꾼다 */
+    .pc-bottle.ans-제초제 .pc-cap,
+    .pc-bottle.ans-제초제 .pc-lab-band { fill: #f2b705; }
+    .pc-bottle.ans-제초제 .pc-lab-bg { fill: #fdf7e0; stroke: #d99e00; }
+    .pc-bottle.ans-제초제 text { fill: #4a3a00; }
+    /* 상표 자리 — SVG 의 흰 사각에서 위아래 띠를 뺀 만큼(42,111 ~ 158,217)을
+       **비율로** 얹는다. 픽셀로 두면 폭이 줄어드는 화면에서 어긋난다.
+       viewBox 가 200×282 이므로 left 21% · top 39.4% · width 58% · height 37.6%. */
+    .pc-label { position: absolute; left: 21%; top: 39.4%; width: 58%; height: 37.6%;
+        display: flex; align-items: center; justify-content: center; padding: 0 5px; }
     .pc-name { font-size: 1.15rem; font-weight: 800; color: #14312a;
         letter-spacing: -.03em; line-height: 1.25; word-break: keep-all; }
     /* 이름이 길면 상표를 넘치므로 글자를 줄인다(JS 가 길이를 보고 붙인다).
@@ -67,6 +93,13 @@
     .pc-hint { font-size: 0.9rem; color: #333; line-height: 1.7; }
     .pc-hint b { background: #fff176; border-radius: 3px; padding: 0 3px;
         font-weight: 800; }
+    /* 포장 색 규칙 한 줄 — 답 풀이 끝에 붙는다 */
+    .pc-pack { margin-top: 7px; font-size: 0.8rem; color: #7b8a80; }
+    .pc-pack i { font-style: normal; font-weight: 700; border-radius: 4px;
+        padding: 1px 5px; }
+    .pc-pack .c1 { background: #e7f4e9; color: #2e7d32; }
+    .pc-pack .c2 { background: #fdeaea; color: #c62828; }
+    .pc-pack .c3 { background: #fdf7e0; color: #8a6d1f; }
     .pc-whole { font-size: 0.88rem; color: #8a6d1f; background: #fdf6e0;
         border-radius: 8px; padding: 8px 11px; line-height: 1.6; }
     .pc-note { margin-top: 9px; font-size: 0.86rem; color: #55635b; line-height: 1.65;

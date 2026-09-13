@@ -128,6 +128,11 @@
 
                 elVerdict.textContent = d.correct ? '정답입니다' : '틀렸습니다 — ' + d.answer;
                 elVerdict.className = 'pc-verdict ' + (d.correct ? 'o' : 'x');
+
+                /* 포장 색은 답을 안 뒤에 드러난다 — 실제 농약 포장 규칙이라
+                   색이 입혀지는 것 자체가 외울 거리다 */
+                var bt = quiz.querySelector('.pc-bottle');
+                if (bt) bt.className = 'pc-bottle ans-' + d.answer;
                 if (d.whole) {
                     elWhy.innerHTML = '<div class="pc-whole">이름만으로는 가릴 수 없습니다. ' +
                         '<b>' + esc(d.name) + '</b> 는 통째로 외우세요.</div>';
@@ -136,6 +141,9 @@
                         ' — 칠한 <b>' + esc(d.hint) + '</b> 가 ' + esc(d.answer) +
                         '를 가리킵니다.</div>';
                 }
+                elWhy.innerHTML += '<div class="pc-pack">농약 포장은 ' +
+                    '<i class="c1">살충제 녹색</i> · <i class="c2">살균제 분홍</i> · ' +
+                    '<i class="c3">제초제 황색</i> 으로 갈립니다 — 병 색이 그것입니다.</div>';
                 if (d.note) { elNote.textContent = d.note; elNote.hidden = false; }
                 elAns.hidden = false;
                 elActions.hidden = false;

@@ -27,23 +27,57 @@
             살충제는 초록, 제초제는 노랑 하고 칠하면 상표를 읽기도 전에 답이 샌다.
             {% endcomment %}
             <div class="pc-bottle">
-                <svg viewBox="0 0 200 272" aria-hidden="true">
+                <svg viewBox="0 0 200 282" aria-hidden="true">
                     <defs>
+                        <!-- 반투명 플라스틱 — 가운데가 밝고 가장자리가 어둡다 -->
                         <linearGradient id="pcBody" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0" stop-color="#e8eeea"/>
-                            <stop offset=".42" stop-color="#fbfdfc"/>
-                            <stop offset="1" stop-color="#dae3dd"/>
+                            <stop offset="0" stop-color="#9fc4b6"/>
+                            <stop offset=".18" stop-color="#cfe5dc"/>
+                            <stop offset=".42" stop-color="#f2faf7"/>
+                            <stop offset=".72" stop-color="#d6e8e0"/>
+                            <stop offset="1" stop-color="#93b9ab"/>
                         </linearGradient>
+                        <!-- 담긴 약액. 아래로 갈수록 짙다 -->
+                        <linearGradient id="pcLiq" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#bcdbd0" stop-opacity=".55"/>
+                            <stop offset="1" stop-color="#7fb0a0" stop-opacity=".8"/>
+                        </linearGradient>
+                        <linearGradient id="pcCap" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0" stop-color="#546b62"/>
+                            <stop offset=".35" stop-color="#7e968c"/>
+                            <stop offset="1" stop-color="#496057"/>
+                        </linearGradient>
+                        <clipPath id="pcClip">
+                            <path d="M84 52c-13 5-46 11-46 42v152c0 14 9 25 22 25h80c13 0 22-11 22-25V94c0-31-33-37-46-42z"/>
+                        </clipPath>
                     </defs>
-                    <rect x="72" y="6" width="56" height="26" rx="5" fill="#b9c7bf"/>
-                    <rect x="72" y="6" width="56" height="9" rx="4" fill="#cbd7d0"/>
-                    <rect x="84" y="31" width="32" height="16" fill="#cfdad3"/>
-                    <path d="M84 47c-13 5-46 11-46 42v152c0 14 9 25 22 25h80c13 0 22-11 22-25V89c0-31-33-37-46-42z"
-                          fill="url(#pcBody)" stroke="#c2cfc7" stroke-width="2"/>
-                    <rect x="46" y="104" width="108" height="112" rx="3"
-                          fill="#fff" stroke="#d3ded7" stroke-width="1.5"/>
-                    <rect x="46" y="104" width="108" height="7" fill="#eef3f0"/>
-                    <rect x="46" y="209" width="108" height="7" fill="#eef3f0"/>
+
+                    <!-- 놓인 자리 그림자 -->
+                    <ellipse cx="100" cy="273" rx="62" ry="8" fill="#14312a" opacity=".13"/>
+
+                    <rect class="pc-cap" x="70" y="4" width="60" height="30" rx="6" fill="url(#pcCap)"/>
+                    <rect x="70" y="4" width="60" height="8" rx="4" fill="#93a89e" opacity=".8"/>
+                    <rect x="83" y="33" width="34" height="20" fill="#b9cdc4"/>
+
+                    <path d="M84 52c-13 5-46 11-46 42v152c0 14 9 25 22 25h80c13 0 22-11 22-25V94c0-31-33-37-46-42z"
+                          fill="url(#pcBody)" stroke="#7fa093" stroke-width="1.5"/>
+                    <g clip-path="url(#pcClip)">
+                        <rect x="30" y="132" width="140" height="145" fill="url(#pcLiq)"/>
+                        <!-- 빛 반사 -->
+                        <rect x="58" y="60" width="9" height="200" rx="4.5" fill="#fff" opacity=".55"/>
+                        <rect x="140" y="70" width="5" height="180" rx="2.5" fill="#fff" opacity=".3"/>
+                    </g>
+
+                    <!-- 상표 — 실제 농약 라벨처럼 위아래에 띠를 두른다.
+                         띠 색은 계열 셋(녹·분홍·황) 어디에도 없는 남색이다 -->
+                    <rect class="pc-lab-bg" x="42" y="96" width="116" height="136" rx="3"
+                          fill="#fff" stroke="#2c3e63" stroke-width="1.2"/>
+                    <rect class="pc-lab-band" x="42" y="96" width="116" height="15" fill="#2c3e63"/>
+                    <rect class="pc-lab-band" x="42" y="217" width="116" height="15" fill="#2c3e63"/>
+                    <text x="100" y="107" text-anchor="middle" fill="#fff"
+                          font-size="8.5" letter-spacing="3">농　약</text>
+                    <text x="100" y="228" text-anchor="middle" fill="#fff"
+                          font-size="7" letter-spacing="1.2">한울회 농약 DVD</text>
                 </svg>
                 <div class="pc-label">
                     <div class="pc-name" id="pcName">불러오는 중…</div>
