@@ -9,7 +9,21 @@
   python add_ls_figures.py --html out.html   # 그림만 모아 확인용 HTML
 
 제도(製圖)형 그림이라 수치·치수가 정확해야 한다. 생성 모델 대신 직접 그리는 이유다.
-그린 뒤에는 반드시 브라우저로 띄워 눈으로 검수한다 — 숫자·치수·구도·라벨 잘림.
+
+**검수는 두 단계다. 둘째를 빠뜨리면 소용이 없다.**
+
+  ① 브라우저로 띄워 본다 — 숫자·치수·라벨 잘림, 겹침, 넘침.
+  ② **원도(교재 스캔·PDF 쪽)를 나란히 놓고 도형을 대조한다** — 곡선인가 각진
+     선인가, 변의 수, 치수선이 붙은 자리.
+
+②를 건너뛰어 뿌리분 3형태(2023-2 산기 2번)를 틀렸다. 답 항목에 적어 둔
+'조개모양'·'접시모양'이라는 **이름에 이끌려** 곡선으로 그렸는데, 교재 원도는
+곡선이 하나도 없는 각진 V자와 직사각형이었다. 화면에는 멀쩡히 나오므로 ①
+로는 절대 걸리지 않는다. 원도를 못 구하면 그리지 말고 자리표시로 남겨 둔다.
+
+**그림이 곧 답인 문항은 문제문이 아니라 `answer_text` 에 넣는다.** "형태를
+그리고 크기의 비율도 기입하시오" 같은 문항에서 그림을 문제문에 두면 답을
+미리 보여 주는 꼴이 된다.
 """
 import argparse
 import io
@@ -217,36 +231,43 @@ def _wall():
 
 FIG['ls-2023-1-si-2-wall'] = _wall()
 
-# ── 5. 뿌리분 3형태 (조개·팽이·접시) ───────────────────────────────────────
+# ── 5. 뿌리분 3형태 (일반·심근성·천근성) ─────────────────────────────────
 def _rootball():
+    """조경표준시방서의 뿌리분 3형태.
+
+    **이 그림이 곧 답이다** — 문제가 "형태를 그리고 크기의 비율도 기입하시오"
+    라고 묻는다. 그래서 문제문이 아니라 answer_text 에 넣는다.
+
+    교재 원도는 곡선이 하나도 없다. 세 형태 모두 너비 A 의 직사각형에서
+    출발해 아래를 **각진 V자**로 좁혀 내리고, 천근성만 V 없이 납작한
+    직사각형이다. 예전에 '조개모양'을 Q 곡선으로, '접시모양'을 둥근 사발로
+    그렸던 것은 이름에 이끌린 오독이었다.
+    """
     A, b = 80, []
-    # 문제문·답이 '일반수종' 이라 그림도 같은 말을 쓴다 — 그림만 '보통수종' 이면
-    # 세 형태를 짝지을 때 한 박자 걸린다.
-    labels = ['① 일반수종 (조개모양)', '② 심근성 (팽이모양)', '③ 천근성 (접시모양)']
-    for i, kind in enumerate(['clam', 'top', 'dish']):
-        ox = 34 + i * 118                 # 왼쪽에 치수선 자리를 넉넉히
-        x1, x2, ty = ox, ox + A, 52
-        half = A / 2
-        b.append(f'<line x1="{x1-10}" y1="{ty}" x2="{x2+10}" y2="{ty}" stroke="{INK}" stroke-width="1.3"/>')
-        if kind == 'clam':
-            d = (f'M{x1} {ty} L{x1} {ty+half} Q{x1+A/2} {ty+half+A/4+10} {x2} {ty+half} '
-                 f'L{x2} {ty} Z')
-            b.append(dim_v(ty, ty + half, x1 - 14, 'A/2', G))
-            b.append(dim_v(ty + half, ty + half + A / 4, x1 - 14, 'A/4', G))
-        elif kind == 'top':
-            d = f'M{x1} {ty} L{x1} {ty+half} L{x1+A/2} {ty+A} L{x2} {ty+half} L{x2} {ty} Z'
-            b.append(dim_v(ty, ty + half, x1 - 14, 'A/2', G))
-            b.append(dim_v(ty + half, ty + A, x1 - 14, 'A/2', G))
+    labels = ['① 일반수종', '② 심근성 수종', '③ 천근성 수종']
+    # (아래 V자 깊이) — 천근성은 V 가 없다
+    vees = [A / 4, A / 2, None]
+    for i, vee in enumerate(vees):
+        ox = 40 + i * 116
+        x1, x2, ty = ox, ox + A, 46
+        half, cx = A / 2, ox + A / 2
+        if vee is None:
+            d = f'M{x1} {ty} L{x1} {ty+half} L{x2} {ty+half} L{x2} {ty} Z'
+            bottom = ty + half
         else:
-            d = (f'M{x1} {ty} L{x1} {ty+half*0.4} Q{x1+A/2} {ty+half+8} {x2} {ty+half*0.4} '
-                 f'L{x2} {ty} Z')
-            b.append(dim_v(ty, ty + half, x1 - 14, 'A/2', G))
-        b.append(f'<path d="{d}" fill="#efe6d8" stroke="{BR}" stroke-width="1.6"/>')
-        b.append(f'<line x1="{x1+A/2}" y1="{ty}" x2="{x1+A/2}" y2="{ty-18}" stroke="{BR}" stroke-width="3"/>')
-        b.append(dim_h(x1, x2, ty - 26, 'A', G))
-        b.append(f'<text x="{x1+A/2}" y="{ty+A+34}" text-anchor="middle" fill="{INK}" '
+            d = (f'M{x1} {ty} L{x1} {ty+half} L{cx} {ty+half+vee} '
+                 f'L{x2} {ty+half} L{x2} {ty} Z')
+            bottom = ty + half + vee
+        b.append(f'<path d="{d}" fill="none" stroke="{INK}" stroke-width="1.5"/>')
+        # 왼쪽 치수 — 위쪽 수직부 A/2, 그 아래 V자 깊이
+        b.append(dim_v(ty, ty + half, x1 - 13, 'A/2', G))
+        if vee is not None:
+            b.append(dim_v(ty + half, bottom, x1 - 13, 'A/4' if vee == A / 4 else 'A/2', G))
+        # 너비 치수는 도형 아래에
+        b.append(dim_h(x1, x2, bottom + 20, 'A', G))
+        b.append(f'<text x="{cx}" y="{ty+A+52}" text-anchor="middle" fill="{INK}" '
                  f'font-size="10">{labels[i]}</text>')
-    return svg(388, 200, ''.join(b))
+    return svg(388, 178, ''.join(b))
 
 
 FIG['ls-2023-2-si-2-rootball'] = _rootball()
