@@ -322,6 +322,279 @@ def _f7_contour():
 reg('ls-ch1-7-contour', 81, _f7_contour())
 
 
+# ── 공통: 네트워크 공정표 ─────────────────────────────────────────────────
+def _network(nodes, edges, w, h, marks=None, cp=(), mark_pos=None):
+    """결절점·화살선·소요일수. marks 가 있으면 각 결절점에 ET|LT 상자를 얹고,
+    cp 에 든 변은 굵게 그린다(주공정선).
+
+    mark_pos 로 상자 자리를 결절점마다 정한다('top' 기본, 'bottom'). 늘 위에
+    두면 세로 화살선이나 소요일수 글자와 겹친다 — 원도도 ⑤ 만 아래에 둔다.
+    화살촉은 userSpaceOnUse 라 선을 굵게 해도 부풀지 않는다.
+    """
+    b = ['<defs><marker id="nkarw" markerWidth="9" markerHeight="9" refX="8" '
+         'refY="4.5" orient="auto" markerUnits="userSpaceOnUse">'
+         '<path d="M0,0 L9,4.5 L0,9 z" fill="%s"/></marker></defs>' % INK]
+    R = 11
+    for a, z, lab, *rest in edges:
+        dummy = bool(rest and rest[0])
+        x1, y1 = nodes[a]
+        x2, y2 = nodes[z]
+        dx, dy = x2 - x1, y2 - y1
+        d = (dx * dx + dy * dy) ** 0.5
+        ux, uy = dx / d, dy / d
+        sx, sy = x1 + ux * R, y1 + uy * R
+        ex, ey = x2 - ux * (R + 4), y2 - uy * (R + 4)
+        bold = (a, z) in cp
+        b.append(f'<line x1="{sx:.1f}" y1="{sy:.1f}" x2="{ex:.1f}" y2="{ey:.1f}" '
+                 f'stroke="{INK}" stroke-width="{2.6 if bold else 1.2}" '
+                 f'marker-end="url(#nkarw)"'
+                 + (' stroke-dasharray="5 3"' if dummy else '') + '/>')
+        if lab:
+            mx, my = (x1 + x2) / 2, (y1 + y2) / 2
+            b.append(f'<text x="{mx - uy * 11:.1f}" y="{my + ux * 11 + 3.4:.1f}" '
+                     f'text-anchor="middle" fill="{INK}" font-size="10">{lab}</text>')
+    for n, (x, y) in nodes.items():
+        b.append(f'<circle cx="{x}" cy="{y}" r="{R}" fill="#fff" stroke="{INK}" '
+                 f'stroke-width="1.3"/>'
+                 f'<text x="{x}" y="{y + 3.6}" text-anchor="middle" fill="{INK}" '
+                 f'font-size="10.5">{n}</text>')
+        if marks and n in marks:
+            te, tl = marks[n]
+            bw = 17 if max(len(str(te)), len(str(tl))) < 3 else 22
+            below = (mark_pos or {}).get(n) == 'bottom'
+            bx = x - bw
+            by = y + R + 4 if below else y - R - 19
+            b.append(f'<rect x="{bx}" y="{by}" width="{bw * 2}" height="15" fill="#fff" '
+                     f'stroke="{INK}" stroke-width="0.9"/>'
+                     f'<line x1="{x}" y1="{by}" x2="{x}" y2="{by + 15}" stroke="{INK}" '
+                     f'stroke-width="0.9"/>'
+                     f'<text x="{x - bw / 2}" y="{by + 11}" text-anchor="middle" '
+                     f'fill="{INK}" font-size="9.5">{te}</text>'
+                     f'<text x="{x + bw / 2}" y="{by + 11}" text-anchor="middle" '
+                     f'fill="{G}" font-size="9.5">{tl}</text>')
+    return svg(w, h, ''.join(b))
+
+
+# ── 13번. 삼각분할 격자 — 문제 제시 ───────────────────────────────────────
+def _f13_grid():
+    """6m × 5m 칸을 대각선으로 가른 삼각분할.
+
+    **대각선 방향은 답의 계수표(1~8)에서 역산했다.** 한 꼭짓점에 모이는 삼각형
+    수가 곧 그 점의 계수라, 계수가 맞으려면 대각선이 이 방향이어야 한다
+    (Σh₁=0.4 · Σh₂=2.1 · Σh₃=1.2 · Σh₄=0.5 · Σh₅~₈=0.3 과 모두 들어맞는다).
+    눈대중으로 그으면 문제가 통째로 달라진다.
+    """
+    CW, CH, X0, Y0 = 62, 50, 52, 52
+    ev = [['0.40', '0.50', '0.30', '0.20', '0.30'],
+          ['0.40', '0.30', '0.30', '0.30', '0.30'],
+          ['0.30', '0.30', '0.20', '0.20', '0.40'],
+          ['0.20', '0.30', '0.20']]
+    # (띠, 칸) → 대각선 방향. '/' 는 오른쪽 위–왼쪽 아래, '\\' 는 왼쪽 위–오른쪽 아래
+    diag = {(0, 0): '/', (0, 1): '/', (0, 2): '\\', (0, 3): '/',
+            (1, 0): '/', (1, 1): '/', (1, 2): '/', (1, 3): '\\',
+            (2, 0): '/', (2, 1): '\\'}
+    cols = [4, 4, 2]                      # 띠마다 칸 수 (아래 띠는 왼쪽 둘만)
+    b = []
+    for band, nc in enumerate(cols):
+        for c in range(nc):
+            x, y = X0 + c * CW, Y0 + band * CH
+            b.append(f'<rect x="{x}" y="{y}" width="{CW}" height="{CH}" fill="none" '
+                     f'stroke="{INK}" stroke-width="1.1"/>')
+            if diag[(band, c)] == '/':
+                b.append(f'<line x1="{x + CW}" y1="{y}" x2="{x}" y2="{y + CH}" '
+                         f'stroke="{INK}" stroke-width="1"/>')
+            else:
+                b.append(f'<line x1="{x}" y1="{y}" x2="{x + CW}" y2="{y + CH}" '
+                         f'stroke="{INK}" stroke-width="1"/>')
+    for r, row in enumerate(ev):
+        for c, v in enumerate(row):
+            x, y = X0 + c * CW, Y0 + r * CH
+            b.append(f'<circle cx="{x}" cy="{y}" r="2" fill="{INK}"/>')
+            b.append(elev(x, y, v, dx=0 if c == 0 else 13, dy=-7))
+    b.append(dim_h(X0, X0 + CW, Y0 - 26, '6m', G))
+    b.append(dim_v(Y0, Y0 + CH, X0 - 24, '5m', G))
+    b.append(f'<text x="{X0 + 4 * CW}" y="{Y0 + 3 * CH + 26}" text-anchor="end" '
+             f'fill="#666" font-size="9.5">단위 : m</text>')
+    return svg(X0 + 4 * CW + 26, Y0 + 3 * CH + 38, ''.join(b))
+
+
+reg('ls-ch1-13-grid', 87, _f13_grid())
+
+
+# ── 14번. 네트워크 공정표 — 문제(민 그림) / 답(TE·TL·주공정선) ────────────
+_N14 = {1: (38, 122), 2: (150, 52), 3: (150, 122), 4: (150, 196),
+        5: (270, 122), 6: (270, 52), 7: (376, 122)}
+_E14 = [(1, 2, '5'), (2, 6, '4'), (6, 7, '4'), (1, 3, '5'), (3, 5, '3'),
+        (5, 7, '8'), (1, 4, '10'), (4, 5, '16'), (4, 7, '3'), (5, 6, '7')]
+
+reg('ls-ch1-14-network', 87, _network(_N14, _E14, 400, 232))
+reg('ls-ch1-14-network-a', 87,
+    _network(_N14, _E14, 400, 232,
+             marks={1: (0, 0), 2: (5, 29), 3: (5, 23), 4: (10, 10),
+                    5: (26, 26), 6: (33, 33), 7: (37, 37)},
+             cp={(1, 4), (4, 5), (5, 6), (6, 7)},
+             mark_pos={5: 'bottom'}))
+
+
+# ── 16번. 인공지반 식재 단면 상세도 — 답 ──────────────────────────────────
+def _f16_planting():
+    """위에서 아래로 혼합객토(900) → 폴리펠트 여과층(7) → 자갈 배수층(300) →
+    유공관(φ200) → 폴리피렌 차수매트(2) → 하부지반.
+
+    바닥을 유공관 쪽으로 6% 기울여 물이 고이지 않게 하고, 차수매트는 그
+    굴곡을 따라 끊김 없이 이어 그린다 — 평평하게 그리면 조건을 어긴 그림이다.
+    """
+    x1, x2 = 44, 306
+    cx = (x1 + x2) / 2
+    pats = ('<defs>'
+            '<pattern id="p16a" width="9" height="9" patternUnits="userSpaceOnUse">'
+            '<circle cx="2" cy="3" r="1" fill="#a8b0a6"/>'
+            '<circle cx="6.5" cy="7" r="0.9" fill="#a8b0a6"/></pattern>'
+            '<pattern id="p16b" width="13" height="13" patternUnits="userSpaceOnUse">'
+            '<circle cx="4" cy="4" r="3" fill="none" stroke="#9aa69e" stroke-width="1"/>'
+            '<circle cx="10" cy="10" r="2.4" fill="none" stroke="#9aa69e" '
+            'stroke-width="1"/></pattern>'
+            '<pattern id="p16c" width="9" height="9" patternUnits="userSpaceOnUse">'
+            '<path d="M0,4.5 L4.5,0 L9,4.5 M0,9 L4.5,4.5 L9,9" fill="none" '
+            'stroke="#9aa69e" stroke-width="0.9"/></pattern></defs>')
+    TOP, SOIL, FELT, GRAV = 128, 66, 4, 34
+    y1 = TOP + SOIL                 # 객토 아래 = 여과층
+    y2 = y1 + FELT                  # 자갈층 위
+    y3 = y2 + GRAV                  # 자갈층 아래(가장자리)
+    sag = 15                        # 6% 물매로 가운데가 내려앉는 깊이
+    b = [pats]
+    b.append(f'<rect x="{x1}" y="{TOP}" width="{x2-x1}" height="{SOIL}" '
+             f'fill="url(#p16a)" stroke="{INK}" stroke-width="1.2"/>')
+    b.append(f'<rect x="{x1}" y="{y1}" width="{x2-x1}" height="{FELT}" fill="#e6ece7" '
+             f'stroke="{INK}" stroke-width="1.1"/>')
+    # 자갈층 — 아래가 유공관 쪽으로 기운다
+    b.append(f'<path d="M{x1} {y2} L{x2} {y2} L{x2} {y3} L{cx+26} {y3+sag} '
+             f'L{cx-26} {y3+sag} L{x1} {y3} Z" fill="url(#p16b)" stroke="{INK}" '
+             f'stroke-width="1.2"/>')
+    # 차수매트 — 굴곡을 따라 이어진다
+    b.append(f'<path d="M{x1} {y3+7} L{cx-26} {y3+sag+7} L{cx+26} {y3+sag+7} '
+             f'L{x2} {y3+7}" fill="none" stroke="{INK}" stroke-width="2.4"/>')
+    b.append(f'<path d="M{x1} {y3+11} L{cx-26} {y3+sag+11} L{cx+26} {y3+sag+11} '
+             f'L{x2} {y3+11} L{x2} {y3+40} L{x1} {y3+40} Z" fill="url(#p16c)" '
+             f'stroke="{INK}" stroke-width="1.1"/>')
+    b.append(f'<circle cx="{cx}" cy="{y3+sag-1}" r="9" fill="#fff" stroke="{INK}" '
+             f'stroke-width="1.3"/>')
+    for a in (-60, 0, 60, 120, 180, 240):
+        import math
+        ax, ay = cx + 9 * math.cos(math.radians(a)), y3 + sag - 1 + 9 * math.sin(math.radians(a))
+        b.append(f'<circle cx="{ax:.1f}" cy="{ay:.1f}" r="1.2" fill="{INK}"/>')
+    # 6% 물매 표시
+    for sx, ex in ((x1 + 26, cx - 30), (x2 - 26, cx + 30)):
+        b.append(f'<line x1="{sx}" y1="{y3+4}" x2="{ex}" y2="{y3+sag+3}" stroke="{G}" '
+                 f'stroke-width="0.9" marker-end="url(#arw)"/>')
+    b.append(HATCH)
+    b.append(f'<text x="{x1+50}" y="{y3+sag+18}" fill="{G}" font-size="9">6% 경사</text>')
+    b.append(f'<text x="{x2-50}" y="{y3+sag+18}" text-anchor="end" fill="{G}" '
+             f'font-size="9">6% 경사</text>')
+    # 재료명 — 위에 모아 인출선으로 잇는다
+    labels = ['THK 900 혼합토 객토층', 'THK 7 폴리펠트 여과층', 'THK 300 자갈 배수층',
+              'φ200 유공관', 'THK 2 폴리피렌매트 차수층', '하부지반']
+    lx = 150
+    for i, t in enumerate(labels):
+        yy = 20 + i * 13
+        b.append(f'<line x1="{lx}" y1="{yy}" x2="{lx+8}" y2="{yy}" stroke="{INK}" '
+                 f'stroke-width="0.8"/>'
+                 f'<text x="{lx+12}" y="{yy+3.4}" fill="{INK}" font-size="9.5">{t}</text>')
+    b.append(f'<line x1="{lx+4}" y1="20" x2="{lx+4}" y2="{y3+40}" stroke="{INK}" '
+             f'stroke-width="0.7"/>')
+    b.append(dim_v(TOP, y1, x1 - 13, '900', G))
+    b.append(dim_v(y2, y3, x1 - 13, '300', G))
+    b.append(dim_h(cx - 26, cx + 26, y3 + sag + 34, '600', G))
+    b.append(f'<text x="{cx}" y="{y3+70}" text-anchor="middle" fill="{INK}" '
+             f'font-size="10">단면상세도　축척 1/20</text>')
+    return svg(400, y3 + 82, ''.join(b))
+
+
+reg('ls-ch1-16-planting', 89, _f16_planting())
+
+
+# ── 19번. 종단 수준측량도 — 문제 제시 ─────────────────────────────────────
+def _level_scene(w, h, ground, staffs, levels, reads, caption=None, cap_at='bottom'):
+    """표척을 세우고 그 사이에 레벨을 놓은 측량도.
+
+    ground  땅 윤곽 (x, y) 목록
+    staffs  표척 x 좌표 목록 — 땅 위로 솟은 막대
+    levels  레벨 (x, y) 목록 — 삼각대 위 망원경
+    reads   (x, y, 글자) — 표척 읽은 값
+    """
+    b = []
+    b.append('<polyline points="' + ' '.join(f'{x},{y}' for x, y in ground)
+             + f'" fill="none" stroke="{INK}" stroke-width="1.6"/>')
+    b.append('<polygon points="' + ' '.join(f'{x},{y}' for x, y in ground)
+             + f' {ground[-1][0]},{h} {ground[0][0]},{h}" fill="url(#gsoil)"/>')
+    def gy(x):
+        for (ax, ay), (bx, by) in zip(ground, ground[1:]):
+            if ax <= x <= bx:
+                return ay + (by - ay) * (x - ax) / (bx - ax)
+        return ground[-1][1]
+    for sx in staffs:
+        b.append(f'<rect x="{sx-3}" y="{gy(sx)-86}" width="6" height="86" fill="#fff" '
+                 f'stroke="{INK}" stroke-width="1.1"/>')
+    for lx, ly in levels:
+        gyy = gy(lx)
+        b.append(f'<line x1="{lx}" y1="{ly}" x2="{lx-11}" y2="{gyy}" stroke="{INK}" '
+                 f'stroke-width="1"/>'
+                 f'<line x1="{lx}" y1="{ly}" x2="{lx+11}" y2="{gyy}" stroke="{INK}" '
+                 f'stroke-width="1"/>'
+                 f'<line x1="{lx}" y1="{ly}" x2="{lx}" y2="{gyy}" stroke="{INK}" '
+                 f'stroke-width="1"/>'
+                 f'<rect x="{lx-11}" y="{ly-6}" width="22" height="9" fill="#fff" '
+                 f'stroke="{INK}" stroke-width="1.1"/>')
+    for rx, ry, t in reads:
+        b.append(f'<text x="{rx}" y="{ry}" text-anchor="middle" fill="{INK}" '
+                 f'font-size="9.5">{t}</text>')
+    if caption:
+        # 측점 이름이 아래에 깔리므로 캡션을 바닥에 두면 겹친다 — 위로 뺀다
+        if cap_at == 'top':
+            b.append(f'<text x="{w-6}" y="18" text-anchor="end" fill="#666" '
+                     f'font-size="9">{caption}</text>')
+        else:
+            b.append(f'<text x="{w/2}" y="{h-6}" text-anchor="middle" fill="#666" '
+                     f'font-size="9">{caption}</text>')
+    soil = ('<defs><pattern id="gsoil" width="7" height="7" patternUnits="userSpaceOnUse">'
+            '<circle cx="2" cy="2" r="0.9" fill="#c3cbc4"/>'
+            '<circle cx="5.5" cy="5" r="0.7" fill="#c3cbc4"/></pattern></defs>')
+    return svg(w, h, soil + ''.join(b))
+
+
+def _f19_level():
+    """No.0 에서 No.5 까지 100m 를 재며 레벨을 세 번 옮긴 종단 수준측량도.
+
+    표척 여덟 자루 가운데 **No.2 와 No.3+10 은 이기점(T.P)** 이라 전시·후시를
+    함께 읽는다(2.354/1.906, 3.243/2.507). 나머지는 지나가며 읽은 중간점(I.P)이다.
+    """
+    XS = [30, 80, 130, 180, 235, 285, 340, 392]
+    NAMES = ['No.0', 'No.1', 'No.1+12', 'No.2', 'No.3', 'No.3+10', 'No.4', 'No.5']
+    g = [(16, 152), (60, 148), (110, 155), (160, 150), (210, 158), (260, 164),
+         (310, 160), (360, 154), (410, 150)]
+    levels = [(55, 118), (207, 124), (312, 121)]
+    reads = [(30, 100, '2.390'), (80, 100, '1.675'), (130, 100, '3.064'),
+             (180, 88, '2.354'), (180, 101, '1.906'),
+             (235, 100, '2.358'),
+             (285, 88, '3.243'), (285, 101, '2.507'),
+             (340, 100, '1.643'), (392, 100, '1.807')]
+    # 이름이 긴 이기점은 한 줄 내려 이웃과 겹치지 않게 한다
+    marks = [(x, 194 if len(n) > 5 else 182, n) for x, n in zip(XS, NAMES)]
+    return _level_scene(420, 206, g, XS, levels, reads + marks,
+                        caption='단위 : m', cap_at='top')
+
+
+reg('ls-ch1-19-level', 91, _f19_level())
+
+
+PLACE.update({
+    13: ('ls-ch1-13-grid', None),
+    14: ('ls-ch1-14-network', 'ls-ch1-14-network-a'),
+    16: (None, 'ls-ch1-16-planting'),
+    19: ('ls-ch1-19-level', None),
+})
+
+
 PLACE.update({
     2: (None, 'ls-ch1-2-rootball'),
     3: (None, 'ls-ch1-3-pavement'),
