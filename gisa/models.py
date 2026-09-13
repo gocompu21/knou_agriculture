@@ -578,6 +578,9 @@ class PesticideCard(models.Model):
 
     no = models.IntegerField('일련번호', unique=True)
     name = models.CharField('농약명', max_length=60, unique=True)
+    # ISO 일반명. 답 화면에 괄호로 곁들인다 — 실기 답안은 한글로 쓰지만
+    # 어미 규칙은 영문 철자에서 온 것이라(-phos·-conazole·-chlor) 함께 보면 붙는다
+    en_name = models.CharField('영문명', max_length=60, blank=True)
     category = models.CharField('구분', max_length=10, choices=CATEGORIES)
     hint = models.CharField('분류 단서', max_length=40, blank=True)
     whole = models.BooleanField('통암기', default=False,

@@ -133,6 +133,7 @@ def api_answer(request):
         'correct': correct,
         'answer': card.category,
         'name': card.name,
+        'en_name': card.en_name,
         # 단서가 이름 전체면 '통암기' — 어미·어두로 가를 수 없는 것들이다
         'hint': card.hint,
         'whole': card.whole,
@@ -191,7 +192,8 @@ def hint_rules(cards):
 def api_list(request):
     """카드 92종 목록 — 구분별로 묶어 한눈에 훑는다."""
     cards = list(PesticideCard.objects.all())
-    rows = [{'no': c.no, 'name': c.name, 'category': c.category,
+    rows = [{'no': c.no, 'name': c.name, 'en_name': c.en_name,
+             'category': c.category,
              'hint': c.hint, 'whole': c.whole, 'exam_count': c.exam_count,
              'family': c.family, 'action': c.action, 'target': c.target,
              'note': c.note} for c in cards]

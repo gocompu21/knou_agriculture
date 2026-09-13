@@ -101,17 +101,24 @@
     .pc-ch.dim { opacity: .45; }
 
     /* 답 풀이 */
-    .pc-ans { margin-top: 20px; text-align: left; border-top: 1px solid #e8eeea;
-        padding-top: 16px; }
+    .pc-ans { margin-top: 20px; text-align: left; }
     .pc-ans[hidden] { display: none; }
-    .pc-verdict { font-weight: 800; font-size: 0.96rem; margin-bottom: 9px;
-        letter-spacing: -.02em; }
-    .pc-verdict.o { color: #1b5e20; }
-    .pc-verdict.x { color: #c62828; }
-    .pc-hint { font-size: 0.9rem; color: #333; line-height: 1.7; }
+    /* 판정과 세부는 가른다 — 맞았는지 먼저 보고, 그 다음에 읽는다 */
+    .pc-verdict { font-weight: 800; font-size: 0.95rem; letter-spacing: -.02em;
+        padding: 9px 13px; border-radius: 10px; text-align: center; }
+    .pc-verdict.o { color: #1b5e20; background: #eef7f0; }
+    .pc-verdict.x { color: #c62828; background: #fdf1f1; }
+
+    /* 세부 — 이름 줄 + 배지 + 항목 */
+    .pc-title { margin-top: 16px; padding-top: 15px; border-top: 1px solid #e8eeea;
+        font-size: 1.12rem; font-weight: 800; color: #14312a; letter-spacing: -.02em; }
+    .pc-title b { color: #c1121f; font-weight: 900; }
+    .pc-title .pc-st { font-size: 0.5em; }
+    .pc-en { display: block; margin-top: 3px; font-size: 0.78rem; font-weight: 500;
+        color: #93a099; letter-spacing: 0; }
     /* 단서는 **빨간 글자**다 — 원본 PPT 가 답 슬라이드에서 그렇게 칠했고,
        그 색으로 외운 사람이 화면에서도 같은 색을 찾는다 */
-    .pc-hint b, .pc-table b { color: #d32f2f; font-weight: 800; }
+    .pc-table b { color: #d32f2f; font-weight: 800; }
     /* 답 아래 보충 정보 — 잡초 카드의 배지 줄과 같은 꼴이다 */
     .pc-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
     .pc-meta span { font-size: 0.74rem; font-weight: 700; border-radius: 6px;
@@ -124,8 +131,11 @@
         color: #35423b; line-height: 1.7; }
     .pc-row b { flex: 0 0 4.6em; font-weight: 600; color: #93a099;
         font-size: 0.92em; letter-spacing: -.01em; }
-    .pc-whole { font-size: 0.88rem; color: #8a6d1f; background: #fdf6e0;
-        border-radius: 8px; padding: 8px 11px; line-height: 1.6; }
+    .pc-row span { flex: 1; }
+    .pc-whole { margin-top: 10px; font-size: 0.83rem; color: #8a6d1f;
+        background: #fbf6e7; border: 1px solid #f0e6c8; border-radius: 8px;
+        padding: 7px 11px; line-height: 1.6; }
+    .pc-whole b { color: #8a6d1f; font-weight: 800; }
     .pc-note { margin-top: 12px; font-size: 0.84rem; color: #55635b; line-height: 1.7;
         background: #f7faf8; border-left: 2px solid #a9c4b5; border-radius: 0 8px 8px 0;
         padding: 9px 12px; }
@@ -184,7 +194,9 @@
     .pc-table th.up::after { content: ' \25B2'; font-size: 0.7em; }
     .pc-table th.down::after { content: ' \25BC'; font-size: 0.7em; }
     /* 출제 횟수는 농약명 옆에 별로 — 숫자보다 눈에 먼저 들어온다 */
-    .pc-st { color: #d0a32a; font-size: 0.82em; letter-spacing: -.5px; }
+    /* 별은 **윗첨자**로 올린다 — 이름과 같은 줄에서 다투지 않고 얹힌다 */
+    .pc-st { color: #d0a32a; font-size: 0.62em; letter-spacing: -.5px;
+        vertical-align: super; line-height: 0; }
     .pc-wh { color: #8a6d1f; }
     .pc-fam { color: #6b756e; font-size: 0.92em; }
     /* 목록의 단서는 **그 계열 색**으로 칠한다 — 구분 칸과 짝이 맞아 눈에 붙는다 */

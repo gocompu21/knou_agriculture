@@ -158,31 +158,33 @@
                 var cat = document.getElementById('pcLabCat');
                 if (cat) cat.textContent = d.answer;
                 if (!d.whole) setName(d.name, d.hint);   // 상표에도 단서를 빨갛게
+                /* 이름 줄 — 단서는 이미 빨갛게 보이므로 "…가 살균제를 가리킵니다"
+                   같은 말을 덧붙이지 않는다. 별과 영문명만 곁들인다. */
+                var head = '<div class="pc-title">' +
+                    (d.whole ? esc(d.name) : markHint(d.name, d.hint)) +
+                    ' <span class="pc-st">' + stars(d.exam_count) + '</span>';
+                if (d.en_name) head += '<span class="pc-en">(' + esc(d.en_name) + ')</span>';
+                head += '</div>';
+
+                /* 단서로 가릴 수 없는 두 경우만 한 줄로 알린다 */
+                var warn = '';
                 if (d.whole) {
-                    elWhy.innerHTML = '<div class="pc-whole">이름만으로는 가릴 수 없습니다. ' +
-                        '<b>' + esc(d.name) + '</b> 는 통째로 외우세요.</div>';
+                    warn = '<div class="pc-whole">이름만으로는 가릴 수 없습니다 — 통암기</div>';
                 } else if (d.hint_mixed) {
-                    /* 계열이 갈리는 단서 — 단서 구실을 못 한다는 사실이 요점이다 */
-                    elWhy.innerHTML = '<div class="pc-hint">' + markHint(d.name, d.hint) +
-                        ' — 빨간 <b>' + esc(d.hint) + '</b>' +
-                        josa(d.hint, '은', '는') + ' 계열을 가리지 못합니다.</div>';
-                } else {
-                    elWhy.innerHTML = '<div class="pc-hint">' + markHint(d.name, d.hint) +
-                        ' — 빨간 <b>' + esc(d.hint) + '</b>' +
-                        josa(d.hint, '이', '가') + ' ' + esc(d.answer) +
-                        '를 가리킵니다.</div>';
+                    warn = '<div class="pc-whole"><b>' + esc(d.hint) + '</b>' +
+                        josa(d.hint, '은', '는') + ' 계열을 가리지 못합니다</div>';
                 }
-                /* 잡초 카드처럼 이 농약이 무엇인지 곁들인다 */
+
                 var meta = '';
                 if (d.family) meta += '<span class="pc-b1">' + esc(d.family) + '</span>';
                 meta += '<span class="pc-b2">' + esc(d.answer) + '</span>';
-                if (d.exam_count) meta += '<span class="pc-b3">기출 ' + d.exam_count + '회</span>';
                 var rows = '';
-                if (d.action) rows += '<div class="pc-row"><b>작용기작</b>' +
-                    esc(d.action) + '</div>';
-                if (d.target) rows += '<div class="pc-row"><b>주요대상</b>' +
-                    esc(d.target) + '</div>';
-                elWhy.innerHTML += '<div class="pc-meta">' + meta + '</div>' + rows;
+                if (d.action) rows += '<div class="pc-row"><b>작용기작</b><span>' +
+                    esc(d.action) + '</span></div>';
+                if (d.target) rows += '<div class="pc-row"><b>주요대상</b><span>' +
+                    esc(d.target) + '</span></div>';
+                elWhy.innerHTML = head + warn +
+                    '<div class="pc-meta">' + meta + '</div>' + rows;
 
                 if (d.note) { elNote.textContent = d.note; elNote.hidden = false; }
                 elAns.hidden = false;
