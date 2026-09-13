@@ -124,9 +124,11 @@ def grade_calc_by_rule(question, user_answer):
     if len(hit) != len(targets):
         return None
     max_score = float(question.points)
+    each = round(max_score / len(targets), 2)
     return {
         'score': max_score, 'max': max_score, 'engine': 'rule',
-        'points': [{'point': f'{a:,g}', 'matched': True, 'comment': ''}
+        'points': [{'point': f'{a:,g}', 'matched': True,
+                    'score': each, 'max': each, 'comment': ''}
                    for a in targets],
         'summary': '정답입니다.',
     }
@@ -138,15 +140,17 @@ GRADE_SYSTEM = (
     "당신은 국가기술자격 **기사·산업기사 실기 필답형** 채점위원이다.\n"
     "어느 종목의 어느 과목인지는 [시험] 줄에 적혀 있다. 그 분야의 관용 표기와\n"
     "약어를 아는 채점위원으로서 판정한다.\n\n"
-    "채점 기준표의 항목마다 두 가지를 매긴다.\n"
+    "**채점 기준표의 항목마다 배점이 적혀 있다. 그 범위 안에서 점수를 매긴다.**\n"
     "- matched: 그 항목을 온전히 담았으면 true\n"
-    "- credit: 0.0~1.0. **부분 점수다.** 아래 기준으로 준다.\n"
-    "    1.0  온전히 담았다 (matched=true 와 함께)\n"
-    "    0.5~0.9  핵심은 맞으나 일부가 빠졌거나 설명이 얕다\n"
-    "    0.2~0.4  방향은 맞으나 핵심 용어가 빠져 답으로 보기 어렵다\n"
-    "    0.0  전혀 담기지 않았거나 틀렸다\n"
-    "  실제 필답 채점에서도 반만 쓴 답에 반점을 주므로 0과 1로만 가르지 않는다.\n"
-    "  다만 **단답·빈칸은 맞거나 틀리거나 둘뿐이다** — 1.0 또는 0.0 만 준다.\n\n"
+    "- score: 그 항목에 주는 점수. 0 이상 배점 이하로, 아래를 기준 삼는다.\n"
+    "    배점 전부      온전히 담았다 (matched=true 와 함께)\n"
+    "    배점의 50~90%  핵심은 맞으나 일부가 빠졌거나 설명이 얕다\n"
+    "    배점의 20~40%  방향은 맞으나 핵심 용어가 빠져 답으로 보기 어렵다\n"
+    "    0              전혀 담기지 않았거나 틀렸다\n"
+    "  예: 배점 2.5점짜리 항목을 반만 맞혔으면 score=1.25 로 적는다.\n"
+    "  **실제 필답 채점에서도 반만 쓴 답에 반점을 주므로 0점 아니면 만점으로\n"
+    "  가르지 않는다.** 0.5점 단위로 끊어도 좋다.\n"
+    "  다만 **단답·빈칸은 맞거나 틀리거나 둘뿐이다** — 배점 전부 또는 0 만 준다.\n\n"
     "판정 원칙:\n"
     "- 표현이 달라도 의미가 같으면 인정한다 (동의어·줄임말·순서 바뀜 허용).\n"
     "- **괄호 안의 부연은 선택 사항이다.** 기준이 '야생절멸(EW)'이면 '야생절멸'만\n"
@@ -156,8 +160,8 @@ GRADE_SYSTEM = (
     "- 빈칸형은 각 빈칸의 값이 맞는지만 본다. 순서 표기(①②)는 무시한다.\n"
     "- 핵심 용어가 빠졌거나 뜻이 달라지면 인정하지 않는다.\n"
     "- 기준표에 없는 내용을 썼다고 감점하지 않는다.\n"
-    "- 부분적으로만 맞으면 matched=false 로 두되 **credit 으로 부분 점수를 주고**\n"
-    "  comment 에 무엇이 부족한지 적는다.\n"
+    "- 부분적으로만 맞으면 matched=false 로 두되 **score 에 부분 점수를 적고**\n"
+    "  comment 에 무엇이 부족한지 쓴다.\n"
     "- comment는 한 문장 이내로 간결하게, 존댓말로 쓴다.\n"
     "- 채점 기준표에 없는 내용을 지어내지 않는다.\n"
 )
@@ -202,6 +206,7 @@ def _grade_prompt(question, user_answer, rubric):
 CALC_SYSTEM = (
     "당신은 국가기술자격 **기사·산업기사 실기 필답형** 계산 문제 채점위원이다.\n"
     "어느 종목의 어느 과목인지는 [시험] 줄에 적혀 있다.\n\n"
+    "**문제의 배점이 적혀 있다. 그 범위 안에서 점수를 매긴다.**\n\n"
     "채점 원칙:\n"
     "- 배점의 70%는 '최종 답이 맞았는가', 30%는 '풀이 과정이 타당한가'로 본다.\n"
     "- 최종 답이 맞으면 과정을 생략했더라도 최소 70%는 준다. 실제 시험에서\n"
@@ -209,6 +214,8 @@ CALC_SYSTEM = (
     "- 구하는 값이 여럿(예: 운반량과 성토량)이면 맞힌 개수에 비례해 배분한다.\n"
     "- 단위 누락은 감점하지 않는다. 반올림 차이(1% 이내)도 정답으로 본다.\n"
     "- 답이 틀렸어도 과정·공식이 옳으면 30% 범위에서 부분점수를 준다.\n"
+    "- answer_score 와 process_score 에 각각 준 점수를 적는다. 둘을 더한 것이\n"
+    "  이 문항의 점수이며 배점을 넘지 않아야 한다.\n"
     "- 채점 근거를 comment에 한 문장으로 적는다. 존댓말을 쓴다.\n"
 )
 
@@ -227,9 +234,11 @@ def grade_calc_by_llm(question, user_answer, model=None):
 
     class CalcResult(BaseModel):
         answer_correct: bool = Field(description="최종 답이 모두 맞으면 true")
-        partial_ratio: float = Field(
-            description="0.0~1.0. 구하는 값이 여럿일 때 맞힌 비율. 전부 맞으면 1.0")
+        answer_score: float = Field(
+            description=f"최종 답에 주는 점수. 0 이상 {max_score * 0.7:g}점 이하")
         process_ok: bool = Field(description="풀이 과정·공식이 타당하면 true")
+        process_score: float = Field(
+            description=f"풀이 과정에 주는 점수. 0 이상 {max_score * 0.3:g}점 이하")
         comment: str = Field(description="채점 근거 한 문장")
 
     prompt = (
@@ -251,20 +260,21 @@ def grade_calc_by_llm(question, user_answer, model=None):
     )
     r = CalcResult.model_validate_json(response.text)
 
-    ratio = max(0.0, min(1.0, r.partial_ratio if not r.answer_correct else 1.0))
-    score = max_score * 0.7 * ratio
-    if r.process_ok:
-        score += max_score * 0.3 * (1.0 if r.answer_correct else 0.6)
-    score = round(min(score, max_score), 2)
+    # 점수는 모델이 매긴 것을 쓰되, 70/30 상한을 넘지 않게 자른다
+    a_cap, p_cap = max_score * 0.7, max_score * 0.3
+    a_got = a_cap if (r.answer_correct and r.answer_score <= 0) \
+        else max(0.0, min(a_cap, float(r.answer_score)))
+    p_got = max(0.0, min(p_cap, float(r.process_score)))
+    score = round(min(a_got + p_got, max_score), 2)
 
     return {
         'score': score, 'max': max_score, 'engine': 'llm-calc',
         'points': [
             {'point': '최종 답', 'matched': r.answer_correct,
-             'credit': 1.0 if r.answer_correct else round(ratio, 2),
-             'comment': '' if r.answer_correct else f'맞힌 비율 {int(ratio * 100)}%'},
+             'score': round(a_got, 2), 'max': round(a_cap, 2),
+             'comment': '' if r.answer_correct else '최종 답이 모범답안과 다릅니다'},
             {'point': '풀이 과정', 'matched': r.process_ok,
-             'credit': 1.0 if r.process_ok else 0.0,
+             'score': round(p_got, 2), 'max': round(p_cap, 2),
              'comment': '' if r.process_ok else '과정이 제시되지 않았거나 오류가 있습니다'},
         ],
         'summary': r.comment,
@@ -285,9 +295,9 @@ def grade_by_llm(question, user_answer, model=None):
     class PointResult(BaseModel):
         index: int = Field(description="채점 기준표 항목 번호 (1부터)")
         matched: bool = Field(description="수험자 답안이 이 항목을 온전히 담고 있으면 true")
-        credit: float = Field(
-            default=0.0,
-            description="0.0~1.0 부분 점수. 온전하면 1.0, 반쯤 맞으면 0.5 등")
+        score: float = Field(
+            description="이 항목에 주는 점수. 0 이상 그 항목 배점 이하. "
+                        "온전하면 배점 전부, 반쯤 맞으면 절반 식으로 매긴다")
         comment: str = Field(description="한 문장 이내 근거. 인정이면 빈 문자열도 가능")
 
     class GradeResult(BaseModel):
@@ -306,22 +316,31 @@ def grade_by_llm(question, user_answer, model=None):
     )
     parsed = GradeResult.model_validate_json(response.text)
 
+    # 점수는 **모델이 매긴 것을 그대로 쓴다.** 코드가 하는 일은 두 가지뿐이다 —
+    # 항목 배점을 넘거나 음수인 값을 잘라 내고, 합산한다. 합계까지 모델에게
+    # 맡기지 않는 까닭은 채점 판단과 달리 덧셈은 틀릴 이유가 없기 때문이다.
     by_index = {p.index: p for p in parsed.points}
     results, got = [], 0.0
     all_matched = True
     for i, r in enumerate(rubric, 1):
         p = by_index.get(i)
         matched = bool(p and p.matched)
-        # 인정이면 1.0, 아니면 모델이 매긴 부분 점수. matched 인데 credit 을
-        # 안 채워 보내는 경우가 있어(기본값 0.0) 그때는 1.0 으로 본다.
-        credit = 1.0 if matched else max(0.0, min(1.0, p.credit if p else 0.0))
-        got += float(r.get('score', 0)) * credit
-        if credit < 1.0:
+        cap = float(r.get('score', 0))
+        if p is None:
+            given = 0.0
+        elif matched and p.score <= 0:
+            # 인정해 놓고 점수를 안 준 경우 — 판정을 따른다
+            given = cap
+        else:
+            given = max(0.0, min(cap, float(p.score)))
+        got += given
+        if given < cap:
             all_matched = False
         results.append({
             'point': r['point'],
             'matched': matched,
-            'credit': round(credit, 2),
+            'score': round(given, 2),
+            'max': round(cap, 2),
             'comment': (p.comment if p else '판정 없음'),
         })
 
@@ -350,7 +369,8 @@ def grade_answer(question, user_answer, model=None):
         rubric = build_rubric(question)
         return {
             'score': 0.0, 'max': float(question.points), 'engine': 'rule',
-            'points': [{'point': r['point'], 'matched': False, 'comment': '답안 없음'}
+            'points': [{'point': r['point'], 'matched': False, 'score': 0.0,
+                        'max': float(r.get('score', 0)), 'comment': '답안 없음'}
                        for r in rubric],
             'summary': '답안이 비어 있습니다.',
         }

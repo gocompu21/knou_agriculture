@@ -483,9 +483,9 @@ function renderResult(box, d) {
     const cls = pct >= 0.999 ? 'ok' : (pct > 0 ? 'mid' : 'no');
     let html = `<div class="rs-score ${cls}">${d.score} / ${d.max}점</div>`;
     (d.points || []).forEach(p => {
-        const half = !p.matched && p.credit > 0;
+        const half = !p.matched && p.score > 0;
         html += `<div class="rs-pt ${p.matched ? 'y' : (half ? 'half' : 'n')}">${escapeHtml(p.point)}`;
-        if (half) html += ` <span class="rs-half">부분 인정</span>`;
+        if (half) html += ` <span class="rs-half">부분 인정 ${p.score}/${p.max}점</span>`;
         if (!p.matched && p.comment) html += ` <span class="rs-cmt">— ${escapeHtml(p.comment)}</span>`;
         html += `</div>`;
     });

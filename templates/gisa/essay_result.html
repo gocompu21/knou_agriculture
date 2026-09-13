@@ -216,7 +216,7 @@
         <div class="qr-mine {% if not a.answer_text %}empty{% endif %}">{% if a.answer_text %}{{ a.answer_text|qtext_items }}{% else %}(답안 없음){% endif %}</div>
 
         {% for p in a.feedback.points %}
-        <div class="pt {% if p.matched %}y{% elif p.credit %}half{% else %}n{% endif %}">{{ p.point }}{% if not p.matched and p.credit %} <span class="pt-half">부분 인정</span>{% endif %}{% if not p.matched and p.comment %} <span class="pt-cmt">— {{ p.comment }}</span>{% endif %}</div>
+        <div class="pt {% if p.matched %}y{% elif p.score %}half{% else %}n{% endif %}">{{ p.point }}{% if not p.matched and p.score %} <span class="pt-half">부분 인정 {{ p.score|floatformat:"-2" }}/{{ p.max|floatformat:"-2" }}점</span>{% endif %}{% if not p.matched and p.comment %} <span class="pt-cmt">— {{ p.comment }}</span>{% endif %}</div>
         {% endfor %}
 
         {% if a.feedback.summary %}
