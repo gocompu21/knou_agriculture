@@ -188,6 +188,18 @@
                              '<td>' + (c.exam_count || '') + '</td></tr>';
                     });
                     document.getElementById('pcRows').innerHTML = h;
+
+                    /* 단서 규칙표 — 서버가 카드를 세어 만든 것을 그린다 */
+                    var rb = '';
+                    (d.rules || []).forEach(function (r) {
+                        rb += '<span class="pc-rule ' + (r.mixed ? 'mixed' : r.category) +
+                              '" title="' + esc(r.names.join(' · ')) + '"><b>' +
+                              esc(r.hint) + '</b>' +
+                              (r.mixed ? ' 갈림' : ' ' + r.category) +
+                              '<span class="n">' + r.count + '</span></span>';
+                    });
+                    document.getElementById('pcRuleBox').innerHTML = rb;
+
                     list.dataset.loaded = '1';
                     showStat(d.stats);
                 });

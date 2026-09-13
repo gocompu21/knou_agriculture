@@ -68,6 +68,23 @@
     .pc-done { text-align: center; padding: 30px 16px; color: #55635b;
         font-size: 0.92rem; line-height: 1.8; }
 
+    /* 단서 규칙표 — 카드 92종을 세어 만든다(pesticide.hint_rules) */
+    .pc-rules { margin-bottom: 12px; border: 1px solid #e4ece7; border-radius: 10px;
+        background: #fafcfb; }
+    .pc-rules summary { cursor: pointer; padding: 9px 13px; font-size: 0.86rem;
+        font-weight: 700; color: #1b4332; }
+    .pc-rulebox { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 13px 13px; }
+    .pc-rule { display: inline-flex; align-items: center; gap: 5px;
+        border-radius: 9px; padding: 4px 9px; font-size: 0.8rem; }
+    .pc-rule b { font-weight: 800; }
+    .pc-rule .n { font-size: 0.74rem; opacity: .7; }
+    .pc-rule.살충제 { background: #d8ecdc; color: #1b5e20; }
+    .pc-rule.살균제 { background: #f7dcef; color: #8e2f6d; }
+    .pc-rule.제초제 { background: #fbf0c0; color: #7a6110; }
+    /* 계열이 갈리는 단서 — 쓸 수 없다는 사실이 더 중요하다 */
+    .pc-rule.mixed { background: #fdeaea; color: #b23b3b;
+        border: 1px dashed #e7a3a3; }
+
     /* 목록 */
     .pc-list { margin-top: 18px; }
     .pc-list[hidden] { display: none; }

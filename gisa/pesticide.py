@@ -141,12 +141,44 @@ def api_reset(request):
     return JsonResponse({'ok': True, 'deleted': n, 'stats': stats(request.user)})
 
 
+def hint_rules(cards):
+    """단서별로 어느 계열인지 모아 준다 — **카드에서 뽑은 규칙표**다.
+
+    규칙을 따로 적어 두지 않는다. 92종을 세어 만들므로 카드를 고치면 표도
+    따라 바뀌고, 둘이 어긋날 일이 없다.
+
+    둘 이상에 쓰인 단서만 싣는다 — 한 번뿐인 단서는 그 카드 자체로 충분하다.
+    **계열이 갈리는 단서**(`메틸`)는 `mixed` 로 표시한다. 단서로 쓸 수 없다는
+    사실이 오히려 중요하다.
+    """
+    by = {}
+    for c in cards:
+        if c.whole or not c.hint:
+            continue
+        by.setdefault(c.hint, {}).setdefault(c.category, []).append(c.name)
+    rules = []
+    for hint, cats in by.items():
+        n = sum(len(v) for v in cats.values())
+        if n < 2:
+            continue
+        top = max(cats.items(), key=lambda kv: len(kv[1]))
+        rules.append({
+            'hint': hint, 'count': n,
+            'category': top[0] if len(cats) == 1 else '',
+            'mixed': len(cats) > 1,
+            'names': sorted(sum(cats.values(), []))[:4],
+        })
+    rules.sort(key=lambda r: (r['mixed'], -r['count'], r['hint']))
+    return rules
+
+
 @login_required
 def api_list(request):
     """카드 92종 목록 — 구분별로 묶어 한눈에 훑는다."""
-    rows = []
-    for c in PesticideCard.objects.all():
-        rows.append({'no': c.no, 'name': c.name, 'category': c.category,
-                     'hint': c.hint, 'whole': c.whole,
-                     'exam_count': c.exam_count, 'note': c.note})
-    return JsonResponse({'ok': True, 'cards': rows, 'stats': stats(request.user)})
+    cards = list(PesticideCard.objects.all())
+    rows = [{'no': c.no, 'name': c.name, 'category': c.category,
+             'hint': c.hint, 'whole': c.whole,
+             'exam_count': c.exam_count, 'note': c.note} for c in cards]
+    return JsonResponse({'ok': True, 'cards': rows,
+                         'rules': hint_rules(cards),
+                         'stats': stats(request.user)})
