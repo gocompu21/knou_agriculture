@@ -42,6 +42,19 @@ from gisa.models import GisaEssayQuestion                                       
 CERT = '조경기사'
 SOURCE = '적산'
 
+# ── 색 ─────────────────────────────────────────────────────────────────────
+# 제도형 그림이라 알록달록하게 칠하지 않는다. 재료가 무엇인지 한눈에 갈리는
+# 만큼만 쓴다 — 흙빛·잿빛·연녹·파랑 넷이면 거의 다 된다.
+C_SOIL = '#ece0cb'        # 흙·원지반·되메우기
+C_SOIL_L = '#f5eee0'      # 흙(옅게)
+C_CONC = '#dde4ea'        # 콘크리트·구조체
+C_STONE = '#e9e2d4'       # 석재·판석
+C_GRAVEL = '#dfe6e0'      # 자갈·혼합골재
+C_PLANT = '#dcead3'       # 객토·식재지반·성토
+C_WATER = '#cfe3f0'       # 물·유공관
+C_CUT = '#f4e0d2'         # 절토(깎는 자리)
+C_WOOD = '#c9a97a'        # 각재·수간
+
 FIG = {}          # 키 → SVG 본문
 PAGE = {}         # 키 → 원도가 실린 PDF 쪽 (대조용)
 
@@ -98,7 +111,7 @@ def _f2_rootball():
         else:
             path = f'M{x1} {TY} L{x1} {TY+H} L{x2} {TY+H} L{x2} {TY} Z'
             bottom = TY + H
-        b.append(f'<path d="{path}" fill="none" stroke="{INK}" stroke-width="1.5"/>')
+        b.append(f'<path d="{path}" fill="{C_SOIL}" stroke="{INK}" stroke-width="1.5"/>')
         # 근원부 — 가는 세로선 네 줄
         for k in range(4):
             sx = cx - d / 2 + k * d / 3
@@ -129,20 +142,25 @@ def _f3_pavement():
     x1, x2 = 46, 312
     pats = ('<defs>'
             '<pattern id="c3a" width="6" height="6" patternTransform="rotate(45)" '
-            'patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6" '
-            'stroke="#8b968f" stroke-width="1.2"/></pattern>'
+            'patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="%s"/>'
+            '<line x1="0" y1="0" x2="0" y2="6" stroke="#a8a08c" stroke-width="1.2"/>'
+            '</pattern>'
             '<pattern id="c3b" width="10" height="10" patternUnits="userSpaceOnUse">'
-            '<circle cx="2" cy="3" r="1" fill="#9aa69e"/>'
-            '<circle cx="7" cy="7" r="0.9" fill="#9aa69e"/>'
-            '<path d="M4,8 l2.6,0 l-1.3,-2.4 z" fill="#b3bdb5"/></pattern>'
+            '<rect width="10" height="10" fill="%s"/>'
+            '<circle cx="2" cy="3" r="1" fill="#8e9aa6"/>'
+            '<circle cx="7" cy="7" r="0.9" fill="#8e9aa6"/>'
+            '<path d="M4,8 l2.6,0 l-1.3,-2.4 z" fill="#aab4bd"/></pattern>'
             '<pattern id="c3c" width="16" height="16" patternUnits="userSpaceOnUse">'
-            '<path d="M0,16 L16,0 M0,0 L16,16" stroke="#9aa69e" stroke-width="1"/>'
+            '<rect width="16" height="16" fill="%s"/>'
+            '<path d="M0,16 L16,0 M0,0 L16,16" stroke="#93a394" stroke-width="1"/>'
             '</pattern>'
             '<pattern id="c3d" width="9" height="9" patternUnits="userSpaceOnUse">'
+            '<rect width="9" height="9" fill="%s"/>'
             '<path d="M0,4.5 L4.5,0 L9,4.5 M0,9 L4.5,4.5 L9,9" fill="none" '
-            'stroke="#9aa69e" stroke-width="0.9"/></pattern></defs>')
+            'stroke="#b6a68a" stroke-width="0.9"/></pattern></defs>'
+            % (C_STONE, C_CONC, C_GRAVEL, C_SOIL))
     # (두께px, 채움, 치수라벨) — 위에서 아래로
-    layers = [(16, 'url(#c3a)', '30'), (16, 'none', '30'),
+    layers = [(16, 'url(#c3a)', '30'), (16, C_CONC, '30'),
               (40, 'url(#c3b)', '100'), (40, 'url(#c3c)', '100')]
     labels = ['THK 30 화강석 판석(300x300x30)', 'THK 30 모르타르', '#6 와이어메쉬',
               'THK 100 콘크리트 C종(1:3:6)', 'THK 0.02 PE필름(콘크리트 분리막)',
@@ -448,15 +466,19 @@ def _f16_planting():
     cx = (x1 + x2) / 2
     pats = ('<defs>'
             '<pattern id="p16a" width="9" height="9" patternUnits="userSpaceOnUse">'
-            '<circle cx="2" cy="3" r="1" fill="#a8b0a6"/>'
-            '<circle cx="6.5" cy="7" r="0.9" fill="#a8b0a6"/></pattern>'
+            '<rect width="9" height="9" fill="%s"/>'
+            '<circle cx="2" cy="3" r="1" fill="#8fa885"/>'
+            '<circle cx="6.5" cy="7" r="0.9" fill="#8fa885"/></pattern>'
             '<pattern id="p16b" width="13" height="13" patternUnits="userSpaceOnUse">'
-            '<circle cx="4" cy="4" r="3" fill="none" stroke="#9aa69e" stroke-width="1"/>'
-            '<circle cx="10" cy="10" r="2.4" fill="none" stroke="#9aa69e" '
+            '<rect width="13" height="13" fill="%s"/>'
+            '<circle cx="4" cy="4" r="3" fill="none" stroke="#8b998c" stroke-width="1"/>'
+            '<circle cx="10" cy="10" r="2.4" fill="none" stroke="#8b998c" '
             'stroke-width="1"/></pattern>'
             '<pattern id="p16c" width="9" height="9" patternUnits="userSpaceOnUse">'
+            '<rect width="9" height="9" fill="%s"/>'
             '<path d="M0,4.5 L4.5,0 L9,4.5 M0,9 L4.5,4.5 L9,9" fill="none" '
-            'stroke="#9aa69e" stroke-width="0.9"/></pattern></defs>')
+            'stroke="#b6a68a" stroke-width="0.9"/></pattern></defs>'
+            % (C_PLANT, C_GRAVEL, C_SOIL))
     TOP, SOIL, FELT, GRAV = 128, 66, 4, 34
     y1 = TOP + SOIL                 # 객토 아래 = 여과층
     y2 = y1 + FELT                  # 자갈층 위
@@ -465,7 +487,7 @@ def _f16_planting():
     b = [pats]
     b.append(f'<rect x="{x1}" y="{TOP}" width="{x2-x1}" height="{SOIL}" '
              f'fill="url(#p16a)" stroke="{INK}" stroke-width="1.2"/>')
-    b.append(f'<rect x="{x1}" y="{y1}" width="{x2-x1}" height="{FELT}" fill="#e6ece7" '
+    b.append(f'<rect x="{x1}" y="{y1}" width="{x2-x1}" height="{FELT}" fill="#cfd9d2" '
              f'stroke="{INK}" stroke-width="1.1"/>')
     # 자갈층 — 아래가 유공관 쪽으로 기운다
     b.append(f'<path d="M{x1} {y2} L{x2} {y2} L{x2} {y3} L{cx+26} {y3+sag} '
@@ -477,7 +499,7 @@ def _f16_planting():
     b.append(f'<path d="M{x1} {y3+11} L{cx-26} {y3+sag+11} L{cx+26} {y3+sag+11} '
              f'L{x2} {y3+11} L{x2} {y3+40} L{x1} {y3+40} Z" fill="url(#p16c)" '
              f'stroke="{INK}" stroke-width="1.1"/>')
-    b.append(f'<circle cx="{cx}" cy="{y3+sag-1}" r="9" fill="#fff" stroke="{INK}" '
+    b.append(f'<circle cx="{cx}" cy="{y3+sag-1}" r="9" fill="{C_WATER}" stroke="{INK}" '
              f'stroke-width="1.3"/>')
     for a in (-60, 0, 60, 120, 180, 240):
         import math
@@ -557,8 +579,9 @@ def _level_scene(w, h, ground, staffs, levels, reads, caption=None, cap_at='bott
             b.append(f'<text x="{w/2}" y="{h-6}" text-anchor="middle" fill="#666" '
                      f'font-size="9">{caption}</text>')
     soil = ('<defs><pattern id="gsoil" width="7" height="7" patternUnits="userSpaceOnUse">'
-            '<circle cx="2" cy="2" r="0.9" fill="#c3cbc4"/>'
-            '<circle cx="5.5" cy="5" r="0.7" fill="#c3cbc4"/></pattern></defs>')
+            '<rect width="7" height="7" fill="%s"/>'
+            '<circle cx="2" cy="2" r="0.9" fill="#bfae91"/>'
+            '<circle cx="5.5" cy="5" r="0.7" fill="#bfae91"/></pattern></defs>' % C_SOIL)
     return svg(w, h, soil + ''.join(b))
 
 
@@ -597,7 +620,7 @@ def _f20_pit():
     ix, iy = ox + (OS - IN) / 2, oy + (OS - IN) / 2
     b.append(f'<rect x="{ox}" y="{oy}" width="{OS}" height="{OS}" fill="none" '
              f'stroke="{INK}" stroke-width="1.3"/>')
-    b.append(f'<rect x="{ix}" y="{iy}" width="{IN}" height="{IN}" fill="#f3f6f3" '
+    b.append(f'<rect x="{ix}" y="{iy}" width="{IN}" height="{IN}" fill="{C_SOIL_L}" '
              f'stroke="{INK}" stroke-width="1.3"/>')
     for a, z in (((ox, oy), (ix, iy)), ((ox + OS, oy), (ix + IN, iy)),
                  ((ox, oy + OS), (ix, iy + IN)), ((ox + OS, oy + OS), (ix + IN, iy + IN))):
@@ -614,7 +637,7 @@ def _f20_pit():
     bl, br = sx + (TW - BW) / 2, sx + TW - (TW - BW) / 2
     b.append(HATCH)
     b.append(f'<path d="M{tl} {sy} L{bl} {sy+D} L{br} {sy+D} L{tr} {sy} Z" '
-             f'fill="#f3f6f3" stroke="{INK}" stroke-width="1.4"/>')
+             f'fill="{C_SOIL_L}" stroke="{INK}" stroke-width="1.4"/>')
     b.append(f'<line x1="{tl-16}" y1="{sy}" x2="{tr+16}" y2="{sy}" stroke="{INK}" '
              f'stroke-width="1.2"/>')
     b.append(dim_h(tl, bl, sy - 14, '5m', G))
@@ -700,7 +723,7 @@ def _f24_foundation():
     ix, iy = ox + (OS - IN) / 2, oy + (OS - IN) / 2
     b.append(f'<rect x="{ox}" y="{oy}" width="{OS}" height="{OS}" fill="none" '
              f'stroke="{INK}" stroke-width="1.3"/>')
-    b.append(f'<rect x="{ix}" y="{iy}" width="{IN}" height="{IN}" fill="#f3f6f3" '
+    b.append(f'<rect x="{ix}" y="{iy}" width="{IN}" height="{IN}" fill="{C_CONC}" '
              f'stroke="{INK}" stroke-width="1.3"/>')
     for a, z in (((ox, oy), (ix, iy)), ((ox + OS, oy), (ix + IN, iy)),
                  ((ox, oy + OS), (ix, iy + IN)), ((ox + OS, oy + OS), (ix + IN, iy + IN))):
@@ -716,7 +739,7 @@ def _f24_foundation():
     tl, tr = sx, sx + TW
     bl, br = sx + (TW - BW) / 2, sx + TW - (TW - BW) / 2
     b.append(f'<path d="M{tl} {GL} L{bl} {GL+D} L{br} {GL+D} L{tr} {GL} Z" '
-             f'fill="#fbfcfb" stroke="{INK}" stroke-width="1.3"/>')
+             f'fill="{C_SOIL_L}" stroke="{INK}" stroke-width="1.3"/>')
     b.append(f'<line x1="{tl-14}" y1="{GL}" x2="{tr+14}" y2="{GL}" stroke="{INK}" '
              f'stroke-width="1.2"/>')
     b.append(f'<text x="{tl-16}" y="{GL-3}" text-anchor="end" fill="{INK}" '
@@ -787,7 +810,7 @@ def _f9_box():
     tl, tr = cx - tw / 2, cx + tw / 2
     b = [HATCH]
     b.append(f'<path d="M{tl} {top} L{bl} {top+d} L{br} {top+d} L{tr} {top} Z" '
-             f'fill="#fbfcfb" stroke="{INK}" stroke-width="1.4"/>')
+             f'fill="{C_SOIL_L}" stroke="{INK}" stroke-width="1.4"/>')
     b.append(f'<line x1="{tl-20}" y1="{top}" x2="{tr+20}" y2="{top}" stroke="{INK}" '
              f'stroke-width="1.2"/>')
     for x in range(int(tl) + 4, int(tr), 9):
@@ -837,7 +860,7 @@ def _f28_section():
         p = [(X(0), Y(dleft)), (X(kink), Y(dmid)), (X(w), Y(0)),
              (X(b1), Y(depth)), (X(b0), Y(depth))]
         s = ['<polygon points="' + ' '.join(f'{x:.1f},{y:.1f}' for x, y in p)
-             + f'" fill="#fbfcfb" stroke="{INK}" stroke-width="1.5"/>']
+             + f'" fill="{C_CUT}" stroke="{INK}" stroke-width="1.5"/>']
         s.append(f'<line x1="{X(0)-6}" y1="{Y(0)}" x2="{X(w)+6}" y2="{Y(0)}" '
                  f'stroke="{INK}" stroke-width="1.1"/>')
         # 가운데 깊이 표시 — 기준선에서 윗면 꺾임까지
@@ -891,7 +914,7 @@ def _f29_fill():
              f'font-size="9">사질토 성토 : 3,500m³</text>')
     # 가운데 언덕 — 아래 사질토, 위 점성토
     hill = f'M130 {GL} C150 {GL-36} 168 {GL-74} 200 {GL-74} C232 {GL-74} 250 {GL-36} 270 {GL}'
-    b.append(f'<path d="{hill} Z" fill="#f2f6f2" stroke="{INK}" stroke-width="1.4"/>')
+    b.append(f'<path d="{hill} Z" fill="{C_CUT}" stroke="{INK}" stroke-width="1.4"/>')
     # 켜 경계는 언덕 안에서만 그린다 — 윤곽보다 길게 그으면 밖으로 삐져나온다
     b.append(f'<path d="M162 {GL-46} C182 {GL-56} 218 {GL-56} 238 {GL-46}" fill="none" '
              f'stroke="{INK}" stroke-width="1.1"/>')
@@ -965,7 +988,7 @@ def _f32_footing():
     b.append(f'<rect x="{ox}" y="{oy}" width="{S}" height="{S}" fill="none" '
              f'stroke="{INK}" stroke-width="1.3"/>')
     ix, iy = ox + a, oy + a
-    b.append(f'<rect x="{ix}" y="{iy}" width="{mid}" height="{mid}" fill="#f3f6f3" '
+    b.append(f'<rect x="{ix}" y="{iy}" width="{mid}" height="{mid}" fill="{C_CONC}" '
              f'stroke="{INK}" stroke-width="1.3"/>')
     for p, q in (((ox, oy), (ix, iy)), ((ox + S, oy), (ix + mid, iy)),
                  ((ox, oy + S), (ix, iy + mid)), ((ox + S, oy + S), (ix + mid, iy + mid))):
@@ -1000,8 +1023,8 @@ def _f32_footing():
     H1, H2 = 26, 34                        # 밑판 300 · 절두각뿔 400
     cl, cr = sx + aa, sx + aa + mm
     b.append(f'<path d="M{sx} {sy+H2} L{cl} {sy} L{cr} {sy} L{sx+W2} {sy+H2} Z" '
-             f'fill="#eef2ee" stroke="{INK}" stroke-width="1.3"/>')
-    b.append(f'<rect x="{sx}" y="{sy+H2}" width="{W2}" height="{H1}" fill="#eef2ee" '
+             f'fill="{C_CONC}" stroke="{INK}" stroke-width="1.3"/>')
+    b.append(f'<rect x="{sx}" y="{sy+H2}" width="{W2}" height="{H1}" fill="{C_CONC}" '
              f'stroke="{INK}" stroke-width="1.3"/>')
     b.append(dim_h(sx, sx + W2, sy - 26, '1,700', G))
     b.append(dim_h(sx, cl, sy - 12, '600', G))
@@ -1025,8 +1048,9 @@ def _f33_level():
     그 사실이 그림에 드러나야 문제가 풀린다 — 위쪽 구조물과 거꾸로 선 표척을
     함께 그린다."""
     b = ['<defs><pattern id="p33" width="6" height="6" patternUnits="userSpaceOnUse">'
-         '<circle cx="1.6" cy="1.6" r="0.8" fill="#c3cbc4"/>'
-         '<circle cx="4.4" cy="4.4" r="0.7" fill="#c3cbc4"/></pattern></defs>']
+         '<rect width="6" height="6" fill="%s"/>'
+         '<circle cx="1.6" cy="1.6" r="0.8" fill="#bfae91"/>'
+         '<circle cx="4.4" cy="4.4" r="0.7" fill="#bfae91"/></pattern></defs>' % C_SOIL]
     # 머리 위 구조물 — 왼쪽이 높고 오른쪽이 한 단 낮다
     b.append(f'<path d="M28 14 L212 14 L246 40 L378 40 L378 0 L28 0 Z" '
              f'fill="url(#p33)" stroke="{INK}" stroke-width="1.3"/>')
@@ -1081,8 +1105,8 @@ def _f35_grading():
                  f'stroke-width="1" stroke-dasharray="6 4"/>')
         b.append(f'<text x="28" y="{y+13}" text-anchor="end" fill="{INK}" '
                  f'font-size="9.5">{lv}</text>')
-    b.append(f'<rect x="{L}" y="{T}" width="{R-L}" height="{B_-T}" fill="#eaf3ea" '
-             f'fill-opacity="0.85" stroke="{INK}" stroke-width="1.6"/>')
+    b.append(f'<rect x="{L}" y="{T}" width="{R-L}" height="{B_-T}" fill="{C_PLANT}" '
+             f'fill-opacity="0.9" stroke="{INK}" stroke-width="1.6"/>')
     for x in (L + 12, R - 12):
         b.append(f'<rect x="{x-14}" y="{T+3}" width="28" height="13" fill="#fff" '
                  f'stroke="{INK}" stroke-width="0.9"/>'
@@ -1116,7 +1140,7 @@ def _f37_area():
     Y = lambda m: BASE - m * SC        # noqa: E731
     pts = [(0, 1), (5, 3), (11, 4), (8, 0), (2, 0)]
     b = ['<polygon points="' + ' '.join(f'{X(x)},{Y(y)}' for x, y in pts)
-         + f'" fill="#f3f6f3" stroke="{INK}" stroke-width="1.6"/>']
+         + f'" fill="{C_CUT}" stroke="{INK}" stroke-width="1.6"/>']
     b.append(f'<line x1="{X(-0.6)}" y1="{BASE}" x2="{X(11.6)}" y2="{BASE}" '
              f'stroke="{INK}" stroke-width="1"/>')
     # 중심선과 좌우 끝의 세로 보조선
@@ -1140,6 +1164,138 @@ def _f37_area():
 
 
 reg('ls-ch1-37-area', 101, _f37_area())
+
+
+# ── 38번. 네트워크 공정표 — 답(작성 결과) ─────────────────────────────────
+_N38 = {1: (36, 124), 3: (146, 58), 2: (146, 124), 4: (146, 192),
+        5: (246, 124), 6: (322, 124), 7: (380, 124)}
+_E38 = [(1, 3, 'A/3'), (1, 2, 'B/2'), (1, 4, 'C/4'), (2, 5, 'E/2'),
+        (3, 5, '', True), (4, 5, '', True),
+        (3, 6, 'F/3'), (5, 6, 'G/3'), (4, 6, 'D/5'), (6, 7, 'H/5')]
+
+reg('ls-ch1-38-network', 102,
+    _network(_N38, _E38, 404, 234,
+             marks={1: (0, 0), 2: (2, 4), 3: (3, 6), 4: (4, 4),
+                    5: (4, 6), 6: (9, 9), 7: (14, 14)},
+             cp={(1, 4), (4, 6), (6, 7)},
+             mark_pos={2: 'bottom', 4: 'bottom', 5: 'bottom'}))
+
+
+# ── 40번. 등고선 + 도로 단면 — 문제 제시 ──────────────────────────────────
+def _f40_road():
+    """왼쪽은 A1~A5 등고선(20m 간격), 오른쪽은 만들려는 도로의 단면.
+    윗면 6m · 높이 3m · 비탈 1 : 2 라 한쪽이 6m 씩 벌어져 아랫변이 18m 가
+    된다 — 단면적 (18+6)/2 × 3 = 36m² 가 그림에서 바로 읽힌다."""
+    b = []
+    cx, cy = 104, 128
+    rings = [(84, 62), (66, 48), (49, 35), (32, 23), (16, 12)]
+    for i, (rx, ry) in enumerate(rings):
+        b.append(f'<ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}" fill="none" '
+                 f'stroke="{INK}" stroke-width="1.1"/>')
+        b.append(f'<text x="{cx-rx+7:.0f}" y="{cy+3}" text-anchor="middle" fill="{G}" '
+                 f'font-size="8.5">A{i+1}</text>')
+    # 도로 단면 — 윗변 6m, 아랫변 18m, 높이 3m
+    SC = 7.4
+    sx, base = 228, 190
+    tw, bw, h = 6 * SC, 18 * SC, 3 * SC * 2.2
+    mx = sx + bw / 2
+    b.append(f'<path d="M{sx} {base} L{mx-tw/2} {base-h} L{mx+tw/2} {base-h} '
+             f'L{sx+bw} {base} Z" fill="{C_PLANT}" stroke="{INK}" stroke-width="1.4"/>')
+    b.append(dim_h(mx - tw / 2, mx + tw / 2, base - h - 14, '6m', G))
+    b.append(f'<line x1="{mx}" y1="{base-h}" x2="{mx}" y2="{base}" stroke="{INK}" '
+             f'stroke-width="0.9" marker-end="url(#arw)"/>')
+    b.append(HATCH)
+    b.append(f'<text x="{mx+6}" y="{base-h/2}" fill="{INK}" font-size="9.5">3m</text>')
+    # 비탈 1 : 2 — 원도처럼 작은 직각삼각형으로 보인다
+    for sgn, ox in ((1, sx + 16), (-1, sx + bw - 16)):
+        b.append(f'<path d="M{ox} {base-14} l{18*sgn} 0 l0 -14 Z" fill="none" '
+                 f'stroke="{INK}" stroke-width="0.9"/>')
+        b.append(f'<text x="{ox+9*sgn}" y="{base-4}" text-anchor="middle" fill="{INK}" '
+                 f'font-size="8.5">2</text>')
+        b.append(f'<text x="{ox+20*sgn}" y="{base-20}" text-anchor="middle" fill="{INK}" '
+                 f'font-size="8.5">1</text>')
+    return svg(400, 214, ''.join(b))
+
+
+reg('ls-ch1-40-road', 103, _f40_road())
+
+
+# ── 41번. 저수지 등고선 — 문제 제시 ───────────────────────────────────────
+def _f41_reservoir():
+    """오른쪽 곧은 선이 댐이고, 등고선(85~120m)이 거기에 잘려 반쪽 고리가 된다.
+    단면이 여덟(짝수)이라 각주공식만으로는 안 되고 양단면평균법을 덧대야 한다."""
+    b = []
+    dam = 320
+    lv = [120, 115, 110, 105, 100, 95, 90, 85]
+    for i, v in enumerate(lv):
+        rx = 232 - i * 27
+        ry = 104 - i * 12
+        cy = 128
+        b.append(f'<path d="M{dam} {cy-ry} A{rx} {ry} 0 0 0 {dam} {cy+ry}" '
+                 f'fill="none" stroke="{INK}" stroke-width="1.1"/>')
+        b.append(f'<text x="{dam-rx+6:.0f}" y="{cy-ry*0.42:.0f}" text-anchor="middle" '
+                 f'fill="{INK}" font-size="8.5">{v}</text>')
+    b.append(f'<line x1="{dam}" y1="14" x2="{dam}" y2="242" stroke="{INK}" '
+             f'stroke-width="3"/>')
+    b.append(f'<text x="{dam+8}" y="{130}" fill="{INK}" font-size="9.5">댐</text>')
+    return svg(360, 256, ''.join(b))
+
+
+reg('ls-ch1-41-reservoir', 103, _f41_reservoir())
+
+
+# ── 43번. 단곡선 노선측량도 — 문제 제시 ───────────────────────────────────
+def _f43_curve():
+    """두 접선 A－P 와 P－B 가 교점 P 에서 만나고, 그 사이를 곡선이 잇는다.
+    B.C 와 E.C 에서 접선과 맞닿으므로 **조절점을 P 로 둔 2차 베지에**가 곧
+    그 곡선이다(접선에 접하는 포물선). C·D 는 접선 위의 측점으로, 거기서 잰
+    30°·70° 로 교각 I = 100° 를 구한다."""
+    import math
+    A, P, B = (34, 224), (206, 30), (386, 236)
+    C = (132, 134)
+    D = (284, 118)
+    BC = (96, 174)
+    EC = (330, 182)
+    b = []
+    for p, q in ((A, P), (P, B), (C, D)):
+        b.append(f'<line x1="{p[0]}" y1="{p[1]}" x2="{q[0]}" y2="{q[1]}" '
+                 f'stroke="{INK}" stroke-width="1.2"/>')
+    b.append(f'<path d="M{BC[0]} {BC[1]} Q{P[0]} {P[1]} {EC[0]} {EC[1]}" fill="none" '
+             f'stroke="{INK}" stroke-width="2"/>')
+    def ang(at, to1, to2, r, label, dx, dy):
+        a1 = math.degrees(math.atan2(to1[1] - at[1], to1[0] - at[0]))
+        a2 = math.degrees(math.atan2(to2[1] - at[1], to2[0] - at[0]))
+        p1 = (at[0] + r * math.cos(math.radians(a1)), at[1] + r * math.sin(math.radians(a1)))
+        p2 = (at[0] + r * math.cos(math.radians(a2)), at[1] + r * math.sin(math.radians(a2)))
+        return (f'<path d="M{p1[0]:.1f} {p1[1]:.1f} A{r} {r} 0 0 1 {p2[0]:.1f} '
+                f'{p2[1]:.1f}" fill="none" stroke="{G}" stroke-width="1"/>'
+                f'<text x="{at[0]+dx}" y="{at[1]+dy}" fill="{G}" font-size="9">{label}</text>')
+    b.append(ang(C, P, D, 26, '30°', 14, -4))
+    b.append(ang(D, C, P, 26, '70°', -26, 6))
+    for pt, t, dx, dy, an in ((A, 'A', -6, 10, 'end'), (P, 'P', -8, -4, 'end'),
+                              (B, 'B', 8, 6, 'start'), (C, 'C', -9, 3, 'end'),
+                              (D, 'D', 8, -4, 'start'), (BC, 'B.C', -2, 18, 'middle'),
+                              (EC, 'E.C', 4, 18, 'middle')):
+        b.append(f'<circle cx="{pt[0]}" cy="{pt[1]}" r="2.2" fill="{INK}"/>'
+                 f'<text x="{pt[0]+dx}" y="{pt[1]+dy}" text-anchor="{an}" fill="{INK}" '
+                 f'font-size="10" font-weight="700">{t}</text>')
+    # 교각 I — P 에서 두 접선이 이루는 꺾임각
+    b.append(ang(P, A, B, 30, 'I', 12, 34))
+    # 조건(A－C 471.021m 등)은 문제문의 [box] 에 이미 있다 — 그림에 또 적으면
+    # B 라벨과 겹치기만 하고 보태는 것이 없다.
+    return svg(400, 252, ''.join(b))
+
+
+reg('ls-ch1-43-curve', 104, _f43_curve())
+
+
+PLACE.update({
+    38: (None, 'ls-ch1-38-network'),
+    40: ('ls-ch1-40-road', None),
+    41: ('ls-ch1-41-reservoir', None),
+    43: ('ls-ch1-43-curve', None),
+})
+
 
 
 PLACE.update({
