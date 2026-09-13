@@ -26,6 +26,8 @@ import re
 
 from django.conf import settings
 
+from .essay_examinfo import exam_info
+
 # 숫자 허용 오차 (상대)
 NUM_TOLERANCE = 0.02
 
@@ -133,8 +135,18 @@ def grade_calc_by_rule(question, user_answer):
 # ---------------------------------------------------------------- LLM 채점
 
 GRADE_SYSTEM = (
-    "당신은 국가기술자격 실기 필답형 채점위원이다.\n"
-    "채점 기준표의 각 포인트에 대해, 수험자 답안이 그 내용을 담고 있는지만 판정한다.\n\n"
+    "당신은 국가기술자격 **기사·산업기사 실기 필답형** 채점위원이다.\n"
+    "어느 종목의 어느 과목인지는 [시험] 줄에 적혀 있다. 그 분야의 관용 표기와\n"
+    "약어를 아는 채점위원으로서 판정한다.\n\n"
+    "채점 기준표의 항목마다 두 가지를 매긴다.\n"
+    "- matched: 그 항목을 온전히 담았으면 true\n"
+    "- credit: 0.0~1.0. **부분 점수다.** 아래 기준으로 준다.\n"
+    "    1.0  온전히 담았다 (matched=true 와 함께)\n"
+    "    0.5~0.9  핵심은 맞으나 일부가 빠졌거나 설명이 얕다\n"
+    "    0.2~0.4  방향은 맞으나 핵심 용어가 빠져 답으로 보기 어렵다\n"
+    "    0.0  전혀 담기지 않았거나 틀렸다\n"
+    "  실제 필답 채점에서도 반만 쓴 답에 반점을 주므로 0과 1로만 가르지 않는다.\n"
+    "  다만 **단답·빈칸은 맞거나 틀리거나 둘뿐이다** — 1.0 또는 0.0 만 준다.\n\n"
     "판정 원칙:\n"
     "- 표현이 달라도 의미가 같으면 인정한다 (동의어·줄임말·순서 바뀜 허용).\n"
     "- **괄호 안의 부연은 선택 사항이다.** 기준이 '야생절멸(EW)'이면 '야생절멸'만\n"
@@ -144,14 +156,36 @@ GRADE_SYSTEM = (
     "- 빈칸형은 각 빈칸의 값이 맞는지만 본다. 순서 표기(①②)는 무시한다.\n"
     "- 핵심 용어가 빠졌거나 뜻이 달라지면 인정하지 않는다.\n"
     "- 기준표에 없는 내용을 썼다고 감점하지 않는다.\n"
-    "- 부분적으로만 맞으면 matched=false로 하되 comment에 무엇이 부족한지 적는다.\n"
+    "- 부분적으로만 맞으면 matched=false 로 두되 **credit 으로 부분 점수를 주고**\n"
+    "  comment 에 무엇이 부족한지 적는다.\n"
     "- comment는 한 문장 이내로 간결하게, 존댓말로 쓴다.\n"
     "- 채점 기준표에 없는 내용을 지어내지 않는다.\n"
 )
 
 
+def _exam_header(question):
+    """어느 시험의 문항인지 한 줄로 알린다.
+
+    "국가기술자격 실기 필답형"이라고만 하면 모델이 어느 분야인지 모른 채
+    용어를 판정한다. 종목·과목을 알려 주면 그 분야의 관용 표기와 약어를
+    제대로 본다 — '엽면적지수'와 'LAI', '무황산근'과 '황산근이 없는 비료'가
+    같은 말인지는 식물보호 실무를 아는 채점위원이라야 가른다.
+    """
+    cert = question.certification.name
+    info = exam_info(cert) or {}
+    subject = info.get('practical_subject')
+    bits = [f"{cert} 실기 필답형"]
+    if subject:
+        bits.append(f"과목 「{subject}」")
+    if info.get('essay_points'):
+        bits.append(f"필답 {info['essay_points']}점 만점")
+    return "[시험] " + " · ".join(bits)
+
+
 def _grade_prompt(question, user_answer, rubric):
     lines = [
+        _exam_header(question),
+        "",
         f"[문제] ({question.qtype}형, 배점 {question.points}점)",
         question.text.strip(),
         "",
@@ -166,7 +200,8 @@ def _grade_prompt(question, user_answer, rubric):
 
 
 CALC_SYSTEM = (
-    "당신은 국가기술자격 실기 필답형 계산 문제 채점위원이다.\n\n"
+    "당신은 국가기술자격 **기사·산업기사 실기 필답형** 계산 문제 채점위원이다.\n"
+    "어느 종목의 어느 과목인지는 [시험] 줄에 적혀 있다.\n\n"
     "채점 원칙:\n"
     "- 배점의 70%는 '최종 답이 맞았는가', 30%는 '풀이 과정이 타당한가'로 본다.\n"
     "- 최종 답이 맞으면 과정을 생략했더라도 최소 70%는 준다. 실제 시험에서\n"
@@ -198,6 +233,7 @@ def grade_calc_by_llm(question, user_answer, model=None):
         comment: str = Field(description="채점 근거 한 문장")
 
     prompt = (
+        f"{_exam_header(question)}\n\n"
         f"[문제] (배점 {max_score}점)\n{question.text.strip()}\n\n"
         f"[모범답안 / 풀이]\n{model_answer.strip()[:2000]}\n\n"
         f"[수험자 답안]\n{(user_answer or '').strip() or '(빈 답안)'}"
@@ -225,8 +261,10 @@ def grade_calc_by_llm(question, user_answer, model=None):
         'score': score, 'max': max_score, 'engine': 'llm-calc',
         'points': [
             {'point': '최종 답', 'matched': r.answer_correct,
+             'credit': 1.0 if r.answer_correct else round(ratio, 2),
              'comment': '' if r.answer_correct else f'맞힌 비율 {int(ratio * 100)}%'},
             {'point': '풀이 과정', 'matched': r.process_ok,
+             'credit': 1.0 if r.process_ok else 0.0,
              'comment': '' if r.process_ok else '과정이 제시되지 않았거나 오류가 있습니다'},
         ],
         'summary': r.comment,
@@ -246,7 +284,10 @@ def grade_by_llm(question, user_answer, model=None):
 
     class PointResult(BaseModel):
         index: int = Field(description="채점 기준표 항목 번호 (1부터)")
-        matched: bool = Field(description="수험자 답안이 이 항목을 담고 있으면 true")
+        matched: bool = Field(description="수험자 답안이 이 항목을 온전히 담고 있으면 true")
+        credit: float = Field(
+            default=0.0,
+            description="0.0~1.0 부분 점수. 온전하면 1.0, 반쯤 맞으면 0.5 등")
         comment: str = Field(description="한 문장 이내 근거. 인정이면 빈 문자열도 가능")
 
     class GradeResult(BaseModel):
@@ -271,13 +312,16 @@ def grade_by_llm(question, user_answer, model=None):
     for i, r in enumerate(rubric, 1):
         p = by_index.get(i)
         matched = bool(p and p.matched)
-        if matched:
-            got += float(r.get('score', 0))
-        else:
+        # 인정이면 1.0, 아니면 모델이 매긴 부분 점수. matched 인데 credit 을
+        # 안 채워 보내는 경우가 있어(기본값 0.0) 그때는 1.0 으로 본다.
+        credit = 1.0 if matched else max(0.0, min(1.0, p.credit if p else 0.0))
+        got += float(r.get('score', 0)) * credit
+        if credit < 1.0:
             all_matched = False
         results.append({
             'point': r['point'],
             'matched': matched,
+            'credit': round(credit, 2),
             'comment': (p.comment if p else '판정 없음'),
         })
 

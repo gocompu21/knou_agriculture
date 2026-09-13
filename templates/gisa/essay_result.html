@@ -94,6 +94,10 @@
     .pt.y::before { content: '✓'; color: #1b5e20; }
     .pt.n::before { content: '✕'; color: #c62828; }
     .pt.n { color: #777; }
+    /* 부분 인정 — 점수를 받았는데 ✕ 로 보이면 왜 점수가 붙었는지 알 수 없다 */
+    .pt.half::before { content: '△'; color: #e08a00; }
+    .pt.half { color: #555; }
+    .pt-half { color: #e08a00; font-weight: 600; font-size: 0.92em; }
     .pt-cmt { color: #999; font-size: 0.92em; }
 
     .qr-sum { margin-top: 8px; font-size: 0.85rem; color: #555;
@@ -212,7 +216,7 @@
         <div class="qr-mine {% if not a.answer_text %}empty{% endif %}">{% if a.answer_text %}{{ a.answer_text|qtext_items }}{% else %}(답안 없음){% endif %}</div>
 
         {% for p in a.feedback.points %}
-        <div class="pt {% if p.matched %}y{% else %}n{% endif %}">{{ p.point }}{% if not p.matched and p.comment %} <span class="pt-cmt">— {{ p.comment }}</span>{% endif %}</div>
+        <div class="pt {% if p.matched %}y{% elif p.credit %}half{% else %}n{% endif %}">{{ p.point }}{% if not p.matched and p.credit %} <span class="pt-half">부분 인정</span>{% endif %}{% if not p.matched and p.comment %} <span class="pt-cmt">— {{ p.comment }}</span>{% endif %}</div>
         {% endfor %}
 
         {% if a.feedback.summary %}
