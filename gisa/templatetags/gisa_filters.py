@@ -210,9 +210,12 @@ def _sanitize_svg(src):
     if not s.lower().startswith("<svg") or _SVG_BAD.search(s):
         return ""
     # 폭이 넘치지 않도록 감싸고, 화면 낭독기에는 그림임을 알린다
+    # text-indent 는 상속된다. 바깥의 매달린 들여쓰기(-20px)가 그대로 먹으면
+    # 그림이 왼쪽으로 밀려 그만큼 오른쪽에 빈 스크롤 영역이 생긴다 — 폭 300px
+    # 짜리 그림인데도 스크롤바가 그려졌다.
     return (
         '<div class="q-svg" role="img" style="margin:8px 0;max-width:100%;'
-        'overflow-x:auto">' + s + "</div>"
+        'text-indent:0;overflow-x:auto">' + s + "</div>"
     )
 
 

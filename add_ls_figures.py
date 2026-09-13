@@ -54,6 +54,19 @@ def dim_v(y1, y2, x, label, color=INK):
             f'transform="rotate(-90 {x-6} {(y1+y2)/2})">{label}</text>')
 
 
+def elev(x, y, v, dx=10, dy=-8):
+    """격자점의 표고값.
+
+    점 **바로 위**에 두면 그 점을 지나는 세로 격자선이 글자 한가운데를 관통해
+    숫자가 잘려 보인다. 오른쪽 위로 비켜 놓아 가로·세로선을 모두 피하고,
+    그래도 선과 닿는 자리를 위해 흰 테두리를 글자 뒤에 깐다
+    (paint-order="stroke" 가 테두리를 먼저 그린다).
+    """
+    return (f'<text x="{x+dx}" y="{y+dy}" text-anchor="middle" fill="{G}" '
+            f'font-weight="700" stroke="#fff" stroke-width="3" '
+            f'paint-order="stroke" stroke-linejoin="round">{v}</text>')
+
+
 HATCH = ('<defs><pattern id="hx" width="7" height="7" patternTransform="rotate(45)" '
          'patternUnits="userSpaceOnUse">'
          '<line x1="0" y1="0" x2="0" y2="7" stroke="#8b968f" stroke-width="1.4"/>'
@@ -66,10 +79,10 @@ FIG = {}
 # ── 1. 점고법 4×4 격자 (20m×20m, 가운데 구획은 보존지역이라 제외) ──────────
 def _grid_square():
     S, x0, y0 = 70, 62, 56
-    elev = [['16', '16', '15', '15'],
-            ['16', '16', '16', '14'],
-            ['16', '15', '15', '14'],
-            ['14', '15', '16', '15']]
+    ev = [['16', '16', '15', '15'],
+          ['16', '16', '16', '14'],
+          ['16', '15', '15', '14'],
+          ['14', '15', '16', '15']]
     b = [HATCH]
     b.append(f'<rect x="{x0+S}" y="{y0+S}" width="{S}" height="{S}" fill="url(#hx)"/>')
     for i in range(4):
@@ -81,8 +94,7 @@ def _grid_square():
         for c in range(4):
             x, y = x0 + c * S, y0 + r * S
             b.append(f'<circle cx="{x}" cy="{y}" r="2.2" fill="{INK}"/>')
-            b.append(f'<text x="{x}" y="{y-9}" text-anchor="middle" fill="{G}" '
-                     f'font-weight="700">{elev[r][c]}</text>')
+            b.append(elev(x, y, ev[r][c]))
     b.append(dim_h(x0, x0 + S, y0 - 28, '20m'))
     b.append(dim_v(y0, y0 + S, x0 - 22, '20m'))
     b.append(f'<text x="{x0+1.5*S}" y="{y0+1.5*S+4}" text-anchor="middle" fill="#6b7770" '
@@ -110,15 +122,15 @@ def _grid_ell():
     for c, v in enumerate(top):
         x = x0 + c * S
         b.append(f'<circle cx="{x}" cy="{y0}" r="2.2" fill="{INK}"/>')
-        b.append(f'<text x="{x}" y="{y0-9}" text-anchor="middle" fill="{G}" font-weight="700">{v}</text>')
+        b.append(elev(x, y0, v))
     for c, v in enumerate(mid):
         x = x0 + c * S
         b.append(f'<circle cx="{x}" cy="{y0+S}" r="2.2" fill="{INK}"/>')
-        b.append(f'<text x="{x}" y="{y0+S-9}" text-anchor="middle" fill="{G}" font-weight="700">{v}</text>')
+        b.append(elev(x, y0 + S, v))
     for c, v in enumerate(bot):
         x = x0 + c * S
         b.append(f'<circle cx="{x}" cy="{y0+2*S}" r="2.2" fill="{INK}"/>')
-        b.append(f'<text x="{x}" y="{y0+2*S+16}" text-anchor="middle" fill="{G}" font-weight="700">{v}</text>')
+        b.append(elev(x, y0 + 2 * S, v, dx=0, dy=17))
     b.append(dim_h(x0, x0 + S, y0 - 30, '2m'))
     b.append(dim_v(y0, y0 + S, x0 - 20, '2m'))
     b.append(f'<text x="{x0+4*S-8}" y="{y0+2*S+36}" text-anchor="end" fill="#666" '
