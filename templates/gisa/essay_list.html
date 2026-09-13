@@ -208,7 +208,7 @@
     .tq.open .tq-head { background: #eef5f0; }
     .tq-head .tq-badge { flex-shrink: 0; display: inline-block; font-size: 0.72rem; font-weight: 700;
         padding: 2px 8px; border-radius: 8px; border: 1px solid; line-height: 1.5; margin-top: 2px;
-        min-width: 2.6em; text-align: center; }
+        min-width: 2.6em; text-align: center; white-space: nowrap; }
     .tq-text { flex: 1; font-size: 0.9rem; line-height: 1.55; color: #1a1a1a; font-weight: 500; }
     .tq-text .q-box, .tq-text table { font-weight: 400; }
     .tq-meta { font-size: 0.72rem; color: #6f7f75; font-weight: 400; margin-left: 6px; white-space: nowrap; }
@@ -951,14 +951,20 @@ async function tbLoadQuestions(item) {
     box.innerHTML = '<div class="nt-sib-load">기출 문항 ' + box.dataset.count + '개 불러오는 중…</div>';
     try {
         var r = await fetch('/gisa/{{ cert.pk }}/essay/siblings/' + box.dataset.pk + '/?all=1');
+        // 상태를 먼저 본다 — 404·500 이면 응답이 HTML 이라 json() 이
+        // "Unexpected token '<'" 를 내어 화면에 그 말이 그대로 찍힌다
+        if (!r.ok) throw new Error('기출 문항을 불러오지 못했습니다 (' + r.status + ')');
         var d = await r.json();
         if (!d.ok) throw new Error('불러오지 못했습니다');
         var newest = Math.max.apply(null, d.items.map(function (s) { return +s.label.slice(0, 4); }));
         var html = '';
         d.items.forEach(function (s, i) {
             var yr = +s.label.slice(0, 4), tone = tbTone(yr, newest);
-            // 번호 자리에 연도-회차 배지. 문항의 정체는 순번이 아니라 회차다
-            var badge = '<span class="fq-r tq-badge" style="background:' + tone[0] + ';color:' + tone[1] + ';border-color:' + tone[2] + '">' + s.label.slice(2) + '</span>';
+            // 번호 자리에 연도-회차 배지. 문항의 정체는 순번이 아니라 회차다.
+            // 기사와 산업기사를 묶어 보는 자격증은 급수도 함께 적는다 —
+            // "25-2" 만으로는 어느 급수 시험지인지 알 수 없다
+            var badge = '<span class="fq-r tq-badge" style="background:' + tone[0] + ';color:' + tone[1] + ';border-color:' + tone[2] + '">'
+                      + (s.grade ? s.grade + ' ' : '') + s.label.slice(2) + '</span>';
             var open = (box.dataset.autoopen === '1' && i === 0) ? ' open' : '';
             html += '<div class="tq' + open + '"><div class="tq-head" onclick="this.parentElement.classList.toggle(\'open\')">'
                   + badge

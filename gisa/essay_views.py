@@ -989,23 +989,40 @@ def essay_siblings(request, cert_id, question_id):
 
     같은 개념이 회차마다 어떤 형태로 바뀌어 나왔는지 나란히 보면, 표현이
     달라져도 묻는 것이 같다는 걸 알게 된다. 답까지 함께 보내 대조할 수 있게 한다.
+
+    **묶음 전체에서 찾는다**(`siblings`). 쪽집게 노트가 기사와 산업기사를 한
+    덩어리로 보여 주므로 대표 문항이 다른 급수일 수 있다 — `certification=cert`
+    로 좁혔더니 기사 페이지에서 산업기사 대표 문항을 눌러 404 가 났다.
     """
     cert = get_object_or_404(Certification, pk=cert_id)
-    q = get_object_or_404(GisaEssayQuestion, pk=question_id, certification=cert)
+    names = siblings(cert.name)
+    q = get_object_or_404(GisaEssayQuestion, pk=question_id,
+                          certification__name__in=names)
     if not q.topic_key:
         return JsonResponse({'ok': True, 'items': []})
 
     sibs = (GisaEssayQuestion.objects
-            .filter(certification=cert, topic_key=q.topic_key)
+            .filter(certification__name__in=names, topic_key=q.topic_key)
+            .select_related('certification')
             .order_by('-year', '-round', 'number'))
     # 학습 화면은 지금 보는 문항을 빼고 "다른 회차"만 보여주지만,
     # 정리 문서(?all=1)에서는 그 회차 자신까지 전부 나열한다
     if request.GET.get('all') != '1':
         sibs = sibs.exclude(pk=q.pk)
 
+    # 묶음이면 급수를 함께 보낸다 — "25-2" 만으로는 두 급수 가운데 어느
+    # 시험지에 나온 것인지 알 수 없다. **`label` 에 붙이지는 않는다** —
+    # 화면이 `label.slice(0, 4)` 로 연도를 떼어 쓰므로 앞에 글자가 붙으면
+    # 연도 파싱이 깨진다.
+    def _grade(s):
+        if len(names) < 2:
+            return ''
+        return '산기' if s.certification.category == '산업기사' else '기사'
+
     items = [{
         'pk': s.pk,
         'label': f'{s.year}-{s.round}',
+        'grade': _grade(s),
         'number': s.number,
         'orig_number': s.orig_number,
         'qtype': s.get_qtype_display(),
