@@ -419,6 +419,7 @@
     .qna-more { text-align: right; margin-top: 10px; }
     .qna-more a { font-size: 0.82rem; color: #2d6a4f; text-decoration: none; font-weight: 600; }
     .qna-more a:hover { text-decoration: underline; }
+{% if pest_on %}{% include "gisa/_pesticide_css.html" %}{% endif %}
 </style>
 {% endblock %}
 
@@ -455,6 +456,7 @@
     <!-- 탭 — 필기 상세와 같은 순서. 실기는 과목이 하나라 과목 선택은 없다. -->
     <div class="tab-nav" id="tabNav">
         <button class="tab-btn{% if active_tab == 'textbook' %} active{% endif %}" data-tab="textbook">쪽집게 노트</button>
+        {% if pest_on %}<button class="tab-btn{% if active_tab == 'pesticide' %} active{% endif %}" data-tab="pesticide">농약 DVD</button>{% endif %}
         <button class="tab-btn{% if active_tab == 'study' %} active{% endif %}" data-tab="study">기출학습</button>
         <button class="tab-btn{% if active_tab == 'solve' %} active{% endif %}" data-tab="solve">기출고사</button>
         <button class="tab-btn{% if active_tab == 'mock' %} active{% endif %}" data-tab="mock">모의고사</button>
@@ -477,6 +479,12 @@
     </div>
 
     <!-- ══════════ 기출학습 ══════════ -->
+    {% if pest_on %}
+    <div id="tab-pesticide" class="tab-content{% if active_tab == 'pesticide' %} active{% endif %}">
+{% include "gisa/_pesticide_tab.html" %}
+    </div>
+    {% endif %}
+
     <div id="tab-study" class="tab-content{% if active_tab == 'study' %} active{% endif %}">
         {% if freq_cards %}
         <div class="sec-title">빈출 주제
@@ -1178,5 +1186,7 @@ document.addEventListener('DOMContentLoaded', function () {
         el.addEventListener('click', function () { toggleQna(el.parentElement.querySelector('.qi-head')); });
     });
 });
+
+{% if pest_on %}{% include "gisa/_pesticide_js.html" %}{% endif %}
 </script>
 {% endblock %}

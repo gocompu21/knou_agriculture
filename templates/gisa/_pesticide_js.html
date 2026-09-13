@@ -1,0 +1,228 @@
+{% comment %}
+농약 DVD 암기카드 — 스크립트 조각. 쓰는 쪽 {% block extra_js %} 의 <script> 안에 넣는다.
+이름은 `_pc` 로 시작해 같은 페이지의 다른 조각과 겹치지 않게 한다.
+{% endcomment %}
+(function () {
+    var quiz = document.getElementById('pcQuiz');
+    if (!quiz) return;                       // 이 탭이 없는 자격증
+
+    var CSRF = (document.querySelector('[name=csrfmiddlewaretoken]') || {}).value || '';
+    var CHOICES = ['살충제', '살균제', '제초제'];
+    var _pc = { mode: 'all', seen: [], card: null, busy: false, started: false };
+
+    var elName = document.getElementById('pcName'),
+        elNo = document.getElementById('pcNo'),
+        elFreq = document.getElementById('pcFreq'),
+        elCh = document.getElementById('pcChoices'),
+        elAns = document.getElementById('pcAns'),
+        elVerdict = document.getElementById('pcVerdict'),
+        elWhy = document.getElementById('pcWhy'),
+        elNote = document.getElementById('pcNote'),
+        elActions = document.getElementById('pcActions'),
+        elStat = document.getElementById('pcStat');
+
+    function esc(s) {
+        var d = document.createElement('div');
+        d.textContent = s == null ? '' : String(s);
+        return d.innerHTML;
+    }
+
+    /* 농약명 안에서 단서가 되는 조각만 형광펜으로 칠한다. 어미일 때도
+       어두일 때도 있어 위치를 찾아 넣는다(자료가 앞뒤 어느 쪽이든 칠한다). */
+    function markHint(name, hint) {
+        if (!hint) return esc(name);
+        var i = name.indexOf(hint);
+        if (i < 0) return esc(name);
+        return esc(name.slice(0, i)) + '<b>' + esc(hint) + '</b>' +
+               esc(name.slice(i + hint.length));
+    }
+
+    function drawChoices(enabled) {
+        elCh.innerHTML = '';
+        CHOICES.forEach(function (c) {
+            var b = document.createElement('button');
+            b.type = 'button'; b.className = 'pc-ch'; b.textContent = c;
+            b.disabled = !enabled;
+            b.addEventListener('click', function () { pick(c, b); });
+            elCh.appendChild(b);
+        });
+    }
+
+    function showStat(s) {
+        if (!s) return;
+        elStat.innerHTML = '푼 것 <b>' + s.solved + '</b> / ' + s.total +
+                           ' · 오답 <b>' + s.wrong + '</b>';
+        var w = document.getElementById('pcWrongBtn');
+        if (w) {
+            w.textContent = '오답만' + (s.wrong ? ' (' + s.wrong + ')' : '');
+            w.disabled = s.wrong === 0 && _pc.mode !== 'wrong';
+        }
+    }
+
+    function next() {
+        if (_pc.busy) return;
+        _pc.busy = true;
+        elAns.hidden = true; elNote.hidden = true; elActions.hidden = true;
+        elName.textContent = '불러오는 중…'; elNo.textContent = '';
+        elFreq.hidden = true; elCh.innerHTML = '';
+        fetch('/gisa/pesticide/next/?mode=' + _pc.mode + '&seen=' + _pc.seen.join(','))
+            .then(function (r) {
+                if (!r.ok) throw new Error('문제를 불러오지 못했습니다 (' + r.status + ')');
+                return r.json();
+            })
+            .then(function (d) {
+                _pc.busy = false;
+                if (d.done) {
+                    quiz.querySelector('.pc-card').innerHTML =
+                        '<div class="pc-done">' +
+                        (d.total ? '이 범위 <b>' + d.total + '종</b>을 모두 풀었습니다.<br>' +
+                                   '범위를 바꾸거나 아래에서 기록을 지우고 다시 도세요.'
+                                 : '이 범위에 낼 문제가 없습니다.') + '</div>';
+                    elActions.hidden = false;
+                    document.getElementById('pcNext').textContent = '처음부터 다시';
+                    _pc.seen = [];
+                    return;
+                }
+                _pc.card = d;
+                elName.textContent = d.name;
+                elNo.textContent = d.no + '번';
+                if (d.exam_count) {
+                    elFreq.textContent = '기출 ' + d.exam_count + '회';
+                    elFreq.hidden = false;
+                }
+                drawChoices(true);
+            })
+            .catch(function (e) {
+                _pc.busy = false;
+                elName.textContent = e.message;
+            });
+    }
+
+    function pick(choice, btn) {
+        if (!_pc.card || _pc.busy) return;
+        _pc.busy = true;
+        var fd = new FormData();
+        fd.append('card', _pc.card.card);
+        fd.append('selected', choice);
+        fetch('/gisa/pesticide/answer/', {
+            method: 'POST', headers: { 'X-CSRFToken': CSRF }, body: fd
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                _pc.busy = false;
+                if (!d.ok) throw new Error(d.error || '채점 실패');
+                _pc.seen.push(_pc.card.card);
+
+                Array.prototype.forEach.call(elCh.children, function (b) {
+                    b.disabled = true;
+                    if (b.textContent === d.answer) b.classList.add('right');
+                    else if (b === btn) b.classList.add('wrong');
+                    else b.classList.add('dim');
+                });
+
+                elVerdict.textContent = d.correct ? '정답입니다' : '틀렸습니다 — ' + d.answer;
+                elVerdict.className = 'pc-verdict ' + (d.correct ? 'o' : 'x');
+                if (d.whole) {
+                    elWhy.innerHTML = '<div class="pc-whole">이름만으로는 가릴 수 없습니다. ' +
+                        '<b>' + esc(d.name) + '</b> 는 통째로 외우세요.</div>';
+                } else {
+                    elWhy.innerHTML = '<div class="pc-hint">' + markHint(d.name, d.hint) +
+                        ' — 칠한 <b>' + esc(d.hint) + '</b> 가 ' + esc(d.answer) +
+                        '를 가리킵니다.</div>';
+                }
+                if (d.note) { elNote.textContent = d.note; elNote.hidden = false; }
+                elAns.hidden = false;
+                elActions.hidden = false;
+                document.getElementById('pcNext').textContent = '다음 문제';
+                showStat(d.stats);
+            })
+            .catch(function (e) {
+                _pc.busy = false;
+                elVerdict.textContent = e.message;
+                elVerdict.className = 'pc-verdict x';
+                elAns.hidden = false;
+            });
+    }
+
+    document.getElementById('pcNext').addEventListener('click', function () {
+        quiz.querySelector('.pc-card').innerHTML =
+            '<div class="pc-no" id="pcNo"></div>' +
+            '<div class="pc-name" id="pcName"></div>' +
+            '<div><span class="pc-freq" id="pcFreq" hidden></span></div>' +
+            '<div class="pc-choices" id="pcChoices"></div>' +
+            '<div class="pc-ans" id="pcAns" hidden>' +
+            '<div class="pc-verdict" id="pcVerdict"></div><div id="pcWhy"></div>' +
+            '<div class="pc-note" id="pcNote" hidden></div></div>';
+        elName = document.getElementById('pcName'); elNo = document.getElementById('pcNo');
+        elFreq = document.getElementById('pcFreq'); elCh = document.getElementById('pcChoices');
+        elAns = document.getElementById('pcAns'); elVerdict = document.getElementById('pcVerdict');
+        elWhy = document.getElementById('pcWhy'); elNote = document.getElementById('pcNote');
+        next();
+    });
+
+    document.querySelectorAll('.pc-mode').forEach(function (b) {
+        b.addEventListener('click', function () {
+            document.querySelectorAll('.pc-mode').forEach(function (x) {
+                x.classList.toggle('on', x === b);
+            });
+            _pc.mode = b.dataset.mode;
+            _pc.seen = [];                 // 범위를 바꾸면 처음부터
+            document.getElementById('pcList').hidden = true;
+            quiz.hidden = false;
+            document.getElementById('pcNext').click();
+        });
+    });
+
+    /* 목록 */
+    document.getElementById('pcListBtn').addEventListener('click', function () {
+        var list = document.getElementById('pcList');
+        if (!list.dataset.loaded) {
+            fetch('/gisa/pesticide/list/').then(function (r) { return r.json(); })
+                .then(function (d) {
+                    var h = '';
+                    d.cards.forEach(function (c) {
+                        h += '<tr><td>' + c.no + '</td><td>' + esc(c.name) + '</td>' +
+                             '<td><span class="pc-cat ' + c.category + '">' + c.category + '</span></td>' +
+                             '<td>' + (c.whole ? '<span style="color:#8a6d1f">통암기</span>'
+                                               : markHint(c.name, c.hint)) + '</td>' +
+                             '<td>' + (c.exam_count || '') + '</td></tr>';
+                    });
+                    document.getElementById('pcRows').innerHTML = h;
+                    list.dataset.loaded = '1';
+                    showStat(d.stats);
+                });
+        }
+        list.hidden = false; quiz.hidden = true;
+    });
+    document.getElementById('pcListClose').addEventListener('click', function () {
+        document.getElementById('pcList').hidden = true;
+        quiz.hidden = false;
+    });
+    document.getElementById('pcReset').addEventListener('click', function () {
+        if (!confirm('농약 카드 풀이 기록을 모두 지울까요?')) return;
+        fetch('/gisa/pesticide/reset/', {
+            method: 'POST', headers: { 'X-CSRFToken': CSRF }
+        }).then(function (r) { return r.json(); })
+          .then(function (d) {
+              showStat(d.stats);
+              _pc.seen = [];
+              document.getElementById('pcList').hidden = true;
+              quiz.hidden = false;
+              document.getElementById('pcNext').click();
+          });
+    });
+
+    /* 탭에 들어오면 첫 문제를 바로 낸다 — 잡초 탭과 같은 흐름이다.
+       풀던 중이거나 목록을 보는 중이면 건드리지 않는다. */
+    function autoStart() {
+        if (_pc.started) return;
+        var box = document.getElementById('tab-pesticide');
+        if (!box || !box.classList.contains('active')) return;
+        _pc.started = true;
+        next();
+    }
+    autoStart();
+    document.querySelectorAll('.tab-btn').forEach(function (b) {
+        b.addEventListener('click', function () { setTimeout(autoStart, 0); });
+    });
+})();

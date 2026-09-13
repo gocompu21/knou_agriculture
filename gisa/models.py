@@ -560,3 +560,60 @@ class CertificationViewLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username} viewed {self.certification.name}[{self.tab}] @ {self.viewed_at:%Y-%m-%d %H:%M}"
+
+
+class PesticideCard(models.Model):
+    """농약명 → 살충제·살균제·제초제 암기 카드 (92종).
+
+    출처는 한울회 배포 `농약_DVD_기출.pptx`(2018~2023 기출 빈도). 농약명은
+    **어미·어두가 계열을 말해 준다** — '-포스'·'-티온'은 유기인계 살충제,
+    '-졸'·'-코나졸'은 살균제, '-클로르'·'-랄린'은 제초제 식이다. 그 단서가
+    `hint` 이고, 단서로 못 가르는 것(폴펫·캡탄·디캄바 …)은 `whole=True` 로
+    두어 화면이 '통암기'라고 알린다.
+
+    **예외가 시험에 나온다** — 비알라포스와 피페로포스는 '-포스'인데 제초제다.
+    그런 것은 `note` 에 적어 답을 고른 뒤 보여 준다.
+    """
+    CATEGORIES = [('살충제', '살충제'), ('살균제', '살균제'), ('제초제', '제초제')]
+
+    no = models.IntegerField('일련번호', unique=True)
+    name = models.CharField('농약명', max_length=60, unique=True)
+    category = models.CharField('구분', max_length=10, choices=CATEGORIES)
+    hint = models.CharField('분류 단서', max_length=40, blank=True)
+    whole = models.BooleanField('통암기', default=False,
+                                help_text='어미·어두로 못 가르는 것')
+    exam_count = models.IntegerField('출제수', default=0,
+                                     help_text='2018~2023 기출 빈도')
+    note = models.TextField('비고', blank=True)
+
+    class Meta:
+        verbose_name = '농약 암기카드'
+        verbose_name_plural = '농약 암기카드'
+        ordering = ['no']
+
+    def __str__(self):
+        return f'{self.no}. {self.name} ({self.category})'
+
+
+class PesticideQuizAttempt(models.Model):
+    """농약 카드 풀이 기록. **카드별 최신 기록이 틀리면 오답**이다.
+
+    잡초 동정(WeedQuizAttempt)과 같은 규칙이다 — 기록을 쌓아 두고 마지막
+    것만 보므로, 다시 풀어 맞히면 오답 목록에서 빠진다.
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                             related_name='pesticide_attempts', verbose_name='사용자')
+    card = models.ForeignKey(PesticideCard, on_delete=models.CASCADE,
+                             related_name='attempts', verbose_name='카드')
+    selected = models.CharField('고른 답', max_length=10, blank=True)
+    is_correct = models.BooleanField('정답 여부', default=False)
+    created_at = models.DateTimeField('시각', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '농약 카드 풀이'
+        verbose_name_plural = '농약 카드 풀이'
+        ordering = ['-created_at']
+        indexes = [models.Index(fields=['user', 'card', '-created_at'])]
+
+    def __str__(self):
+        return f'{self.user.username} {self.card.name} {"O" if self.is_correct else "X"}'

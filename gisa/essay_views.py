@@ -26,6 +26,7 @@ from django.views.decorators.http import require_POST
 
 from .essay_examinfo import exam_info, hm
 from .essay_topics import siblings, topic_groups
+from .pesticide import can_see as pest_can_see, stats as pest_stats
 from .essay_grading import grade_answer, grade_session
 from .templatetags.gisa_filters import qtext
 from main.models import QnaQuestion
@@ -150,7 +151,10 @@ def essay_list(request, cert_id):
     wrong = _wrong_attempts(request.user, cert)
 
     tab = request.GET.get('tab', 'textbook')
-    if tab not in ('textbook', 'study', 'solve', 'mock', 'wrong', 'history', 'qna'):
+    _tabs = ['textbook', 'study', 'solve', 'mock', 'wrong', 'history', 'qna']
+    if pest_can_see(cert):
+        _tabs.append('pesticide')
+    if tab not in _tabs:
         tab = 'textbook'
 
     # 쪽집게 노트 — 주제별 교재. 탭이 클라이언트 전환이라 항상 내려보낸다(10분 캐시)
@@ -169,6 +173,10 @@ def essay_list(request, cert_id):
         # 개요가 없는 자격증은 종전 문구 그대로.
         'info': _einfo,
         'active_tab': tab,
+        # 농약 DVD 암기카드 — 식물보호 두 급수에만 낸다(`pesticide.can_see`).
+        # 92종은 자격증에 매이지 않아 두 급수가 같은 카드를 함께 쓴다.
+        'pest_on': pest_can_see(cert),
+        'pest_stats': pest_stats(request.user) if pest_can_see(cert) else None,
         'tb': textbook,
         'wrong_items': wrong,
         'wrong_count': len(wrong),

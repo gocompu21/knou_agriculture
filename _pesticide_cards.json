@@ -1,0 +1,830 @@
+[
+ {
+  "no": 1,
+  "name": "카보퓨란",
+  "category": "살충제",
+  "hint": "카보",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 2,
+  "name": "이미다클로프리드",
+  "category": "살충제",
+  "hint": "프리드",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 3,
+  "name": "카벤다짐",
+  "category": "살균제",
+  "hint": "카",
+  "whole": false,
+  "exam_count": 5,
+  "note": ""
+ },
+ {
+  "no": 4,
+  "name": "프로클로라망가니즈",
+  "category": "살균제",
+  "hint": "프로",
+  "whole": false,
+  "exam_count": 1,
+  "note": ""
+ },
+ {
+  "no": 5,
+  "name": "카바릴",
+  "category": "살충제",
+  "hint": "카바",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 6,
+  "name": "에탈플루랄린",
+  "category": "제초제",
+  "hint": "랄린",
+  "whole": false,
+  "exam_count": 3,
+  "note": "원본 표기 \"에틸플루랄린\". 표준명은 에탈플루랄린(Ethalfluralin)이다."
+ },
+ {
+  "no": 7,
+  "name": "펜사이큐론",
+  "category": "살균제",
+  "hint": "펜사이큐론",
+  "whole": true,
+  "exam_count": 1,
+  "note": ""
+ },
+ {
+  "no": 8,
+  "name": "페니트로티온",
+  "category": "살충제",
+  "hint": "티온",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 9,
+  "name": "아조사이클로틴",
+  "category": "살충제",
+  "hint": "사이",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 10,
+  "name": "메탈락실",
+  "category": "살균제",
+  "hint": "실",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 11,
+  "name": "만코제브",
+  "category": "살균제",
+  "hint": "제브",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 12,
+  "name": "코퍼설페이트베이식",
+  "category": "살균제",
+  "hint": "코퍼",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 13,
+  "name": "페나미돈",
+  "category": "살균제",
+  "hint": "미돈",
+  "whole": false,
+  "exam_count": 1,
+  "note": ""
+ },
+ {
+  "no": 14,
+  "name": "옥사디아존",
+  "category": "제초제",
+  "hint": "존",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 15,
+  "name": "마이클로뷰타닐",
+  "category": "살균제",
+  "hint": "닐",
+  "whole": false,
+  "exam_count": 1,
+  "note": "원본 표기 \"마이크로뷰타닐\". 표준명은 마이클로뷰타닐(Myclobutanil)이다."
+ },
+ {
+  "no": 16,
+  "name": "비터타놀",
+  "category": "살균제",
+  "hint": "놀",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 17,
+  "name": "폴펫",
+  "category": "살균제",
+  "hint": "폴펫",
+  "whole": true,
+  "exam_count": 5,
+  "note": ""
+ },
+ {
+  "no": 18,
+  "name": "메틸브로마이드",
+  "category": "살충제",
+  "hint": "메틸",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 19,
+  "name": "스피로테트라멧",
+  "category": "살충제",
+  "hint": "스피로",
+  "whole": false,
+  "exam_count": 5,
+  "note": ""
+ },
+ {
+  "no": 20,
+  "name": "이사디",
+  "category": "제초제",
+  "hint": "이사디",
+  "whole": true,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 21,
+  "name": "플루실라졸",
+  "category": "살균제",
+  "hint": "졸",
+  "whole": false,
+  "exam_count": 1,
+  "note": ""
+ },
+ {
+  "no": 22,
+  "name": "베노밀",
+  "category": "살균제",
+  "hint": "밀",
+  "whole": false,
+  "exam_count": 1,
+  "note": ""
+ },
+ {
+  "no": 23,
+  "name": "디메토에이트",
+  "category": "살충제",
+  "hint": "이트",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 24,
+  "name": "다조멧",
+  "category": "살균제",
+  "hint": "다조멧",
+  "whole": true,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 25,
+  "name": "아이소프로티올레인",
+  "category": "살균제",
+  "hint": "아이소",
+  "whole": false,
+  "exam_count": 7,
+  "note": ""
+ },
+ {
+  "no": 26,
+  "name": "페노뷰카브",
+  "category": "살충제",
+  "hint": "카브",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 27,
+  "name": "에스-메톨라클로르",
+  "category": "제초제",
+  "hint": "클로르",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 28,
+  "name": "스트렙토마이신",
+  "category": "살균제",
+  "hint": "마이신",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 29,
+  "name": "메코프로프",
+  "category": "제초제",
+  "hint": "메코프로프",
+  "whole": true,
+  "exam_count": 8,
+  "note": ""
+ },
+ {
+  "no": 30,
+  "name": "아이소프로카브",
+  "category": "살충제",
+  "hint": "카브",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 31,
+  "name": "아세타미프리드",
+  "category": "살충제",
+  "hint": "프리드",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 32,
+  "name": "디메토모르프",
+  "category": "살균제",
+  "hint": "모르프",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 33,
+  "name": "하이멕사졸",
+  "category": "살균제",
+  "hint": "졸",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 34,
+  "name": "이프로디온",
+  "category": "살균제",
+  "hint": "이프로",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 35,
+  "name": "나프로파마이드",
+  "category": "제초제",
+  "hint": "마이드",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 36,
+  "name": "벤타존엠시피에이",
+  "category": "제초제",
+  "hint": "존",
+  "whole": false,
+  "exam_count": 5,
+  "note": ""
+ },
+ {
+  "no": 37,
+  "name": "헥사코나졸",
+  "category": "살균제",
+  "hint": "코나졸",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 38,
+  "name": "사이플루트린",
+  "category": "살충제",
+  "hint": "트린",
+  "whole": false,
+  "exam_count": 1,
+  "note": ""
+ },
+ {
+  "no": 39,
+  "name": "옥신코퍼",
+  "category": "살균제",
+  "hint": "코퍼",
+  "whole": false,
+  "exam_count": 2,
+  "note": ""
+ },
+ {
+  "no": 40,
+  "name": "메타벤즈티아주론",
+  "category": "제초제",
+  "hint": "주론",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 41,
+  "name": "메탈락실엠",
+  "category": "살균제",
+  "hint": "실",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 42,
+  "name": "다이아지논",
+  "category": "살충제",
+  "hint": "다이아지논",
+  "whole": true,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 43,
+  "name": "피라클로스트로빈",
+  "category": "살균제",
+  "hint": "스트로빈",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 44,
+  "name": "디캄바",
+  "category": "제초제",
+  "hint": "디캄바",
+  "whole": true,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 45,
+  "name": "프로사이미돈",
+  "category": "살균제",
+  "hint": "미돈",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 46,
+  "name": "가스가마이신",
+  "category": "살균제",
+  "hint": "마이신",
+  "whole": false,
+  "exam_count": 7,
+  "note": "23년 3회 산업기사 기출."
+ },
+ {
+  "no": 47,
+  "name": "카보설판",
+  "category": "살충제",
+  "hint": "카보",
+  "whole": false,
+  "exam_count": 6,
+  "note": ""
+ },
+ {
+  "no": 48,
+  "name": "메티람",
+  "category": "살균제",
+  "hint": "람",
+  "whole": false,
+  "exam_count": 2,
+  "note": ""
+ },
+ {
+  "no": 49,
+  "name": "테부코나졸",
+  "category": "살균제",
+  "hint": "코나졸",
+  "whole": false,
+  "exam_count": 3,
+  "note": "토마토 잎곰팡이병에 쓴다."
+ },
+ {
+  "no": 50,
+  "name": "에토프로포스",
+  "category": "살충제",
+  "hint": "포스",
+  "whole": false,
+  "exam_count": 6,
+  "note": ""
+ },
+ {
+  "no": 51,
+  "name": "티오파네이트메틸",
+  "category": "살균제",
+  "hint": "메틸",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 52,
+  "name": "터부포스",
+  "category": "살충제",
+  "hint": "포스",
+  "whole": false,
+  "exam_count": 1,
+  "note": ""
+ },
+ {
+  "no": 53,
+  "name": "플루퀸코나졸",
+  "category": "살균제",
+  "hint": "코나졸",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 54,
+  "name": "알루미늄포스파이드",
+  "category": "살충제",
+  "hint": "알루미늄",
+  "whole": false,
+  "exam_count": 5,
+  "note": ""
+ },
+ {
+  "no": 55,
+  "name": "아세페이트",
+  "category": "살충제",
+  "hint": "이트",
+  "whole": false,
+  "exam_count": 1,
+  "note": ""
+ },
+ {
+  "no": 56,
+  "name": "캡탄",
+  "category": "살균제",
+  "hint": "캡탄",
+  "whole": true,
+  "exam_count": 1,
+  "note": ""
+ },
+ {
+  "no": 57,
+  "name": "티람",
+  "category": "살균제",
+  "hint": "람",
+  "whole": false,
+  "exam_count": 2,
+  "note": ""
+ },
+ {
+  "no": 58,
+  "name": "플루아지남",
+  "category": "살균제",
+  "hint": "플루아지남",
+  "whole": true,
+  "exam_count": 5,
+  "note": ""
+ },
+ {
+  "no": 59,
+  "name": "뷰프로페진",
+  "category": "살충제",
+  "hint": "뷰프로페진",
+  "whole": true,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 60,
+  "name": "트리사이클라졸",
+  "category": "살균제",
+  "hint": "졸",
+  "whole": false,
+  "exam_count": 1,
+  "note": ""
+ },
+ {
+  "no": 61,
+  "name": "발리다마이신에이",
+  "category": "살균제",
+  "hint": "마이신",
+  "whole": false,
+  "exam_count": 2,
+  "note": ""
+ },
+ {
+  "no": 62,
+  "name": "옥솔린산",
+  "category": "살균제",
+  "hint": "옥",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 63,
+  "name": "포레이트",
+  "category": "살충제",
+  "hint": "이트",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 64,
+  "name": "아족시스트로빈",
+  "category": "살균제",
+  "hint": "스트로빈",
+  "whole": false,
+  "exam_count": 6,
+  "note": ""
+ },
+ {
+  "no": 65,
+  "name": "트리플록시스트로빈",
+  "category": "살균제",
+  "hint": "스트로빈",
+  "whole": false,
+  "exam_count": 5,
+  "note": ""
+ },
+ {
+  "no": 66,
+  "name": "비알라포스",
+  "category": "제초제",
+  "hint": "비알라포스",
+  "whole": true,
+  "exam_count": 3,
+  "note": "\"~포스\"는 살충제지만 비알라포스와 피페로포스는 예외로 제초제다."
+ },
+ {
+  "no": 67,
+  "name": "글루포시네이트암모늄",
+  "category": "제초제",
+  "hint": "글",
+  "whole": false,
+  "exam_count": 2,
+  "note": ""
+ },
+ {
+  "no": 68,
+  "name": "펜디메탈린",
+  "category": "제초제",
+  "hint": "탈린",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 69,
+  "name": "사이헥사틴",
+  "category": "살충제",
+  "hint": "사이",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 70,
+  "name": "벤타존",
+  "category": "제초제",
+  "hint": "존",
+  "whole": false,
+  "exam_count": 5,
+  "note": ""
+ },
+ {
+  "no": 71,
+  "name": "메탈알데히드",
+  "category": "살충제",
+  "hint": "메탈",
+  "whole": false,
+  "exam_count": 1,
+  "note": ""
+ },
+ {
+  "no": 72,
+  "name": "크레속심메틸",
+  "category": "살균제",
+  "hint": "메틸",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 73,
+  "name": "설폭사플로르",
+  "category": "살충제",
+  "hint": "설폭사플로르",
+  "whole": true,
+  "exam_count": 1,
+  "note": ""
+ },
+ {
+  "no": 74,
+  "name": "프로클로라즈",
+  "category": "살균제",
+  "hint": "프로",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 75,
+  "name": "프레틸라클로르",
+  "category": "제초제",
+  "hint": "클로르",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 76,
+  "name": "디티아논",
+  "category": "살균제",
+  "hint": "디티아논",
+  "whole": true,
+  "exam_count": 3,
+  "note": "다이아지논(유기인계 살충제)과 헷갈리지 말 것 — \"논\"의 \"티\". 벼 흰잎마름병·사과 탄저병·감귤 더뎅이병·배 검은무늬병에 쓴다."
+ },
+ {
+  "no": 77,
+  "name": "코퍼하이드록사이드",
+  "category": "살균제",
+  "hint": "코퍼",
+  "whole": false,
+  "exam_count": 1,
+  "note": ""
+ },
+ {
+  "no": 78,
+  "name": "클로르피리포스",
+  "category": "살충제",
+  "hint": "포스",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 79,
+  "name": "프로피네브",
+  "category": "살균제",
+  "hint": "네브",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 80,
+  "name": "사이퍼메트린- 23년 회 산업기사 회 기사",
+  "category": "살충제",
+  "hint": "트린",
+  "whole": false,
+  "exam_count": 4,
+  "note": "23년 2회 산업기사, 3회 기사 기출."
+ },
+ {
+  "no": 81,
+  "name": "에토펜프록스",
+  "category": "살충제",
+  "hint": "에토",
+  "whole": false,
+  "exam_count": 1,
+  "note": ""
+ },
+ {
+  "no": 82,
+  "name": "뷰타클로르",
+  "category": "제초제",
+  "hint": "클로르",
+  "whole": false,
+  "exam_count": 2,
+  "note": ""
+ },
+ {
+  "no": 83,
+  "name": "사이플루트린미드포스",
+  "category": "살충제",
+  "hint": "포스",
+  "whole": false,
+  "exam_count": 1,
+  "note": "원본 표기 그대로다. 표준 농약명에서 확인되지 않아 두 성분이 붙어 적혔을 수 있다."
+ },
+ {
+  "no": 84,
+  "name": "카두사포스",
+  "category": "살충제",
+  "hint": "포스",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 85,
+  "name": "펜토에이트",
+  "category": "살충제",
+  "hint": "이트",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 86,
+  "name": "메톨라클로르",
+  "category": "제초제",
+  "hint": "클로르",
+  "whole": false,
+  "exam_count": 5,
+  "note": ""
+ },
+ {
+  "no": 87,
+  "name": "클로로탈로닐",
+  "category": "살균제",
+  "hint": "닐",
+  "whole": false,
+  "exam_count": 3,
+  "note": ""
+ },
+ {
+  "no": 88,
+  "name": "디노테퓨란",
+  "category": "살충제",
+  "hint": "디노테퓨란",
+  "whole": true,
+  "exam_count": 5,
+  "note": ""
+ },
+ {
+  "no": 89,
+  "name": "폴리옥신비",
+  "category": "살균제",
+  "hint": "옥신",
+  "whole": false,
+  "exam_count": 2,
+  "note": ""
+ },
+ {
+  "no": 90,
+  "name": "디클로베닐",
+  "category": "제초제",
+  "hint": "베닐",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 91,
+  "name": "클로마존",
+  "category": "제초제",
+  "hint": "존",
+  "whole": false,
+  "exam_count": 4,
+  "note": ""
+ },
+ {
+  "no": 92,
+  "name": "피페로포스",
+  "category": "제초제",
+  "hint": "피페로포스",
+  "whole": true,
+  "exam_count": 1,
+  "note": "\"~포스\"는 살충제지만 비알라포스와 피페로포스만 예외로 제초제다."
+ }
+]

@@ -1,0 +1,57 @@
+{% comment %}
+농약 DVD 암기카드 — 탭 내용 조각. 농약명을 보고 살충제·살균제·제초제를 고른다.
+카드 92종은 자격증에 매이지 않으므로 식물보호 두 급수가 같은 것을 함께 쓴다.
+{% endcomment %}
+<div class="pc-wrap">
+    <div class="pc-head">
+        <h3>농약 DVD</h3>
+        <span class="sub">농약명으로 <b>살충제·살균제·제초제</b>를 가려냅니다 ·
+            92종 · 2018~2023 기출 빈도</span>
+    </div>
+
+    <div class="pc-modes">
+        <button type="button" class="pc-mode on" data-mode="all">전체 92</button>
+        <button type="button" class="pc-mode" data-mode="freq">자주 나온 것</button>
+        <button type="button" class="pc-mode" data-mode="wrong" id="pcWrongBtn">오답만
+            {% if pest_stats.wrong %}<span>({{ pest_stats.wrong }})</span>{% endif %}</button>
+        <button type="button" class="pc-sub" id="pcListBtn"
+                style="margin-left:auto;padding:5px 14px;font-size:0.82rem">목록 보기</button>
+    </div>
+
+    <div id="pcQuiz">
+        <div class="pc-card">
+            <div class="pc-no" id="pcNo"></div>
+            <div class="pc-name" id="pcName">불러오는 중…</div>
+            <div id="pcFreqWrap"><span class="pc-freq" id="pcFreq" hidden></span></div>
+
+            <div class="pc-choices" id="pcChoices"></div>
+
+            <div class="pc-ans" id="pcAns" hidden>
+                <div class="pc-verdict" id="pcVerdict"></div>
+                <div id="pcWhy"></div>
+                <div class="pc-note" id="pcNote" hidden></div>
+            </div>
+        </div>
+
+        <div class="pc-actions" id="pcActions" hidden>
+            <button type="button" class="pc-next" id="pcNext">다음 문제</button>
+        </div>
+
+        <div class="pc-stat" id="pcStat"></div>
+    </div>
+
+    <div class="pc-list" id="pcList" hidden>
+        <div class="pc-scroll">
+            <table class="pc-table">
+                <thead><tr><th style="width:44px">번호</th><th>농약명</th>
+                    <th style="width:70px">구분</th><th>분류 단서</th>
+                    <th style="width:52px">출제</th></tr></thead>
+                <tbody id="pcRows"></tbody>
+            </table>
+        </div>
+        <div class="pc-actions" style="margin-top:12px">
+            <button type="button" class="pc-sub" id="pcListClose">문제로 돌아가기</button>
+            <button type="button" class="pc-sub" id="pcReset">내 기록 지우기</button>
+        </div>
+    </div>
+</div>

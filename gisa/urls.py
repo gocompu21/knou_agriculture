@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import essay_views, views
+from . import essay_views, pesticide, views
 
 app_name = "gisa"
 
@@ -81,4 +81,11 @@ urlpatterns = [
     path("<int:cert_id>/essay/wrong/dismiss/<int:question_id>/", essay_views.essay_wrong_dismiss, name="essay_wrong_dismiss"),
     path("<int:cert_id>/essay/<int:session_id>/delete/", essay_views.essay_session_delete, name="essay_session_delete"),
     path("<int:cert_id>/essay/delete-all/", essay_views.essay_session_delete_all, name="essay_session_delete_all"),
+
+    # 농약 DVD 암기카드 — 카드가 자격증에 매이지 않아 cert_id 를 받지 않는다.
+    # 식물보호 두 급수가 같은 92종을 함께 쓴다.
+    path("pesticide/next/", pesticide.api_next, name="pesticide_next"),
+    path("pesticide/answer/", pesticide.api_answer, name="pesticide_answer"),
+    path("pesticide/reset/", pesticide.api_reset, name="pesticide_reset"),
+    path("pesticide/list/", pesticide.api_list, name="pesticide_list"),
 ]
