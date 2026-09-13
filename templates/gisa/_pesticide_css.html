@@ -18,15 +18,32 @@
     .pc-modes:has(.on) .pc-mode:not(.on) { opacity: .55; }
     .pc-mode:disabled { opacity: .35; cursor: default; }
 
-    /* 문제 — 농약명 하나가 주인공이라 크게 둔다 */
-    .pc-card { background: #fff; border: 1px solid #dbe7e0; border-radius: 14px;
-        padding: 26px 20px; text-align: center; }
-    .pc-name { font-size: 1.75rem; font-weight: 800; color: #14312a;
-        letter-spacing: -.02em; line-height: 1.3; word-break: keep-all; }
-    .pc-no { font-size: 0.76rem; color: #9fb0a6; margin-bottom: 6px; }
-    .pc-freq { display: inline-block; margin-top: 8px; font-size: 0.76rem;
+    /* 문제 — 농약 용기에 상표가 붙은 모습. 이름이 상표 자리에 들어간다 */
+    .pc-card { position: relative; background: #fff; border: 1px solid #dbe7e0;
+        border-radius: 14px; padding: 22px 20px 24px; text-align: center; }
+    /* 출제 횟수는 카드 오른쪽 위 모서리 — 문제(상표)를 가리지 않는 자리다 */
+    .pc-freq { position: absolute; top: 12px; right: 12px; font-size: 0.75rem;
         font-weight: 700; color: #8a6d1f; background: #fdf6e0; border-radius: 10px;
-        padding: 2px 9px; }
+        padding: 3px 10px; }
+    .pc-freq[hidden] { display: none; }
+
+    .pc-bottle { position: relative; width: 190px; margin: 0 auto; }
+    .pc-bottle svg { display: block; width: 100%; height: auto;
+        filter: drop-shadow(0 3px 6px rgba(20,49,42,.12)); }
+    /* 상표 자리 — SVG 의 흰 사각(46,104 ~ 154,216)에 맞춰 비율로 얹는다.
+       픽셀로 두면 폭이 줄어드는 화면에서 어긋난다. */
+    .pc-label { position: absolute; left: 23%; top: 38.2%; width: 54%; height: 41.2%;
+        display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+    .pc-name { font-size: 1.15rem; font-weight: 800; color: #14312a;
+        letter-spacing: -.03em; line-height: 1.25; word-break: keep-all; }
+    /* 이름이 길면 상표를 넘치므로 글자를 줄인다(JS 가 길이를 보고 붙인다).
+       긴 것은 **줄바꿈도 풀어 준다** — 농약명은 한 낱말이라 keep-all 로 두면
+       끊을 곳이 없어 가로로 삐져나간다(글루포시네이트암모늄 …). 고유명사라
+       아무 데서 끊겨도 읽히고, 실제 농약 상표도 그렇게 앉힌다. */
+    .pc-name.len6 { font-size: 1.02rem; }
+    .pc-name.len8 { font-size: 0.9rem; overflow-wrap: anywhere; word-break: normal; }
+    .pc-name.len10 { font-size: 0.8rem; letter-spacing: -.04em;
+        overflow-wrap: anywhere; word-break: normal; }
 
     /* 보기 셋 — 자리가 늘 같아야 눈이 기억한다 */
     .pc-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;

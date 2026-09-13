@@ -20,9 +20,35 @@
 
     <div id="pcQuiz">
         <div class="pc-card">
-            <div class="pc-no" id="pcNo"></div>
-            <div class="pc-name" id="pcName">불러오는 중…</div>
-            <div id="pcFreqWrap"><span class="pc-freq" id="pcFreq" hidden></span></div>
+            <span class="pc-freq" id="pcFreq" hidden></span>
+
+            {% comment %}
+            농약 용기에 상표가 붙은 모습. 병은 **계열과 무관한 중립 색**이다 —
+            살충제는 초록, 제초제는 노랑 하고 칠하면 상표를 읽기도 전에 답이 샌다.
+            {% endcomment %}
+            <div class="pc-bottle">
+                <svg viewBox="0 0 200 272" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="pcBody" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0" stop-color="#e8eeea"/>
+                            <stop offset=".42" stop-color="#fbfdfc"/>
+                            <stop offset="1" stop-color="#dae3dd"/>
+                        </linearGradient>
+                    </defs>
+                    <rect x="72" y="6" width="56" height="26" rx="5" fill="#b9c7bf"/>
+                    <rect x="72" y="6" width="56" height="9" rx="4" fill="#cbd7d0"/>
+                    <rect x="84" y="31" width="32" height="16" fill="#cfdad3"/>
+                    <path d="M84 47c-13 5-46 11-46 42v152c0 14 9 25 22 25h80c13 0 22-11 22-25V89c0-31-33-37-46-42z"
+                          fill="url(#pcBody)" stroke="#c2cfc7" stroke-width="2"/>
+                    <rect x="46" y="104" width="108" height="112" rx="3"
+                          fill="#fff" stroke="#d3ded7" stroke-width="1.5"/>
+                    <rect x="46" y="104" width="108" height="7" fill="#eef3f0"/>
+                    <rect x="46" y="209" width="108" height="7" fill="#eef3f0"/>
+                </svg>
+                <div class="pc-label">
+                    <div class="pc-name" id="pcName">불러오는 중…</div>
+                </div>
+            </div>
 
             <div class="pc-choices" id="pcChoices"></div>
 

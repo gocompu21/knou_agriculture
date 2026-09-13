@@ -11,7 +11,6 @@
     var _pc = { mode: 'all', seen: [], card: null, busy: false, started: false };
 
     var elName = document.getElementById('pcName'),
-        elNo = document.getElementById('pcNo'),
         elFreq = document.getElementById('pcFreq'),
         elCh = document.getElementById('pcChoices'),
         elAns = document.getElementById('pcAns'),
@@ -35,6 +34,14 @@
         if (i < 0) return esc(name);
         return esc(name.slice(0, i)) + '<b>' + esc(hint) + '</b>' +
                esc(name.slice(i + hint.length));
+    }
+
+    /* 상표 자리는 좁다 — 이름이 길면 글자를 줄인다 */
+    function setName(name) {
+        var n = name.length;
+        elName.className = 'pc-name' + (n >= 10 ? ' len10' : n >= 8 ? ' len8'
+                                        : n >= 6 ? ' len6' : '');
+        elName.textContent = name;
     }
 
     function drawChoices(enabled) {
@@ -63,8 +70,7 @@
         if (_pc.busy) return;
         _pc.busy = true;
         elAns.hidden = true; elNote.hidden = true; elActions.hidden = true;
-        elName.textContent = '불러오는 중…'; elNo.textContent = '';
-        elFreq.hidden = true; elCh.innerHTML = '';
+        setName('…'); elFreq.hidden = true; elCh.innerHTML = '';
         fetch('/gisa/pesticide/next/?mode=' + _pc.mode + '&seen=' + _pc.seen.join(','))
             .then(function (r) {
                 if (!r.ok) throw new Error('문제를 불러오지 못했습니다 (' + r.status + ')');
@@ -73,6 +79,7 @@
             .then(function (d) {
                 _pc.busy = false;
                 if (d.done) {
+                    elFreq.hidden = true;
                     quiz.querySelector('.pc-card').innerHTML =
                         '<div class="pc-done">' +
                         (d.total ? '이 범위 <b>' + d.total + '종</b>을 모두 풀었습니다.<br>' +
@@ -84,8 +91,7 @@
                     return;
                 }
                 _pc.card = d;
-                elName.textContent = d.name;
-                elNo.textContent = d.no + '번';
+                setName(d.name);
                 if (d.exam_count) {
                     elFreq.textContent = '기출 ' + d.exam_count + '회';
                     elFreq.hidden = false;
@@ -144,19 +150,21 @@
             });
     }
 
-    document.getElementById('pcNext').addEventListener('click', function () {
-        quiz.querySelector('.pc-card').innerHTML =
-            '<div class="pc-no" id="pcNo"></div>' +
-            '<div class="pc-name" id="pcName"></div>' +
-            '<div><span class="pc-freq" id="pcFreq" hidden></span></div>' +
-            '<div class="pc-choices" id="pcChoices"></div>' +
-            '<div class="pc-ans" id="pcAns" hidden>' +
-            '<div class="pc-verdict" id="pcVerdict"></div><div id="pcWhy"></div>' +
-            '<div class="pc-note" id="pcNote" hidden></div></div>';
-        elName = document.getElementById('pcName'); elNo = document.getElementById('pcNo');
+    /* 카드 속을 통째로 갈아 끼우는 자리가 둘(문제 다 풀었을 때, 다음 문제)이라
+       **처음 마크업을 복제해 둔다.** 병 SVG 를 자바스크립트에 다시 적으면
+       템플릿과 두 벌이 되어 한쪽만 고치는 일이 생긴다. */
+    var CARD_HTML = quiz.querySelector('.pc-card').innerHTML;
+
+    function rebuild() {
+        quiz.querySelector('.pc-card').innerHTML = CARD_HTML;
+        elName = document.getElementById('pcName');
         elFreq = document.getElementById('pcFreq'); elCh = document.getElementById('pcChoices');
         elAns = document.getElementById('pcAns'); elVerdict = document.getElementById('pcVerdict');
         elWhy = document.getElementById('pcWhy'); elNote = document.getElementById('pcNote');
+    }
+
+    document.getElementById('pcNext').addEventListener('click', function () {
+        rebuild();
         next();
     });
 
