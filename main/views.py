@@ -814,7 +814,7 @@ def api_parse_text(request, pk):
             contents = PARSE_PROMPT.replace("{text}", raw_text)
 
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model=settings.GEMINI_MODEL,
             contents=contents,
             config={
                 "response_mime_type": "application/json",
@@ -1595,7 +1595,7 @@ def api_weed_name_check(request, pk):
     try:
         client = genai.Client(api_key=api_key)
         resp = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model=settings.GEMINI_MODEL,
             contents=_WEED_INFO_PROMPT.format(name=name, official=block),
             config={"response_mime_type": "application/json",
                     "response_schema": WeedInfo},

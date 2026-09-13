@@ -1685,14 +1685,23 @@ python deploy_essay_text.py export / load    # 서버 배포
 
 > 답안은 한글이 주 언어이고 영문 약어(LID, HGM, GPP, IUCN)와 화학식이 섞인다.
 
-### 사용 모델 (config/settings.py)
+### 사용 모델 — **전부 `config/settings.py` 에 모여 있다**
+
+코드에 모델 이름을 박지 않는다. 그 모델이 종료되거나 갈아탈 때 찾아다니지
+않으려는 것이고, preview 를 박아 두면 종료되는 날 그 기능이 통째로 죽는다.
 
 ```python
-GEMINI_ESSAY_GRADE_MODEL = 'gemini-3.7-flash'        # 채점 (최신 stable)
+GEMINI_ESSAY_GRADE_MODEL = 'gemini-3.7-flash'        # 실기 채점
 GEMINI_ESSAY_OCR_MODEL   = 'gemini-3.1-pro-preview'  # 손글씨 판독 (정확도 우선)
-ESSAY_DAILY_GRADE_LIMIT  = 20   # 사용자당 하루 채점 횟수
+GEMINI_EXPLAIN_MODEL     = 'gemini-3.7-flash'        # 객관식 선지별 해설
+GEMINI_QNA_MODEL         = 'gemini-3.7-flash'        # 질의응답
+GEMINI_MODEL             = 'gemini-3.7-flash'        # 그 밖(기출 파싱·잡초 조회)
+ESSAY_DAILY_GRADE_LIMIT  = 20   # 사용자당 하루 채점 횟수(세션 수)
 ESSAY_DAILY_OCR_LIMIT    = 40   # 사용자당 하루 판독 장수
 ```
+
+모두 같은 이름의 환경변수로 덮어쓸 수 있고, 해설 생성 명령은 `--model` 도 받는다.
+**손글씨 판독만 preview 다** — 한글 손글씨 정확도 차이가 커서 감수한 선택이다.
 
 > **preview 모델은 쓰지 않는다** — 예고 없이 종료된다. 객관식 해설 생성도
 > 2026-09 에 `GEMINI_EXPLAIN_MODEL`(`gemini-3.7-flash`)로 옮겼다. 손글씨 판독만

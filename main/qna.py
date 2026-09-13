@@ -255,7 +255,7 @@ def ask_gemini(q):
         return False
 
     prompt, titles = build_prompt(q)
-    model = getattr(settings, "GEMINI_QNA_MODEL", "gemini-3.7-flash")
+    model = settings.GEMINI_QNA_MODEL
     try:
         from google import genai
         client = genai.Client(api_key=api_key)

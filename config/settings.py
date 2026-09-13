@@ -124,6 +124,13 @@ GEMINI_ESSAY_OCR_MODEL = os.getenv('GEMINI_ESSAY_OCR_MODEL', 'gemini-3.1-pro-pre
 # 넣을 때만 돈다. 각 명령의 --model 로 그때그때 바꿀 수 있다.
 GEMINI_EXPLAIN_MODEL = os.getenv('GEMINI_EXPLAIN_MODEL', 'gemini-3.7-flash')
 
+# 그 밖의 일반 호출 — 최신기출 텍스트 파싱(api_parse_text), 잡초 카드 종 정보
+# 조회(api_weed_name_check). 구조화 추출이라 flash 로 충분하다.
+GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-3.7-flash')
+
+# 질의응답(main/qna.py). 회원이 쓰는 기능이라 답변 품질이 곧 체감이다.
+GEMINI_QNA_MODEL = os.getenv('GEMINI_QNA_MODEL', 'gemini-3.7-flash')
+
 # 사용자당 하루 LLM 호출 한도 (채점·판독 각각)
 ESSAY_DAILY_GRADE_LIMIT = int(os.getenv('ESSAY_DAILY_GRADE_LIMIT', '20'))
 ESSAY_DAILY_OCR_LIMIT = int(os.getenv('ESSAY_DAILY_OCR_LIMIT', '40'))
