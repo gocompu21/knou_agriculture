@@ -532,7 +532,7 @@
                 <div class="ec">
                     <div class="ec-head">
                         <span class="ec-title">{{ r.round }}회</span>
-                        <span class="ec-meta">{{ r.count }}문항 · {{ r.points }}점</span>
+                        <span class="ec-meta">{{ r.count }}문항 · {{ r.points|floatformat:"-1" }}점</span>
                     </div>
                     {% if r.partial %}<span class="ec-partial">일부 복원</span>{% endif %}
                     <div class="ec-actions">
@@ -567,7 +567,7 @@
     <!-- ══════════ 기출고사 ══════════ -->
     <div id="tab-solve" class="tab-content{% if active_tab == 'solve' %} active{% endif %}">
         <div class="sec-title">기출문제
-            <small>풀기 = 실전 90분 화면 입력 · 시험지 = 인쇄해서 손으로 풀고 사진 제출</small>
+            <small>풀기 = 실전 {{ exam_minutes }}분 화면 입력 · 시험지 = 인쇄해서 손으로 풀고 사진 제출</small>
         </div>
         {% for y in round_years %}
         <div class="year-group">
@@ -580,7 +580,7 @@
                 <div class="ec">
                     <div class="ec-head">
                         <span class="ec-title">{{ r.round }}회</span>
-                        <span class="ec-meta">{{ r.count }}문항 · {{ r.points }}점</span>
+                        <span class="ec-meta">{{ r.count }}문항 · {{ r.points|floatformat:"-1" }}점</span>
                     </div>
                     {% if r.best is not None %}
                     <span class="ec-best">최고 {{ r.best }}점</span>
@@ -621,7 +621,7 @@
     <!-- ══════════ 모의고사 ══════════ -->
     <div id="tab-mock" class="tab-content{% if active_tab == 'mock' %} active{% endif %}">
         <div class="sec-title">모의고사
-            <small>연도·분류·문항 수를 골라 기출에서 주제가 겹치지 않게 무작위 출제 · 실전 90분</small>
+            <small>연도·분류·문항 수를 골라 기출에서 주제가 겹치지 않게 무작위 출제 · 실전 {{ exam_minutes }}분</small>
         </div>
         <div class="mock-box">
             <div class="mk-text">
@@ -704,7 +704,7 @@
             <div class="wq-head">
                 <span class="wq-lab">{{ a.question.year }}-{{ a.question.round }}</span>
                 <span class="wq-type">{{ a.question.get_qtype_display }}</span>
-                <span class="wq-score {% if a.score > 0 %}part{% else %}zero{% endif %}">{{ a.score }} <small>/ {{ a.question.points }}점</small></span>
+                <span class="wq-score {% if a.score > 0 %}part{% else %}zero{% endif %}">{{ a.score }} <small>/ {{ a.question.points|floatformat:"-1" }}점</small></span>
             </div>
             <div class="wq-text"><span class="wq-no">{{ a.question.number }}.</span> {{ a.question.text|qtext }}</div>
             <div class="wq-lbl">내 답안</div>

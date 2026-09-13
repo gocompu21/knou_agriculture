@@ -180,7 +180,7 @@
     <div class="sh-head">
         <div class="sh-title">
             <h1>{{ cert.name }} 실기 필답형</h1>
-            <div class="meta">{{ session.label }} · {{ questions|length }}문항 · 45점 · 90분</div>
+            <div class="meta">{{ session.label }} · {{ questions|length }}문항 · {{ sheet_points|floatformat:"-1" }}점 · {{ sheet_minutes }}분</div>
         </div>
         <div class="sh-code">
             시험지 코드<br>

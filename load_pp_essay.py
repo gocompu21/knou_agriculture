@@ -35,19 +35,38 @@ from gisa.models import Certification, GisaEssayQuestion  # noqa: E402
 
 CERT, CATEGORY, TOTAL = '식물보호산업기사', '산업기사', 100
 
+# **문항당 배점은 5점으로 고정한다.** 실제 시험이 20문항 100점이므로 한 문항이
+# 5점이다. 합계를 문항 수로 나누면(TOTAL/len) 복원이 덜 된 회차에서 배점이
+# 부풀어 오른다 — 24-3회는 19문항만 복원돼 있어 5.26점씩이 되어 버린다.
+PER_ITEM = 5
+
 # 회차 → 파일
 ROUNDS = {
     (2023, 1): '_pp_2023_1.json',
+    (2023, 2): '_pp_2023_2.json',
+    (2023, 4): '_pp_2023_4.json',
+    (2024, 1): '_pp_2024_1.json',
+    (2024, 2): '_pp_2024_2.json',
+    (2024, 3): '_pp_2024_3.json',
+    (2025, 1): '_pp_2025_1.json',
+    (2025, 2): '_pp_2025_2.json',
+    (2025, 3): '_pp_2025_3.json',
 }
 
 
 def check(rows):
     bad = []
+    # **번호는 실제 시험지의 것을 그대로 쓴다.** 복원본이 한 문항을 통째로
+    # 놓친 회차(24-2회 19번은 물음이 깨져 있다)에서 번호를 당겨 메우면,
+    # 다른 수험 자료와 대조할 때 번호가 어긋난다. 그래서 1~N 연속이 아니라
+    # '겹치지 않고 1~20 안에 있는가'만 본다.
     nums = [r['number'] for r in rows]
-    if nums != list(range(1, len(rows) + 1)):
-        bad.append(f'문항 번호가 1~{len(rows)} 이 아니다: {nums}')
-    if TOTAL % len(rows):
-        bad.append(f'{len(rows)}문항으로는 {TOTAL}점이 고르게 나뉘지 않는다')
+    if sorted(nums) != nums or len(set(nums)) != len(nums):
+        bad.append(f'문항 번호가 겹치거나 차례가 아니다: {nums}')
+    if nums and (nums[0] < 1 or nums[-1] > TOTAL // PER_ITEM):
+        bad.append(f'문항 번호가 1~{TOTAL // PER_ITEM} 범위를 벗어난다: {nums}')
+    if len(rows) * PER_ITEM > TOTAL:
+        bad.append(f'{len(rows)}문항 × {PER_ITEM}점이 {TOTAL}점을 넘는다')
     for r in rows:
         n = r['number']
         if not r['text'].strip():
@@ -70,7 +89,7 @@ def load_round(year, rnd, path, apply_):
             print('  ', x)
         return 1
 
-    pts = TOTAL / len(rows)          # 20문항이면 5점씩
+    pts = PER_ITEM
     cert = Certification.objects.get(name=CERT, category=CATEGORY)
     have = {q.number: q for q in GisaEssayQuestion.objects.filter(
         certification=cert, source='기출', year=year, round=rnd)}
@@ -100,8 +119,14 @@ def load_round(year, rnd, path, apply_):
                         setattr(q, k, v)
                     q.save()
 
+    total = len(rows) * pts
+    gap = [n for n in range(1, TOTAL // PER_ITEM + 1)
+           if n not in {r['number'] for r in rows}]
+    tail = '' if total == TOTAL else (
+        f'  ← {TOTAL - total}점 모자람(복원 미완'
+        + (f', 빠진 번호 {gap}' if gap else '') + ')')
     print(f'{CERT} {year}-{rnd}회  신규 {add}건 · 수정 {upd}건 '
-          f'(문항 {len(rows)}개 × {pts:g}점 = {TOTAL}점)')
+          f'(문항 {len(rows)}개 × {pts:g}점 = {total}점){tail}')
     return 0
 
 

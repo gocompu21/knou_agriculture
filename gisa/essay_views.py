@@ -161,6 +161,8 @@ def essay_list(request, cert_id):
         # 실기에 작업형이 있나. 없으면(식물보호산업기사) 시험이력의
         # '작업형 필요' 칸이 뜻을 잃어 통째로 뺀다.
         'has_work_stage': bool(_einfo.get('work_points')) if _einfo else True,
+        # 실전 타이머 분수 — 자격증마다 다르다(안내 문구가 이 값을 쓴다)
+        'exam_minutes': (_einfo or {}).get('essay_minutes', 90),
         # 배점·시간이 자격증마다 다르다(조경 40+60, 자연생태복원 45+55,
         # 식물보호산업기사는 필답 100점 단독). 머리말 문구를 여기서 받아 쓴다 —
         # 개요가 없는 자격증은 종전 문구 그대로.
@@ -397,8 +399,12 @@ def essay_take(request, cert_id):
     for q in questions:
         q.draft = drafts.get(q.pk, '')
 
-    # 실전(기출·모의)은 90분 타이머, 학습(예상·오답)은 무제한
-    time_limit = 90 * 60 if source in ('기출', '모의') else 0
+    # 실전(기출·모의)은 실제 시험시간만큼 타이머를 걸고, 학습(예상·오답)은 무제한.
+    # **시험시간은 자격증마다 다르다** — 자연생태복원·조경기사 90분, 조경산업기사
+    # 60분, 식물보호산업기사 120분. 90을 박아 두면 남의 시험시간으로 연습하게 된다.
+    _info = exam_info(cert.name)
+    exam_minutes = (_info or {}).get('essay_minutes', 90)
+    time_limit = exam_minutes * 60 if source in ('기출', '모의') else 0
 
     return render(request, 'gisa/essay_take.html', {
         'cert': cert,
@@ -406,6 +412,7 @@ def essay_take(request, cert_id):
         'questions': questions,
         'total_points': total_points,
         'time_limit': time_limit,
+        'exam_minutes': exam_minutes,
         'is_exam': source in ('기출', '모의'),
         # 여러 회차를 섞은 세트는 원래 문항 번호가 겹치므로 순번으로 보여 준다
         'seq_numbers': source in ('모의', '오답'),
@@ -868,8 +875,12 @@ def essay_sheet(request, cert_id, session_id):
     else:
         qs = qs.filter(section=session.section)
     questions = list(qs.order_by('number'))
+    # 시험지 머리말의 배점·시간도 자격증마다 다르다(45점 90분을 박아 두었었다).
+    _info = exam_info(cert.name)
     return render(request, 'gisa/essay_sheet.html', {
         'cert': cert, 'session': session, 'questions': questions,
+        'sheet_points': sum(q.points for q in questions),
+        'sheet_minutes': (_info or {}).get('essay_minutes', 90),
     })
 
 

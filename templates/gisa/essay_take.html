@@ -225,7 +225,7 @@
         {{ session.label }}
         <small>· {{ questions|length }}문항 · {{ total_points }}점</small>
     </div>
-    {% if time_limit %}<div class="et-timer" id="timer">90:00</div>{% endif %}
+    {% if time_limit %}<div class="et-timer" id="timer">{{ exam_minutes }}:00</div>{% endif %}
     <a class="et-cancel" id="btnCancel" href="{% url 'gisa:essay_list' cert.pk %}">취소</a>
 </div>
 
