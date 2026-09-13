@@ -43,6 +43,25 @@
                             <stop offset=".35" stop-color="#c3cac4"/>
                             <stop offset="1" stop-color="#8e9891"/>
                         </linearGradient>
+                        <!-- 병에 감긴 라벨의 곡면. 색을 칠하지 않고 **검정·흰색
+                             반투명만** 덮어, 색면이 어떤 계열 색으로 바뀌어도
+                             같은 입체감이 난다(색면에 그라데이션을 주면 CSS 로
+                             색을 바꿀 수 없다) -->
+                        <linearGradient id="pcShade" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0" stop-color="#000" stop-opacity=".26"/>
+                            <stop offset=".07" stop-color="#000" stop-opacity=".10"/>
+                            <stop offset=".28" stop-color="#fff" stop-opacity=".34"/>
+                            <stop offset=".46" stop-color="#fff" stop-opacity=".12"/>
+                            <stop offset=".70" stop-color="#000" stop-opacity=".04"/>
+                            <stop offset=".90" stop-color="#000" stop-opacity=".16"/>
+                            <stop offset="1" stop-color="#000" stop-opacity=".30"/>
+                        </linearGradient>
+                        <!-- 위쪽에 얹히는 빛 -->
+                        <linearGradient id="pcGloss" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#fff" stop-opacity=".40"/>
+                            <stop offset=".55" stop-color="#fff" stop-opacity=".08"/>
+                            <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+                        </linearGradient>
                         <clipPath id="pcCapClip">
                             <rect x="70" y="4" width="60" height="30" rx="6"/>
                         </clipPath>
@@ -99,6 +118,16 @@
                     <rect class="pc-lab-bg" x="41" y="92" width="118" height="144" rx="2"
                           fill="#fff" stroke="#b0b8b1" stroke-width="1"/>
                     <rect class="pc-lab-face" x="41" y="110" width="118" height="104" fill="#f1f4f1"/>
+                    <!-- 색면 위에 곡면 음영과 빛. 글자는 이 뒤에 그려 또렷하게 둔다 -->
+                    <rect x="41" y="110" width="118" height="104" fill="url(#pcShade)"/>
+                    <rect x="41" y="110" width="118" height="34" fill="url(#pcGloss)"/>
+                    <!-- 색면과 흰 띠가 만나는 자리에 얇은 그늘 -->
+                    <rect x="41" y="110" width="118" height="2" fill="#000" opacity=".10"/>
+                    <rect x="41" y="212" width="118" height="2" fill="#000" opacity=".08"/>
+                    <!-- 흰 띠에도 같은 곡면을 옅게 — 라벨이 통째로 병에 감긴 느낌이
+                         난다. **글자보다 먼저 그린다**(뒤에 두면 글자를 덮는다) -->
+                    <rect x="41" y="92" width="118" height="18" fill="url(#pcShade)" opacity=".45"/>
+                    <rect x="41" y="214" width="118" height="22" fill="url(#pcShade)" opacity=".45"/>
 
                     <!-- 위 띠 — 왼쪽 계열명(답 전에는 비어 있다), 오른쪽 「농약」 -->
                     <rect class="pc-lab-catbox" x="45" y="96" width="34" height="11" rx="1.5"
@@ -143,9 +172,13 @@
         </details>
         <div class="pc-scroll">
             <table class="pc-table">
-                <thead><tr><th style="width:44px">번호</th><th>농약명</th>
-                    <th style="width:70px">구분</th><th>분류 단서</th>
-                    <th style="width:52px">출제</th></tr></thead>
+                <thead><tr>
+                    <th style="width:40px" data-k="no">번호</th>
+                    <th data-k="name">농약명</th>
+                    <th style="width:66px" data-k="category">구분</th>
+                    <th data-k="hint">분류 단서</th>
+                    <th data-k="family">계열</th>
+                </tr></thead>
                 <tbody id="pcRows"></tbody>
             </table>
         </div>

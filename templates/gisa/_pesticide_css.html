@@ -5,31 +5,35 @@
 {% endcomment %}
     .pc-wrap { max-width: 720px; margin: 0 auto; }
     .pc-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
-        margin-bottom: 14px; }
-    .pc-head h3 { font-size: 1.05rem; font-weight: 800; color: #1b4332; margin: 0; }
-    .pc-head .sub { font-size: 0.83rem; color: #7b8a80; }
+        margin-bottom: 16px; padding-bottom: 12px;
+        border-bottom: 1px solid #e4ebe6; }
+    .pc-head h3 { font-size: 1.02rem; font-weight: 800; color: #14312a; margin: 0;
+        letter-spacing: -.01em; }
+    .pc-head .sub { font-size: 0.81rem; color: #8b978f; letter-spacing: -.01em; }
 
     /* 범위 버튼 — 지금 범위만 진하고 나머지는 옅다 */
     .pc-modes { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
-    .pc-mode { border: 1px solid #cfe0d5; background: #fff; color: #3c5c4a;
-        border-radius: 16px; padding: 5px 14px; font-size: 0.82rem; font-weight: 600;
-        cursor: pointer; }
-    .pc-mode.on { background: #1b4332; border-color: #1b4332; color: #fff; }
+    .pc-mode { border: 1px solid #dde6e0; background: #fff; color: #5b6b62;
+        border-radius: 17px; padding: 6px 15px; font-size: 0.81rem; font-weight: 600;
+        cursor: pointer; transition: border-color .15s, color .15s, background .15s; }
+    .pc-mode:hover:not(.on):not(:disabled) { border-color: #b9cdc1; color: #2f4a3c; }
+    .pc-mode.on { background: #14312a; border-color: #14312a; color: #fff;
+        box-shadow: 0 1px 6px rgba(20,49,42,.22); }
     .pc-modes:has(.on) .pc-mode:not(.on) { opacity: .55; }
     .pc-mode:disabled { opacity: .35; cursor: default; }
 
     /* 문제 — 농약 용기에 상표가 붙은 모습. 이름이 상표 자리에 들어간다.
        바탕은 약장 선반처럼 옅은 결을 준다 — 흰 바탕에 흰 병에 흰 상표면
        셋이 한 덩어리로 뭉개져 무엇이 문제인지 눈에 걸리지 않는다. */
-    .pc-card { position: relative; border: 1px solid #cfe0d6; border-radius: 14px;
-        padding: 22px 20px 26px; text-align: center;
+    .pc-card { position: relative; border: 1px solid #e6ece8; border-radius: 18px;
+        padding: 26px 22px 28px; text-align: center;
         background:
-            radial-gradient(120% 80% at 50% 0%, #ffffff 0%, #f4f9f6 55%, #e8f1ec 100%);
-        box-shadow: inset 0 1px 0 #fff, 0 2px 10px rgba(20,49,42,.06); }
+            radial-gradient(130% 90% at 50% -10%, #ffffff 0%, #f7fbf8 55%, #eef5f0 100%);
+        box-shadow: 0 1px 2px rgba(20,49,42,.04), 0 8px 24px -12px rgba(20,49,42,.18); }
     /* 출제 횟수는 카드 오른쪽 위 모서리 — 문제(상표)를 가리지 않는 자리다 */
-    .pc-freq { position: absolute; top: 12px; right: 12px; font-size: 0.75rem;
-        font-weight: 700; color: #8a6d1f; background: #fdf6e0; border-radius: 10px;
-        padding: 3px 10px; }
+    .pc-freq { position: absolute; top: 14px; right: 14px; font-size: 0.72rem;
+        font-weight: 700; color: #9a7b28; background: #fbf6e7; border: 1px solid #f0e6c8;
+        border-radius: 11px; padding: 3px 10px; letter-spacing: -.01em; }
     .pc-freq[hidden] { display: none; }
 
     .pc-bottle { position: relative; width: 190px; margin: 0 auto; }
@@ -82,22 +86,26 @@
         overflow-wrap: anywhere; word-break: normal; }
 
     /* 보기 셋 — 자리가 늘 같아야 눈이 기억한다 */
-    .pc-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
-        margin-top: 18px; }
-    .pc-ch { border: 2px solid #cfe0d5; background: #fff; border-radius: 10px;
-        padding: 13px 6px; font-size: 0.95rem; font-weight: 700; color: #2f4a3c;
-        cursor: pointer; transition: background .12s, border-color .12s; }
-    .pc-ch:hover:not(:disabled) { background: #f2f8f4; }
+    .pc-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px;
+        margin-top: 20px; }
+    .pc-ch { border: 1.5px solid #dbe5df; background: #fff; border-radius: 12px;
+        padding: 14px 6px; font-size: 0.94rem; font-weight: 700; color: #2f4a3c;
+        letter-spacing: -.02em; cursor: pointer;
+        transition: background .14s, border-color .14s, transform .1s;
+        box-shadow: 0 1px 2px rgba(20,49,42,.05); }
+    .pc-ch:hover:not(:disabled) { background: #f6faf8; border-color: #bcd2c5;
+        transform: translateY(-1px); }
     .pc-ch:disabled { cursor: default; }
     .pc-ch.right { background: #1b5e20; border-color: #1b5e20; color: #fff; }
     .pc-ch.wrong { background: #c62828; border-color: #c62828; color: #fff; }
     .pc-ch.dim { opacity: .45; }
 
     /* 답 풀이 */
-    .pc-ans { margin-top: 16px; text-align: left; border-top: 1px dashed #dfe8e3;
-        padding-top: 14px; }
+    .pc-ans { margin-top: 20px; text-align: left; border-top: 1px solid #e8eeea;
+        padding-top: 16px; }
     .pc-ans[hidden] { display: none; }
-    .pc-verdict { font-weight: 800; font-size: 0.98rem; margin-bottom: 8px; }
+    .pc-verdict { font-weight: 800; font-size: 0.96rem; margin-bottom: 9px;
+        letter-spacing: -.02em; }
     .pc-verdict.o { color: #1b5e20; }
     .pc-verdict.x { color: #c62828; }
     .pc-hint { font-size: 0.9rem; color: #333; line-height: 1.7; }
@@ -105,65 +113,99 @@
        그 색으로 외운 사람이 화면에서도 같은 색을 찾는다 */
     .pc-hint b, .pc-table b { color: #d32f2f; font-weight: 800; }
     /* 답 아래 보충 정보 — 잡초 카드의 배지 줄과 같은 꼴이다 */
-    .pc-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
-    .pc-meta span { font-size: 0.76rem; font-weight: 700; border-radius: 9px;
-        padding: 3px 9px; }
-    .pc-b1 { background: #eef2f7; color: #3b4a63; }
-    .pc-b2 { background: #eaf2ec; color: #2f6b46; }
-    .pc-b3 { background: #fdf6e0; color: #8a6d1f; }
-    .pc-row { margin-top: 7px; font-size: 0.86rem; color: #3b4740; line-height: 1.65; }
-    .pc-row b { display: inline-block; min-width: 5.6em; font-weight: 700;
-        color: #7b8a80; font-size: 0.92em; }
+    .pc-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+    .pc-meta span { font-size: 0.74rem; font-weight: 700; border-radius: 6px;
+        padding: 3px 9px; border: 1px solid; letter-spacing: -.01em; }
+    .pc-b1 { background: #f3f6fa; color: #44557087; color: #445570; border-color: #e0e7f0; }
+    .pc-b2 { background: #f2f8f4; color: #33705088; color: #337050; border-color: #dceae1; }
+    .pc-b3 { background: #fbf6e7; color: #9a7b28; border-color: #f0e6c8; }
+    /* 항목은 라벨을 왼쪽에 세워 줄을 맞춘다 — 눈이 값만 훑어 내려간다 */
+    .pc-row { display: flex; gap: 10px; margin-top: 9px; font-size: 0.85rem;
+        color: #35423b; line-height: 1.7; }
+    .pc-row b { flex: 0 0 4.6em; font-weight: 600; color: #93a099;
+        font-size: 0.92em; letter-spacing: -.01em; }
     .pc-whole { font-size: 0.88rem; color: #8a6d1f; background: #fdf6e0;
         border-radius: 8px; padding: 8px 11px; line-height: 1.6; }
-    .pc-note { margin-top: 9px; font-size: 0.86rem; color: #55635b; line-height: 1.65;
-        background: #f6faf7; border-left: 3px solid #2d6a4f; border-radius: 0 8px 8px 0;
-        padding: 8px 11px; }
+    .pc-note { margin-top: 12px; font-size: 0.84rem; color: #55635b; line-height: 1.7;
+        background: #f7faf8; border-left: 2px solid #a9c4b5; border-radius: 0 8px 8px 0;
+        padding: 9px 12px; }
 
     .pc-actions { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
     .pc-actions[hidden] { display: none; }   /* flex 는 [hidden] 을 이긴다 */
-    .pc-next { background: #1b4332; color: #fff; border: 0; border-radius: 18px;
-        padding: 10px 28px; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
-    .pc-sub { background: #eef2f0; color: #55635b; border: 0; border-radius: 18px;
-        padding: 10px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .pc-next { background: #14312a; color: #fff; border: 0; border-radius: 20px;
+        padding: 11px 30px; font-size: 0.88rem; font-weight: 700; cursor: pointer;
+        letter-spacing: -.01em; box-shadow: 0 2px 10px -2px rgba(20,49,42,.4);
+        transition: transform .1s, box-shadow .15s; }
+    .pc-next:hover { transform: translateY(-1px);
+        box-shadow: 0 4px 14px -3px rgba(20,49,42,.45); }
+    .pc-sub { background: #fff; color: #5b6b62; border: 1px solid #dde6e0;
+        border-radius: 20px; padding: 9px 18px; font-size: 0.84rem; font-weight: 600;
+        cursor: pointer; transition: border-color .15s, color .15s; }
+    .pc-sub:hover { border-color: #b9cdc1; color: #2f4a3c; }
 
-    .pc-stat { margin-top: 14px; text-align: center; font-size: 0.82rem; color: #8a988f; }
+    .pc-stat { margin-top: 16px; text-align: center; font-size: 0.8rem; color: #97a49c;
+        letter-spacing: -.01em; }
     .pc-stat b { color: #1b4332; }
     .pc-done { text-align: center; padding: 30px 16px; color: #55635b;
         font-size: 0.92rem; line-height: 1.8; }
 
     /* 단서 규칙표 — 카드 92종을 세어 만든다(pesticide.hint_rules) */
-    .pc-rules { margin-bottom: 12px; border: 1px solid #e4ece7; border-radius: 10px;
-        background: #fafcfb; }
-    .pc-rules summary { cursor: pointer; padding: 9px 13px; font-size: 0.86rem;
-        font-weight: 700; color: #1b4332; }
-    .pc-rulebox { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 13px 13px; }
+    .pc-rules { margin-bottom: 14px; border: 1px solid #e6ece8; border-radius: 14px;
+        background: #fff; box-shadow: 0 1px 2px rgba(20,49,42,.04); }
+    .pc-rules summary { cursor: pointer; padding: 11px 15px; font-size: 0.85rem;
+        font-weight: 700; color: #14312a; letter-spacing: -.01em; }
+    .pc-rules[open] summary { border-bottom: 1px solid #f0f4f1; }
+    .pc-rulebox { display: flex; flex-wrap: wrap; gap: 6px; padding: 13px 15px 15px; }
     .pc-rule { display: inline-flex; align-items: center; gap: 5px;
-        border-radius: 9px; padding: 4px 9px; font-size: 0.8rem; }
+        border-radius: 7px; padding: 4px 9px; font-size: 0.78rem;
+        border: 1px solid transparent; letter-spacing: -.01em; }
     .pc-rule b { font-weight: 800; }
     .pc-rule .n { font-size: 0.74rem; opacity: .7; }
-    .pc-rule.살충제 { background: #d8ecdc; color: #1b5e20; }
-    .pc-rule.살균제 { background: #f7dcef; color: #8e2f6d; }
-    .pc-rule.제초제 { background: #fbf0c0; color: #7a6110; }
+    .pc-rule.살충제 { background: #eef7f0; color: #256b32; border-color: #d8e9dc; }
+    .pc-rule.살균제 { background: #fbeef5; color: #8e2f6d; border-color: #f2dceb; }
+    .pc-rule.제초제 { background: #fbf6e3; color: #7a6110; border-color: #f0e7c6; }
     /* 계열이 갈리는 단서 — 쓸 수 없다는 사실이 더 중요하다 */
-    .pc-rule.mixed { background: #fdeaea; color: #b23b3b;
-        border: 1px dashed #e7a3a3; }
+    .pc-rule.mixed { background: #fdf1f1; color: #b23b3b;
+        border: 1px dashed #e7b5b5; }
 
     /* 목록 */
     .pc-list { margin-top: 18px; }
     .pc-list[hidden] { display: none; }
-    .pc-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
-    .pc-table th { background: #1b4332; color: #fff; padding: 7px 8px;
-        position: sticky; top: 0; font-weight: 700; }
-    .pc-table td { border-bottom: 1px solid #eef2f0; padding: 6px 8px; }
-    .pc-table tr:hover td { background: #fafcfb; }
-    .pc-cat { display: inline-block; border-radius: 8px; padding: 1px 8px;
-        font-size: 0.76rem; font-weight: 700; white-space: nowrap; }
-    .pc-cat.살충제 { background: #d8ecdc; color: #1b5e20; }
-    .pc-cat.살균제 { background: #f7dcef; color: #8e2f6d; }
-    .pc-cat.제초제 { background: #fbf0c0; color: #7a6110; }
-    .pc-scroll { max-height: 60vh; overflow-y: auto; border: 1px solid #e4ece7;
-        border-radius: 10px; }
+    .pc-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    /* 머리글을 눌러 정렬한다. 지금 정렬한 칸에 화살표가 붙는다 */
+    /* 머리글은 채우지 않고 아래 선으로 가른다. 진한 띠 하나로 막아 두면
+       표가 무거워 보인다 — 여백과 글자로 가르는 편이 정돈돼 보인다 */
+    .pc-table th { background: #f6f9f7; color: #3d554a; padding: 10px 10px;
+        position: sticky; top: 0; font-weight: 700; cursor: pointer;
+        user-select: none; white-space: nowrap; font-size: 0.78rem;
+        letter-spacing: .02em; text-align: left;
+        box-shadow: inset 0 -1.5px 0 #cfdcd4; }
+    .pc-table th:hover { color: #14312a; background: #eef4f0; }
+    .pc-table th.up::after { content: ' \25B2'; font-size: 0.7em; }
+    .pc-table th.down::after { content: ' \25BC'; font-size: 0.7em; }
+    /* 출제 횟수는 농약명 옆에 별로 — 숫자보다 눈에 먼저 들어온다 */
+    .pc-st { color: #d0a32a; font-size: 0.82em; letter-spacing: -.5px; }
+    .pc-wh { color: #8a6d1f; }
+    .pc-fam { color: #6b756e; font-size: 0.92em; }
+    /* 목록의 단서는 **그 계열 색**으로 칠한다 — 구분 칸과 짝이 맞아 눈에 붙는다 */
+    .pc-table b.h-살충제 { color: #1b7a3e; }
+    .pc-table b.h-살균제 { color: #c62828; }
+    .pc-table b.h-제초제 { color: #9a7500; }
+    .pc-table td { border-bottom: 1px solid #f1f5f2; padding: 9px 10px;
+        color: #33403a; }
+    .pc-table tbody tr:last-child td { border-bottom: 0; }
+    .pc-table tr:hover td { background: #f8fbf9; }
+    .pc-table td:first-child { color: #9fada5; font-variant-numeric: tabular-nums; }
+    .pc-table td:nth-child(2) { font-weight: 600; color: #1d2b24; }
+    .pc-cat { display: inline-block; border-radius: 5px; padding: 2px 7px;
+        font-size: 0.73rem; font-weight: 700; white-space: nowrap;
+        border: 1px solid; letter-spacing: -.01em; }
+    .pc-cat.살충제 { background: #eef7f0; color: #256b32; border-color: #d8e9dc; }
+    .pc-cat.살균제 { background: #fbeef5; color: #8e2f6d; border-color: #f2dceb; }
+    .pc-cat.제초제 { background: #fbf6e3; color: #7a6110; border-color: #f0e7c6; }
+    .pc-scroll { max-height: 62vh; overflow-y: auto; border: 1px solid #e6ece8;
+        border-radius: 14px; background: #fff;
+        box-shadow: 0 1px 2px rgba(20,49,42,.04); }
 
     @media (max-width: 480px) {
         .pc-card { padding: 20px 14px; }

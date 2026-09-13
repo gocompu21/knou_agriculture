@@ -28,12 +28,22 @@
 
     /* 농약명 안에서 단서가 되는 조각만 빨갛게 쓴다(원본 PPT 와 같은 색).
        어미일 때도 어두일 때도 있어 위치를 찾아 넣는다. */
-    function markHint(name, hint) {
+    function markHint(name, hint, cls) {
         if (!hint) return esc(name);
         var i = name.indexOf(hint);
         if (i < 0) return esc(name);
-        return esc(name.slice(0, i)) + '<b>' + esc(hint) + '</b>' +
+        return esc(name.slice(0, i)) +
+               '<b' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(hint) + '</b>' +
                esc(name.slice(i + hint.length));
+    }
+
+    /* 출제 횟수를 별로. 92종이 1~8회에 몰려 있어 잡초(50/20/5)와 기준이 다르다 —
+       6회↑ 6종 · 4~5회 37종 · 2~3회 32종 · 1회 17종으로 갈린다. */
+    function stars(n) {
+        if (n >= 6) return '★★★';
+        if (n >= 4) return '★★';
+        if (n >= 2) return '★';
+        return n >= 1 ? '☆' : '';
     }
 
     /* 받침이 있으면 '이', 없으면 '가'. 단서가 '포스'·'메틸'·'실' 처럼 제각각이라
@@ -168,9 +178,9 @@
                 meta += '<span class="pc-b2">' + esc(d.answer) + '</span>';
                 if (d.exam_count) meta += '<span class="pc-b3">기출 ' + d.exam_count + '회</span>';
                 var rows = '';
-                if (d.action) rows += '<div class="pc-row"><b>어떻게 듣나</b>' +
+                if (d.action) rows += '<div class="pc-row"><b>작용기작</b>' +
                     esc(d.action) + '</div>';
-                if (d.target) rows += '<div class="pc-row"><b>주요 대상</b>' +
+                if (d.target) rows += '<div class="pc-row"><b>주요대상</b>' +
                     esc(d.target) + '</div>';
                 elWhy.innerHTML += '<div class="pc-meta">' + meta + '</div>' + rows;
 
@@ -220,20 +230,51 @@
     });
 
     /* 목록 */
+    /* 목록은 머리글을 눌러 정렬한다. 같은 칸을 다시 누르면 차례가 뒤집힌다. */
+    var _pcRows = [], _pcSort = { key: 'no', asc: true };
+
+    function pcDraw() {
+        var k = _pcSort.key, sign = _pcSort.asc ? 1 : -1;
+        var rows = _pcRows.slice().sort(function (a, b) {
+            var x = a[k], y = b[k];
+            if (k === 'name' || k === 'category' || k === 'family' || k === 'hint') {
+                return sign * String(x || '').localeCompare(String(y || ''), 'ko');
+            }
+            return sign * ((x || 0) - (y || 0));
+        });
+        var h = '';
+        rows.forEach(function (c) {
+            h += '<tr><td>' + c.no + '</td>' +
+                 '<td>' + esc(c.name) +
+                 ' <span class="pc-st">' + stars(c.exam_count) + '</span></td>' +
+                 '<td><span class="pc-cat ' + c.category + '">' + c.category + '</span></td>' +
+                 '<td>' + (c.whole ? '<span class="pc-wh">통암기</span>'
+                                   : markHint(c.name, c.hint, 'h-' + c.category)) + '</td>' +
+                 '<td class="pc-fam">' + esc(c.family || '') + '</td></tr>';
+        });
+        document.getElementById('pcRows').innerHTML = h;
+        document.querySelectorAll('.pc-table th[data-k]').forEach(function (th) {
+            th.classList.toggle('up', th.dataset.k === k && _pcSort.asc);
+            th.classList.toggle('down', th.dataset.k === k && !_pcSort.asc);
+        });
+    }
+
+    document.querySelectorAll('.pc-table th[data-k]').forEach(function (th) {
+        th.addEventListener('click', function () {
+            var k = th.dataset.k;
+            // 같은 칸을 다시 누르면 뒤집고, 다른 칸이면 오름차순부터
+            _pcSort = { key: k, asc: _pcSort.key === k ? !_pcSort.asc : true };
+            pcDraw();
+        });
+    });
+
     document.getElementById('pcListBtn').addEventListener('click', function () {
         var list = document.getElementById('pcList');
         if (!list.dataset.loaded) {
             fetch('/gisa/pesticide/list/').then(function (r) { return r.json(); })
                 .then(function (d) {
-                    var h = '';
-                    d.cards.forEach(function (c) {
-                        h += '<tr><td>' + c.no + '</td><td>' + esc(c.name) + '</td>' +
-                             '<td><span class="pc-cat ' + c.category + '">' + c.category + '</span></td>' +
-                             '<td>' + (c.whole ? '<span style="color:#8a6d1f">통암기</span>'
-                                               : markHint(c.name, c.hint)) + '</td>' +
-                             '<td>' + (c.exam_count || '') + '</td></tr>';
-                    });
-                    document.getElementById('pcRows').innerHTML = h;
+                    _pcRows = d.cards;
+                    pcDraw();
 
                     /* 단서 규칙표 — 서버가 카드를 세어 만든 것을 그린다 */
                     var rb = '';
