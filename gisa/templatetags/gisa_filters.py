@@ -123,9 +123,32 @@ def _md_table(block):
     return "".join(out)
 
 
+_BULLET_ITEM = re.compile(r"•[^•\n]+")
+
+
+def _space_bullets(inner):
+    """한 줄에 '•' 항목이 둘 이상이면 항목마다 여백을 주어 띄운다.
+
+    원문은 '• 토량 : V  • 양단의 단면적 : A₁, A₂ …' 처럼 두 칸 공백으로 항목을
+    나눠 적는데, HTML 은 연속 공백을 하나로 눌러 버려 항목이 서로 붙어 읽힌다.
+    데이터에 줄바꿈을 박아 두 줄로 굳히면 넓은 화면에서는 공간이 남으므로,
+    항목마다 여백을 주고 **화면 폭에 따라 저절로 접히게** 둔다.
+    """
+    def one(ln):
+        if ln.count("•") < 2:
+            return ln
+        i = ln.find("•")
+        items = _BULLET_ITEM.findall(ln[i:])
+        return ln[:i] + "".join(
+            '<span style="display:inline-block;margin-right:1.6em">%s</span>'
+            % it.strip() for it in items)
+
+    return "\n".join(one(ln) for ln in inner.split("\n"))
+
+
 def _render_box(inner):
     """[box] 안쪽을 렌더링. 마크다운 표가 있으면 HTML 표로 바꾼다."""
-    inner = inner.strip()
+    inner = _space_bullets(inner.strip())
     tbl = _md_table(inner)
     if tbl is not None:
         # 표만 있는 박스는 테두리가 이중이 되므로 박스 테두리를 뺀다
