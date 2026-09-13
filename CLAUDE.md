@@ -539,6 +539,22 @@ knou_agriculture/
 - `Question.answer`는 CharField이며 `'1,2'` 형태의 문자열로 복수 정답을 표현함 (IntegerField 아님)
 - 학습모드 JS에서 정답 비교 시 `split(',')` + `indexOf`로 처리 (parseInt 사용 금지)
 
+### 개발 서버 — `--noreload` 면 템플릿 수정이 반영되지 않는다
+
+Django 는 DEBUG 와 무관하게 템플릿 로더를 `cached.Loader` 로 감싸고, **autoreload 훅이
+캐시를 비운다.** `runserver --noreload` 로 띄우면 그 훅이 없어 템플릿을 고쳐도 **첫 요청
+때 읽은 것이 계속 나온다**(파이썬 코드도 물론 그대로다). 고친 화면을 확인하려면 서버를
+다시 띄워야 한다 — CSS 를 고쳤는데 화면이 그대로여서 한참 헤맨 적이 있다.
+
+Windows 에서는 `pkill` 이 듣지 않는다. 이렇게 지운다:
+
+```bash
+powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \"Name like '%python%'\" | Where-Object { \$_.CommandLine -like '*runserver 8099*' } | ForEach-Object { Stop-Process -Id \$_.ProcessId -Force }"
+```
+
+죽이지 않고 새로 띄우면 **옛 프로세스가 포트를 물고 있어 옛 코드가 응답한다**(실제로
+같은 포트에 네 벌이 떠 있었다).
+
 ### Django 템플릿 주의사항
 - **Django 템플릿 태그(`{% %}`, `{{ }}`)는 절대 여러 줄에 걸쳐 분리하지 말 것.** Django의 템플릿 렉서는 `re.DOTALL` 없이 토큰을 파싱하므로, `{%`와 `%}` 또는 `{{`와 `}}`가 서로 다른 줄에 있으면 인식하지 못한다. 예: `{{ q.exam.round }}`를 두 줄로 나누면 변수가 렌더링되지 않고 그대로 출력됨, `{% endif %}`를 두 줄로 나누면 `TemplateSyntaxError` 발생.
 - HTML 포매터(Prettier 등)가 자동으로 줄바꿈할 수 있으므로 템플릿 태그가 포함된 라인은 주의 필요
@@ -1648,6 +1664,26 @@ ESSAY_DAILY_OCR_LIMIT    = 40   # 사용자당 하루 판독 장수
 | `/gisa/<id>/essay/<sid>/upload/` | `essay_upload` | — (JSON) | 사진 업로드 → 판독 |
 | `/gisa/<id>/essay/adjust/<aid>/` | `essay_adjust` | — (JSON) | 사용자 점수 조정 |
 | `/gisa/<id>/essay/grade-one/<qid>/` | `essay_grade_one` | — (JSON) | 학습 모드 단건 즉시 채점 |
+| `/gisa/<id>/essay/overview/` | `essay_overview` | `essay_overview.html` | **시험 개요** — 검정방법·배점·출제기준 |
+| `/gisa/<id>/essay/strategy/` | `essay_strategy` | `essay_strategy.html` | 학습전략 (정리 자료가 있는 자격증만) |
+
+#### 시험 개요 (`gisa/essay_examinfo.py`)
+
+**배점·시간은 자격증마다 다르다.** 자연생태복원기사는 필답 45 + 작업 55, 조경(산업)기사는
+필답 40 + 작업 60이다. 화면 여러 곳에 45·55가 박혀 있었으므로 새 자격증을 붙일 때
+`EXAM_INFO` 에 넣고 템플릿이 그 값을 쓰게 한다(실기 목록 머리말이 그렇게 바뀌었다).
+
+- 출처는 **Q-net 종목별 상세정보의 '취득방법'**(`crf005.do?id=crf00503&jmCd=`, 조경기사
+  1370 · 조경산업기사 2320)과 **출제기준(2025~2027)** 둘이다. 취득방법 본문은 페이지의
+  `#contents_text_0` textarea 안에 iframe 용 HTML 로 들어 있어, 눈으로는 안 보여도
+  거기서 읽으면 된다
+- **시험시간 합계 표기가 자료마다 다르다.** 조경기사는 출제기준 '5시간 정도' vs 취득방법
+  '4시간 30분 정도', 산업기사는 '3시간 30분' vs '4시간'. 구성(필답+작업)은 같으므로
+  화면에는 **어림 합계가 아니라 필답·작업 각각의 시간**을 보여 주고, 차이는 각주로 남긴다
+- `EXAM_INFO` 에 없는 자격증은 개요 화면이 목록으로 되돌리고 링크도 내지 않는다
+- **학습전략(`essay_strategy`)은 정리 자료(`GisaEssayNote`)가 있는 자격증에만 연다.**
+  본문이 '빈출 58주제'·'계산 공식 18' 같은 자연생태복원 자료를 전제로 쓰여 있어, 조경에서
+  열면 45점·15문항 같은 남의 수치를 읽게 된다(뷰도 redirect, 링크도 `{% if notes %}`)
 
 **필기와 실기는 목록에서부터 완전히 분리한다.** 자격증 목록(`/gisa/`)이 한 자격증을
 `[필기]`·`[실기]` 두 카드로 나눠 보여주고, 실기 카드는 `essay_list`로 직행한다.

@@ -24,6 +24,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from .essay_examinfo import exam_info, hm
 from .essay_grading import grade_answer, grade_session
 from .templatetags.gisa_filters import qtext
 from main.models import QnaQuestion
@@ -145,6 +146,9 @@ def essay_list(request, cert_id):
 
     return render(request, 'gisa/essay_list.html', {
         'cert': cert,
+        # 배점·시간이 자격증마다 다르다(조경 40+60, 자연생태복원 45+55).
+        # 머리말 문구를 여기서 받아 쓴다 — 개요가 없는 자격증은 종전 문구 그대로.
+        'info': exam_info(cert.name),
         'active_tab': tab,
         'tb': textbook,
         'wrong_items': wrong,
@@ -552,6 +556,47 @@ def essay_finish(request, cert_id, session_id):
     })
 
 
+# ------------------------------------------------------------------ 시험 개요
+
+@login_required
+def essay_overview(request, cert_id):
+    """시험 개요 — 검정방법·배점·합격기준과 출제기준 주요항목.
+
+    Q-net 종목별 상세정보(취득방법)와 출제기준(2025~2027)을 옮겨 둔 것이라
+    DB 가 아니라 `essay_examinfo.EXAM_INFO` 에서 온다. 다만 '우리가 가진 기출'
+    현황은 DB 에서 세어 함께 보여 준다 — 개요만 읽고 끝나지 않도록.
+    """
+    cert = get_object_or_404(Certification, pk=cert_id)
+    info = exam_info(cert.name)
+    if not info:
+        return redirect('gisa:essay_list', cert.pk)
+
+    exam_qs = GisaEssayQuestion.objects.filter(certification=cert, source='기출')
+    rounds = sorted(set(exam_qs.order_by().values_list('year', 'round')))
+    total = exam_qs.count()
+    types = list(exam_qs.values('qtype').annotate(c=Count('id')).order_by('-c'))
+    for t in types:
+        t['pct'] = round(t['c'] / max(total, 1) * 100)
+
+    # 기사↔산업기사는 필답 범위가 거의 같고 조건만 바꿔 되나오기도 해서,
+    # 다른 급수 기출로 건너갈 수 있게 링크를 만든다.
+    sibling = Certification.objects.filter(name=info.get('sibling', '')).first()
+
+    return render(request, 'gisa/essay_overview.html', {
+        'cert': cert,
+        'info': info,
+        'sibling': sibling,
+        'essay_time': hm(info['essay_minutes']),
+        'work_time': hm(info['work_minutes']),
+        'total_time': hm(info['essay_minutes'] + info['work_minutes']),
+        'round_count': len(rounds),
+        'year_from': rounds[0][0] if rounds else '',
+        'year_to': rounds[-1][0] if rounds else '',
+        'exam_count': total,
+        'types': types,
+    })
+
+
 # ------------------------------------------------------------------ 학습 전략
 
 @login_required
@@ -563,6 +608,11 @@ def essay_strategy(request, cert_id):
     from django.db.models import Count, Sum
 
     cert = get_object_or_404(Certification, pk=cert_id)
+    # 본문이 정리 자료(빈출 58주제·계산 공식)를 전제로 쓰여 있다. 그 자료가 없는
+    # 자격증에서 열면 남의 수치를 읽게 되므로 목록으로 돌려보낸다.
+    if not GisaEssayNote.objects.filter(certification=cert).exists():
+        return redirect('gisa:essay_list', cert.pk)
+
     qs = GisaEssayQuestion.objects.filter(certification=cert)
     exam_qs = qs.filter(source='기출')
 

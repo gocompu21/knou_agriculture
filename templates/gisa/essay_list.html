@@ -428,11 +428,19 @@
         <div class="hero-top">
             <div>
                 <h1>{{ cert.name }} <span class="hero-kind">실기</span></h1>
+                {% if info %}
+                <p>필답형은 {{ info.essay_points }}점 만점이며, 작업형 {{ info.work_points }}점과 합쳐 {{ info.pass_line }}점 이상이면 합격입니다.<br>
+                   인쇄해서 손으로 풀고 사진을 올리거나, 화면에 직접 입력해서 채점받을 수 있습니다.</p>
+                {% else %}
                 <p>필답형은 45점 만점이며, 작업형 55점과 합쳐 60점 이상이면 합격입니다.<br>
                    인쇄해서 손으로 풀고 사진을 올리거나, 화면에 직접 입력해서 채점받을 수 있습니다.</p>
+                {% endif %}
             </div>
             <div class="hero-links">
-                <a class="hero-switch strategy" href="{% url 'gisa:essay_strategy' cert.pk %}">학습전략</a>
+                {% if info %}<a class="hero-switch strategy" href="{% url 'gisa:essay_overview' cert.pk %}">시험 개요</a>{% endif %}
+                {% comment %} 학습전략 본문은 정리 자료(빈출 58주제·계산 공식)에 기대고 있어,
+                그 자료가 없는 자격증에서는 남의 수치를 보여 주게 된다. 있을 때만 연다. {% endcomment %}
+                {% if notes %}<a class="hero-switch strategy" href="{% url 'gisa:essay_strategy' cert.pk %}">학습전략</a>{% endif %}
                 <a class="hero-switch" href="/gisa/{{ cert.pk }}/">필기로 &rsaquo;</a>
             </div>
         </div>
@@ -459,7 +467,8 @@
         <div class="sec-title">쪽집게 노트
             <small>{{ tb.total }}주제 · 2회 이상 출제 + 계산 + 재출제 유력 · 분류별 · 별은 출제 회차 수</small>
             <span class="tb-links">
-                <a href="{% url 'gisa:essay_strategy' cert.pk %}">학습전략</a>
+                {% if info %}<a href="{% url 'gisa:essay_overview' cert.pk %}">시험 개요</a>{% endif %}
+                {% if notes %}<a href="{% url 'gisa:essay_strategy' cert.pk %}">학습전략</a>{% endif %}
                 {% for n in notes %}<a href="{% url 'gisa:essay_note' cert.pk n.slug %}">{{ n.title }} 원문</a>{% endfor %}
             </span>
         </div>

@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ cert.name }} 실기 시험 개요{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 학습전략 화면과 같은 말투의 화면이라 이름·색을 맞춰 둔다. */
+    .ov-wrap { max-width: 900px; margin: 0 auto; padding: 0 16px 70px; }
+
+    .ov-hero { background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+        color: #fff; padding: 22px 20px; border-radius: 12px; margin: 16px 0 22px; }
+    .ov-hero h1 { margin: 0 0 8px; font-size: 1.3rem; }
+    /* 아래의 `.ov-wrap p { color:#333 }` 과 특정도가 같아 뒤에 오는 쪽이 이긴다.
+       히어로는 짙은 초록 위 흰 글씨라야 읽히므로 선택자를 한 단계 더 얹는다. */
+    .ov-wrap .ov-hero p { margin: 0; font-size: 0.9rem; line-height: 1.7;
+        color: rgba(255,255,255,.93); }
+    .ov-wrap .ov-hero p b { color: #fff; }
+    .ov-back { float: right; color: #fff; text-decoration: none; font-size: 0.82rem;
+        background: rgba(255,255,255,.18); padding: 6px 14px; border-radius: 14px;
+        font-weight: 600; }
+    .ov-back:hover { background: rgba(255,255,255,.3); }
+
+    h2.ov { font-size: 1.08rem; color: #1b4332; margin: 30px 0 12px;
+        padding-bottom: 7px; border-bottom: 2px solid #dfe7e2; }
+    .ov-wrap p { font-size: 0.92rem; line-height: 1.8; color: #333; margin: 0 0 12px; }
+    .ov-wrap li { font-size: 0.92rem; line-height: 1.8; color: #333; }
+
+    .kv { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; }
+    .kv div { flex: 1 1 150px; background: #f3f7f4; border-radius: 9px;
+        padding: 12px 14px; }
+    .kv .n { font-size: 1.35rem; font-weight: 700; color: #1b4332; }
+    .kv .l { font-size: 0.8rem; color: #667; margin-top: 2px; }
+
+    table.ov { width: 100%; border-collapse: collapse; font-size: 0.88rem;
+        margin: 0 0 16px; }
+    table.ov th { background: #1b4332; color: #fff; padding: 8px 10px;
+        text-align: left; font-weight: 600; font-size: 0.82rem; }
+    table.ov td { padding: 8px 10px; border-bottom: 1px solid #eceeed;
+        vertical-align: top; line-height: 1.65; }
+    table.ov tr:hover td { background: #fafcfa; }
+    table.ov td.num { text-align: right; white-space: nowrap; }
+    table.ov td.lab { font-weight: 600; color: #2d6a4f; white-space: nowrap; }
+    /* 임의분류 칸 — 세로로 이어지는 묶음이라 배경을 옅게 깔아 덩어리로 보이게 */
+    table.ov td.grp { background: #f3f7f4; font-weight: 700; color: #1b4332;
+        white-space: nowrap; }
+    .tb-scroll { overflow-x: auto; }
+    .tb-scroll table.ov { min-width: 560px; }
+
+    .bar { height: 7px; background: #eceeed; border-radius: 4px; overflow: hidden;
+        min-width: 70px; }
+    .bar i { display: block; height: 100%; background: #2d6a4f; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+    .chips span { background: #eef4f0; color: #2d6a4f; border-radius: 13px;
+        padding: 4px 12px; font-size: 0.84rem; font-weight: 600; }
+
+    .note { background: #fffdf5; border-left: 3px solid #e8d9a0;
+        padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 0 0 16px;
+        font-size: 0.88rem; line-height: 1.75; color: #5a4d2a; }
+    .note b { color: #7a5f14; }
+
+    .go { display: inline-block; background: #1b4332; color: #fff;
+        padding: 8px 18px; border-radius: 16px; text-decoration: none;
+        font-size: 0.85rem; font-weight: 700; margin: 2px 4px 2px 0; }
+    .go:hover { background: #2d6a4f; }
+    .go.sub { background: #eef2ee; color: #40624f; }
+    .go.sub:hover { background: #dde7e0; }
+
+    /* 넷이 한 줄에 안 들어가면 3+1 로 끊겨 마지막 칸만 길어진다. 2×2 로 떨어뜨린다. */
+    @media (max-width: 760px) {
+        .kv div { flex: 1 1 40%; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ov-wrap">
+    <div class="ov-hero">
+        <a class="ov-back" href="{% url 'gisa:essay_list' cert.pk %}">실기 목록 &rsaquo;</a>
+        <h1>{{ cert.name }} 실기 시험 개요</h1>
+        <p>출제기준 <b>{{ info.period }}</b> · {{ info.ministry }} / {{ info.agency }} 시행<br>
+           실기 과목명은 <b>{{ info.practical_subject }}</b>이며, 이 사이트는 그 가운데
+           <b>필답형</b>을 다룹니다.</p>
+    </div>
+
+    <div class="kv">
+        <div><div class="n">{{ info.essay_points }}점</div><div class="l">필답형 배점</div></div>
+        <div><div class="n">{{ info.work_points }}점</div><div class="l">작업형(도면) 배점</div></div>
+        <div><div class="n">{{ essay_time }}</div><div class="l">필답형 시험시간</div></div>
+        <div><div class="n">{{ info.pass_line }}점</div><div class="l">합격선 (100점 만점)</div></div>
+    </div>
+
+    <h2 class="ov">실기 검정방법</h2>
+    <p>복합형입니다. <b>필답형과 작업형(도면)을 같은 날 치러 합계 100점</b>으로 매깁니다.</p>
+    <div class="tb-scroll">
+    <table class="ov">
+        <thead><tr><th style="width:22%">구분</th><th>필답형</th><th>작업형(도면)</th></tr></thead>
+        <tbody>
+        <tr><td class="lab">배점</td><td>{{ info.essay_points }}점</td><td>{{ info.work_points }}점</td></tr>
+        <tr><td class="lab">시험시간</td><td>{{ essay_time }}</td><td>{{ work_time }}</td></tr>
+        <tr><td class="lab">문항 수</td><td>{{ info.item_count }}</td><td>도면 작성</td></tr>
+        <tr><td class="lab">형태</td><td>{{ info.qtypes }}</td><td>제도판을 쓰는 실내 작업</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <div class="note">
+        <b>합격 기준은 100점 만점에 60점</b>입니다. 필답과 작업형에 <b>따로 과락이 없어</b>
+        한쪽에서 벌어 다른 쪽을 메울 수 있습니다.<br>
+        필답에서 <b>{{ info.essay_points }}점 가운데 25점</b>을 확보하면 작업형은
+        {{ info.work_points }}점 중 35점만 받으면 됩니다. 필답은 외운 만큼 나오지만
+        도면은 제한 시간이라는 변수가 커서, <b>필답에서 벌어 두는 편이 안전합니다.</b><br>
+        <small>시험시간 합계 표기는 자료마다 다릅니다 — {{ info.time_note }}</small>
+    </div>
+
+    <h2 class="ov">필답형은 무엇을 묻나</h2>
+    <p>필답 출제범위는 <b>1차 필기시험의 범위와 거의 같습니다.</b> 필기에서 공부한 내용이
+       그대로 나오므로, 짧은 시간을 들여 점수를 올리기 좋은 쪽입니다.</p>
+    <div class="chips">
+        {% for s in info.essay_scope %}<span>{{ s }}</span>{% endfor %}
+    </div>
+    <div class="note">
+        <b>문제를 골라 푸는 시험이 아닙니다.</b> 문항마다 배점이 다르게 매겨지지만
+        전부 풀어서 총점을 올리는 것이 목표이므로, 배점을 보고 풀 문제를 고를 일은 없습니다.<br>
+        계산 문제가 <b>{{ info.calc_count }}</b> 나옵니다. 쓰이는 공식이 정해져 있어
+        <b>가장 확실하게 점수로 바뀌는 부분</b>입니다.
+    </div>
+
+    <h2 class="ov">출제기준 — 주요항목과 세부항목</h2>
+    <p>{{ info.period }} 적용 출제기준입니다. 맨 왼쪽 묶음은 이해를 돕기 위해 주요항목을
+       네 갈래로 나눠 본 것입니다.</p>
+    <div class="tb-scroll">
+    <table class="ov">
+        <thead><tr>
+            <th style="width:14%">분류</th><th style="width:22%">주요항목</th><th>세부항목</th>
+        </tr></thead>
+        <tbody>
+        {% for group, items in info.criteria %}
+            {% for name, detail in items %}
+            <tr>
+                {% if forloop.first %}<td class="grp" rowspan="{{ items|length }}">{{ group }}</td>{% endif %}
+                <td class="lab">{{ name }}</td>
+                <td>{{ detail }}</td>
+            </tr>
+            {% endfor %}
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+
+    <h2 class="ov">직무내용</h2>
+    <p>{{ info.duty }}</p>
+
+    <h2 class="ov">필기시험 (참고)</h2>
+    <p>실기는 <b>필기 합격자 발표일부터 2년 안에</b> 응시할 수 있습니다. 그 사이에는
+       필기를 다시 보지 않아도 됩니다.</p>
+    <div class="tb-scroll">
+    <table class="ov">
+        <tbody>
+        <tr><td class="lab" style="width:22%">시험과목</td><td>{{ info.written_subjects|join:" · " }}</td></tr>
+        <tr><td class="lab">검정방법</td><td>{{ info.written_method }}</td></tr>
+        <tr><td class="lab">합격기준</td><td>{{ info.written_pass }}</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    {% if exam_count %}
+    <h2 class="ov">이 사이트가 가진 기출</h2>
+    <p>{{ year_from }}~{{ year_to }}년 <b>{{ round_count }}개 회차 {{ exam_count|intcomma }}문항</b>입니다.
+       문제문·답·그림을 모두 다시 쓴 것이라 교재와 글자가 같지 않습니다.</p>
+    <div class="tb-scroll">
+    <table class="ov">
+        <thead><tr><th>유형</th><th class="num">문항</th><th class="num">비중</th><th style="width:38%">　</th></tr></thead>
+        <tbody>
+        {% for t in types %}
+        <tr>
+            <td>{{ t.qtype }}</td>
+            <td class="num">{{ t.c }}</td>
+            <td class="num">{{ t.pct }}%</td>
+            <td><span class="bar"><i style="width:{{ t.pct }}%"></i></span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% endif %}
+
+    <h2 class="ov">알아 둘 것</h2>
+    <ul>
+        <li><b>기사와 산업기사의 범위는 거의 같습니다.</b> 산업기사 필답에는 조경사가 빠질 뿐
+            나머지는 기사와 같아, 갈라서 공부할 필요가 없습니다.</li>
+        <li><b>급수를 넘나들며 되나옵니다.</b> 기사에 나왔던 문제가 조건만 조금 바뀌어
+            산업기사에 나온 적이 있습니다. 자기 급수를 먼저 풀고 다른 급수까지 보면
+            그만큼 범위가 넓어집니다.</li>
+        <li><b>작업형 도면은 미완성이면 채점에서 빠집니다.</b> 요구조건을 다 채우지 못하더라도
+            끝까지 그려 내는 것이 먼저입니다.</li>
+        <li>도면은 선 굵기와 글씨의 위계가 기본입니다. 찢어지거나 더러워지지 않게 하고,
+            찢어졌다면 테이프로 붙여 냅니다.</li>
+        <li>문제지에 적힌 <b>수검자 유의사항</b>도 문제를 푸는 조건의 하나입니다. 먼저 읽습니다.</li>
+    </ul>
+
+    <div style="margin-top:26px">
+        <a class="go" href="{% url 'gisa:essay_list' cert.pk %}">실기 목록으로</a>
+        {% if sibling %}<a class="go sub" href="{% url 'gisa:essay_list' sibling.pk %}">{{ sibling.name }} 기출 보기</a>{% endif %}
+        <a class="go sub" href="https://www.q-net.or.kr/crf005.do?id=crf00503&amp;jmCd={{ info.jm_code }}&amp;gSite=Q" target="_blank" rel="noopener">Q-net 종목 정보</a>
+    </div>
+</div>
+{% endblock %}
