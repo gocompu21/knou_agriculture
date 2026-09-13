@@ -25,6 +25,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .essay_examinfo import exam_info, hm
+from .essay_topics import siblings, topic_groups
 from .essay_grading import grade_answer, grade_session
 from .templatetags.gisa_filters import qtext
 from main.models import QnaQuestion
@@ -173,7 +174,8 @@ def essay_list(request, cert_id):
         'wrong_count': len(wrong),
         'mock_size': MOCK_SIZE,
         'mock_years': sorted({c['year'] for c in round_cards}, reverse=True),
-        'topic_groups': GisaEssayQuestion.TOPIC_CHOICES,
+        # 모의고사 범위 지정의 분류 목록. 자격증마다 다르다.
+        'topic_groups': topic_groups(cert.name),
         'mock_sessions': [s for s in sessions if s.source == '모의' and s.status == 'done'][:5],
         'round_cards': round_cards,
         'round_years': round_years,

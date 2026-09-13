@@ -19,7 +19,7 @@ import markdown as md
 from django.core.cache import cache
 from django.db.models import Q
 
-from .models import GisaEssayNote, GisaEssayQuestion
+from .models import Certification, GisaEssayNote, GisaEssayQuestion
 from .templatetags.gisa_filters import frac_span, qtext
 
 CACHE_TTL = 600
@@ -169,7 +169,8 @@ def parse_note_items(cert, note):
     text = note.content
     # 분류명에도 가운뎃점이 들어가고(법규·제도) 주제명에도 들어가므로
     # (복원·복구·대체) 구분자만으로는 못 가른다. 분류명을 명시해 집는다.
-    groups = '|'.join(re.escape(g) for _, g in GisaEssayQuestion.TOPIC_CHOICES)
+    from .essay_topics import topic_groups
+    groups = '|'.join(re.escape(g) for _, g in topic_groups(cert.name))
     parts = re.split(r'^## (\d+)회 · (%s) · (.+)$' % groups, text, flags=re.M)
     if len(parts) == 1:
         # 조경 적산 정리처럼 빈도·분류 없이 `## 제목` 만 쓰는 노트. 같은 화면을
@@ -394,15 +395,25 @@ def _title_from(q):
 # ------------------------------------------------------------------ 교재 조립
 
 def build_textbook(cert):
-    """분류별 주제 목록을 만든다. 무거우므로 10분 캐시."""
-    qs_all = GisaEssayQuestion.objects.filter(certification=cert, source='기출')
-    notes = list(GisaEssayNote.objects.filter(certification=cert))
+    """분류별 주제 목록을 만든다. 무거우므로 10분 캐시.
+
+    **기사와 산업기사는 함께 본다**(`essay_topics.SIBLING_GROUPS`). 두 급수가
+    같은 문제를 돌려쓰므로 따로 보면 빈출이 흩어진다 — 식물보호에서 노트 대상
+    주제가 급수별로는 24·28개인데 합치면 51개가 되고, 그중 28개가 두 급수에
+    걸쳐 있다. topic_key 도 묶음 단위로 매겨 두 자격증이 공유한다.
+    """
+    from .essay_topics import group_leader, siblings, star_cuts, topic_groups
+
+    certs = list(Certification.objects.filter(name__in=siblings(cert.name)))
+    qs_all = GisaEssayQuestion.objects.filter(certification__in=certs, source='기출')
+    notes = list(GisaEssayNote.objects.filter(certification__in=certs))
     stamp = max([n.updated_at.timestamp() for n in notes] + [0])
     try:
         stamp = max(stamp, os.path.getmtime(_TITLES_PATH))
     except OSError:
         pass
-    key = 'essay_tb:v7:%d:%d:%d' % (cert.pk, qs_all.count(), int(stamp))
+    # 캐시는 묶음 단위다 — 기사로 만든 것을 산업기사가 그대로 쓴다.
+    key = 'essay_tb:v8:%s:%d:%d' % (group_leader(cert.name), qs_all.count(), int(stamp))
     hit = cache.get(key)
     if hit:
         return hit
@@ -423,9 +434,9 @@ def build_textbook(cert):
     for q in qs_all.filter(topic_key__in=keys).order_by('-year', '-round', 'number'):
         topics.setdefault(q.topic_key, []).append(q)
 
-    names = dict(GisaEssayQuestion.TOPIC_CHOICES)
+    names = dict(topic_groups(cert.name))
     custom = _custom_titles()
-    groups = {gid: [] for gid, _ in GisaEssayQuestion.TOPIC_CHOICES}
+    groups = {gid: [] for gid, _ in topic_groups(cert.name)}
     groups[0] = []
     for tk, qlist in topics.items():
         rep = qlist[0]                       # 가장 최근 회차 문항
@@ -434,9 +445,14 @@ def build_textbook(cert):
         notes_ = by_key.get(tk, {})
         note = notes_.get('freq58')
         calc = notes_.get('calc')
-        title = (custom.get('%d-%d-%d' % (rep.year, rep.round, rep.number))
+        # 키에 자격증을 붙인다 — 연도-회차-번호만으로는 자격증끼리 충돌한다
+        # (식물보호기사 2023-1회 1번에 자연생태복원 제목이 달린 적이 있다).
+        tkey = '%s|%d-%d-%d' % (rep.certification.name, rep.year, rep.round,
+                                rep.number)
+        title = (custom.get(tkey)
                  or (note or calc or {}).get('title') or _title_from(rep))
-        stars = 3 if freq >= 5 else 2 if freq >= 3 else 1 if freq >= 2 else 0
+        s3, s2, s1 = star_cuts(cert.name)
+        stars = 3 if freq >= s3 else 2 if freq >= s2 else 1 if freq >= s1 else 0
         comeback = freq <= 1 and any(q.written_freq >= 10 for q in qlist)
         is_calc = any(q.qtype == '계산' for q in qlist)
         pts = sorted({float(q.points) for q in qlist})
@@ -472,7 +488,7 @@ def build_textbook(cert):
         })
 
     out = []
-    for gid, _name in GisaEssayQuestion.TOPIC_CHOICES + [(0, '미분류')]:
+    for gid, _name in list(topic_groups(cert.name)) + [(0, '미분류')]:
         lst = groups.get(gid) or []
         if not lst:
             continue

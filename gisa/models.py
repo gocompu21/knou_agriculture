@@ -292,9 +292,15 @@ class GisaEssayQuestion(models.Model):
         (7, '환경영향평가'),
         (8, '법규·제도'),
     ]
+    # **분류 이름은 자격증마다 다르다** — `gisa/essay_topics.py` 의 TOPIC_GROUPS 가
+    # 갖고 있다. 위의 TOPIC_CHOICES 는 자연생태복원 것이고 renumber_essay.py 가
+    # 아직 쓰므로 남겨 두지만, 식물보호는 분류가 11개라 8을 넘는 값이 들어간다.
+    # 그래서 필드에 choices 를 걸지 않는다 — 걸어 두면 관리자 화면에서 9~11번이
+    # 빈칸으로 보이고 폼 검증에 걸린다.
     topic_group = models.PositiveSmallIntegerField(
-        '주제 분류', default=0, choices=TOPIC_CHOICES,
-        help_text='1~8. 0은 미분류. 회차 내 문항 순서를 이 값으로 매긴다')
+        '주제 분류', default=0,
+        help_text='0은 미분류. 이름은 essay_topics.TOPIC_GROUPS 가 자격증별로 갖는다. '
+                  '회차 내 문항 순서를 이 값으로 매긴다')
 
     # 같은 주제가 표현만 바꿔 되풀이 출제되므로, 주제 단위로 묶어 빈도를 센다.
     # analyze_essay_freq.py 가 군집을 만들고 tag_essay_frequency 가 여기에 쓴다.
@@ -302,7 +308,8 @@ class GisaEssayQuestion(models.Model):
                                  help_text='같은 주제로 묶인 문항이 공유하는 식별자')
     freq_rounds = models.PositiveSmallIntegerField(
         '출제 회차 수', default=0,
-        help_text='이 주제가 출제된 회차 수. 1이면 한 번만 나온 주제')
+        help_text='이 주제가 출제된 시험지 수. 기사·산업기사를 함께 묶는 자격증은 '
+                  '묶음 전체의 시험지를 센다(식물보호는 9가 아니라 18이 모수)')
     freq_note = models.CharField('출제 이력', max_length=200, blank=True,
                                  help_text='이 주제가 나온 회차 목록')
     # 실기에 1회만 나왔지만 필기에서 자주 다뤄진 주제는 재출제 유력 후보다.
