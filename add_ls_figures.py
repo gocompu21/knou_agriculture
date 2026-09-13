@@ -233,41 +233,74 @@ FIG['ls-2023-1-si-2-wall'] = _wall()
 
 # ── 5. 뿌리분 3형태 (일반·심근성·천근성) ─────────────────────────────────
 def _rootball():
-    """조경표준시방서의 뿌리분 3형태.
+    """조경표준시방서의 뿌리분 3형태 — 교재 원도를 그대로 옮긴 것.
 
     **이 그림이 곧 답이다** — 문제가 "형태를 그리고 크기의 비율도 기입하시오"
     라고 묻는다. 그래서 문제문이 아니라 answer_text 에 넣는다.
 
-    교재 원도는 곡선이 하나도 없다. 세 형태 모두 너비 A 의 직사각형에서
-    출발해 아래를 **각진 V자**로 좁혀 내리고, 천근성만 V 없이 납작한
-    직사각형이다. 예전에 '조개모양'을 Q 곡선으로, '접시모양'을 둥근 사발로
-    그렸던 것은 이름에 이끌린 오독이었다.
+    원도의 특징을 그대로 따른다.
+
+      · 곡선이 하나도 없다. 셋 모두 너비 A 의 직사각형에서 아래를 **각진 V자**
+        로 좁혀 내리고(일반 A/4, 심근성 A/2), 천근성만 V 없이 납작하다
+      · 속을 칠하지 않는다. 수간(줄기)도 그리지 않는다
+      · 치수 글자는 **눕히지 않고 가로로** 쓴다
+      · 치수선 끝은 화살표·짧은 교차선이 아니라 **채운 점**이고, 도형 쪽으로
+        가느다란 인출선이 뻗는다
+      · 너비 A 치수선은 도형마다 제 바닥 바로 아래에 따로 놓는다 (셋의 높이가
+        다르다)
+      · 이름표를 붙이지 않는다
     """
-    A, b = 80, []
-    labels = ['① 일반수종', '② 심근성 수종', '③ 천근성 수종']
-    # (아래 V자 깊이) — 천근성은 V 가 없다
-    vees = [A / 4, A / 2, None]
-    for i, vee in enumerate(vees):
-        ox = 40 + i * 116
-        x1, x2, ty = ox, ox + A, 46
-        half, cx = A / 2, ox + A / 2
+    A = 76
+    HALF = A / 2
+    TY = 26                       # 도형 윗변
+    DX = 16                       # 도형 왼쪽 edge 에서 세로 치수선까지
+    PITCH = 132
+    b = []
+
+    def dot(x, y):
+        return f'<circle cx="{x}" cy="{y}" r="2" fill="{INK}"/>'
+
+    def vdim(x, y1, y2, label, ext_to):
+        """세로 치수 — 점·인출선·가로 글자."""
+        return (f'<line x1="{x}" y1="{y1}" x2="{x}" y2="{y2}" stroke="{INK}" stroke-width="0.9"/>'
+                + dot(x, y1) + dot(x, y2)
+                + f'<line x1="{x}" y1="{y1}" x2="{ext_to[0]}" y2="{y1}" stroke="{INK}" stroke-width="0.7"/>'
+                + f'<line x1="{x}" y1="{y2}" x2="{ext_to[1]}" y2="{y2}" stroke="{INK}" stroke-width="0.7"/>'
+                + f'<text x="{x-6}" y="{(y1+y2)/2+4}" text-anchor="end" fill="{INK}">{label}</text>')
+
+    def hdim(x1, x2, y, top):
+        """가로 치수 — 점·세로 인출선·선 위 글자."""
+        return (f'<line x1="{x1}" y1="{y}" x2="{x2}" y2="{y}" stroke="{INK}" stroke-width="0.9"/>'
+                + dot(x1, y) + dot(x2, y)
+                + f'<line x1="{x1}" y1="{y}" x2="{x1}" y2="{top}" stroke="{INK}" stroke-width="0.7"/>'
+                + f'<line x1="{x2}" y1="{y}" x2="{x2}" y2="{top}" stroke="{INK}" stroke-width="0.7"/>'
+                + f'<text x="{(x1+x2)/2}" y="{y-5}" text-anchor="middle" fill="{INK}">A</text>')
+
+    # (아래 V자 깊이, 그 치수 이름) — 천근성은 V 가 없다
+    specs = [(A / 4, 'A/4'), (A / 2, 'A/2'), (None, None)]
+    for i, (vee, vlabel) in enumerate(specs):
+        x1 = 46 + i * PITCH
+        x2, cx = x1 + A, x1 + A / 2
+        dimx = x1 - DX
         if vee is None:
-            d = f'M{x1} {ty} L{x1} {ty+half} L{x2} {ty+half} L{x2} {ty} Z'
-            bottom = ty + half
+            d = f'M{x1} {TY} L{x1} {TY+HALF} L{x2} {TY+HALF} L{x2} {TY} Z'
+            bottom = TY + HALF
         else:
-            d = (f'M{x1} {ty} L{x1} {ty+half} L{cx} {ty+half+vee} '
-                 f'L{x2} {ty+half} L{x2} {ty} Z')
-            bottom = ty + half + vee
-        b.append(f'<path d="{d}" fill="none" stroke="{INK}" stroke-width="1.5"/>')
-        # 왼쪽 치수 — 위쪽 수직부 A/2, 그 아래 V자 깊이
-        b.append(dim_v(ty, ty + half, x1 - 13, 'A/2', G))
+            d = (f'M{x1} {TY} L{x1} {TY+HALF} L{cx} {TY+HALF+vee} '
+                 f'L{x2} {TY+HALF} L{x2} {TY} Z')
+            bottom = TY + HALF + vee
+        b.append(f'<path d="{d}" fill="none" stroke="{INK}" stroke-width="1.7" '
+                 f'stroke-linejoin="miter"/>')
+        # 위쪽 수직부 A/2 — 인출선은 도형 왼쪽 변까지
+        b.append(vdim(dimx, TY, TY + HALF, 'A/2', (x1, x1)))
+        # V자 깊이 — 아래쪽 인출선은 변이 안으로 꺾여 조금 더 길게 뻗는다
         if vee is not None:
-            b.append(dim_v(ty + half, bottom, x1 - 13, 'A/4' if vee == A / 4 else 'A/2', G))
-        # 너비 치수는 도형 아래에
-        b.append(dim_h(x1, x2, bottom + 20, 'A', G))
-        b.append(f'<text x="{cx}" y="{ty+A+52}" text-anchor="middle" fill="{INK}" '
-                 f'font-size="10">{labels[i]}</text>')
-    return svg(388, 178, ''.join(b))
+            b.append(vdim(dimx, TY + HALF, bottom, vlabel, (x1, x1 + A * 0.35)))
+        # 너비 A — 제 바닥 바로 아래
+        b.append(hdim(x1, x2, bottom + 20, bottom + 12))
+    # 원도에 이름표가 없다. 답 항목 ①②③ 이 바로 위에 같은 차례로 있어
+    # 굳이 붙이지 않아도 어느 것이 무엇인지 읽힌다 — 붙이면 그만큼 아래가 빈다.
+    return svg(3 * PITCH, TY + 2 * HALF + 36, ''.join(b))
 
 
 FIG['ls-2023-2-si-2-rootball'] = _rootball()
