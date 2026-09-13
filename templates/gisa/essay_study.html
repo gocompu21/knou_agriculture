@@ -124,25 +124,26 @@
 
     /* 정답 보기/접기는 아이콘 버튼 — 눈(보기)·눈 가림(접기). 글자 버튼은
      * 문항마다 되풀이돼 화면을 어지럽혔다. */
-    .sq-toggle { margin: 2px 0 6px; }
+    .sq-toggle { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px; }
     .btn-reveal { width: 30px; height: 30px; padding: 0; border: 1px solid #cfdad3;
         border-radius: 50%; background: #fff; color: #40624f; cursor: pointer;
         display: inline-flex; align-items: center; justify-content: center; }
     .btn-reveal:hover { background: #eef2ee; }
-    .btn-reveal svg { width: 17px; height: 17px; fill: none; stroke: currentColor;
-        stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+    .btn-reveal svg { width: 14px; height: 14px; fill: none; stroke: currentColor;
+        stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     .btn-reveal .i-hide { display: none; }
     .btn-reveal.open { background: #1b4332; color: #fff; border-color: #1b4332; }
     .btn-reveal.open .i-show { display: none; }
     .btn-reveal.open .i-hide { display: block; }
 
     /* 관리자 인라인 편집 — 스태프에게만 보인다 */
-    .btn-edit { width: 30px; height: 30px; padding: 0; margin-left: 6px;
+    .btn-edit { width: 30px; height: 30px; padding: 0; flex-shrink: 0;
         border: 1px solid #cfdad3; border-radius: 8px; background: #fff;
-        color: #40624f; cursor: pointer; vertical-align: middle; }
+        color: #40624f; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center; }
     .btn-edit:hover { background: #eef2ee; }
-    .btn-edit svg { width: 16px; height: 16px; fill: none; stroke: currentColor;
-        stroke-width: 1.8; vertical-align: middle; }
+    .btn-edit svg { width: 14px; height: 14px; fill: none; stroke: currentColor;
+        stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
     .sq-edit { margin: 8px 0 4px; padding: 12px 14px; border: 1px solid #cfdad3;
         border-radius: 10px; background: #fbfdfb; }
     .sq-edit[hidden] { display: none; }
@@ -386,8 +387,10 @@ document.getElementById('btnAll').click();
                 const no = txt.querySelector('.sq-no').outerHTML;
                 txt.innerHTML = no + ' ' + d.text_html;
                 document.getElementById('ans' + form.dataset.q).innerHTML = d.ans_html;
+                /* 저장했다는 말을 잠깐 보여 주고 접는다. 바로 접으면 눌렀는지
+                   아닌지 알 수 없고, 열어 두면 갈아 끼운 답을 폼이 가린다.   */
                 msg.textContent = d.changed.length ? '저장했습니다.' : '바뀐 것이 없습니다.';
-                setTimeout(() => { msg.textContent = ''; }, 2500);
+                setTimeout(() => { form.hidden = true; msg.textContent = ''; }, 700);
             }).catch(() => {
                 save.disabled = false;
                 msg.className = 'ef-msg bad';
