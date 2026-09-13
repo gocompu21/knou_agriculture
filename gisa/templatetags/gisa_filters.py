@@ -13,7 +13,17 @@ _TABLE_STYLE = (
     "margin:4px 0;font-size:0.92em;line-height:1.5;"
 )
 _CELL_STYLE = "border:1px solid #999;padding:3px 10px;text-align:left;"
-_TH_STYLE = _CELL_STYLE + "background:#f2f2f2;font-weight:600;white-space:nowrap;"
+_TH_STYLE = _CELL_STYLE + "background:#f2f2f2;font-weight:600;"
+# 머리글은 짧을 때만 한 줄로 묶는다. '구분'·'단위'처럼 두세 글자짜리가 어정쩡하게
+# 접히는 것을 막자고 nowrap 을 걸어 두었는데, '자연토양 사용 시(cm 이상)' 같은 긴
+# 머리글까지 안 접혀 모바일에서 표가 화면을 넘겼다(375px 화면에서 450px).
+_TH_NOWRAP_MAX = 8
+
+
+def _th_nowrap(text):
+    """머리글이 짧으면 nowrap 을 붙인다. 태그를 뺀 글자 수로 잰다."""
+    plain = re.sub(r"<[^>]+>", "", text)
+    return "white-space:nowrap;" if len(plain) <= _TH_NOWRAP_MAX else ""
 
 # 표 셀 안의 줄바꿈. 원문이 <br> 로 적어 두는데, 셀 내용은 escape 를 거쳐
 # 들어오므로 &lt;br&gt; 형태가 된다. 표 안에서만 태그로 되돌린다.
@@ -95,7 +105,8 @@ def _md_table(block):
     out = ['<table style="%s">' % _TABLE_STYLE]
     out.append("<thead><tr>")
     for i, h in enumerate(head):
-        out.append('<th style="%s">%s</th>' % (_align(_TH_STYLE, i), h))
+        out.append('<th style="%s">%s</th>'
+                   % (_align(_TH_STYLE, i) + _th_nowrap(h), h))
     out.append("</tr></thead><tbody>")
     for row in body:
         if len(row) < ncol:

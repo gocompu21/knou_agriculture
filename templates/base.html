@@ -294,6 +294,17 @@
                 padding: 14px 0;
             }
         }
+
+        /* 문항 속 표(qtext 가 만드는 [box] 안의 표)는 좁은 화면에서 셀을 좁힌다.
+           스타일이 inline 이라 미디어쿼리를 못 걸어, 여기서 한 번만 덮는다.
+           열이 5~8개인 표가 375px 화면에서 500px 까지 벌어져 가로로 잘렸다. */
+        @media (max-width: 520px) {
+            .q-box table th,
+            .q-box table td {
+                padding: 2px 5px !important;
+                font-size: 0.86em !important;
+            }
+        }
     </style>
     {% block extra_css %}{% endblock %}
     {% block extra_css_links %}{% endblock %}
