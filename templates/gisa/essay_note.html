@@ -162,7 +162,7 @@
 {% block content %}
 <div class="nt-header">
     <div class="nt-title">
-        {{ note.title }} <small>· {{ items|length }}주제</small>
+        {{ note.title }} <small>· {{ items|length }}{% if has_freq %}주제{% else %}개 절{% endif %}</small>
     </div>
     <button class="nt-btn" id="btnAll">모두 펼치기</button>
 </div>
@@ -170,22 +170,24 @@
 <div class="nt-wrap">
     <div class="nt-intro">{{ intro|safe }}</div>
 
+    {% if has_freq %}
     <div class="nt-filters">
         <button class="nt-f on" data-f="all">전체 {{ items|length }}</button>
         <button class="nt-f" data-f="warn">⚠️ 요구 확장 {{ warned_count }}</button>
         <button class="nt-f" data-f="hi">4회 이상</button>
     </div>
+    {% endif %}
 
     {% for it in items %}
     <div class="nt-item" data-freq="{{ it.freq }}" data-warn="{{ it.warned|yesno:'1,0' }}">
         <div class="nt-head">
-            {% if it.rep_pk %}
+            {% if it.freq %}{% if it.rep_pk %}
             <button type="button" class="nt-freq btn {% if it.freq >= 4 %}hi{% endif %}"
                     data-pk="{{ it.rep_pk }}" title="회차별 기출 문항 보기">{{ it.freq }}회</button>
             {% else %}
             <span class="nt-freq {% if it.freq >= 4 %}hi{% endif %}">{{ it.freq }}회</span>
-            {% endif %}
-            <span class="nt-group">{{ it.group }}</span>
+            {% endif %}{% endif %}
+            {% if it.group %}<span class="nt-group">{{ it.group }}</span>{% endif %}
             <span class="nt-name">{{ it.title }}</span>
             {% if it.warned %}<span class="nt-warn">⚠️</span>{% endif %}
             <span class="nt-arrow">›</span>

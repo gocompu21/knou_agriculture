@@ -171,6 +171,13 @@ def parse_note_items(cert, note):
     # (복원·복구·대체) 구분자만으로는 못 가른다. 분류명을 명시해 집는다.
     groups = '|'.join(re.escape(g) for _, g in GisaEssayQuestion.TOPIC_CHOICES)
     parts = re.split(r'^## (\d+)회 · (%s) · (.+)$' % groups, text, flags=re.M)
+    if len(parts) == 1:
+        # 조경 적산 정리처럼 빈도·분류 없이 `## 제목` 만 쓰는 노트. 같은 화면을
+        # 쓰되 회차 배지와 분류 배지가 없으므로 freq 0, group '' 으로 채운다.
+        plain = re.split(r'^## (.+)$', text, flags=re.M)
+        parts = [plain[0]]
+        for j in range(1, len(plain), 2):
+            parts += ['0', '', plain[j], plain[j + 1]]
     intro_md = parts[0]
     items = []
     for i in range(1, len(parts), 4):
@@ -185,14 +192,22 @@ def parse_note_items(cert, note):
         body_rest = re.sub(r'^\*\*출제\*\*.*$', '', body, flags=re.M)
         body_rest = re.sub(r'^\s*---\s*$', '', body_rest, flags=re.M)
         blocks = []
-        for lab in ('공식', '대입', '함정', '유형', '주의'):
-            bm = re.search(r'^\*\*%s\*\*\s*(.+)$' % lab, body_rest, flags=re.M)
+        for lab in ('공식', '대입', '함정', '기출', '유형', '주의', '기준값', '맺음'):
+            # 라벨 뒤 내용이 여러 줄일 수 있다 — 다음 라벨이나 구분선, 표가 시작될
+            # 때까지 먹는다. 한 줄만 잡으면 나머지가 본문으로 흘러 붙어 보인다.
+            bm = re.search(
+                r'^\*\*%s\*\*[ \t]*\n?((?:(?!^\*\*[가-힣]{2,3}\*\*|^---|^\||^## ).*\n?)+)'
+                % lab, body_rest, flags=re.M)
             if not bm:
                 continue
             raw = re.sub(r'_\{([^}]{1,12})\}', r'<sub>\1</sub>', bm.group(1).strip())
             blocks.append({
                 'label': lab,
-                'html': md.markdown(mathify(raw), extensions=['tables']),
+                # 라벨 상자 안에서는 **줄바꿈을 살린다**(nl2br). 공식이 여러 줄인
+                # 경우가 많은데 마크다운은 단일 개행을 무시해 식이 한 줄로 붙었다.
+                # 본문(아래 html)에는 쓰지 않는다 — 거기서는 문단이 화면 폭에
+                # 맞게 흘러야 한다.
+                'html': md.markdown(mathify(raw), extensions=['tables', 'nl2br']),
             })
             body_rest = body_rest.replace(bm.group(0), '')
 

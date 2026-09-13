@@ -163,6 +163,9 @@ def essay_list(request, cert_id):
         'freq_cards': freq_cards,
         'comeback_count': comeback_count,
         'notes': GisaEssayNote.objects.filter(certification=cert),
+        # 학습전략 화면은 '빈출 58주제 정리'를 전제로 쓰여 있어 그 자료가 있을 때만 연다
+        'has_strategy': GisaEssayNote.objects.filter(
+            certification=cert, slug='freq58').exists(),
         # 질의응답 — 실기 질문만. cert_subject='실기' 로 표시해 두면
         # 프롬프트가 답안 형식(①②③)으로 답하도록 갈린다.
         'qna_items': QnaQuestion.objects.filter(
@@ -608,9 +611,10 @@ def essay_strategy(request, cert_id):
     from django.db.models import Count, Sum
 
     cert = get_object_or_404(Certification, pk=cert_id)
-    # 본문이 정리 자료(빈출 58주제·계산 공식)를 전제로 쓰여 있다. 그 자료가 없는
-    # 자격증에서 열면 남의 수치를 읽게 되므로 목록으로 돌려보낸다.
-    if not GisaEssayNote.objects.filter(certification=cert).exists():
+    # 본문이 '빈출 58주제 정리'를 전제로 쓰여 있다(58주제·계산 공식 18·예상문제 36건
+    # 같은 수치가 문장에 박혀 있다). 그 자료가 없는 자격증에서 열면 남의 수치를 읽게
+    # 되므로 목록으로 돌려보낸다 — 조경은 적산 공식 정리만 있으므로 여기 걸린다.
+    if not GisaEssayNote.objects.filter(certification=cert, slug='freq58').exists():
         return redirect('gisa:essay_list', cert.pk)
 
     qs = GisaEssayQuestion.objects.filter(certification=cert)
@@ -1048,5 +1052,8 @@ def essay_note(request, cert_id, slug):
         'note': note,
         'intro': md.markdown(intro_md, extensions=['tables']),
         'items': items,
+        # 빈도·분류 배지가 있는 노트인지(자연생태복원 빈출 정리) 여부.
+        # 조경 적산 정리처럼 `## 제목` 만 쓰는 노트는 배지와 걸러 보기를 감춘다.
+        'has_freq': any(x['freq'] for x in items),
         'warned_count': sum(1 for x in items if x['warned']),
     })
