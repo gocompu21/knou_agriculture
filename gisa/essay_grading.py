@@ -347,18 +347,31 @@ def grade_answer(question, user_answer, model=None):
 
 
 def grade_session(session, model=None):
-    """세션의 모든 답안을 채점하고 총점을 저장한다."""
+    """세션의 모든 답안을 채점하고 총점을 저장한다.
+
+    **풀면서 '바로 채점'으로 이미 매긴 문항은 건너뛴다** — 답이 그때와 똑같을
+    때만이다(채점한 답안을 `feedback['answer']` 에 남겨 둔다). 같은 답을 두 번
+    채점하면 LLM 호출이 두 배가 되고, 문항 점수가 화면에서 본 것과 달라지는
+    일까지 생긴다. 옛 기록에는 그 키가 없으므로 그때는 다시 채점한다.
+    """
     from django.utils import timezone
 
     total = 0.0
     for att in session.attempts.select_related('question'):
+        done = att.feedback if isinstance(att.feedback, dict) else None
+        if att.graded_at and done and done.get('answer') == att.answer_text:
+            total += att.score
+            continue
         try:
             res = grade_answer(att.question, att.answer_text, model=model)
         except Exception as e:
+            # 실패한 것은 `answer` 를 남기지 않는다 — 다음에 다시 채점해야 한다
             res = {
                 'score': 0.0, 'max': float(att.question.points), 'engine': 'error',
                 'points': [], 'summary': f'채점 실패: {e}',
             }
+        else:
+            res = dict(res, answer=att.answer_text)
         att.ai_score = res['score']
         att.feedback = res
         att.graded_at = timezone.now()

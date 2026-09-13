@@ -17,6 +17,13 @@
     .et-title { flex: 1; font-weight: 700; font-size: 0.95rem;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .et-title small { font-weight: 400; opacity: 0.75; font-size: 0.85em; }
+    /* 바로 채점 — 실전에서 한 문항씩 확인하며 풀 때 켠다 */
+    .et-toggle { display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+        font-size: 0.82rem; font-weight: 600; color: rgba(255,255,255,.9);
+        background: rgba(255,255,255,0.15); border-radius: 14px;
+        padding: 5px 12px; cursor: pointer; white-space: nowrap; }
+    .et-toggle:hover { background: rgba(255,255,255,0.28); }
+    .et-toggle input { accent-color: #74c69d; margin: 0; cursor: pointer; }
     .et-timer { font-variant-numeric: tabular-nums; font-weight: 700;
         font-size: 1rem; padding: 3px 10px; border-radius: 8px;
         background: rgba(255,255,255,0.15); }
@@ -104,6 +111,8 @@
 
     /* 학습 모드 즉시 채점 */
     .eq-check { margin-top: 8px; display: flex; gap: 8px; align-items: center; }
+    /* display:flex 는 [hidden] 을 이긴다 — 함께 두지 않으면 실전에서도 보인다 */
+    .eq-check[hidden] { display: none; }
     .btn-check { background: #2d6a4f; color: #fff; border: 0; border-radius: 6px;
         padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
     .btn-check:disabled { background: #bbb; cursor: default; }
@@ -225,6 +234,13 @@
         {{ session.label }}
         <small>· {{ questions|length }}문항 · {{ total_points }}점</small>
     </div>
+    {% if is_exam %}
+    <!-- 실전이라도 한 문항씩 확인하며 풀고 싶을 때가 있다. 기본은 꺼짐 —
+         켜 두면 실제 시험 감각이 사라진다. 켠 상태는 브라우저가 기억한다 -->
+    <label class="et-toggle" title="문항마다 바로 채점하고 모범답안·해설을 봅니다">
+        <input type="checkbox" id="tgCheck"> 바로 채점
+    </label>
+    {% endif %}
     {% if time_limit %}<div class="et-timer" id="timer">{{ exam_minutes }}:00</div>{% endif %}
     <a class="et-cancel" id="btnCancel" href="{% url 'gisa:essay_list' cert.pk %}">취소</a>
 </div>
@@ -277,12 +293,12 @@
                 <textarea name="answer_{{ q.pk }}" id="ans_{{ q.pk }}"
                           placeholder="답안을 입력하세요">{{ q.draft }}</textarea>
 
-                {% if not is_exam %}
-                <div class="eq-check">
+                <!-- 학습(예상·오답)은 늘 보이고, 실전(기출·모의)은 머리글의
+                     '바로 채점'을 켰을 때만 나타난다 -->
+                <div class="eq-check"{% if is_exam %} hidden{% endif %}>
                     <button type="button" class="btn-check" data-qid="{{ q.pk }}">채점</button>
                 </div>
                 <div class="eq-result" id="res_{{ q.pk }}"></div>
-                {% endif %}
             </div>
         </div>
         {% endfor %}
@@ -411,17 +427,37 @@ function autoGrow(t) {
 }
 document.querySelectorAll('textarea[name^=answer_]').forEach(autoGrow);
 
-/* ---------- 학습 모드 즉시 채점 ---------- */
+/* ---------- 한 문항만 채점하고 확인 ----------
+   학습(예상·오답)은 늘 쓸 수 있고, 실전(기출·모의)은 '바로 채점'을 켜면
+   나타난다. 매긴 점수는 세션에 남으므로 제출할 때 다시 채점하지 않는다 —
+   답을 고치면 그때만 다시 채점된다. */
+{% if is_exam %}
+const tg = document.getElementById('tgCheck');
+const TG_KEY = 'essayCheckMode';
+function tgApply() {
+    document.querySelectorAll('.eq-check').forEach(el => { el.hidden = !tg.checked; });
+}
+try { tg.checked = localStorage.getItem(TG_KEY) === '1'; } catch (e) {}
+tgApply();
+tg.addEventListener('change', () => {
+    try { localStorage.setItem(TG_KEY, tg.checked ? '1' : ''); } catch (e) {}
+    tgApply();
+});
+{% endif %}
+
 document.querySelectorAll('.btn-check').forEach(btn => {
     btn.addEventListener('click', async () => {
         const qid = btn.dataset.qid;
         const ans = document.getElementById(`ans_${qid}`).value.trim();
         const box = document.getElementById(`res_${qid}`);
+        if (!ans) { alert('답안을 먼저 입력해 주세요.'); return; }
         btn.disabled = true;
         btn.textContent = '채점 중…';
         try {
             const fd = new FormData();
             fd.append('answer', ans);
+            // 세션을 함께 보내 점수를 남긴다. 제출 때 그대로 쓰인다
+            fd.append('session', SESSION_ID);
             const r = await fetch(`/gisa/${CERT_ID}/essay/grade-one/${qid}/`, {
                 method: 'POST', headers: {'X-CSRFToken': CSRF}, body: fd
             });

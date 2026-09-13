@@ -535,8 +535,11 @@ def essay_grade_step(request, cert_id, session_id, question_id):
     attempt = get_object_or_404(GisaEssayAttempt,
                                 session=session, question_id=question_id)
 
-    # 이미 채점됐으면 다시 호출하지 않는다 (새로고침·중복 요청 대비)
-    if attempt.graded_at:
+    # 이미 채점됐으면 다시 호출하지 않는다 (새로고침·중복 요청 대비, 그리고
+    # 풀면서 '바로 채점'으로 매겨 둔 문항). **답이 그때와 같을 때만이다** —
+    # 채점해 보고 답을 고쳤는데 옛 점수가 그대로 남으면 안 된다.
+    done = attempt.feedback if isinstance(attempt.feedback, dict) else None
+    if attempt.graded_at and done and done.get('answer') == attempt.answer_text:
         return JsonResponse({'ok': True, 'cached': True,
                              'number': attempt.question.number,
                              'score': attempt.score,
@@ -549,7 +552,7 @@ def essay_grade_step(request, cert_id, session_id, question_id):
                              'error': str(e)}, status=500)
 
     attempt.ai_score = result['score']
-    attempt.feedback = result
+    attempt.feedback = dict(result, answer=attempt.answer_text)
     attempt.graded_at = timezone.now()
     attempt.save(update_fields=['ai_score', 'feedback', 'graded_at'])
 
@@ -960,7 +963,14 @@ def essay_confirm(request, cert_id, session_id):
 @login_required
 @require_POST
 def essay_grade_one(request, cert_id, question_id):
-    """학습 모드에서 문항 하나만 즉시 채점한다."""
+    """문항 하나만 즉시 채점한다.
+
+    학습 모드(예상·오답)뿐 아니라 **기출·모의 풀이 화면의 '바로 채점'** 도 이리
+    온다. `session` 이 함께 오면 그 세션의 답안에 점수를 적어 둔다 — 그래야
+    제출할 때 같은 답을 다시 채점하지 않는다(`grade_session` 이 건너뛴다).
+    한 문항을 확인하며 20문항을 풀면 LLM 호출이 두 배가 되고, 같은 답인데
+    점수가 달라지는 일도 생긴다.
+    """
     cert = get_object_or_404(Certification, pk=cert_id)
     q = get_object_or_404(GisaEssayQuestion, pk=question_id, certification=cert)
     answer = request.POST.get('answer', '').strip()
@@ -969,6 +979,19 @@ def essay_grade_one(request, cert_id, question_id):
         result = grade_answer(q, answer)
     except Exception as e:
         return JsonResponse({'ok': False, 'error': str(e)}, status=500)
+
+    sid = request.POST.get('session')
+    if sid:
+        session = GisaEssaySession.objects.filter(
+            pk=sid, user=request.user, certification=cert,
+            status='progress').first()
+        if session is not None:
+            # 채점한 답안을 함께 남긴다 — 제출할 때 답이 그대로인지 견주는 열쇠다
+            res = dict(result, answer=answer)
+            GisaEssayAttempt.objects.update_or_create(
+                session=session, question=q,
+                defaults={'answer_text': answer, 'ai_score': result['score'],
+                          'feedback': res, 'graded_at': timezone.now()})
 
     return JsonResponse({
         'ok': True,
