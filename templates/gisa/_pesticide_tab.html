@@ -26,6 +26,7 @@
             농약 용기에 상표가 붙은 모습. 병은 **계열과 무관한 중립 색**이다 —
             살충제는 초록, 제초제는 노랑 하고 칠하면 상표를 읽기도 전에 답이 샌다.
             {% endcomment %}
+            <div class="pc-stage">
             <div class="pc-bottle">
                 <svg viewBox="0 0 200 282" aria-hidden="true">
                     <defs>
@@ -151,17 +152,25 @@
                 </div>
             </div>
 
-            <div class="pc-choices" id="pcChoices"></div>
+            {% comment %}
+            보기와 단추는 병 오른쪽에 세운다(잡초 동정과 같은 꼴). 좁은 화면에서는
+            아래로 내려간다. **단추가 카드 안에 있으므로** 다시 그릴 때 리스너가
+            날아간다 — 그래서 눌림은 위임으로 받는다(`_pesticide_js.html`).
+            {% endcomment %}
+            <div class="pc-side">
+                <div class="pc-choices" id="pcChoices"></div>
+                <div class="pc-actions" id="pcActions" hidden>
+                    <button type="button" class="pc-next" id="pcNext">다음 문제 ›</button>
+                    <button type="button" class="pc-sub" id="pcSideList">목록</button>
+                </div>
+            </div>
+            </div>
 
             <div class="pc-ans" id="pcAns" hidden>
                 <div class="pc-verdict" id="pcVerdict"></div>
                 <div id="pcWhy"></div>
                 <div class="pc-note" id="pcNote" hidden></div>
             </div>
-        </div>
-
-        <div class="pc-actions" id="pcActions" hidden>
-            <button type="button" class="pc-next" id="pcNext">다음 문제</button>
         </div>
 
         <div class="pc-stat" id="pcStat"></div>

@@ -36,7 +36,10 @@
         border-radius: 11px; padding: 3px 10px; letter-spacing: -.01em; }
     .pc-freq[hidden] { display: none; }
 
-    .pc-bottle { position: relative; width: 190px; margin: 0 auto; }
+    /* 병과 보기를 나란히 — 잡초 동정과 같은 꼴이다 */
+    .pc-stage { display: flex; gap: 20px; align-items: center; text-align: left; }
+    .pc-side { flex: 1; display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+    .pc-bottle { position: relative; width: 178px; flex: 0 0 178px; }
     .pc-bottle svg { display: block; width: 100%; height: auto;
         filter: drop-shadow(0 3px 6px rgba(20,49,42,.12)); }
 
@@ -86,8 +89,7 @@
         overflow-wrap: anywhere; word-break: normal; }
 
     /* 보기 셋 — 자리가 늘 같아야 눈이 기억한다 */
-    .pc-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px;
-        margin-top: 20px; }
+    .pc-choices { display: flex; flex-direction: column; gap: 9px; }
     .pc-ch { border: 1.5px solid #dbe5df; background: #fff; border-radius: 12px;
         padding: 14px 6px; font-size: 0.94rem; font-weight: 700; color: #2f4a3c;
         letter-spacing: -.02em; cursor: pointer;
@@ -140,8 +142,9 @@
         background: #f7faf8; border-left: 2px solid #a9c4b5; border-radius: 0 8px 8px 0;
         padding: 9px 12px; }
 
-    .pc-actions { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+    .pc-actions { display: flex; gap: 8px; margin-top: 4px; }
     .pc-actions[hidden] { display: none; }   /* flex 는 [hidden] 을 이긴다 */
+    .pc-actions .pc-next { flex: 1; padding-left: 0; padding-right: 0; }
     .pc-next { background: #14312a; color: #fff; border: 0; border-radius: 20px;
         padding: 11px 30px; font-size: 0.88rem; font-weight: 700; cursor: pointer;
         letter-spacing: -.01em; box-shadow: 0 2px 10px -2px rgba(20,49,42,.4);
@@ -219,6 +222,12 @@
         border-radius: 14px; background: #fff;
         box-shadow: 0 1px 2px rgba(20,49,42,.04); }
 
+    /* 좁으면 병 아래로 내려 보낸다 — 나란히 두면 보기 단추가 깔린다 */
+    @media (max-width: 560px) {
+        .pc-stage { flex-direction: column; gap: 16px; }
+        .pc-bottle { flex: 0 0 auto; }
+        .pc-side { width: 100%; }
+    }
     @media (max-width: 480px) {
         .pc-card { padding: 20px 14px; }
         .pc-name { font-size: 1.4rem; }

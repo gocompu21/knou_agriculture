@@ -189,7 +189,7 @@
                 if (d.note) { elNote.textContent = d.note; elNote.hidden = false; }
                 elAns.hidden = false;
                 elActions.hidden = false;
-                document.getElementById('pcNext').textContent = '다음 문제';
+                document.getElementById('pcNext').textContent = '다음 문제 ›';
                 showStat(d.stats);
             })
             .catch(function (e) {
@@ -211,11 +211,18 @@
         elFreq = document.getElementById('pcFreq'); elCh = document.getElementById('pcChoices');
         elAns = document.getElementById('pcAns'); elVerdict = document.getElementById('pcVerdict');
         elWhy = document.getElementById('pcWhy'); elNote = document.getElementById('pcNote');
+        elActions = document.getElementById('pcActions');
     }
 
-    document.getElementById('pcNext').addEventListener('click', function () {
-        rebuild();
-        next();
+    /* 단추가 카드 안에 있어 다시 그릴 때마다 사라진다. 그래서 **위임**으로
+       받는다 — 카드를 갈아 끼워도 눌림이 계속 먹는다. */
+    function goNext() { rebuild(); next(); }
+
+    quiz.addEventListener('click', function (e) {
+        var b = e.target.closest('#pcNext, #pcSideList');
+        if (!b) return;
+        if (b.id === 'pcNext') goNext();
+        else openList();
     });
 
     document.querySelectorAll('.pc-mode').forEach(function (b) {
@@ -227,7 +234,7 @@
             _pc.seen = [];                 // 범위를 바꾸면 처음부터
             document.getElementById('pcList').hidden = true;
             quiz.hidden = false;
-            document.getElementById('pcNext').click();
+            goNext();
         });
     });
 
@@ -270,7 +277,7 @@
         });
     });
 
-    document.getElementById('pcListBtn').addEventListener('click', function () {
+    function openList() {
         var list = document.getElementById('pcList');
         if (!list.dataset.loaded) {
             fetch('/gisa/pesticide/list/').then(function (r) { return r.json(); })
@@ -294,7 +301,8 @@
                 });
         }
         list.hidden = false; quiz.hidden = true;
-    });
+    }
+    document.getElementById('pcListBtn').addEventListener('click', openList);
     document.getElementById('pcListClose').addEventListener('click', function () {
         document.getElementById('pcList').hidden = true;
         quiz.hidden = false;
@@ -309,7 +317,7 @@
               _pc.seen = [];
               document.getElementById('pcList').hidden = true;
               quiz.hidden = false;
-              document.getElementById('pcNext').click();
+              goNext();
           });
     });
 
