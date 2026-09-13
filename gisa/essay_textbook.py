@@ -4,7 +4,8 @@
 재료는 셋이다.
   1. 문항 메타: topic_key(같은 주제 묶음), topic_group(8개 분류), freq_rounds(출제
      회차 수), written_freq(필기 등장 횟수), qtype.
-  2. 정리 자료 `freq58` — 3회 이상 나온 58주제를 정의·이유·사례 세 층으로 쓴 마크다운.
+  2. 정리 자료 — 주제마다 개념·배경·구별을 쓴 마크다운(자연생태복원 `freq58` 58주제 · 식물보호 `topics` 51주제).
+     어느 문항에 붙는지는 글 안의 **주제키**가 정하고, 없으면 제목으로 추측한다(`_pick_rep`).
   3. 정리 자료 `calc` — 계산 18주제의 공식·대입·함정.
 
 주제마다 별(출제 회차 수)·기출 배지(어느 회차)·정리 본문·모범답안·관련 문항을 붙여
@@ -186,11 +187,25 @@ def parse_note_items(cert, note):
         m = re.search(r'\*\*출제\*\*\s*(.+)', body)
         rounds = m.group(1).strip() if m else ''
 
-        rep = _pick_rep(cert, title, rounds, note.slug == 'calc')
+        # **주제키**를 적어 두었으면 그것이 최종이다. `_pick_rep` 는 회차 안에서
+        # 제목과 글자쌍이 가장 많이 겹치는 문항을 고르는 추측이라, 한 회차에 비슷한
+        # 주제가 둘 있거나 **그 주제가 다른 급수에만 있으면** 엉뚱한 문항을 집는다
+        # (식물보호는 51주제 가운데 23개가 한쪽 급수에만 있다).
+        km = re.search(r'^\*\*주제키\*\*\s*([0-9a-f]{8,32})\s*$', body, flags=re.M)
+        if km:
+            key = km.group(1)
+            rep = (GisaEssayQuestion.objects
+                   .filter(certification=cert, topic_key=key)
+                   .order_by('-year', '-round', 'number').first()
+                   or GisaEssayQuestion.objects.filter(topic_key=key)
+                   .order_by('-year', '-round', 'number').first())
+        else:
+            key = None
+            rep = _pick_rep(cert, title, rounds, note.slug == 'calc')
 
         # 「공식 / 대입 / 함정」처럼 라벨이 붙은 문단은 따로 떼어 낸다 —
         # 한 덩어리로 렌더링하면 줄바꿈만으로 구분돼 빽빽해 보인다.
-        body_rest = re.sub(r'^\*\*출제\*\*.*$', '', body, flags=re.M)
+        body_rest = re.sub(r'^\*\*(?:출제|주제키)\*\*.*$', '', body, flags=re.M)
         body_rest = re.sub(r'^\s*---\s*$', '', body_rest, flags=re.M)
         blocks = []
         for lab in ('공식', '대입', '함정', '기출', '유형', '주의', '기준값', '맺음'):
@@ -218,7 +233,7 @@ def parse_note_items(cert, note):
             'title': title.strip(),
             'rounds': rounds,
             'rep_pk': rep.pk if rep else None,
-            'topic_key': rep.topic_key if rep else '',
+            'topic_key': key or (rep.topic_key if rep else ''),
             'blocks': blocks,
             'warned': '⚠️ 요구가 커진 지점' in body,
             # 본문에도 ÷·지수·LaTeX 가 섞여 있다(1.5배 도달 연수 풀이 등).
@@ -413,7 +428,7 @@ def build_textbook(cert):
     except OSError:
         pass
     # 캐시는 묶음 단위다 — 기사로 만든 것을 산업기사가 그대로 쓴다.
-    key = 'essay_tb:v8:%s:%d:%d' % (group_leader(cert.name), qs_all.count(), int(stamp))
+    key = 'essay_tb:v9:%s:%d:%d' % (group_leader(cert.name), qs_all.count(), int(stamp))
     hit = cache.get(key)
     if hit:
         return hit
@@ -443,7 +458,9 @@ def build_textbook(cert):
         freq = max(q.freq_rounds for q in qlist)
         rounds = sorted({(q.year, q.round) for q in qlist}, reverse=True)
         notes_ = by_key.get(tk, {})
-        note = notes_.get('freq58')
+        # 본문은 `calc` 가 아닌 정리 자료에서 온다. 자격증마다 이름이 다르므로
+        # (자연생태복원 `freq58` · 식물보호 `topics`) 슬러그를 박지 않는다.
+        note = next((v for s, v in notes_.items() if s != 'calc'), None)
         calc = notes_.get('calc')
         # 키에 자격증을 붙인다 — 연도-회차-번호만으로는 자격증끼리 충돌한다
         # (식물보호기사 2023-1회 1번에 자연생태복원 제목이 달린 적이 있다).
