@@ -3,6 +3,11 @@
 
 {% block title %}{{ session.label }} 퀴즈{% endblock %}
 
+{% block extra_css_links %}
+<!-- 색연필 첨삭 손글씨 -->
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .site-header, .site-footer { display: none !important; }
@@ -89,28 +94,75 @@
     .qz-btn.sub { background: #eef2ee; color: #40624f; }
     .qz-hint { font-size: 0.75rem; color: #9aa89f; margin-left: auto; }
 
-    /* 채점 결과 */
-    .qz-res { margin-top: 14px; }
+    /* ── 색연필 첨삭 ──────────────────────────────────────────────
+     * 채점하면 답안 칸이 '채점된 답안지'로 바뀐다. 괘선·줄 간격·글꼴을 textarea 와
+     * 똑같이 두고 그 위에 빨간 색연필로 줄을 긋고 X 를 치고 여백에 적는다.
+     * 표시할 자리는 모델이 답안에서 **글자 그대로 옮긴 구절(quote)** 로 찾는다.
+     * 첨삭 글씨가 줄 높이(32px)를 밀어내면 괘선이 어긋나므로 모두 line-height:1 의
+     * inline-block + position:relative 로 띄운다(자리는 차지하되 줄 높이는 그대로). */
+    :root { --pen: rgba(206, 32, 38, .92); --pen-soft: rgba(206, 32, 38, .55); }
+    .pen { font-family: 'Nanum Pen Script', 'SUIT', cursive; color: var(--pen); }
+    .qz-sheet { position: relative; margin-top: 38px; box-sizing: border-box;
+        font-size: 0.95rem; line-height: 32px; padding: 0 12px; min-height: 100px;
+        border: 2px solid #333; border-radius: 3px; white-space: pre-wrap;
+        word-break: break-word; color: #1d1d1d; cursor: text;
+        background-color: #fff;
+        background-image:
+            linear-gradient(#fff, #fff),
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='32'%3E%3Cpath d='M0 31.5h5' stroke='%239a9a9a' stroke-width='1'/%3E%3C/svg%3E");
+        background-size: 100% 2px, 12px 32px;
+        background-position: 0 100%, 12px 0;
+        background-repeat: no-repeat, repeat; }
+    .qz-sheet[hidden] { display: none; }
+    /* 틀림 — 가운데를 가로지르는 색연필 줄. 줄바꿈돼도 조각마다 이어 긋는다 */
+    .mk-wrong { background-image: linear-gradient(transparent 50%, var(--pen) 50%, var(--pen) 57%, transparent 57%);
+        -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+    /* 부족 — 물결 밑줄 */
+    .mk-weak { text-decoration: underline wavy var(--pen); text-decoration-thickness: 1.5px;
+        text-underline-offset: 5px; }
+    /* 맞음 — 반듯한 밑줄 */
+    .mk-good { background-image: linear-gradient(transparent 86%, var(--pen-soft) 86%, var(--pen-soft) 94%, transparent 94%);
+        -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+    .mk-sign, .mk-note { position: relative; color: var(--pen);
+        font-family: 'Nanum Pen Script', 'SUIT', cursive; }
+    .mk-sign { display: inline-block; line-height: 1; white-space: nowrap;
+        font-size: 1.9em; top: -0.08em; margin: 0 1px 0 3px; transform: rotate(-6deg); }
+    /* 첨삭 글은 inline 으로 — 줄 끝에 걸리면 다음 줄로 넘어가야 한다(inline-block 이면
+     * 좁은 화면에서 답안지 오른쪽 테두리 밖으로 삐져나갔다). line-height:0 이라
+     * 글씨가 커도 줄 높이(32px)를 밀어내지 않는다. 대신 회전은 줄 수 없다. */
+    .mk-note { display: inline; line-height: 0; font-size: 1.45em; top: -0.38em;
+        margin-left: 3px; }
+    .mk-miss { display: block; font-family: 'Nanum Pen Script', 'SUIT', cursive;
+        color: var(--pen); font-size: 1.45em; line-height: 32px; white-space: normal; }
+    /* 점수 — 답안지 오른쪽 위 모서리에 걸쳐 크게. 만점은 동그라미를 친다 */
+    /* 글줄을 가리지 않도록 테두리 위로 올린다(시트 margin-top 이 그 자리다) */
+    .mk-score { position: absolute; bottom: calc(100% - 4px); right: 8px; line-height: 1;
+        font-family: 'Nanum Pen Script', 'SUIT', cursive; color: var(--pen);
+        font-size: 2.6rem; transform: rotate(-8deg); background: rgba(255,255,255,.85);
+        padding: 0 6px; border-radius: 6px; pointer-events: none; }
+    .mk-score small { font-size: 0.55em; margin-left: 1px; }
+    .mk-score.ok { border: 2.5px solid var(--pen); border-radius: 52% 46% 55% 43%;
+        padding: 2px 12px 0; background: rgba(255,255,255,.9); }
+    .qz-sheet-tip { font-size: 0.72rem; color: #9aa89f; text-align: right; margin-top: 3px; }
+    .qz-sheet-tip[hidden] { display: none; }
+
+    /* 채점 결과 — 채점위원이 답안지 아래에 적어 준 것처럼 */
+    .qz-res { margin-top: 10px; }
     .qz-res:empty { display: none; }
-    .rs-score { display: flex; align-items: baseline; gap: 8px; font-weight: 800;
-        font-size: 1.15rem; margin-bottom: 8px; }
-    .rs-score small { font-size: 0.78rem; font-weight: 600; color: #888; }
-    .rs-score.ok { color: #1b5e20; }
-    .rs-score.mid { color: #a1651a; }
-    .rs-score.no { color: #c62828; }
     .rs-stale { font-size: 0.78rem; color: #a1651a; font-weight: 600; margin-bottom: 6px; }
-    .rs-pts { background: #fafafa; border-radius: 8px; padding: 8px 12px;
-        font-size: 0.87rem; line-height: 1.7; }
-    .rs-pt { padding: 3px 0 3px 20px; position: relative; }
-    .rs-pt::before { position: absolute; left: 0; font-weight: 700; }
-    .rs-pt.y::before { content: '✓'; color: #1b5e20; }
-    .rs-pt.n::before { content: '✕'; color: #c62828; }
+    .rs-sum { font-family: 'Nanum Pen Script', 'SUIT', cursive; color: var(--pen);
+        font-size: 1.5rem; line-height: 1.3; margin: 2px 0 10px; transform: rotate(-.6deg); }
+    .rs-pts { font-size: 0.87rem; line-height: 1.7; padding: 2px 2px 0; }
+    .rs-pt { padding: 3px 0 3px 26px; position: relative; color: #333; }
+    .rs-pt::before { position: absolute; left: 2px; top: -2px; line-height: 1.2;
+        font-family: 'Nanum Pen Script', 'SUIT', cursive; color: var(--pen); font-size: 1.7em; }
+    .rs-pt.y::before { content: '✓'; }
+    .rs-pt.n::before { content: '✗'; }
     .rs-pt.n { color: #777; }
-    .rs-pt.half::before { content: '△'; color: #e08a00; }
+    .rs-pt.half::before { content: '△'; font-size: 1.3em; top: 1px; }
     .rs-pt.half { color: #555; }
-    .rs-half { color: #e08a00; font-weight: 600; font-size: 0.92em; }
-    .rs-cmt { color: #999; font-size: 0.9em; }
-    .rs-sum { margin-top: 8px; color: #555; font-size: 0.86rem; line-height: 1.7; }
+    .rs-half, .rs-cmt { font-family: 'Nanum Pen Script', 'SUIT', cursive; color: var(--pen);
+        font-size: 1.3em; margin-left: 4px; }
     .rs-lab { margin: 14px 0 6px; font-size: 0.78rem; font-weight: 700; color: #40624f; }
 
     /* 모범답안 — 학습 화면(essay_study)과 같은 조각·같은 꼴 */
@@ -181,8 +233,11 @@
         </div>
         {% if q.text_image %}<img class="qz-img" src="{{ q.text_image|vurl }}" alt="">{% endif %}
         <textarea id="ans_{{ q.pk }}" data-qid="{{ q.pk }}" placeholder="답안을 입력하세요">{{ q.draft }}</textarea>
+        <!-- 채점하면 textarea 대신 이 '채점된 답안지'가 보인다. 누르면 답을 고친다 -->
+        <div class="qz-sheet" id="sheet_{{ q.pk }}" hidden title="누르면 답을 고칩니다"></div>
         <div class="qz-acts">
             <button type="button" class="qz-btn go" data-act="grade">채점받기</button>
+            <button type="button" class="qz-btn sub" data-act="edit" hidden>답 고치기</button>
             <button type="button" class="qz-btn next" data-act="next" hidden>다음 문제 →</button>
             <button type="button" class="qz-btn sub" data-act="skip">건너뛰기</button>
             <span class="qz-hint">Ctrl+Enter 로 채점</span>
@@ -246,8 +301,17 @@ function refresh() {
         if (g) { got += g.score; max += g.max; n++; }
         // 채점 뒤 답을 고쳤으면 다시 채점할 수 있게 단추를 되살린다
         const stale = g && t.value.trim() !== g.answer;
-        c.querySelector('[data-act=grade]').textContent = g ? (stale ? '고친 답 다시 채점' : '다시 채점') : '채점받기';
-        c.querySelector('[data-act=grade]').className = 'qz-btn ' + (g && !stale ? 'sub' : 'go');
+        // 채점했고 답이 그대로면 textarea 대신 첨삭된 답안지를 보인다.
+        // '답 고치기'(editing)를 누르면 textarea 로 돌아간다
+        const sheetOn = !!g && !stale && c.dataset.editing !== '1';
+        document.getElementById('sheet_' + qid).hidden = !sheetOn;
+        t.hidden = sheetOn;
+        const gb = c.querySelector('[data-act=grade]');
+        gb.hidden = !!g && !stale;
+        gb.textContent = stale ? '고친 답 다시 채점' : '채점받기';
+        const eb = c.querySelector('[data-act=edit]');
+        eb.hidden = !g || stale;
+        eb.textContent = sheetOn ? '답 고치기' : '첨삭 보기';
         c.querySelector('[data-act=next]').hidden = !g || i === total - 1;
         c.querySelector('[data-act=skip]').hidden = !!g || i === total - 1;
         const st = c.querySelector('.rs-stale');
@@ -273,9 +337,59 @@ function show(i, focus) {
     if (focus && !graded[cards[cur].dataset.qid]) t.focus({preventScroll: true});
 }
 
+/* ---------- 색연필 첨삭 답안지 ----------
+   답안 글에서 모델이 옮겨 적은 구절(quote)을 찾아 줄을 긋는다. 먼저 글자 그대로
+   찾고, 안 되면 띄어쓰기를 무시하고 찾는다. 이미 표시한 자리와 겹치면 건너뛴다. */
+function findQuote(text, quote, taken) {
+    const free = (s, e) => taken.every(t => e <= t.s || s >= t.e);
+    let from = 0, i;
+    while ((i = text.indexOf(quote, from)) >= 0) {
+        if (free(i, i + quote.length)) return [i, i + quote.length];
+        from = i + 1;
+    }
+    const chars = Array.from(quote.replace(/\s+/g, ''))
+        .map(ch => ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    if (!chars.length) return null;
+    const re = new RegExp(chars.join('\\s*'), 'g');
+    let m;
+    while ((m = re.exec(text))) {
+        if (free(m.index, m.index + m[0].length)) return [m.index, m.index + m[0].length];
+        re.lastIndex = m.index + 1;
+    }
+    return null;
+}
+
+function renderSheet(qid, g) {
+    const text = g.answer || '';
+    const spans = [];
+    (g.marks || []).forEach(mk => {
+        const at = findQuote(text, mk.quote || '', spans);
+        if (at) spans.push({s: at[0], e: at[1], mk});
+    });
+    spans.sort((a, b) => a.s - b.s);
+    let h = '', pos = 0;
+    spans.forEach(sp => {
+        h += esc(text.slice(pos, sp.s));
+        const k = sp.mk.kind;
+        h += `<span class="mk-${k}">${esc(text.slice(sp.s, sp.e))}</span>`;
+        if (k === 'wrong') h += '<span class="mk-sign">✗</span>';
+        else if (k === 'good') h += '<span class="mk-sign">✓</span>';
+        if (sp.mk.note) h += `<span class="mk-note">${esc(sp.mk.note)}</span>`;
+        pos = sp.e;
+    });
+    h += esc(text.slice(pos));
+    if ((g.missing || []).length) {
+        h += `<span class="mk-miss">↳ 빠짐: ${g.missing.map(esc).join(', ')}</span>`;
+    }
+    const sc = Math.round(g.score * 100) / 100, mx = Math.round(g.max * 100) / 100;
+    h += `<span class="mk-score ${cls(g)}">${sc}<small>/${mx}</small></span>`;
+    document.getElementById('sheet_' + qid).innerHTML = h;
+}
+
 function renderResult(qid, g) {
-    let h = `<div class="rs-score ${cls(g)}">${g.score} / ${g.max}점</div>`;
-    h += `<div class="rs-stale" hidden>답을 고쳤습니다 — 아래 점수는 고치기 전 답의 것입니다.</div>`;
+    renderSheet(qid, g);
+    let h = `<div class="rs-stale" hidden>답을 고쳤습니다 — 아래 채점은 고치기 전 답의 것입니다.</div>`;
+    if (g.summary) h += `<div class="rs-sum">${esc(g.summary)}</div>`;
     if ((g.points || []).length) {
         h += '<div class="rs-pts">';
         g.points.forEach(p => {
@@ -287,7 +401,6 @@ function renderResult(qid, g) {
         });
         h += '</div>';
     }
-    if (g.summary) h += `<div class="rs-sum">${esc(g.summary)}</div>`;
     // 모범답안·해설은 서버가 학습 화면과 같은 조각으로 렌더링해 보낸다
     if (g.answer_html) h += `<div class="rs-lab">모범답안</div><div class="ans">${g.answer_html}</div>`;
     const box = document.getElementById('res_' + qid);
@@ -315,7 +428,9 @@ async function grade(card) {
         const d = await r.json();
         if (!d.ok) throw new Error(d.error || '채점 실패');
         graded[qid] = {score: d.score, max: d.max, points: d.points, summary: d.summary,
+                       marks: d.marks, missing: d.missing,
                        answer_html: d.answer_html, answer: ans};
+        delete card.dataset.editing;              // 채점하면 첨삭된 답안지로
         renderResult(qid, graded[qid]);
         _dirty = false;                           // grade-one 이 답도 함께 저장했다
     } catch (e) {
@@ -332,6 +447,16 @@ async function grade(card) {
 
 cards.forEach((c, i) => {
     c.querySelector('[data-act=grade]').addEventListener('click', () => grade(c));
+    // 답 고치기 ↔ 첨삭 보기. 첨삭 답안지를 눌러도 고치기로 들어간다
+    const editToggle = () => {
+        const t = c.querySelector('textarea');
+        if (c.dataset.editing === '1') delete c.dataset.editing;
+        else c.dataset.editing = '1';
+        refresh();
+        if (c.dataset.editing === '1') { autoGrow(t); t.focus({preventScroll: true}); }
+    };
+    c.querySelector('[data-act=edit]').addEventListener('click', editToggle);
+    c.querySelector('.qz-sheet').addEventListener('click', editToggle);
     c.querySelector('[data-act=next]').addEventListener('click', () => show(i + 1, true));
     c.querySelector('[data-act=skip]').addEventListener('click', () => show(i + 1, true));
     c.querySelector('textarea').addEventListener('keydown', e => {

@@ -166,6 +166,42 @@ GRADE_SYSTEM = (
     "- 채점 기준표에 없는 내용을 지어내지 않는다.\n"
 )
 
+# 첨삭 — 채점위원이 빨간 색연필로 답안지에 표시하듯. 퀴즈 화면이 답안 글자 위에
+# 겹쳐 그리므로 **답안에서 글자 그대로 옮긴 구절(quote)** 이 닻이다. 점수에는 쓰지 않는다.
+MARK_RULES = (
+    "\n첨삭(marks·missing) — 채점위원이 빨간 색연필로 답안지에 표시하듯 적는다.\n"
+    "- quote 는 [수험자 답안]에서 **글자 그대로 복사한** 구절이어야 한다. 고쳐 쓰거나\n"
+    "  요약하지 않는다. 낱말이나 짧은 구(20자 이내)를 고른다.\n"
+    "- kind: wrong = 틀린 내용(줄을 긋고 X), weak = 방향은 맞으나 부족·모호(물결 밑줄),\n"
+    "  good = 점수를 받은 핵심 용어(밑줄과 ✓).\n"
+    "- note 는 그 옆 여백에 손으로 적는 짧은 첨삭, 12자 이내 명사구다\n"
+    "  (예: '광보상점 아님', '근거 부족', '단위 누락', '정답'). good 은 비워도 된다.\n"
+    "- 표시는 모두 합쳐 6개 이내로, 틀린 곳부터 고른다.\n"
+    "- missing: 답안에 아예 없는 핵심 내용을 12자 이내로 적는다. 없으면 빈 목록.\n"
+)
+
+
+def _clean_marks(marks, missing, user_answer):
+    """모델이 준 첨삭을 다듬는다 — 답안에서 찾을 수 없는 구절은 버리고 개수를 자른다.
+
+    띄어쓰기만 다른 구절은 살린다(화면이 공백을 무시하고 찾는다). 글자가 다르면
+    줄을 그을 자리가 없으므로 버린다.
+    """
+    ans = user_answer or ''
+    squash = re.sub(r'\s+', '', ans)
+    out = []
+    for m in marks or []:
+        quote = (getattr(m, 'quote', '') or '').strip()
+        kind = (getattr(m, 'kind', '') or '').strip()
+        if not quote or kind not in ('wrong', 'weak', 'good'):
+            continue
+        if quote not in ans and re.sub(r'\s+', '', quote) not in squash:
+            continue
+        out.append({'quote': quote[:60], 'kind': kind,
+                    'note': (getattr(m, 'note', '') or '').strip()[:20]})
+    miss = [str(x).strip()[:20] for x in (missing or []) if str(x).strip()]
+    return out[:6], miss[:3]
+
 
 def _exam_header(question):
     """어느 시험의 문항인지 한 줄로 알린다.
@@ -232,6 +268,11 @@ def grade_calc_by_llm(question, user_answer, model=None):
     max_score = float(question.points)
     model_answer = (question.answer_text or '\n'.join(question.answer_items or ''))
 
+    class Mark(BaseModel):
+        quote: str = Field(description="수험자 답안에서 글자 그대로 복사한 구절")
+        kind: str = Field(description="wrong | weak | good")
+        note: str = Field(description="여백 첨삭, 12자 이내")
+
     class CalcResult(BaseModel):
         answer_correct: bool = Field(description="최종 답이 모두 맞으면 true")
         answer_score: float = Field(
@@ -240,6 +281,8 @@ def grade_calc_by_llm(question, user_answer, model=None):
         process_score: float = Field(
             description=f"풀이 과정에 주는 점수. 0 이상 {max_score * 0.3:g}점 이하")
         comment: str = Field(description="채점 근거 한 문장")
+        marks: list[Mark] = Field(default_factory=list, description="답안 위 첨삭, 6개 이내")
+        missing: list[str] = Field(default_factory=list, description="빠진 핵심, 12자 이내")
 
     prompt = (
         f"{_exam_header(question)}\n\n"
@@ -251,7 +294,7 @@ def grade_calc_by_llm(question, user_answer, model=None):
     client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
         model=model or settings.GEMINI_ESSAY_GRADE_MODEL,
-        contents=[CALC_SYSTEM, prompt],
+        contents=[CALC_SYSTEM + MARK_RULES, prompt],
         config={
             'response_mime_type': 'application/json',
             'response_schema': CalcResult,
@@ -266,6 +309,7 @@ def grade_calc_by_llm(question, user_answer, model=None):
         else max(0.0, min(a_cap, float(r.answer_score)))
     p_got = max(0.0, min(p_cap, float(r.process_score)))
     score = round(min(a_got + p_got, max_score), 2)
+    marks, missing = _clean_marks(r.marks, r.missing, user_answer)
 
     return {
         'score': score, 'max': max_score, 'engine': 'llm-calc',
@@ -278,6 +322,7 @@ def grade_calc_by_llm(question, user_answer, model=None):
              'comment': '' if r.process_ok else '과정이 제시되지 않았거나 오류가 있습니다'},
         ],
         'summary': r.comment,
+        'marks': marks, 'missing': missing,
     }
 
 
@@ -300,14 +345,21 @@ def grade_by_llm(question, user_answer, model=None):
                         "온전하면 배점 전부, 반쯤 맞으면 절반 식으로 매긴다")
         comment: str = Field(description="한 문장 이내 근거. 인정이면 빈 문자열도 가능")
 
+    class Mark(BaseModel):
+        quote: str = Field(description="수험자 답안에서 글자 그대로 복사한 구절")
+        kind: str = Field(description="wrong | weak | good")
+        note: str = Field(description="여백 첨삭, 12자 이내")
+
     class GradeResult(BaseModel):
         points: list[PointResult]
         summary: str = Field(description="빠진 내용 위주의 총평 두 문장 이내")
+        marks: list[Mark] = Field(default_factory=list, description="답안 위 첨삭, 6개 이내")
+        missing: list[str] = Field(default_factory=list, description="빠진 핵심, 12자 이내")
 
     client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
         model=model or settings.GEMINI_ESSAY_GRADE_MODEL,
-        contents=[GRADE_SYSTEM, _grade_prompt(question, user_answer, rubric)],
+        contents=[GRADE_SYSTEM + MARK_RULES, _grade_prompt(question, user_answer, rubric)],
         config={
             'response_mime_type': 'application/json',
             'response_schema': GradeResult,
@@ -347,6 +399,7 @@ def grade_by_llm(question, user_answer, model=None):
     # 균등 배분에서 생기는 반올림 오차 보정 — 전부 맞았으면 만점
     if all_matched:
         got = float(question.points)
+    marks, missing = _clean_marks(parsed.marks, parsed.missing, user_answer)
 
     return {
         'score': round(min(got, float(question.points)), 2),
@@ -354,6 +407,7 @@ def grade_by_llm(question, user_answer, model=None):
         'engine': 'llm',
         'points': results,
         'summary': parsed.summary,
+        'marks': marks, 'missing': missing,
     }
 
 

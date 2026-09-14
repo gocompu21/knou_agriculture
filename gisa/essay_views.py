@@ -472,6 +472,7 @@ def _quiz_state(session):
         state[a.question_id] = {
             'score': a.score, 'max': float(a.question.points),
             'points': fb.get('points') or [], 'summary': fb.get('summary') or '',
+            'marks': fb.get('marks') or [], 'missing': fb.get('missing') or [],
             'answer_html': _essay_answer_html(a.question),
         }
     return state
@@ -1055,6 +1056,9 @@ def essay_grade_one(request, cert_id, question_id):
         'engine': result['engine'],
         'points': result['points'],
         'summary': result['summary'],
+        # 첨삭 — 퀴즈 화면이 답안 위에 색연필로 겹쳐 그린다
+        'marks': result.get('marks') or [],
+        'missing': result.get('missing') or [],
         'answer_items': q.answer_items,
         'answer_text': q.answer_text,
         # 해설에는 표·도해가 들어가므로 서버에서 렌더링해 보낸다.
