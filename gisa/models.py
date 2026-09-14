@@ -361,6 +361,7 @@ class GisaEssaySession(models.Model):
     MODE_CHOICES = [
         ('online', '온라인 입력'),
         ('paper', '시험지 사진'),
+        ('quiz', '퀴즈'),
     ]
     STATUS_CHOICES = [
         ('progress', '진행중'),

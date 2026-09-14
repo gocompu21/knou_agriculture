@@ -84,6 +84,9 @@
     .ec-btn.sub:hover { background: #dde7e0; }
     .ec-btn.study { background: #fff; color: #40624f; border: 1px solid #cbd8d0; }
     .ec-btn.study:hover { background: #f2f7f4; }
+    /* 테두리 대신 inset 그림자 — border 를 주면 옆 단추보다 2px 높아진다 */
+    .ec-btn.quiz { background: #fff; color: #2d6a4f; box-shadow: inset 0 0 0 1px #2d6a4f; }
+    .ec-btn.quiz:hover { background: #eef6f1; }
     .ec-freq { border-left: 4px solid #d9a441; }
     .ec-freq .ec-title { color: #a1651a; }
     .ec-note { border-left: 4px solid #2d4a6b; }
@@ -326,6 +329,7 @@
     .mode-pred { background: #f2f2f2; color: #666; }
     .ht-paper { display: inline-block; margin-top: 3px; font-size: 0.68rem; font-weight: 600;
         padding: 1px 7px; border-radius: 7px; background: #fff3e0; color: #a1651a; }
+    .ht-quiz { background: #e7f3ec; color: #2d6a4f; }
     .ht-label { font-weight: 600; color: #222; white-space: nowrap; }
     .ht-score { font-size: 1.15rem; font-weight: 800; color: #999; font-variant-numeric: tabular-nums; }
     .ht-score.good { color: #1b5e20; }
@@ -582,7 +586,7 @@
     <!-- ══════════ 기출고사 ══════════ -->
     <div id="tab-solve" class="tab-content{% if active_tab == 'solve' %} active{% endif %}">
         <div class="sec-title">기출문제
-            <small>풀기 = 실전 {{ exam_minutes }}분 화면 입력 · 시험지 = 인쇄해서 손으로 풀고 사진 제출</small>
+            <small>풀기 = 실전 {{ exam_minutes }}분 화면 입력 · 시험지 = 인쇄해서 손으로 풀고 사진 제출 · 퀴즈 = 한 문제씩 풀고 바로 채점</small>
         </div>
         {% for y in round_years %}
         <div class="year-group">
@@ -606,6 +610,7 @@
                     <div class="ec-actions">
                         <a class="ec-btn primary" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}">풀기</a>
                         <a class="ec-btn sub" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}&mode=paper">시험지</a>
+                        <a class="ec-btn quiz" href="{% url 'gisa:essay_take' cert.pk %}?source=기출&year={{ r.year }}&round={{ r.round }}&mode=quiz">퀴즈</a>
                     </div>
                 </div>
                 {% endfor %}
@@ -766,7 +771,7 @@
                     <tr id="hs-{{ s.pk }}" data-ts="{{ s.started_at|date:'c' }}">
                         <td>
                             <span class="session-mode mode-{% if s.source == '모의' %}mock{% elif s.source == '오답' %}wrong{% elif s.source == '예상' %}pred{% else %}exam{% endif %}">{% if s.source == '기출' %}기출고사{% elif s.source == '모의' %}모의고사{% elif s.source == '오답' %}오답재풀이{% else %}예상문제{% endif %}</span>
-                            {% if s.mode == 'paper' %}<span class="ht-paper" title="시험지 사진">시험지</span>{% endif %}
+                            {% if s.mode == 'paper' %}<span class="ht-paper" title="시험지 사진">시험지</span>{% elif s.mode == 'quiz' %}<span class="ht-paper ht-quiz" title="한 문제씩 채점">퀴즈</span>{% endif %}
                         </td>
                         <td class="ht-label">{% if s.source == '기출' %}{{ s.label }}{% elif s.source == '예상' %}{{ s.section }}{% else %}{{ s.attempts.count }}문항{% endif %}</td>
                         <td>

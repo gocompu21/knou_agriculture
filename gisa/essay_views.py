@@ -85,7 +85,8 @@ def essay_list(request, cert_id):
         stale = timezone.now() - timedelta(days=1)
         (GisaEssaySession.objects
          .filter(user=request.user, certification=cert, status='progress',
-                 mode='online', started_at__lt=stale, attempts__isnull=True)
+                 mode__in=('online', 'quiz'), started_at__lt=stale,
+                 attempts__isnull=True)
          .delete())
         # 모의·오답 세션은 문항을 빈 답안으로 붙여 두므로 답이 하나도 없는지 본다
         for s in GisaEssaySession.objects.filter(
@@ -356,6 +357,8 @@ def essay_take(request, cert_id):
     year = request.GET.get('year')
     round_ = request.GET.get('round')
     mode = request.GET.get('mode', 'online')
+    if mode not in ('online', 'paper', 'quiz'):
+        mode = 'online'
 
     year = int(year) if year else None
     round_ = int(round_) if round_ else None
@@ -422,6 +425,16 @@ def essay_take(request, cert_id):
     exam_minutes = (_info or {}).get('essay_minutes', 90)
     time_limit = exam_minutes * 60 if source in ('기출', '모의') else 0
 
+    if session.mode == 'quiz':
+        return render(request, 'gisa/essay_quiz.html', {
+            'cert': cert,
+            'session': session,
+            'questions': questions,
+            'total_points': total_points,
+            'seq_numbers': source in ('모의', '오답'),
+            'quiz_state': _quiz_state(session),
+        })
+
     return render(request, 'gisa/essay_take.html', {
         'cert': cert,
         'session': session,
@@ -433,6 +446,26 @@ def essay_take(request, cert_id):
         # 여러 회차를 섞은 세트는 원래 문항 번호가 겹치므로 순번으로 보여 준다
         'seq_numbers': source in ('모의', '오답'),
     })
+
+
+def _quiz_state(session):
+    """퀴즈를 이어 올 때 이미 채점한 문항의 결과를 되살린다.
+
+    채점한 답과 지금 답이 같은 것만 — 채점 뒤 답을 고쳤으면 다시 채점해야 한다
+    (`essay_grade_step` 과 같은 규칙).
+    """
+    state = {}
+    for a in session.attempts.select_related('question'):
+        fb = a.feedback if isinstance(a.feedback, dict) else None
+        if not (a.graded_at and fb and a.answer_text
+                and fb.get('answer') == a.answer_text):
+            continue
+        state[a.question_id] = {
+            'score': a.score, 'max': float(a.question.points),
+            'points': fb.get('points') or [], 'summary': fb.get('summary') or '',
+            'answer_html': _essay_answer_html(a.question),
+        }
+    return state
 
 
 @login_required
@@ -1018,6 +1051,8 @@ def essay_grade_one(request, cert_id, question_id):
         # 해설에는 표·도해가 들어가므로 서버에서 렌더링해 보낸다.
         # 브라우저에서 escape 하면 표는 파이프 문자로, 그림은 태그 글자로 보인다
         'reference_html': str(qtext(q.reference)) if q.reference else '',
+        # 퀴즈 화면은 학습 화면과 같은 조각으로 모범답안·해설을 그린다
+        'answer_html': _essay_answer_html(q),
     })
 
 

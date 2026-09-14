@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+{% load gisa_filters %}
+
+{% block title %}{{ session.label }} 퀴즈{% endblock %}
+
+{% block extra_css %}
+<style>
+    .site-header, .site-footer { display: none !important; }
+    main { padding: 0 !important; }
+    body { background: #f4f7f5 !important; }
+
+    .qz-header { position: sticky; top: 0; z-index: 100; background: #1b4332; color: #fff;
+        padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+    .qz-title { flex: 1; font-weight: 700; font-size: 0.95rem; min-width: 0;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .qz-title small { font-weight: 400; opacity: .75; font-size: .85em; }
+    .qz-score { flex-shrink: 0; font-size: 0.82rem; font-weight: 700; white-space: nowrap;
+        background: rgba(255,255,255,.15); border-radius: 14px; padding: 5px 12px;
+        font-variant-numeric: tabular-nums; }
+    .qz-cancel { flex-shrink: 0; color: rgba(255,255,255,.9); text-decoration: none;
+        background: rgba(255,255,255,.15); border-radius: 14px; padding: 5px 13px;
+        font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+    .qz-cancel:hover { background: rgba(255,255,255,.28); }
+
+    .qz-wrap { max-width: 820px; margin: 0 auto; padding: 14px 16px 90px; }
+
+    /* 문항 번호 칩 — 지금 문항·채점 결과를 한눈에. 눌러서 옮겨 간다 */
+    .qz-nav { display: flex; gap: 6px; overflow-x: auto; padding: 5px 5px 10px;
+        scrollbar-width: none; }
+    .qz-nav::-webkit-scrollbar { display: none; }
+    .qz-chip { flex-shrink: 0; min-width: 32px; height: 32px; padding: 0 6px;
+        border-radius: 16px; border: 1.5px solid #cfdad2; background: #fff; color: #557;
+        font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: inherit;
+        font-variant-numeric: tabular-nums; }
+    .qz-chip.typed { border-color: #8fa396; color: #1b4332; }
+    .qz-chip.ok { background: #2d6a4f; border-color: #2d6a4f; color: #fff; }
+    .qz-chip.mid { background: #e0a030; border-color: #e0a030; color: #fff; }
+    .qz-chip.no { background: #c62828; border-color: #c62828; color: #fff; }
+    .qz-chip.cur { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1b4332; }
+
+    .qz-bar { height: 5px; background: #dde6e0; border-radius: 3px; overflow: hidden;
+        margin-bottom: 14px; }
+    .qz-bar i { display: block; height: 100%; width: 0; background: #2d6a4f;
+        transition: width .3s; }
+
+    .qz-card { background: #fff; border: 1px solid #dfe5e0; border-radius: 12px;
+        padding: 18px 18px 16px; }
+    .qz-card[hidden] { display: none; }
+    .qz-meta { font-size: 0.75rem; color: #8fa396; margin-bottom: 8px; }
+
+    /* 문항 머리 — 풀기 화면(essay_take)과 같은 꼴 */
+    .sq-head { position: relative; margin: 0 0 10px 0; padding-left: 20px; text-indent: -20px; }
+    .sq-head::before { content: ''; float: right; width: 52px; height: 1.4em; }
+    .sq-no { font-weight: 700; font-size: 0.95rem; }
+    .sq-text { font-size: 0.92rem; line-height: 1.7; color: #111; }
+    .sq-pts { position: absolute; top: 0; right: 0; text-indent: 0;
+        font-size: 0.75rem; color: #888; white-space: nowrap; }
+    .sq-head .q-box { border-width: 1.5px !important; border-radius: 3px !important;
+        margin-left: -20px !important; margin-right: 0 !important;
+        width: calc(100% + 20px); max-width: none !important;
+        clear: both; box-sizing: border-box; text-indent: 0; }
+    .qz-img { display: block; max-width: min(100%, 420px); margin: 8px 0; }
+
+    .qz-card textarea { width: 100%; box-sizing: border-box; font-family: inherit;
+        font-size: 0.95rem; line-height: 28px; padding: 6px 12px; min-height: 100px;
+        border: 2px solid #333; border-radius: 4px; resize: none; overflow: hidden; }
+    .qz-card textarea:focus { outline: 0; border-color: #2d6a4f;
+        box-shadow: 0 0 0 3px rgba(45,106,79,.12); }
+
+    .qz-acts { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+    .qz-acts[hidden] { display: none; }
+    .qz-btn { border: 0; border-radius: 8px; padding: 9px 18px; font-size: 0.88rem;
+        font-weight: 700; cursor: pointer; font-family: inherit; }
+    .qz-btn:disabled { opacity: .5; cursor: default; }
+    .qz-btn.go { background: #1b4332; color: #fff; }
+    .qz-btn.go:hover:not(:disabled) { background: #2d6a4f; }
+    .qz-btn.next { background: #d9a441; color: #1b1b1b; }
+    .qz-btn.sub { background: #eef2ee; color: #40624f; }
+    .qz-hint { font-size: 0.75rem; color: #9aa89f; margin-left: auto; }
+
+    /* 채점 결과 */
+    .qz-res { margin-top: 14px; }
+    .qz-res:empty { display: none; }
+    .rs-score { display: flex; align-items: baseline; gap: 8px; font-weight: 800;
+        font-size: 1.15rem; margin-bottom: 8px; }
+    .rs-score small { font-size: 0.78rem; font-weight: 600; color: #888; }
+    .rs-score.ok { color: #1b5e20; }
+    .rs-score.mid { color: #a1651a; }
+    .rs-score.no { color: #c62828; }
+    .rs-stale { font-size: 0.78rem; color: #a1651a; font-weight: 600; margin-bottom: 6px; }
+    .rs-pts { background: #fafafa; border-radius: 8px; padding: 8px 12px;
+        font-size: 0.87rem; line-height: 1.7; }
+    .rs-pt { padding: 3px 0 3px 20px; position: relative; }
+    .rs-pt::before { position: absolute; left: 0; font-weight: 700; }
+    .rs-pt.y::before { content: '✓'; color: #1b5e20; }
+    .rs-pt.n::before { content: '✕'; color: #c62828; }
+    .rs-pt.n { color: #777; }
+    .rs-pt.half::before { content: '△'; color: #e08a00; }
+    .rs-pt.half { color: #555; }
+    .rs-half { color: #e08a00; font-weight: 600; font-size: 0.92em; }
+    .rs-cmt { color: #999; font-size: 0.9em; }
+    .rs-sum { margin-top: 8px; color: #555; font-size: 0.86rem; line-height: 1.7; }
+    .rs-lab { margin: 14px 0 6px; font-size: 0.78rem; font-weight: 700; color: #40624f; }
+
+    /* 모범답안 — 학습 화면(essay_study)과 같은 조각·같은 꼴 */
+    .ans { background: #f7faf8; border-left: 3px solid #2d6a4f;
+        border-radius: 0 8px 8px 0; padding: 12px 16px; text-indent: 0; }
+    .ans-item { font-size: 0.9rem; line-height: 1.8; color: #1f3d30; padding: 2px 0; }
+    .ans-text { font-size: 0.88rem; line-height: 1.75; color: #333; margin-top: 6px; overflow-x: auto; }
+    .ans-text table { border-collapse: collapse; font-size: 0.86em; }
+    .ans-text th, .ans-text td { border: 1px solid #ccd6cf; padding: 3px 9px; }
+    .ans-text th { background: #eaf1ec; }
+    .sq-img { max-width: min(100%, 420px); display: block; margin: 6px 0; }
+    .ans-ref { margin-top: 10px; }
+    .ans-ref summary { cursor: pointer; font-size: 0.82rem; color: #40624f; font-weight: 600; }
+    .ans-ref .body { margin-top: 8px; font-size: 0.86rem; line-height: 1.85; color: #444;
+        background: #fff; border: 1px solid #e2e8e4; border-radius: 6px; padding: 12px 14px; }
+    .ans-ref .body table { border-collapse: collapse; font-size: 0.92em; margin: 8px 0; }
+    .ans-ref .body th, .ans-ref .body td { border: 1px solid #ccd6cf; padding: 4px 10px; }
+    .ans-ref .body th { background: #eaf1ec; }
+    .ans-ref .body .q-svg { text-align: center; }
+    .ans-ref .body .q-svg svg { max-width: 100%; height: auto; }
+
+    /* 아래 막대 — 이전/다음, 끝내기 */
+    .qz-foot { position: fixed; bottom: 0; left: 0; right: 0; z-index: 90; background: #fff;
+        border-top: 1px solid #e3e8e4; padding: 9px 16px; display: flex; gap: 8px;
+        align-items: center; justify-content: center; }
+    .qz-foot .qz-btn { padding: 9px 14px; white-space: nowrap; }
+    .qz-finish { background: #1b4332; color: #fff; border-radius: 20px !important;
+        padding: 9px 22px !important; }
+
+    .qz-overlay { position: fixed; inset: 0; z-index: 200; display: none;
+        background: rgba(255,255,255,.96); align-items: center; justify-content: center;
+        padding: 20px; text-align: center; }
+    .qz-overlay.show { display: flex; }
+    .qz-overlay b { display: block; font-size: 1.05rem; color: #1b4332; margin-bottom: 6px; }
+    .qz-overlay span { font-size: 0.86rem; color: #777; }
+
+    @media (max-width: 480px) {
+        .qz-card { padding: 14px 12px; border-radius: 10px; }
+        .qz-hint { display: none; }
+        .qz-title small { display: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="qz-header">
+    <div class="qz-title">{{ session.label }} 퀴즈 <small>· {{ questions|length }}문항 · {{ total_points }}점</small></div>
+    <div class="qz-score" id="qzScore">0 / 0점</div>
+    <a class="qz-cancel" id="qzCancel" href="{% url 'gisa:essay_list' cert.pk %}?tab=solve">나가기</a>
+</div>
+
+<div class="qz-wrap">
+    <div class="qz-nav" id="qzNav">
+        {% for q in questions %}
+        <button type="button" class="qz-chip" data-i="{{ forloop.counter0 }}">{% if seq_numbers %}{{ forloop.counter }}{% else %}{{ q.number }}{% endif %}</button>
+        {% endfor %}
+    </div>
+    <div class="qz-bar"><i id="qzBar"></i></div>
+
+    {% for q in questions %}
+    <div class="qz-card" data-qid="{{ q.pk }}" data-max="{{ q.points }}" hidden>
+        <div class="qz-meta">{{ forloop.counter }} / {{ questions|length }} 문제 · {{ q.get_qtype_display }}</div>
+        <div class="sq-head">
+            <span class="sq-no">{% if seq_numbers %}{{ forloop.counter }}{% else %}{{ q.number }}{% endif %}.</span>
+            <span class="sq-text">{{ q.text|qtext }}</span>
+            <span class="sq-pts">({{ q.points }}점)</span>
+        </div>
+        {% if q.text_image %}<img class="qz-img" src="{{ q.text_image|vurl }}" alt="">{% endif %}
+        <textarea id="ans_{{ q.pk }}" data-qid="{{ q.pk }}" placeholder="답안을 입력하세요">{{ q.draft }}</textarea>
+        <div class="qz-acts">
+            <button type="button" class="qz-btn go" data-act="grade">채점받기</button>
+            <button type="button" class="qz-btn next" data-act="next" hidden>다음 문제 →</button>
+            <button type="button" class="qz-btn sub" data-act="skip">건너뛰기</button>
+            <span class="qz-hint">Ctrl+Enter 로 채점</span>
+        </div>
+        <div class="qz-res" id="res_{{ q.pk }}"></div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="qz-foot">
+    <button type="button" class="qz-btn sub" id="qzPrev">◀ 이전</button>
+    <button type="button" class="qz-btn qz-finish" id="qzFinish">결과 보기</button>
+    <button type="button" class="qz-btn sub" id="qzNext">다음 ▶</button>
+</div>
+
+<div class="qz-overlay" id="qzOverlay"><div><b id="qzOvTitle">결과를 정리하는 중입니다</b><span id="qzOvNote">창을 닫지 마세요.</span></div></div>
+
+{{ quiz_state|json_script:"quiz-state" }}
+<script>
+(function () {
+const CERT_ID = {{ cert.pk }};
+const SESSION_ID = {{ session.pk }};
+const CSRF = document.querySelector('[name=csrfmiddlewaretoken]').value;
+const cards = Array.from(document.querySelectorAll('.qz-card'));
+const chips = Array.from(document.querySelectorAll('.qz-chip'));
+const total = cards.length;
+// qid → {score, max, points, summary, answer_html, answer}
+const graded = {};
+const saved = JSON.parse(document.getElementById('quiz-state').textContent || '{}');
+Object.keys(saved).forEach(k => {
+    const t = document.getElementById('ans_' + k);
+    graded[k] = Object.assign({}, saved[k], {answer: t ? t.value.trim() : ''});
+});
+let cur = 0;
+
+function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s == null ? '' : String(s);
+    return d.innerHTML;
+}
+function autoGrow(t) {
+    t.style.height = 'auto';
+    t.style.height = Math.max(100, t.scrollHeight + 4) + 'px';
+}
+function cls(g) {
+    const pct = g.max ? g.score / g.max : 0;
+    return pct >= 0.999 ? 'ok' : (pct > 0 ? 'mid' : 'no');
+}
+
+/* ---------- 화면 갱신 ---------- */
+function refresh() {
+    let got = 0, max = 0, n = 0;
+    cards.forEach((c, i) => {
+        const qid = c.dataset.qid, g = graded[qid];
+        const t = document.getElementById('ans_' + qid);
+        const chip = chips[i];
+        chip.className = 'qz-chip' + (g ? ' ' + cls(g) : (t.value.trim() ? ' typed' : ''))
+                       + (i === cur ? ' cur' : '');
+        if (g) { got += g.score; max += g.max; n++; }
+        // 채점 뒤 답을 고쳤으면 다시 채점할 수 있게 단추를 되살린다
+        const stale = g && t.value.trim() !== g.answer;
+        c.querySelector('[data-act=grade]').textContent = g ? (stale ? '고친 답 다시 채점' : '다시 채점') : '채점받기';
+        c.querySelector('[data-act=grade]').className = 'qz-btn ' + (g && !stale ? 'sub' : 'go');
+        c.querySelector('[data-act=next]').hidden = !g || i === total - 1;
+        c.querySelector('[data-act=skip]').hidden = !!g || i === total - 1;
+        const st = c.querySelector('.rs-stale');
+        if (st) st.hidden = !stale;
+    });
+    document.getElementById('qzScore').textContent =
+        `${Math.round(got * 100) / 100} / ${Math.round(max * 100) / 100}점`;
+    document.getElementById('qzBar').style.width = Math.round(n / total * 100) + '%';
+    document.getElementById('qzPrev').disabled = cur === 0;
+    document.getElementById('qzNext').disabled = cur === total - 1;
+    document.getElementById('qzFinish').textContent =
+        n === total ? '결과 보기' : `결과 보기 (${n}/${total})`;
+}
+
+function show(i, focus) {
+    cur = Math.max(0, Math.min(total - 1, i));
+    cards.forEach((c, k) => { c.hidden = k !== cur; });
+    const t = cards[cur].querySelector('textarea');
+    autoGrow(t);
+    refresh();
+    chips[cur].scrollIntoView({block: 'nearest', inline: 'center', behavior: 'smooth'});
+    window.scrollTo({top: 0});
+    if (focus && !graded[cards[cur].dataset.qid]) t.focus({preventScroll: true});
+}
+
+function renderResult(qid, g) {
+    let h = `<div class="rs-score ${cls(g)}">${g.score} / ${g.max}점</div>`;
+    h += `<div class="rs-stale" hidden>답을 고쳤습니다 — 아래 점수는 고치기 전 답의 것입니다.</div>`;
+    if ((g.points || []).length) {
+        h += '<div class="rs-pts">';
+        g.points.forEach(p => {
+            const half = !p.matched && p.score > 0;
+            h += `<div class="rs-pt ${p.matched ? 'y' : (half ? 'half' : 'n')}">${esc(p.point)}`;
+            if (half) h += ` <span class="rs-half">부분 인정 ${p.score}/${p.max}점</span>`;
+            if (!p.matched && p.comment) h += ` <span class="rs-cmt">— ${esc(p.comment)}</span>`;
+            h += '</div>';
+        });
+        h += '</div>';
+    }
+    if (g.summary) h += `<div class="rs-sum">${esc(g.summary)}</div>`;
+    // 모범답안·해설은 서버가 학습 화면과 같은 조각으로 렌더링해 보낸다
+    if (g.answer_html) h += `<div class="rs-lab">모범답안</div><div class="ans">${g.answer_html}</div>`;
+    document.getElementById('res_' + qid).innerHTML = h;
+}
+
+/* ---------- 채점 ---------- */
+async function grade(card) {
+    const qid = card.dataset.qid;
+    const t = document.getElementById('ans_' + qid);
+    const ans = t.value.trim();
+    if (!ans) { alert('답안을 먼저 입력해 주세요. 모르면 건너뛰기를 누르세요.'); t.focus(); return; }
+    const g0 = graded[qid];
+    if (g0 && g0.answer === ans) return;          // 같은 답을 두 번 채점하지 않는다
+    const btn = card.querySelector('[data-act=grade]');
+    btn.disabled = true; btn.textContent = '채점 중…';
+    try {
+        const fd = new FormData();
+        fd.append('answer', ans);
+        fd.append('session', SESSION_ID);         // 점수를 세션에 남긴다 — 결과 화면이 그대로 쓴다
+        const r = await fetch(`/gisa/${CERT_ID}/essay/grade-one/${qid}/`, {
+            method: 'POST', headers: {'X-CSRFToken': CSRF}, body: fd});
+        const d = await r.json();
+        if (!d.ok) throw new Error(d.error || '채점 실패');
+        graded[qid] = {score: d.score, max: d.max, points: d.points, summary: d.summary,
+                       answer_html: d.answer_html, answer: ans};
+        renderResult(qid, graded[qid]);
+        _dirty = false;                           // grade-one 이 답도 함께 저장했다
+    } catch (e) {
+        alert('채점 실패: ' + e.message);
+    } finally {
+        btn.disabled = false;
+        refresh();
+        if (graded[qid] && graded[qid].answer === ans) {
+            const nx = card.querySelector('[data-act=next]');
+            (nx.hidden ? document.getElementById('qzFinish') : nx).focus({preventScroll: true});
+        }
+    }
+}
+
+cards.forEach((c, i) => {
+    c.querySelector('[data-act=grade]').addEventListener('click', () => grade(c));
+    c.querySelector('[data-act=next]').addEventListener('click', () => show(i + 1, true));
+    c.querySelector('[data-act=skip]').addEventListener('click', () => show(i + 1, true));
+    c.querySelector('textarea').addEventListener('keydown', e => {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); grade(c); }
+    });
+    const qid = c.dataset.qid;
+    if (graded[qid]) renderResult(qid, graded[qid]);
+});
+chips.forEach((ch, i) => ch.addEventListener('click', () => show(i, true)));
+document.getElementById('qzPrev').addEventListener('click', () => show(cur - 1, true));
+document.getElementById('qzNext').addEventListener('click', () => show(cur + 1, true));
+
+/* ---------- 초안 저장 — 이어하기(시험이력)가 이것으로 답을 되살린다 ---------- */
+let _timer = null, _dirty = false;
+function draftForm() {
+    const fd = new FormData();
+    cards.forEach(c => {
+        const t = c.querySelector('textarea');
+        fd.append('question_id', c.dataset.qid);
+        fd.append('answer_' + c.dataset.qid, t.value);
+    });
+    return fd;
+}
+async function saveDraft() {
+    if (!_dirty) return;
+    _dirty = false;
+    try {
+        await fetch(`/gisa/${CERT_ID}/essay/${SESSION_ID}/draft/`, {
+            method: 'POST', headers: {'X-CSRFToken': CSRF}, body: draftForm(), keepalive: true});
+    } catch (e) { _dirty = true; }
+}
+document.addEventListener('input', e => {
+    if (!e.target.matches('.qz-card textarea')) return;
+    autoGrow(e.target);
+    refresh();
+    _dirty = true;
+    clearTimeout(_timer);
+    _timer = setTimeout(saveDraft, 2000);
+});
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') saveDraft();
+});
+
+/* ---------- 끝내기 → 결과 화면 ----------
+   채점한 문항은 서버가 건너뛰고(답이 같을 때), 빈 답은 호출 없이 0점이다.
+   답은 썼는데 채점하지 않은 문항만 여기서 LLM 채점을 받는다. */
+document.getElementById('qzFinish').addEventListener('click', async () => {
+    let pending = 0, blank = 0;
+    cards.forEach(c => {
+        const v = c.querySelector('textarea').value.trim(), g = graded[c.dataset.qid];
+        if (!v) blank++;
+        else if (!g || g.answer !== v) pending++;
+    });
+    if (blank + pending === total) { alert('채점한 문항이 없습니다. 한 문제 이상 풀어 주세요.'); return; }
+    let msg = '';
+    if (pending) msg += `채점하지 않은 답 ${pending}문항은 지금 함께 채점합니다.\n`;
+    if (blank) msg += `답을 쓰지 않은 ${blank}문항은 0점 처리됩니다.\n`;
+    if (msg && !confirm(msg + '\n퀴즈를 끝내고 결과를 볼까요?')) return;
+
+    const ov = document.getElementById('qzOverlay');
+    const note = document.getElementById('qzOvNote');
+    ov.classList.add('show');
+    clearTimeout(_timer); _dirty = false;
+    try {
+        const sv = await fetch(`/gisa/${CERT_ID}/essay/${SESSION_ID}/save/`, {
+            method: 'POST', headers: {'X-CSRFToken': CSRF}, body: draftForm()});
+        const s = await sv.json();
+        if (!s.ok) throw new Error(s.error || '답안 저장 실패');
+        const queue = s.questions.slice();
+        let done = 0;
+        async function worker() {
+            while (queue.length) {
+                const it = queue.shift();
+                try {
+                    await fetch(`/gisa/${CERT_ID}/essay/${SESSION_ID}/grade/${it.question_id}/`,
+                                {method: 'POST', headers: {'X-CSRFToken': CSRF}});
+                } catch (e) {}
+                done++;
+                note.textContent = `${done} / ${s.questions.length}문항 확인 · 창을 닫지 마세요.`;
+            }
+        }
+        await Promise.all(Array.from({length: Math.min(5, queue.length)}, worker));
+        const fin = await fetch(`/gisa/${CERT_ID}/essay/${SESSION_ID}/finish/`, {
+            method: 'POST', headers: {'X-CSRFToken': CSRF}});
+        const f = await fin.json();
+        if (!f.ok) throw new Error(f.error || '마무리 실패');
+        location.href = f.redirect;
+    } catch (e) {
+        ov.classList.remove('show');
+        alert(e.message);
+    }
+});
+
+/* 처음 열면 아직 채점하지 않은 첫 문항으로 */
+const first = cards.findIndex(c => !graded[c.dataset.qid]);
+show(first < 0 ? total - 1 : first, false);
+})();
+</script>
+{% endblock %}
