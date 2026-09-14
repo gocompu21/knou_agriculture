@@ -151,6 +151,8 @@ def essay_list(request, cert_id):
 
     # 오답노트 — 만점을 못 받은 문항(문항마다 최근 응시 기준)
     wrong = _wrong_attempts(request.user, cert)
+    for a in wrong:                      # 2.5 · 1.25 처럼 필요한 자리까지만(2.50 이 아니라)
+        a.score_disp = '%g' % round(a.score, 2)
 
     tab = request.GET.get('tab', 'textbook')
     _tabs = ['textbook', 'study', 'solve', 'mock', 'wrong', 'history', 'qna']
@@ -196,6 +198,13 @@ def essay_list(request, cert_id):
         'tb': textbook,
         'wrong_items': wrong,
         'wrong_count': len(wrong),
+        # 오답노트의 내 답안에 채점 결과 화면과 같은 색연필 첨삭을 입힌다
+        'wrong_pen': {a.pk: {
+            'score': a.score, 'max': float(a.question.points),
+            'marks': (a.feedback.get('marks') or []) if isinstance(a.feedback, dict) else [],
+            'missing': (a.feedback.get('missing') or []) if isinstance(a.feedback, dict) else [],
+            'answer': a.answer_text or '',
+        } for a in wrong},
         'mock_size': MOCK_SIZE,
         'mock_years': sorted({c['year'] for c in round_cards}, reverse=True),
         # 모의고사 범위 지정의 분류 목록. 자격증마다 다르다.

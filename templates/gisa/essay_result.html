@@ -158,6 +158,45 @@
     .show-photo .qr.on-page .qr-text, .show-photo .qr.on-page .qr-img,
     .show-photo .qr.on-page .pen-sheet, .show-photo .qr.on-page .qr-mine { display: none !important; }
     .show-photo .qr.sum-on-sheet .rs-sum { display: none; }
+
+    /* ── PDF 저장(인쇄) ──────────────────────────────────────────────
+     * 서버에서 PDF 를 만들지 않고 브라우저 인쇄로 저장한다. 시험지 위 첨삭 자리는
+     * 화면이 손글씨 폭을 재어 계산하므로, 인쇄해야 화면과 똑같이 나온다. */
+    .print-head, .print-only { display: none; }
+    .er-pdf { border: 0; cursor: pointer; font-family: inherit; }
+    .sv-pdf-sheets { background: none; border: 0; color: #2d6a4f; font-weight: 700;
+        font-size: 0.78rem; cursor: pointer; text-decoration: underline; font-family: inherit; }
+    @media print {
+        @page { size: A4; margin: 10mm; }
+        html, body { background: #fff !important; }
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .er-header, .sv-tabs, .sv-hint, .engine-tag, .dismiss-btn, .sv-no { display: none !important; }
+        .print-head { display: block; border-bottom: 2px solid #1b4332; padding: 0 0 6px;
+            margin-bottom: 12px; font-size: 11pt; color: #1b4332; }
+        .print-head b { font-size: 14pt; }
+        .print-head .ps { float: right; font-size: 14pt; font-weight: 800; }
+        .er-wrap { max-width: none; padding: 0; }
+        .majors { break-inside: avoid; }
+        .qr { break-inside: auto; }
+        .qr-head, .qr-text { break-after: avoid; }
+        .pen-sheet, .ans, .rs-pts { break-inside: avoid; }
+        /* 점수 입력칸은 글자만 */
+        .qr-pts input { border: 0; width: auto; max-width: 3.5em; padding: 0; text-align: right;
+            -moz-appearance: textfield; appearance: textfield; font-weight: 700; }
+        .qr-pts input::-webkit-inner-spin-button, .qr-pts input::-webkit-outer-spin-button { -webkit-appearance: none; }
+        /* 내 시험지 첨삭 — 시험지 한 쪽을 A4 한 장에 */
+        .sv-page-wrap { break-before: page; margin: 0; }
+        .sv-page { box-shadow: none; overflow: visible; }
+        .sv-page svg, .sv-page-wrap.zoom .sv-page svg { width: auto; max-width: 100%;
+            height: 272mm; margin: 0 auto; }
+        .sv-more { break-before: avoid; }
+        /* '시험지 쪽만' — 문항 카드·요약을 빼고 쪽만. 첫 쪽은 머리말 바로 아래에 붙인다
+         * (쪽마다 나눔을 걸었더니 첫 장에 머리말만 남고 비었다). :first-of-type 은 div 가
+         * 섞여 있어 듣지 않으므로 화면이 첫 쪽에 sv-first 를 달아 준다 */
+        body.print-sheets .qr, body.print-sheets .majors, body.print-sheets .verdict { display: none !important; }
+        body.print-sheets .sv-page-wrap.sv-first { break-before: auto; }
+        body.print-sheets .sv-page-wrap.sv-first .sv-page svg { height: 258mm; }
+    }
 </style>
 {% endblock %}
 
@@ -169,6 +208,7 @@
             <span class="unit">/ {{ session.total_points }}점 · {{ session.percent }}%</span>
         </div>
         <div class="er-actions">
+            <button type="button" class="er-btn er-pdf" onclick="erPrint(false)" title="인쇄 창에서 'PDF로 저장'을 고르세요">PDF 저장</button>
             <!-- 결과를 본 뒤 이어질 일은 틀린 문항을 정답과 맞춰 보는 것이다.
                  필기 상세로 보내면 실기 흐름에서 튕겨 나간다. -->
             <!-- Django 의 {# #} 주석은 한 줄만 된다. 여러 줄이면 글자로 새어 나온다. -->
@@ -186,6 +226,11 @@
 </div>
 
 <div class="er-wrap">
+    <div class="print-head">
+        <span class="ps">{{ session.score }} / {{ session.total_points }}점</span>
+        <b>{{ cert.name }} 실기 필답형</b> · {{ session.label }}
+        · 응시 {{ session.started_at|date:"Y.m.d" }}{% if request.user.last_name or request.user.first_name %} · {{ request.user.last_name }}{{ request.user.first_name }}{% endif %}
+    </div>
     {% if error %}
     <div class="verdict fail">{{ error }}</div>
     {% endif %}
@@ -589,7 +634,7 @@ async function svLoad() {
             let total = [];
             if (i === 0) svTotal(grid, total);
             const el = document.createElement('div');
-            el.className = 'sv-page-wrap';
+            el.className = 'sv-page-wrap' + (i === 0 ? ' sv-first' : '');
             el.innerHTML = `<div class="sv-page" onclick="this.parentNode.classList.toggle('zoom')" title="눌러서 크게/작게">`
                 + `<svg viewBox="0 0 ${p.w} ${p.h}"><image href="${p.url}" x="0" y="0" width="${p.w}" height="${p.h}"/>`
                 + svg + total.join('') + `</svg><span class="sv-no">${p.page_no}쪽</span></div>`
@@ -599,7 +644,8 @@ async function svLoad() {
             cards.forEach(c => { c.classList.add('on-page'); if (onSheet.has(+c.dataset.qno)) c.classList.add('sum-on-sheet'); });
             if (cards.length) cards[0].before(el); else status.after(el);
         });
-        status.innerHTML = '<div class="sv-hint">쪽을 누르면 크게 봅니다 · 항목 판정과 모범답안은 쪽 아래 문항에 있습니다</div>';
+        status.innerHTML = '<div class="sv-hint">쪽을 누르면 크게 봅니다 · 항목 판정과 모범답안은 쪽 아래 문항에 있습니다'
+            + ' · <button type="button" class="sv-pdf-sheets" onclick="erPrint(true)">시험지 쪽만 PDF 저장</button></div>';
         svLoaded = true;
     } catch (e) {
         status.innerHTML = `<div class="sv-status">${svEsc(e.message)}</div>`;
@@ -618,6 +664,30 @@ document.querySelectorAll('.sv-tabs button').forEach(b => b.addEventListener('cl
     if (photo && !svLoaded) svLoad();
 }));
 {% endif %}
+
+/* PDF 저장 — 인쇄 창을 연다. 접힌 모범답안·해설은 펼쳐서 싣고, 끝나면 되돌린다.
+ * 파일 이름은 인쇄 창이 문서 제목을 쓰므로 잠시 바꿔 둔다. */
+function erPrint(sheetsOnly) {
+    const closed = [...document.querySelectorAll('details:not([open])')];
+    closed.forEach(d => d.open = true);
+    const title = document.title;
+    const photo = document.querySelector('.er-wrap').classList.contains('show-photo');
+    document.title = `{{ cert.name }}_{{ session.label|cut:" " }}_${photo ? '시험지첨삭' : '답안첨삭'}`;
+    document.body.classList.toggle('print-sheets', !!sheetsOnly);
+    const done = () => {
+        closed.forEach(d => d.open = false);
+        document.title = title;
+        document.body.classList.remove('print-sheets');
+        window.removeEventListener('afterprint', done);
+    };
+    window.addEventListener('afterprint', done);
+    // 시험지 사진이 아직 덜 받아졌으면 기다렸다가 연다 — 빈 쪽이 인쇄된다
+    const imgs = [...document.querySelectorAll('.show-photo .sv-page image')].map(im => {
+        const i = new Image(); i.src = im.getAttribute('href');
+        return i.complete ? null : new Promise(r => { i.onload = i.onerror = r; });
+    }).filter(Boolean);
+    Promise.all(imgs).then(() => document.fonts.ready).then(() => window.print());
+}
 
 /* 사용자 점수 조정 — AI 오채점 보정 */
 document.querySelectorAll('.score-input').forEach(inp => {
