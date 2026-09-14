@@ -3,6 +3,11 @@
 
 {% block title %}{{ session.label }} 필답형{% endblock %}
 
+{% block extra_css_links %}
+<!-- 색연필 첨삭 손글씨 -->
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .site-header, .site-footer { display: none !important; }
@@ -120,31 +125,14 @@
     .btn-check { background: #2d6a4f; color: #fff; border: 0; border-radius: 6px;
         padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
     .btn-check:disabled { background: #bbb; cursor: default; }
-    .eq-result { display: none; margin-top: 10px; padding: 12px 14px;
-        background: #fafafa; border-radius: 8px; font-size: 0.87rem; line-height: 1.7; }
+    /* 채점 결과 — 퀴즈와 같은 색연필 첨삭(_essay_pen_css). 답안 칸은 채점하면
+       '채점된 답안지'(.pen-sheet)로 바뀌고, 총평·판정·모범답안은 이 칸에 적힌다 */
+    .eq-result { display: none; margin-top: 10px; font-size: 0.87rem; line-height: 1.7; }
     .eq-result.show { display: block; }
-    .rs-score { font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; }
-    .rs-score.ok { color: #1b5e20; }
-    .rs-score.mid { color: #a1651a; }
-    .rs-score.no { color: #c62828; }
-    .rs-pt { padding: 3px 0 3px 20px; position: relative; }
-    .rs-pt::before { position: absolute; left: 0; font-weight: 700; }
-    .rs-pt.y::before { content: '✓'; color: #1b5e20; }
-    .rs-pt.n::before { content: '✕'; color: #c62828; }
-    .rs-pt.n { color: #777; }
-    /* 부분 인정 — 점수를 받았는데 ✕ 로 보이면 왜 점수가 붙었는지 알 수 없다 */
-    .rs-pt.half::before { content: '△'; color: #e08a00; }
-    .rs-pt.half { color: #555; }
-    .rs-half { color: #e08a00; font-weight: 600; font-size: 0.92em; }
-    .rs-cmt { color: #999; font-size: 0.9em; }
-    /* 해설에 표·도해가 들어가므로 높이를 가두지 않는다 */
-    .rs-ref { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd;
-        color: #555; font-size: 0.85rem; line-height: 1.8; }
-    .rs-ref table { border-collapse: collapse; font-size: 0.92em; margin: 8px 0; }
-    .rs-ref th, .rs-ref td { border: 1px solid #ccd6cf; padding: 4px 10px; }
-    .rs-ref th { background: #eaf1ec; }
-    .rs-ref .q-svg { text-align: center; }
-    .rs-ref .q-svg svg { max-width: 100%; height: auto; }
+    .btn-edit-ans { background: #eef2ee; color: #40624f; border: 0; border-radius: 6px;
+        padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+    .btn-edit-ans[hidden], .btn-check[hidden] { display: none; }
+{% include "gisa/_essay_pen_css.html" %}
 
     /* 사진 업로드 */
     .up-box { border: 2px dashed #cfd8d2; border-radius: 12px; padding: 24px 20px;
@@ -302,12 +290,16 @@
                 <input type="hidden" name="question_id" value="{{ q.pk }}">
                 <textarea name="answer_{{ q.pk }}" id="ans_{{ q.pk }}"
                           placeholder="답안을 입력하세요">{{ q.draft }}</textarea>
+                <!-- 채점하면 textarea 대신 첨삭된 답안지가 보인다. 누르면 답을 고친다.
+                     textarea 는 감춰도 폼에 남아 제출에 그대로 실린다 -->
+                <div class="pen-sheet" id="sheet_{{ q.pk }}" data-qid="{{ q.pk }}" hidden title="누르면 답을 고칩니다"></div>
 
                 <!-- 학습(예상·오답)은 늘 보이고, 실전(기출·모의)은 머리글의
                      '바로 채점'을 따른다. 그 토글이 기본으로 켜져 있으므로
                      여기도 처음부터 보인다 — 껐던 사람만 JS 가 감춘다 -->
                 <div class="eq-check">
                     <button type="button" class="btn-check" data-qid="{{ q.pk }}">채점</button>
+                    <button type="button" class="btn-edit-ans" data-qid="{{ q.pk }}" hidden>답 고치기</button>
                 </div>
                 <div class="eq-result" id="res_{{ q.pk }}"></div>
             </div>
@@ -331,7 +323,9 @@
     </div>
 </div>
 
+{{ pen_state|json_script:"pen-state" }}
 <script>
+{% include "gisa/_essay_pen_js.html" %}
 const CERT_ID = {{ cert.pk }};
 const SESSION_ID = {{ session.pk }};
 const CSRF = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -459,6 +453,46 @@ tg.addEventListener('change', () => {
 });
 {% endif %}
 
+/* 채점 결과 — 퀴즈와 같은 색연필 첨삭(_essay_pen_js). qid → 채점 결과 + 채점한 답 */
+const penGraded = {};
+
+/* 답안 칸 ↔ 첨삭 답안지 전환. 채점했고 답이 그대로면 답안지를, 답을 고치고 있으면
+   textarea 를 보인다. 답이 달라지면 '고친 답 다시 채점'으로 바뀐다 */
+function penApply(qid) {
+    const g = penGraded[qid];
+    const t = document.getElementById(`ans_${qid}`);
+    const sheet = document.getElementById(`sheet_${qid}`);
+    const btn = document.querySelector(`.btn-check[data-qid="${qid}"]`);
+    const eb = document.querySelector(`.btn-edit-ans[data-qid="${qid}"]`);
+    if (!t || !sheet) return;
+    const stale = !!g && t.value.trim() !== g.answer;
+    const sheetOn = !!g && !stale && sheet.dataset.editing !== '1';
+    const wasHidden = t.hidden;
+    sheet.hidden = !sheetOn;
+    t.hidden = sheetOn;
+    if (wasHidden && !t.hidden) autoGrow(t);
+    btn.hidden = !!g && !stale;
+    btn.textContent = stale ? '고친 답 다시 채점' : '채점';
+    eb.hidden = !g || stale;
+    eb.textContent = sheetOn ? '답 고치기' : '첨삭 보기';
+    const st = document.querySelector(`#res_${qid} .rs-stale`);
+    if (st) st.hidden = !stale;
+}
+function penEditToggle(qid) {
+    const sheet = document.getElementById(`sheet_${qid}`);
+    if (sheet.dataset.editing === '1') delete sheet.dataset.editing;
+    else sheet.dataset.editing = '1';
+    penApply(qid);
+    if (sheet.dataset.editing === '1') document.getElementById(`ans_${qid}`).focus();
+}
+document.querySelectorAll('.btn-edit-ans').forEach(b =>
+    b.addEventListener('click', () => penEditToggle(b.dataset.qid)));
+document.querySelectorAll('.pen-sheet').forEach(sh =>
+    sh.addEventListener('click', () => penEditToggle(sh.dataset.qid)));
+document.addEventListener('input', e => {
+    if (e.target.matches('textarea[name^=answer_]')) penApply(e.target.name.slice(7));
+});
+
 document.querySelectorAll('.btn-check').forEach(btn => {
     btn.addEventListener('click', async () => {
         const qid = btn.dataset.qid;
@@ -477,33 +511,36 @@ document.querySelectorAll('.btn-check').forEach(btn => {
             });
             const d = await r.json();
             if (!d.ok) throw new Error(d.error || '채점 실패');
-            renderResult(box, d);
+            penGraded[qid] = Object.assign({}, d, {answer: ans});
+            delete document.getElementById(`sheet_${qid}`).dataset.editing;
+            renderResult(qid, penGraded[qid]);
         } catch (e) {
-            box.innerHTML = `<span style="color:#c62828">채점 실패: ${e.message}</span>`;
+            box.innerHTML = `<span style="color:#c62828">채점 실패: ${escapeHtml(e.message)}</span>`;
             box.classList.add('show');
         } finally {
             btn.disabled = false;
-            btn.textContent = '다시 채점';
+            penApply(qid);
         }
     });
 });
 
-function renderResult(box, d) {
-    const pct = d.max ? d.score / d.max : 0;
-    const cls = pct >= 0.999 ? 'ok' : (pct > 0 ? 'mid' : 'no');
-    let html = `<div class="rs-score ${cls}">${d.score} / ${d.max}점</div>`;
-    (d.points || []).forEach(p => {
-        const half = !p.matched && p.score > 0;
-        html += `<div class="rs-pt ${p.matched ? 'y' : (half ? 'half' : 'n')}">${escapeHtml(p.point)}`;
-        if (half) html += ` <span class="rs-half">부분 인정 ${p.score}/${p.max}점</span>`;
-        if (!p.matched && p.comment) html += ` <span class="rs-cmt">— ${escapeHtml(p.comment)}</span>`;
-        html += `</div>`;
+/* 이어 올 때 — 풀면서 채점해 둔 문항은 첨삭 답안지로 되살린다(답이 그대로인 것만) */
+(function () {
+    const saved = JSON.parse(document.getElementById('pen-state').textContent || '{}');
+    Object.keys(saved).forEach(qid => {
+        const t = document.getElementById(`ans_${qid}`);
+        if (!t) return;
+        penGraded[qid] = Object.assign({}, saved[qid], {answer: t.value.trim()});
+        renderResult(qid, penGraded[qid]);
+        penApply(qid);
     });
-    if (d.summary) html += `<div style="margin-top:8px;color:#555">${escapeHtml(d.summary)}</div>`;
-    if (d.answer_text) html += `<div class="rs-ref"><b>모범답안</b><br>${escapeHtml(d.answer_text).replace(/\n/g, '<br>')}</div>`;
-    // 해설은 서버에서 이미 렌더링(표·도해 포함)해 보내므로 그대로 넣는다
-    if (d.reference_html) html += `<div class="rs-ref"><b>해설</b><br>${d.reference_html}</div>`;
-    box.innerHTML = html;
+})();
+
+function renderResult(qid, g) {
+    document.getElementById(`sheet_${qid}`).innerHTML = penSheetHtml(g);
+    const box = document.getElementById(`res_${qid}`);
+    box.innerHTML = penResultHtml(g);
+    box.querySelectorAll('details.ans-ref').forEach(d => { d.open = true; });
     box.classList.add('show');
 }
 
@@ -591,7 +628,7 @@ document.getElementById('upgo').addEventListener('click', async () => {
                 collected[a.question_id] = collected[a.question_id]
                     ? collected[a.question_id] + '\n' + t : t;
                 const el = document.getElementById(`ans_${a.question_id}`);
-                if (el) { el.value = collected[a.question_id]; autoGrow(el); }   // 읽는 족족 채운다
+                if (el) { el.value = collected[a.question_id]; autoGrow(el); penApply(a.question_id); }   // 읽는 족족 채운다
             });
             it.classList.remove('busy'); it.classList.add('done');
             it.querySelector('.st').textContent = '완료';

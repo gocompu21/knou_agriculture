@@ -1,0 +1,90 @@
+{% comment %}
+색연필 첨삭 — 스타일 조각. 실기 퀴즈(essay_quiz)와 풀기 화면의 '바로 채점'(essay_take)이
+함께 쓴다. 쓰는 쪽 {% block extra_css %} 의 <style> 안에 넣고, 손글씨 글꼴
+(Nanum Pen Script) 링크를 extra_css_links 에 둔다.
+{% endcomment %}
+    /* ── 색연필 첨삭 ──────────────────────────────────────────────
+     * 채점하면 답안 칸이 '채점된 답안지'로 바뀐다. 괘선·줄 간격·글꼴을 textarea 와
+     * 똑같이 두고 그 위에 빨간 색연필로 줄을 긋고 X 를 치고 여백에 적는다.
+     * 표시할 자리는 모델이 답안에서 **글자 그대로 옮긴 구절(quote)** 로 찾는다.
+     * 첨삭 글씨가 줄 높이(32px)를 밀어내면 괘선이 어긋나므로 모두 line-height:1 의
+     * inline-block + position:relative 로 띄운다(자리는 차지하되 줄 높이는 그대로). */
+    :root { --pen: rgba(206, 32, 38, .92); --pen-soft: rgba(206, 32, 38, .55); }
+    .pen-sheet { position: relative; margin-top: 44px; box-sizing: border-box;
+        font-size: 0.95rem; line-height: 32px; padding: 0 12px; min-height: 100px;
+        border: 2px solid #333; border-radius: 3px; white-space: pre-wrap;
+        word-break: break-word; color: #1d1d1d; cursor: text;
+        background-color: #fff;
+        background-image:
+            linear-gradient(#fff, #fff),
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='32'%3E%3Cpath d='M0 31.5h5' stroke='%239a9a9a' stroke-width='1'/%3E%3C/svg%3E");
+        background-size: 100% 2px, 12px 32px;
+        background-position: 0 100%, 12px 0;
+        background-repeat: no-repeat, repeat; }
+    .pen-sheet[hidden] { display: none; }
+    /* 틀림 — 가운데를 가로지르는 색연필 줄. 줄바꿈돼도 조각마다 이어 긋는다 */
+    .mk-wrong { background-image: linear-gradient(transparent 50%, var(--pen) 50%, var(--pen) 57%, transparent 57%);
+        -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+    /* 부족 — 물결 밑줄 */
+    .mk-weak { text-decoration: underline wavy var(--pen); text-decoration-thickness: 1.5px;
+        text-underline-offset: 5px; }
+    /* 맞음 — 반듯한 밑줄 */
+    .mk-good { background-image: linear-gradient(transparent 86%, var(--pen-soft) 86%, var(--pen-soft) 94%, transparent 94%);
+        -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+    .mk-sign, .mk-note { position: relative; color: var(--pen);
+        font-family: 'Nanum Pen Script', 'SUIT', cursive; }
+    .mk-sign { display: inline-block; line-height: 1; white-space: nowrap;
+        font-size: 1.9em; top: -0.08em; margin: 0 1px 0 3px; transform: rotate(-6deg); }
+    /* 첨삭 글은 inline 으로 — 줄 끝에 걸리면 다음 줄로 넘어가야 한다(inline-block 이면
+     * 좁은 화면에서 답안지 오른쪽 테두리 밖으로 삐져나갔다). line-height:0 이라
+     * 글씨가 커도 줄 높이(32px)를 밀어내지 않는다. 대신 회전은 줄 수 없다. */
+    .mk-note { display: inline; line-height: 0; font-size: 1.45em; top: -0.38em;
+        margin-left: 3px; }
+    .mk-miss { display: block; font-family: 'Nanum Pen Script', 'SUIT', cursive;
+        color: var(--pen); font-size: 1.45em; line-height: 32px; white-space: normal; }
+    /* 점수 — 답안지 오른쪽 위 모서리에 걸쳐 크게. 만점은 동그라미를 친다 */
+    /* 글줄을 가리지 않도록 테두리 위로 올린다(시트 margin-top 이 그 자리다) */
+    /* 배경을 깔지 않는다 — 흰 바탕을 두면 첫 줄 끝에 걸린 첨삭 글씨를 덮었다 */
+    .mk-score { position: absolute; bottom: calc(100% + 1px); right: 8px; line-height: 1;
+        font-family: 'Nanum Pen Script', 'SUIT', cursive; color: var(--pen);
+        font-size: 2.6rem; transform: rotate(-8deg);
+        padding: 0 6px; pointer-events: none; }
+    .mk-score small { font-size: 0.55em; margin-left: 1px; }
+    .mk-score.ok { border: 2.5px solid var(--pen); border-radius: 52% 46% 55% 43%;
+        padding: 2px 12px 0; }
+
+    /* 채점 결과 — 채점위원이 답안지 아래에 적어 준 것처럼 */
+    .rs-stale { font-size: 0.78rem; color: #a1651a; font-weight: 600; margin-bottom: 6px; }
+    .rs-sum { font-family: 'Nanum Pen Script', 'SUIT', cursive; color: var(--pen);
+        font-size: 1.5rem; line-height: 1.3; margin: 2px 0 10px; transform: rotate(-.6deg); }
+    .rs-pts { font-size: 0.87rem; line-height: 1.7; padding: 2px 2px 0; }
+    .rs-pt { padding: 3px 0 3px 26px; position: relative; color: #333; }
+    .rs-pt::before { position: absolute; left: 2px; top: -2px; line-height: 1.2;
+        font-family: 'Nanum Pen Script', 'SUIT', cursive; color: var(--pen); font-size: 1.7em; }
+    .rs-pt.y::before { content: '✓'; }
+    .rs-pt.n::before { content: '✗'; }
+    .rs-pt.n { color: #777; }
+    .rs-pt.half::before { content: '△'; font-size: 1.3em; top: 1px; }
+    .rs-pt.half { color: #555; }
+    .rs-half, .rs-cmt { font-family: 'Nanum Pen Script', 'SUIT', cursive; color: var(--pen);
+        font-size: 1.3em; margin-left: 4px; }
+    .rs-lab { margin: 14px 0 6px; font-size: 0.78rem; font-weight: 700; color: #40624f; }
+
+    /* 모범답안 — 학습 화면(essay_study)과 같은 조각·같은 꼴 */
+    .ans { background: #f7faf8; border-left: 3px solid #2d6a4f;
+        border-radius: 0 8px 8px 0; padding: 12px 16px; text-indent: 0; }
+    .ans-item { font-size: 0.9rem; line-height: 1.8; color: #1f3d30; padding: 2px 0; }
+    .ans-text { font-size: 0.88rem; line-height: 1.75; color: #333; margin-top: 6px; overflow-x: auto; }
+    .ans-text table { border-collapse: collapse; font-size: 0.86em; }
+    .ans-text th, .ans-text td { border: 1px solid #ccd6cf; padding: 3px 9px; }
+    .ans-text th { background: #eaf1ec; }
+    .sq-img { max-width: min(100%, 420px); display: block; margin: 6px 0; }
+    .ans-ref { margin-top: 10px; }
+    .ans-ref summary { cursor: pointer; font-size: 0.82rem; color: #40624f; font-weight: 600; }
+    .ans-ref .body { margin-top: 8px; font-size: 0.86rem; line-height: 1.85; color: #444;
+        background: #fff; border: 1px solid #e2e8e4; border-radius: 6px; padding: 12px 14px; }
+    .ans-ref .body table { border-collapse: collapse; font-size: 0.92em; margin: 8px 0; }
+    .ans-ref .body th, .ans-ref .body td { border: 1px solid #ccd6cf; padding: 4px 10px; }
+    .ans-ref .body th { background: #eaf1ec; }
+    .ans-ref .body .q-svg { text-align: center; }
+    .ans-ref .body .q-svg svg { max-width: 100%; height: auto; }

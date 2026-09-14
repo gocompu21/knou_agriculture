@@ -3,6 +3,11 @@
 
 {% block title %}{{ session.label }} 채점 결과{% endblock %}
 
+{% block extra_css_links %}
+<!-- 색연필 첨삭 손글씨 -->
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .site-header, .site-footer { display: none !important; }
@@ -123,6 +128,10 @@
         .er-score .num { font-size: 1.35rem; }
         .mj { flex: 1 1 46%; min-width: 0; }
     }
+    /* 색연필 첨삭 — 퀴즈·풀기 화면과 같은 조각 */
+{% include "gisa/_essay_pen_css.html" %}
+    .pen-res { margin-top: 8px; font-size: 0.87rem; line-height: 1.7; }
+    .qr-mine[hidden], .pen-sheet[hidden] { display: none; }
 </style>
 {% endblock %}
 
@@ -213,15 +222,15 @@
         {% if a.question.text_image %}<img class="qr-img" src="{{ a.question.text_image|vurl }}" alt="">{% endif %}
 
         {# 판독기가 분수를 [eq]a / b[/eq], 표를 마크다운 표로 옮기므로 모범답안과 같은 렌더러로 그린다 #}
-        <div class="qr-mine {% if not a.answer_text %}empty{% endif %}">{% if a.answer_text %}{{ a.answer_text|qtext_items }}{% else %}(답안 없음){% endif %}</div>
-
-        {% for p in a.feedback.points %}
-        <div class="pt {% if p.matched %}y{% elif p.score %}half{% else %}n{% endif %}">{{ p.point }}{% if not p.matched and p.score %} <span class="pt-half">부분 인정 {{ p.score|floatformat:"-2" }}/{{ p.max|floatformat:"-2" }}점</span>{% endif %}{% if not p.matched and p.comment %} <span class="pt-cmt">— {{ p.comment }}</span>{% endif %}</div>
-        {% endfor %}
-
-        {% if a.feedback.summary %}
-        <div class="qr-sum">{{ a.feedback.summary }}</div>
-        {% endif %}
+        {% comment %}
+        채점 결과는 퀴즈와 같은 **색연필 첨삭**으로 그린다(_essay_pen_js). 답안지·총평·
+        판정은 스크립트가 pen_items 로 채운다. 서버 렌더링(qr-mine)은 감춰 두었다가
+        답안에 표(| … |)가 있으면 그것을 쓴다 — 첨삭 답안지는 글을 그대로 옮겨 적는
+        칸이라 판독된 표를 표로 그리지 못한다.
+        {% endcomment %}
+        <div class="qr-mine {% if not a.answer_text %}empty{% endif %}" id="rmine_{{ a.pk }}" {% if a.answer_text %}hidden{% endif %}>{% if a.answer_text %}{{ a.answer_text|qtext_items }}{% else %}(답안 없음){% endif %}</div>
+        {% if a.answer_text %}<div class="pen-sheet" id="rsheet_{{ a.pk }}"></div>{% endif %}
+        <div class="pen-res" id="rres_{{ a.pk }}"></div>
 
         {% if a.question.answer_text or a.question.reference or a.question.answer_image %}
         <details class="qr-more">
@@ -238,9 +247,31 @@
     {% endfor %}
 </div>
 
+{{ pen_items|json_script:"pen-items" }}
 <script>
+{% include "gisa/_essay_pen_js.html" %}
 const CERT_ID = {{ cert.pk }};
 const CSRF = '{{ csrf_token }}';
+
+/* 색연필 첨삭 — 문항마다 답안지와 총평·판정을 그린다 */
+const PEN = JSON.parse(document.getElementById('pen-items').textContent || '{}');
+function penDraw(aid) {
+    const g = PEN[aid];
+    if (!g) return;
+    const sheet = document.getElementById('rsheet_' + aid);
+    if (sheet) {
+        // 표가 든 답안은 서버가 표로 그린 것을 보인다. [eq] 표식은 벗겨 글로 적는다
+        if (/^\s*\|.*\|\s*$/m.test(g.answer)) {
+            sheet.hidden = true;
+            document.getElementById('rmine_' + aid).hidden = false;
+        } else {
+            sheet.innerHTML = penSheetHtml(Object.assign({}, g,
+                {answer: g.answer.replace(/\[\/?eq\]/g, '')}));
+        }
+    }
+    document.getElementById('rres_' + aid).innerHTML = penResultHtml(g);
+}
+Object.keys(PEN).forEach(penDraw);
 
 /* 사용자 점수 조정 — AI 오채점 보정 */
 document.querySelectorAll('.score-input').forEach(inp => {
@@ -257,6 +288,7 @@ document.querySelectorAll('.score-input').forEach(inp => {
             if (!d.ok) throw new Error(d.error || '저장 실패');
             inp.value = d.score;
             prev = d.score;
+            if (PEN[aid]) { PEN[aid].score = d.score; penDraw(aid); }
             document.querySelector('.er-score .num').textContent = d.session_score;
             document.querySelector('.er-score .unit').textContent =
                 ` / {{ session.total_points }}점 · ${d.percent}%`;

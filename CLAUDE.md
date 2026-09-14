@@ -1842,8 +1842,19 @@ ESSAY_DAILY_OCR_LIMIT    = 40   # 사용자당 하루 판독 장수
       `MARK_RULES`(essay_grading.py)가 두 채점 프롬프트에 붙고, `_clean_marks()` 가
       답안에서 찾을 수 없는 quote 를 버린다(띄어쓰기 차이만은 살림). 화면의
       `findQuote()` 도 글자 그대로 → 공백 무시 순으로 찾는다
-    - `marks`·`missing` 은 feedback JSON 에 함께 남는다(점수에는 안 쓴다). 결과
-      화면·바로 채점은 아직 그리지 않는다. 옛 채점 기록에는 없어 점수만 적힌다
+    - `marks`·`missing` 은 feedback JSON 에 함께 남는다(점수에는 안 쓴다). 옛 채점
+      기록에는 없어 점수만 적힌다
+    - **모든 채점 화면이 같은 첨삭을 쓴다** — 퀴즈, 풀기 화면의 '바로 채점'
+      (`essay_take`), 제출 뒤 결과(`essay_result`). 조각은 `gisa/_essay_pen_css.html`
+      (스타일, `<style>` 안) · `gisa/_essay_pen_js.html`(`penSheetHtml(g)`·
+      `penResultHtml(g)` — HTML 문자열만 돌려주고 자리·전환은 쓰는 쪽이 맡는다).
+      손글씨 글꼴 링크는 각 화면의 `extra_css_links` 에 둔다
+    - 풀기 화면은 textarea 를 감춰도 폼에 남아 제출에 실린다. 이어 오면
+      `pen_state`(= `_quiz_state`)로 채점해 둔 문항의 답안지를 되살린다
+    - 결과 화면은 뷰가 `pen_items`(attempt pk → 채점 결과)를 내려준다. 점수는
+      사용자가 조정한 값(`attempt.score`)이고, 조정하면 답안지 점수도 다시 그린다.
+      답안에 표(`| … |`)가 있으면 첨삭 답안지 대신 서버가 표로 그린 `qr-mine` 을 보인다
+    - 점수 표시(`.mk-score`)에 흰 배경을 깔지 말 것 — 첫 줄 끝 첨삭 글씨를 덮는다
     - 첨삭 글(`.mk-note`)은 **inline + line-height:0** 이어야 한다. inline-block 이면
       좁은 화면에서 줄 끝 첨삭이 답안지 오른쪽 테두리 밖으로 삐져나간다
 - `essay_save` 는 임시저장이 아니라 **진행률 채점 1단계**라 status 를 `grading` 으로

@@ -452,6 +452,8 @@ def essay_take(request, cert_id):
         'time_limit': time_limit,
         'exam_minutes': exam_minutes,
         'is_exam': source in ('기출', '모의'),
+        # 풀면서 채점해 둔 문항 — 이어 올 때 첨삭 답안지로 되살린다(퀴즈와 같은 규칙)
+        'pen_state': _quiz_state(session),
         # 여러 회차를 섞은 세트는 원래 문항 번호가 겹치므로 순번으로 보여 준다
         'seq_numbers': source in ('모의', '오답'),
     })
@@ -887,11 +889,24 @@ def essay_result(request, cert_id, session_id):
             'pct': round(d['got'] / d['max'] * 100) if d['max'] else 0,
         })
 
+    # 색연필 첨삭에 쓰는 채점 결과 — 화면 스크립트가 답안지 위에 그린다.
+    # 점수는 사용자가 조정한 값(final_score)이 있으면 그것이다(attempt.score)
+    pen_items = {}
+    for a in attempts:
+        fb = a.feedback if isinstance(a.feedback, dict) else {}
+        pen_items[a.pk] = {
+            'score': a.score, 'max': float(a.question.points),
+            'points': fb.get('points') or [], 'summary': fb.get('summary') or '',
+            'marks': fb.get('marks') or [], 'missing': fb.get('missing') or [],
+            'answer': a.answer_text or '',
+        }
+
     return render(request, 'gisa/essay_result.html', {
         'cert': cert,
         'session': session,
         'attempts': attempts,
         'majors': majors,
+        'pen_items': pen_items,
     })
 
 
