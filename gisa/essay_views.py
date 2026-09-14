@@ -281,7 +281,8 @@ def _mock_scope(request, cert):
             groups.append(int(g))
         except ValueError:
             pass
-    all_groups = [gid for gid, _ in GisaEssayQuestion.TOPIC_CHOICES]
+    # 분류는 자격증마다 다르다(자연생태복원 8 · 식물보호 11)
+    all_groups = [gid for gid, _ in topic_groups(cert.name)]
     if not groups or set(groups) >= set(all_groups):
         groups = []                                  # 전체
     n = max(5, min(30, _int('n', MOCK_SIZE)))
@@ -740,7 +741,7 @@ def essay_strategy(request, cert_id):
 
     # 주제별 분포. 출제기준 8항목은 실무 수행 순서라 학술 지식을 묻는 기출과
     # 맞지 않아, 실제로 무엇을 묻는지로 나눈 topic_group 을 쓴다
-    topic_names = dict(GisaEssayQuestion.TOPIC_CHOICES)
+    topic_names = dict(topic_groups(cert.name))
     majors = []
     for r in (exam_qs.values('topic_group').annotate(c=Count('id')).order_by('-c')):
         majors.append({
@@ -880,7 +881,9 @@ def essay_result(request, cert_id, session_id):
         d['max'] += float(a.question.points)
         d['count'] += 1
     majors = []
-    topic_names = dict(GisaEssayQuestion.TOPIC_CHOICES)
+    # 분류 이름은 자격증마다 다르다. TOPIC_CHOICES 는 자연생태복원 것이라 식물보호
+    # 결과에 '생태학 기초'·'경관생태'가 나오고 9~11번은 미분류로 떴다
+    topic_names = dict(topic_groups(cert.name))
     for m, d in sorted(by_major.items()):
         majors.append({
             'no': m, 'name': topic_names.get(m, '미분류'),
