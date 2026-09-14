@@ -28,6 +28,32 @@
     .bg-photo { flex: 1; min-width: 0; border-radius: 12px; overflow: hidden;
         background: #f4f7f5; border: 1px solid #eceff0; }
     .bg-photo img { display: block; width: 100%; height: auto; }
+    /* 사진 확대 — 슬라이드 한 장에 사진 여러 장과 작은 글씨가 들어 있어 줄인 채로는 안 읽힌다 */
+    .bg-photo { position: relative; cursor: zoom-in; }
+    .bg-zoom-hint { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px;
+        border-radius: 50%; background: rgba(20,49,42,.72); color: #fff;
+        display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .bg-photo img:not([src]) + .bg-zoom-hint { display: none; }
+    .bg-item.open img { cursor: zoom-in; }
+
+    /* 확대 창은 body 에 붙인다(_pest_js) — 탭 안에 두면 조상의 쌓임 맥락에 갇힌다 */
+    .bg-zoom { position: fixed; inset: 0; z-index: 1000; background: rgba(8,18,14,.9); }
+    .bg-zoom[hidden] { display: none; }
+    .bg-zoom-scroll { position: absolute; inset: 0; overflow: auto; display: flex;
+        overscroll-behavior: contain; }
+    /* 가운데 맞춤은 margin:auto 로 — justify-content:center 는 사진이 화면보다 커지면
+       왼쪽·위가 스크롤로도 닿지 않게 잘린다 */
+    /* flex-shrink:0 — 없으면 2배로 키워도 화면 폭으로 도로 줄어든다 */
+    .bg-zoom-scroll img { margin: auto; display: block; max-width: none; flex-shrink: 0; cursor: zoom-in;
+        border-radius: 4px; background: #fff; }
+    .bg-zoom.big .bg-zoom-scroll img { cursor: zoom-out; border-radius: 0; }
+    .bg-zoom-x { position: fixed; top: 12px; right: 12px; width: 40px; height: 40px;
+        border-radius: 50%; border: 0; background: rgba(255,255,255,.16); color: #fff;
+        font-size: 1.5rem; line-height: 40px; cursor: pointer; padding: 0; z-index: 2; }
+    .bg-zoom-x:hover { background: rgba(255,255,255,.3); }
+    .bg-zoom-tip { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%);
+        background: rgba(0,0,0,.55); color: rgba(255,255,255,.88); font-size: 0.78rem;
+        padding: 5px 12px; border-radius: 12px; white-space: nowrap; pointer-events: none; }
     .bg-side { flex: 0 0 210px; display: flex; flex-direction: column; gap: 6px; }
     .bg-choices { display: flex; flex-direction: column; gap: 6px; }
 

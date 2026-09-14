@@ -24,6 +24,52 @@
         return d.innerHTML;
     }
 
+    /* ---------- 사진 확대 ----------
+       한 번 누르면 화면에 꽉 차게, 사진을 한 번 더 누르면 2배(누른 자리 기준)로
+       키워 끌거나 스크롤해서 본다. 바깥·× ·Esc 로 닫는다. */
+    var zoom = document.createElement('div');
+    zoom.className = 'bg-zoom'; zoom.hidden = true;
+    zoom.innerHTML = '<div class="bg-zoom-scroll"><img alt="해충 사진 확대"></div>' +
+        '<button type="button" class="bg-zoom-x" aria-label="닫기">×</button>' +
+        '<div class="bg-zoom-tip">사진을 누르면 더 크게 · 바깥을 누르면 닫힙니다</div>';
+    document.body.appendChild(zoom);
+    var zScroll = zoom.querySelector('.bg-zoom-scroll'), zImg = zoom.querySelector('img');
+
+    function zoomFit() {
+        var nw = zImg.naturalWidth, nh = zImg.naturalHeight;
+        if (!nw) return;
+        var fit = Math.min(window.innerWidth * 0.96 / nw, window.innerHeight * 0.86 / nh);
+        zImg.style.width = Math.round(nw * fit * (zoom.classList.contains('big') ? 2 : 1)) + 'px';
+    }
+    function openZoom(src) {
+        if (!src) return;
+        zoom.classList.remove('big');
+        zImg.style.width = '';
+        zImg.onload = zoomFit;
+        zImg.src = src;
+        if (zImg.complete) zoomFit();
+        zoom.hidden = false;
+        document.body.style.overflow = 'hidden';
+    }
+    function closeZoom() {
+        zoom.hidden = true;
+        document.body.style.overflow = '';
+    }
+    zoom.addEventListener('click', function (e) {
+        if (e.target !== zImg) { closeZoom(); return; }
+        // 누른 자리가 확대 뒤에도 손가락(커서) 아래에 오도록 스크롤을 맞춘다
+        var r = zImg.getBoundingClientRect();
+        var rx = (e.clientX - r.left) / r.width, ry = (e.clientY - r.top) / r.height;
+        zoom.classList.toggle('big');
+        zoomFit();
+        zScroll.scrollLeft = rx * zImg.offsetWidth - e.clientX;
+        zScroll.scrollTop = ry * zImg.offsetHeight - e.clientY;
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !zoom.hidden) closeZoom();
+    });
+    window.addEventListener('resize', function () { if (!zoom.hidden) zoomFit(); });
+
     function drawChoices(names, enabled) {
         elCh.innerHTML = '';
         names.forEach(function (c) {
@@ -137,6 +183,8 @@
 
     /* 단추가 카드 안에 있어 다시 그릴 때마다 사라진다 — **위임**으로 받는다 */
     quiz.addEventListener('click', function (e) {
+        var ph = e.target.closest('.bg-photo');
+        if (ph) { openZoom(ph.querySelector('img').getAttribute('src')); return; }
         var b = e.target.closest('#bgNext, #bgSideList');
         if (!b) return;
         if (b.id === 'bgNext') goNext();
@@ -182,6 +230,11 @@
     document.getElementById('bgGrid').addEventListener('click', function (e) {
         var it = e.target.closest('.bg-item');
         if (!it) return;
+        // 펼친 칸의 사진은 접지 않고 크게 본다
+        if (it.classList.contains('open') && e.target.tagName === 'IMG') {
+            openZoom(e.target.getAttribute('src'));
+            return;
+        }
         var open = it.classList.toggle('open');
         it.querySelector('.ds').hidden = !open;
     });

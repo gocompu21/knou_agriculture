@@ -27,9 +27,10 @@
             리스너가 날아간다 — 그래서 눌림은 위임으로 받는다(`_pest_js.html`).
             {% endcomment %}
             <div class="bg-stage">
-                <div class="bg-photo">
+                <div class="bg-photo" title="누르면 크게 봅니다">
                     <img id="bgImg" alt="해충 사진" src=""
                          style="min-height:200px">
+                    <span class="bg-zoom-hint" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M11 8v6M8 11h6"/></svg></span>
                 </div>
                 <div class="bg-side">
                     <div class="bg-choices" id="bgChoices"></div>
