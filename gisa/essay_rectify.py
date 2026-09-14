@@ -343,7 +343,16 @@ def rectify_bytes(data):
         method = 'none'
         page = img
     else:
-        page, rinfo = _refine(page)
+        flat, rinfo = _refine(page)
         info.update(rinfo)
+        # 가장자리로 편 것은 **정말 시험지를 폈는지** 확인한다. 흰 책상·이불 위에서
+        # 찍으면 종이와 배경이 섞여 엉뚱한 사각형으로 펼 수 있는데, 그러면 곧게 선
+        # 테두리·괘선이 거의 안 잡힌다. 실제 시험지 8장은 가로 표본 583~1,417 ·
+        # 세로 89~162 였다. 모자라면 원본으로 판독한다(마커로 편 것은 믿는다).
+        if method == 'edge' and (rinfo['h_points'] < 150 or rinfo['v_points'] < 30):
+            info['rejected'] = '테두리가 거의 잡히지 않아 원본을 씀'
+            method, page = 'none', img
+        else:
+            page = flat
     ok, buf = cv2.imencode('.jpg', page, [cv2.IMWRITE_JPEG_QUALITY, 90])
     return (buf.tobytes() if ok else None), method, info

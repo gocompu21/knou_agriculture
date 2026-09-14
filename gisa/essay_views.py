@@ -907,7 +907,19 @@ def essay_result(request, cert_id, session_id):
         'attempts': attempts,
         'majors': majors,
         'pen_items': pen_items,
+        # 시험지 사진을 곧게 펴 판독한 세션이면 '내 시험지 첨삭'을 보여 준다
+        'has_sheet': session.mode == 'paper' and session.uploads.filter(
+            transcribed=True).exclude(flat_image='').exists(),
     })
+
+
+@login_required
+def essay_overlay(request, cert_id, session_id):
+    """편 시험지 사진 위에 그릴 첨삭 자리(JSON) — 결과 화면이 SVG 로 그린다."""
+    from .essay_overlay import build_overlay
+    session = get_object_or_404(GisaEssaySession, pk=session_id,
+                                user=request.user, certification_id=cert_id)
+    return JsonResponse({'ok': True, 'pages': build_overlay(session)})
 
 
 @login_required
@@ -992,10 +1004,16 @@ def _new_upload(session, f):
     from django.db.models import Max
     for _ in range(5):
         page_no = (session.uploads.aggregate(m=Max('page_no'))['m'] or 0) + 1
+        up = GisaEssayUpload(session=session, page_no=page_no, image=f)
         try:
             with transaction.atomic():
-                return GisaEssayUpload.objects.create(session=session, page_no=page_no, image=f)
+                up.save()
+                return up
         except IntegrityError:
+            # 파일은 INSERT 보다 먼저 저장된다 — 실패한 번호로 쓴 파일을 지우고 다시
+            if up.image and up.image.name:
+                up.image.storage.delete(up.image.name)
+            f.seek(0)
             continue
     raise RuntimeError('쪽 번호를 잡지 못했습니다')
 

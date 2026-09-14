@@ -177,6 +177,10 @@ def transcribe_uploads(session, uploads):
         number: int = Field(description="문항 번호")
         stem: str = Field(default='', description="답안 위에 인쇄된 문제문의 첫 15자 안팎, 읽히는 대로")
         text: str = Field(description="손글씨를 그대로 옮긴 답안. 비었으면 빈 문자열")
+        # 사진 위 첨삭(essay_overlay)이 답안 박스를 고를 때 쓴다. 정확할 필요는 없다 —
+        # 이미지에서 찾은 박스 가운데 가장 많이 겹치는 것을 고르는 데만 쓴다.
+        box_2d: list[int] = Field(default_factory=list,
+                                  description="이 답을 쓴 답안 박스(굵은 테두리) 위치 [ymin, xmin, ymax, xmax], 0~1000 정규화")
 
     class PageResult(BaseModel):
         paper_code: str = Field(default='', description="페이지 오른쪽 아래(첫 쪽은 오른쪽 위에도 있음)의 시험지 코드. 없으면 빈 문자열")
@@ -240,6 +244,7 @@ def transcribe_uploads(session, uploads):
             })
             continue
 
+        page_items = []            # 사진 위 첨삭 배치용 — 이 쪽의 문항과 판독문
         for item in parsed.answers:
             q = by_number.get(item.number)
             if not q:
@@ -257,6 +262,8 @@ def transcribe_uploads(session, uploads):
             # 분수를 [eq]…[/eq] 로 감싸게 해 표식이 입력칸에 보였으므로, 모델이
             # 버릇대로 붙여 와도 여기서 벗긴다
             text = re.sub(r'\[/?eq\]', '', item.text or '', flags=re.I).strip()
+            page_items.append({'qid': q.pk, 'number': q.number, 'text': text,
+                               'box': list(item.box_2d or [])})
             if not text:
                 continue
             # 같은 문항이 여러 페이지에 걸치면 이어 붙인다
@@ -264,7 +271,22 @@ def transcribe_uploads(session, uploads):
             collected[q.pk] = (prev + '\n' + text).strip() if prev else text
 
         up.transcribed = True
-        up.save(update_fields=['transcribed'])
+        fields = ['transcribed']
+        # 편 사진이 있으면 이 쪽의 답안 박스·줄·글씨 배치를 계산해 둔다. 결과 화면의
+        # '내 시험지 첨삭'이 이것으로 자리를 잡는다. 실패해도 판독에는 영향이 없다.
+        if up.flat_image and page_items:
+            try:
+                import cv2
+                import numpy as np
+                from .essay_overlay import page_layout
+                img = cv2.imdecode(np.fromfile(up.flat_image.path, np.uint8), cv2.IMREAD_COLOR)
+                info = dict(up.flat_info or {})
+                info['layout'] = page_layout(img, page_items)
+                up.flat_info = info
+                fields.append('flat_info')
+            except Exception:
+                pass
+        up.save(update_fields=fields)
 
     # 판독 결과를 Attempt에 저장 (아직 확정 전 — transcribe_confirmed=False)
     results = []

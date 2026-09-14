@@ -73,6 +73,7 @@ urlpatterns = [
     path("<int:cert_id>/essay/<int:session_id>/sheet/", essay_views.essay_sheet, name="essay_sheet"),
     path("<int:cert_id>/essay/<int:session_id>/upload/", essay_views.essay_upload, name="essay_upload"),
     path("<int:cert_id>/essay/<int:session_id>/flatten/", essay_views.essay_flatten, name="essay_flatten"),
+    path("<int:cert_id>/essay/<int:session_id>/overlay/", essay_views.essay_overlay, name="essay_overlay"),
     path("<int:cert_id>/essay/<int:session_id>/upload/remove/", essay_views.essay_upload_remove, name="essay_upload_remove"),
     path("<int:cert_id>/essay/<int:session_id>/confirm/", essay_views.essay_confirm, name="essay_confirm"),
     path("<int:cert_id>/essay/adjust/<int:attempt_id>/", essay_views.essay_adjust, name="essay_adjust"),
