@@ -133,30 +133,34 @@
     .pen-res { margin-top: 8px; font-size: 0.87rem; line-height: 1.7; }
     .qr-mine[hidden], .pen-sheet[hidden] { display: none; }
 
-    /* 내 시험지 첨삭 — 곧게 편 시험지 사진 위에 SVG 로 색연필 첨삭을 겹친다 */
+    /* 내 시험지 첨삭 — 문항 카드의 입력칸 답안지 자리에 곧게 편 사진(그 문항 박스)을 둔다 */
     .sv-tabs { display: flex; gap: 6px; margin: 4px 0 14px; }
     .sv-tabs button { flex: 1; border: 1.5px solid #1b4332; background: #fff; color: #1b4332;
         border-radius: 18px; padding: 8px 10px; font-weight: 700; font-size: 0.88rem;
         cursor: pointer; font-family: inherit; }
     .sv-tabs button.on { background: #1b4332; color: #fff; }
-    .show-photo .qr { display: none; }
     .sv-status { text-align: center; color: #777; font-size: 0.88rem; padding: 18px 0; }
-    .sv-page { position: relative; margin: 0 auto 18px; max-width: 820px;
-        box-shadow: 0 1px 6px rgba(0,0,0,.18); background: #fff; }
-    .sv-page img { display: block; width: 100%; height: auto; }
-    .sv-page svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-    .sv-page svg text { font-family: 'Nanum Pen Script', cursive; }
-    .sv-no { position: absolute; left: 8px; top: 8px; background: rgba(27,67,50,.85); color: #fff;
-        font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 9px; }
-    .sv-more { max-width: 820px; margin: -8px auto 18px; font-family: 'Nanum Pen Script', cursive;
-        color: rgba(206, 32, 38, .92); font-size: 1.25rem; line-height: 1.35; }
-    .sv-more[hidden] { display: none; }
-    /* 휴대폰에서는 쪽이 300px 남짓이라 첨삭 글씨가 읽히지 않는다. 쪽을 누르면
-     * 900px 로 넓혀 옆으로 밀어 읽게 한다(한 번 더 누르면 되돌린다). */
-    #sheetView { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .sv-page { cursor: zoom-in; }
-    #sheetView.zoom .sv-page, #sheetView.zoom .sv-more { width: 900px; max-width: none; cursor: zoom-out; }
     .sv-hint { text-align: center; font-size: 0.78rem; color: #888; margin: -6px 0 10px; }
+    .sv-crop { display: none; margin-top: 10px; }
+    .sv-head { margin: 0 0 12px; }
+    .sv-head .sv-img { cursor: default; }
+    .show-photo .sv-crop { display: block; }
+    .show-photo .qr.has-crop .pen-sheet, .show-photo .qr.has-crop .qr-mine { display: none !important; }
+    .sv-img { position: relative; overflow-x: auto; -webkit-overflow-scrolling: touch;
+        border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.18); background: #fff; cursor: zoom-in; }
+    .sv-img svg { display: block; width: 100%; height: auto; }
+    .sv-img svg text { font-family: 'Nanum Pen Script', cursive; }
+    /* 휴대폰에서는 박스가 340px 남짓이라 손글씨가 작다. 누르면 900px 로 넓혀 옆으로 민다 */
+    .sv-crop.zoom .sv-img { cursor: zoom-out; }
+    .sv-crop.zoom .sv-img svg { width: 900px; max-width: none; }
+    .sv-no { position: absolute; left: 6px; top: 6px; background: rgba(27,67,50,.85); color: #fff;
+        font-size: 0.7rem; font-weight: 700; padding: 1px 7px; border-radius: 9px; }
+    .sv-notes { margin: 8px 2px 0; font-family: 'Nanum Pen Script', cursive; color: var(--pen, #ce2026);
+        font-size: 1.3rem; line-height: 1.35; }
+    .sv-note b { font-weight: 400; }
+    .sv-note .sg { display: inline-block; min-width: 1em; text-align: center; }
+    .sv-note.good { color: rgba(206, 32, 38, .72); }
+    .sv-note.miss { margin-top: 2px; }
 </style>
 {% endblock %}
 
@@ -232,16 +236,17 @@
 
     {% if has_sheet %}
     {% comment %} 시험지 사진으로 낸 세션: 입력칸 답안 위 첨삭(기본)과 곧게 편 시험지 사진
-    위 첨삭을 오간다. 사진 쪽은 누를 때 한 번만 받아 온다(essay_overlay). {% endcomment %}
+    위 첨삭을 오간다. 사진 쪽은 누를 때 한 번만 받아 와 문항 카드마다 답안지 자리에
+    끼운다(essay_overlay). {% endcomment %}
     <div class="sv-tabs">
         <button type="button" class="on" data-v="list">입력한 답안 첨삭</button>
         <button type="button" data-v="photo">내 시험지 첨삭</button>
     </div>
-    <div id="sheetView" hidden><div class="sv-status">시험지를 불러오는 중…</div></div>
+    <div id="sheetView" hidden></div>
     {% endif %}
 
     {% for a in attempts %}
-    <div class="qr">
+    <div class="qr" data-qno="{{ a.question.number }}">
         <!-- 학습 화면과 같은 꼴: 배지·점수 한 줄, 그 아래 "N. 문제문". 번호 색으로
              만점(파랑)·부분(갈색)·0점(빨강)을 알린다. -->
         <div class="qr-head">
@@ -310,9 +315,14 @@ Object.keys(PEN).forEach(penDraw);
 
 {% if has_sheet %}
 /* ---------- 내 시험지 첨삭 ----------
- * 서버(essay_overlay)가 곧게 편 쪽마다 답안 박스·줄·구절 자리를 계산해 준다.
- * 좌표는 편 사진의 픽셀(2100×2970, 10px/mm)이라 viewBox 를 같게 두면 화면 폭에
- * 맞춰 늘고 준다. 글씨는 입력칸 첨삭과 같은 손글씨(Nanum Pen Script). */
+ * 입력한 답안 첨삭과 **같은 문항 카드**를 쓰고, 입력칸 답안지 자리만 곧게 편
+ * 시험지 사진의 그 문항 답안 박스로 바꾼다. 총평·항목 판정·모범답안·해설·점수
+ * 조정은 그대로 남는다(처음에는 쪽 전체를 따로 보여 주고 카드를 감췄는데, 그러면
+ * 첨삭 글 몇 줄 말고는 다 사라져 부실했다).
+ *
+ * 좌표는 편 사진의 픽셀(2100×2970, 10px/mm). SVG 안에 사진을 <image> 로 깔고
+ * viewBox 로 박스 둘레만 잘라 보인다. 첨삭 글은 사진 위에 우겨넣지 않고, 사진에는
+ * 번호만 달아 사진 바로 아래에 전부 적는다 — 빈 줄이 모자라 잘리던 것을 없앤다. */
 const SV_URL = `/gisa/${CERT_ID}/essay/{{ session.pk }}/overlay/`;
 const SV_RED = 'rgba(206,32,38,.92)';
 let svLoaded = false;
@@ -321,17 +331,16 @@ function svEsc(t) {
     return String(t).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
 }
 function svFmt(n) { return (Math.round(n * 100) / 100).toString(); }
+const SV_NUM = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮';
 
-function svAnswer(a) {
+function svCrop(p, a, notes) {
     const out = [];
-    const notes = [];          // 번호를 달아 빈 줄에 적을 첨삭
     const line = (d, w) => out.push(`<path d="${d}" fill="none" stroke="${SV_RED}" stroke-width="${w || 6}" stroke-linecap="round"/>`);
     a.marks.forEach(m => {
-        const last = m.rects[m.rects.length - 1];
         m.rects.forEach(([x0, y0, x1, y1]) => {
             const h = y1 - y0;
             if (m.kind === 'wrong') {
-                // 글씨는 괘선 위에 앉으므로 띠 아래쪽 2/3 쯤을 긋는다. 살짝 기울여 손으로 그은 느낌
+                // 글씨는 괘선 위에 앉으므로 띠 아래쪽 2/3 쯤을 긋는다
                 const y = y0 + h * 0.66;
                 line(`M${x0 - 8} ${y + 3} L${x1 + 8} ${y - 4}`, 7);
             } else if (m.kind === 'weak') {
@@ -342,69 +351,101 @@ function svAnswer(a) {
                 line(`M${x0} ${y1 - 1} Q${(x0 + x1) / 2} ${y1 + 5} ${x1} ${y1 - 3}`, 5);
             }
         });
-        const [, ly0, lx1, ly1] = last;
-        if (m.kind === 'good') {
-            const x = lx1 + 14, y = ly0 + (ly1 - ly0) * 0.45;
-            line(`M${x} ${y} l12 16 l26 -38`, 6);
-        } else if (m.note) {
-            notes.push(m.note);
-            const x = lx1 + 34, y = ly0 + (ly1 - ly0) * 0.35;
-            out.push(`<circle cx="${x}" cy="${y}" r="22" fill="none" stroke="${SV_RED}" stroke-width="4"/>`
-                + `<text x="${x}" y="${y + 15}" font-size="46" text-anchor="middle" fill="${SV_RED}">${notes.length}</text>`);
+        const [, ly0, lx1, ly1] = m.rects[m.rects.length - 1];
+        let x = lx1 + 12;
+        const y = ly0 + (ly1 - ly0) * 0.45;
+        if (m.kind === 'good') { line(`M${x} ${y} l12 16 l26 -38`, 6); x += 46; }
+        else if (m.kind === 'wrong') {
+            line(`M${x} ${y - 18} l30 30 M${x + 30} ${y - 18} l-30 30`, 6); x += 44;
         }
-    });
-    a.unplaced.forEach(n => notes.push(n));
-
-    // 빈 줄에 첨삭을 적는다. 모자라면 사진 아래 목록으로 넘긴다
-    const rows = notes.map((n, i) => `${i + 1}. ${n}`);
-    if (a.missing.length) rows.push('빠짐: ' + a.missing.join(', '));
-    const [bx0, by0, bx1] = a.box;
-    const spill = [];
-    rows.forEach((t, i) => {
-        const band = a.free[i];
-        if (band) {
-            out.push(`<text x="${bx0 + 44}" y="${band[1] - 14}" font-size="64" fill="${SV_RED}">${svEsc(t)}</text>`);
-        } else {
-            spill.push(t);
+        if (m.note) {
+            notes.push({kind: m.kind, note: m.note});
+            const cx = x + 22, cy = y - 4;
+            out.push(`<circle cx="${cx}" cy="${cy}" r="23" fill="rgba(255,255,255,.75)" stroke="${SV_RED}" stroke-width="4"/>`
+                + `<text x="${cx}" y="${cy + 15}" font-size="46" text-anchor="middle" fill="${SV_RED}">${notes.length}</text>`);
         }
     });
 
+    const [bx0, by0, bx1, by1] = a.box;
     if (a.score !== null && a.graded) {
-        const full = a.score >= a.points;
-        const t = `${svFmt(a.score)}/${svFmt(a.points)}`;
-        // 박스 오른쪽 위에는 인쇄된 배점 '(5.0점)'이 있다 — 그 왼쪽에 적는다
-        const cx = bx1 - 290, cy = by0 - 34;
-        out.push(`<text x="${cx}" y="${cy + 26}" font-size="84" text-anchor="middle" fill="${SV_RED}">${t}</text>`);
-        if (full) out.push(`<ellipse cx="${cx}" cy="${cy}" rx="112" ry="56" fill="none" stroke="${SV_RED}" stroke-width="5" transform="rotate(-6 ${cx} ${cy})"/>`);
+        const cx = bx1 - 290, cy = by0 - 34;   // 인쇄 배점 '(5.0점)' 왼쪽
+        out.push(`<text x="${cx}" y="${cy + 26}" font-size="84" text-anchor="middle" fill="${SV_RED}">${svFmt(a.score)}/${svFmt(a.points)}</text>`);
+        if (a.score >= a.points) out.push(`<ellipse cx="${cx}" cy="${cy}" rx="112" ry="56" fill="none" stroke="${SV_RED}" stroke-width="5" transform="rotate(-6 ${cx} ${cy})"/>`);
     }
-    return {svg: out.join(''), spill: spill.length ? `${a.number}번 — ${spill.join(' · ')}` : ''};
+    const vx = bx0 - 30, vy = by0 - 110, vw = bx1 - bx0 + 60, vh = by1 - by0 + 130;
+    return `<svg viewBox="${vx} ${vy} ${vw} ${vh}" style="aspect-ratio:${vw}/${vh}">`
+        + `<image href="${p.url}" x="0" y="0" width="${p.w}" height="${p.h}"/>${out.join('')}</svg>`;
+}
+
+/* 첫 쪽 머리(제목·시험지 코드) 위 왼쪽에 전체 점수 — 채점한 시험지를 받아 드는 느낌.
+ * 점수는 머리글의 숫자를 읽는다(점수를 조정하면 거기가 바뀌고 svReset 이 다시 그린다). */
+function svHeadHtml(p) {
+    const got = document.querySelector('.er-score .num').textContent.trim();
+    const max = '{{ session.total_points|floatformat:"-1" }}';
+    const pass = parseFloat(got) >= parseFloat(max) * 0.6;
+    const vw = p.w, vh = 420;
+    // 제목 줄(y≈230) 위 여백에 쓴다. 밑줄이 제목을 지나가면 취소선처럼 보였다
+    const x = 240, y = 150, cw = 64;          // cw: 손글씨 한 글자 폭 어림
+    const end = x + got.length * cw + 40 + (max.length + 2) * 40;
+    const mark = `<g transform="rotate(-3 ${x} ${y})">`
+        + `<text x="${x}" y="${y}" font-size="150" fill="${SV_RED}">${svEsc(got)}</text>`
+        + `<text x="${x + got.length * cw + 30}" y="${y}" font-size="84" fill="${SV_RED}">/ ${svEsc(max)}</text>`
+        + `<path d="M${x - 8} ${y + 22} Q${(x + end) / 2} ${y + 12} ${end} ${y + 14}" fill="none" stroke="${SV_RED}" stroke-width="6" stroke-linecap="round"/>`
+        + (pass ? `<path d="M${x - 4} ${y + 40} Q${(x + end) / 2} ${y + 30} ${end - 10} ${y + 32}" fill="none" stroke="${SV_RED}" stroke-width="4" stroke-linecap="round"/>` : '')
+        + `</g>`;
+    return `<div class="sv-head"><div class="sv-img"><svg viewBox="0 0 ${vw} ${vh}" style="aspect-ratio:${vw}/${vh}">`
+        + `<image href="${p.url}" x="0" y="0" width="${p.w}" height="${p.h}"/>${mark}</svg></div></div>`;
+}
+
+function svNotesHtml(notes, a) {
+    const sign = {wrong: '✗', weak: '〰', good: '✓'};
+    let h = notes.map((n, i) => `<div class="sv-note ${n.kind}"><b>${SV_NUM[i] || (i + 1)}</b> `
+        + `<span class="sg">${sign[n.kind] || ''}</span> ${svEsc(n.note)}</div>`).join('');
+    // 사진에서 자리를 못 찾은 첨삭도 빠뜨리지 않는다
+    (a.unplaced || []).forEach(n => { h += `<div class="sv-note">· ${svEsc(n)}</div>`; });
+    if (a.missing.length) h += `<div class="sv-note miss">↳ 빠짐: ${a.missing.map(svEsc).join(', ')}</div>`;
+    return h;
 }
 
 async function svLoad() {
-    const box = document.getElementById('sheetView');
+    const status = document.getElementById('sheetView');
+    status.hidden = false;
+    status.innerHTML = '<div class="sv-status">시험지를 불러오는 중…</div>';
+    document.querySelectorAll('.sv-crop').forEach(el => el.remove());
+    document.querySelectorAll('.qr.has-crop').forEach(el => el.classList.remove('has-crop'));
     try {
         const r = await fetch(SV_URL);
         const d = await r.json();
         if (!d.ok || !d.pages.length) throw new Error('첨삭을 그릴 시험지 사진이 없습니다.');
-        box.innerHTML = d.pages.map(p => {
-            const parts = p.answers.map(svAnswer);
-            const more = parts.map(x => x.spill).filter(Boolean);
-            return `<div class="sv-page" onclick="svZoom()"><img src="${p.url}" alt="${p.page_no}쪽">`
-                + `<svg viewBox="0 0 ${p.w} ${p.h}" preserveAspectRatio="none">${parts.map(x => x.svg).join('')}</svg>`
+        const seen = new Set();
+        d.pages.forEach(p => p.answers.forEach(a => {
+            const card = document.querySelector(`.qr[data-qno="${a.number}"]`);
+            if (!card) return;
+            const notes = [];
+            const svg = svCrop(p, a, notes);
+            const el = document.createElement('div');
+            el.className = 'sv-crop';
+            el.innerHTML = `<div class="sv-img" onclick="this.parentNode.classList.toggle('zoom')" title="눌러서 크게/작게">${svg}`
                 + `<span class="sv-no">${p.page_no}쪽</span></div>`
-                + `<div class="sv-more"${more.length ? '' : ' hidden'}>${more.map(svEsc).join('<br>')}</div>`;
-        }).join('');
-        box.insertAdjacentHTML('afterbegin', '<div class="sv-hint">쪽을 누르면 크게 봅니다</div>');
+                + `<div class="sv-notes">${svNotesHtml(notes, a)}</div>`;
+            // 한 문항이 두 쪽에 걸치면 사진이 이어 붙는다
+            const anchor = card.querySelector('.pen-res');
+            const prev = card.querySelectorAll('.sv-crop');
+            if (prev.length) prev[prev.length - 1].after(el); else anchor.before(el);
+            card.classList.add('has-crop');
+            seen.add(a.number);
+        }));
+        const miss = document.querySelectorAll('.qr[data-qno]').length - seen.size;
+        status.innerHTML = svHeadHtml(d.pages[0]) + `<div class="sv-hint">사진을 누르면 크게 봅니다${miss > 0 ? ` · 사진에서 찾지 못한 ${miss}문항은 입력한 답안으로 보입니다` : ''}</div>`;
         svLoaded = true;
     } catch (e) {
-        box.innerHTML = `<div class="sv-status">${svEsc(e.message)}</div>`;
+        status.innerHTML = `<div class="sv-status">${svEsc(e.message)}</div>`;
     }
 }
-function svZoom() {
-    const box = document.getElementById('sheetView');
-    box.classList.toggle('zoom');
+function svReset() {
+    svLoaded = false;
+    if (document.querySelector('.er-wrap').classList.contains('show-photo')) svLoad();
 }
-function svReset() { svLoaded = false; if (!document.getElementById('sheetView').hidden) svLoad(); }
 
 document.querySelectorAll('.sv-tabs button').forEach(b => b.addEventListener('click', () => {
     const photo = b.dataset.v === 'photo';
