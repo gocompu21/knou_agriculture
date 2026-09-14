@@ -114,22 +114,24 @@ NATURE_API_KEY = os.getenv('NATURE_API_KEY', '')
 
 # 실기 필답형 기능에서 쓰는 모델 (용도별 분리)
 # - 채점: 채점 기준표를 프롬프트로 주므로 판단 여지가 좁다. 최신 stable flash로 충분.
-# - 손글씨 판독: 이미지 판독 정확도가 중요하므로 상위 모델을 쓴다.
-GEMINI_ESSAY_GRADE_MODEL = os.getenv('GEMINI_ESSAY_GRADE_MODEL', 'gemini-3.7-flash')
-GEMINI_ESSAY_OCR_MODEL = os.getenv('GEMINI_ESSAY_OCR_MODEL', 'gemini-3.1-pro-preview')
+# - 손글씨 판독: 예전에는 정확도 때문에 gemini-3.1-pro-preview 를 썼으나, 3세대 Pro 가
+#   preview 뿐이라 종료되면 사진 제출이 통째로 멈춘다. 판독 뒤 회원이 확인·수정하는
+#   단계가 있어 stable flash 로 옮겼다(2026-09). 오독이 늘면 환경변수로 되돌린다.
+GEMINI_ESSAY_GRADE_MODEL = os.getenv('GEMINI_ESSAY_GRADE_MODEL', 'gemini-3.8-flash')
+GEMINI_ESSAY_OCR_MODEL = os.getenv('GEMINI_ESSAY_OCR_MODEL', 'gemini-3.8-flash')
 
 # 객관식(필기) 선지별 해설 생성. **preview 를 쓰지 않는다** — 예고 없이 종료되는데,
 # 학습모드의 '설명 가져오기'는 관리자가 지금도 누르는 버튼이라 그날로 깨진다.
 # 대량 생성은 이미 끝났고(방송대 8,940 · 기사 6,800여 문항) 지금은 문항을 새로
 # 넣을 때만 돈다. 각 명령의 --model 로 그때그때 바꿀 수 있다.
-GEMINI_EXPLAIN_MODEL = os.getenv('GEMINI_EXPLAIN_MODEL', 'gemini-3.7-flash')
+GEMINI_EXPLAIN_MODEL = os.getenv('GEMINI_EXPLAIN_MODEL', 'gemini-3.8-flash')
 
 # 그 밖의 일반 호출 — 최신기출 텍스트 파싱(api_parse_text), 잡초 카드 종 정보
 # 조회(api_weed_name_check). 구조화 추출이라 flash 로 충분하다.
-GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-3.7-flash')
+GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-3.8-flash')
 
 # 질의응답(main/qna.py). 회원이 쓰는 기능이라 답변 품질이 곧 체감이다.
-GEMINI_QNA_MODEL = os.getenv('GEMINI_QNA_MODEL', 'gemini-3.7-flash')
+GEMINI_QNA_MODEL = os.getenv('GEMINI_QNA_MODEL', 'gemini-3.8-flash')
 
 # 사용자당 하루 LLM 호출 한도 (채점·판독 각각)
 ESSAY_DAILY_GRADE_LIMIT = int(os.getenv('ESSAY_DAILY_GRADE_LIMIT', '20'))

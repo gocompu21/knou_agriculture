@@ -197,7 +197,7 @@ python manage.py generate_explanations --force
 python manage.py generate_explanations --dry-run
 
 # 모델 변경
-python manage.py generate_explanations --model gemini-3.7-flash
+python manage.py generate_explanations --model gemini-3.8-flash
 ```
 
 ### 병렬 해설 생성
@@ -213,7 +213,7 @@ python generate_all.py
 - 동명 과목은 `--grade`로 자동 구분
 - Windows 환경에서 CP949 인코딩 에러 방지를 위해 UTF-8 출력 설정 포함
 - 8,940문제 전체 해설 생성 완료 (당시 gemini-2.5-flash 사용)
-- **기본 모델은 `settings.GEMINI_EXPLAIN_MODEL`**(`gemini-3.7-flash`). `--model` 로 덮어쓴다
+- **기본 모델은 `settings.GEMINI_EXPLAIN_MODEL`**(`gemini-3.8-flash`). `--model` 로 덮어쓴다
 
 ### 저장 방식
 
@@ -1691,21 +1691,23 @@ python deploy_essay_text.py export / load    # 서버 배포
 않으려는 것이고, preview 를 박아 두면 종료되는 날 그 기능이 통째로 죽는다.
 
 ```python
-GEMINI_ESSAY_GRADE_MODEL = 'gemini-3.7-flash'        # 실기 채점
-GEMINI_ESSAY_OCR_MODEL   = 'gemini-3.1-pro-preview'  # 손글씨 판독 (정확도 우선)
-GEMINI_EXPLAIN_MODEL     = 'gemini-3.7-flash'        # 객관식 선지별 해설
-GEMINI_QNA_MODEL         = 'gemini-3.7-flash'        # 질의응답
-GEMINI_MODEL             = 'gemini-3.7-flash'        # 그 밖(기출 파싱·잡초 조회)
+GEMINI_ESSAY_GRADE_MODEL = 'gemini-3.8-flash'        # 실기 채점
+GEMINI_ESSAY_OCR_MODEL   = 'gemini-3.8-flash'        # 손글씨 판독
+GEMINI_EXPLAIN_MODEL     = 'gemini-3.8-flash'        # 객관식 선지별 해설
+GEMINI_QNA_MODEL         = 'gemini-3.8-flash'        # 질의응답
+GEMINI_MODEL             = 'gemini-3.8-flash'        # 그 밖(기출 파싱·잡초 조회)
 ESSAY_DAILY_GRADE_LIMIT  = 20   # 사용자당 하루 채점 횟수(세션 수)
 ESSAY_DAILY_OCR_LIMIT    = 40   # 사용자당 하루 판독 장수
 ```
 
 모두 같은 이름의 환경변수로 덮어쓸 수 있고, 해설 생성 명령은 `--model` 도 받는다.
-**손글씨 판독만 preview 다** — 한글 손글씨 정확도 차이가 커서 감수한 선택이다.
+**preview 는 하나도 없다.** 손글씨 판독은 한때 정확도 때문에 `gemini-3.1-pro-preview`
+를 썼으나 2026-09 에 flash 로 옮겼다 — 3세대 Pro 가 preview 뿐이라(정식 Pro 는 2.5)
+종료되면 사진 제출이 멈추고, 판독 뒤 회원이 확인·수정하는 단계가 있어 오독이 곧
+점수 손실이 되지 않는다. 옮길 때 회원 사진 제출은 0건이었다(관리자 테스트 5장뿐).
 
-> **preview 모델은 쓰지 않는다** — 예고 없이 종료된다. 객관식 해설 생성도
-> 2026-09 에 `GEMINI_EXPLAIN_MODEL`(`gemini-3.7-flash`)로 옮겼다. 손글씨 판독만
-> 정확도 차이가 커서 preview 를 감수한다. 모두 환경변수로 교체 가능.
+> **preview 모델은 쓰지 않는다** — 예고 없이 종료된다. 2026-09 에 전 용도를
+> `gemini-3.8-flash` 로 맞췄다. 모두 환경변수로 교체 가능.
 
 ### 화면 (templates/gisa/)
 
