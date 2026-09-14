@@ -168,14 +168,26 @@
         border-radius: 50%; border: 0; background: #c62828; color: #fff; font-size: 0.8rem;
         line-height: 22px; cursor: pointer; padding: 0; }
     /* 판독 진행 — 장마다 상태를 덮어 보여 주고, 아래 막대로 전체 진행을 알린다 */
-    .up-item .st { position: absolute; left: 0; right: 0; bottom: 0; padding: 3px 0;
+    /* 곧게 편 결과 — 사진 아래 한 줄. 판독 전에 잘렸거나 펴지지 않은 장을 보고 다시 찍게 한다 */
+    .up-item a { display: block; }
+    .up-item .fx { margin-top: 4px; font-size: 0.68rem; font-weight: 700; line-height: 1.3;
+        color: #888; text-align: center; }
+    .up-item .fx.marker { color: #2d6a4f; }
+    .up-item .fx.edge { color: #9a6a00; }
+    .up-item .fx.none { color: #c62828; }
+    .up-item.flat img { opacity: .45; }
+    .up-item .st { position: absolute; left: 0; right: 0; top: 87px; padding: 3px 0;
         font-size: 0.72rem; font-weight: 700; text-align: center; color: #fff;
         border-radius: 0 0 6px 6px; display: none; }
     .up-item.busy img { opacity: .45; }
-    .up-item.busy .st { display: block; background: #1b4332; }
+    .up-item.flat .st, .up-item.busy .st { display: block; background: #1b4332; }
     .up-item.done .st { display: block; background: #2d6a4f; }
     .up-item.fail .st { display: block; background: #c62828; }
-    .up-item.busy .rm, .up-item.done .rm { display: none; }
+    .up-item.busy .rm, .up-item.done .rm, .up-item.flat .rm { display: none; }
+    .up-tip { max-width: 520px; margin: 0 auto 14px; text-align: left; font-size: 0.8rem;
+        color: #555; background: #fff; border: 1px solid #e3e9e4; border-radius: 8px;
+        padding: 9px 12px; line-height: 1.65; }
+    .up-tip b { color: #1b4332; }
     .up-prog { display: none; margin: 14px auto 0; max-width: 360px; height: 8px;
         background: #e3e9e4; border-radius: 4px; overflow: hidden; }
     .up-prog.on { display: block; }
@@ -253,8 +265,14 @@
 
     <div class="up-box">
         <h3>답안지 사진 업로드</h3>
-        <p>페이지마다 한 장씩, 그림자 없이 정면에서 촬영하세요.<br>
+        <p>페이지마다 한 장씩, 그림자 없이 촬영하세요.<br>
            카메라로 한 장씩 찍거나 앨범·파일에서 여러 장을 골라 모은 뒤 판독을 시작합니다.</p>
+        <div class="up-tip">
+            · <b>네 모서리의 네모난 무늬가 모두 나오게</b> 찍으면 기울어진 사진도 곧게 펴서 읽습니다.<br>
+            · 휴대폰의 <b>문서 스캔</b>으로 찍으면 가장 잘 읽힙니다 —
+              아이폰은 <b>메모 앱 → 카메라 → 문서 스캔</b>, 안드로이드는 <b>Google Drive → + → 스캔</b>.<br>
+            · 사진을 고르면 곧게 편 모습이 바로 보입니다. 잘렸거나 '펴지 못함'이면 ×로 빼고 다시 찍으세요.
+        </div>
         <div class="up-btns">
             <label class="up-label" for="upcam">카메라로 찍기</label>
             <label class="up-label sub" for="upfile">사진·파일 고르기</label>
@@ -552,46 +570,112 @@ function escapeHtml(s) {
 
 /* ---------- 사진 업로드 ---------- */
 {% if session.mode == 'paper' %}
-/* 모아 둔 사진. 카메라는 한 번에 한 장씩 오므로 change 마다 이어 붙인다. */
+/* 모아 둔 사진. 카메라는 한 번에 한 장씩 오므로 change 마다 이어 붙인다.
+ * 고르자마자 서버로 보내 곧게 편다(essay_flatten) — 판독 전에 편 모습을 보여 주어
+ * 잘렸거나 펴지지 않은 장을 다시 찍게 한다. 판독은 그 upload_id 로 요청한다.
+ * 항목: {file, id, url, method, label, state: 'flat'|'ready'|'flatfail'} */
 const upQueue = [];
+const UP_URL = `/gisa/${CERT_ID}/essay/${SESSION_ID}`;
 
 function upRender() {
     const list = document.getElementById('uplist');
     const go = document.getElementById('upgo');
     list.innerHTML = '';
-    upQueue.forEach((f, i) => {
+    upQueue.forEach((q, i) => {
         const it = document.createElement('div');
-        it.className = 'up-item';
+        it.className = 'up-item' + (q.state === 'flat' ? ' flat' : '');
         const img = document.createElement('img');
-        img.src = URL.createObjectURL(f);
-        img.onload = () => URL.revokeObjectURL(img.src);
+        if (q.url) {
+            img.src = q.url;
+        } else {
+            img.src = URL.createObjectURL(q.file);
+            img.onload = () => URL.revokeObjectURL(img.src);
+        }
+        let thumb = img;
+        if (q.url) {                 // 편 사진은 눌러서 크게 본다
+            thumb = document.createElement('a');
+            thumb.href = q.url; thumb.target = '_blank'; thumb.title = '크게 보기';
+            thumb.appendChild(img);
+        }
         const no = document.createElement('span');
         no.className = 'no'; no.textContent = (i + 1) + '쪽';
         const rm = document.createElement('button');
         rm.type = 'button'; rm.className = 'rm'; rm.textContent = '×';
         rm.title = '빼기';
-        rm.addEventListener('click', () => { upQueue.splice(i, 1); upRender(); });
+        rm.addEventListener('click', () => upRemove(i));
         const st = document.createElement('span');
         st.className = 'st';
-        it.append(img, no, rm, st);
+        if (q.state === 'flat') st.textContent = '펴는 중';
+        const fx = document.createElement('div');
+        fx.className = 'fx ' + (q.method || '');
+        fx.textContent = q.state === 'flatfail' ? '미리보기 실패' : (q.label || '');
+        it.append(thumb, no, rm, st, fx);
         list.appendChild(it);
     });
+    const busy = upQueue.some(q => q.state === 'flat');
     go.hidden = upQueue.length === 0;
-    go.textContent = `${upQueue.length}장 판독 시작`;
+    go.disabled = busy;
+    go.textContent = busy ? '사진 펴는 중…' : `${upQueue.length}장 판독 시작`;
 }
 
+async function upFlatten(q) {
+    const fd = new FormData();
+    fd.append('image', q.file);
+    try {
+        const r = await fetch(`${UP_URL}/flatten/`, {
+            method: 'POST', headers: {'X-CSRFToken': CSRF}, body: fd
+        });
+        const d = await r.json();
+        if (!d.ok) throw new Error(d.error || '올리기 실패');
+        Object.assign(q, {id: d.upload_id, url: d.url, method: d.method,
+                          label: d.label, state: 'ready'});
+    } catch (err) {
+        // 미리보기를 못 만들어도 판독할 때 파일을 그대로 보내면 된다
+        Object.assign(q, {state: 'flatfail', method: ''});
+    }
+    upRender();
+    upStatusHint();
+}
+
+function upStatusHint() {
+    if (upQueue.some(q => q.state === 'flat')) return;
+    const bad = upQueue.filter(q => q.method === 'none').length;
+    document.getElementById('upstatus').innerHTML = bad
+        ? `<span style="color:#c62828">${bad}장은 곧게 펴지 못했습니다.</span> `
+          + `네 모서리가 모두 나오게 다시 찍으면 더 정확히 읽습니다. 그대로 판독해도 됩니다.`
+        : '더 찍거나 고른 뒤, 다 모이면 판독 시작을 누르세요.';
+}
+
+function upRemove(i) {
+    const q = upQueue[i];
+    if (q.id) {
+        const fd = new FormData();
+        fd.append('upload_id', q.id);
+        fetch(`${UP_URL}/upload/remove/`, {method: 'POST', headers: {'X-CSRFToken': CSRF}, body: fd});
+    }
+    upQueue.splice(i, 1);
+    upRender();
+    upStatusHint();
+}
+
+/* 한 장씩 차례로 편다. 한꺼번에 보내면 서버 작업자(2개)를 모두 붙잡아 다른
+ * 사람의 화면이 멈추고, 쪽 번호도 고른 순서와 어긋날 수 있다. */
+let upChain = Promise.resolve();
 function upAdd(e) {
-    Array.from(e.target.files || []).forEach(f => upQueue.push(f));
+    Array.from(e.target.files || []).forEach(f => {
+        const q = {file: f, state: 'flat'};
+        upQueue.push(q);
+        upChain = upChain.then(() => upQueue.includes(q) ? upFlatten(q) : null);
+    });
     e.target.value = '';           // 같은 사진을 다시 골라도 change 가 뜨게
     upRender();
-    document.getElementById('upstatus').textContent =
-        '더 찍거나 고른 뒤, 다 모이면 판독 시작을 누르세요.';
+    document.getElementById('upstatus').textContent = '사진을 곧게 펴는 중입니다…';
 }
 document.getElementById('upcam').addEventListener('change', upAdd);
 document.getElementById('upfile').addEventListener('change', upAdd);
 
 document.getElementById('upgo').addEventListener('click', async () => {
-    if (!upQueue.length) return;
+    if (!upQueue.length || upQueue.some(q => q.state === 'flat')) return;
     const go = document.getElementById('upgo');
     const status = document.getElementById('upstatus');
     const prog = document.getElementById('upprog');
@@ -606,16 +690,19 @@ document.getElementById('upgo').addEventListener('click', async () => {
     // 나눠 보내도 결과는 같고 대신 장마다 진행을 보여 줄 수 있다.
     const collected = {};       // question_id → 이어 붙인 답
     const notes = [];           // 서버가 뺀 문항·쪽에 대한 설명
+    const doneIdx = new Set();
     let failed = 0;
     for (let i = 0; i < total; i++) {
         const it = items[i];
+        const q = upQueue[i];
         it.classList.add('busy');
         it.querySelector('.st').textContent = '판독 중';
         status.textContent = `${i + 1} / ${total}쪽 판독 중… (한 장에 10~20초쯤 걸립니다)`;
         const fd = new FormData();
-        fd.append('images', upQueue[i]);
+        if (q.id) fd.append('upload_id', q.id);
+        else fd.append('images', q.file);       // 미리 올리지 못한 장은 파일째 보낸다
         try {
-            const r = await fetch(`/gisa/${CERT_ID}/essay/${SESSION_ID}/upload/`, {
+            const r = await fetch(`${UP_URL}/upload/`, {
                 method: 'POST', headers: {'X-CSRFToken': CSRF}, body: fd
             });
             const d = await r.json();
@@ -632,6 +719,7 @@ document.getElementById('upgo').addEventListener('click', async () => {
             });
             it.classList.remove('busy'); it.classList.add('done');
             it.querySelector('.st').textContent = '완료';
+            doneIdx.add(i);
         } catch (err) {
             failed++;
             it.classList.remove('busy'); it.classList.add('fail');
@@ -651,9 +739,8 @@ document.getElementById('upgo').addEventListener('click', async () => {
     if (failed) {
         // 읽은 장은 큐에서 빼 두어야 다시 시도할 때 그 장까지 또 보내지 않는다.
         // 판독은 장마다 API 를 부르고 하루 한도도 장수로 세므로 두 번 보내면 낭비다.
-        const keep = [];
-        items.forEach((it, i) => { if (it.classList.contains('fail')) keep.push(upQueue[i]); });
-        upQueue.length = 0; keep.forEach(f => upQueue.push(f));
+        const keep = upQueue.filter((q, i) => !doneIdx.has(i));
+        upQueue.length = 0; keep.forEach(q => upQueue.push(q));
         upRender();
         status.innerHTML = `<span style="color:#c62828">${failed}장은 읽지 못했습니다.</span> `
             + `${filled}개 문항을 읽었습니다. 읽은 장은 치웠으니, 남은 장을 `

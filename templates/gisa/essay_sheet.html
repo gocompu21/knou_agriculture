@@ -135,7 +135,17 @@
      * 바닥까지 내려가지 않는다. */
     .sheet-tbl { width: 100%; border-collapse: collapse; }
     .sheet-tbl td { padding: 0; vertical-align: top; }
-    .sh-run, .sh-run-space { display: none; }
+    .sh-run, .sh-run-space, .sh-top-space, .sh-mk { display: none; }
+
+    /* 사진 보정용 모서리 마커 (gisa/essay_rectify.py)
+     *
+     * 쪽마다 네 모서리에 번호가 박힌 ArUco 마커를 찍는다(0 왼위·1 오른위·
+     * 2 오른아래·3 왼아래). 업로드한 사진에서 이것을 찾아 A4 로 곧게 편다.
+     * 코드와 같이 position:fixed 로 쪽마다 되풀이하고, 본문이 마커 자리를
+     * 덮지 않도록 <thead>·<tfoot> 에 빈 칸을 둔다.
+     *
+     * 크기·위치를 바꾸면 essay_rectify.py 의 MARGIN_*_MM·MARKER_MM 도 같이
+     * 바꿔야 한다 — 편 사진의 좌표가 이 값에서 나온다. */
 
     @media print {
         .sheet-bar, .sheet-tip { display: none !important; }
@@ -144,12 +154,20 @@
             font-size: 0.68rem; color: #555; font-family: ui-monospace, monospace;
             letter-spacing: 1px; line-height: 20px; }
         .sh-run b { color: #111; font-size: 0.9rem; }
-        .sh-run-space { display: block; height: 28px; }
+        .sh-run-space { display: block; height: 11mm; }
+        .sh-top-space { display: block; height: 12mm; }
+        .sh-mk { display: block; position: fixed; width: 9mm; height: 9mm; }
+        .sh-mk svg { display: block; width: 100%; height: 100%; }
+        .sh-mk.tl { top: 0; left: 0; }
+        .sh-mk.tr { top: 0; right: 0; }
+        .sh-mk.br { bottom: 0; right: 0; }
+        .sh-mk.bl { bottom: 0; left: 0; }
         body { background: #fff !important; }
         .sheet { box-shadow: none; margin: 0; padding: 0 6mm; max-width: none; }
         /* 위 여백은 넉넉히 — 쪽 첫머리가 종이 끝에 붙으면 답답하고, 사진을 찍을 때
-         * 첫 문항이 잘리기 쉽다. */
-        @page { size: A4; margin: 18mm 10mm 12mm; }
+         * 첫 문항이 잘리기 쉽다. 종이 끝 10mm 에 마커를 두고, 그 아래 <thead> 빈 칸
+         * 12mm 를 지나 본문이 시작한다(종전 여백 18mm 와 거의 같은 자리). */
+        @page { size: A4; margin: 10mm 10mm 12mm; }
     }
     @media (max-width: 600px) {
         .sq-text, .sq-box, .sq-img { padding-left: 0; margin-left: 0; }
@@ -166,15 +184,19 @@
 
 <div class="sheet-tip">
     <b>촬영 안내</b> — 검은 볼펜으로 답안 박스 <b>안에</b> 쓰고, 페이지마다 한 장씩
-    그림자 없이 정면에서 촬영하세요. 페이지 오른쪽 아래 코드가 사진에 함께 나와야
-    어느 시험지인지 인식됩니다.<br>
+    그림자 없이 촬영하세요. <b>네 모서리의 네모난 무늬가 모두 사진에 나와야</b>
+    기울어진 사진을 곧게 펴서 읽습니다. 휴대폰의 <b>문서 스캔</b>(아이폰 메모 앱,
+    안드로이드 Google Drive '스캔')으로 찍으면 가장 잘 읽힙니다.<br>
+    인쇄할 때 배율은 <b>기본(100%)</b>으로 두세요.<br>
     다 풀고 나면 위의 <b>[답안 올리기]</b>로 돌아와 사진을 올리면 됩니다.
     이 창을 닫았다면 실기 목록의 <b>응시 이력</b>에서 같은 회차를 찾아 이어갈 수 있습니다.
 </div>
 
 <div class="sheet">
 <div class="sh-run">시험지 코드 <b>{{ session.paper_code }}</b> · {{ session.label }}</div>
+{% for m in sheet_markers %}<div class="sh-mk {{ m.pos }}">{{ m.svg|safe }}</div>{% endfor %}
 <table class="sheet-tbl">
+<thead><tr><td><div class="sh-top-space"></div></td></tr></thead>
 <tfoot><tr><td><div class="sh-run-space"></div></td></tr></tfoot>
 <tbody><tr><td>
     <div class="sh-head">

@@ -3,3 +3,4 @@ psycopg2-binary==2.9.11
 openpyxl==3.1.5
 google-genai==1.63.0
 python-dotenv==1.2.1
+opencv-python-headless==5.0.0.93

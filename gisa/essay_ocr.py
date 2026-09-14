@@ -188,7 +188,8 @@ def transcribe_uploads(session, uploads):
     rejected = []          # [{'page_no', 'reason'}] — 이 시험지가 아닌 사진
 
     for up in uploads:
-        path = pathlib.Path(up.image.path)
+        # 곧게 편 사진이 있으면 그것으로 읽는다(essay_rectify) — 줄이 곧아야 판독이 낫다
+        path = pathlib.Path((up.flat_image or up.image).path)
         if not path.exists():
             continue
         mime = 'image/png' if path.suffix.lower() == '.png' else 'image/jpeg'

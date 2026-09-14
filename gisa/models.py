@@ -492,12 +492,24 @@ def _essay_upload_path(instance, filename):
     return f'gisa/essay_uploads/{instance.session.user_id}/{instance.session_id}/p{instance.page_no}{ext}'
 
 
+def _essay_flat_path(instance, filename):
+    return f'gisa/essay_uploads/{instance.session.user_id}/{instance.session_id}/p{instance.page_no}_flat.jpg'
+
+
 class GisaEssayUpload(models.Model):
-    """시험지 사진 업로드 (paper 모드)."""
+    """시험지 사진 업로드 (paper 모드).
+
+    올리자마자 사진을 A4 로 곧게 펴(essay_rectify) flat_image 에 두고, 판독은
+    편 사진으로 한다. 원본(image)은 그대로 둔다 — 보정이 잘못됐을 때 되짚을 수 있게.
+    """
     session = models.ForeignKey(GisaEssaySession, on_delete=models.CASCADE,
                                 related_name='uploads', verbose_name='응시')
     page_no = models.PositiveSmallIntegerField('페이지', default=1)
     image = models.ImageField('사진', upload_to=_essay_upload_path)
+    flat_image = models.ImageField('편 사진', upload_to=_essay_flat_path, blank=True)
+    # marker(모서리 마커) / edge(종이 가장자리) / none(펴지 못함) / 빈 값(보정 전)
+    flat_method = models.CharField('보정 방법', max_length=10, blank=True)
+    flat_info = models.JSONField('보정 정보', default=dict, blank=True)
     transcribed = models.BooleanField('판독 완료', default=False)
     uploaded_at = models.DateTimeField('업로드', auto_now_add=True)
 

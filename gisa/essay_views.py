@@ -942,7 +942,8 @@ def essay_adjust(request, cert_id, attempt_id):
 
 @login_required
 def essay_sheet(request, cert_id, session_id):
-    """인쇄용 시험지. 페이지마다 세션 코드를 넣어 업로드 시 매칭한다."""
+    """인쇄용 시험지. 페이지마다 세션 코드와 사진 보정용 모서리 마커를 찍는다."""
+    from .essay_rectify import marker_svgs
     cert = get_object_or_404(Certification, pk=cert_id)
     session = get_object_or_404(GisaEssaySession, pk=session_id,
                                 user=request.user, certification=cert)
@@ -958,13 +959,113 @@ def essay_sheet(request, cert_id, session_id):
         'cert': cert, 'session': session, 'questions': questions,
         'sheet_points': sum(q.points for q in questions),
         'sheet_minutes': (_info or {}).get('essay_minutes', 90),
+        'sheet_markers': marker_svgs(),
     })
+
+
+def _flatten_upload(up):
+    """업로드 한 장을 곧게 펴 flat_image 에 둔다. 실패해도 판독은 원본으로 이어 간다."""
+    from django.core.files.base import ContentFile
+    from .essay_rectify import rectify_bytes
+    try:
+        up.image.open('rb')
+        data = up.image.read()
+        up.image.close()
+        out, method, info = rectify_bytes(data)
+    except Exception as e:                  # 사진이 깨졌거나 보정이 터져도 업로드는 살린다
+        out, method, info = None, 'none', {'error': str(e)[:200]}
+    up.flat_method = method
+    up.flat_info = info
+    if out and method != 'none':
+        up.flat_image.save('flat.jpg', ContentFile(out), save=False)
+    up.save()
+    return up
+
+
+def _new_upload(session, f):
+    """다음 쪽 번호로 업로드를 만든다.
+
+    사진 여러 장을 한꺼번에 고르면 요청이 겹쳐 같은 번호를 잡는다(session, page_no
+    고유 제약에 걸려 한 장이 500 이 났다). 걸리면 번호를 올려 다시 넣는다.
+    """
+    from django.db import IntegrityError, transaction
+    from django.db.models import Max
+    for _ in range(5):
+        page_no = (session.uploads.aggregate(m=Max('page_no'))['m'] or 0) + 1
+        try:
+            with transaction.atomic():
+                return GisaEssayUpload.objects.create(session=session, page_no=page_no, image=f)
+        except IntegrityError:
+            continue
+    raise RuntimeError('쪽 번호를 잡지 못했습니다')
+
+
+def _upload_json(up):
+    from .essay_rectify import METHOD_LABELS
+    img = up.flat_image if up.flat_image else up.image
+    return {'upload_id': up.pk, 'page_no': up.page_no, 'url': img.url,
+            'method': up.flat_method or 'none',
+            'label': METHOD_LABELS.get(up.flat_method or 'none', '')}
+
+
+def _drop_upload(up):
+    for f in (up.image, up.flat_image):
+        if f:
+            f.delete(save=False)
+    up.delete()
+
+
+@login_required
+@require_POST
+def essay_flatten(request, cert_id, session_id):
+    """사진 한 장을 받아 곧게 편 결과를 미리 보여 준다(판독 전).
+
+    판독은 장마다 API 를 부르고 하루 한도도 장수로 센다. 사진이 잘렸거나 펴지지
+    않은 것을 판독 **전에** 보여 주어 다시 찍을 기회를 준다. 여기서 만든 업로드는
+    판독하기 전까지 한도에 들지 않는다(_daily_count 는 transcribed 만 센다).
+    """
+    cert = get_object_or_404(Certification, pk=cert_id)
+    session = get_object_or_404(GisaEssaySession, pk=session_id,
+                                user=request.user, certification=cert)
+    f = request.FILES.get('image')
+    if not f:
+        return JsonResponse({'ok': False, 'error': '이미지가 없습니다'}, status=400)
+
+    # 올리고 판독하지 않은 채 버려진 사진은 하루 지나면 치운다
+    stale = GisaEssayUpload.objects.filter(
+        session__user=request.user, transcribed=False,
+        uploaded_at__lt=timezone.now() - timedelta(days=1))
+    for up in stale:
+        _drop_upload(up)
+    if session.uploads.filter(transcribed=False).count() >= 40:
+        return JsonResponse({'ok': False, 'error': '판독하지 않은 사진이 너무 많습니다. 판독하거나 빼 주세요.'},
+                            status=429)
+
+    up = _new_upload(session, f)
+    _flatten_upload(up)
+    return JsonResponse({'ok': True, **_upload_json(up)})
+
+
+@login_required
+@require_POST
+def essay_upload_remove(request, cert_id, session_id):
+    """판독 전 사진을 뺀다(다시 찍을 때)."""
+    session = get_object_or_404(GisaEssaySession, pk=session_id,
+                                user=request.user, certification_id=cert_id)
+    up = session.uploads.filter(pk=request.POST.get('upload_id'), transcribed=False).first()
+    if up:
+        _drop_upload(up)
+    return JsonResponse({'ok': True})
 
 
 @login_required
 @require_POST
 def essay_upload(request, cert_id, session_id):
-    """시험지 사진 업로드 → Gemini로 손글씨 판독."""
+    """시험지 사진 판독 → Gemini로 손글씨 판독.
+
+    보통은 essay_flatten 으로 미리 올려 편 사진의 upload_id 를 보낸다. 사진 파일을
+    곧바로 보내도 된다(그때는 여기서 편다).
+    """
     cert = get_object_or_404(Certification, pk=cert_id)
     session = get_object_or_404(GisaEssaySession, pk=session_id,
                                 user=request.user, certification=cert)
@@ -974,15 +1075,14 @@ def essay_upload(request, cert_id, session_id):
         return JsonResponse({'ok': False,
                              'error': f'하루 판독 한도({limit}장)를 초과했습니다.'}, status=429)
 
+    uploads = list(session.uploads.filter(
+        pk__in=request.POST.getlist('upload_id'), transcribed=False).order_by('page_no'))
     files = request.FILES.getlist('images')
-    if not files:
+    if not uploads and not files:
         return JsonResponse({'ok': False, 'error': '이미지가 없습니다'}, status=400)
 
-    uploads = []
-    start = session.uploads.count()
-    for i, f in enumerate(files, start=start + 1):
-        up = GisaEssayUpload.objects.create(session=session, page_no=i, image=f)
-        uploads.append(up)
+    for f in files:
+        uploads.append(_flatten_upload(_new_upload(session, f)))
 
     try:
         from .essay_ocr import transcribe_uploads
@@ -995,8 +1095,7 @@ def essay_upload(request, cert_id, session_id):
     bad_pages = {r['page_no'] for r in rejected if r['reason'].startswith('다른 시험지')}
     for up in uploads:
         if up.page_no in bad_pages:
-            up.image.delete(save=False)
-            up.delete()
+            _drop_upload(up)
 
     if not results and rejected:
         return JsonResponse({'ok': False, 'error': rejected[0]['reason'],
