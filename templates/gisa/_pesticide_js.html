@@ -326,12 +326,15 @@
     function autoStart() {
         if (_pc.started) return;
         var box = document.getElementById('tab-pesticide');
-        if (!box || !box.classList.contains('active')) return;
+        // DVD 탭이 열려 있고 그 안에서 이 칸이 골라져 있을 때만
+        var tab = box && box.closest('.tab-content');
+        if (!box || !box.classList.contains('active') ||
+            (tab && !tab.classList.contains('active'))) return;
         _pc.started = true;
         next();
     }
     autoStart();
-    document.querySelectorAll('.tab-btn').forEach(function (b) {
+    document.querySelectorAll('.tab-btn, .dvd-sub').forEach(function (b) {
         b.addEventListener('click', function () { setTimeout(autoStart, 0); });
     });
 })();

@@ -154,10 +154,17 @@ def essay_list(request, cert_id):
 
     tab = request.GET.get('tab', 'textbook')
     _tabs = ['textbook', 'study', 'solve', 'mock', 'wrong', 'history', 'qna']
-    if pest_can_see(cert):
-        _tabs.append('pesticide')
-    if bug_can_see(cert):
-        _tabs.append('pest')
+    # 해충·농약 DVD 는 'DVD' 탭 하나에 묶고 그 안에서 고른다(`?tab=dvd&dvd=pest`).
+    # 예전 주소 ?tab=pest · ?tab=pesticide 는 그 칸을 연 DVD 탭으로 받는다.
+    dvd_subs = ([('pest', '해충 DVD')] if bug_can_see(cert) else []) +                ([('pesticide', '농약 DVD')] if pest_can_see(cert) else [])
+    dvd_keys = [k for k, _ in dvd_subs]
+    dvd = request.GET.get('dvd', '')
+    if tab in dvd_keys:
+        tab, dvd = 'dvd', tab
+    if dvd_keys:
+        _tabs.append('dvd')
+        if dvd not in dvd_keys:
+            dvd = dvd_keys[0]
     if tab not in _tabs:
         tab = 'textbook'
 
@@ -177,6 +184,8 @@ def essay_list(request, cert_id):
         # 개요가 없는 자격증은 종전 문구 그대로.
         'info': _einfo,
         'active_tab': tab,
+        'dvd_subs': dvd_subs,
+        'dvd_active': dvd,
         # 농약 DVD 암기카드 — 식물보호 두 급수에만 낸다(`pesticide.can_see`).
         # 92종은 자격증에 매이지 않아 두 급수가 같은 카드를 함께 쓴다.
         'pest_on': pest_can_see(cert),

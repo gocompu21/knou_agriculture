@@ -42,6 +42,17 @@
         transition: color .2s; margin-bottom: -2px; }
     .tab-btn:hover { color: #333; }
     .tab-btn.active { color: #1b4332; border-bottom-color: #2d6a4f; }
+    /* DVD 탭 안의 해충/농약 고르기 — 카드 안의 범위 단추(전체·농작물…)와 헷갈리지
+       않게 한 덩어리 분절 단추로 둔다 */
+    .dvd-subs { display: flex; width: fit-content; margin: 0 auto 18px; padding: 4px;
+        gap: 4px; background: #e6ede8; border-radius: 12px; }
+    .dvd-sub { border: 0; background: none; border-radius: 9px; padding: 8px 22px;
+        font-size: 0.9rem; font-weight: 700; color: #6b7b72; cursor: pointer;
+        font-family: inherit; white-space: nowrap; transition: background .15s, color .15s; }
+    .dvd-sub:hover:not(.on) { color: #2f4a3c; }
+    .dvd-sub.on { background: #fff; color: #14312a; box-shadow: 0 1px 4px rgba(20,49,42,.18); }
+    .dvd-pane { display: none; }
+    .dvd-pane.active { display: block; }
     .tab-badge { background: #ef5350; color: #fff; font-size: 0.72rem; font-weight: 700;
         padding: 1px 7px; border-radius: 10px; margin-left: 5px; vertical-align: 1px; }
     .tab-badge.soft { background: #8a5cf6; }
@@ -461,8 +472,7 @@
     <!-- 탭 — 필기 상세와 같은 순서. 실기는 과목이 하나라 과목 선택은 없다. -->
     <div class="tab-nav" id="tabNav">
         <button class="tab-btn{% if active_tab == 'textbook' %} active{% endif %}" data-tab="textbook">쪽집게 노트</button>
-        {% if pest_on %}<button class="tab-btn{% if active_tab == 'pesticide' %} active{% endif %}" data-tab="pesticide">농약 DVD</button>{% endif %}
-        {% if bug_on %}<button class="tab-btn{% if active_tab == 'pest' %} active{% endif %}" data-tab="pest">해충 DVD</button>{% endif %}
+        {% if dvd_subs %}<button class="tab-btn{% if active_tab == 'dvd' %} active{% endif %}" data-tab="dvd">DVD</button>{% endif %}
         <button class="tab-btn{% if active_tab == 'study' %} active{% endif %}" data-tab="study">기출학습</button>
         <button class="tab-btn{% if active_tab == 'solve' %} active{% endif %}" data-tab="solve">기출고사</button>
         <button class="tab-btn{% if active_tab == 'mock' %} active{% endif %}" data-tab="mock">모의고사</button>
@@ -485,14 +495,25 @@
     </div>
 
     <!-- ══════════ 기출학습 ══════════ -->
-    {% if pest_on %}
-    <div id="tab-pesticide" class="tab-content{% if active_tab == 'pesticide' %} active{% endif %}">
-{% include "gisa/_pesticide_tab.html" %}
-    </div>
-    {% endif %}
-    {% if bug_on %}
-    <div id="tab-pest" class="tab-content{% if active_tab == 'pest' %} active{% endif %}">
+    {% if dvd_subs %}
+    <!-- DVD — 해충·농약 암기카드를 한 탭에 두고 위의 단추로 고른다.
+         칸의 id(tab-pest·tab-pesticide)는 조각 JS 의 autoStart 가 찾는 이름이라 그대로 둔다 -->
+    <div id="tab-dvd" class="tab-content{% if active_tab == 'dvd' %} active{% endif %}">
+        {% if dvd_subs|length > 1 %}
+        <div class="dvd-subs">
+            {% for key, label in dvd_subs %}<button type="button" class="dvd-sub{% if key == dvd_active %} on{% endif %}" data-dvd="{{ key }}">{{ label }}</button>{% endfor %}
+        </div>
+        {% endif %}
+        {% if bug_on %}
+        <div id="tab-pest" class="dvd-pane{% if dvd_active == 'pest' %} active{% endif %}">
 {% include "gisa/_pest_tab.html" %}
+        </div>
+        {% endif %}
+        {% if pest_on %}
+        <div id="tab-pesticide" class="dvd-pane{% if dvd_active == 'pesticide' %} active{% endif %}">
+{% include "gisa/_pesticide_tab.html" %}
+        </div>
+        {% endif %}
     </div>
     {% endif %}
 
@@ -868,12 +889,28 @@ function switchTab(name) {
         c.classList.toggle('active', c.id === 'tab-' + name);
     });
     var u = new URL(location.href); u.searchParams.set('tab', name);
+    if (name !== 'dvd') u.searchParams.delete('dvd');   // 다른 탭으로 가면 DVD 칸 표시는 뗀다
     history.replaceState(null, '', u);
     var btn = document.querySelector('.tab-btn.active');
     if (btn && btn.scrollIntoView) btn.scrollIntoView({ block: 'nearest', inline: 'center' });
 }
 document.querySelectorAll('.tab-btn').forEach(function (b) {
     b.addEventListener('click', function () { switchTab(b.dataset.tab); });
+});
+/* DVD 탭 안의 해충/농약 전환 — 주소에 ?dvd= 로 남긴다. 조각 JS 들은 이 단추
+   눌림에도 autoStart 를 걸어 두어, 처음 여는 쪽의 첫 문제를 그때 낸다 */
+document.querySelectorAll('.dvd-sub').forEach(function (b) {
+    b.addEventListener('click', function () {
+        document.querySelectorAll('.dvd-sub').forEach(function (x) {
+            x.classList.toggle('on', x === b);
+        });
+        document.querySelectorAll('.dvd-pane').forEach(function (p) {
+            p.classList.toggle('active', p.id === 'tab-' + b.dataset.dvd);
+        });
+        var u = new URL(location.href);
+        u.searchParams.set('tab', 'dvd'); u.searchParams.set('dvd', b.dataset.dvd);
+        history.replaceState(null, '', u);
+    });
 });
 (function () {
     var btn = document.querySelector('.tab-btn.active');

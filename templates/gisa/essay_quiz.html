@@ -61,9 +61,20 @@
         clear: both; box-sizing: border-box; text-indent: 0; }
     .qz-img { display: block; max-width: min(100%, 420px); margin: 8px 0; }
 
+    /* 답안 칸은 풀기 화면(essay_take)·인쇄 시험지와 같은 괘선 칸 — 줄 간격 32px 에
+     * 파선 타일을 배경으로 깐다. 테두리는 정수 px(2px) 여야 32 배수 높이가 맞는다.
+     * 맨 아래 2px 는 흰 띠로 덮어 마지막 파선이 밑변과 겹쳐 보이지 않게 한다. */
     .qz-card textarea { width: 100%; box-sizing: border-box; font-family: inherit;
-        font-size: 0.95rem; line-height: 28px; padding: 6px 12px; min-height: 100px;
-        border: 2px solid #333; border-radius: 4px; resize: none; overflow: hidden; }
+        font-size: 0.95rem; line-height: 32px; padding: 0 12px; min-height: 100px;
+        border: 2px solid #333; border-radius: 3px; resize: none; overflow: hidden;
+        background-color: #fff;
+        background-image:
+            linear-gradient(#fff, #fff),
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='32'%3E%3Cpath d='M0 31.5h5' stroke='%239a9a9a' stroke-width='1'/%3E%3C/svg%3E");
+        background-size: 100% 2px, 12px 32px;
+        background-position: 0 100%, 12px 0;
+        background-repeat: no-repeat, repeat;
+        background-origin: padding-box; background-attachment: local, local; }
     .qz-card textarea:focus { outline: 0; border-color: #2d6a4f;
         box-shadow: 0 0 0 3px rgba(45,106,79,.12); }
 
@@ -213,8 +224,10 @@ function esc(s) {
     return d.innerHTML;
 }
 function autoGrow(t) {
+    // 높이 = 줄 수 × 32 + 테두리 4 — 32 배수라야 마지막 글줄 아래 괘선이 온전하다
     t.style.height = 'auto';
-    t.style.height = Math.max(100, t.scrollHeight + 4) + 'px';
+    const rows = Math.max(3, Math.ceil(t.scrollHeight / 32));
+    t.style.height = (rows * 32 + 4) + 'px';
 }
 function cls(g) {
     const pct = g.max ? g.score / g.max : 0;
@@ -277,7 +290,10 @@ function renderResult(qid, g) {
     if (g.summary) h += `<div class="rs-sum">${esc(g.summary)}</div>`;
     // 모범답안·해설은 서버가 학습 화면과 같은 조각으로 렌더링해 보낸다
     if (g.answer_html) h += `<div class="rs-lab">모범답안</div><div class="ans">${g.answer_html}</div>`;
-    document.getElementById('res_' + qid).innerHTML = h;
+    const box = document.getElementById('res_' + qid);
+    box.innerHTML = h;
+    // 해설은 채점하면 바로 펼쳐 둔다 — 퀴즈는 한 문제씩 읽고 넘어가는 흐름이다
+    box.querySelectorAll('details.ans-ref').forEach(d => { d.open = true; });
 }
 
 /* ---------- 채점 ---------- */
