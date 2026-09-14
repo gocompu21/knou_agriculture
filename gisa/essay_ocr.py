@@ -278,10 +278,11 @@ def transcribe_uploads(session, uploads):
             try:
                 import cv2
                 import numpy as np
-                from .essay_overlay import page_layout
+                from .essay_overlay import ink_grid, page_layout
                 img = cv2.imdecode(np.fromfile(up.flat_image.path, np.uint8), cv2.IMREAD_COLOR)
                 info = dict(up.flat_info or {})
                 info['layout'] = page_layout(img, page_items)
+                info['grid'] = ink_grid(img)
                 up.flat_info = info
                 fields.append('flat_info')
             except Exception:

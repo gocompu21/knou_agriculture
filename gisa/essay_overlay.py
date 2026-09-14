@@ -308,8 +308,48 @@ def locate(item, quote):
 
 
 # ── 결과 화면용 ─────────────────────────────────────────────────────────────
+def ink_grid(flat_bgr):
+    """쪽의 1mm 칸마다 잉크가 있는지(210×297) — packbits 를 base64 로.
+
+    결과 화면이 첨삭 글을 **빈 자리에** 적을 때 쓴다. 인쇄 글·테두리·손글씨는 잉크로
+    치고, 답안 박스의 점선 괘선은 뺀다(괘선 위에 글을 쓰는 것은 자연스럽다).
+    """
+    import base64
+    import cv2
+    import numpy as np
+    gray = cv2.cvtColor(flat_bgr, cv2.COLOR_BGR2GRAY)
+    bw, solid, guides = _masks(gray)
+    ink = cv2.bitwise_and(bw, cv2.bitwise_not(cv2.dilate(guides, np.ones((5, 5), np.uint8))))
+    n, lab, st, _ = cv2.connectedComponentsWithStats(ink, connectivity=8)
+    ink[np.isin(lab, np.nonzero(st[:, cv2.CC_STAT_AREA] < 12)[0])] = 0
+    gw, gh = int(PAGE_MM_W), int(PAGE_MM_H)
+    cells = cv2.resize(ink, (gw, gh), interpolation=cv2.INTER_AREA)
+    occ = (cells > 6).astype(np.uint8)
+    return base64.b64encode(np.packbits(occ.ravel()).tobytes()).decode()
+
+
+PAGE_MM_W, PAGE_MM_H = 210, 297
+
+
+def _grid_of(up):
+    """업로드의 잉크 칸 — 없으면 계산해 flat_info 에 저장한다(이 기능 전에 판독한 쪽)."""
+    info = up.flat_info or {}
+    if info.get('grid'):
+        return info['grid']
+    import cv2
+    import numpy as np
+    img = cv2.imdecode(np.fromfile(up.flat_image.path, np.uint8), cv2.IMREAD_COLOR)
+    if img is None:
+        return ''
+    info = dict(info)
+    info['grid'] = ink_grid(img)
+    up.flat_info = info
+    up.save(update_fields=['flat_info'])
+    return info['grid']
+
+
 def build_overlay(session):
-    """세션의 편 사진마다 첨삭 자리 — 결과 화면이 SVG 로 그린다."""
+    """세션의 편 사진마다 첨삭 재료 — 결과 화면이 빈 자리를 찾아 SVG 로 그린다."""
     atts = {a.question_id: a for a in session.attempts.select_related('question')}
     pages, drawn_score = [], set()
     for up in session.uploads.filter(transcribed=True).order_by('page_no'):
@@ -327,21 +367,22 @@ def build_overlay(session):
                 rects = locate(item, m.get('quote', ''))
                 if rects:
                     marks.append({'kind': m.get('kind'), 'note': m.get('note', ''), 'rects': rects})
-                elif m.get('kind') != 'good':
-                    unplaced.append(m.get('note', ''))
-            inked = [i for i, b in enumerate(item['bands']) if b['ink']]
-            last = inked[-1] if inked else -1
-            free = [[b['y0'], b['y1']] for b in item['bands'][last + 1:]]
+                elif m.get('note'):
+                    unplaced.append({'kind': m.get('kind'), 'note': m.get('note', '')})
+            inked = [b for b in item['bands'] if b['ink']]
             first = int(qid) not in drawn_score
             drawn_score.add(int(qid))
             answers.append({
                 'number': item['number'], 'box': item['box'], 'marks': marks,
-                'free': free, 'unplaced': unplaced,
-                'missing': fb.get('missing') or [],
+                'unplaced': unplaced,
+                'last_ink': [inked[-1]['ink']['x1'], inked[-1]['y1']] if inked else None,
+                'missing': (fb.get('missing') or []) if first else [],
+                'summary': (fb.get('summary') or '') if first else '',
                 'score': att.score if first else None,
                 'points': att.question.points,
                 'graded': bool(fb),
             })
         pages.append({'page_no': up.page_no, 'url': up.flat_image.url,
-                      'w': 210 * PX_PER_MM, 'h': 297 * PX_PER_MM, 'answers': answers})
+                      'w': PAGE_MM_W * PX_PER_MM, 'h': PAGE_MM_H * PX_PER_MM,
+                      'grid': _grid_of(up), 'answers': answers})
     return pages
