@@ -421,6 +421,10 @@ def build_textbook(cert):
 
     certs = list(Certification.objects.filter(name__in=siblings(cert.name)))
     qs_all = GisaEssayQuestion.objects.filter(certification__in=certs, source='기출')
+    # 학원예상 문항도 같은 주제키를 받아 두면 그 주제 안에 함께 펼친다. 빈도(별·회차
+    # 배지)에는 넣지 않는다 — 실제 출제가 아니라 학원의 예상이다.
+    qs_topic = GisaEssayQuestion.objects.filter(certification__in=certs,
+                                                source__in=('기출', '학원'))
     notes = list(GisaEssayNote.objects.filter(certification__in=certs))
     stamp = max([n.updated_at.timestamp() for n in notes] + [0])
     try:
@@ -428,7 +432,7 @@ def build_textbook(cert):
     except OSError:
         pass
     # 캐시는 묶음 단위다 — 기사로 만든 것을 산업기사가 그대로 쓴다.
-    key = 'essay_tb:v9:%s:%d:%d' % (group_leader(cert.name), qs_all.count(), int(stamp))
+    key = 'essay_tb:v10:%s:%d:%d' % (group_leader(cert.name), qs_topic.count(), int(stamp))
     hit = cache.get(key)
     if hit:
         return hit
@@ -446,7 +450,7 @@ def build_textbook(cert):
                    | Q(qtype='계산')))
     keys = set(sel.values_list('topic_key', flat=True)) | set(by_key)
     topics = {}
-    for q in qs_all.filter(topic_key__in=keys).order_by('-year', '-round', 'number'):
+    for q in qs_topic.filter(topic_key__in=keys).order_by('-year', '-round', 'number'):
         topics.setdefault(q.topic_key, []).append(q)
 
     names = dict(topic_groups(cert.name))
@@ -454,9 +458,11 @@ def build_textbook(cert):
     groups = {gid: [] for gid, _ in topic_groups(cert.name)}
     groups[0] = []
     for tk, qlist in topics.items():
-        rep = qlist[0]                       # 가장 최근 회차 문항
+        exam = [q for q in qlist if q.source == '기출']
+        # 기출이 없는(학원 문항만 있는) 주제는 정리 자료가 있을 때만 여기 온다
+        rep = (exam or qlist)[0]             # 가장 최근 회차 문항
         freq = max(q.freq_rounds for q in qlist)
-        rounds = sorted({(q.year, q.round) for q in qlist}, reverse=True)
+        rounds = sorted({(q.year, q.round) for q in (exam or qlist)}, reverse=True)
         notes_ = by_key.get(tk, {})
         # 본문은 `calc` 가 아닌 정리 자료에서 온다. 자격증마다 이름이 다르므로
         # (자연생태복원 `freq58` · 식물보호 `topics`) 슬러그를 박지 않는다.
@@ -466,7 +472,8 @@ def build_textbook(cert):
         # (식물보호기사 2023-1회 1번에 자연생태복원 제목이 달린 적이 있다).
         tkey = '%s|%d-%d-%d' % (rep.certification.name, rep.year, rep.round,
                                 rep.number)
-        title = (custom.get(tkey)
+        # 조경은 제목을 주제키로 적어 둔다(load_ls_topics.py) — 대표 문항이 바뀌어도 그대로다
+        title = (custom.get('key:' + tk) or custom.get(tkey)
                  or (note or calc or {}).get('title') or _title_from(rep))
         s3, s2, s1 = star_cuts(cert.name)
         stars = 3 if freq >= s3 else 2 if freq >= s2 else 1 if freq >= s1 else 0
@@ -486,6 +493,7 @@ def build_textbook(cert):
             'stars': stars,
             'freq': freq,
             'count': len(qlist),
+            'acad': len(qlist) - len(exam),
             'rounds_str': ' '.join('%d-%d' % r for r in rounds),
             'latest': '%d-%d' % rounds[0],
             'latest_year': rounds[0][0],

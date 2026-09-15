@@ -25,7 +25,7 @@
             {% if t.calc %}<span class="tb-tag calc">계산</span>{% endif %}
             {% if t.comeback %}<span class="tb-tag comeback">재출제 유력</span>{% endif %}
             {% if t.warned %}<span class="tb-tag warn" title="요구가 커진 이력">⚠️</span>{% endif %}
-            <span class="tb-meta">{{ t.freq }}회 · {{ t.pts }}</span>
+            <span class="tb-meta">{{ t.freq }}회{% if t.acad %} · 학원 {{ t.acad }}{% endif %} · {{ t.pts }}</span>
             <span class="tb-arrow">›</span>
         </div>
         <div class="tb-body">

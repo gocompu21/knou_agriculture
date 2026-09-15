@@ -93,7 +93,8 @@ class Command(BaseCommand):
 
     # 이미 태깅이 끝났고 topic_key 에 다른 자료가 묶여 있는 자격증.
     # 다시 돌리면 그 연결이 끊어지므로 --force 를 요구한다(머리말 참조).
-    LOCKED = {'자연생태복원기사', '식물보호기사', '식물보호산업기사'}
+    # 조경은 주제키를 손으로 배정한다(load_ls_topics.py) — 돌리면 해시 키로 덮어쓴다
+    LOCKED = {'자연생태복원기사', '식물보호기사', '식물보호산업기사', '조경기사', '조경산업기사'}
 
     def add_arguments(self, parser):
         parser.add_argument('--cert', default='자연생태복원기사')

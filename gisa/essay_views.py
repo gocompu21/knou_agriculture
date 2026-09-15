@@ -1253,12 +1253,16 @@ def essay_siblings(request, cert_id, question_id):
     # 정리 문서(?all=1)에서는 그 회차 자신까지 전부 나열한다
     if request.GET.get('all') != '1':
         sibs = sibs.exclude(pk=q.pk)
+    # 기출을 앞에, 학원예상은 뒤에 — 같은 "26-2" 라도 실제 출제가 먼저 펼쳐져야 한다
+    sibs = sorted(sibs, key=lambda s: s.source == '학원')
 
     # 묶음이면 급수를 함께 보낸다 — "25-2" 만으로는 두 급수 가운데 어느
     # 시험지에 나온 것인지 알 수 없다. **`label` 에 붙이지는 않는다** —
     # 화면이 `label.slice(0, 4)` 로 연도를 떼어 쓰므로 앞에 글자가 붙으면
     # 연도 파싱이 깨진다.
     def _grade(s):
+        if s.source == '학원':          # 학원 문항도 같은 주제로 묶여 함께 온다
+            return '학원'
         if len(names) < 2:
             return ''
         return '산기' if s.certification.category == '산업기사' else '기사'
