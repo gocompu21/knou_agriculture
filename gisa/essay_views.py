@@ -232,7 +232,8 @@ def essay_list(request, cert_id):
                           else '영역별 예상문제'),
         'freq_cards': freq_cards,
         'comeback_count': comeback_count,
-        'notes': GisaEssayNote.objects.filter(certification=cert),
+        # 작업형 자료(work-*)는 작업형 화면에서 보여 주므로 필답 노트 링크에서 뺀다
+        'notes': GisaEssayNote.objects.filter(certification=cert).exclude(slug__startswith='work-'),
         # 학습전략 화면은 '빈출 58주제 정리'를 전제로 쓰여 있어 그 자료가 있을 때만 연다
         'has_strategy': GisaEssayNote.objects.filter(
             certification=cert, slug='freq58').exists(),
@@ -675,6 +676,55 @@ def essay_finish(request, cert_id, session_id):
 
 
 # ------------------------------------------------------------------ 시험 개요
+
+@login_required
+def essay_work(request, cert_id):
+    """실기 작업형(도면 설계) 자료 — 필답형 페이지와 머리의 전환 단추로 오간다.
+
+    탭은 넷이다: 개요 · 도면 기본기 · 기출 과제(연도별 출제 도면 목록) · 설계 요소.
+    도면 기본기와 설계 요소는 학습자료(GisaEssayNote) slug `work-basics`·`work-elements`
+    에 쓰고, 기출 과제는 GisaDrawingTask 다. 아직 자료가 없는 탭은 '준비 중'으로 둔다.
+    """
+    import markdown as md
+    from .models import GisaDrawingTask
+
+    cert = get_object_or_404(Certification, pk=cert_id)
+    info = exam_info(cert.name)
+    if not (info and info.get('work_part')):
+        return redirect('gisa:essay_list', cert.pk)
+
+    # 연도는 최신부터, 그 안의 회차는 1→2→3 — 필답형 회차 카드와 같은 차례
+    tasks = list(GisaDrawingTask.objects.filter(certification=cert)
+                 .order_by('-year', 'round', 'order').prefetch_related('images'))
+    years = []
+    for t in tasks:
+        t.conditions_html = md.markdown(t.conditions, extensions=['tables']) if t.conditions else ''
+        t.commentary_html = md.markdown(t.commentary, extensions=['tables']) if t.commentary else ''
+        t.has_detail = bool(t.conditions or t.commentary or t.images.all())
+        if not years or years[-1]['year'] != t.year:
+            years.append({'year': t.year, 'tasks': []})
+        years[-1]['tasks'].append(t)
+
+    notes = {n.slug: n for n in GisaEssayNote.objects.filter(
+        certification=cert, slug__in=('work-basics', 'work-elements'))}
+
+    def _note_html(slug):
+        n = notes.get(slug)
+        return md.markdown(n.content, extensions=['tables']) if n else ''
+
+    tab = request.GET.get('tab', 'tasks')
+    if tab not in ('overview', 'basics', 'tasks', 'elements'):
+        tab = 'tasks'
+    return render(request, 'gisa/essay_work.html', {
+        'cert': cert,
+        'info': info,
+        'active_tab': tab,
+        'years': years,
+        'task_count': len(tasks),
+        'basics_html': _note_html('work-basics'),
+        'elements_html': _note_html('work-elements'),
+    })
+
 
 @login_required
 def essay_overview(request, cert_id):

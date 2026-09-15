@@ -57,6 +57,8 @@ EXAM_INFO = {
         'practical_subject': '조경설계 및 시공실무',
         'essay_points': 40,
         'work_points': 60,
+        # 작업형(도면) 자료 화면을 연다 — 실기 페이지 머리에 [필답형 | 작업형] 전환이 생긴다
+        'work_part': True,
         'essay_minutes': 90,
         'work_minutes': 180,
         'pass_line': 60,
@@ -132,6 +134,8 @@ EXAM_INFO = {
         'practical_subject': '조경작업실무',
         'essay_points': 40,
         'work_points': 60,
+        # 작업형(도면) 자료 화면을 연다 — 실기 페이지 머리에 [필답형 | 작업형] 전환이 생긴다
+        'work_part': True,
         'essay_minutes': 60,
         'work_minutes': 150,
         'pass_line': 60,

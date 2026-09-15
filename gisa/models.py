@@ -562,6 +562,73 @@ class GisaEssayNote(models.Model):
         return f"[{self.certification.name}] {self.title}"
 
 
+# ------------------------------------------------------------------ 작업형(도면)
+
+def _drawing_img_path(instance, filename):
+    t = instance.task
+    return f'gisa/drawing/c{t.certification_id}/{t.year or 0}-{t.round or 0}/{filename}'
+
+
+class GisaDrawingTask(models.Model):
+    """실기 작업형 — 회차별로 출제된 도면 설계 과제.
+
+    조경(산업)기사 실기는 필답형과 작업형(도면)으로 나뉜다. 필답형은 문항 단위라
+    GisaEssayQuestion 에 담았지만, 작업형은 **한 회차에 과제 하나**(대상지 + 요구 도면
+    몇 장)라 따로 둔다. 목록 한 줄이 곧 "그 회차에 무엇을 그렸나"다.
+
+    처음에는 연도별 출제 목록(대상지·요구 도면·축척)만 채우고, 요구조건 원문·현황도·
+    모범 도면·해설은 자료가 생기는 대로 붙인다 — 빈 칸은 화면에서 감춘다.
+    """
+    certification = models.ForeignKey(
+        Certification, on_delete=models.CASCADE,
+        related_name='drawing_tasks', verbose_name='자격증')
+    year = models.IntegerField('출제연도')
+    round = models.IntegerField('회차', null=True, blank=True)
+    title = models.CharField('과제(대상지)', max_length=100,
+                             help_text='예: 근린공원, 주택정원, 옥상정원')
+    drawings = models.JSONField('요구 도면', default=list, blank=True,
+                                help_text='["설계개념도", "배식설계도", "단면도"] 처럼')
+    scale = models.CharField('축척', max_length=40, blank=True)
+    site_area = models.CharField('대상지 규모', max_length=60, blank=True)
+    note = models.CharField('비고', max_length=200, blank=True)
+    conditions = models.TextField('요구조건', blank=True, help_text='마크다운')
+    commentary = models.TextField('해설', blank=True, help_text='마크다운')
+    order = models.PositiveSmallIntegerField('같은 회차 안 순서', default=0)
+    updated_at = models.DateTimeField('수정일', auto_now=True)
+
+    class Meta:
+        verbose_name = '실기 작업형 과제'
+        verbose_name_plural = '실기 작업형 과제'
+        ordering = ['-year', '-round', 'order']
+
+    def __str__(self):
+        r = f'{self.round}회 ' if self.round else ''
+        return f"[{self.certification.name}] {self.year}년 {r}{self.title}"
+
+
+class GisaDrawingImage(models.Model):
+    """작업형 과제에 붙는 그림 — 현황도, 모범 답안 도면, 참고 그림."""
+    KIND_CHOICES = [
+        ('site', '현황도'),
+        ('answer', '모범 도면'),
+        ('ref', '참고'),
+    ]
+    task = models.ForeignKey(GisaDrawingTask, on_delete=models.CASCADE,
+                             related_name='images', verbose_name='과제')
+    kind = models.CharField('종류', max_length=10, choices=KIND_CHOICES, default='answer')
+    image = models.ImageField('그림', upload_to=_drawing_img_path)
+    caption = models.CharField('설명', max_length=100, blank=True)
+    order = models.PositiveSmallIntegerField('순서', default=0)
+
+    class Meta:
+        verbose_name = '작업형 도면 그림'
+        verbose_name_plural = '작업형 도면 그림'
+        ordering = ['kind', 'order', 'id']
+
+    def __str__(self):
+        return f"{self.task} · {self.get_kind_display()} {self.caption}"
+
+
 class CertificationViewLog(models.Model):
     """자격증 상세 페이지(certification_detail) 진입 기록.
     사용자가 어느 자격증의 어느 탭을 언제 봤는지 추적.

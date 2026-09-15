@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block title %}{{ cert.name }} 실기 작업형{% endblock %}
+
+{% block extra_css %}
+<style>
+    .essay-wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px 60px; }
+    .essay-hero { background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+        color: #fff; padding: 22px 20px; border-radius: 12px; margin: 16px 0 0; }
+    .essay-hero h1 { margin: 0 0 6px; font-size: 1.3rem; }
+    .essay-hero p { margin: 0; font-size: 0.88rem; opacity: 0.9; line-height: 1.6; }
+    .hero-top { display: flex; align-items: flex-start; gap: 14px; }
+    .hero-top > div { flex: 1; }
+    .hero-kind { display: inline-block; background: rgba(255,255,255,0.22);
+        padding: 2px 10px; border-radius: 10px; font-size: 0.8rem; vertical-align: middle; margin-left: 4px; }
+    .hero-links { flex-shrink: 0; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .hero-switch { color: #fff; text-decoration: none; background: rgba(255,255,255,0.18);
+        padding: 6px 14px; border-radius: 14px; font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+    .hero-switch:hover { background: rgba(255,255,255,0.3); }
+    .hero-switch.strategy { background: #fff; color: #1b4332; }
+    .part-toggle { display: inline-flex; background: rgba(255,255,255,0.16); border-radius: 12px;
+        padding: 3px; gap: 3px; margin-top: 12px; }
+    .part-toggle a { color: #fff; text-decoration: none; font-size: 0.86rem; font-weight: 700;
+        padding: 6px 18px; border-radius: 9px; opacity: 0.85; }
+    .part-toggle a.on { background: #fff; color: #1b4332; opacity: 1; }
+    .part-toggle a:not(.on):hover { background: rgba(255,255,255,0.18); opacity: 1; }
+
+    .tab-nav { display: flex; background: #fff; border-bottom: 2px solid #e0e0e0; overflow-x: auto;
+        scrollbar-width: none; position: sticky; top: 0; z-index: 10; margin-top: 12px; }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn { flex: 0 0 auto; padding: 14px 18px; font-weight: 700; font-size: 0.9rem; color: #888;
+        border: 0; border-bottom: 3px solid transparent; cursor: pointer; background: none;
+        font-family: inherit; white-space: nowrap; margin-bottom: -2px; }
+    .tab-btn:hover { color: #333; }
+    .tab-btn.active { color: #1b4332; border-bottom-color: #2d6a4f; }
+    .tab-content { display: none; padding-top: 18px; }
+    .tab-content.active { display: block; }
+
+    .sec-title { font-size: 1.02rem; font-weight: 800; color: #1b4332; margin: 6px 0 12px; }
+    .sec-title small { font-weight: 500; color: #8a9a90; font-size: 0.78rem; margin-left: 6px; }
+    .empty { background: #f7faf8; border: 1px dashed #cfdcd4; border-radius: 10px; padding: 26px 18px;
+        text-align: center; color: #6b7b72; font-size: 0.9rem; line-height: 1.8; }
+
+    /* 개요 */
+    .ov-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+    .ov-card { background: #fff; border: 1px solid #e3e9e4; border-radius: 10px; padding: 14px 16px; }
+    .ov-card .lab { font-size: 0.76rem; color: #7c8a81; font-weight: 700; }
+    .ov-card .val { font-size: 1.25rem; font-weight: 800; color: #1b4332; margin-top: 4px; }
+    .ov-card .sub { font-size: 0.78rem; color: #8a9a90; margin-top: 2px; }
+    .ov-text { font-size: 0.9rem; line-height: 1.85; color: #333; margin-top: 16px; }
+    .ov-text ul, .tk-md ul, .tk-md ol, .note-md ul, .note-md ol { padding-left: 22px; margin: 6px 0; }
+    .ov-text li { margin: 5px 0; }
+
+    /* 기출 과제 — 연도별 목록 */
+    .yr { margin-bottom: 18px; }
+    .yr-head { font-size: 0.95rem; font-weight: 800; color: #1b4332; padding: 6px 2px;
+        border-bottom: 1px solid #e3e9e4; margin-bottom: 6px; }
+    .yr-head small { font-weight: 500; color: #8a9a90; margin-left: 6px; font-size: 0.78rem; }
+    .tk { background: #fff; border: 1px solid #e3e9e4; border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+    .tk-head { display: flex; align-items: center; gap: 10px; padding: 11px 14px; flex-wrap: wrap; }
+    .tk.has .tk-head { cursor: pointer; }
+    .tk.has .tk-head:hover { background: #fafcfa; }
+    .tk-round { flex-shrink: 0; font-size: 0.74rem; font-weight: 800; color: #fff; background: #2d6a4f;
+        border-radius: 8px; padding: 3px 9px; }
+    .tk-title { font-size: 0.95rem; font-weight: 700; color: #1f2d24; }
+    .tk-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+    .tk-chip { font-size: 0.74rem; padding: 2px 9px; border-radius: 10px; background: #eef4ef;
+        color: #2d4a3a; border: 1px solid #d5e2d8; font-weight: 600; }
+    .tk-meta { margin-left: auto; font-size: 0.78rem; color: #7c8a81; white-space: nowrap; }
+    .tk-arrow { color: #c3cec7; font-size: 0.85rem; transition: transform .15s; }
+    .tk.open .tk-arrow { transform: rotate(90deg); }
+    .tk-note { flex-basis: 100%; font-size: 0.8rem; color: #6b7b72; }
+    .tk-body { display: none; padding: 4px 16px 16px; border-top: 1px solid #eef2ef; }
+    .tk.open .tk-body { display: block; }
+    .tk-body h4 { font-size: 0.88rem; color: #1b4332; margin: 14px 0 6px; }
+    .tk-md { font-size: 0.88rem; line-height: 1.8; color: #333; }
+    .tk-md table { border-collapse: collapse; font-size: 0.85rem; }
+    .tk-md th, .tk-md td { border: 1px solid #d3ddd6; padding: 4px 10px; }
+    .tk-imgs { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+    .tk-imgs figure { margin: 0; border: 1px solid #e3e9e4; border-radius: 8px; overflow: hidden; background: #fff; }
+    .tk-imgs img { display: block; width: 100%; cursor: zoom-in; }
+    .tk-imgs figcaption { font-size: 0.78rem; text-align: center; padding: 4px; color: #333; }
+    .zoom { position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 300; display: flex;
+        align-items: center; justify-content: center; padding: 14px; overflow: auto; }
+    .zoom[hidden] { display: none; }
+    .zoom img { max-width: 100%; max-height: 94vh; background: #fff; }
+
+    .note-md { font-size: 0.9rem; line-height: 1.85; color: #333; }
+    .note-md h2 { font-size: 1rem; color: #1b4332; margin: 20px 0 8px; }
+    .note-md h3 { font-size: 0.92rem; color: #1b4332; margin: 14px 0 6px; }
+    .note-md table { border-collapse: collapse; font-size: 0.86rem; display: block; overflow-x: auto; }
+    .note-md th, .note-md td { border: 1px solid #d3ddd6; padding: 5px 10px; }
+    .note-md th { background: #e7efe9; }
+    .note-md img { max-width: 100%; }
+    @media (max-width: 600px) { .tk-meta { margin-left: 0; flex-basis: 100%; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="essay-wrap">
+    <div class="essay-hero">
+        <div class="hero-top">
+            <div>
+                <h1>{{ cert.name }} <span class="hero-kind">실기</span></h1>
+                <p>작업형은 도면을 그려 내는 시험입니다. {{ info.work_points }}점 · {{ info.work_minutes }}분이며,
+                   필답형 {{ info.essay_points }}점과 합쳐 {{ info.pass_line }}점 이상이면 합격입니다.</p>
+            </div>
+            <div class="hero-links">
+                <a class="hero-switch strategy" href="{% url 'gisa:essay_overview' cert.pk %}">시험 개요</a>
+                <a class="hero-switch" href="/gisa/{{ cert.pk }}/">필기로 &rsaquo;</a>
+            </div>
+        </div>
+        <div class="part-toggle">
+            <a href="{% url 'gisa:essay_list' cert.pk %}">필답형</a>
+            <a class="on" href="{% url 'gisa:essay_work' cert.pk %}">작업형</a>
+        </div>
+    </div>
+
+    <div class="tab-nav" id="tabNav">
+        <button class="tab-btn{% if active_tab == 'overview' %} active{% endif %}" data-tab="overview">작업형 개요</button>
+        <button class="tab-btn{% if active_tab == 'basics' %} active{% endif %}" data-tab="basics">도면 기본기</button>
+        <button class="tab-btn{% if active_tab == 'tasks' %} active{% endif %}" data-tab="tasks">기출 과제</button>
+        <button class="tab-btn{% if active_tab == 'elements' %} active{% endif %}" data-tab="elements">설계 요소</button>
+    </div>
+
+    <!-- 작업형 개요 -->
+    <div id="tab-overview" class="tab-content{% if active_tab == 'overview' %} active{% endif %}">
+        <div class="ov-cards">
+            <div class="ov-card"><div class="lab">작업형 배점</div><div class="val">{{ info.work_points }}점</div><div class="sub">필답형 {{ info.essay_points }}점과 합산</div></div>
+            <div class="ov-card"><div class="lab">시험시간</div><div class="val">{{ info.work_minutes }}분</div><div class="sub">필답형 {{ info.essay_minutes }}분 뒤에 따로</div></div>
+            <div class="ov-card"><div class="lab">합격</div><div class="val">{{ info.pass_line }}점 이상</div><div class="sub">필답 + 작업 100점 만점, 과락 없음</div></div>
+            <div class="ov-card"><div class="lab">실기 과목</div><div class="val" style="font-size:1rem">{{ info.practical_subject }}</div></div>
+        </div>
+        <div class="ov-text">
+            <ul>
+                <li><b>도면이 미완성이면 채점에서 빠집니다.</b> 요구조건을 다 채우지 못하더라도 끝까지 그려 내는 것이 먼저입니다.</li>
+                <li>선 굵기와 글씨의 위계가 도면의 기본입니다. 찢어지거나 더러워지지 않게 하고, 찢어졌다면 테이프로 붙여 냅니다.</li>
+                <li>문제지의 <b>수검자 유의사항</b>도 문제를 푸는 조건의 하나입니다. 먼저 읽습니다.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 도면 기본기 -->
+    <div id="tab-basics" class="tab-content{% if active_tab == 'basics' %} active{% endif %}">
+        {% if basics_html %}<div class="note-md">{{ basics_html|safe }}</div>
+        {% else %}<div class="empty">도면 양식·선 굵기·레터링·수목과 시설물 표기·인출선·수량표 같은<br>공통 작도 요령을 정리할 자리입니다. <b>준비 중</b>입니다.</div>{% endif %}
+    </div>
+
+    <!-- 기출 과제 — 연도별 출제 도면 목록 -->
+    <div id="tab-tasks" class="tab-content{% if active_tab == 'tasks' %} active{% endif %}">
+        <div class="sec-title">연도별 출제 도면{% if task_count %} <small>{{ task_count }}개 과제 · 줄을 누르면 요구조건·도면·해설이 펼쳐집니다</small>{% endif %}</div>
+        {% for y in years %}
+        <div class="yr">
+            <div class="yr-head">{{ y.year }}년 <small>{{ y.tasks|length }}개 과제</small></div>
+            {% for t in y.tasks %}
+            <div class="tk{% if t.has_detail %} has{% endif %}">
+                <div class="tk-head"{% if t.has_detail %} onclick="this.parentElement.classList.toggle('open')"{% endif %}>
+                    {% if t.round %}<span class="tk-round">{{ t.round }}회</span>{% endif %}
+                    <span class="tk-title">{{ t.title }}</span>
+                    {% if t.drawings %}<span class="tk-chips">{% for d in t.drawings %}<span class="tk-chip">{{ d }}</span>{% endfor %}</span>{% endif %}
+                    <span class="tk-meta">{% if t.scale %}축척 {{ t.scale }}{% endif %}{% if t.scale and t.site_area %} · {% endif %}{{ t.site_area }}</span>
+                    {% if t.has_detail %}<span class="tk-arrow">›</span>{% endif %}
+                    {% if t.note %}<span class="tk-note">{{ t.note }}</span>{% endif %}
+                </div>
+                {% if t.has_detail %}
+                <div class="tk-body">
+                    {% if t.conditions_html %}<h4>요구조건</h4><div class="tk-md">{{ t.conditions_html|safe }}</div>{% endif %}
+                    {% if t.images.all %}
+                    <h4>도면</h4>
+                    <div class="tk-imgs">
+                        {% for im in t.images.all %}<figure><img src="{{ im.image.url }}" alt="{{ im.caption }}" loading="lazy"><figcaption>{{ im.get_kind_display }}{% if im.caption %} · {{ im.caption }}{% endif %}</figcaption></figure>{% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if t.commentary_html %}<h4>해설</h4><div class="tk-md">{{ t.commentary_html|safe }}</div>{% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% empty %}
+        <div class="empty">연도별로 출제된 도면(대상지·요구 도면·축척) 목록을 정리하는 중입니다.<br>자료가 들어오는 대로 회차별 요구조건과 모범 도면을 함께 붙입니다.</div>
+        {% endfor %}
+    </div>
+
+    <!-- 설계 요소 -->
+    <div id="tab-elements" class="tab-content{% if active_tab == 'elements' %} active{% endif %}">
+        {% if elements_html %}<div class="note-md">{{ elements_html|safe }}</div>
+        {% else %}<div class="empty">시설물 규격, 용도별 식재 수종, 요구조건 문장별 대응 방법 같은<br>설계 참고 자료를 정리할 자리입니다. <b>준비 중</b>입니다.</div>{% endif %}
+    </div>
+</div>
+
+<div class="zoom" id="zoom" hidden onclick="this.hidden=true"><img alt=""></div>
+
+<script>
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+        document.querySelectorAll('.tab-content').forEach(c =>
+            c.classList.toggle('active', c.id === 'tab-' + btn.dataset.tab));
+        const u = new URL(location.href); u.searchParams.set('tab', btn.dataset.tab);
+        history.replaceState(null, '', u);
+    });
+});
+document.addEventListener('click', e => {
+    const img = e.target.closest('.tk-imgs img, .note-md img');
+    if (!img) return;
+    const z = document.getElementById('zoom');
+    z.querySelector('img').src = img.src;
+    z.hidden = false;
+});
+</script>
+{% endblock %}

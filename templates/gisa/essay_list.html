@@ -32,6 +32,13 @@
     .hero-switch:hover { background: rgba(255,255,255,0.3); }
     .hero-switch.strategy { background: #fff; color: #1b4332; }
     .hero-switch.strategy:hover { background: #eef4f0; }
+    /* 필답형 | 작업형 전환 — 조경처럼 작업형 자료가 있는 자격증만 */
+    .part-toggle { display: inline-flex; background: rgba(255,255,255,0.16); border-radius: 12px;
+        padding: 3px; gap: 3px; margin-top: 12px; }
+    .part-toggle a { color: #fff; text-decoration: none; font-size: 0.86rem; font-weight: 700;
+        padding: 6px 18px; border-radius: 9px; opacity: 0.85; }
+    .part-toggle a.on { background: #fff; color: #1b4332; opacity: 1; }
+    .part-toggle a:not(.on):hover { background: rgba(255,255,255,0.18); opacity: 1; }
     .hero-stat { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; }
     .hero-stat span { font-size: 0.85rem; background: rgba(255,255,255,0.15);
         padding: 4px 12px; border-radius: 12px; }
@@ -489,6 +496,12 @@
                 <a class="hero-switch" href="/gisa/{{ cert.pk }}/">필기로 &rsaquo;</a>
             </div>
         </div>
+        {% if info.work_part %}
+        <div class="part-toggle">
+            <a class="on" href="{% url 'gisa:essay_list' cert.pk %}">필답형</a>
+            <a href="{% url 'gisa:essay_work' cert.pk %}">작업형</a>
+        </div>
+        {% endif %}
         <div class="hero-stat">
             <span>총 {{ total|intcomma }}문항</span>
             <span>기출 {{ round_cards|length }}개 회차</span>

@@ -164,3 +164,19 @@ class GisaEssayUploadAdmin(admin.ModelAdmin):
     list_display = ('uploaded_at', 'session', 'page_no', 'transcribed')
     list_filter = ('transcribed',)
     readonly_fields = ('session', 'page_no', 'image', 'uploaded_at')
+
+
+from .models import GisaDrawingImage, GisaDrawingTask  # noqa: E402
+
+
+class GisaDrawingImageInline(admin.TabularInline):
+    model = GisaDrawingImage
+    extra = 1
+
+
+@admin.register(GisaDrawingTask)
+class GisaDrawingTaskAdmin(admin.ModelAdmin):
+    list_display = ('certification', 'year', 'round', 'title', 'scale')
+    list_filter = ('certification', 'year')
+    search_fields = ('title', 'note')
+    inlines = [GisaDrawingImageInline]
