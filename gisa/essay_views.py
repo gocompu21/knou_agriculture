@@ -737,6 +737,30 @@ def essay_work(request, cert_id):
             t.times = f['count']
             t.key = f['key']
 
+    # 출제 예상 투표 — 실제 출제와 맞대어 본다(투표 몇 위였나, AI 예상은 맞았나)
+    colors = {(f['code'] or f['title']): f['color'] for f in freq}
+    forecasts = []
+    for t in sorted(tasks, key=lambda t: (-t.year, -(t.round or 0))):
+        fc = t.forecast or {}
+        if not fc.get('items'):
+            continue
+        items = sorted(fc['items'], key=lambda x: -x['votes'])
+        top = max(x['votes'] for x in items) or 1
+        voters = fc.get('voters') or top
+        hit = None
+        for rank, x in enumerate(items, 1):
+            x['rank'] = rank
+            x['pct'] = round(x['votes'] / top * 100)
+            x['share'] = round(x['votes'] / voters * 100)
+            x['color'] = colors.get(x['code'] or x['name'], '#9aa5a0')
+            x['actual'] = bool(t.code) and x['code'] == t.code
+            if x['actual']:
+                hit = x
+        forecasts.append({'task': t, 'source': fc.get('source', ''), 'voters': voters,
+                          'items': items, 'hit': hit,
+                          'claude_hit': bool(hit and hit.get('claude') == 1),
+                          'gemini_hit': bool(hit and hit.get('gemini') == 1)})
+
     # 연도마다 회차 자리를 고정한다(1·2·4회, 2020년처럼 3회가 있으면 1~4회) —
     # 아직 치르지 않은 회차는 빈 칸으로 남긴다
     for y in years:
@@ -761,6 +785,7 @@ def essay_work(request, cert_id):
         'active_tab': tab,
         'years': years,
         'freq': freq,
+        'forecasts': forecasts,
         'task_count': len(tasks),
         'basics_html': _note_html('work-basics'),
         'elements_html': _note_html('work-elements'),

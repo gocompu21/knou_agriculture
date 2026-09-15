@@ -590,6 +590,9 @@ class GisaDrawingTask(models.Model):
     code = models.CharField('도면 번호', max_length=10, blank=True,
                             help_text='수험 자료의 도면 번호 — 예: 412')
     pass_rate = models.FloatField('합격률(%)', null=True, blank=True)
+    # 시험 전 출제 예상 투표 — {"source": "오픈톡", "voters": 106, "items": [{"name", "code",
+    # "votes", "claude", "gemini"}]}. claude·gemini 는 AI 에게 물은 예상 순위(없으면 null)
+    forecast = models.JSONField('출제 예상 투표', default=dict, blank=True)
     drawings = models.JSONField('요구 도면', default=list, blank=True,
                                 help_text='["설계개념도", "배식설계도", "단면도"] 처럼')
     scale = models.CharField('축척', max_length=40, blank=True)

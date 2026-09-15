@@ -54,6 +54,27 @@ NOTES = {
     (2024, 1): '신출 도면',
 }
 
+# 시험 전 출제 예상 투표. (도면명, 도면 번호, 득표, 클로드 예상 순위, 제미나이 예상 순위)
+# 오픈톡은 한 사람이 여러 도면에 표를 줄 수 있어 득표 합(327)이 인원(106)보다 많다.
+FORECASTS = {
+    (2026, 2): {
+        'source': '오픈톡', 'voters': 106,
+        'items': [
+            ('생태 공원', '401', 51, 2, 1), ('항일추모공원', '454', 49, None, None),
+            ('주차장 설계', '444', 44, 1, 2), ('호안생태공원', '428', 29, 4, None),
+            ('야영장', '478', 20, None, 6), ('신출', '', 20, None, None),
+            ('주택 정원', '434', 17, 3, 4), ('사적지 주변', '371', 14, None, 5),
+            ('근린 공원', '412', 12, None, None), ('아파트단지 입구', '287', 11, None, None),
+            ('근린 공원', '323', 9, 5, 3), ('도시공원', '', 9, None, None),
+            ('근린 공원', '360', 8, None, None), ('친수 공간', '463', 7, None, None),
+            ('주차 공원', '319', 6, None, None), ('묘지공원', '345', 6, None, None),
+            ('가로 소공원', '391', 4, None, None), ('옥상', '383', 3, None, None),
+            ('어린이 주차공원', '365', 3, None, None), ('건물중앙광장', '264', 3, None, None),
+            ('사무실', '328', 2, None, None),
+        ],
+    },
+}
+
 
 def main():
     apply_ = '--apply' in sys.argv
@@ -70,6 +91,12 @@ def main():
                 certification=cert, year=y, round=r,
                 defaults={'title': title, 'code': code, 'pass_rate': rate,
                           'note': NOTES.get((y, r), '')})
+    for (y, r), fc in FORECASTS.items():
+        data = dict(fc, items=[{'name': n, 'code': c, 'votes': v, 'claude': cl, 'gemini': gm}
+                               for n, c, v, cl, gm in fc['items']])
+        print(f'  {y}년 {r}회 출제 예상 투표 {len(data["items"])}항목')
+        if apply_:
+            GisaDrawingTask.objects.filter(certification=cert, year=y, round=r).update(forecast=data)
     print(f'{cert.name}: {len(ROWS)}회차 (신규 {new}, 갱신 {upd}) · 도면 {len({(t, c) for _, _, t, c, _ in ROWS})}종')
     print('반영 완료' if apply_ else '검사만 했습니다 (--apply 로 반영)')
 

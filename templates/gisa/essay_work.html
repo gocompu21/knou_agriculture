@@ -133,6 +133,36 @@
     .tasks-pick .yc.pick .yc-t, .tasks-pick .yc.pick .yc-m { color: #fff; text-shadow: 0 0 2px rgba(0,0,0,.5); }
     .tasks-pick .yc.pick .yc-code { background: #fff; color: #111; }
     .tasks-pick .yc.pick .yc-r { background: rgba(0,0,0,.45); }
+    /* 출제 예상 투표 */
+    .fc { background: #fff; border: 1px solid #c9d5cd; border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; }
+    .fc-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 8px; }
+    .fc-title { font-size: 0.95rem; font-weight: 900; color: #1b4332; }
+    .fc-sum { font-size: 0.82rem; font-weight: 700; color: #111; background: #fff4c9; border: 1px solid #e3c85a;
+        border-radius: 8px; padding: 3px 10px; }
+    .fc-sum b { color: #b3261e; }
+    .fc-row { display: grid; grid-template-columns: 26px 150px 1fr 64px 64px; gap: 8px; align-items: center;
+        padding: 3px 4px; border-radius: 6px; }
+    .fc-row.actual { background: #fff4c9; box-shadow: inset 0 0 0 2px #b3261e; }
+    .fc-row.hd { font-size: 0.72rem; font-weight: 800; color: #5b6b62; padding-bottom: 2px; }
+    .fc-rank { font-size: 0.78rem; font-weight: 900; color: #5b6b62; text-align: center; }
+    .fc-name { font-size: 0.85rem; font-weight: 800; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fc-name b { font-weight: 700; color: #555; font-size: 0.82em; }
+    .fc-name .tag { font-size: 0.68rem; font-weight: 900; color: #fff; background: #b3261e; border-radius: 5px;
+        padding: 0 5px; margin-left: 4px; }
+    .fc-bar { position: relative; height: 20px; background: #eceff0; border-radius: 5px; overflow: hidden; }
+    .fc-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; }
+    .fc-bar span { position: relative; top: 2px; margin-left: 4px; font-size: 0.72rem; font-weight: 900; color: #111;
+        background: rgba(255,255,255,.92); border-radius: 5px; padding: 0 6px; line-height: 16px;
+        display: inline-block; }
+    .fc-ai { text-align: center; font-size: 0.74rem; font-weight: 800; }
+    .fc-ai span { display: inline-block; min-width: 26px; border-radius: 5px; padding: 0 5px; background: #1b4332; color: #fff; }
+    .fc-ai span.top { background: #b3261e; }
+    @media (max-width: 600px) {
+        .fc-row { grid-template-columns: 30px 1fr 50px 58px; }
+        .fc-row.hd span { white-space: nowrap; }
+        .fc-bar { grid-column: 2 / 5; grid-row: 2; }
+        .fc-row.hd .hd-votes { display: none; }
+    }
     .pick-bar { display: none; position: sticky; top: 50px; z-index: 5; margin: 0 0 8px;
         background: #1b4332; color: #fff; border-radius: 8px; padding: 7px 12px; font-size: 0.86rem;
         font-weight: 700; align-items: center; gap: 10px; }
@@ -228,6 +258,27 @@
             {% endfor %}
         </div>
         {% endif %}
+
+        {% for fc in forecasts %}
+        <div class="sec-title" style="margin-top:22px">출제 예상 투표 <small>시험 전에 모은 예상과 실제 출제를 맞대어 봅니다</small></div>
+        <div class="fc">
+            <div class="fc-head">
+                <span class="fc-title">{{ fc.task.year }}년 {{ fc.task.round }}회</span>
+                <span style="font-size:.8rem;color:#5b6b62">{{ fc.source }} {{ fc.voters }}명 투표(여러 도면 선택 가능)</span>
+                {% if fc.hit %}<span class="fc-sum">실제 출제 <b>{{ fc.task.title }} {{ fc.task.code }}</b> — 투표 {{ fc.hit.rank }}위({{ fc.hit.votes }}명, {{ fc.hit.share }}%) · 클로드 {% if fc.hit.claude %}{{ fc.hit.claude }}위{% else %}예상 밖{% endif %} · 제미나이 {% if fc.hit.gemini %}{{ fc.hit.gemini }}위{% else %}예상 밖{% endif %}</span>{% endif %}
+            </div>
+            <div class="fc-row hd"><span>순위</span><span>도면</span><span class="hd-votes">득표</span><span style="text-align:center">클로드</span><span style="text-align:center">제미나이</span></div>
+            {% for x in fc.items %}
+            <div class="fc-row{% if x.actual %} actual{% endif %}">
+                <span class="fc-rank">{{ x.rank }}</span>
+                <span class="fc-name">{{ x.name }}{% if x.code %} <b>{{ x.code }}</b>{% endif %}{% if x.actual %}<span class="tag">출제</span>{% endif %}</span>
+                <span class="fc-bar"><i style="width:{{ x.pct }}%;background:{{ x.color }}"></i><span>{{ x.votes }}명 · {{ x.share }}%</span></span>
+                <span class="fc-ai">{% if x.claude %}<span{% if x.claude == 1 %} class="top"{% endif %}>{{ x.claude }}위</span>{% endif %}</span>
+                <span class="fc-ai">{% if x.gemini %}<span{% if x.gemini == 1 %} class="top"{% endif %}>{{ x.gemini }}위</span>{% endif %}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
 
         <div class="sec-title" style="margin-top:22px">연도별 출제 도면{% if task_count %} <small>칸이나 위 막대를 누르면 같은 도면만 드러납니다 · 색 띠는 두 번 이상 나온 도면</small>{% endif %}</div>
         <div class="pick-bar" id="pickBar"><span id="pickName"></span><button type="button" id="pickClear">전체 보기</button></div>
