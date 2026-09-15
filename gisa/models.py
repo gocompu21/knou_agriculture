@@ -775,3 +775,47 @@ class PestQuizAttempt(models.Model):
 
     def __str__(self):
         return f'{self.user.username} {self.card.name} {"O" if self.is_correct else "X"}'
+
+
+def _drawing_ref_img_path(instance, filename):
+    r = instance.ref
+    return f'gisa/drawing_ref/c{r.certification_id}/{r.code or r.pk}/{filename}'
+
+
+class GisaDrawingRef(models.Model):
+    """기출 도면별 학습 자료 — 작도 팁·수량표·완성 도면 사진.
+
+    GisaDrawingTask 는 회차(한 번 출제) 단위라, 같은 도면이 여러 번 나오면 자료가
+    흩어진다. 도면 자체(번호, 번호가 없으면 이름)에 한 벌을 달아 두고 작업형 화면의
+    '기출 도면' 탭에서 도면별로 보여 준다.
+    """
+    certification = models.ForeignKey(
+        Certification, on_delete=models.CASCADE,
+        related_name='drawing_refs', verbose_name='자격증')
+    code = models.CharField('도면 번호', max_length=10, blank=True)
+    title = models.CharField('도면명', max_length=100)
+    content = models.TextField('자료(마크다운)', blank=True)
+    updated_at = models.DateTimeField('수정일', auto_now=True)
+
+    class Meta:
+        verbose_name = '기출 도면 자료'
+        verbose_name_plural = '기출 도면 자료'
+        unique_together = ['certification', 'code', 'title']
+
+    def __str__(self):
+        return f"[{self.certification.name}] {self.title} {self.code}"
+
+
+class GisaDrawingRefImage(models.Model):
+    """기출 도면 자료의 그림 — 답안지별 완성 도면 사진 등."""
+    ref = models.ForeignKey(GisaDrawingRef, on_delete=models.CASCADE,
+                            related_name='images', verbose_name='도면 자료')
+    image = models.ImageField('그림', upload_to=_drawing_ref_img_path)
+    caption = models.CharField('설명', max_length=100, blank=True)
+    order = models.PositiveSmallIntegerField('순서', default=0)
+
+    class Meta:
+        verbose_name = '기출 도면 그림'
+        verbose_name_plural = '기출 도면 그림'
+        ordering = ['order', 'id']
+

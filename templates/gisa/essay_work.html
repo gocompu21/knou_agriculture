@@ -161,6 +161,28 @@
         .tk-body { margin-left: 0; }
     }
 
+    /* 기출 도면 */
+    .dw-list { display: flex; flex-direction: column; gap: 6px; }
+    .dw { background: #fff; border: 1px solid #cdd8d0; border-radius: 10px; overflow: hidden; }
+    .dw-head { display: flex; align-items: center; gap: 10px; padding: 8px 12px; flex-wrap: wrap; }
+    .dw.has .dw-head { cursor: pointer; }
+    .dw.has .dw-head:hover { background: #f6f9f7; }
+    .dw-name { font-size: 0.92rem; font-weight: 800; color: #111; background: var(--c);
+        border: 1px solid rgba(0,0,0,.3); border-radius: 7px; padding: 4px 10px; min-width: 170px; }
+    .dw-rounds { display: flex; flex-wrap: wrap; gap: 4px; }
+    .dw-rounds span { font-size: 0.72rem; font-weight: 800; color: #111; background: #fff;
+        border-radius: 5px; padding: 0 6px; line-height: 18px; box-shadow: 0 0 0 1px rgba(0,0,0,.25); }
+    .dw-meta { margin-left: auto; font-size: 0.8rem; font-weight: 700; color: #333; white-space: nowrap; }
+    .dw-tag { font-size: 0.74rem; font-weight: 800; color: #fff; background: #1b4332; border-radius: 6px; padding: 2px 8px; }
+    .dw-none { font-size: 0.74rem; font-weight: 700; color: #6b7b72; background: #eef1ef; border-radius: 6px; padding: 2px 8px; }
+    .dw-arrow { color: #8a9a90; transition: transform .15s; }
+    .dw.open .dw-arrow { transform: rotate(90deg); }
+    .dw-body { display: none; padding: 10px 16px 16px; border-top: 1px solid #e3e9e4; }
+    .dw.open .dw-body { display: block; }
+    .dw-body .tk-imgs { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); margin-bottom: 12px; }
+    .dw-md h2 { border-left: 4px solid #2d6a4f; padding-left: 8px; }
+    .dw-md ol { padding-left: 22px; }
+    @media (max-width: 600px) { .dw-name { min-width: 0; } .dw-meta { margin-left: 0; } }
     .note-md { font-size: 0.9rem; line-height: 1.85; color: #333; }
     .note-md h2 { font-size: 1rem; color: #1b4332; margin: 20px 0 8px; }
     .note-md h3 { font-size: 0.92rem; color: #1b4332; margin: 14px 0 6px; }
@@ -196,6 +218,7 @@
         <button class="tab-btn{% if active_tab == 'overview' %} active{% endif %}" data-tab="overview">작업형 개요</button>
         <button class="tab-btn{% if active_tab == 'basics' %} active{% endif %}" data-tab="basics">도면 기본기</button>
         <button class="tab-btn{% if active_tab == 'tasks' %} active{% endif %}" data-tab="tasks">기출 과제</button>
+        <button class="tab-btn{% if active_tab == 'sheets' %} active{% endif %}" data-tab="sheets">기출 도면</button>
         <button class="tab-btn{% if active_tab == 'elements' %} active{% endif %}" data-tab="elements">설계 요소</button>
     </div>
 
@@ -288,6 +311,33 @@
         {% endfor %}
     </div>
 
+    <!-- 기출 도면 — 도면별 자료(작도 팁·수량표·완성 도면) -->
+    <div id="tab-sheets" class="tab-content{% if active_tab == 'sheets' %} active{% endif %}">
+        <div class="sec-title">기출 도면별 자료 <small>자주 나온 도면부터 · 자료 {{ sheet_ready }}/{{ sheets|length }}종 · 줄을 누르면 작도 팁과 완성 도면이 펼쳐집니다</small></div>
+        <div class="dw-list">
+            {% for d in sheets %}
+            <div class="dw{% if d.ref %} has{% endif %}" id="dw-{{ d.code|default:d.title }}">
+                <div class="dw-head">
+                    <span class="dw-name" style="--c:{{ d.color }}">{{ d.title }}{% if d.code %} {{ d.code }}{% endif %}</span>
+                    <span class="dw-rounds">{% for t in d.rounds %}<span>{{ t.year|stringformat:"d"|slice:"2:" }}-{{ t.round }}</span>{% endfor %}</span>
+                    <span class="dw-meta">{% if d.count %}{{ d.count }}회{% if d.avg is not None %} · 평균 {{ d.avg }}%{% endif %}{% endif %}</span>
+                    {% if d.ref %}<span class="dw-tag">자료{% if d.ref.images.all %} · 도면 {{ d.ref.images.all|length }}장{% endif %}</span><span class="dw-arrow">›</span>{% else %}<span class="dw-none">준비 중</span>{% endif %}
+                </div>
+                {% if d.ref %}
+                <div class="dw-body">
+                    {% if d.ref.images.all %}
+                    <div class="tk-imgs">
+                        {% for im in d.ref.images.all %}<figure><img src="{{ im.image.url }}" alt="{{ im.caption }}" loading="lazy"><figcaption>{{ im.caption }}</figcaption></figure>{% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if d.html %}<div class="note-md dw-md">{{ d.html|safe }}</div>{% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
     <!-- 설계 요소 -->
     <div id="tab-elements" class="tab-content{% if active_tab == 'elements' %} active{% endif %}">
         {% if elements_html %}<div class="note-md">{{ elements_html|safe }}</div>
@@ -331,6 +381,8 @@ tasksTab.querySelectorAll('.yc[data-key]').forEach(c => c.addEventListener('clic
     pick(c.dataset.key, c.dataset.name);
 }));
 document.getElementById('pickClear').addEventListener('click', () => pick(picked, ''));
+document.querySelectorAll('.dw.has .dw-head').forEach(h =>
+    h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
 document.addEventListener('click', e => {
     const img = e.target.closest('.tk-imgs img, .note-md img');
     if (!img) return;

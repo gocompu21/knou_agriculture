@@ -772,6 +772,20 @@ def essay_work(request, cert_id):
         y['slots'] = [{'round': r, 'task': have.get(r)} for r in rounds]
         y['cols'] = len(rounds)
 
+    # 기출 도면별 자료 — 출제 빈도 차례(자주 나온 도면부터)로, 도면 번호(없으면 이름)로 잇는다
+    from .models import GisaDrawingRef
+    refs = {(r.code or r.title): r for r in GisaDrawingRef.objects.filter(certification=cert)
+            .prefetch_related('images')}
+    sheets = []
+    for f in freq:
+        ref = refs.pop(f['code'] or f['title'], None)
+        sheets.append({**f, 'ref': ref,
+                       'html': md.markdown(ref.content, extensions=['tables']) if ref and ref.content else ''})
+    for ref in refs.values():                 # 아직 출제 목록에 없는 도면의 자료
+        sheets.append({'title': ref.title, 'code': ref.code, 'count': 0, 'rounds': [], 'avg': None,
+                       'color': '#d9d9d9', 'key': f'{ref.title}{ref.code}', 'ref': ref,
+                       'html': md.markdown(ref.content, extensions=['tables']) if ref.content else ''})
+
     notes = {n.slug: n for n in GisaEssayNote.objects.filter(
         certification=cert, slug__in=('work-basics', 'work-elements'))}
 
@@ -780,7 +794,7 @@ def essay_work(request, cert_id):
         return md.markdown(n.content, extensions=['tables']) if n else ''
 
     tab = request.GET.get('tab', 'tasks')
-    if tab not in ('overview', 'basics', 'tasks', 'elements'):
+    if tab not in ('overview', 'basics', 'tasks', 'sheets', 'elements'):
         tab = 'tasks'
     return render(request, 'gisa/essay_work.html', {
         'cert': cert,
@@ -789,6 +803,8 @@ def essay_work(request, cert_id):
         'years': years,
         'freq': freq,
         'forecasts': forecasts,
+        'sheets': sheets,
+        'sheet_ready': sum(1 for x in sheets if x['ref']),
         'task_count': len(tasks),
         'basics_html': _note_html('work-basics'),
         'elements_html': _note_html('work-elements'),

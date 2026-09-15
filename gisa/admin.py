@@ -180,3 +180,19 @@ class GisaDrawingTaskAdmin(admin.ModelAdmin):
     list_filter = ('certification', 'year')
     search_fields = ('title', 'note')
     inlines = [GisaDrawingImageInline]
+
+
+from .models import GisaDrawingRef, GisaDrawingRefImage  # noqa: E402
+
+
+class GisaDrawingRefImageInline(admin.TabularInline):
+    model = GisaDrawingRefImage
+    extra = 1
+
+
+@admin.register(GisaDrawingRef)
+class GisaDrawingRefAdmin(admin.ModelAdmin):
+    list_display = ('certification', 'title', 'code', 'updated_at')
+    list_filter = ('certification',)
+    inlines = [GisaDrawingRefImageInline]
+
