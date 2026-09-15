@@ -176,7 +176,7 @@ class GisaDrawingImageInline(admin.TabularInline):
 
 @admin.register(GisaDrawingTask)
 class GisaDrawingTaskAdmin(admin.ModelAdmin):
-    list_display = ('certification', 'year', 'round', 'title', 'scale')
+    list_display = ('certification', 'year', 'round', 'title', 'code', 'pass_rate')
     list_filter = ('certification', 'year')
     search_fields = ('title', 'note')
     inlines = [GisaDrawingImageInline]

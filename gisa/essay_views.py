@@ -705,6 +705,34 @@ def essay_work(request, cert_id):
             years.append({'year': t.year, 'tasks': []})
         years[-1]['tasks'].append(t)
 
+    # 출제 빈도 — 도면(이름 + 번호)마다 몇 번 나왔고 평균 합격률이 얼마였나.
+    # 같은 이름이라도 번호가 다르면 다른 도면이다(근린 공원 323·360·412).
+    freq = {}
+    for t in tasks:
+        f = freq.setdefault((t.title, t.code), {'title': t.title, 'code': t.code,
+                                                'rounds': [], 'rates': []})
+        f['rounds'].append(t)
+        if t.pass_rate is not None:
+            f['rates'].append(t.pass_rate)
+    freq = list(freq.values())
+    for f in freq:
+        f['count'] = len(f['rounds'])
+        f['avg'] = round(sum(f['rates']) / len(f['rates']), 1) if f['rates'] else None
+        f['rounds'].sort(key=lambda t: (t.year, t.round or 0))
+        f['last'] = f['rounds'][-1]
+    freq.sort(key=lambda f: (-f['count'], -f['last'].year, -(f['last'].round or 0)))
+    top = max([f['count'] for f in freq] or [1])
+    # 도면마다 색을 하나씩 준다 — 연도표에서 되나온 도면이 한눈에 보이게
+    palette = ['#f6d9a8', '#f4c7a1', '#cfe8c4', '#d9e6f5', '#f9e79f', '#c9e4de', '#e8d5f0',
+               '#fbd3d3', '#d5e8d4', '#fde2b8', '#cde3f7', '#e2e8c0', '#f3d1e3', '#d8d8f2',
+               '#c8ecd9', '#f0e0c8', '#dcecf5', '#ecd9c6', '#e4f1d2', '#f5e6a8']
+    for i, f in enumerate(freq):
+        f['pct'] = round(f['count'] / top * 100)
+        f['color'] = palette[i % len(palette)]
+        for t in f['rounds']:
+            t.color = f['color']
+            t.times = f['count']
+
     notes = {n.slug: n for n in GisaEssayNote.objects.filter(
         certification=cert, slug__in=('work-basics', 'work-elements'))}
 
@@ -720,6 +748,7 @@ def essay_work(request, cert_id):
         'info': info,
         'active_tab': tab,
         'years': years,
+        'freq': freq,
         'task_count': len(tasks),
         'basics_html': _note_html('work-basics'),
         'elements_html': _note_html('work-elements'),

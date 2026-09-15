@@ -585,7 +585,11 @@ class GisaDrawingTask(models.Model):
     year = models.IntegerField('출제연도')
     round = models.IntegerField('회차', null=True, blank=True)
     title = models.CharField('과제(대상지)', max_length=100,
-                             help_text='예: 근린공원, 주택정원, 옥상정원')
+                             help_text='예: 근린 공원, 주택 정원, 옥상')
+    # 같은 번호면 같은 도면이 되나온 것이다(근린 공원 323·360·412 는 서로 다른 도면)
+    code = models.CharField('도면 번호', max_length=10, blank=True,
+                            help_text='수험 자료의 도면 번호 — 예: 412')
+    pass_rate = models.FloatField('합격률(%)', null=True, blank=True)
     drawings = models.JSONField('요구 도면', default=list, blank=True,
                                 help_text='["설계개념도", "배식설계도", "단면도"] 처럼')
     scale = models.CharField('축척', max_length=40, blank=True)
@@ -600,6 +604,7 @@ class GisaDrawingTask(models.Model):
         verbose_name = '실기 작업형 과제'
         verbose_name_plural = '실기 작업형 과제'
         ordering = ['-year', '-round', 'order']
+        unique_together = ['certification', 'year', 'round']
 
     def __str__(self):
         r = f'{self.round}회 ' if self.round else ''
