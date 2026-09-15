@@ -223,6 +223,10 @@ def _essay_question_img_path(instance, filename):
     return f'gisa/essay/c{cert_id}/{instance.source}/{filename}'
 
 
+# 회차(연도·회)로 시험지를 꾸리는 출처. 나머지(예상·적산)는 영역(section)으로 묶는다.
+ESSAY_ROUND_SOURCES = ('기출', '학원')
+
+
 class GisaEssayQuestion(models.Model):
     """실기 필답형 문항 (주관식).
 
@@ -236,6 +240,8 @@ class GisaEssayQuestion(models.Model):
         # 회차가 밝혀지지 않은 문제 모음. 조경 실기의 구유형(2022년 이전) 적산
         # 기출이 여기 들어간다 — 회차별 시험지를 꾸릴 수 없어 영역 단위로 푼다.
         ('적산', '구유형 적산'),
+        # 학원에서 치른 예상 모의고사. 기출처럼 회차(연도·회)로 시험지를 꾸린다.
+        ('학원', '학원예상시험'),
     ]
     TYPE_CHOICES = [
         ('열거', '열거형'),
@@ -336,6 +342,8 @@ class GisaEssayQuestion(models.Model):
     def __str__(self):
         if self.source == '기출':
             return f"[{self.certification.name} 실기] {self.year}-{self.round} {self.number}번"
+        if self.source == '학원':
+            return f"[{self.certification.name} 실기] 학원예상 {self.round}회 {self.number}번"
         return f"[{self.certification.name} 실기] {self.section} {self.number}번"
 
     @property
@@ -343,6 +351,8 @@ class GisaEssayQuestion(models.Model):
         """화면에 표시할 출처 라벨."""
         if self.source == '기출':
             return f"{self.year}년 {self.round}회"
+        if self.source == '학원':
+            return f"학원예상 {self.round}회"
         return self.section
 
     def build_rubric(self):
@@ -408,6 +418,8 @@ class GisaEssaySession(models.Model):
             return s.replace('모의', '모의고사', 1) if s and s != '모의고사' else '모의고사'
         if self.source == '오답':
             return '오답 재풀이'
+        if self.source == '학원':
+            return f"학원예상 {self.round}회"
         return self.section or '학습'
 
     @property

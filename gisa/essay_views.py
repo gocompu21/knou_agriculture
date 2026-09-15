@@ -31,7 +31,7 @@ from .pest import can_see as bug_can_see, stats as bug_stats
 from .essay_grading import grade_answer, grade_session
 from .templatetags.gisa_filters import qtext
 from main.models import QnaQuestion
-from .models import (Certification, GisaEssayAttempt, GisaEssayNote,
+from .models import (ESSAY_ROUND_SOURCES, Certification, GisaEssayAttempt, GisaEssayNote,
                      GisaEssayQuestion, GisaEssaySession, GisaEssayUpload)
 
 # 영역별 학습 세션에 담을 문항 수
@@ -103,8 +103,9 @@ def essay_list(request, cert_id):
                 .order_by('-started_at')[:30])
     best = {}
     for s in GisaEssaySession.objects.filter(
-            user=request.user, certification=cert, status='done', source='기출'):
-        key = (s.year, s.round)
+            user=request.user, certification=cert, status='done',
+            source__in=ESSAY_ROUND_SOURCES):
+        key = (s.source, s.year, s.round)
         if key not in best or s.score > best[key]:
             best[key] = s.score
 
@@ -116,7 +117,7 @@ def essay_list(request, cert_id):
     FULL_POINTS = (_einfo or {}).get('essay_points', 45)
     round_cards = []
     for r in rounds:
-        key = (r['year'], r['round'])
+        key = ('기출', r['year'], r['round'])
         pts = round(float(r['p'] or 0), 1)
         round_cards.append({
             'year': r['year'], 'round': r['round'], 'count': r['c'],
@@ -134,6 +135,17 @@ def essay_list(request, cert_id):
         round_years[-1]['cards'].append(c)
         if c['best'] is not None:
             round_years[-1]['done'] += 1
+
+    # 학원예상시험 — 학원 모의고사를 회차별로 싣는다. 기출 통계(빈출·모의고사
+    # 뽑기·쪽집게 노트)에는 섞지 않는다 — 실제 출제가 아니라 학원의 예상이다.
+    academy_cards = []
+    for r in (qs.filter(source='학원').values('year', 'round')
+              .annotate(c=Count('id'), p=Sum('points')).order_by('year', 'round')):
+        academy_cards.append({
+            'year': r['year'], 'round': r['round'], 'count': r['c'],
+            'points': round(float(r['p'] or 0), 1),
+            'best': best.get(('학원', r['year'], r['round'])),
+        })
 
     # 빈출 주제 현황 — 되풀이 출제된 주제가 몇 개인지 보여 준다
     freq_cards = []
@@ -212,6 +224,7 @@ def essay_list(request, cert_id):
         'mock_sessions': [s for s in sessions if s.source == '모의' and s.status == 'done'][:5],
         'round_cards': round_cards,
         'round_years': round_years,
+        'academy_cards': academy_cards,
         'sections': sections,
         # 영역 카드의 제목. 조경은 구유형 적산, 자연생태복원은 예상문제가 실린다
         'section_title': ('영역별 구유형 적산'
@@ -350,7 +363,7 @@ def _pick_questions(cert, source, section=None, year=None, round_=None, user=Non
         qs.sort(key=lambda q: (q.number, q.pk))
         return qs
     qs = GisaEssayQuestion.objects.filter(certification=cert, source=source)
-    if source == '기출':
+    if source in ESSAY_ROUND_SOURCES:
         qs = qs.filter(year=year, round=round_)
         return list(qs.order_by('number'))
     qs = qs.filter(section=section)
@@ -415,8 +428,9 @@ def essay_take(request, cert_id):
     if session is None:
         code = ''
         if mode == 'paper':
-            code = f'{year}-{round_}' if source == '기출' else section[:12]
-        section_val = {'예상': section, '적산': section, '기출': '기출',
+            code = (f'{year}-{round_}' if source == '기출'
+                    else f'학원 {year}-{round_}' if source == '학원' else section[:12])
+        section_val = {'예상': section, '적산': section, '기출': '기출', '학원': '학원예상',
                        '모의': mock_label, '오답': '오답 재풀이'}.get(source, source)
         session = GisaEssaySession.objects.create(
             user=request.user, certification=cert,
@@ -442,7 +456,7 @@ def essay_take(request, cert_id):
     # 60분, 식물보호산업기사 120분. 90을 박아 두면 남의 시험시간으로 연습하게 된다.
     _info = exam_info(cert.name)
     exam_minutes = (_info or {}).get('essay_minutes', 90)
-    time_limit = exam_minutes * 60 if source in ('기출', '모의') else 0
+    time_limit = exam_minutes * 60 if source in ('기출', '학원', '모의') else 0
 
     if session.mode == 'quiz':
         return render(request, 'gisa/essay_quiz.html', {
@@ -461,7 +475,7 @@ def essay_take(request, cert_id):
         'total_points': total_points,
         'time_limit': time_limit,
         'exam_minutes': exam_minutes,
-        'is_exam': source in ('기출', '모의'),
+        'is_exam': source in ('기출', '학원', '모의'),
         # 풀면서 채점해 둔 문항 — 이어 올 때 첨삭 답안지로 되살린다(퀴즈와 같은 규칙)
         'pen_state': _quiz_state(session),
         # 여러 회차를 섞은 세트는 원래 문항 번호가 겹치므로 순번으로 보여 준다
@@ -846,11 +860,12 @@ def essay_study(request, cert_id):
         year = round_ = None
     else:
         qs = GisaEssayQuestion.objects.filter(certification=cert, source=source)
-        if source == '기출':
+        if source in ESSAY_ROUND_SOURCES:
             year = int(year) if year else None
             round_ = int(round_) if round_ else None
             qs = qs.filter(year=year, round=round_)
-            title = f'{year}년 {round_}회'
+            title = (f'{year}년 {round_}회' if source == '기출'
+                     else f'학원예상시험 {round_}회')
         else:
             qs = qs.filter(section=section)
             title = section
@@ -972,7 +987,7 @@ def essay_sheet(request, cert_id, session_id):
     session = get_object_or_404(GisaEssaySession, pk=session_id,
                                 user=request.user, certification=cert)
     qs = GisaEssayQuestion.objects.filter(certification=cert, source=session.source)
-    if session.source == '기출':
+    if session.source in ESSAY_ROUND_SOURCES:
         qs = qs.filter(year=session.year, round=session.round)
     else:
         qs = qs.filter(section=session.section)

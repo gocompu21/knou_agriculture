@@ -178,7 +178,7 @@
 <div class="sheet-bar">
     <div class="t">{{ cert.name }} 실기 필답형 · {{ session.label }}</div>
     <button onclick="window.print()">인쇄</button>
-    <a href="{% url 'gisa:essay_take' cert.pk %}?resume={{ session.pk }}&source={{ session.source|urlencode }}{% if session.source == '기출' %}&year={{ session.year }}&round={{ session.round }}{% else %}&section={{ session.section|urlencode }}{% endif %}&mode=paper">답안 올리기</a>
+    <a href="{% url 'gisa:essay_take' cert.pk %}?resume={{ session.pk }}&source={{ session.source|urlencode }}{% if session.source == '기출' or session.source == '학원' %}&year={{ session.year }}&round={{ session.round }}{% else %}&section={{ session.section|urlencode }}{% endif %}&mode=paper">답안 올리기</a>
     <a href="{% url 'gisa:essay_list' cert.pk %}">목록</a>
 </div>
 

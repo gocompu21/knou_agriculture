@@ -65,16 +65,55 @@ def _table_rows(block):
     return rows, tail
 
 
+_SEP_ROW = re.compile(r"^\|[\s:\-|]+\|$")
+# 병합 표식 — 칸에 이것만 적으면 옆 칸과 합친다. `^` 는 위 칸, `<` 는 왼 칸.
+# 이 함수는 escape 를 거친 글을 받으므로 `<` 는 `&lt;` 로 들어온다.
+_MERGE_UP = ("^",)
+_MERGE_LEFT = ("<", "&lt;")
+
+
+def _spans(grid):
+    """병합 표식을 풀어 칸마다 (rowspan, colspan) 또는 None(합쳐져 사라진 칸)."""
+    owner = {}
+    for r, row in enumerate(grid):
+        for c, cel in enumerate(row):
+            if cel in _MERGE_LEFT and c > 0:
+                owner[(r, c)] = owner[(r, c - 1)]
+            elif cel in _MERGE_UP and r > 0 and (r - 1, c) in owner:
+                owner[(r, c)] = owner[(r - 1, c)]
+            else:
+                owner[(r, c)] = (r, c)
+    far = {}
+    for (r, c), (r0, c0) in owner.items():
+        mr, mc = far.get((r0, c0), (r0, c0))
+        far[(r0, c0)] = (max(mr, r), max(mc, c))
+    out = [[None] * len(row) for row in grid]
+    for (r0, c0), (mr, mc) in far.items():
+        out[r0][c0] = (mr - r0 + 1, mc - c0 + 1)
+    return out
+
+
+def _span_attr(span):
+    rs, cs = span
+    return ((' rowspan="%d"' % rs if rs > 1 else "")
+            + (' colspan="%d"' % cs if cs > 1 else ""))
+
+
 def _md_table(block):
     """마크다운 표 -> HTML <table>.
 
-    `| a | b |` 행이 이어지고 둘째 줄이 `|---|---|` 인 덩어리만 표로 본다.
+    `| a | b |` 행이 이어지고 구분행(`|---|---|`)이 있는 덩어리만 표로 본다.
     표가 아니면 None 을 돌려준다.
+
+    구분행 위의 줄은 모두 머리글이다 — 두 줄 머리글(큰 제목 아래 작은 제목)을
+    그릴 수 있다. 칸에 `^` 만 적으면 위 칸과, `<` 만 적으면 왼 칸과 합친다
+    (조경 '도시공원 설치·규모 기준'처럼 분류가 여러 행에 걸친 표).
     """
     lines, tail = _table_rows(block)
     if len(lines) < 2:
         return None
-    if not re.match(r"^\|[\s:\-|]+\|$", lines[1]):
+    sep = next((i for i in range(1, len(lines)) if _SEP_ROW.match(lines[i])), None)
+    if sep is None:
         return None
 
     def cells(ln):
@@ -83,9 +122,11 @@ def _md_table(block):
         # 보인다. 표 안에서만 태그로 되돌린다.
         return [_CELL_BR.sub("<br>", c.strip()) for c in ln.strip("|").split("|")]
 
-    head = cells(lines[0])
-    body = [cells(ln) for ln in lines[2:]]
-    ncol = len(head)
+    heads = [cells(ln) for ln in lines[:sep]]
+    body = [cells(ln) for ln in lines[sep + 1:]]
+    ncol = len(heads[0])
+    heads = [(r + [""] * ncol)[:ncol] for r in heads]
+    body = [(r + [""] * ncol)[:ncol] for r in body]
 
     # +, 0, - 나 '많다/적다'처럼 짧은 값만 든 열은 가운데 정렬이 읽기 좋다.
     # 서술이 든 열까지 가운데로 몰면 오히려 나빠지므로 열 단위로 판단한다.
@@ -93,27 +134,41 @@ def _md_table(block):
         return "<br>" not in c and len(c) <= 8
 
     center = [
-        all(_short(row[i]) for row in body if i < len(row) and row[i])
+        all(_short(row[i]) for row in body if row[i])
         for i in range(ncol)
     ]
 
-    def _align(style, i):
-        if i < len(center) and center[i]:
-            return style.replace("text-align:left", "text-align:center")
+    def _align(style, i, span):
+        if center[i] or (span and span[1] > 1):
+            style = style.replace("text-align:left", "text-align:center")
+        if span and span[0] > 1:
+            style += "vertical-align:middle;"
         return style
 
     out = ['<table style="%s">' % _TABLE_STYLE]
-    out.append("<thead><tr>")
-    for i, h in enumerate(head):
-        out.append('<th style="%s">%s</th>'
-                   % (_align(_TH_STYLE, i) + _th_nowrap(h), h))
-    out.append("</tr></thead><tbody>")
-    for row in body:
-        if len(row) < ncol:
-            row = row + [""] * (ncol - len(row))
+    out.append("<thead>")
+    hspan = _spans(heads)
+    for r, row in enumerate(heads):
         out.append("<tr>")
-        for i, cel in enumerate(row[:ncol]):
-            out.append('<td style="%s">%s</td>' % (_align(_CELL_STYLE, i), cel))
+        for i, h in enumerate(row):
+            sp = hspan[r][i]
+            if sp is None:
+                continue
+            style = _align(_TH_STYLE, i, sp) + _th_nowrap(h)
+            if len(heads) > 1:          # 두 줄 머리글은 가운데로 모아야 층이 보인다
+                style = style.replace("text-align:left", "text-align:center")
+            out.append('<th style="%s"%s>%s</th>' % (style, _span_attr(sp), h))
+        out.append("</tr>")
+    out.append("</thead><tbody>")
+    bspan = _spans(body)
+    for r, row in enumerate(body):
+        out.append("<tr>")
+        for i, cel in enumerate(row):
+            sp = bspan[r][i]
+            if sp is None:
+                continue
+            out.append('<td style="%s"%s>%s</td>'
+                       % (_align(_CELL_STYLE, i, sp), _span_attr(sp), cel))
         out.append("</tr>")
     out.append("</tbody></table>")
     note = "\n".join(tail).strip()
@@ -247,9 +302,13 @@ _FRAC = re.compile(r"(%s)\s*/\s*(%s)" % (_FRAC_TERM, _FRAC_TERM))
 # 그것은 줄바꿈이 안 되는 공백이라 `1 ×[분수]= 0.0015인` 이 통째로 한 덩어리가
 # 됐다. 박스 폭을 4px 만 넘겨도 줄이 접히지 못해 가로 스크롤바가 생기고,
 # 스크롤된 채로 보면 줄머리 글자가 잘렸다.
+#
+# text-indent 는 상속된다. ① 로 시작하는 줄은 매달린 들여쓰기(-1.4em)를 받아,
+# 0 으로 되돌리지 않으면 분자·분모 글자만 왼쪽으로 끌려 나가고 분수막은
+# 제자리에 남는다 — 막이 글자 오른쪽으로 삐져나와 보였다.
 _FRAC_STYLE = (
     "display:inline-block;vertical-align:middle;text-align:center;"
-    "margin:0 .45em;line-height:1.25;font-size:0.95em;"
+    "margin:0 .45em;line-height:1.25;font-size:0.95em;text-indent:0;"
 )
 
 

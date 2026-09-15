@@ -214,6 +214,8 @@
             <!-- Django 의 {# #} 주석은 한 줄만 된다. 여러 줄이면 글자로 새어 나온다. -->
             {% if session.source == '기출' and session.year %}
             <a class="er-btn" href="{% url 'gisa:essay_study' cert.pk %}?source=기출&year={{ session.year }}&round={{ session.round }}">{{ session.year }}년 {{ session.round }}회 학습</a>
+            {% elif session.source == '학원' %}
+            <a class="er-btn" href="{% url 'gisa:essay_study' cert.pk %}?source=학원&year={{ session.year }}&round={{ session.round }}">학원예상 {{ session.round }}회 학습</a>
             {% endif %}
             {% if session.source == '오답' %}
             <a class="er-btn" href="{% url 'gisa:essay_list' cert.pk %}?tab=wrong">오답노트</a>
@@ -238,7 +240,7 @@
     {% comment %} 작업형이 없는 자격증(식물보호산업기사)은 practical_estimate 가 None 이다 —
     '작업형에서 N점 더'라는 말이 성립하지 않는다. 필답 만점도 자격증마다 다르므로
     45 를 박지 않고 session.total_points 를 쓴다. {% endcomment %}
-    {% if session.source == '기출' %}
+    {% if session.source == '기출' or session.source == '학원' %}
         {% if session.has_work_stage %}
         <div class="verdict {% if session.practical_estimate == 0 %}pass{% elif session.practical_estimate <= 30 %}near{% else %}fail{% endif %}">
             필답형 <b>{{ session.score }}점</b> / {{ session.total_points }}점.

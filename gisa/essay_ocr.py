@@ -166,7 +166,7 @@ def transcribe_uploads(session, uploads):
 
     qs = GisaEssayQuestion.objects.filter(
         certification=session.certification, source=session.source)
-    if session.source == '기출':
+    if session.source in ('기출', '학원'):
         qs = qs.filter(year=session.year, round=session.round)
     else:
         qs = qs.filter(section=session.section)
