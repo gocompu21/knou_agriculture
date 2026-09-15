@@ -723,14 +723,17 @@ def essay_work(request, cert_id):
     freq.sort(key=lambda f: (-f['count'], -f['last'].year, -(f['last'].round or 0)))
     top = max([f['count'] for f in freq] or [1])
     # 도면마다 색을 하나씩 준다 — 연도표에서 되나온 도면이 한눈에 보이게
-    # 도면마다 뚜렷이 다른 색. 되나온 도면(2회 이상)만 색을 주고, 한 번만 나온 도면은
-    # 회색으로 둔다 — 스무 가지 색이 한꺼번에 깔리면 오히려 같은 도면이 안 보인다.
-    palette = ['#e63946', '#e07a2f', '#2a9d8f', '#457b9d', '#c99a0e', '#8e44ad', '#43aa8b',
-               '#d62d8a', '#1d7fe0', '#9c6644', '#6a994e', '#ff7b00', '#3d405b', '#b5179e',
-               '#0096c7', '#bc4749']
+    # 도면 색은 사용자가 준 출제 표(2007~2026)의 칸 색을 그대로 쓴다 — 도면 번호로 찾고,
+    # 번호가 없는 도면(도시공원)은 이름으로 찾는다. 표에 없는 새 도면은 회색.
+    DRAWING_COLORS = {
+        '319': '#b38a2e', '323': '#c0632b', '328': '#a9d18e', '401': '#e2efda', '345': '#ffffff',
+        '371': '#fff2cc', '434': '#bfbfbf', '360': '#bdd7ee', '365': '#f4b183', '383': '#ffd966',
+        '391': '#548235', '412': '#d6dce4', '444': '#ffff00', '428': '#5b9bd5', '454': '#fbe5d6',
+        '463': '#808080', '287': '#ffffff', '478': '#4472c4', '264': '#ffffff', '도시공원': '#e03c31',
+    }
     for i, f in enumerate(freq):
         f['pct'] = round(f['count'] / top * 100)
-        f['color'] = palette[i % len(palette)] if f['count'] > 1 else '#9aa5a0'
+        f['color'] = DRAWING_COLORS.get(f['code'] or f['title'], '#d9d9d9')
         f['key'] = f'{f["title"]}{f["code"]}'
         for t in f['rounds']:
             t.color = f['color']
