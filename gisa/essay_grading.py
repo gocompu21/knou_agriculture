@@ -10,8 +10,10 @@
 이런 예외(동의어·표기 변형·괄호 부연·띄어쓰기)는 규칙으로 끝이 없다.
 절약되는 비용은 세션당 1원 미만이라 정확도와 바꿀 가치가 없다.
 
-계산형만 예외다. 최종 답 수치가 정확히 일치하면 규칙으로 만점을 준다
-(LLM이 산수를 틀릴 여지를 없앤다). 어긋나면 계산 전용 LLM이 판단한다.
+계산형도 LLM이 채점한다(계산 전용 프롬프트). 예전에는 최종 답 수치가
+모두 맞으면 규칙으로 만점을 주었는데, 수치만 보고 **단위를 보지 못해**
+42.67m²/hr(정답 m³/hr)에 만점을 주었다. 3.2 × 0.8 을 적은 답안이 허용 오차
+2% 때문에 2.56 과 일치한 것으로 잡히기도 했다. 그래서 걷어냈다.
 
 반환 형식은 어느 경로든 같다:
     {
@@ -28,69 +30,6 @@ from django.conf import settings
 
 from .essay_examinfo import exam_info
 
-# 숫자 허용 오차 (상대)
-NUM_TOLERANCE = 0.02
-
-
-def extract_numbers(s):
-    """문자열에서 수치를 뽑는다 (쉼표 제거, 지수 표기 일부 지원)."""
-    if not s:
-        return []
-    s = str(s).replace(',', '')
-    return [float(m) for m in re.findall(r'-?\d+(?:\.\d+)?', s)]
-
-
-def final_answer_numbers(question):
-    """계산형 모범답안에서 '최종 답'의 수치만 뽑는다.
-
-    교재 풀이는 계산 과정을 모두 적어 두어(10,000 × 60% × 1.3 = 7,800 …)
-    중간값까지 정답 수치로 잡으면 최종 답만 쓴 답안이 오답 처리된다.
-    '답', '∴', '=' 뒤에 오는 값을 우선하고, 없으면 각 줄의 마지막 수치를 쓴다.
-    """
-    blob = ' \n'.join(list(question.answer_items or []) + [question.answer_text or ''])
-    lines = [ln.strip() for ln in blob.split('\n') if ln.strip()]
-    finals = []
-
-    # 1) "답" 표지(② 답 / 답: / ∴)가 있으면 그 줄 이후만 최종 답으로 본다.
-    #    교재는 "① 계산식 … ② 답 …" 구조라 표지 뒤가 결론이다.
-    marker = re.compile(r'(②\s*답|(^|\s)답\s*[:：]|∴|답은)')
-    take, marked = [], False
-    for ln in lines:
-        if marker.search(ln):
-            marked = True
-            after = marker.split(ln)[-1]
-            nums = extract_numbers(after)
-            take.extend(nums if nums else extract_numbers(ln)[-1:])
-            continue
-        if marked and re.match(r'^[•\-]', ln):     # 표지 뒤 이어지는 항목
-            nums = extract_numbers(ln.split('=')[-1])
-            if nums:
-                take.append(nums[-1])
-    if take:
-        finals = take
-
-    # 2) 표지가 없으면 등호가 있는 줄의 우변 마지막 값
-    if not finals:
-        for ln in lines:
-            if '=' in ln:
-                nums = extract_numbers(ln.split('=')[-1])
-                if nums:
-                    finals.append(nums[-1])
-
-    # 3) 그래도 없으면 전체에서 마지막 수치
-    if not finals:
-        nums = extract_numbers(blob)
-        if nums:
-            finals = [nums[-1]]
-
-    # 중복 제거 (순서 유지)
-    seen, out = set(), []
-    for n in finals:
-        if n not in seen:
-            seen.add(n)
-            out.append(n)
-    return out
-
 
 def build_rubric(question):
     """문항의 채점 기준표를 만든다. 저장된 rubric이 있으면 그것을 쓴다."""
@@ -102,36 +41,6 @@ def build_rubric(question):
         return [{'point': text[:300], 'score': float(question.points)}]
     base = float(question.points) / len(items)
     return [{'point': it, 'score': round(base, 2)} for it in items]
-
-
-# ---------------------------------------------------------------- 규칙 채점 (계산형만)
-
-def grade_calc_by_rule(question, user_answer):
-    """계산형에서 최종 답 수치가 전부 맞으면 만점을 준다.
-
-    교재 풀이는 계산 과정을 통째로 적어 두어 "어디까지가 최종 답인지"를
-    기계적으로 100% 가려내기 어렵다. 그래서 확실히 맞은 경우에만 여기서
-    끝내고, 하나라도 어긋나면 None을 반환해 계산 전용 LLM이 판단하게 한다.
-    """
-    targets = final_answer_numbers(question)
-    if not targets:
-        return None
-    u_nums = extract_numbers(user_answer)
-    if not u_nums:
-        return None
-    hit = [a for a in targets
-           if any(abs(u - a) <= max(abs(a) * NUM_TOLERANCE, 1e-9) for u in u_nums)]
-    if len(hit) != len(targets):
-        return None
-    max_score = float(question.points)
-    each = round(max_score / len(targets), 2)
-    return {
-        'score': max_score, 'max': max_score, 'engine': 'rule',
-        'points': [{'point': f'{a:,g}', 'matched': True,
-                    'score': each, 'max': each, 'comment': ''}
-                   for a in targets],
-        'summary': '정답입니다.',
-    }
 
 
 # ---------------------------------------------------------------- LLM 채점
@@ -248,7 +157,15 @@ CALC_SYSTEM = (
     "- 최종 답이 맞으면 과정을 생략했더라도 최소 70%는 준다. 실제 시험에서\n"
     "  답이 맞으면 점수를 주기 때문이다.\n"
     "- 구하는 값이 여럿(예: 운반량과 성토량)이면 맞힌 개수에 비례해 배분한다.\n"
-    "- 단위 누락은 감점하지 않는다. 반올림 차이(1% 이내)도 정답으로 본다.\n"
+    "- 반올림 차이(1% 이내)는 정답으로 본다.\n"
+    "- **단위를 반드시 확인한다.** 최종 답의 단위가 모범답안과 다르면(예: m³/hr 를\n"
+    "  m²/hr·m2/hr 로, m³ 를 m² 로, 분을 초로) 수치가 맞아도 최종 답은 틀린 것이다 —\n"
+    "  answer_correct=false, answer_score=0. marks 에 그 단위를 wrong 으로 짚고\n"
+    "  note 에 '단위 오류'라고 적는다. 과정이 옳으면 process_score 는 줄 수 있다.\n"
+    "- 단위를 아예 안 쓴 경우: 문제가 구할 단위를 지정했으면(예: '작업량(m³/hr)을\n"
+    "  구하시오') 생략해도 정답이다. 지정하지 않았으면 단위 없는 답은 틀린 것이다\n"
+    "  (실기 답안 작성 유의사항).\n"
+    "- m3·m^3 처럼 위첨자를 못 쓴 표기는 m³ 와 같은 단위로 본다. m2 는 m² 다.\n"
     "- 답이 틀렸어도 과정·공식이 옳으면 30% 범위에서 부분점수를 준다.\n"
     "- answer_score 와 process_score 에 각각 준 점수를 적는다. 둘을 더한 것이\n"
     "  이 문항의 점수이며 배점을 넘지 않아야 한다.\n"
@@ -416,8 +333,8 @@ def grade_by_llm(question, user_answer, model=None):
 def grade_answer(question, user_answer, model=None):
     """문항 하나를 채점한다.
 
-    빈 답안은 호출 없이 0점, 계산형은 수치가 다 맞으면 규칙으로 만점,
-    나머지는 모두 LLM이 기준표와 대조해 채점한다.
+    빈 답안은 호출 없이 0점, 계산형은 계산 전용 LLM, 나머지는 LLM이
+    기준표와 대조해 채점한다.
     """
     if not (user_answer or '').strip():
         rubric = build_rubric(question)
@@ -429,9 +346,6 @@ def grade_answer(question, user_answer, model=None):
             'summary': '답안이 비어 있습니다.',
         }
     if question.qtype == '계산':
-        result = grade_calc_by_rule(question, user_answer)
-        if result is not None:
-            return result
         return grade_calc_by_llm(question, user_answer, model=model)
     return grade_by_llm(question, user_answer, model=model)
 
