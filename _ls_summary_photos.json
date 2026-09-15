@@ -1,0 +1,490 @@
+{
+ "d_pine_rust": [
+  {
+   "file": "d_pine_rust_01.jpg",
+   "cap": ""
+  },
+  {
+   "file": "d_pine_rust_02.jpg",
+   "cap": ""
+  },
+  {
+   "file": "d_pine_rust_03.jpg",
+   "cap": ""
+  },
+  {
+   "file": "d_pine_rust_04.jpg",
+   "cap": ""
+  }
+ ],
+ "d_paulownia": [
+  {
+   "file": "d_paulownia_01.jpg",
+   "cap": ""
+  },
+  {
+   "file": "d_paulownia_02.jpg",
+   "cap": ""
+  }
+ ],
+ "d_pwn": [
+  {
+   "file": "d_pwn_01.jpg",
+   "cap": ""
+  },
+  {
+   "file": "d_pwn_02.jpg",
+   "cap": ""
+  },
+  {
+   "file": "d_pwn_03.jpg",
+   "cap": ""
+  },
+  {
+   "file": "d_pwn_04.jpg",
+   "cap": ""
+  }
+ ],
+ "d_pine_gall": [
+  {
+   "file": "d_pine_gall_01.jpg",
+   "cap": ""
+  },
+  {
+   "file": "d_pine_gall_02.jpg",
+   "cap": ""
+  },
+  {
+   "file": "d_pine_gall_03.jpg",
+   "cap": ""
+  },
+  {
+   "file": "d_pine_gall_04.jpg",
+   "cap": ""
+  }
+ ],
+ "d_oak_wilt": [
+  {
+   "file": "d_oak_wilt_01.jpg",
+   "cap": ""
+  },
+  {
+   "file": "d_oak_wilt_02.jpg",
+   "cap": ""
+  },
+  {
+   "file": "d_oak_wilt_03.jpg",
+   "cap": ""
+  }
+ ],
+ "d_rust_spot": [
+  {
+   "file": "d_rust_spot_01.jpg",
+   "cap": ""
+  },
+  {
+   "file": "d_rust_spot_02.jpg",
+   "cap": ""
+  },
+  {
+   "file": "d_rust_spot_03.jpg",
+   "cap": ""
+  }
+ ],
+ "fl_red": [
+  {
+   "file": "fl_red_01.jpg",
+   "cap": "동백나무"
+  },
+  {
+   "file": "fl_red_02.jpg",
+   "cap": "명자나무"
+  },
+  {
+   "file": "fl_red_03.jpg",
+   "cap": "박태기나무"
+  },
+  {
+   "file": "fl_red_04.jpg",
+   "cap": "복사나무"
+  },
+  {
+   "file": "fl_red_05.jpg",
+   "cap": "산벚나무"
+  },
+  {
+   "file": "fl_red_06.jpg",
+   "cap": "살구나무"
+  },
+  {
+   "file": "fl_red_07.jpg",
+   "cap": "진달래"
+  },
+  {
+   "file": "fl_red_08.jpg",
+   "cap": "철쭉"
+  },
+  {
+   "file": "fl_red_09.jpg",
+   "cap": "산철쭉"
+  },
+  {
+   "file": "fl_red_10.jpg",
+   "cap": "모란"
+  },
+  {
+   "file": "fl_red_11.jpg",
+   "cap": "모과나무"
+  },
+  {
+   "file": "fl_red_12.jpg",
+   "cap": "영산홍"
+  },
+  {
+   "file": "fl_red_13.jpg",
+   "cap": "석류나무"
+  },
+  {
+   "file": "fl_red_14.jpg",
+   "cap": "배롱나무"
+  },
+  {
+   "file": "fl_red_15.jpg",
+   "cap": "자귀나무"
+  },
+  {
+   "file": "fl_red_16.jpg",
+   "cap": "능소화"
+  }
+ ],
+ "fl_yellow": [
+  {
+   "file": "fl_yellow_01.jpg",
+   "cap": "풍년화"
+  },
+  {
+   "file": "fl_yellow_02.jpg",
+   "cap": "생강나무"
+  },
+  {
+   "file": "fl_yellow_03.jpg",
+   "cap": "산수유"
+  },
+  {
+   "file": "fl_yellow_04.jpg",
+   "cap": "개나리"
+  },
+  {
+   "file": "fl_yellow_05.jpg",
+   "cap": "골담초"
+  },
+  {
+   "file": "fl_yellow_06.jpg",
+   "cap": "호랑가시나무"
+  },
+  {
+   "file": "fl_yellow_07.jpg",
+   "cap": "백합나무"
+  },
+  {
+   "file": "fl_yellow_08.jpg",
+   "cap": "히어리"
+  },
+  {
+   "file": "fl_yellow_09.jpg",
+   "cap": "모감주나무"
+  },
+  {
+   "file": "fl_yellow_10.jpg",
+   "cap": "금목서"
+  }
+ ],
+ "fl_white": [
+  {
+   "file": "fl_white_01.jpg",
+   "cap": "매실나무"
+  },
+  {
+   "file": "fl_white_02.jpg",
+   "cap": "백목련"
+  },
+  {
+   "file": "fl_white_03.jpg",
+   "cap": "미선나무"
+  },
+  {
+   "file": "fl_white_04.jpg",
+   "cap": "왕벚나무"
+  },
+  {
+   "file": "fl_white_05.jpg",
+   "cap": "자금우"
+  },
+  {
+   "file": "fl_white_06.jpg",
+   "cap": "자두나무"
+  },
+  {
+   "file": "fl_white_07.jpg",
+   "cap": "병아리꽃나무"
+  },
+  {
+   "file": "fl_white_08.jpg",
+   "cap": "앵두나무"
+  },
+  {
+   "file": "fl_white_09.jpg",
+   "cap": "조팝나무"
+  },
+  {
+   "file": "fl_white_10.jpg",
+   "cap": "때죽나무"
+  },
+  {
+   "file": "fl_white_11.jpg",
+   "cap": "산딸나무"
+  },
+  {
+   "file": "fl_white_12.jpg",
+   "cap": "층층나무"
+  },
+  {
+   "file": "fl_white_13.jpg",
+   "cap": "찔레"
+  },
+  {
+   "file": "fl_white_14.jpg",
+   "cap": "쥐똥나무"
+  },
+  {
+   "file": "fl_white_15.jpg",
+   "cap": "돈나무"
+  },
+  {
+   "file": "fl_white_16.jpg",
+   "cap": "아왜나무"
+  },
+  {
+   "file": "fl_white_17.jpg",
+   "cap": "태산목"
+  },
+  {
+   "file": "fl_white_18.jpg",
+   "cap": "남천"
+  },
+  {
+   "file": "fl_white_19.jpg",
+   "cap": "마가목"
+  },
+  {
+   "file": "fl_white_20.jpg",
+   "cap": "인동덩굴"
+  }
+ ],
+ "fr_black": [
+  {
+   "file": "fr_black_01.jpg",
+   "cap": "벚나무"
+  },
+  {
+   "file": "fr_black_02.jpg",
+   "cap": "왕벚나무"
+  },
+  {
+   "file": "fr_black_03.jpg",
+   "cap": "음나무"
+  },
+  {
+   "file": "fr_black_04.jpg",
+   "cap": "쥐똥나무"
+  },
+  {
+   "file": "fr_black_05.jpg",
+   "cap": "광나무"
+  },
+  {
+   "file": "fr_black_06.jpg",
+   "cap": "생강나무"
+  },
+  {
+   "file": "fr_black_07.jpg",
+   "cap": "산초나무"
+  },
+  {
+   "file": "fr_black_08.jpg",
+   "cap": "인동덩굴"
+  },
+  {
+   "file": "fr_black_09.jpg",
+   "cap": "후박나무"
+  },
+  {
+   "file": "fr_black_10.jpg",
+   "cap": "황칠나무"
+  },
+  {
+   "file": "fr_black_11.jpg",
+   "cap": "팔손이"
+  }
+ ],
+ "fr_red": [
+  {
+   "file": "fr_red_01.jpg",
+   "cap": "주목"
+  },
+  {
+   "file": "fr_red_02.jpg",
+   "cap": "마가목"
+  },
+  {
+   "file": "fr_red_03.jpg",
+   "cap": "팥배나무"
+  },
+  {
+   "file": "fr_red_04.jpg",
+   "cap": "산수유"
+  },
+  {
+   "file": "fr_red_05.jpg",
+   "cap": "해당화"
+  },
+  {
+   "file": "fr_red_06.jpg",
+   "cap": "아왜나무"
+  },
+  {
+   "file": "fr_red_07.jpg",
+   "cap": "가막살나무"
+  },
+  {
+   "file": "fr_red_08.jpg",
+   "cap": "화살나무"
+  },
+  {
+   "file": "fr_red_09.jpg",
+   "cap": "찔레꽃"
+  },
+  {
+   "file": "fr_red_10.jpg",
+   "cap": "사철나무"
+  },
+  {
+   "file": "fr_red_11.jpg",
+   "cap": "매자나무"
+  },
+  {
+   "file": "fr_red_12.jpg",
+   "cap": "자금우"
+  },
+  {
+   "file": "fr_red_13.jpg",
+   "cap": "동백나무"
+  },
+  {
+   "file": "fr_red_14.jpg",
+   "cap": "후피향나무"
+  },
+  {
+   "file": "fr_red_15.jpg",
+   "cap": "남천"
+  },
+  {
+   "file": "fr_red_16.jpg",
+   "cap": "피라칸타"
+  }
+ ],
+ "fr_yellow": [
+  {
+   "file": "fr_yellow_01.jpg",
+   "cap": "살구나무"
+  },
+  {
+   "file": "fr_yellow_02.jpg",
+   "cap": "복사나무"
+  },
+  {
+   "file": "fr_yellow_03.jpg",
+   "cap": "명자나무"
+  },
+  {
+   "file": "fr_yellow_04.jpg",
+   "cap": "모과나무"
+  }
+ ],
+ "fr_green": [
+  {
+   "file": "fr_green_01.jpg",
+   "cap": "매실나무"
+  },
+  {
+   "file": "fr_green_02.jpg",
+   "cap": "상수리나무"
+  },
+  {
+   "file": "fr_green_03.jpg",
+   "cap": "회화나무"
+  }
+ ],
+ "au_red": [
+  {
+   "file": "au_red_01.jpg",
+   "cap": "감나무"
+  },
+  {
+   "file": "au_red_02.jpg",
+   "cap": "담쟁이"
+  },
+  {
+   "file": "au_red_03.jpg",
+   "cap": "옻나무"
+  },
+  {
+   "file": "au_red_04.jpg",
+   "cap": "마가목"
+  },
+  {
+   "file": "au_red_05.jpg",
+   "cap": "단풍나무"
+  },
+  {
+   "file": "au_red_06.jpg",
+   "cap": "신나무"
+  },
+  {
+   "file": "au_red_07.jpg",
+   "cap": "복자기"
+  }
+ ],
+ "au_yellow": [
+  {
+   "file": "au_yellow_01.jpg",
+   "cap": "자작나무"
+  },
+  {
+   "file": "au_yellow_02.jpg",
+   "cap": "느티나무"
+  },
+  {
+   "file": "au_yellow_03.jpg",
+   "cap": "은행나무"
+  },
+  {
+   "file": "au_yellow_04.jpg",
+   "cap": "고로쇠나무"
+  },
+  {
+   "file": "au_yellow_05.jpg",
+   "cap": "계수나무"
+  },
+  {
+   "file": "au_yellow_06.jpg",
+   "cap": "플라타너스"
+  }
+ ],
+ "oak_leaf": [
+  {
+   "file": "oak_leaf_01.jpg",
+   "cap": "참나무류 잎 모양"
+  }
+ ]
+}

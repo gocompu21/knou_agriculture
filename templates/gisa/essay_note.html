@@ -144,6 +144,32 @@
     .nt-body .q-svg { text-align: center; margin: 10px 0 12px; }
     .nt-body .q-svg svg { max-width: 100%; height: auto; }
 
+    /* 빈칸 암기 — 누르면 답이 드러난다(⟦답⟧ → .nt-blank) */
+    .nt-blank { display: inline-block; min-width: 3.2em; padding: 0 .35em; margin: 0 1px;
+        border-bottom: 2px solid #2d6a4f; background: #eef4ef; border-radius: 3px 3px 0 0;
+        color: transparent; cursor: pointer; line-height: 1.5; text-align: center;
+        -webkit-user-select: none; user-select: none; }
+    .nt-blank * { color: transparent !important; border-color: transparent !important; }
+    .nt-blank:hover { background: #e2ede5; }
+    .nt-blank.on, .nt-reveal .nt-blank { color: #1b4332; background: #fff4c9;
+        border-bottom-color: #d9a441; font-weight: 700; -webkit-user-select: text; user-select: text; }
+    .nt-blank.on *, .nt-reveal .nt-blank * { color: inherit !important; border-color: currentColor !important; }
+
+    /* 사진 격자 — 수종·병해 사진 */
+    .nt-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+        gap: 8px; margin: 8px 0 14px; }
+    .nt-photos figure { margin: 0; background: #fff; border: 1px solid #e3e9e4;
+        border-radius: 8px; overflow: hidden; }
+    .nt-photos img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; cursor: zoom-in; }
+    .nt-photos figcaption { font-size: 0.78rem; text-align: center; padding: 3px 2px;
+        color: #1f2d24; font-weight: 600; }
+    .nt-photos.wide { grid-template-columns: 1fr; max-width: 560px; }
+    .nt-photos.wide img { aspect-ratio: auto; object-fit: contain; }
+    .nt-zoom { position: fixed; inset: 0; background: rgba(0,0,0,.82); z-index: 300;
+        display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .nt-zoom[hidden] { display: none; }
+    .nt-zoom img { max-width: 100%; max-height: 90vh; border-radius: 6px; }
+
     .nt-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff;
         border-top: 1px solid #e5e5e5; padding: 9px 16px; z-index: 90;
         display: flex; gap: 10px; align-items: center; justify-content: center; }
@@ -164,6 +190,7 @@
     <div class="nt-title">
         {{ note.title }} <small>· {{ items|length }}{% if has_freq %}주제{% else %}개 절{% endif %}</small>
     </div>
+    {% if has_blanks %}<button class="nt-btn" id="btnReveal">빈칸 모두 보기</button>{% endif %}
     <button class="nt-btn" id="btnAll">모두 펼치기</button>
 </div>
 
@@ -196,6 +223,8 @@
     </div>
     {% endfor %}
 </div>
+
+<div class="nt-zoom" id="ntZoom" hidden onclick="this.hidden=true"><img alt=""></div>
 
 <div class="nt-bar">
     <a href="{% url 'gisa:essay_study' cert.pk %}?mode=freq&min=3"><span class="bar-btn">빈출 문항 풀어보기</span></a>
@@ -249,6 +278,29 @@ document.querySelectorAll('.nt-freq.btn').forEach(btn => {
             box.innerHTML = `<div class="nt-sib-load">${err.message}</div>`;
         }
     });
+});
+
+/* 빈칸 — 하나씩 누르거나, 머리의 단추로 한꺼번에 */
+document.addEventListener('click', e => {
+    const b = e.target.closest('.nt-blank');
+    if (b) { e.stopPropagation(); b.classList.toggle('on'); return; }
+    const img = e.target.closest('.nt-photos img');
+    if (img) {
+        const z = document.getElementById('ntZoom');
+        z.querySelector('img').src = img.src;
+        z.hidden = false;
+    }
+});
+document.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('nt-blank')) {
+        e.preventDefault(); e.target.classList.toggle('on');
+    }
+});
+const btnReveal = document.getElementById('btnReveal');
+if (btnReveal) btnReveal.addEventListener('click', () => {
+    const on = document.body.classList.toggle('nt-reveal');
+    if (!on) document.querySelectorAll('.nt-blank.on').forEach(x => x.classList.remove('on'));
+    btnReveal.textContent = on ? '빈칸 가리기' : '빈칸 모두 보기';
 });
 
 let allOpen = false;

@@ -86,6 +86,20 @@ def mathify(s):
     return s
 
 
+_BLANK = re.compile(r'⟦(.+?)⟧', re.S)
+
+
+def blanks(html):
+    """`⟦답⟧` → 누르면 드러나는 빈칸. 암기용 요약 노트(조경 필답 요약)가 쓴다.
+
+    마크다운 변환 뒤에 바꾼다 — 먼저 바꾸면 표 칸 안의 태그가 이스케이프된다.
+    답 안의 분수(mathify)도 그대로 감싸진다.
+    """
+    return _BLANK.sub(
+        lambda m: '<span class="nt-blank" role="button" tabindex="0" title="눌러서 답 보기">'
+                  + m.group(1) + '</span>', html)
+
+
 def number_sections(html):
     """절 제목(<h3>)에 (1) (2) 번호를 붙이고, 그 아래 내용을 .nt-sec 으로 감싸 들여쓴다.
 
@@ -239,8 +253,8 @@ def parse_note_items(cert, note):
             # 본문에도 ÷·지수·LaTeX 가 섞여 있다(1.5배 도달 연수 풀이 등).
             # nl2br 은 쓰지 않는다 — 원문이 40자 안팎으로 줄을 끊어 둔 것이 화면에
             # 그대로 나와 문단이 좁게 토막났다. 문단은 화면 폭에 맞게 흐르게 둔다.
-            'html': number_sections(
-                md.markdown(mathify(_loosen(body_rest)), extensions=['tables'])),
+            'html': blanks(number_sections(
+                md.markdown(mathify(_loosen(body_rest)), extensions=['tables']))),
         })
     return intro_md, items
 

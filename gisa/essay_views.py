@@ -1359,6 +1359,8 @@ def essay_note(request, cert_id, slug):
         # 빈도·분류 배지가 있는 노트인지(자연생태복원 빈출 정리) 여부.
         # 조경 적산 정리처럼 `## 제목` 만 쓰는 노트는 배지와 걸러 보기를 감춘다.
         'has_freq': any(x['freq'] for x in items),
+        # 빈칸 암기 노트(⟦답⟧)면 머리에 "빈칸 모두 보기" 단추를 둔다
+        'has_blanks': '⟦' in note.content,
         'warned_count': sum(1 for x in items if x['warned']),
     })
 
