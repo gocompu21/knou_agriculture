@@ -82,48 +82,73 @@
     .zoom[hidden] { display: none; }
     .zoom img { max-width: 100%; max-height: 94vh; background: #fff; }
 
-    /* 출제 빈도 막대 */
-    .fq { background: #fff; border: 1px solid #e3e9e4; border-radius: 10px; padding: 8px 14px; }
-    .fq-row { display: grid; grid-template-columns: 170px 1fr 88px; gap: 4px 12px; align-items: center;
-        padding: 6px 0; border-top: 1px solid #f0f3f1; }
+    /* 출제 빈도 막대 — 한 줄: 이름 | 막대(횟수 + 출제 회차 배지) | 평균 합격률 */
+    .fq { background: #fff; border: 1px solid #c9d5cd; border-radius: 10px; padding: 6px 12px; }
+    .fq-row { display: grid; grid-template-columns: 170px 1fr 92px; gap: 10px; align-items: center;
+        padding: 4px 6px; border-top: 1px solid #edf1ee; cursor: pointer; border-radius: 6px; }
     .fq-row:first-child { border-top: 0; }
-    .fq-name { font-size: 0.86rem; font-weight: 700; color: #1f2d24; white-space: nowrap; }
-    .fq-name b { font-weight: 600; color: #7c8a81; font-size: 0.8em; }
-    .fq-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px;
-        border: 1px solid rgba(0,0,0,.15); vertical-align: 1px; }
-    .fq-bar { background: #f3f6f4; border-radius: 6px; height: 20px; overflow: hidden; }
-    .fq-bar span { display: block; height: 100%; min-width: 34px; border-radius: 6px; font-size: 0.72rem;
-        font-weight: 800; color: #3a2a10; text-align: right; padding-right: 7px; line-height: 20px;
-        box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
-    .fq-avg { font-size: 0.78rem; color: #5b6b62; text-align: right; white-space: nowrap; }
-    .fq-rounds { grid-column: 2 / 4; display: flex; flex-wrap: wrap; gap: 4px; margin-top: -2px; }
-    .fq-rounds span { font-size: 0.68rem; color: #6b7b72; background: #f3f6f4; border-radius: 6px; padding: 0 6px; }
+    .fq-row:hover { background: #f4f7f5; }
+    .fq-row.sel { background: #fff7d6; box-shadow: inset 0 0 0 2px #1b4332; }
+    .fq-name { font-size: 0.87rem; font-weight: 800; color: #111; white-space: nowrap;
+        overflow: hidden; text-overflow: ellipsis; }
+    .fq-name b { font-weight: 700; color: #555; font-size: 0.82em; }
+    .fq-dot { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px;
+        vertical-align: -1px; }
+    .fq-bar { position: relative; background: #eceff0; border-radius: 6px; height: 26px; overflow: hidden; }
+    .fq-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; }
+    .fq-in { position: relative; display: flex; align-items: center; gap: 4px; height: 100%;
+        padding: 0 6px; overflow: hidden; white-space: nowrap; }
+    .fq-cnt { font-size: 0.8rem; font-weight: 900; color: #fff; margin-right: 4px;
+        text-shadow: 0 0 2px rgba(0,0,0,.55); }
+    .fq-in .rd { font-size: 0.7rem; font-weight: 800; color: #111; background: #fff;
+        border-radius: 5px; padding: 0 5px; line-height: 17px; box-shadow: 0 0 0 1px rgba(0,0,0,.2); }
+    .fq-avg { font-size: 0.8rem; font-weight: 700; color: #222; text-align: right; white-space: nowrap; }
 
-    /* 연도 × 회차 */
+    /* 연도 × 회차 — 흰 칸에 도면 색 띠. 누르면 같은 도면만 드러나고 나머지는 흐려진다 */
     .yg { display: flex; gap: 8px; align-items: stretch; margin-bottom: 6px; }
-    .yg-year { flex-shrink: 0; width: 52px; display: flex; align-items: center; justify-content: center;
-        font-size: 0.86rem; font-weight: 800; color: #1b4332; background: #eef4ef; border-radius: 8px; }
-    .yg-cells { flex: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 6px; }
-    .yc { border-radius: 8px; padding: 7px 10px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
-        display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 7px; }
-    .yc.has { cursor: pointer; }
-    .yc.has:hover { box-shadow: inset 0 0 0 2px rgba(27,67,50,.45); }
-    .yc-r { font-size: 0.7rem; font-weight: 800; color: #fff; background: rgba(27,67,50,.72);
+    .yg-year { flex-shrink: 0; width: 54px; display: flex; align-items: center; justify-content: center;
+        font-size: 0.88rem; font-weight: 900; color: #fff; background: #1b4332; border-radius: 8px; }
+    .yg-cells { flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .yg-cells.c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .yc { position: relative; background: #fff; border-radius: 8px; padding: 7px 10px 7px 16px;
+        border: 1px solid #c9d2cd; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 7px;
+        min-width: 0; cursor: pointer; transition: opacity .15s, box-shadow .15s; overflow: hidden; }
+    .yc::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 7px; background: var(--c); }
+    .yc:hover { box-shadow: 0 0 0 2px var(--c); }
+    .yc.empty { background: repeating-linear-gradient(135deg, #fafbfa 0 6px, #f0f3f1 6px 12px);
+        border: 1px dashed #b9c6bd; cursor: default; align-items: center; }
+    .yc.empty::before { display: none; }
+    .yc.empty .yc-r { background: #b9c6bd; }
+    .yc-r { font-size: 0.7rem; font-weight: 800; color: #fff; background: #1b4332;
         border-radius: 6px; padding: 1px 6px; }
-    .yc-t { font-size: 0.88rem; font-weight: 700; color: #1f2d24; }
-    .yc-t b { font-weight: 600; color: #5b4a2a; font-size: 0.85em; }
-    .yc-m { flex-basis: 100%; font-size: 0.74rem; color: #4d5c53; }
-    .yc-more { font-size: 0.72rem; font-weight: 700; color: #1b4332; margin-left: auto; }
+    .yc-t { font-size: 0.9rem; font-weight: 800; color: #111; }
+    .yc-code { font-size: 0.74rem; font-weight: 900; color: #fff; background: var(--c);
+        border-radius: 5px; padding: 0 6px; }
+    .yc-m { flex-basis: 100%; font-size: 0.75rem; font-weight: 600; color: #333; }
+    .yc-more { font-size: 0.72rem; font-weight: 800; color: #1b4332; margin-left: auto; }
+    /* 도면 하나를 고르면 — 같은 도면은 색으로 칠하고 나머지는 흐리게 */
+    .tasks-pick .yc:not(.empty) { opacity: .28; }
+    .tasks-pick .yc.pick { opacity: 1; background: var(--c); border-color: var(--c);
+        box-shadow: 0 0 0 2px #111; }
+    .tasks-pick .yc.pick .yc-t, .tasks-pick .yc.pick .yc-m { color: #fff; text-shadow: 0 0 2px rgba(0,0,0,.5); }
+    .tasks-pick .yc.pick .yc-code { background: #fff; color: #111; }
+    .tasks-pick .yc.pick .yc-r { background: rgba(0,0,0,.45); }
+    .pick-bar { display: none; position: sticky; top: 50px; z-index: 5; margin: 0 0 8px;
+        background: #1b4332; color: #fff; border-radius: 8px; padding: 7px 12px; font-size: 0.86rem;
+        font-weight: 700; align-items: center; gap: 10px; }
+    .tasks-pick .pick-bar { display: flex; }
+    .pick-bar button { margin-left: auto; border: 0; background: #fff; color: #1b4332; font-weight: 800;
+        border-radius: 12px; padding: 3px 12px; cursor: pointer; font-family: inherit; }
     .tk-body { display: none; background: #fff; border: 1px solid #d5e2d8; border-radius: 10px;
         padding: 6px 16px 14px; margin: 0 0 10px 60px; }
     .tk-body.open { display: block; }
     .tk-dh { font-size: 0.9rem; font-weight: 800; color: #1b4332; padding-top: 6px;
         display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
     @media (max-width: 600px) {
-        .fq-row { grid-template-columns: 1fr 70px; }
+        .fq-row { grid-template-columns: 1fr 76px; gap: 2px 8px; }
         .fq-bar { grid-column: 1 / 3; grid-row: 2; }
-        .fq-rounds { grid-column: 1 / 3; }
         .yg { flex-direction: column; gap: 4px; }
+        .yg-cells, .yg-cells.c4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .yg-year { width: auto; justify-content: flex-start; padding: 3px 10px; }
         .tk-body { margin-left: 0; }
     }
@@ -195,29 +220,31 @@
         <div class="sec-title">출제 빈도 <small>{% with y0=years|last y1=years|first %}{{ y0.year }}~{{ y1.year }}년 · {{ task_count }}회차 · 도면 {{ freq|length }}종 · 같은 번호면 같은 도면이 되나온 것{% endwith %}</small></div>
         <div class="fq">
             {% for f in freq %}
-            <div class="fq-row">
+            <div class="fq-row" data-key="{{ f.key }}" data-name="{{ f.title }}{% if f.code %} {{ f.code }}{% endif %}">
                 <div class="fq-name"><span class="fq-dot" style="background:{{ f.color }}"></span>{{ f.title }}{% if f.code %} <b>{{ f.code }}</b>{% endif %}</div>
-                <div class="fq-bar"><span style="width:{{ f.pct }}%;background:{{ f.color }}">{{ f.count }}회</span></div>
+                <div class="fq-bar"><span class="fq-fill" style="width:{{ f.pct }}%;background:{{ f.color }}"></span><div class="fq-in"><span class="fq-cnt">{{ f.count }}회</span>{% for t in f.rounds %}<span class="rd">{{ t.year|stringformat:"d"|slice:"2:" }}-{{ t.round }}</span>{% endfor %}</div></div>
                 <div class="fq-avg">{% if f.avg is not None %}평균 {{ f.avg }}%{% else %}—{% endif %}</div>
-                <div class="fq-rounds">{% for t in f.rounds %}<span>{{ t.year|stringformat:"d"|slice:"2:" }}-{{ t.round }}</span>{% endfor %}</div>
             </div>
             {% endfor %}
         </div>
         {% endif %}
 
-        <div class="sec-title" style="margin-top:22px">연도별 출제 도면{% if task_count %} <small>이름 옆 숫자는 도면 번호 · 같은 색은 같은 도면</small>{% endif %}</div>
+        <div class="sec-title" style="margin-top:22px">연도별 출제 도면{% if task_count %} <small>칸이나 위 막대를 누르면 같은 도면만 드러납니다 · 색 띠는 두 번 이상 나온 도면</small>{% endif %}</div>
+        <div class="pick-bar" id="pickBar"><span id="pickName"></span><button type="button" id="pickClear">전체 보기</button></div>
         {% for y in years %}
         <div class="yg">
             <div class="yg-year">{{ y.year }}</div>
-            <div class="yg-cells">
-                {% for t in y.tasks %}
-                <div class="yc{% if t.has_detail %} has{% endif %}" style="background:{{ t.color }}"{% if t.has_detail %} data-detail="d{{ t.pk }}"{% endif %}>
+            <div class="yg-cells{% if y.cols == 4 %} c4{% endif %}">
+                {% for sl in y.slots %}{% with t=sl.task %}{% if t %}
+                <div class="yc{% if t.has_detail %} has{% endif %}" style="--c:{{ t.color }}" data-key="{{ t.key }}" data-name="{{ t.title }}{% if t.code %} {{ t.code }}{% endif %}"{% if t.has_detail %} data-detail="d{{ t.pk }}"{% endif %}>
                     <span class="yc-r">{{ t.round }}회</span>
-                    <span class="yc-t">{{ t.title }}{% if t.code %} <b>{{ t.code }}</b>{% endif %}</span>
+                    <span class="yc-t">{{ t.title }}</span>{% if t.code %}<span class="yc-code">{{ t.code }}</span>{% endif %}
                     <span class="yc-m">{% if t.pass_rate is not None %}합격률 {{ t.pass_rate }}%{% endif %}{% if t.note %}{% if t.pass_rate is not None %} · {% endif %}{{ t.note }}{% endif %}{% if t.times > 1 %}{% if t.pass_rate is not None or t.note %} · {% endif %}{{ t.times }}회 출제{% endif %}</span>
                     {% if t.has_detail %}<span class="yc-more">자료 ›</span>{% endif %}
                 </div>
-                {% endfor %}
+                {% else %}
+                <div class="yc empty"><span class="yc-r">{{ sl.round }}회</span></div>
+                {% endif %}{% endwith %}{% endfor %}
             </div>
         </div>
         {% for t in y.tasks %}{% if t.has_detail %}
@@ -260,10 +287,30 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         history.replaceState(null, '', u);
     });
 });
-document.querySelectorAll('.yc.has').forEach(c => c.addEventListener('click', () => {
-    const d = document.getElementById(c.dataset.detail);
-    if (d) d.classList.toggle('open');
+const tasksTab = document.getElementById('tab-tasks');
+let picked = '';
+function pick(key, name) {
+    picked = (picked === key) ? '' : key;
+    tasksTab.classList.toggle('tasks-pick', !!picked);
+    let n = 0;
+    tasksTab.querySelectorAll('.yc[data-key]').forEach(c => {
+        const on = c.dataset.key === picked; c.classList.toggle('pick', on); if (on) n++;
+    });
+    tasksTab.querySelectorAll('.fq-row').forEach(r => r.classList.toggle('sel', r.dataset.key === picked));
+    document.getElementById('pickName').textContent = picked ? `${name} — ${n}회 출제` : '';
+}
+tasksTab.querySelectorAll('.fq-row').forEach(r => r.addEventListener('click', () => {
+    pick(r.dataset.key, r.dataset.name);
+    if (picked) document.getElementById('pickBar').scrollIntoView({behavior: 'smooth', block: 'start'});
 }));
+tasksTab.querySelectorAll('.yc[data-key]').forEach(c => c.addEventListener('click', () => {
+    if (c.dataset.detail && picked === c.dataset.key) {
+        const d = document.getElementById(c.dataset.detail);
+        if (d) { d.classList.toggle('open'); return; }
+    }
+    pick(c.dataset.key, c.dataset.name);
+}));
+document.getElementById('pickClear').addEventListener('click', () => pick(picked, ''));
 document.addEventListener('click', e => {
     const img = e.target.closest('.tk-imgs img, .note-md img');
     if (!img) return;

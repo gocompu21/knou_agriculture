@@ -723,15 +723,27 @@ def essay_work(request, cert_id):
     freq.sort(key=lambda f: (-f['count'], -f['last'].year, -(f['last'].round or 0)))
     top = max([f['count'] for f in freq] or [1])
     # 도면마다 색을 하나씩 준다 — 연도표에서 되나온 도면이 한눈에 보이게
-    palette = ['#f6d9a8', '#f4c7a1', '#cfe8c4', '#d9e6f5', '#f9e79f', '#c9e4de', '#e8d5f0',
-               '#fbd3d3', '#d5e8d4', '#fde2b8', '#cde3f7', '#e2e8c0', '#f3d1e3', '#d8d8f2',
-               '#c8ecd9', '#f0e0c8', '#dcecf5', '#ecd9c6', '#e4f1d2', '#f5e6a8']
+    # 도면마다 뚜렷이 다른 색. 되나온 도면(2회 이상)만 색을 주고, 한 번만 나온 도면은
+    # 회색으로 둔다 — 스무 가지 색이 한꺼번에 깔리면 오히려 같은 도면이 안 보인다.
+    palette = ['#e63946', '#e07a2f', '#2a9d8f', '#457b9d', '#c99a0e', '#8e44ad', '#43aa8b',
+               '#d62d8a', '#1d7fe0', '#9c6644', '#6a994e', '#ff7b00', '#3d405b', '#b5179e',
+               '#0096c7', '#bc4749']
     for i, f in enumerate(freq):
         f['pct'] = round(f['count'] / top * 100)
-        f['color'] = palette[i % len(palette)]
+        f['color'] = palette[i % len(palette)] if f['count'] > 1 else '#9aa5a0'
+        f['key'] = f'{f["title"]}{f["code"]}'
         for t in f['rounds']:
             t.color = f['color']
             t.times = f['count']
+            t.key = f['key']
+
+    # 연도마다 회차 자리를 고정한다(1·2·4회, 2020년처럼 3회가 있으면 1~4회) —
+    # 아직 치르지 않은 회차는 빈 칸으로 남긴다
+    for y in years:
+        have = {t.round: t for t in y['tasks']}
+        rounds = [1, 2, 3, 4] if 3 in have else [1, 2, 4]
+        y['slots'] = [{'round': r, 'task': have.get(r)} for r in rounds]
+        y['cols'] = len(rounds)
 
     notes = {n.slug: n for n in GisaEssayNote.objects.filter(
         certification=cert, slug__in=('work-basics', 'work-elements'))}
