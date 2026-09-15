@@ -148,6 +148,8 @@ def _md_table(block):
     out = ['<table style="%s">' % _TABLE_STYLE]
     out.append("<thead>")
     hspan = _spans(heads)
+    bspan = _spans(body)
+    merged = any(sp and sp != (1, 1) for g in (hspan, bspan) for row in g for sp in row)
     for r, row in enumerate(heads):
         out.append("<tr>")
         for i, h in enumerate(row):
@@ -155,12 +157,13 @@ def _md_table(block):
             if sp is None:
                 continue
             style = _align(_TH_STYLE, i, sp) + _th_nowrap(h)
-            if len(heads) > 1:          # 두 줄 머리글은 가운데로 모아야 층이 보인다
+            # 두 줄 머리글·병합 표는 머리글을 모두 가운데로 — 병합한 머리글만 가운데로
+            # 가고 나머지가 왼쪽에 붙으면 들쭉날쭉해 보인다(도시공원 설치·규모 표)
+            if len(heads) > 1 or merged:
                 style = style.replace("text-align:left", "text-align:center")
             out.append('<th style="%s"%s>%s</th>' % (style, _span_attr(sp), h))
         out.append("</tr>")
     out.append("</thead><tbody>")
-    bspan = _spans(body)
     for r, row in enumerate(body):
         out.append("<tr>")
         for i, cel in enumerate(row):
