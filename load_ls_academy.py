@@ -887,7 +887,7 @@ def _prism_svg(ends=False):
     """3회 11번 — 단면 A·B·C 와 양 끝이 한 점으로 모이는 성토체."""
     xs = [40, 130, 220, 310, 400]
     boxes = {'A': (130, 60, 70), 'B': (220, 52, 58), 'C': (310, 46, 48)}   # 가운데 x, 너비, 높이
-    base = 132
+    mid = 96          # 단면을 세로 가운데에 맞춰 위·아래 모서리선이 모두 기울어 보이게 한다
     p = [f'<svg viewBox="0 0 440 {190 if ends else 160}" width="440" height="{190 if ends else 160}" '
          f'style="max-width:100%;height:auto" xmlns="http://www.w3.org/2000/svg" {_FONT} font-size="12">',
          f'<rect width="440" height="{190 if ends else 160}" fill="#fff"/>',
@@ -898,22 +898,24 @@ def _prism_svg(ends=False):
         p.append(f'<text x="{(xs[i] + xs[i + 1]) / 2}" y="20" text-anchor="middle" fill="#222">50m</text>')
     corners = {}
     for name, (cx, w, h) in boxes.items():
-        x0, x1, y0, y1 = cx - w / 2, cx + w / 2, base - h, base
+        x0, x1, y0, y1 = cx - w / 2, cx + w / 2, mid - h / 2, mid + h / 2
         corners[name] = (x0, x1, y0, y1)
         p.append(f'<rect x="{x0}" y="{y0}" width="{w}" height="{h}" fill="none" stroke="#222" stroke-width="1.8"/>'
                  f'<line x1="{x0}" y1="{y0}" x2="{x1}" y2="{y1}" stroke="#222" stroke-width="1"/>'
                  f'<line x1="{x0}" y1="{y1}" x2="{x1}" y2="{y0}" stroke="#222" stroke-width="1"/>'
                  f'<text x="{x0 + 8}" y="{y1 - 10}" fill="#222" font-size="13" font-weight="700">{name}</text>')
     ln = 'stroke="#222" stroke-width="1.2"'
-    L, R = (40, 118), (400, 124)
+    L, R = (40, 96), (400, 96)
     a = corners['A']
     for x in (a[0], a[1]):
         for y in (a[2], a[3]):
             p.append(f'<line x1="{L[0]}" y1="{L[1]}" x2="{x}" y2="{y}" {ln}/>')
+    # 이웃한 단면의 **같은 모서리끼리** 잇는다(왼위↔왼위, 오른위↔오른위 …) — 입체의 모서리선이다
     for n1, n2 in (('A', 'B'), ('B', 'C')):
         c1, c2 = corners[n1], corners[n2]
-        p.append(f'<line x1="{c1[1]}" y1="{c1[2]}" x2="{c2[0]}" y2="{c2[2]}" {ln}/>'
-                 f'<line x1="{c1[1]}" y1="{c1[3]}" x2="{c2[0]}" y2="{c2[3]}" {ln}/>')
+        for xi in (0, 1):
+            for yi in (2, 3):
+                p.append(f'<line x1="{c1[xi]}" y1="{c1[yi]}" x2="{c2[xi]}" y2="{c2[yi]}" {ln}/>')
     c = corners['C']
     for x in (c[0], c[1]):
         for y in (c[2], c[3]):
