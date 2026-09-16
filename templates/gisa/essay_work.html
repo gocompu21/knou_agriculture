@@ -203,6 +203,20 @@
     .dw-sub.on { color: #fff; background: #2d6a4f; border-color: #2d6a4f; }
     .dw-pane { display: none; }
     .dw-pane.on { display: block; }
+    .dw-edit { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .dw-edit-btn { font-size: 0.78rem; font-weight: 800; color: #2d6a4f; background: #fff;
+                   border: 1px solid #cdd8d0; border-radius: 8px; padding: 4px 10px; cursor: pointer; }
+    .dw-edit-btn.save { color: #fff; background: #2d6a4f; border-color: #2d6a4f; }
+    .dw-edit-msg { font-size: 0.78rem; font-weight: 700; color: #b23; }
+    .dw-form { display: none; }
+    .dw-pane.editing .dw-form { display: block; }
+    .dw-pane.editing .dw-md, .dw-pane.editing .tk-imgs figcaption { display: none; }
+    .dw-form label { display: block; font-size: 0.78rem; font-weight: 800; color: #4a5a50; margin: 8px 0 3px; }
+    .dw-form input, .dw-form textarea { width: 100%; font: inherit; font-size: 0.86rem; color: #222;
+        border: 1px solid #cdd8d0; border-radius: 8px; padding: 7px 9px; background: #fff; }
+    .dw-form textarea { min-height: 420px; line-height: 1.55; font-family: ui-monospace, Menlo, Consolas, monospace;
+        font-size: 0.8rem; resize: vertical; }
+    .dw-caps { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px; }
     .dw-md h2 { border-left: 4px solid #2d6a4f; padding-left: 8px; }
     .dw-md ol { padding-left: 22px; }
     /* 단계 목록은 ① ② ③ 이 글머리라 점을 감춘다 */
@@ -357,13 +371,35 @@
                     </div>
                     {% endif %}
                     {% for t in d.tabs %}
-                    <div class="dw-pane{% if forloop.first %} on{% endif %}" data-pane="{{ forloop.counter0 }}">
+                    <div class="dw-pane{% if forloop.first %} on{% endif %}" data-pane="{{ forloop.counter0 }}" data-ref="{{ t.ref.pk }}">
+                        {% if request.user.is_staff %}
+                        <div class="dw-edit">
+                            <button type="button" class="dw-edit-btn" data-act="edit">✎ 수정</button>
+                            <button type="button" class="dw-edit-btn save" data-act="save" hidden>저장</button>
+                            <button type="button" class="dw-edit-btn" data-act="cancel" hidden>취소</button>
+                            <span class="dw-edit-msg"></span>
+                        </div>
+                        {% endif %}
                         {% if t.imgs %}
                         <div class="tk-imgs">
                             {% for im in t.imgs %}<figure><img src="{{ im.image.url }}" alt="{{ im.caption }}" loading="lazy"><figcaption>{{ im.caption }}</figcaption></figure>{% endfor %}
                         </div>
                         {% endif %}
                         {% if t.html %}<div class="note-md dw-md">{{ t.html|safe }}</div>{% endif %}
+                        {% if request.user.is_staff %}
+                        <div class="dw-form">
+                            <label>자료 이름 (탭 이름)</label>
+                            <input type="text" class="dw-src" value="{{ t.ref.source }}" placeholder="예: 사용자 A, 성운">
+                            {% if t.imgs %}
+                            <label>도면 설명</label>
+                            <div class="dw-caps">
+                                {% for im in t.imgs %}<input type="text" class="dw-cap" data-img="{{ im.pk }}" value="{{ im.caption }}">{% endfor %}
+                            </div>
+                            {% endif %}
+                            <label>자료 (마크다운 · 표와 ①②③ 그대로)</label>
+                            <textarea class="dw-src-md">{{ t.ref.content }}</textarea>
+                        </div>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
@@ -440,6 +476,63 @@ document.querySelectorAll('.dw-subs').forEach(bar => {
             p.classList.toggle('on', p.dataset.pane === b.dataset.sub));
     }));
 });
+/* 관리자 — 도면 자료를 그 자리에서 고친다 */
+document.querySelectorAll('.dw-pane .dw-edit').forEach(bar => {
+    const pane = bar.parentElement;
+    const btn = a => bar.querySelector(`[data-act="${a}"]`);
+    const msg = bar.querySelector('.dw-edit-msg');
+    const md = pane.querySelector('.dw-src-md'), src = pane.querySelector('.dw-src');
+    let keep = {};
+    const mode = on => {
+        pane.classList.toggle('editing', on);
+        btn('edit').hidden = on; btn('save').hidden = btn('cancel').hidden = !on;
+        msg.textContent = '';
+    };
+    bar.addEventListener('click', ev => ev.stopPropagation());
+    btn('edit').addEventListener('click', () => {
+        keep = {md: md.value, src: src.value,
+                caps: [...pane.querySelectorAll('.dw-cap')].map(c => c.value)};
+        mode(true);
+    });
+    btn('cancel').addEventListener('click', () => {
+        md.value = keep.md; src.value = keep.src;
+        pane.querySelectorAll('.dw-cap').forEach((c, i) => { c.value = keep.caps[i]; });
+        mode(false);
+    });
+    btn('save').addEventListener('click', async () => {
+        const captions = {};
+        pane.querySelectorAll('.dw-cap').forEach(c => { captions[c.dataset.img] = c.value; });
+        btn('save').disabled = true; msg.style.color = '#4a5a50'; msg.textContent = '저장 중…';
+        try {
+            const r = await fetch(`{% url 'gisa:drawing_ref_update' cert.pk 0 %}`.replace(/0\/$/, pane.dataset.ref + '/'), {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+                body: JSON.stringify({content: md.value, source: src.value, captions}),
+            });
+            const d = await r.json();
+            if (!d.ok) throw new Error(d.error || '저장하지 못했습니다.');
+            let box = pane.querySelector('.dw-md');
+            if (!box && d.html) {
+                box = document.createElement('div');
+                box.className = 'note-md dw-md';
+                pane.insertBefore(box, pane.querySelector('.dw-form'));
+            }
+            if (box) box.innerHTML = d.html;
+            pane.querySelectorAll('.dw-cap').forEach(c => {
+                const f = pane.querySelector(`.tk-imgs figure:nth-child(${[...pane.querySelectorAll('.dw-cap')].indexOf(c) + 1})`);
+                if (f) { f.querySelector('figcaption').textContent = c.value; f.querySelector('img').alt = c.value; }
+            });
+            const sub = pane.closest('.dw-body').querySelector(`.dw-sub[data-sub="${pane.dataset.pane}"]`);
+            if (sub) sub.childNodes[0].nodeValue = d.name + ' ';
+            mode(false);
+        } catch (e) {
+            msg.style.color = '#b23'; msg.textContent = e.message;
+        } finally {
+            btn('save').disabled = false;
+        }
+    });
+});
+
 /* 도면 보기 — 같은 묶음(도면 자료 한 벌)의 사진끼리 앞뒤로 넘긴다 */
 (function () {
     const z = document.getElementById('zoom'), im = document.getElementById('zvImg');

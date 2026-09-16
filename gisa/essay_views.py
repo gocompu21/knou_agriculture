@@ -818,6 +818,57 @@ def essay_work(request, cert_id):
 
 
 @login_required
+@require_POST
+def drawing_ref_update(request, cert_id, ref_id):
+    """기출 도면 자료(작도 팁·수량표)를 그 자리에서 고친다 (스태프 전용, AJAX).
+
+    자료가 hwp·수험서를 옮긴 것이라 오식이 화면에서야 드러난다. 그때마다
+    `_ls_drawing_refs/` 를 고쳐 다시 올리는 것은 느리므로 화면에서 바로 고친다.
+    (파일 쪽 자료는 그대로이므로, 로더를 다시 돌리면 파일 내용으로 되돌아간다.)
+
+    고친 자리만 다시 그려 돌려준다 — 새로 고치면 펼쳐 둔 도면 줄이 도로 접힌다.
+    """
+    import markdown as md
+
+    from .models import GisaDrawingRef
+
+    if not request.user.is_staff:
+        return JsonResponse({'ok': False, 'error': '권한이 없습니다.'}, status=403)
+
+    ref = get_object_or_404(GisaDrawingRef, pk=ref_id, certification_id=cert_id)
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({'ok': False, 'error': '본문을 읽지 못했습니다.'}, status=400)
+
+    if 'content' in data:
+        content = str(data['content']).strip()
+        if len(content) > 40000:
+            return JsonResponse({'ok': False, 'error': '자료가 너무 깁니다.'}, status=400)
+        ref.content = content
+    if 'source' in data:
+        source = str(data['source']).strip()[:40]
+        # 같은 도면에 같은 이름의 자료가 둘이면 고유 키에 걸린다
+        if GisaDrawingRef.objects.filter(certification_id=cert_id, code=ref.code,
+                                         title=ref.title, source=source).exclude(pk=ref.pk).exists():
+            return JsonResponse({'ok': False, 'error': '같은 이름의 자료가 이미 있습니다.'}, status=400)
+        ref.source = source
+    ref.save()
+
+    for im in ref.images.all():               # 도면 사진 설명
+        cap = data.get('captions', {}).get(str(im.pk))
+        if cap is not None and str(cap).strip()[:100] != im.caption:
+            im.caption = str(cap).strip()[:100]
+            im.save(update_fields=['caption'])
+
+    return JsonResponse({
+        'ok': True,
+        'name': ref.source or '자료',
+        'html': md.markdown(ref.content, extensions=['tables']) if ref.content else '',
+    })
+
+
+@login_required
 def essay_overview(request, cert_id):
     """시험 개요 — 검정방법·배점·합격기준과 출제기준 주요항목.
 
