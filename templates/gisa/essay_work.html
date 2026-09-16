@@ -196,6 +196,13 @@
     .dw-body { display: none; padding: 10px 16px 16px; border-top: 1px solid #e3e9e4; }
     .dw.open .dw-body { display: block; }
     .dw-body .tk-imgs { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); margin-bottom: 12px; }
+    .dw-subs { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 12px; }
+    .dw-sub { font-size: 0.82rem; font-weight: 800; color: #2d6a4f; background: #eef4f0;
+              border: 1px solid #cdd8d0; border-radius: 999px; padding: 5px 14px; cursor: pointer; }
+    .dw-sub em { font-style: normal; font-weight: 700; opacity: .7; }
+    .dw-sub.on { color: #fff; background: #2d6a4f; border-color: #2d6a4f; }
+    .dw-pane { display: none; }
+    .dw-pane.on { display: block; }
     .dw-md h2 { border-left: 4px solid #2d6a4f; padding-left: 8px; }
     .dw-md ol { padding-left: 22px; }
     /* 단계 목록은 ① ② ③ 이 글머리라 점을 감춘다 */
@@ -340,16 +347,25 @@
                     <span class="dw-name" style="--c:{{ d.color }}">{{ d.title }}{% if d.code %} {{ d.code }}{% endif %}</span>
                     <span class="dw-rounds">{% for t in d.rounds %}<span>{{ t.year|stringformat:"d"|slice:"2:" }}-{{ t.round }}</span>{% endfor %}</span>
                     <span class="dw-meta">{% if d.count %}{{ d.count }}회{% if d.avg is not None %} · 평균 {{ d.avg }}%{% endif %}{% endif %}</span>
-                    {% if d.ref %}<span class="dw-tag">자료{% if d.ref.images.all %} · 도면 {{ d.ref.images.all|length }}장{% endif %}</span><span class="dw-arrow">›</span>{% else %}<span class="dw-none">준비 중</span>{% endif %}
+                    {% if d.ref %}<span class="dw-tag">자료{% if d.tabs|length > 1 %} {{ d.tabs|length }}벌{% endif %}</span><span class="dw-arrow">›</span>{% else %}<span class="dw-none">준비 중</span>{% endif %}
                 </div>
                 {% if d.ref %}
                 <div class="dw-body">
-                    {% if d.ref.images.all %}
-                    <div class="tk-imgs">
-                        {% for im in d.ref.images.all %}<figure><img src="{{ im.image.url }}" alt="{{ im.caption }}" loading="lazy"><figcaption>{{ im.caption }}</figcaption></figure>{% endfor %}
+                    {% if d.tabs|length > 1 %}
+                    <div class="dw-subs">
+                        {% for t in d.tabs %}<button type="button" class="dw-sub{% if forloop.first %} on{% endif %}" data-sub="{{ forloop.counter0 }}">{{ t.name }}{% if t.imgs %} <em>도면 {{ t.imgs|length }}장</em>{% endif %}</button>{% endfor %}
                     </div>
                     {% endif %}
-                    {% if d.html %}<div class="note-md dw-md">{{ d.html|safe }}</div>{% endif %}
+                    {% for t in d.tabs %}
+                    <div class="dw-pane{% if forloop.first %} on{% endif %}" data-pane="{{ forloop.counter0 }}">
+                        {% if t.imgs %}
+                        <div class="tk-imgs">
+                            {% for im in t.imgs %}<figure><img src="{{ im.image.url }}" alt="{{ im.caption }}" loading="lazy"><figcaption>{{ im.caption }}</figcaption></figure>{% endfor %}
+                        </div>
+                        {% endif %}
+                        {% if t.html %}<div class="note-md dw-md">{{ t.html|safe }}</div>{% endif %}
+                    </div>
+                    {% endfor %}
                 </div>
                 {% endif %}
             </div>
@@ -414,6 +430,16 @@ tasksTab.querySelectorAll('.yc[data-key]').forEach(c => c.addEventListener('clic
 document.getElementById('pickClear').addEventListener('click', () => pick(picked, ''));
 document.querySelectorAll('.dw.has .dw-head').forEach(h =>
     h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
+/* 한 도면에 자료가 여러 벌이면 탭으로 나눠 본다 */
+document.querySelectorAll('.dw-subs').forEach(bar => {
+    const body = bar.parentElement;
+    bar.querySelectorAll('.dw-sub').forEach(b => b.addEventListener('click', ev => {
+        ev.stopPropagation();
+        bar.querySelectorAll('.dw-sub').forEach(o => o.classList.toggle('on', o === b));
+        body.querySelectorAll('.dw-pane').forEach(p =>
+            p.classList.toggle('on', p.dataset.pane === b.dataset.sub));
+    }));
+});
 /* 도면 보기 — 같은 묶음(도면 자료 한 벌)의 사진끼리 앞뒤로 넘긴다 */
 (function () {
     const z = document.getElementById('zoom'), im = document.getElementById('zvImg');

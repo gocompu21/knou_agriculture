@@ -779,7 +779,8 @@ class PestQuizAttempt(models.Model):
 
 def _drawing_ref_img_path(instance, filename):
     r = instance.ref
-    return f'gisa/drawing_ref/c{r.certification_id}/{r.code or r.pk}/{filename}'
+    # 한 도면에 자료가 여러 벌이면 파일 이름이 겹치므로 자료(ref)마다 칸을 나눈다
+    return f'gisa/drawing_ref/c{r.certification_id}/{r.code or r.pk}/{r.pk}/{filename}'
 
 
 class GisaDrawingRef(models.Model):
@@ -794,13 +795,17 @@ class GisaDrawingRef(models.Model):
         related_name='drawing_refs', verbose_name='자격증')
     code = models.CharField('도면 번호', max_length=10, blank=True)
     title = models.CharField('도면명', max_length=100)
+    source = models.CharField('자료 이름', max_length=40, blank=True,
+                              help_text='한 도면에 자료가 여러 벌이면 탭 이름이 된다 (예: 사용자 A, 성운)')
+    order = models.PositiveSmallIntegerField('탭 순서', default=0)
     content = models.TextField('자료(마크다운)', blank=True)
     updated_at = models.DateTimeField('수정일', auto_now=True)
 
     class Meta:
         verbose_name = '기출 도면 자료'
         verbose_name_plural = '기출 도면 자료'
-        unique_together = ['certification', 'code', 'title']
+        ordering = ['order', 'id']
+        unique_together = ['certification', 'code', 'title', 'source']
 
     def __str__(self):
         return f"[{self.certification.name}] {self.title} {self.code}"

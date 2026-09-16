@@ -1,5 +1,7 @@
 {
   "title": "주차장 설계",
+  "source": "사용자 A",
+  "order": 1,
   "captions": {
     "1_concept.jpg": "답안지 I · 설계구상도 (1/400)",
     "2_plan.jpg": "답안지 II · 시설물배치도 (도면부 확대)",

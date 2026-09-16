@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """조경기사 작업형 — 기출 도면별 자료(작도 팁·수량표·완성 도면 사진)를 넣는다.
 
-자료는 `_ls_drawing_refs/<도면 번호>/` 에 도면마다 한 폴더씩 둔다.
-  meta.json    {"title": 도면명(출제 목록과 같은 이름), "captions": {파일: 설명}}
+자료는 `_ls_drawing_refs/<도면 번호>/` 에 도면마다 한 폴더씩 둔다. 한 도면에 자료가 여러 벌이면
+폴더 이름을 `<도면 번호>_<자료 이름>` 으로 하나씩 더 둔다 — 화면에서 탭으로 갈라 보인다.
+  meta.json    {"title": 도면명(출제 목록과 같은 이름), "source": 탭 이름, "order": 탭 차례,
+                "captions": {파일: 설명}}
   content.md   작도 팁(마크다운). 큰 단계는 (1)(2)…, 그 아래 단계는 ①②… 로 적는다
   *.jpg        완성 도면 사진 — 파일 이름 차례대로. 집게·배경을 잘라 도면지만 남긴다
 
@@ -37,20 +39,23 @@ def main():
     apply_ = '--apply' in sys.argv
     only = [a for a in sys.argv[1:] if a.isdigit()]
     cert = Certification.objects.get(name='조경기사')
-    for code in sorted(os.listdir(SRC)):
-        folder = os.path.join(SRC, code)
+    for name in sorted(os.listdir(SRC)):
+        folder = os.path.join(SRC, name)
+        code = name.split('_', 1)[0]          # 444_성운 → 도면 번호 444, 자료는 meta 의 source
         if not os.path.isdir(folder) or (only and code not in only):
             continue
         meta = json.load(io.open(os.path.join(folder, 'meta.json'), encoding='utf-8'))
         content = io.open(os.path.join(folder, 'content.md'), encoding='utf-8').read()
         images = sorted(f for f in os.listdir(folder) if f.lower().endswith(('.jpg', '.png')))
         missing = [f for f in images if f not in meta.get('captions', {})]
-        print(f"{meta['title']} {code}: 자료 {len(content):,}자 · 그림 {len(images)}장"
+        src = meta.get('source', '')
+        print(f"{meta['title']} {code}{' · ' + src if src else ''}: 자료 {len(content):,}자 · 그림 {len(images)}장"
               + (f" · 설명 없음 {missing}" if missing else ''))
         if not apply_:
             continue
         ref, _ = GisaDrawingRef.objects.update_or_create(
-            certification=cert, code=code, title=meta['title'], defaults={'content': content})
+            certification=cert, code=code, title=meta['title'], source=src,
+            defaults={'content': content, 'order': meta.get('order', 0)})
         for im in ref.images.all():
             im.image.delete(save=False)
             im.delete()

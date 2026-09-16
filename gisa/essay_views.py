@@ -774,17 +774,23 @@ def essay_work(request, cert_id):
 
     # 기출 도면별 자료 — 출제 빈도 차례(자주 나온 도면부터)로, 도면 번호(없으면 이름)로 잇는다
     from .models import GisaDrawingRef
-    refs = {(r.code or r.title): r for r in GisaDrawingRef.objects.filter(certification=cert)
-            .prefetch_related('images')}
+    refs = {}                                 # 한 도면에 자료가 여러 벌이면 탭으로 나눠 보인다
+    for r in GisaDrawingRef.objects.filter(certification=cert).prefetch_related('images'):
+        refs.setdefault(r.code or r.title, []).append(r)
+
+    def _sheet(rs):
+        return [{'ref': r, 'name': r.source or '자료', 'imgs': list(r.images.all()),
+                 'html': md.markdown(r.content, extensions=['tables']) if r.content else ''}
+                for r in rs]
+
     sheets = []
     for f in freq:
-        ref = refs.pop(f['code'] or f['title'], None)
-        sheets.append({**f, 'ref': ref,
-                       'html': md.markdown(ref.content, extensions=['tables']) if ref and ref.content else ''})
-    for ref in refs.values():                 # 아직 출제 목록에 없는 도면의 자료
-        sheets.append({'title': ref.title, 'code': ref.code, 'count': 0, 'rounds': [], 'avg': None,
-                       'color': '#d9d9d9', 'key': f'{ref.title}{ref.code}', 'ref': ref,
-                       'html': md.markdown(ref.content, extensions=['tables']) if ref.content else ''})
+        rs = refs.pop(f['code'] or f['title'], [])
+        sheets.append({**f, 'ref': rs[0] if rs else None, 'tabs': _sheet(rs)})
+    for rs in refs.values():                  # 아직 출제 목록에 없는 도면의 자료
+        sheets.append({'title': rs[0].title, 'code': rs[0].code, 'count': 0, 'rounds': [], 'avg': None,
+                       'color': '#d9d9d9', 'key': f'{rs[0].title}{rs[0].code}',
+                       'ref': rs[0], 'tabs': _sheet(rs)})
 
     notes = {n.slug: n for n in GisaEssayNote.objects.filter(
         certification=cert, slug__in=('work-basics', 'work-elements'))}
