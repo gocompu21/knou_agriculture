@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}채점관리{% endblock %}
+
+{% block extra_css %}
+<style>
+    .manage-wrap { width: min(1120px, 92vw); margin: 0 auto; padding-bottom: 40px; }
+    .manage-nav {
+        display: flex; gap: 8px; flex-wrap: wrap;
+        padding: 14px 0; margin-bottom: 18px;
+        border-bottom: 1px solid #e5e9e6;
+    }
+    .manage-nav a {
+        text-decoration: none; padding: 8px 16px;
+        border-radius: 8px; font-size: 0.85rem; font-weight: 700;
+        transition: background 0.2s;
+    }
+    .manage-nav .active { background: var(--forest); color: #fff; }
+    .manage-nav a:not(.active) { background: #e8f5df; color: var(--forest); }
+    .manage-nav a:not(.active):hover { background: #d4ebc8; }
+
+    .manage-header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .manage-header h1 { font-size: 1.5rem; color: var(--forest); margin: 0; }
+    .manage-header small { font-size: 0.86rem; color: #667; }
+
+    .filter-bar {
+        background: #f7faf7; border-radius: 10px; padding: 12px 16px;
+        display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .filter-bar label { font-size: 0.82rem; font-weight: 700; color: #555; }
+    .filter-bar select, .filter-bar input[type=text] {
+        padding: 7px 10px; border: 1px solid #d1ddd4; border-radius: 7px;
+        font-size: 0.86rem; font-family: "SUIT", sans-serif; background: #fff;
+    }
+    .filter-bar input[type=text] { width: 160px; }
+    .filter-bar button, .filter-bar .reset {
+        padding: 7px 14px; border-radius: 7px; font-size: 0.84rem; font-weight: 700;
+        border: none; cursor: pointer; text-decoration: none; font-family: "SUIT", sans-serif;
+    }
+    .filter-bar button { background: var(--forest); color: #fff; }
+    .filter-bar .reset { background: #eceee9; color: #555; }
+
+    .table-box { overflow-x: auto; background: #fff; border-radius: 14px;
+                 box-shadow: 0 4px 16px rgba(30, 70, 42, 0.08); }
+    .grade-table { width: 100%; min-width: 760px; border-collapse: collapse; }
+    .grade-table thead { background: var(--forest); color: #fff; }
+    .grade-table th, .grade-table td {
+        padding: 10px 12px; text-align: left; font-size: 0.86rem;
+        border-bottom: 1px solid #eee; white-space: nowrap;
+    }
+    .grade-table th.c, .grade-table td.c { text-align: center; }
+    .grade-table th.r, .grade-table td.r { text-align: right; }
+    .grade-table tbody tr { cursor: pointer; }
+    .grade-table tbody tr:hover { background: #f5faf5; }
+    .who b { color: #222; }
+    .who span { color: #889; font-size: 0.78rem; margin-left: 4px; }
+    .cert { font-size: 0.78rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+            background: #eef4f0; color: #2d6a4f; }
+    .mode { font-size: 0.78rem; color: #556; }
+    .score b { font-size: 0.98rem; }
+    .score span { color: #889; font-size: 0.78rem; }
+    .pct { font-weight: 800; }
+    .pct.hi { color: #1b5e20; }
+    .pct.mid { color: #b26a00; }
+    .pct.lo { color: #c62828; }
+    .partial { font-size: 0.74rem; color: #c62828; margin-left: 4px; }
+    .open-link { font-size: 0.8rem; font-weight: 700; color: var(--forest); text-decoration: none;
+                 padding: 4px 10px; border: 1px solid #cfe0d4; border-radius: 7px; }
+    .empty { padding: 32px; text-align: center; color: #888; font-size: 0.9rem; }
+
+    .pager { display: flex; justify-content: center; gap: 6px; margin-top: 16px; flex-wrap: wrap; }
+    .pager a, .pager span { padding: 6px 12px; border-radius: 7px; font-size: 0.84rem; text-decoration: none; }
+    .pager a { background: #e8f5df; color: var(--forest); font-weight: 700; }
+    .pager span { color: #667; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="manage-wrap">
+    <nav class="manage-nav">
+        <a href="{% url 'main:subject_manage' %}">교과목 관리</a>
+        <a href="{% url 'exam:exam_manage' %}">시험 관리</a>
+        <a href="{% url 'exam:question_manage' %}">문제 관리</a>
+        <a href="{% url 'main:member_manage' %}">회원 관리</a>
+        <a href="{% url 'main:usage_stats' %}">사용현황</a>
+        <a href="{% url 'main:restore_stats' %}">복원통계</a>
+        <a href="{% url 'gisa:gisa_question_manage' %}">기사문제</a>
+        <a href="{% url 'gisa:essay_grading_manage' %}" class="active">채점관리</a>
+        <a href="{% url 'main:material_manage' %}">자료 등록</a>
+    </nav>
+
+    <div class="manage-header">
+        <h1>채점관리</h1>
+        <small>실기 필답형 채점 완료 {{ total }}건{% if not cert and not user_q and not mode %} · {{ people }}명{% endif %} · 줄을 누르면 채점 결과가 열립니다</small>
+    </div>
+
+    <form class="filter-bar" method="get">
+        <label for="f-cert">자격증</label>
+        <select id="f-cert" name="cert" onchange="this.form.submit()">
+            <option value="">전체</option>
+            {% for c in certs %}<option value="{{ c.pk }}"{% if cert == c.pk|stringformat:"d" %} selected{% endif %}>{{ c.name }} ({{ c.n }})</option>{% endfor %}
+        </select>
+        <label for="f-mode">방식</label>
+        <select id="f-mode" name="mode" onchange="this.form.submit()">
+            <option value="">전체</option>
+            {% for v, n in modes %}<option value="{{ v }}"{% if mode == v %} selected{% endif %}>{{ n }}</option>{% endfor %}
+        </select>
+        <label for="f-q">응시자</label>
+        <input id="f-q" type="text" name="q" value="{{ user_q }}" placeholder="이름 · 아이디">
+        <button type="submit">찾기</button>
+        {% if cert or user_q or mode %}<a class="reset" href="{% url 'gisa:essay_grading_manage' %}">초기화</a>{% endif %}
+    </form>
+
+    <div class="table-box">
+    {% if rows %}
+        <table class="grade-table">
+            <thead>
+                <tr>
+                    <th>제출</th>
+                    <th>응시자</th>
+                    <th>자격증</th>
+                    <th>시험</th>
+                    <th>방식</th>
+                    <th class="c">답안</th>
+                    <th class="r">점수</th>
+                    <th class="c">비율</th>
+                    <th class="c">결과</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for s in rows %}
+                {% url 'gisa:essay_result' s.certification_id s.pk as result_url %}
+                <tr onclick="location.href='{{ result_url }}'">
+                    <td>{{ s.submitted_at|default:s.started_at|date:"y.m.d H:i" }}</td>
+                    <td class="who"><b>{% if s.user.last_name or s.user.first_name %}{{ s.user.last_name }}{{ s.user.first_name }}{% else %}{{ s.user.username }}{% endif %}</b><span>{{ s.user.username }}</span></td>
+                    <td><span class="cert">{{ s.certification.name }}</span></td>
+                    <td>{{ s.label }}</td>
+                    <td class="mode">{{ s.get_mode_display }}</td>
+                    <td class="c">{{ s.n_wrote }}/{{ s.n_q }}{% if s.n_blank %}<span class="partial">빈칸 {{ s.n_blank }}</span>{% endif %}</td>
+                    <td class="r score"><b>{{ s.score|floatformat:"-1" }}</b> <span>/ {{ s.total_points }}</span></td>
+                    <td class="c"><span class="pct {% if s.percent >= 60 %}hi{% elif s.percent >= 40 %}mid{% else %}lo{% endif %}">{{ s.percent|floatformat:"0" }}%</span></td>
+                    <td class="c"><a class="open-link" href="{{ result_url }}" onclick="event.stopPropagation()">보기</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty">{% if cert or user_q or mode %}조건에 맞는 채점 결과가 없습니다.{% else %}아직 채점을 마친 실기 답안이 없습니다.{% endif %}</div>
+    {% endif %}
+    </div>
+
+    {% if pages > 1 %}
+    <div class="pager">
+        {% if page > 1 %}<a href="?{% if keep %}{{ keep }}&{% endif %}page={{ page|add:"-1" }}">‹ 이전</a>{% endif %}
+        <span>{{ page }} / {{ pages }}</span>
+        {% if page < pages %}<a href="?{% if keep %}{{ keep }}&{% endif %}page={{ page|add:"1" }}">다음 ›</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

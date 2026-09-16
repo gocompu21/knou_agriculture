@@ -50,6 +50,7 @@ urlpatterns = [
     path("<int:cert_id>/session/delete-all/", views.session_delete_all, name="session_delete_all"),
     # 기사문제 관리
     path("manage/", views.gisa_question_manage, name="gisa_question_manage"),
+    path("manage/grading/", essay_views.essay_grading_manage, name="essay_grading_manage"),
     path("manage/api/nouns/", views.manage_nouns, name="manage_nouns"),
     path("manage/api/search/", views.manage_search, name="manage_search"),
     path("manage/api/register/", views.manage_register, name="manage_register"),

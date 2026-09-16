@@ -1084,8 +1084,7 @@ def essay_study(request, cert_id):
 @login_required
 def essay_result(request, cert_id, session_id):
     cert = get_object_or_404(Certification, pk=cert_id)
-    session = get_object_or_404(GisaEssaySession, pk=session_id,
-                                user=request.user, certification=cert)
+    session = _result_session(request, session_id, cert_id)
     attempts = list(session.attempts.select_related('question').order_by('question__number'))
 
     # 주제별 득점률 — 어느 주제가 약한지 파악용
@@ -1129,15 +1128,24 @@ def essay_result(request, cert_id, session_id):
         # 시험지 사진을 곧게 펴 판독한 세션이면 '내 시험지 첨삭'을 보여 준다
         'has_sheet': session.mode == 'paper' and session.uploads.filter(
             transcribed=True).exclude(flat_image='').exists(),
+        # 관리자가 채점관리에서 남의 결과를 여는 경우 — 점수 조정은 막고 응시자를 밝힌다
+        'admin_view': session.user_id != request.user.id,
     })
+
+
+def _result_session(request, session_id, cert_id):
+    """결과·첨삭 화면의 세션. 본인 것이거나, 관리자면 누구 것이든 연다(채점관리)."""
+    q = Q(pk=session_id, certification_id=cert_id)
+    if not request.user.is_staff:
+        q &= Q(user=request.user)
+    return get_object_or_404(GisaEssaySession.objects.select_related('user'), q)
 
 
 @login_required
 def essay_overlay(request, cert_id, session_id):
     """편 시험지 사진 위에 그릴 첨삭 자리(JSON) — 결과 화면이 SVG 로 그린다."""
     from .essay_overlay import build_overlay
-    session = get_object_or_404(GisaEssaySession, pk=session_id,
-                                user=request.user, certification_id=cert_id)
+    session = _result_session(request, session_id, cert_id)
     return JsonResponse({'ok': True, 'pages': build_overlay(session)})
 
 
@@ -1635,3 +1643,60 @@ def essay_question_update(request, cert_id, question_id):
 def _essay_answer_html(q):
     from django.template.loader import render_to_string
     return render_to_string('gisa/_essay_answer.html', {'q': q})
+
+
+# ------------------------------------------------------------------ 관리 · 채점관리
+
+GRADING_PAGE = 30
+
+
+@login_required
+def essay_grading_manage(request):
+    """채점관리 — 채점을 마친 실기 필답형 세션 목록 (스태프 전용).
+
+    관리 메뉴의 한 탭이다. 줄을 누르면 응시자의 채점 결과 화면(essay_result)을
+    그대로 연다 — 관리자는 남의 세션도 열 수 있고, 점수 조정만 막힌다.
+    """
+    if not request.user.is_staff:
+        return redirect('main:index')
+
+    base = GisaEssaySession.objects.filter(status='done')
+    qs = base.select_related('user', 'certification').annotate(
+        n_q=Count('attempts'),
+        n_wrote=Count('attempts', filter=~Q(attempts__answer_text='')),
+    ).order_by('-submitted_at', '-started_at')
+
+    cert = request.GET.get('cert', '')
+    if cert.isdigit():
+        qs = qs.filter(certification_id=int(cert))
+    user_q = request.GET.get('q', '').strip()
+    if user_q:
+        qs = qs.filter(Q(user__username__icontains=user_q) | Q(user__first_name__icontains=user_q)
+                       | Q(user__last_name__icontains=user_q))
+    mode = request.GET.get('mode', '')
+    if mode in dict(GisaEssaySession.MODE_CHOICES):
+        qs = qs.filter(mode=mode)
+
+    try:
+        page = max(1, int(request.GET.get('page', 1)))
+    except ValueError:
+        page = 1
+    total = qs.count()
+    pages = max(1, (total + GRADING_PAGE - 1) // GRADING_PAGE)
+    page = min(page, pages)
+    rows = list(qs[(page - 1) * GRADING_PAGE: page * GRADING_PAGE])
+    for r in rows:                            # 답을 안 쓴 문항은 0점 — 점수가 낮은 까닭이 여기 있다
+        r.n_blank = r.n_q - r.n_wrote
+
+    certs = (Certification.objects.filter(pk__in=base.values('certification_id'))
+             .annotate(n=Count('gisaessaysession', filter=Q(gisaessaysession__status='done')))
+             .order_by('name'))
+    keep = request.GET.copy()
+    keep.pop('page', None)
+    return render(request, 'gisa/essay_grading_manage.html', {
+        'rows': rows, 'total': total, 'page': page, 'pages': pages,
+        'certs': certs, 'cert': cert, 'user_q': user_q, 'mode': mode,
+        'modes': GisaEssaySession.MODE_CHOICES,
+        'people': base.values('user').distinct().count(),
+        'keep': keep.urlencode(),
+    })
