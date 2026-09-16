@@ -216,6 +216,12 @@
         border: 1px solid #cdd8d0; border-radius: 8px; padding: 7px 9px; background: #fff; }
     .dw-form textarea { min-height: 420px; line-height: 1.55; font-family: ui-monospace, Menlo, Consolas, monospace;
         font-size: 0.8rem; resize: vertical; }
+    .dw-ed:empty { display: none; }
+    .dw-form .toastui-editor-defaultUI { border-color: #cdd8d0; border-radius: 8px; }
+    .dw-form .toastui-editor-contents { font-size: 0.88rem; }
+    .dw-form .toastui-editor-contents h2 { font-size: 1.05rem; color: #1b4332; }
+    .dw-form .toastui-editor-contents h3 { font-size: 0.96rem; color: #1b4332; }
+    .dw-hint { font-size: 0.76rem; color: #6b7a70; margin: 3px 0 0; line-height: 1.6; }
     .dw-caps { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px; }
     .dw-md h2 { border-left: 4px solid #2d6a4f; padding-left: 8px; }
     .dw-md ol { padding-left: 22px; }
@@ -232,6 +238,10 @@
     .note-md img { max-width: 100%; }
     @media (max-width: 600px) { .tk-meta { margin-left: 0; flex-basis: 100%; } }
 </style>
+{% endblock %}
+
+{% block extra_css_links %}
+{% if request.user.is_staff %}<link rel="stylesheet" href="https://uicdn.toast.com/editor/3.2.2/toastui-editor.min.css">{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -396,8 +406,12 @@
                                 {% for im in t.imgs %}<input type="text" class="dw-cap" data-img="{{ im.pk }}" value="{{ im.caption }}">{% endfor %}
                             </div>
                             {% endif %}
-                            <label>자료 (마크다운 · 표와 ①②③ 그대로)</label>
+                            <label>자료</label>
+                            <div class="dw-ed"></div>
                             <textarea class="dw-src-md">{{ t.ref.content }}</textarea>
+                            <p class="dw-hint">보이는 대로 고칩니다. 아래 <b>Markdown</b> 탭을 누르면 원문도 볼 수 있습니다.
+                               그림·기호(SVG)는 편집기가 망가뜨리므로 <b>⟦그림 1⟧ ⟦기호 1⟧</b> 표식으로 자리만 잡아 두고,
+                               저장할 때 그 자리에 도로 넣습니다 — 표식을 지우면 그림도 사라집니다.</p>
                         </div>
                         {% endif %}
                     </div>
@@ -430,6 +444,10 @@
     <div class="zv-hint">휠·두 번 누르기로 확대 · 끌어서 이동 · Esc 닫기</div>
 </div>
 
+{% if request.user.is_staff %}
+<!-- npm(jsdelivr) 배포판의 toastui-editor.js 는 prosemirror 를 외부 의존으로 두어 단독 로드 시 깨진다. 의존성이 모두 든 -all 번들은 Toast UI 자체 CDN 에만 있다 -->
+<script src="https://uicdn.toast.com/editor/3.2.2/toastui-editor-all.min.js"></script>
+{% endif %}
 <script>
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -482,7 +500,34 @@ document.querySelectorAll('.dw-pane .dw-edit').forEach(bar => {
     const btn = a => bar.querySelector(`[data-act="${a}"]`);
     const msg = bar.querySelector('.dw-edit-msg');
     const md = pane.querySelector('.dw-src-md'), src = pane.querySelector('.dw-src');
-    let keep = {};
+    const edBox = pane.querySelector('.dw-ed');
+    let keep = {}, ed = null, figs = [], syms = [];
+
+    /* WYSIWYG 은 raw SVG 를 지우거나 망가뜨린다. 편집기에 넣기 전에 ⟦그림 N⟧·⟦기호 N⟧
+       표식으로 바꿔 두었다가 저장할 때 그 자리에 도로 넣는다 */
+    const SVG_FIG = /<div style="overflow-x:auto[^>]*>\s*<svg[\s\S]*?<\/svg>\s*<\/div>/g;
+    const SVG_SYM = /<svg[\s\S]*?<\/svg>/g;
+    const SVG_TOK = /⟦(그림|기호) ?(\d+)[^⟧]*⟧/g;
+    /* Toast UI 는 ~ 처럼 파이썬 마크다운이 모르는 글자 앞에도 역슬래시를 붙인다.
+       그대로 두면 화면에 역슬래시가 그대로 보이므로 아는 것만 남긴다 */
+    const MD_ESC = '!#()*+-.>[]_`{}|' + String.fromCharCode(92);
+    const protect = text => {
+        figs = []; syms = [];
+        const put = (arr, kind) => m => {
+            const lab = (m.match(/aria-label="([^"]*)"/) || [])[1];
+            arr.push(m);
+            return '⟦' + kind + ' ' + arr.length + (lab ? ' · ' + lab : '') + '⟧';
+        };
+        return text.replace(SVG_FIG, put(figs, '그림')).replace(SVG_SYM, put(syms, '기호'));
+    };
+    const restore = text => text
+        .replace(/\\(\S)/g, (m, c) => MD_ESC.indexOf(c) >= 0 ? m : c)
+        .replace(SVG_TOK, (m, kind, n) => {
+            const v = (kind === '그림' ? figs : syms)[+n - 1];
+            return v === undefined ? m : v;
+        });
+    const curMd = () => ed ? restore(ed.getMarkdown()) : md.value;
+
     const mode = on => {
         pane.classList.toggle('editing', on);
         btn('edit').hidden = on; btn('save').hidden = btn('cancel').hidden = !on;
@@ -492,10 +537,27 @@ document.querySelectorAll('.dw-pane .dw-edit').forEach(bar => {
     btn('edit').addEventListener('click', () => {
         keep = {md: md.value, src: src.value,
                 caps: [...pane.querySelectorAll('.dw-cap')].map(c => c.value)};
-        mode(true);
+        mode(true);                       // 편집기는 보이는 자리에서 만들어야 높이가 잡힌다
+        if (ed) {
+            ed.setMarkdown(protect(md.value), false);
+        } else if (window.toastui && toastui.Editor) {
+            md.hidden = true;             // 편집기를 못 불러왔으면 마크다운 원문으로 고친다
+            ed = new toastui.Editor({
+                el: edBox, height: '620px', initialEditType: 'wysiwyg',
+                initialValue: protect(md.value), language: 'ko-KR', usageStatistics: false,
+                toolbarItems: [
+                    ['heading', 'bold', 'italic', 'strike'],
+                    ['hr', 'quote'],
+                    ['ul', 'ol', 'indent', 'outdent'],
+                    ['table', 'link'],
+                    ['code', 'codeblock'],
+                ],
+            });
+        }
     });
     btn('cancel').addEventListener('click', () => {
         md.value = keep.md; src.value = keep.src;
+        if (ed) ed.setMarkdown(protect(keep.md), false);
         pane.querySelectorAll('.dw-cap').forEach((c, i) => { c.value = keep.caps[i]; });
         mode(false);
     });
@@ -503,14 +565,16 @@ document.querySelectorAll('.dw-pane .dw-edit').forEach(bar => {
         const captions = {};
         pane.querySelectorAll('.dw-cap').forEach(c => { captions[c.dataset.img] = c.value; });
         btn('save').disabled = true; msg.style.color = '#4a5a50'; msg.textContent = '저장 중…';
+        const raw = curMd();              // WYSIWYG 이면 표식을 SVG 로 되돌린 마크다운
         try {
             const r = await fetch(`{% url 'gisa:drawing_ref_update' cert.pk 0 %}`.replace(/0\/$/, pane.dataset.ref + '/'), {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
-                body: JSON.stringify({content: md.value, source: src.value, captions}),
+                body: JSON.stringify({content: raw, source: src.value, captions}),
             });
             const d = await r.json();
             if (!d.ok) throw new Error(d.error || '저장하지 못했습니다.');
+            md.value = raw;               // 다음에 다시 열 때 저장한 것으로 연다
             let box = pane.querySelector('.dw-md');
             if (!box && d.html) {
                 box = document.createElement('div');
