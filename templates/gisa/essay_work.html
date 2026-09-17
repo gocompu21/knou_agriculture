@@ -636,18 +636,27 @@ document.querySelectorAll('.dw-pane .dw-edit').forEach(bar => {
         if (im.complete && im.naturalWidth) fitView();
         document.getElementById('zvPrev').hidden = document.getElementById('zvNext').hidden = list.length < 2;
     }
+    /* 도면을 열 때 히스토리를 한 칸 밀어 넣는다 — 휴대폰·브라우저의 '뒤로'가
+       페이지를 떠나지 않고 ✕ 를 누른 것처럼 도면만 닫게 하려는 것이다 */
+    let zHist = false;
     function open(img) {
         const box = img.closest('.tk-imgs, .note-md');
         list = box ? [...box.querySelectorAll('img')] : [img];
         z.hidden = false; document.body.style.overflow = 'hidden';
         show(list.indexOf(img));
+        if (!zHist) { history.pushState({zoom: 1}, ''); zHist = true; }
     }
-    function close() { z.hidden = true; document.body.style.overflow = ''; }
+    function close(fromPop) {
+        if (z.hidden) return;
+        z.hidden = true; document.body.style.overflow = '';
+        if (zHist) { zHist = false; if (!fromPop) history.back(); }
+    }
+    window.addEventListener('popstate', () => { zHist = false; close(true); });
     document.addEventListener('click', e => {
         const img = e.target.closest('.tk-imgs img, .note-md img');
         if (img) open(img);
     });
-    document.getElementById('zvClose').onclick = close;
+    document.getElementById('zvClose').onclick = () => close();
     document.getElementById('zvFit').onclick = fitView;
     document.getElementById('zvIn').onclick = () => zoomAt(1.5, z.clientWidth / 2, z.clientHeight / 2);
     document.getElementById('zvOut').onclick = () => zoomAt(1 / 1.5, z.clientWidth / 2, z.clientHeight / 2);
