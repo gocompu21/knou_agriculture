@@ -785,6 +785,10 @@ def essay_work(request, cert_id):
                 used.add(k)
             if x['actual']:
                 hit = x
+        # 순위·득표는 그대로 두고 **줄 차례만** 바꾼다 — 이미 출제된 도면은 다음 회차에
+        # 다시 볼 일이 적어 맨 아래로, '신출'(어느 도면인지 모름)은 그 바로 위로 내린다
+        items.sort(key=lambda x: (2 if x['actual'] else (1 if x['name'] == '신출' else 0),
+                                  -x['votes']))
         forecasts.append({'task': t, 'source': fc.get('source', ''), 'voters': voters,
                           'items': items, 'hit': hit,
                           'claude_hit': bool(hit and hit.get('claude') == 1),
