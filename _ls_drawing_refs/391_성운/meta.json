@@ -1,0 +1,11 @@
+{
+  "title": "가로 소공원",
+  "source": "성운",
+  "order": 1,
+  "captions": {
+    "0_site.jpg": "문제지 · 부지 현황도",
+    "1_concept.jpg": "도면 I · 기본구상도 (1/200)",
+    "2_plan.jpg": "도면 II · 시설물배치도 및 단면도",
+    "3_planting.jpg": "도면 III · 식재설계도 (1/200)"
+  }
+}
