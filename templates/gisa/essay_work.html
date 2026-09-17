@@ -50,7 +50,7 @@
     .ov-text ul, .tk-md ul, .tk-md ol, .note-md ul, .note-md ol { padding-left: 22px; margin: 6px 0; }
     .ov-text li { margin: 5px 0; }
 
-    /* 기출 과제 — 연도별 목록 */
+    /* 기출분석 — 연도별 목록 */
     .yr { margin-bottom: 18px; }
     .yr-head { font-size: 0.95rem; font-weight: 800; color: #1b4332; padding: 6px 2px;
         border-bottom: 1px solid #e3e9e4; margin-bottom: 6px; }
@@ -267,7 +267,7 @@
     <div class="tab-nav" id="tabNav">
         <button class="tab-btn{% if active_tab == 'overview' %} active{% endif %}" data-tab="overview">작업형 개요</button>
         <button class="tab-btn{% if active_tab == 'basics' %} active{% endif %}" data-tab="basics">도면 기본기</button>
-        <button class="tab-btn{% if active_tab == 'tasks' %} active{% endif %}" data-tab="tasks">기출 과제</button>
+        <button class="tab-btn{% if active_tab == 'tasks' %} active{% endif %}" data-tab="tasks">기출분석</button>
         <button class="tab-btn{% if active_tab == 'sheets' %} active{% endif %}" data-tab="sheets">기출 도면</button>
         <button class="tab-btn{% if active_tab == 'elements' %} active{% endif %}" data-tab="elements">설계 요소</button>
     </div>
@@ -295,7 +295,7 @@
         {% else %}<div class="empty">도면 양식·선 굵기·레터링·수목과 시설물 표기·인출선·수량표 같은<br>공통 작도 요령을 정리할 자리입니다. <b>준비 중</b>입니다.</div>{% endif %}
     </div>
 
-    <!-- 기출 과제 — 출제 빈도 + 연도별 출제 도면 -->
+    <!-- 기출분석 — 출제 빈도 + 연도별 출제 도면 -->
     <div id="tab-tasks" class="tab-content{% if active_tab == 'tasks' %} active{% endif %}">
         {% if freq %}
         <div class="sec-title">출제 빈도 <small>{% with y0=years|last y1=years|first %}{{ y0.year }}~{{ y1.year }}년 · {{ task_count }}회차 · 도면 {{ freq|length }}종 · 같은 번호면 같은 도면이 되나온 것{% endwith %}</small></div>

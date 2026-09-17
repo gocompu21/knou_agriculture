@@ -681,9 +681,9 @@ def essay_finish(request, cert_id, session_id):
 def essay_work(request, cert_id):
     """실기 작업형(도면 설계) 자료 — 필답형 페이지와 머리의 전환 단추로 오간다.
 
-    탭은 넷이다: 개요 · 도면 기본기 · 기출 과제(연도별 출제 도면 목록) · 설계 요소.
+    탭은 넷이다: 개요 · 도면 기본기 · 기출분석(연도별 출제 도면 목록) · 설계 요소.
     도면 기본기와 설계 요소는 학습자료(GisaEssayNote) slug `work-basics`·`work-elements`
-    에 쓰고, 기출 과제는 GisaDrawingTask 다. 아직 자료가 없는 탭은 '준비 중'으로 둔다.
+    에 쓰고, 기출분석은 GisaDrawingTask 다. 아직 자료가 없는 탭은 '준비 중'으로 둔다.
     """
     import markdown as md
     from .models import GisaDrawingTask
