@@ -295,23 +295,10 @@
         {% else %}<div class="empty">도면 양식·선 굵기·레터링·수목과 시설물 표기·인출선·수량표 같은<br>공통 작도 요령을 정리할 자리입니다. <b>준비 중</b>입니다.</div>{% endif %}
     </div>
 
-    <!-- 기출분석 — 출제 빈도 + 연도별 출제 도면 -->
+    <!-- 기출분석 — 출제 예상 투표 + 출제 빈도 + 연도별 출제 도면 -->
     <div id="tab-tasks" class="tab-content{% if active_tab == 'tasks' %} active{% endif %}">
-        {% if freq %}
-        <div class="sec-title">출제 빈도 <small>{% with y0=years|last y1=years|first %}{{ y0.year }}~{{ y1.year }}년 · {{ task_count }}회차 · 도면 {{ freq|length }}종 · 같은 번호면 같은 도면이 되나온 것{% endwith %}</small></div>
-        <div class="fq">
-            {% for f in freq %}
-            <div class="fq-row" data-key="{{ f.key }}" data-name="{{ f.title }}{% if f.code %} {{ f.code }}{% endif %}">
-                <div class="fq-name"><span class="fq-dot" style="background:{{ f.color }}"></span>{{ f.title }}{% if f.code %} <b>{{ f.code }}</b>{% endif %}</div>
-                <div class="fq-bar"><span class="fq-fill" style="width:{{ f.pct }}%;background:{{ f.color }}"></span><div class="fq-in"><span class="fq-cnt">{{ f.count }}회</span>{% for t in f.rounds %}<span class="rd">{{ t.year|stringformat:"d"|slice:"2:" }}-{{ t.round }}</span>{% endfor %}</div></div>
-                <div class="fq-avg">{% if f.avg is not None %}평균 {{ f.avg }}%{% else %}—{% endif %}</div>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
         {% for fc in forecasts %}
-        <div class="sec-title" style="margin-top:22px">출제 예상 투표 <small>{{ fc.task.year }}년 {{ fc.task.round }}회 시험 전 {{ fc.source }} {{ fc.voters }}명 투표(여러 도면 선택 가능) · 막대 안 배지는 AI 예상 순위</small></div>
+        <div class="sec-title">출제 예상 투표 <small>{{ fc.task.year }}년 {{ fc.task.round }}회 시험 전 {{ fc.source }} {{ fc.voters }}명 투표(여러 도면 선택 가능) · 막대 안 배지는 AI 예상 순위</small></div>
         <div class="fq">
             {% if fc.hit %}<div class="fc-head"><span class="fc-sum">실제 출제 <b>{{ fc.task.title }} {{ fc.task.code }}</b> — 투표 {{ fc.hit.rank }}위({{ fc.hit.votes }}명) · 클로드 {% if fc.hit.claude %}{{ fc.hit.claude }}위{% else %}예상 밖{% endif %} · 제미나이 {% if fc.hit.gemini %}{{ fc.hit.gemini }}위{% else %}예상 밖{% endif %}</span></div>{% endif %}
             {% for x in fc.items %}
@@ -323,6 +310,19 @@
             {% endfor %}
         </div>
         {% endfor %}
+
+        {% if freq %}
+        <div class="sec-title" style="margin-top:22px">출제 빈도 <small>{% with y0=years|last y1=years|first %}{{ y0.year }}~{{ y1.year }}년 · {{ task_count }}회차 · 도면 {{ freq|length }}종 · 같은 번호면 같은 도면이 되나온 것{% endwith %}</small></div>
+        <div class="fq">
+            {% for f in freq %}
+            <div class="fq-row" data-key="{{ f.key }}" data-name="{{ f.title }}{% if f.code %} {{ f.code }}{% endif %}">
+                <div class="fq-name"><span class="fq-dot" style="background:{{ f.color }}"></span>{{ f.title }}{% if f.code %} <b>{{ f.code }}</b>{% endif %}</div>
+                <div class="fq-bar"><span class="fq-fill" style="width:{{ f.pct }}%;background:{{ f.color }}"></span><div class="fq-in"><span class="fq-cnt">{{ f.count }}회</span>{% for t in f.rounds %}<span class="rd">{{ t.year|stringformat:"d"|slice:"2:" }}-{{ t.round }}</span>{% endfor %}</div></div>
+                <div class="fq-avg">{% if f.avg is not None %}평균 {{ f.avg }}%{% else %}—{% endif %}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         <div class="sec-title" style="margin-top:22px">연도별 출제 도면{% if task_count %} <small>칸 차례는 1·2·4회 · 같은 바탕색은 같은 도면 · 누르면 같은 도면만 드러납니다</small>{% endif %}</div>
         <div class="pick-bar" id="pickBar"><span id="pickName"></span><button type="button" id="pickClear">전체 보기</button></div>
