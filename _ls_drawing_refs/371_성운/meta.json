@@ -1,0 +1,11 @@
+{
+  "title": "사적지 주변",
+  "source": "성운",
+  "order": 1,
+  "captions": {
+    "0_site.jpg": "문제지 · 부지 현황도",
+    "1_concept.jpg": "답안지 I · 설계개념도 (1/300)",
+    "2_plan.jpg": "답안지 II · 설계기본계획도 (1/300)",
+    "3_section.jpg": "답안지 III · A−A′ 단면도 (1/300)"
+  }
+}
