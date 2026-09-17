@@ -151,7 +151,7 @@
         border-radius: 8px; padding: 2px 10px; }
     .fc-sum b { color: #b3261e; }
     .fq-row.fc-actual { background: #fff4c9; box-shadow: inset 0 0 0 2px #b3261e; }
-    .fq-row.fc-row { cursor: default; }
+    .fq-row.fc-row:not([data-key]) { cursor: default; }   /* 출제 목록에 없는 도면은 고를 것이 없다 */
     .fq-name .fc-tag { font-size: 0.68rem; font-weight: 900; color: #fff; background: #b3261e; border-radius: 5px;
         padding: 0 5px; margin-left: 4px; vertical-align: 1px; }
     .fq-in .rd.ai { background: #1b4332; color: #fff; box-shadow: none; }
@@ -302,7 +302,7 @@
         <div class="fq">
             {% if fc.hit %}<div class="fc-head"><span class="fc-sum">실제 출제 <b>{{ fc.task.title }} {{ fc.task.code }}</b> — 투표 {{ fc.hit.rank }}위({{ fc.hit.votes }}명) · 클로드 {% if fc.hit.claude %}{{ fc.hit.claude }}위{% else %}예상 밖{% endif %} · 제미나이 {% if fc.hit.gemini %}{{ fc.hit.gemini }}위{% else %}예상 밖{% endif %}</span></div>{% endif %}
             {% for x in fc.items %}
-            <div class="fq-row fc-row{% if x.actual %} fc-actual{% endif %}">
+            <div class="fq-row fc-row{% if x.actual %} fc-actual{% endif %}"{% if x.key %} data-key="{{ x.key }}" data-name="{{ x.name }}{% if x.code %} {{ x.code }}{% endif %}"{% endif %}>
                 <div class="fq-name"><span class="fq-dot" style="background:{{ x.color }}"></span>{{ x.name }}{% if x.code %} <b>{{ x.code }}</b>{% endif %}{% if x.actual %}<span class="fc-tag">출제</span>{% endif %}</div>
                 <div class="fq-bar"><span class="fq-fill" style="width:{{ x.pct }}%;background:{{ x.color }}"></span><div class="fq-in"><span class="fq-cnt">{{ x.votes }}명</span>{% if x.claude %}<span class="rd ai{% if x.claude == 1 %} top{% endif %}">클로드 {{ x.claude }}위</span>{% endif %}{% if x.gemini %}<span class="rd ai{% if x.gemini == 1 %} top{% endif %}">제미나이 {{ x.gemini }}위</span>{% endif %}</div></div>
                 <div class="fq-avg">{{ x.share }}%</div>
@@ -470,7 +470,7 @@ function pick(key, name) {
     tasksTab.querySelectorAll('.fq-row').forEach(r => r.classList.toggle('sel', r.dataset.key === picked));
     document.getElementById('pickName').textContent = picked ? `${name} — ${n}회 출제` : '';
 }
-tasksTab.querySelectorAll('.fq-row').forEach(r => r.addEventListener('click', () => {
+tasksTab.querySelectorAll('.fq-row[data-key]').forEach(r => r.addEventListener('click', () => {
     pick(r.dataset.key, r.dataset.name);
     if (picked) document.getElementById('pickBar').scrollIntoView({behavior: 'smooth', block: 'start'});
 }));

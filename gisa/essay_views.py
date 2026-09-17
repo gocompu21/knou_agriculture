@@ -742,6 +742,7 @@ def essay_work(request, cert_id):
 
     # 출제 예상 투표 — 실제 출제와 맞대어 본다(투표 몇 위였나, AI 예상은 맞았나)
     colors = {(f['code'] or f['title']): f['color'] for f in freq}
+    keys = {(f['code'] or f['title']): f['key'] for f in freq}   # 투표 줄을 누르면 그 도면을 고른다
     forecasts = []
     for t in sorted(tasks, key=lambda t: (-t.year, -(t.round or 0))):
         fc = t.forecast or {}
@@ -756,6 +757,7 @@ def essay_work(request, cert_id):
             x['pct'] = round(x['votes'] / top * 100)
             x['share'] = round(x['votes'] / voters * 100)
             x['color'] = colors.get(x['code'] or x['name'], '#9aa5a0')
+            x['key'] = keys.get(x['code'] or x['name'], '')
             x['actual'] = bool(t.code) and x['code'] == t.code
             if x['actual']:
                 hit = x
