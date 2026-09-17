@@ -1,0 +1,11 @@
+{
+  "title": "호안생태공원",
+  "source": "성운",
+  "order": 1,
+  "captions": {
+    "0_site.jpg": "문제지 · KEY MAP · 현황도 (1/400)",
+    "1_concept.jpg": "도면 I · 공간개념도 (1/200)",
+    "2_plan.jpg": "도면 II · 종합계획도 (1/200)",
+    "3_section.jpg": "도면 III · 평면도 및 단면상세도 (1/50)"
+  }
+}
