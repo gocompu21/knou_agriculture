@@ -740,9 +740,24 @@ def essay_work(request, cert_id):
             t.times = f['count']
             t.key = f['key']
 
+    # 기출 도면별 자료 — 투표 줄에 그대로 달아 보인다(도면 번호, 없으면 이름으로 잇는다)
+    from .models import GisaDrawingRef
+    refs = {}                                 # 한 도면에 자료가 여러 벌이면 탭으로 나눠 보인다
+    for r in GisaDrawingRef.objects.filter(certification=cert).prefetch_related('images'):
+        refs.setdefault(r.code or r.title, []).append(r)
+
+    def _sheet(rs):
+        return [{'ref': r, 'name': r.source or '자료', 'imgs': list(r.images.all()),
+                 'html': md.markdown(r.content, extensions=['tables']) if r.content else ''}
+                for r in rs]
+
+    tabs_of = {k: _sheet(rs) for k, rs in refs.items()}
+    rounds_of = {(f['code'] or f['title']): f for f in freq}
+
     # 출제 예상 투표 — 실제 출제와 맞대어 본다(투표 몇 위였나, AI 예상은 맞았나)
     colors = {(f['code'] or f['title']): f['color'] for f in freq}
     keys = {(f['code'] or f['title']): f['key'] for f in freq}   # 투표 줄을 누르면 그 도면을 고른다
+    used = set()                              # 투표에 실린 자료 — 남는 것은 아래 목록으로
     forecasts = []
     for t in sorted(tasks, key=lambda t: (-t.year, -(t.round or 0))):
         fc = t.forecast or {}
@@ -759,6 +774,15 @@ def essay_work(request, cert_id):
             x['color'] = colors.get(x['code'] or x['name'], '#9aa5a0')
             x['key'] = keys.get(x['code'] or x['name'], '')
             x['actual'] = bool(t.code) and x['code'] == t.code
+            k = x['code'] or x['name']
+            # 같은 도면이 여러 회차 투표에 나오면 가장 최근 투표 줄에만 자료를 단다
+            x['tabs'] = [] if k in used else tabs_of.get(k, [])
+            f = rounds_of.get(k)
+            x['rounds'] = f['rounds'] if f else []
+            x['count'] = f['count'] if f else 0
+            x['avg'] = f['avg'] if f else None
+            if x['tabs']:
+                used.add(k)
             if x['actual']:
                 hit = x
         forecasts.append({'task': t, 'source': fc.get('source', ''), 'voters': voters,
@@ -774,25 +798,22 @@ def essay_work(request, cert_id):
         y['slots'] = [{'round': r, 'task': have.get(r)} for r in rounds]
         y['cols'] = len(rounds)
 
-    # 기출 도면별 자료 — 출제 빈도 차례(자주 나온 도면부터)로, 도면 번호(없으면 이름)로 잇는다
-    from .models import GisaDrawingRef
-    refs = {}                                 # 한 도면에 자료가 여러 벌이면 탭으로 나눠 보인다
-    for r in GisaDrawingRef.objects.filter(certification=cert).prefetch_related('images'):
-        refs.setdefault(r.code or r.title, []).append(r)
-
-    def _sheet(rs):
-        return [{'ref': r, 'name': r.source or '자료', 'imgs': list(r.images.all()),
-                 'html': md.markdown(r.content, extensions=['tables']) if r.content else ''}
-                for r in rs]
-
+    # 투표 줄에 실리지 않은 자료만 따로 목록으로 — 투표 목록에 없는 도면이 생겼을 때다.
+    # (지금은 모든 자료가 투표 줄에 붙어 이 목록이 비어 있다.)
     sheets = []
     for f in freq:
-        rs = refs.pop(f['code'] or f['title'], [])
-        sheets.append({**f, 'ref': rs[0] if rs else None, 'tabs': _sheet(rs)})
-    for rs in refs.values():                  # 아직 출제 목록에 없는 도면의 자료
-        sheets.append({'title': rs[0].title, 'code': rs[0].code, 'count': 0, 'rounds': [], 'avg': None,
-                       'color': '#d9d9d9', 'key': f'{rs[0].title}{rs[0].code}',
-                       'ref': rs[0], 'tabs': _sheet(rs)})
+        k = f['code'] or f['title']
+        if k in used or k not in tabs_of:
+            continue
+        sheets.append({**f, 'ref': tabs_of[k][0]['ref'], 'tabs': tabs_of[k]})
+        used.add(k)
+    for k, tb in tabs_of.items():
+        if k in used:
+            continue
+        r = tb[0]['ref']
+        sheets.append({'title': r.title, 'code': r.code, 'count': 0, 'rounds': [], 'avg': None,
+                       'color': '#d9d9d9', 'key': f'{r.title}{r.code}',
+                       'ref': r, 'tabs': tb})
 
     notes = {n.slug: n for n in GisaEssayNote.objects.filter(
         certification=cert, slug__in=('work-basics', 'work-elements'))}
@@ -802,8 +823,8 @@ def essay_work(request, cert_id):
         return md.markdown(n.content, extensions=['tables']) if n else ''
 
     tab = request.GET.get('tab', 'tasks')
-    if tab not in ('overview', 'basics', 'tasks', 'sheets', 'elements'):
-        tab = 'tasks'
+    if tab not in ('overview', 'basics', 'tasks', 'elements'):
+        tab = 'tasks'               # 옛 주소 ?tab=sheets 는 기출분석으로 — 도면 자료가 그리로 옮겨 갔다
     return render(request, 'gisa/essay_work.html', {
         'cert': cert,
         'info': info,
@@ -812,7 +833,7 @@ def essay_work(request, cert_id):
         'freq': freq,
         'forecasts': forecasts,
         'sheets': sheets,
-        'sheet_ready': sum(1 for x in sheets if x['ref']),
+        'sheet_ready': len(tabs_of),
         'task_count': len(tasks),
         'basics_html': _note_html('work-basics'),
         'elements_html': _note_html('work-elements'),

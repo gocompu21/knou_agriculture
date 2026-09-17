@@ -152,6 +152,19 @@
     .fc-sum b { color: #b3261e; }
     .fq-row.fc-actual { background: #fff4c9; box-shadow: inset 0 0 0 2px #b3261e; }
     .fq-row.fc-row:not([data-key]) { cursor: default; }   /* 출제 목록에 없는 도면은 고를 것이 없다 */
+    /* 투표 줄 = 그 도면 자료의 머리. 누르면 아래로 문제지·완성 도면이 펼쳐진다 */
+    .fc-item.dw { background: none; border: 0; border-radius: 0; overflow: visible; }
+    .fc-item:first-child > .fq-row { border-top: 0; }
+    .fc-item > .fq-row { grid-template-columns: 170px 1fr 92px 74px; }
+    .fc-doc { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+    .fc-item.dw.has > .fq-row:hover { background: #eef4f0; }
+    .fc-item .dw-body { padding: 4px 6px 14px; border-top: 0; }
+    .fc-bh { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 10px;
+        font-size: 0.86rem; color: #1b4332; }
+    .fc-bh-cnt { font-size: 0.8rem; font-weight: 700; color: #4a5a50; }
+    .fc-pick { margin-left: auto; font-size: 0.78rem; font-weight: 800; color: #2d6a4f; background: #fff;
+        border: 1px solid #cdd8d0; border-radius: 999px; padding: 4px 12px; cursor: pointer; font-family: inherit; }
+    .fc-pick:hover { background: #eef4f0; }
     .fq-name .fc-tag { font-size: 0.68rem; font-weight: 900; color: #fff; background: #b3261e; border-radius: 5px;
         padding: 0 5px; margin-left: 4px; vertical-align: 1px; }
     .fq-in .rd.ai { background: #1b4332; color: #fff; box-shadow: none; }
@@ -170,6 +183,10 @@
     @media (max-width: 600px) {
         .fq-row { grid-template-columns: 1fr 76px; gap: 2px 8px; }
         .fq-bar { grid-column: 1 / 3; grid-row: 2; }
+        .fc-item > .fq-row { grid-template-columns: 1fr 52px 66px; }
+        .fc-item .fq-bar { grid-column: 1 / 4; }
+        .fc-doc .dw-tag { font-size: 0.68rem; padding: 2px 5px; white-space: nowrap; }
+        .fc-pick { margin-left: 0; }
         .yg { flex-direction: column; gap: 4px; }
         .yg-cells, .yg-cells.c4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .yc-t { white-space: normal; font-size: 0.84rem; }
@@ -268,7 +285,6 @@
         <button class="tab-btn{% if active_tab == 'overview' %} active{% endif %}" data-tab="overview">작업형 개요</button>
         <button class="tab-btn{% if active_tab == 'basics' %} active{% endif %}" data-tab="basics">도면 기본기</button>
         <button class="tab-btn{% if active_tab == 'tasks' %} active{% endif %}" data-tab="tasks">기출분석</button>
-        <button class="tab-btn{% if active_tab == 'sheets' %} active{% endif %}" data-tab="sheets">기출 도면</button>
         <button class="tab-btn{% if active_tab == 'elements' %} active{% endif %}" data-tab="elements">설계 요소</button>
     </div>
 
@@ -298,14 +314,35 @@
     <!-- 기출분석 — 출제 예상 투표 + 출제 빈도 + 연도별 출제 도면 -->
     <div id="tab-tasks" class="tab-content{% if active_tab == 'tasks' %} active{% endif %}">
         {% for fc in forecasts %}
-        <div class="sec-title">출제 예상 투표 <small>{{ fc.task.year }}년 {{ fc.task.round }}회 시험 전 {{ fc.source }} {{ fc.voters }}명 투표(여러 도면 선택 가능) · 막대 안 배지는 AI 예상 순위</small></div>
+        <div class="sec-title">출제 예상 투표 <small>{{ fc.task.year }}년 {{ fc.task.round }}회 시험 전 {{ fc.source }} {{ fc.voters }}명 투표(여러 도면 선택 가능) · 막대 안 배지는 AI 예상 순위{% if forloop.first and sheet_ready %} · <b>자료</b> 줄을 누르면 그 도면의 문제지와 완성 도면이 펼쳐집니다({{ sheet_ready }}종){% endif %}</small></div>
         <div class="fq">
             {% if fc.hit %}<div class="fc-head"><span class="fc-sum">실제 출제 <b>{{ fc.task.title }} {{ fc.task.code }}</b> — 투표 {{ fc.hit.rank }}위({{ fc.hit.votes }}명) · 클로드 {% if fc.hit.claude %}{{ fc.hit.claude }}위{% else %}예상 밖{% endif %} · 제미나이 {% if fc.hit.gemini %}{{ fc.hit.gemini }}위{% else %}예상 밖{% endif %}</span></div>{% endif %}
             {% for x in fc.items %}
-            <div class="fq-row fc-row{% if x.actual %} fc-actual{% endif %}"{% if x.key %} data-key="{{ x.key }}" data-name="{{ x.name }}{% if x.code %} {{ x.code }}{% endif %}"{% endif %}>
-                <div class="fq-name"><span class="fq-dot" style="background:{{ x.color }}"></span>{{ x.name }}{% if x.code %} <b>{{ x.code }}</b>{% endif %}{% if x.actual %}<span class="fc-tag">출제</span>{% endif %}</div>
-                <div class="fq-bar"><span class="fq-fill" style="width:{{ x.pct }}%;background:{{ x.color }}"></span><div class="fq-in"><span class="fq-cnt">{{ x.votes }}명</span>{% if x.claude %}<span class="rd ai{% if x.claude == 1 %} top{% endif %}">클로드 {{ x.claude }}위</span>{% endif %}{% if x.gemini %}<span class="rd ai{% if x.gemini == 1 %} top{% endif %}">제미나이 {{ x.gemini }}위</span>{% endif %}</div></div>
-                <div class="fq-avg">{{ x.share }}%</div>
+            <div class="fc-item dw{% if x.tabs %} has{% endif %}">
+                <div class="fq-row fc-row{% if x.actual %} fc-actual{% endif %}"{% if x.key %} data-key="{{ x.key }}" data-name="{{ x.name }}{% if x.code %} {{ x.code }}{% endif %}"{% endif %}>
+                    <div class="fq-name"><span class="fq-dot" style="background:{{ x.color }}"></span>{{ x.name }}{% if x.code %} <b>{{ x.code }}</b>{% endif %}{% if x.actual %}<span class="fc-tag">출제</span>{% endif %}</div>
+                    <div class="fq-bar"><span class="fq-fill" style="width:{{ x.pct }}%;background:{{ x.color }}"></span><div class="fq-in"><span class="fq-cnt">{{ x.votes }}명</span>{% if x.claude %}<span class="rd ai{% if x.claude == 1 %} top{% endif %}">클로드 {{ x.claude }}위</span>{% endif %}{% if x.gemini %}<span class="rd ai{% if x.gemini == 1 %} top{% endif %}">제미나이 {{ x.gemini }}위</span>{% endif %}</div></div>
+                    <div class="fq-avg">{{ x.share }}%</div>
+                    <div class="fc-doc">{% if x.tabs %}<span class="dw-tag">자료{% if x.tabs|length > 1 %} {{ x.tabs|length }}벌{% endif %}</span><span class="dw-arrow">›</span>{% endif %}</div>
+                </div>
+                {% if x.tabs %}
+                <div class="dw-body">
+                    <div class="fc-bh">
+                        <b>{{ x.name }}{% if x.code %} {{ x.code }}{% endif %}</b>
+                        {% if x.count %}<span class="fc-bh-cnt">{{ x.count }}회 출제{% if x.avg is not None %} · 평균 합격률 {{ x.avg }}%{% endif %}</span>
+                        <span class="dw-rounds">{% for t in x.rounds %}<span>{{ t.year|stringformat:"d"|slice:"2:" }}-{{ t.round }}</span>{% endfor %}</span>{% endif %}
+                        {% if x.key %}<button type="button" class="fc-pick" data-key="{{ x.key }}" data-name="{{ x.name }}{% if x.code %} {{ x.code }}{% endif %}">연도별 표에서 보기 ›</button>{% endif %}
+                    </div>
+                    {% if x.tabs|length > 1 %}
+                    <div class="dw-subs">
+                        {% for t in x.tabs %}<button type="button" class="dw-sub{% if forloop.first %} on{% endif %}" data-sub="{{ forloop.counter0 }}">{{ t.name }}{% if t.imgs %} <em>도면 {{ t.imgs|length }}장</em>{% endif %}</button>{% endfor %}
+                    </div>
+                    {% endif %}
+                    {% for t in x.tabs %}
+                    {% include "gisa/_drawing_pane.html" with t=t idx=forloop.counter0 %}
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -359,21 +396,19 @@
         {% empty %}
         <div class="empty">연도별로 출제된 도면 목록을 정리하는 중입니다.</div>
         {% endfor %}
-    </div>
 
-    <!-- 기출 도면 — 도면별 자료(작도 팁·수량표·완성 도면) -->
-    <div id="tab-sheets" class="tab-content{% if active_tab == 'sheets' %} active{% endif %}">
-        <div class="sec-title">기출 도면별 자료 <small>자주 나온 도면부터 · 자료 {{ sheet_ready }}/{{ sheets|length }}종 · 줄을 누르면 작도 팁과 완성 도면이 펼쳐집니다</small></div>
+        {% if sheets %}
+        <!-- 투표 목록에 없는 도면의 자료 — 평소에는 비어 있다 -->
+        <div class="sec-title" style="margin-top:22px">그 밖의 도면 자료 <small>출제 예상 투표 목록에 없는 도면입니다</small></div>
         <div class="dw-list">
             {% for d in sheets %}
-            <div class="dw{% if d.ref %} has{% endif %}" id="dw-{{ d.code|default:d.title }}">
+            <div class="dw has" id="dw-{{ d.code|default:d.title }}">
                 <div class="dw-head">
                     <span class="dw-name" style="--c:{{ d.color }}">{{ d.title }}{% if d.code %} {{ d.code }}{% endif %}</span>
                     <span class="dw-rounds">{% for t in d.rounds %}<span>{{ t.year|stringformat:"d"|slice:"2:" }}-{{ t.round }}</span>{% endfor %}</span>
                     <span class="dw-meta">{% if d.count %}{{ d.count }}회{% if d.avg is not None %} · 평균 {{ d.avg }}%{% endif %}{% endif %}</span>
-                    {% if d.ref %}<span class="dw-tag">자료{% if d.tabs|length > 1 %} {{ d.tabs|length }}벌{% endif %}</span><span class="dw-arrow">›</span>{% else %}<span class="dw-none">준비 중</span>{% endif %}
+                    <span class="dw-tag">자료{% if d.tabs|length > 1 %} {{ d.tabs|length }}벌{% endif %}</span><span class="dw-arrow">›</span>
                 </div>
-                {% if d.ref %}
                 <div class="dw-body">
                     {% if d.tabs|length > 1 %}
                     <div class="dw-subs">
@@ -381,46 +416,13 @@
                     </div>
                     {% endif %}
                     {% for t in d.tabs %}
-                    <div class="dw-pane{% if forloop.first %} on{% endif %}" data-pane="{{ forloop.counter0 }}" data-ref="{{ t.ref.pk }}">
-                        {% if request.user.is_staff %}
-                        <div class="dw-edit">
-                            <button type="button" class="dw-edit-btn" data-act="edit">✎ 수정</button>
-                            <button type="button" class="dw-edit-btn save" data-act="save" hidden>저장</button>
-                            <button type="button" class="dw-edit-btn" data-act="cancel" hidden>취소</button>
-                            <span class="dw-edit-msg"></span>
-                        </div>
-                        {% endif %}
-                        {% if t.imgs %}
-                        <div class="tk-imgs">
-                            {% for im in t.imgs %}<figure><img src="{{ im.image.url }}" alt="{{ im.caption }}" loading="lazy"><figcaption>{{ im.caption }}</figcaption></figure>{% endfor %}
-                        </div>
-                        {% endif %}
-                        {% if t.html %}<div class="note-md dw-md">{{ t.html|safe }}</div>{% endif %}
-                        {% if request.user.is_staff %}
-                        <div class="dw-form">
-                            <label>자료 이름 (탭 이름)</label>
-                            <input type="text" class="dw-src" value="{{ t.ref.source }}" placeholder="예: 사용자 A, 성운">
-                            {% if t.imgs %}
-                            <label>도면 설명</label>
-                            <div class="dw-caps">
-                                {% for im in t.imgs %}<input type="text" class="dw-cap" data-img="{{ im.pk }}" value="{{ im.caption }}">{% endfor %}
-                            </div>
-                            {% endif %}
-                            <label>자료</label>
-                            <div class="dw-ed"></div>
-                            <textarea class="dw-src-md">{{ t.ref.content }}</textarea>
-                            <p class="dw-hint">보이는 대로 고칩니다. 아래 <b>Markdown</b> 탭을 누르면 원문도 볼 수 있습니다.
-                               그림·기호(SVG)는 편집기가 망가뜨리므로 <b>⟦그림 1⟧ ⟦기호 1⟧</b> 표식으로 자리만 잡아 두고,
-                               저장할 때 그 자리에 도로 넣습니다 — 표식을 지우면 그림도 사라집니다.</p>
-                        </div>
-                        {% endif %}
-                    </div>
+                    {% include "gisa/_drawing_pane.html" with t=t idx=forloop.counter0 %}
                     {% endfor %}
                 </div>
-                {% endif %}
             </div>
             {% endfor %}
         </div>
+        {% endif %}
     </div>
 
     <!-- 설계 요소 -->
@@ -470,9 +472,23 @@ function pick(key, name) {
     tasksTab.querySelectorAll('.fq-row').forEach(r => r.classList.toggle('sel', r.dataset.key === picked));
     document.getElementById('pickName').textContent = picked ? `${name} — ${n}회 출제` : '';
 }
-tasksTab.querySelectorAll('.fq-row[data-key]').forEach(r => r.addEventListener('click', () => {
-    pick(r.dataset.key, r.dataset.name);
+function pickScroll(key, name) {
+    pick(key, name);
     if (picked) document.getElementById('pickBar').scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+/* 투표 줄 — 자료가 있으면 그 자리에서 펼치고, 없으면 종전대로 연도별 표에서 고른다 */
+tasksTab.querySelectorAll('.fc-item > .fq-row').forEach(r => r.addEventListener('click', () => {
+    const it = r.parentElement;
+    if (it.classList.contains('has')) { it.classList.toggle('open'); return; }
+    if (r.dataset.key) pickScroll(r.dataset.key, r.dataset.name);
+}));
+tasksTab.querySelectorAll('.fc-pick').forEach(b => b.addEventListener('click', ev => {
+    ev.stopPropagation();
+    pickScroll(b.dataset.key, b.dataset.name);
+}));
+/* 출제 빈도 줄 */
+tasksTab.querySelectorAll('.fq-row[data-key]:not(.fc-row)').forEach(r => r.addEventListener('click', () => {
+    pickScroll(r.dataset.key, r.dataset.name);
 }));
 tasksTab.querySelectorAll('.yc[data-key]').forEach(c => c.addEventListener('click', () => {
     if (c.dataset.detail && picked === c.dataset.key) {

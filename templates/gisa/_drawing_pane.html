@@ -1,0 +1,35 @@
+{% comment %}기출 도면 자료 한 벌 — 투표 줄 아래(essay_work 기출분석 탭)와 남은 자료 목록이 함께 쓴다{% endcomment %}
+<div class="dw-pane{% if idx == 0 %} on{% endif %}" data-pane="{{ idx }}" data-ref="{{ t.ref.pk }}">
+    {% if request.user.is_staff %}
+    <div class="dw-edit">
+        <button type="button" class="dw-edit-btn" data-act="edit">✎ 수정</button>
+        <button type="button" class="dw-edit-btn save" data-act="save" hidden>저장</button>
+        <button type="button" class="dw-edit-btn" data-act="cancel" hidden>취소</button>
+        <span class="dw-edit-msg"></span>
+    </div>
+    {% endif %}
+    {% if t.imgs %}
+    <div class="tk-imgs">
+        {% for im in t.imgs %}<figure><img src="{{ im.image.url }}" alt="{{ im.caption }}" loading="lazy"><figcaption>{{ im.caption }}</figcaption></figure>{% endfor %}
+    </div>
+    {% endif %}
+    {% if t.html %}<div class="note-md dw-md">{{ t.html|safe }}</div>{% endif %}
+    {% if request.user.is_staff %}
+    <div class="dw-form">
+        <label>자료 이름 (탭 이름)</label>
+        <input type="text" class="dw-src" value="{{ t.ref.source }}" placeholder="예: 사용자 A, 성운">
+        {% if t.imgs %}
+        <label>도면 설명</label>
+        <div class="dw-caps">
+            {% for im in t.imgs %}<input type="text" class="dw-cap" data-img="{{ im.pk }}" value="{{ im.caption }}">{% endfor %}
+        </div>
+        {% endif %}
+        <label>자료</label>
+        <div class="dw-ed"></div>
+        <textarea class="dw-src-md">{{ t.ref.content }}</textarea>
+        <p class="dw-hint">보이는 대로 고칩니다. 아래 <b>Markdown</b> 탭을 누르면 원문도 볼 수 있습니다.
+           그림·기호(SVG)는 편집기가 망가뜨리므로 <b>⟦그림 1⟧ ⟦기호 1⟧</b> 표식으로 자리만 잡아 두고,
+           저장할 때 그 자리에 도로 넣습니다 — 표식을 지우면 그림도 사라집니다.</p>
+    </div>
+    {% endif %}
+</div>
