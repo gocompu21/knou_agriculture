@@ -1,78 +1,184 @@
-'성운' 탭의 **답안지 II · 시설물배치도**와 문제지 조건을 AI 이미지 모델에 주고 만든 **입체 조감도**입니다(2026년 9월 18일).
-위 첫 장이 **GPT**(gpt-image-2.5-sunburst), 둘째 장이 **제미나이**(gemini-3-pro-image-preview) — 둘 다 2회차(재작업)입니다.
+## 주차장설계(444)
 
-## 만든 방법
+### 1. 시설배치도 작성
 
-1. 시설물배치도에서 표제란을 잘라낸 그림을 **참고 그림**으로 주고, 아래 **1회차 프롬프트**로 그렸습니다
-2. 나온 그림을 도면과 대조했더니 두 모델 모두 **남동 모서리를 둥글게** 그리고 **지하철 출입구를 부지 안 광장에** 넣었습니다(도면은 45° 모따기 · 출입구는 모서리 바깥 보도). 제미나이는 서측 상업지를 아파트로 그렸습니다
-3. 1회차 그림을 참고 그림으로 다시 주고 **2회차(수정) 프롬프트**로 그 부분만 고치게 했습니다 — 나머지는 그대로 두라고 못박았습니다
+**(1) 경계를 그린다.**
 
-## 도면과 대조
+- ① 스케일자로 가로 150m를 가늠하여 좌측과 우측에 세로 보조선을 내린다. (가로 경계가 도면의 중앙이 오도록 배열) P1, P2, P1<span style="color:#e00000">↓</span>, P2<span style="color:#e00000">↓</span>
+- ② 세로보조선 위에서 스케일자로 107m를 가늠하여 도면의 중앙에 배열되도록 상단과 하단점을 찍은 후 수평자를 이용하여 상단 경계선을 실선으로 그린다(보조선이 필요없음). 하단 경계선은 보조선으로 그린다. ) P3, P1→P2, P3<span style="color:#e00000">→</span>
+- ③ 가각부를 반영하기 위해 하단 우측 경계로부터 35m 지점을 표시하고 하단 경계선을 실선으로 그린다.  P4, P3→P4,
+- ④ 삼각자를 이용하여 하단 경계선의 가각 지점(우측으로부터 35m지점)에 삼각자를 대고 45도 사선을 일점쇄선으로 긋는다. P4↗ , P5
+- ⑤ 보조선으로 그려진 우측 경계를 일점 쇄선으로 긋는다. P2↓P5
 
-| 도면(성운 답안) | GPT | 제미나이 |
-| --- | --- | --- |
-| 주차열 4줄(위 2줄 길고 아래 2줄 짧음), 열 가운데 녹음수 | ✓ | ✓ |
-| 북서 휴게광장 — 퍼걸러 · 격자 수목보호대 | ✓ | ✓ |
-| 북측 화장실 · 주차관리소(북동 · 남서) | ✓ | ✓ |
-| 남동 휴게광장 — 삼각 화단 · 장애인 주차 | ✓ | 화단이 네모로 바뀜 |
-| 서측 보행로 + 주차 1줄 | ✓ | ✓ |
-| 북 · 서측 12m 상록 차폐 띠, 남 · 동측 가로수 | ✓ | ✓ |
-| 북측 주거지 · 서측 상업지 · 남 · 동측 35m 광로 | ✓ | ✓ (2회차에 고침) |
-| 남동 모서리 45° 모따기 | ✓ (2회차에 고침) | 녹지 경계만 대각선, 도로 모서리는 둥긂 |
-| 지하철 출입구 — 모서리 바깥 보도 | ✓ (2회차에 고침) | ✓ (2회차에 고침) |
+**(2) 북동 차량 진출입 동선**
 
-GPT 쪽이 도면에 더 가깝습니다. 비용은 GPT 약 $0.08(2장), 제미나이 약 $0.26(2장)이었습니다.
+- ① 부지현황도 참조
+- ② 북측 경계로부터 17m 지점에서 수평 보조선을 긋는다. P6, P6<span style="color:#e00000">→</span>
+- ③ 폭 10m 차량 지점을 찍은 후, 수평 보조선으로 긋는다. P7, p7<span style="color:#e00000">→</span>
+- ④ “차량 진출입구” 표시
 
-## 1회차 프롬프트 (두 모델 같음)
+**(3) 북측 보행 동선 및 완충지대 12m 확보**
 
-    Create a photorealistic 3D aerial bird's-eye perspective rendering (조감도) of a landscaped "parking park" (주차공원), based EXACTLY on the attached landscape site plan drawing (Korean landscape architect exam answer sheet, scale 1/400, north is UP in the drawing). Keep the layout, proportions and positions from the plan; only turn it into a realistic 3D view.
+- ① 북측 완충 녹지대를 확보하기 위해 상단 경계(P2)로부터 12m 지점에 보행로 경계를 찍고 수평보조선을 긋는다. P8, P8<span style="color:#e00000">→</span>
+- ② “보행자 진출입구” 표시
 
-    Camera: high oblique aerial view from the SOUTH-EAST corner looking toward the north-west, about 60 m above ground, so the whole site is visible. Clear late-spring daylight, soft shadows.
+**(4) 남서 차량 진출입 동선**
 
-    SITE (rectangle about 150 m east-west × 107 m north-south, flat):
-    - The south-east corner is cut diagonally (chamfered). Just outside this corner, on the sidewalk, is a subway station entrance (Seoul-style glass-roofed stair entrance).
-    - South side and east side: wide 35 m urban boulevards meeting at an intersection at the south-east corner, with cars and crosswalks.
-    - North side: residential area (mid-rise apartments). West side: commercial buildings (4–6 storey shops/offices).
+- ① 부지현황도 참조
+- ② 서측경계로부터 20m 지점(P9)과 그 곳으로부터 10m 지점을 표시하고 수직 보보조선을 긋는다.(P9, P9<span style="color:#e00000">↑</span>, P10, P10<span style="color:#e00000">↑</span>)
+- ③ “차량 진출입구” 표시
 
-    PARKING (center of the site, black asphalt):
-    - About 300 cars in 90-degree (perpendicular) parking stalls, white stall lines, 2.3 m × 5 m stalls, 6 m driving aisles, one-way circulating loop.
-    - Four long east-west double rows of stalls. The upper two rows run almost the full width; the lower two rows are shorter (western part only).
-    - Down the middle of each double row runs a narrow planted median with a line of deciduous shade trees (Chinese fringe tree / zelkova). Each row ends with a rounded planting island with shrubs.
-    - One more single row of stalls along the west side, next to a north-south pedestrian walkway paved in grey-and-red concrete blocks.
-    - A group of 8 accessible parking stalls (blue with wheelchair marks) in the south-east part.
-    - Vehicle entrances: one on the east side (upper right) and one on the south side (lower left, south-west). Small 4 m × 4 m parking attendant booths next to both vehicle entrances.
-    - Cars parked in most stalls (mixed colours, mostly white/grey/black sedans and SUVs).
+**(5) 서측 완충지대 12m 확보 및 주차공간 및 보행로 확보**
 
-    REST AREAS (two, as in the plan):
-    - North-west corner: square plaza paved with granite slabs, with two long wooden pergolas (4 m × 8 m), benches, a drinking fountain, and a grid of trees planted in square tree grates.
-    - South-east part (next to the chamfered corner, near the subway entrance): second rest plaza with benches, a triangular flower bed with flowering shrubs, and a pedestrian entrance facing the subway.
-    - A small toilet building (6 m × 10 m, hip roof) on the north side, a little west of centre.
-    - A pedestrian path runs along the whole north edge; part of it is paved with interlocking blocks.
+- ① 완충공간을 확보하기 위해 서측경계로부터 12m 지점(P11)을 표시하고 보조선을 긋는다. P11, P11<span style="color:#e00000">↑</span>
+- ② 주차공간을 확보하기 위해 차량동선 경계(P9)으로부터 5m지점 표시(P12)하고 보조선을 긋는다. P12, P12<span style="color:#e00000">↑</span>
+- ③ 완충공간과 주차공간 사이에 보행동선 영역이 자동으로 확보된다.
+- ④ “보행자 진출입구” 표시
 
-    PLANTING (important — about one third of the site is green):
-    - North and west edges: a 12 m wide buffer belt — a dense continuous row of evergreen conifers (eastern white pine, hinoki cypress, juniper) screening the residential and commercial areas, with deciduous trees and masses of azalea/rhododendron shrubs in front.
-    - South and east edges along the boulevards: a 6 m wide green strip with a row of street trees (ginkgo, zelkova) and low clipped boxwood and azalea hedges.
-    - Flowering accent trees (crabapple, dogwood, hawthorn) at the entrances and around the rest areas.
+**(6) 기준이 되는 주차 화단열 위치 확보**
 
-    STYLE: realistic landscape-architecture visualization, clean and accurate, like a professional competition rendering. Show the pavement materials clearly (asphalt for cars, granite slabs and concrete blocks for pedestrians).
-    Do NOT write any text, letters, labels, numbers or signs in the image.
+- ① 동서차량진입로와 남북차량진입로가 만나는 안쪽 접점(P13)으로부터 3미터 지점(P14)을 표시하고 수직 보조선을 긋는다. P14, P14<span style="color:#e00000">↕</span>
 
-## 2회차(수정) 프롬프트 — GPT
+**(7) 휴게공간 경계 및 차량통행로 경계 표시**
 
-    Edit this aerial rendering of a parking park. Keep EVERYTHING else exactly as it is (parking rows, trees, plazas, toilet building, booths, roads, buildings, camera angle, lighting). Fix only the south-east corner (bottom-right of the site, where the south boulevard meets the east boulevard):
+- ① 동서차량진입로와 남북차량진입로가 만나는 바깥쪽 접점(P15) 표시
+- ② 동서차량진입로 북측경계를 표시(P15→P6)
 
-    1. The site corner must be cut off by a STRAIGHT DIAGONAL edge at 45 degrees (a chamfer, about 25 m long) — not rounded. The site boundary, the green planting strip and the plaza paving all follow this straight diagonal line, and the sidewalk outside runs parallel to it.
-    2. The glass-roofed subway station entrance must stand OUTSIDE the site, on the public sidewalk between that diagonal edge and the road intersection, with its stair opening facing the rest plaza. Remove it from inside the plaza; fill that spot in the plaza with paving, benches and a small tree.
+**(8) 북서측 휴게공간 경계표시**
 
-    Do NOT add any text, letters, numbers or signs.
+- ① 북서측 휴게공간 우측경계와 하단경계를 표시(P15→P16, P16→P17 )
 
-## 2회차(수정) 프롬프트 — 제미나이
+**(9) 북서측 휴게공간 상단경계와 우측경계를 표시**
 
-    Edit this aerial rendering of a parking park. Keep EVERYTHING else exactly as it is (parking rows, trees, plazas, toilet building, booths, roads, camera angle, lighting). Fix only the south-east corner (bottom-right of the site, where the south boulevard meets the east boulevard):
+- ① 완충지대 영역을 북측경계로부터 3m지점에 표시(P18, P19)하고 상단경계를 긋는다(P18→P19)
+- ② 우측 경계를 그린다(P19→P20)
 
-    1. The site corner must be cut off by a STRAIGHT DIAGONAL edge at 45 degrees (a chamfer, about 25 m long) — not rounded. The site boundary, the green planting strip and the plaza paving all follow this straight diagonal line, and the sidewalk outside runs parallel to it.
-    2. The glass-roofed subway station entrance must stand OUTSIDE the site, on the public sidewalk between that diagonal edge and the road intersection, with its stair opening facing the rest plaza. Remove it from inside the plaza; fill that spot in the plaza with paving, benches and a small tree.
+**(10) 화장실 표시**
 
-    Do NOT add any text, letters, numbers or signs.
+- ① 휴게공간 우측 경계(P21)로부터 7m 떨어진 지점에 화장실을 배치한다.
+- ② 화장실의 면적은 60m2이므로 가로 10m X 세로 6m 로 그린다.
 
-    3. The buildings on the WEST side (left edge of the image) must be 4 to 6 storey COMMERCIAL buildings (shops on the ground floor, offices above), not apartment blocks. The apartments stay only on the NORTH side (top).
+**(11) 북측 완충지대와 차량진입로 경계를 표시한다.**
+
+- ① 화장실과 완충지대 간격은 1m 로 한다.
+- ② 휴게공간으로부터 차량진입로까지 경계를 그린다(P21→↑→↓→P8)
+
+**(12) 서측 완충지대와 보행 공간 경계를 그린다.(P22↓P11, P23↓P12)**
+
+
+**(13) 중앙주차영역 기준선 표시**
+
+- ① 직각 주차영역(5m) + 경계화단(2m) + 직각 주차영역(5m) + 교차도로(6m) 보조선을 긋는다
+- ② 점 찍기
+
+    | 구간 | 점 찍기 |
+    | --- | --- |
+    | 1st 주차열 좌측화단부 | P14부터 5m 지점에 P24 · P24부터 2m 지점에 P25 · P25부터 5m 지점에 P26 |
+    | 교차차량로 | P26부터 6m 지점에 P27 |
+    | 2nd 주차열 좌측화단부 | P27부터 5m 지점에 P28 · P28부터 2m 지점에 P29 · P29부터 5m 지점에 P30 |
+    | 교차차량로 | P30부터 6m 지점에 P31 |
+    | 3rd 주차열 좌측화단부 | P31부터 5m 지점에 P32 · P32부터 2m 지점에 P33 · P33부터 5m 지점에 P34 |
+    | 교차차량로 | P34부터 6m 지점에 P35 |
+    | 4th 주차열 좌측화단부 | P35부터 5m 지점에 P36 · P36부터 2m 지점에 P37 · P37부터 5m 지점에 P38 |
+
+- ③ 주차열 좌측 화단부 4개 그리기
+    - (ㄱ) 수평부 그리기
+        - • P13→P14, →P26, →P27, →P30, →P31, →P34, →P35, →P38
+    - (ㄴ) 화단 상하단 수직 경계 그리기
+        - • 화단 좌측 경계부 표시
+        - • 화단 우측 경계부 표시
+        - : P14↓P24, P25↓P26, P27↓P28, P29↓30, P31↓32, P33↓P34, P35↓P36, P37↓P38
+- ④ 1st ,2nd 주차열 우측 화단부 위치 잡기
+    - (ㄱ) 주차공간 : 폭 2.5m x 40대 = 100m
+    - (ㄴ) 좌측 화단 안쪽 경계지점(P14)부터 100m 지점 표시(P39)하고 수직 보조선을 긋는다(P39, P39<span style="color:#e00000">↓</span>)
+    - (ㄷ) P39부터 화단폭 4m 이동 지점 표시(P40)하고 수직 보조선을 긋는다(P40, P40↓)
+- ⑤ 1st ,2nd 주차열 우측 화단부 경계그리기
+    - (ㄱ) 수평부 그리기
+    - (ㄴ) 수직부 그리기
+- ⑥ 3rd, 4th 주차열 우측 화단부 위치 잡기
+    - (ㄱ) 주차공간 : 폭 2.5m x 26대 = 65m
+    - (ㄴ) 좌측 화단 안쪽 경계지점(P31)부터 65m 지점 표시(P41), P41로부터 화단폭 4m 표시(P42)하고 수직 보조선을 내린다(P41, P42, P41<span style="color:#e00000">↓</span>, P42<span style="color:#e00000">↓</span>).
+- ⑦ 3rd, 4th 주차열 우측 화단부 경계 그리기
+    - (ㄱ) 수평부 그리기
+    - (ㄴ) 수직부 그리기
+
+**(14) 우측 주차 영역과 남동 휴게공간**
+
+- ① 5th 주차열 화단 좌측경계 및 남동 휴게공간 좌측 경계점(P43) 잡고 남측 경계까지 경계선 긋기(P43, P43↓)
+- ② 남동 휴게공간 상단 경계부 긋기(P5←)
+- ③ 우측 주차열 화단부 폭잡기
+    - (ㄱ) P43으로부터 4m 지점(P44) 잡고 수평 경계선 긋기(P44, P43→P44)
+    - (ㄴ) 북동 주차관리소 배치하기
+        - • 보조 교차점(P12↓, P13→)에서 4m 지점(P45), P45로부터 4m 지점(P46)을 잡고 주차관리소 그리기(→P45, P45↓P46, P465←,↗P45,↘P46)
+    - (ㄷ) 주차장 화단 및 완충지대 경계선 그리기(P44 ↓→↑→↑→)
+
+**(15) 남서 주차관리소 배치 및 남측 완충지대 경계 그리기**
+
+- ① 보조선 교차점(P4<span style="color:#e00000">→</span>, P13<span style="color:#e00000">↓</span>)부터 4m 지점(P47) 경계표시(→P47)
+- ② P47부터 수직으로 4m 지점(P48) 경계표시(P47↓P48, P48←)
+- ③ 남측 완충지대 경계표시(P10↑→P48,P48↑P47,P47→)
+
+**(16) 좌측 주차영역 상하 화단 배치**
+
+- ① 하단 주차 화단 그리기
+- ② 세로 주차 영역 : 2.5m x 28대 = 70m
+- ③ P49로부터 70m 상단 지점(P50)을 잡는다.
+- ④ 하단 주차화단을 그린다.(P9↑P49, P49←)
+- ⑤ 상단 주차화단을 그린다(P16↓P50, P50←)
+
+**(17) 4개 주차열 개별 주차경계 표시**
+
+- ① 1st 주차열에 10m 간격으로 기준점 표시(P51~P59)
+- ② 1st, 2nd, 3rd, 4th 주차열의 10m 경계선 우선 긋기(P51↓~P59↓)
+- ③ 10m를 2중 분할 경계 긋고, 분할된 5m를 다시 분할해서 경계를 긋는다.
+
+**(18) 좌측 세로주차열 개별 주차경계 표시**
+
+- ① 10m 간격으로 기준점 표시(P60~P65)
+- ② 10m 가로 경계선 우선 긋기(P60↓~P65↓)
+- ③ 10m를 2중 분할 경계 긋고, 분할된 5m를 다시 분할해서 경계를 긋는다
+
+**(19) 우측 가로주차열 개별 주차경계 표시**
+
+- ① 장애인 주차 8대(3.5m x 5m)와 일반 주차 2대(2.5m x 5m)를 배치함.
+- ② 7m 가로 경계선 우선 긋기(P66↓~P69↓)
+- ③ 7m를 2중 분할 경계 긋는다.
+- ④ 장애인 표시를 8 군데 한다.
+
+**(20) 주차 일련번호 표시**
+
+- ① N+대수의 마지막 번호 = N+대수-1 임( 1부터 시작하여 40대일 경우 1+41-1 = 40)
+
+    | 주차열 | 번호 |
+    | --- | --- |
+    | 1st 주차열 | 상단에 1~40(40대), 하단에 41~80(40대) 표시하고 가로선 표시 |
+    | 2nd 주차열 | 상단에 81~120(40대), 하단에 121~160(40대) 표시하고 가로선 표시 |
+    | 3rd 주차열 | 상단에 161~186(26대), 하단에 187~212(26대) 표시하고 가로선 표시 |
+    | 4th 주차열 | 상단에 213~238(26대), 하단에 239~264(26대) 표시하고 가로선 표시 |
+    | 좌측 세로 주차열 | 265~292(28대) 표시하고 세로선 표시 |
+    | 우측 가로 주차열 | 302 표시하고 가로선 표시 |
+
+
+**(21) 북서휴게공간 시설물 배치**
+
+- ① 퍼골라 배치(4m X 8m) 1개소를 우상단에 완충지역 경계로부터 1m 이격으로 배치
+- ② 차량로 근접부에 블러드 2개씩 4개 배치
+- ③ 수목보호대(1.5m X 1.5m)를 5m 간격으로 12개 배치)
+- ④ 퍼걸러 좌측에 음수대와 휴지통 배치
+- ⑤ “보행자 진출입구” 표시
+
+**(22) 남동부 휴게공간에 시설물 배치**
+
+- ① 중앙삼각수림대 배치( 주변 경계로부터 10m 이격)
+- ② 음수대와 휴지통 배치
+- ③ 평의자 6개 설치
+- ④ 차로 경계변 블러드 5개 설치
+
+**(23) 포장 설치**
+
+- ① 북동측 보행진입로 : 소형고압블럭포장
+- ② 남서측 보행진입로 : 투수콘 포장
+- ③ 주차장 차량로 : 아스팔트 포장
+- ④ 북서쪽 휴게공간, 남동쪽 휴게공간 : 화강석판석포장
+
+**(24) 공간 및 시설표기 : 휴게공간, 주차공간, 화장실, 주차관리초소**

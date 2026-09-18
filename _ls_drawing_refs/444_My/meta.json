@@ -1,9 +1,8 @@
 {
   "title": "주차장 설계",
   "source": "My",
-  "order": 3,
+  "order": 0,
   "captions": {
-    "1_gpt.jpg": "입체 조감도 · GPT (2회차)",
-    "2_gemini.jpg": "입체 조감도 · 제미나이 (2회차)"
+    "1_plan.jpg": "모눈종이 작성 도면 · 시설물배치도 (1/800, P1~P69 기준점)"
   }
 }
