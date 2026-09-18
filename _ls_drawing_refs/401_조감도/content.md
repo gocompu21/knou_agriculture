@@ -1,4 +1,4 @@
-'성운' 탭의 **답안지 II · 기본설계도**와 **답안지 III · 배식설계도**, 문제지 조건을 GPT 이미지 모델(gpt-image-2.5-sunburst)에 주고 만든 **입체 조감도**입니다(2026년 9월 18일, 6회차).
+'성운' 탭의 **답안지 II · 기본설계도**와 **답안지 III · 배식설계도**, 문제지 조건으로 만든 **입체 조감도**입니다(2026년 9월 18일). 첫 장은 **GPT**(gpt-image-2.5-sunburst, 6회차), 둘째 장은 **제미나이**(gemini-3-pro-image-preview, 1회차 — 도면 2장과 GPT 그림을 함께 참고로 줌)입니다.
 남동쪽 상공에서 북서쪽을 내려다본 시점이라 **도면의 북쪽이 그림의 위**입니다 — 실개천이 위, 기존수림이 왼쪽, 6m 도로와 주택가가 오른쪽·아래입니다.
 
 ## 만든 방법
@@ -13,7 +13,9 @@
 
 > 회차마다 도면을 첫 참고 그림으로 다시 주고 "나머지는 그대로"라고 못박습니다. 마스크 부분 수정이나 그림을 손으로 자르고 돌리는 일은 하지 않습니다(주차장 설계 444 조감도 탭 참조).
 
-## 도면과 대조 (6회차)
+제미나이는 GPT 6회차 그림을 '배치·시점·요소가 맞는 그림'으로 주고 같은 구성으로 더 사실적으로 그리게 했습니다. 한 번에 도면과 맞게 나왔고, GPT 에서 어긋났던 **동측 도로와 남북 동선의 평행**도 맞습니다. 비용은 1장 약 \/usr/bin/bash.13.
+
+## 도면과 대조 (GPT 6회차 · 제미나이 1회차 모두 ✓)
 
 | 도면(성운 답안) | 결과 |
 | --- | --- |
@@ -45,3 +47,7 @@
     4. The 2 square tree grates (one zelkova each) stay side by side, east-west, in the southern half of the plaza.
 
     Nothing else changes. Photorealistic landscape-architecture visualization. Do NOT write any text, letters, numbers, labels or signs.
+
+## 프롬프트 — 제미나이(참고: 기본설계도 · 배식설계도 · GPT 6회차 그림)
+
+    Create a photorealistic 3D bird's-eye perspective rendering of a small ecological park (생태공원). Three images are attached: (1) the site/facilities plan (north is up), (2) the planting plan, (3) a rendering of this park made from the same plans that is CORRECT in layout, camera angle and elements. Produce a new rendering with the SAME layout, SAME camera (oblique view from the south-east, north at the top of the image) and SAME elements as image 3, but with better realism and detail: natural pond in the north-west next to the stream with a timber bird hide on its south-east shore; central wetland with a kidney-shaped pool and reeds, encircled by an angular raised timber boardwalk loop with 5 outward observation decks (two short segments paved in stone); native forest zone in the south-west merging into the existing woodland, with an earth trail; a rest plaza with one 4 x 4 m timber pergola, 8 benches and a trash bin at the forest's south-east edge; a small gathering plaza east of the wetland with one tree grate and 3 boards on its west edge; two block-paved entrance plazas (north-east corner opening onto the east road; south edge near the south-east corner opening onto the south road), each with 2 tree grates and one signboard; a straight north-south block path between them with a line of metasequoias on its west side; east of the path a mounded lawn with 7 spreading pines and azalea masses and a line of ginkgo trees along the east road; a 6 m road with low-rise houses along the east and along only the eastern half of the south edge; wooded hill beyond the west and south-west; stream and wooded hill beyond the north. Keep every element where image 3 has it. Do NOT write any text, letters, numbers, labels or signs.
