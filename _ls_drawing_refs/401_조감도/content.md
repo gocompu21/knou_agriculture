@@ -1,4 +1,4 @@
-'성운' 탭의 **답안지 II · 기본설계도**와 **답안지 III · 배식설계도**, 문제지 조건으로 만든 **입체 조감도**입니다(2026년 9월 18일). 첫 장은 **GPT**(gpt-image-2.5-sunburst, 6회차), 둘째 장은 **제미나이**(gemini-3-pro-image-preview, 6회차 — GPT 그림 없이 도면만 주고 회차마다 고쳐 나감)입니다.
+'성운' 탭의 **답안지 II · 기본설계도**와 **답안지 III · 배식설계도**, 문제지 조건으로 만든 **입체 조감도**입니다(2026년 9월 18일). **GPT**(gpt-image-2.5-sunburst, 6회차)로 그렸습니다.
 남동쪽 상공에서 북서쪽을 내려다본 시점이라 **도면의 북쪽이 그림의 위**입니다 — 실개천이 위, 기존수림이 왼쪽, 6m 도로와 주택가가 오른쪽·아래입니다.
 
 ## 만든 방법
@@ -13,20 +13,7 @@
 
 > 회차마다 도면을 첫 참고 그림으로 다시 주고 "나머지는 그대로"라고 못박습니다. 마스크 부분 수정이나 그림을 손으로 자르고 돌리는 일은 하지 않습니다(주차장 설계 444 조감도 탭 참조).
 
-## 만든 방법 (제미나이)
-
-GPT 그림은 주지 않고 **도면 2장만** 참고로 주어 GPT 1회차와 같은 프롬프트로 그렸습니다. 사진처럼 사실적이지만 도면 해독은 GPT보다 약해, 회차마다 **도면 + 앞 회차 그림**을 주고 틀린 곳을 짚어 고치게 했습니다.
-
-1. 1회차 — 관찰로가 둥근 고리에 데크 없음, 남측 도로가 부지 전체 길이, 마운딩·소나무 없음, 북동 광장 안내판이 도로 쪽, 조류관찰소 위치 다름
-2. 2회차 — 위 다섯 곳은 고쳐졌으나 북쪽에 주택가, 남서쪽에 도로·주차장·주택이 생기고 남측 진입광장이 남서로, 메타세쿼이아가 연못 북쪽으로 감
-3. 3회차 — 북쪽은 실개천·야산으로 돌아왔으나 남서쪽은 그대로
-4. 4회차 — 남서쪽만 집중해 고치게 함: 도로·주차장·주택을 지우고 산림지구, 남측 진입광장을 남동으로, 메타세쿼이아를 동선 서쪽으로 ✓
-5. 5회차 — 도면에 없는 것 셋(연못 북쪽 메타세쿼이아 열, 관찰로 서쪽의 두 번째 파고라, 연못 서쪽 오두막) 제거 — 파고라 하나가 남음
-6. 6회차 — 남은 파고라 제거 ✓
-
-> 제미나이는 앞 회차 그림에 강하게 붙어 **한 번에 한두 곳만** 고쳐집니다. 여러 곳을 한꺼번에 시키면 일부만 되고 다른 곳이 새로 어긋납니다. 비용은 6장 약 \/usr/bin/bash.78.
-
-## 도면과 대조 (GPT 6회차 · 제미나이 6회차 모두 ✓)
+## 도면과 대조 (6회차)
 
 | 도면(성운 답안) | 결과 |
 | --- | --- |
@@ -58,11 +45,3 @@ GPT 그림은 주지 않고 **도면 2장만** 참고로 주어 GPT 1회차와 �
     4. The 2 square tree grates (one zelkova each) stay side by side, east-west, in the southern half of the plaza.
 
     Nothing else changes. Photorealistic landscape-architecture visualization. Do NOT write any text, letters, numbers, labels or signs.
-
-## 프롬프트 — 제미나이 마지막 회차(6회차, 참고: 기본설계도 + 5회차 그림)
-
-    Two images are attached: (1) the site plan of a small ecological park (hand-drawn, north is up), (2) a photorealistic rendering of it that is correct except for ONE thing. Reproduce image 2 EXACTLY — same camera, style, lighting, pond, stream, wetland, angular boardwalk with decks, bird hide, forest zone, plazas, paths, metasequoias, mound with pines, ginkgos, roads and houses — and remove only this:
-
-    The small timber PERGOLA / open shelter with a stone-paved patch standing at the WEST corner of the wetland boardwalk loop (upper-left of the loop, near the pond's south-west shore). It does not exist in the plan. Where it stood, continue the boardwalk's stone-paved segment and the surrounding forest trees and shrubs. The ONLY pergola in the park is the one at the forest's edge SOUTH of the loop (lower-left of the loop), which stays.
-
-    Nothing else changes. Photorealistic. Do NOT write any text, letters, numbers, labels or signs.
