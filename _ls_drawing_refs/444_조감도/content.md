@@ -9,6 +9,7 @@
 4. GPT 2회차의 **남동 휴게공간**이 도면과 달랐습니다(사용자 지적) — 장애인 주차 북쪽에 화단, 벤치가 흩어져 있고, 광장 동쪽에 없는 화단, 서측 가장자리에 볼라드 대신 나무. 그 자리만 **마스크**로 지정해 다시 그리게 하고(3회차), 나온 그림에서 마스크 안쪽만 잘라 원본에 얹었습니다 — 마스크 밖도 조금씩 흔들리기 때문입니다
 5. 3회차는 장애인 주차가 10칸(한 칸은 기호가 겹쳐 깨짐)·윗줄 벤치 5개였습니다. 그 줄만 더 좁은 마스크로 **개수만** 고치게 했습니다(4회차)
 6. 4회차의 장애인 주차칸 줄이 오른쪽으로 0.76° 기울어 아래 녹지대와 어긋났습니다(사용자 지적). 파란 칸의 윗변·아랫변을 재서 기울기를 구하고 그 덩어리만 반대로 돌려 바로 세웠습니다(0.05°) — 모델을 다시 부르지 않았습니다
+7. 장애인 주차칸이 옆 주차열과 **일렬이 아니었습니다**(사용자 지적 — 도면은 3번째 주차열 위쪽 칸과 같은 줄). 칸 덩어리를 옆 칸과 같은 앞선(y 510)·같은 깊이로 옮기고, 녹지대와 서쪽 끝 화단도 함께 올렸습니다. 그렇게 해서 광장 쪽에 생긴 틈만 마스크로 관목·잔디를 채우게 했습니다(아래 5회차 프롬프트)
 
 ## 도면과 대조
 
@@ -108,3 +109,11 @@ GPT 쪽이 도면에 더 가깝습니다. 비용은 GPT 약 $0.08(2장), 제미�
     3. Below the strip, on the granite paving, one straight line of: 3 wooden benches on the left, then a round trash bin and a round drinking fountain side by side in the middle, then 3 wooden benches on the right. EXACTLY 6 benches in total, evenly spaced.
 
     Same lighting and style as the rest of the image. No text, letters or numbers.
+
+## 5회차(틈 메우기) 프롬프트 — GPT · 마스크
+
+    Edit ONLY the transparent (masked) horizontal band of this aerial rendering. Everything outside it must stay exactly the same — the blue accessible parking stalls and the planting strip with round trees ABOVE the band, and the granite plaza with the line of benches BELOW it.
+
+    Fill the band as the lower half of that planting strip: grass and dense low clipped evergreen shrubs, continuing seamlessly from the shrubs and tree canopies above. There must be ONE single light-grey concrete curb, only along the very BOTTOM edge of the band, where the planting meets the plaza paving. NO curb, path, paving or line anywhere else inside the band — it is one continuous planted bed.
+
+    Do NOT add trees, lamps, benches, bollards, cars, parking stalls or wheelchair symbols. Top-down aerial view, same lighting and style. No text, letters or numbers.
