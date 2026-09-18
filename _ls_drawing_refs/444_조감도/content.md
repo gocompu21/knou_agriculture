@@ -1,16 +1,17 @@
 '성운' 탭의 **답안지 II · 시설물배치도**와 **답안지 III · 배식평면도**, 문제지 조건을 AI 이미지 모델에 주고 만든 **입체 조감도**입니다(2026년 9월 18일).
-위 사진의 첫 장이 **GPT**(gpt-image-2.5-sunburst, 3회차), 둘째 장이 **제미나이**(gemini-3-pro-image-preview, 2회차)입니다.
+위 사진의 첫 장이 **GPT**(gpt-image-2.5-sunburst, 4회차), 둘째 장이 **제미나이**(gemini-3-pro-image-preview, 2회차)입니다.
 
 ## 만든 방법 (GPT)
 
 1. 도면 2장(시설물배치도 · 배식평면도, 표제란은 잘라냄)을 **참고 그림**으로 주고 **1회차 프롬프트**로 그렸습니다. 배치는 도면대로 나왔으나 거의 평면이었고, 남동 광장의 벤치 줄이 2개뿐이었습니다
 2. **도면 + 1회차 그림**을 함께 주고 "배치는 그대로, 45° 입체 시점으로 다시 그리되 벤치 줄·녹지대 교목을 고치라"고 했습니다(2회차). 입체감이 생기고 배치도 유지됐습니다. 남은 것은 벤치 줄 3개(도면 6개), 삼각 화단 벤치 자리, 정원등, 볼라드 수
 3. **도면 + 2회차 그림**을 주고 광장 가구의 **개수만** 고치게 했습니다(3회차) — 벤치 줄 3+3 과 휴지통·음수대, 삼각 화단 위 3 · 왼쪽 3, 정원등 3. 볼라드는 5개를 요구했는데 7개로 남았습니다
+4. **북동 차량 출입구**를 도면과 대조하니(사용자 지적) 동측 녹지대와 보도가 끊기지 않아 차가 들어올 수 없었습니다. 도면은 북동 모서리 아래에 차량 진출입구, 그 위에 보행자 진출입구, 출입구 남쪽에 주차관리초소입니다. **도면 + 3회차 그림**을 주고 그 모서리만 열게 했습니다(4회차) — 동측 녹지대·보도를 가로지르는 진입로와 차단기, 그 북쪽에 보행 통로가 생겼습니다. 볼라드는 6개가 됐습니다
 
 > **회차마다 도면을 첫 참고 그림으로 다시 준다.** 앞 회차 그림만 주면 기준이 흐려져 조금씩 어긋납니다.
 > **마스크로 일부만 고치거나 그림을 손으로 자르고 돌리지 않는다.** 그 방법으로 한 앞선 시도는 장애인 주차칸을 옆 주차열에 맞춘다고 옮기다 순환 차로를 막고, 비스듬한 조감도에서 칸만 수평으로 세워 오히려 주변과 어긋나게 만들었습니다. 틀리면 도면과 함께 **통째로 다시 그리게** 하는 편이 확실합니다
 
-## 도면과 대조 (GPT 3회차)
+## 도면과 대조 (GPT 4회차)
 
 | 도면(성운 답안) | 결과 |
 | --- | --- |
@@ -20,9 +21,10 @@
 | 장애인 주차 8칸 — 3번째 열 동쪽, 그 열 위쪽 칸과 같은 줄, 북쪽 차로로 열림 | ✓ |
 | 서측 보행로 + 주차 1줄, 북 · 서측 12m 상록 차폐 띠, 남 · 동측 6m 가로수 | ✓ |
 | 북서 휴게광장(퍼걸러 2 · 격자 수목보호대), 북측 화장실, 주차관리소 북동 · 남서 | ✓ |
+| 북동 차량 진출입구 — 동측 광로에서 녹지대 · 보도를 끊고 들어오는 진입로, 그 북쪽 보행 진출입구 | ✓ (4회차에 고침) · 초소가 도면의 출입구 남쪽이 아니라 진입로 가운데(양쪽 차단기)에 섰습니다 |
 | 남동 광장 — 장애인 주차 아래 녹지대(교목 6 · 정원등 3), 벤치 3 + 휴지통 · 음수대 + 벤치 3 | ✓ |
 | 남동 광장 — 직각삼각형 화단(위 벤치 3 · 왼쪽 벤치 3), 북동 · 남서 모서리 체크무늬 포장 | ✓ |
-| 남동 광장 서측 볼라드 5 | **7개** — 두 번 요구했으나 안 줄었습니다 |
+| 남동 광장 서측 볼라드 5 | **6개** — 세 번 요구해 7 → 6 |
 | 북측 주거지 · 서측 상업지 · 남 · 동측 광로, 글자 없음 | ✓ |
 
 비용은 GPT 3장 약 $0.12, 제미나이 2장 약 $0.26 입니다.
@@ -85,6 +87,18 @@
     4. The stone bollards along the west edge of the plaza: EXACTLY 5, evenly spaced.
 
     Nothing else changes. Photorealistic landscape-architecture visualization. Do NOT write any text, letters, numbers, labels or signs.
+
+## 4회차 프롬프트 — GPT (참고: 시설물배치도 · 3회차 그림)
+
+    The FIRST attached image is the facilities plan of a parking park (north is up). The SECOND attached image is a 3D rendering of it that is correct in layout and camera. Reproduce the second image EXACTLY — same camera, perspective, parking rows, trees, buildings, plazas, roads, subway entrance, lighting — and change ONLY the north-east corner as follows:
+
+    1. VEHICLE ENTRANCE / EXIT on the EAST edge, near the north-east corner (as in the plan): the asphalt driveway must cut straight through the east planting strip and the sidewalk and connect to the east boulevard with a dropped curb — a clear two-lane opening about 8 m wide, with the parking attendant booth (4 x 4 m) standing on the SOUTH side of this opening and a barrier arm across the driveway. Right now the east strip and sidewalk are continuous and no car can enter from the east road — open them up. Cars should be able to drive in from the boulevard onto the ring aisle.
+
+    2. Directly NORTH of that vehicle entrance, where the pedestrian path along the north edge reaches the east sidewalk: a separate narrow PEDESTRIAN opening (about 3 m) through the planting strip, paved with the same interlocking blocks as the north path, no gate.
+
+    3. Also make the stone bollards along the west edge of the south-east plaza EXACTLY 5 (currently 7): remove two.
+
+    Nothing else changes — the south-west vehicle entrance and its booth stay as they are. Photorealistic landscape-architecture visualization. Do NOT write any text, letters, numbers, labels or signs.
 
 ## 제미나이 프롬프트 (1회차는 GPT 1회차의 앞선 판과 같고, 2회차는 아래)
 
