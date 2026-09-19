@@ -1,8 +1,9 @@
 {
   "title": "생태 공원",
   "source": "My",
-  "order": 3,
+  "order": 0,
   "captions": {
+    "0_grid.jpg": "모눈종이 작성 도면 · 시설배치도 (그리드 10m, P 기준점)",
     "1_concept.jpg": "답안지 I · 설계개념도 (1/300)",
     "2_plan.jpg": "답안지 II · 기본설계도 (1/300)",
     "3_planting.jpg": "답안지 III · 배식설계도 (1/300)"
