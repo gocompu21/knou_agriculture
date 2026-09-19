@@ -211,3 +211,40 @@
 > - 습지 쪽 수종이 **딱 10종**입니다. 한 종이라도 빠지면 조건 미달이니 12종쯤 그려 두는 편이 안전합니다.
 > - **'줄'은 문제지 〈보기〉에 이름이 없습니다**(보기는 "… 메타세쿼이아 **등**"으로 열려 있어 인정될 여지는 있습니다). 굳이 위험을 질 필요가 없다면 보기에 있는 **골풀**로 바꾸는 편이 낫습니다.
 > - 관목 수량이 성운 답안보다 많습니다(진달래 850 vs 240 · 철쭉 450 vs 540). 수량은 심은 면적과 맞아야 하니, 도면의 관목 띠 넓이로 되짚어 보세요.
+
+## 내 도면 조감도 (GPT)
+
+위 사진의 **마지막 장**입니다. 성운 답안이 아니라 **위 모눈종이 도면(SVG)의 좌표대로** 만든 조감도입니다 — 남동쪽 상공에서 본 모습이고 북쪽이 그림 위입니다.
+SVG 좌표로 모눈·글자·보조선을 뺀 **색 배치도**(물 파랑 · 관찰로 갈색 · 데크 주황 · 포장 베이지 · 수림 녹색)를 따로 그려 매 회차 첫 참고 그림으로 주고, 회차마다 도면과 대조해 **6회차**까지 고쳤습니다.
+
+| 회차 | 고친 것 |
+| --- | --- |
+| 1 | 배치는 처음부터 거의 맞음. 진입로 동쪽에도 메타세쿼이아 열 · 포장 가장자리 목책 · 평평한 마운딩 · 모임광장 안내판 2개 |
+| 2 | 위 넷을 고침. 대신 서쪽 데크가 사라지고(4개) 진입광장 안내판이 없어짐 |
+| 3 | 진입광장 안내판 · 남측 광장 직사각형. 데크 자리에 안내판만 서고 돌출이 없음 |
+| 4 | "데크는 발코니처럼 튀어나온 것"이라고 정의해 서쪽 · 남쪽 데크를 고침 |
+| 5 | 남서 데크를 대각선 변 중간, **숲 쪽 바깥**으로 — 데크 5개 제자리. 회차가 쌓여 화질이 흐려짐 |
+| 6 | 배치는 5회차 그대로, 화질은 1회차 기준으로 새로 렌더 |
+
+**도면과 맞는 것** — 실개천(북) · 기존수림(서 · 남서) · 도로와 주택(동, 남쪽은 동쪽 절반만) / 북서 저수지와 남동 물가의 조류관찰소 / 습지를 두르는 각진 관찰로와 관찰데크 5(남서 것은 숲 쪽) / 모임광장(수목보호대 1 · 안내판 3) / ㄱ자 진입로 / 진입광장 2곳(수목보호대 2 · 안내판 1씩) / 휴게공간 45° 입구 · 파고라 1 · 평의자 2 · 휴지통 / 진입로 서쪽 메타세쿼이아 열 / 진입로 동쪽의 남북으로 긴 마운딩(소나무 · 철쭉) / 도로변 은행나무.
+
+**남은 차이** — 습지 연못의 '모래주머니' 허리가 뚜렷하지 않음 · 시점이 45°보다 가파름(55~60°) · 북동 변 데크가 꼭짓점 쪽으로 치우침 · 관찰로 서쪽 꼭짓점이 조금 북쪽 · 남측 진입광장 앞 도로변에 은행나무가 이어져 열린 느낌이 약함 · 구역 A 북단에 도면에 없는 소나무 서너 그루. 비용은 6장 약 \/usr/bin/bash.25.
+
+### 프롬프트 — 마지막 회차(6회차, 참고: 색 배치도 + 5회차 그림 + 1회차 그림)
+
+    The FIRST image is the authoritative colour-coded site plan (top-down, north up) of a small ecological park. The SECOND image is a bird's-eye rendering whose LAYOUT IS NOW CORRECT: every object in it is in the right place. Its only defect is image quality: it has become soft, blurry, waxy and too orange after several revisions. The THIRD image is an earlier version and is given ONLY as a reference for the desired image quality: crisp, sharp, finely detailed foliage, natural green colours, clean photorealistic textures, gentle warm late-afternoon light (not an orange cast). Do NOT take any layout from the third image.
+
+    TASK: Re-render the SECOND image as a fresh, sharp, high-detail photorealistic aerial visualisation with the image quality and colour balance of the third image. Same camera, same framing, same composition, and the same position, size, shape and count of every object as in the SECOND image. Change nothing in the layout.
+
+    Checklist of what must be identical to the second image:
+    - rocky stream along the top with wooded hillside beyond; dense natural forest filling the whole left side and lower-left corner; asphalt road along the whole east side; a south road only along the eastern half of the south side; grey-roofed houses beyond the roads.
+    - large natural reservoir pond upper-left with willows, reeds and shoreline stones; small irregular wetland pond in the centre of the marsh with reeds, cattails and stones.
+    - the timber boardwalk with wooden rails forming one closed ANGULAR polygon ring around the marsh, both east ends joining the paved gathering plaza.
+    - EXACTLY 1 small roofed wooden bird-watching hut at the reservoir's south-east shore, attached to the boardwalk.
+    - EXACTLY 5 small timber viewing platforms (balcony-like bump-outs with rails and one blank sign each): (a) north side of the north-west segment over the reservoir shore, (b) inner side of the north-east segment near the hut, (c) inner side of the west segment, (d) OUTER side of the south-west diagonal segment, toward the forest, (e) inner side of the south side, north-west of the pergola. The south side of the boardwalk near the south-west corner has NO platform.
+    - small sand-coloured rest area south-east of the ring with EXACTLY 1 timber pergola, 2 flat benches on its west side and 1 litter bin.
+    - block-paved gathering plaza with 1 tree in a grate and 3 blank boards on its west edge; paved strip east to the east entrance plaza (2 trees in grates, 1 blank board); straight 5 m paved path south to the south entrance plaza (2 trees in grates, 1 blank board).
+    - a single row of tall conical dawn redwoods on the WEST side of the north-south path only; open mown lawn on its east side with one long low raised grassy MOUND (north-south axis) carrying 4 pines and a few azaleas; single rows of yellow-green ginkgo trees along the east road and the south road.
+    - newly planted mixed woodland with flowering shrubs south of the ring.
+
+    STRICT RULES: no new buildings, paths, plazas, bridges, fences or car parks; all boards blank; no text, letters, numbers, labels, grid lines or arrows anywhere; photorealistic 3D, no flat plan colours.
