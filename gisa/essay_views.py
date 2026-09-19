@@ -870,7 +870,7 @@ def drawing_ref_update(request, cert_id, ref_id):
 
     if 'content' in data:
         content = str(data['content']).strip()
-        if len(content) > 40000:
+        if len(content) > 120000:          # SVG 도면이 든 자료는 5~6만 자다(401 My)
             return JsonResponse({'ok': False, 'error': '자료가 너무 깁니다.'}, status=400)
         ref.content = content
     if 'source' in data:
