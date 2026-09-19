@@ -1,5 +1,5 @@
 {% comment %}기출 도면 자료 한 벌 — 투표 줄 아래(essay_work 기출분석 탭)와 남은 자료 목록이 함께 쓴다{% endcomment %}
-<div class="dw-pane{% if idx == 0 %} on{% endif %}" data-pane="{{ idx }}" data-ref="{{ t.ref.pk }}">
+<div class="dw-pane{% if idx == 0 %} on{% endif %}{% if t.name == '조감도' %} bv{% endif %}" data-pane="{{ idx }}" data-ref="{{ t.ref.pk }}">
     {% if request.user.is_staff %}
     <div class="dw-edit">
         <button type="button" class="dw-edit-btn" data-act="edit">✎ 수정</button>

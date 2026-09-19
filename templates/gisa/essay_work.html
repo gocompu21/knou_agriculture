@@ -213,6 +213,8 @@
     .dw-body { display: none; padding: 10px 16px 16px; border-top: 1px solid #e3e9e4; }
     .dw.open .dw-body { display: block; }
     .dw-body .tk-imgs { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); margin-bottom: 12px; }
+    /* 조감도 탭 — 그림이 곧 내용이라 한 장을 폭 가득(두 장이면 나란히) 보인다 */
+    .dw-pane.bv .tk-imgs { grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr)); }
     .dw-subs { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 12px; }
     .dw-sub { font-size: 0.82rem; font-weight: 800; color: #2d6a4f; background: #eef4f0;
               border: 1px solid #cdd8d0; border-radius: 999px; padding: 5px 14px; cursor: pointer; }
