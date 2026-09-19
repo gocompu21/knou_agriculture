@@ -200,21 +200,11 @@
     .note-img-wrap { display: block; position: relative;
                      width: fit-content; max-width: min(100%, 520px);
                      line-height: 0; margin: 10px auto; }
+    /* 그림 자체를 누르면 크게 본다 (모서리 + 단추는 걷어냈다) */
     .content-box img.note-img {
         display: block; max-width: min(100%, 520px); height: auto;
-        border-radius: 6px; border: 1px solid #e3e3e3;
+        border-radius: 6px; border: 1px solid #e3e3e3; cursor: zoom-in;
     }
-    .note-img-zoom {
-        position: absolute; top: 6px; right: 6px; width: 26px; height: 26px;
-        border: none; border-radius: 6px; background: rgba(27, 67, 50, .72); color: #fff;
-        font-size: 1.05rem; font-weight: 700; line-height: 1; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        opacity: 0; transition: opacity .15s;
-    }
-    .note-img-wrap:hover .note-img-zoom { opacity: 1; }
-    .note-img-zoom:hover { background: rgba(27, 67, 50, .92); }
-    /* 손가락으로 쓰는 화면에는 hover 가 없다 — 늘 보인다 */
-    @media (hover: none) { .note-img-zoom { opacity: .85; } }
 
     /* 크게 보기 */
     .note-lightbox {
@@ -2443,8 +2433,10 @@
     })();
 
     /* 노트 이미지 크게 보기 — 인포그래픽은 글씨가 작아 원본 크기로 봐야 읽힌다 */
-    window.noteZoom = function(btn) {
-        var img = btn.parentElement.querySelector('img');
+    /* 그림을 직접 넘겨받는다. 예전 마크업(모서리 + 단추)도 받아 준다 —
+       파싱 결과가 캐시에 남아 있을 수 있다 */
+    window.noteZoom = function(el) {
+        var img = el.tagName === 'IMG' ? el : el.parentElement.querySelector('img');
         if (!img) return;
         var box = document.createElement('div');
         box.className = 'note-lightbox';

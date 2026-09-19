@@ -75,12 +75,13 @@ def parse_note_chapters(content, subject_pk, cache_version=None):
         body = re.sub(r"\*\*관련 문제\*\*:.*", "", text, flags=re.DOTALL).strip()
         body = re.sub(r"\*\*관련 기출문제\*\*.*", "", body, flags=re.DOTALL).strip()
         body = re.sub(r"\*\*핵심 정리\*\*", "", body)
-        # 이미지: ![설명](url) → <img>. 확대 버튼을 모서리에 붙이려면 감싸는 칸이 있어야 한다
+        # 이미지: ![설명](url) → <img>. **그림을 누르면 크게 본다** — 모서리에 + 단추를
+        # 두었다가 겨냥하기 번거롭다는 지적에 걷어냈다. 감싸는 칸은 그대로 둔다
+        # (아래 문단 판정이 `<span class="note-img-wrap">` 꼴을 본다)
         body = re.sub(
             r"!\[([^\]]*)\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)",
-            r'<span class="note-img-wrap"><img class="note-img" src="\2" alt="\1">'
-            r'<button type="button" class="note-img-zoom" title="크게 보기" '
-            r'onclick="noteZoom(this)">+</button></span>', body)
+            r'<span class="note-img-wrap"><img class="note-img" src="\2" alt="\1" '
+            r'title="눌러서 크게 보기" onclick="noteZoom(this)"></span>', body)
         # WYSIWYG 편집기가 넣는 마크다운 이스케이프(\~ \_ \* 등) 제거. 표 구분자 \| 는 보존
         body = body.replace("\\|", "&#124;")
         body = re.sub(r"\\([~_*#\[\]()!<>\-.`])", r"\1", body)
