@@ -1332,6 +1332,13 @@ PREFIX_MAP = {
 `_q` 프로퍼티에 둔다(따옴표 이스케이프 회피). `notes_study` 뷰(학습모드 전체 화면)는
 남아 있지만 이 탭에서는 더 쓰지 않는다.
 
+**학명은 이탤릭으로 자동 변환한다**(`_nqSci`, 2026-09). 해설·문제·보기의 `속명 + 종소명` 을
+`<i>` 로 감싼다 — `Trifolium repens L.` → *Trifolium repens* L. **명명자(L. · P. BEAUV. · Ohwi)와
+계급 표기(var. · subsp. · f.)는 정자**이고, `var.` 뒤의 소명은 다시 이탤릭이다. 속명은 '대문자 +
+소문자 둘 이상'이라 IUCN·LAI 같은 약어는 안 걸리지만, `Bordeaux mixture` 처럼 영어 두 낱말이
+걸릴 수 있어 뒷말이 흔한 영어 명사면 건너뛴다(`_NQ_NOTSP`). **이스케이프 뒤에** 부르므로
+`<i>` 를 넣어도 안전하다. 서버가 렌더하는 화면(학습모드·오답노트·채점결과)에는 아직 없다.
+
 기사시험 필기 상세(`certification_detail ?tab=textbook`)도 같다. `_chapter_body.html` 의
 "이 절의 문제 학습하기" 버튼이 `api_textbook_questions`(`/gisa/<id>/textbook/questions/?ref=YYYY-R-N&…`)
 로 `_note_questions.html` 카드 HTML(qtext·이미지·vurl 적용, 최신기출 제외)을 받아 `.nq-list` 에

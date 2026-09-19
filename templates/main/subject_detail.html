@@ -2775,6 +2775,28 @@
     function _nqEsc(s) {
         return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
+    /* 학명(이명법)은 이탤릭으로 — 속명 + 종소명만이고, **명명자와 계급 표기는 정자**다.
+       Trifolium repens L.            → <i>Trifolium repens</i> L.
+       Echinochloa crus-galli (L.) P. BEAUV. var. praticola Ohwi
+                                      → <i>Echinochloa crus-galli</i> (L.) … var. <i>praticola</i> Ohwi
+       속명은 '대문자 + 소문자 둘 이상'이라 IUCN·LAI 같은 약어는 걸리지 않고, 종소명은
+       소문자로만 시작한다. 그래도 'Bordeaux mixture' 처럼 영어 두 낱말이 걸릴 수 있어
+       뒷말이 흔한 영어 명사면 건너뛴다(_NQ_NOTSP). 이스케이프 뒤에 부르므로 태그는 안전하다. */
+    var _NQ_NOTSP = /^(mixture|method|methods|model|models|test|tests|index|value|values|effect|effects|law|laws|code|chart|charts|scale|cycle|curve|curves|point|points|line|lines|class|classes|type|types|group|groups|level|levels|unit|units|table|tables|list|lists|form|forms|rate|rates|area|areas|zone|zones|site|sites|acid|water|number|numbers|factor|factors|system|systems|process|theory|series|phase|state|stage|score|range|ratio|color|colour|paper|plate|filter|buffer|medium|agar|broth|and|or|of|in|on|for|with|the|a|an)$/;
+    function _nqSci(s) {
+        // 속명 + 종소명 (crus-galli 처럼 붙임표 포함). 앞뒤가 라틴 글자면 건드리지 않는다
+        s = s.replace(/(^|[^A-Za-z<>/])([A-Z][a-z]{2,})\s+([a-z][a-z-]{2,})(?![A-Za-z])/g,
+            function (m, pre, genus, sp) {
+                return _NQ_NOTSP.test(sp) ? m : pre + '<i>' + genus + ' ' + sp + '</i>';
+            });
+        // var. / subsp. / ssp. / f. / cv. 뒤의 소명도 이탤릭 (계급 표기 자체는 정자)
+        s = s.replace(/\b(var|subsp|ssp|f|cv)\.\s+([a-z][a-z-]{2,})(?![A-Za-z])/g,
+            function (m, rank, sp) {
+                return _NQ_NOTSP.test(sp) ? m : rank + '. <i>' + sp + '</i>';
+            });
+        return s;
+    }
+    function _nqTxt(s) { return _nqSci(_nqEsc(s)); }
     /* 학습모드(exam/study_mode.html)의 카드 마크업을 그대로 따른다:
        "N. 문제 [YYYY년 N번]" → 원번호 보기, 보기마다 해설(↪)이 접혀 있다가 선택 시 펼쳐진다 */
     function _nqRender(list, questions) {
@@ -2789,15 +2811,15 @@
                 var exp = (q.choice_exps || [])[i];
                 var expHtml = exp
                     ? '<div class="nq-exp' + (answers.indexOf(n) >= 0 ? ' correct-exp' : '') + '">'
-                      + '<span class="exp-arrow">↪ </span><span class="exp-text-inner">' + _nqEsc(exp) + '</span></div>'
+                      + '<span class="exp-arrow">↪ </span><span class="exp-text-inner">' + _nqTxt(exp) + '</span></div>'
                     : '';
                 return '<div class="nq-choice" onclick="nqPick(this, ' + n + ')">'
                      +   '<span class="nq-num" data-choice="' + n + '">' + n + '</span>'
-                     +   '<div class="nq-ctext">' + _nqEsc(c) + expHtml + '</div>'
+                     +   '<div class="nq-ctext">' + _nqTxt(c) + expHtml + '</div>'
                      + '</div>';
             }).join('');
             return '<div class="nq-card" data-pk="' + q.pk + '" data-answer="' + _nqEsc(q.answer) + '">'
-                 +   '<div class="nq-q">' + (qi + 1) + '. ' + _nqEsc(q.text)
+                 +   '<div class="nq-q">' + (qi + 1) + '. ' + _nqTxt(q.text)
                  +     '<span class="nq-badge">' + (q.label ? _nqEsc(q.label) : q.year + '년 ' + q.number + '번') + '</span></div>'
                  +   '<div class="nq-choices">' + choices + '</div>'
                  + '</div>';
