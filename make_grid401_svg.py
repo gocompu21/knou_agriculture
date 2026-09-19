@@ -9,7 +9,7 @@ import math
 import sys
 
 sys.stdout.reconfigure(encoding='utf-8')
-INK, AUX, BLUE = '#111', '#5f6672', '#2b4a9b'
+INK, AUX, BLUE = '#111', '#a3a9b3', '#2b4a9b'
 out = []
 A = out.append
 
@@ -110,7 +110,7 @@ for y in range(-5, 66, 5):
 text(45, -7.6, '생태공원401', 1.7, BLUE, weight=500)
 
 # ───────────────────────── 2. 보조선(가늘게 그대로) ─────────────────────────
-AW = 0.11
+AW = 0.06
 for x in range(10, 90, 10):
     pl([(x, -1.5), (x, 61.5)], AW, AUX)
 for y in range(10, 60, 10):
