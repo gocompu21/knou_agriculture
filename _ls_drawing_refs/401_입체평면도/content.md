@@ -1,5 +1,5 @@
 'My' 탭의 색 배치도와 '성운' 탭의 **기본설계도 · 배식설계도**를 GPT 이미지 모델
-(gpt-image-2.5-sunburst)에 주고 만든 **입체평면도**입니다(7회차).
+(gpt-image-2.5-sunburst)에 주고 만든 **입체평면도**입니다(10회차).
 
 '조감도' 탭과 달리 **원근이 없는 평행투영(축측투영)** 입니다. 멀리 있는 것도 가까이 있는 것과
 같은 크기로 그려지므로 **평면도와 그대로 견주어 볼 수 있습니다** — 주택 여덟 채가 모두 같은
@@ -26,27 +26,38 @@
    (5회차). 대신 모임광장의 수목보호대 한 개가 사라졌습니다
 6. 수목보호대를 되살리고, 포장 위에 서 있던 메타세쿼이아를 옆 잔디로 옮기고, 시설마다
    앞면과 그림자가 보이도록 했습니다(6회차)
-7. 마지막으로 도면과 대조하니 **기존수림이 오른쪽으로 너무 자라** 저수지를 동쪽으로 밀어내고
-   관찰로 서쪽 잔디를 덮고 있었습니다. 수림 경계를 왼쪽으로 당기고 저수지를 서쪽으로
-   되돌렸습니다(7회차)
+7. 도면과 대조하니 **기존수림이 오른쪽으로 너무 자라** 저수지를 동쪽으로 밀어내고 관찰로 서쪽
+   잔디를 덮고 있었습니다. 수림 경계를 왼쪽으로 당기고 저수지를 서쪽으로 되돌렸습니다(7회차).
+   여기서 시설·수목·투영은 모두 도면과 맞았고, 서쪽 절반이 6~7%쯤 동쪽으로 밀린 것만 남았습니다
+8. 남은 비율을 **"수림 동단은 부지 폭의 12% 지점 · 남측 도로는 50%에서 시작 · 저수지는 14~44%"**
+   라는 백분율로 못박아 새로 렌더했습니다(8회차). **하나도 반영되지 않았습니다** — 앞 회차 그림을
+   참고로 주면 모델이 그 구도를 그대로 베낍니다
+9. 그래서 앞 회차 그림을 **"시점·질감·물체 모양만 보고 위치·크기는 절대 가져오지 마라"** 로 돌리고
+   좌표를 더 촘촘히 적어 보았습니다(9회차). 이것도 구도가 그대로였습니다.
+   **모델은 백분율·좌표로 배치를 옮기지 못합니다**
+10. 마지막으로 **비율이 아니라 "무엇을 지워라"** 로 바꿔 적었습니다(10회차) — "관찰로 서쪽과
+    저수지 서쪽의 열린 땅에서 나무를 모두 지우고 빈 잔디로 둘 것, 짙은 수림은 왼쪽 가장자리의
+    좁은 띠뿐, 빽빽한 숲은 관찰로 아래쪽에만". **이번에는 한 번에 고쳐졌습니다.**
+    서쪽이 도면처럼 열린 잔디가 되고 저수지와 관찰로가 그만큼 서쪽으로 물러났습니다
 
-> 회차마다 색 배치도와 배식설계도를 첫 두 참고 그림으로 다시 주고, 앞 회차 그림을 셋째로 주어
-> "나열한 것만 고치고 나머지는 그대로"라고 못박습니다. 마스크 부분 수정이나 그림을 손으로
-> 자르고 돌리는 일은 하지 않습니다.
+> 회차마다 색 배치도와 배식설계도를 첫 두 참고 그림으로 다시 주고, 앞 회차 그림을 셋째로 줍니다.
+> 마스크 부분 수정이나 그림을 손으로 자르고 돌리는 일은 하지 않습니다.
 
-**평행투영은 말로만 시켜서는 안 됩니다.** "원근 없이"라고만 하면 1회차처럼 은근한 투시가
-남습니다. "부지가 사다리꼴이 아니라 평행사변형이다 · 도로 띠 폭이 위아래로 같다 · 주택이 모두
-같은 크기다"처럼 **재서 확인할 수 있는 조건**으로 바꿔 적어야 고쳐집니다. 반대로 시점 각도는
-말로는 안 움직이고 **"깊이를 몇 %로 줄여라"** 라야 움직입니다.
+**투영은 재서 확인할 수 있는 조건으로, 배치는 "무엇을 지워라"로 적어야 합니다.**
+"원근 없이"라고만 하면 1회차처럼 은근한 투시가 남습니다 — "부지가 사다리꼴이 아니라 평행사변형이다 ·
+도로 띠 폭이 위아래로 같다 · 주택이 모두 같은 크기다"처럼 바꿔 적어야 고쳐집니다. 시점 각도도
+말로는 안 움직이고 **"깊이를 몇 %로 줄여라"** 라야 움직입니다. 그런데 **배치는 백분율이 통하지
+않습니다**(8·9회차 연속 실패) — 모델은 "부지 폭의 12% 지점"을 재지 못합니다. 대신
+**"이 땅의 나무를 지우고 빈 잔디로 둬라"** 처럼 무엇을 그리고 무엇을 지울지로 적으면 한 번에 됩니다.
 
-## 도면과 대조 (7회차)
+## 도면과 대조 (10회차)
 
 | 항목 | 도면 | 그림 |
 | --- | --- | --- |
-| 투영 | 평행투영(축측투영) | ✓ 도로 띠 폭 70~82px 로 일정 · 모형 왼쪽 변이 730px 내려가는 동안 17px(1.3°) · 주택 8채가 같은 크기 |
-| 부지 | 90m × 60m 직사각형 | ✓ 폭 1,302px(14.5px/m) · 깊이는 0.71 로 줄어 있음(약 45° 올려봄) |
-| 주변 | 위 실개천, 왼쪽·아래왼쪽 야산과 기존수림, 오른쪽 6m 도로와 주택가, 아래 오른쪽 절반에 6m 도로 | ✓ (7회차에 수림 경계를 당김) |
-| 저수지구 | 왼쪽 위, 실개천에 붙은 자연형 연못 · 버드나무 · 부들·갈대 | ✓ (7회차에 서쪽으로 되돌림) |
+| 투영 | 평행투영(축측투영) | ✓ 도로 띠 폭 70~74px 로 일정 · 모형 왼쪽 변이 730px 내려가는 동안 18px(1.4°) · 주택 8채가 같은 크기 |
+| 부지 | 90m × 60m 직사각형 | ✓ 폭 1,316px(14.6px/m) · 깊이는 0.71 로 줄어 있음(약 45° 올려봄) |
+| 주변 | 위 실개천, 왼쪽·아래왼쪽 야산과 기존수림, 오른쪽 6m 도로와 주택가, 아래 오른쪽 절반에 6m 도로 | ✓ (7·10회차에 수림을 왼쪽 좁은 띠로 당김) |
+| 저수지구 | 왼쪽 위, 실개천에 붙은 자연형 연못 · 버드나무 5 · 부들·갈대 | ✓ (10회차에 서쪽으로 물러남) |
 | 조류관찰소 | 저수지 남동 물가, 관찰로에 붙어 1개소 | ✓ 1개 — 지붕 아래 앞벽과 기둥이 보임 |
 | 습지지구 | 가운데, 자연형 호안의 작은 연못 · 갈대·부들·돌 | ✓ |
 | 관찰로 | 목재데크, 습지를 다각형으로 한 바퀴 돌아 모임광장에서 닫힘 | ✓ 닫힌 고리 · 데크 옆면·난간·하부 기둥·그림자까지 |
@@ -55,35 +66,56 @@
 | 모임광장 | 습지 동쪽, 서쪽 안내판 3 · 수목보호대 1 | ✓ (안내판은 2회차, 보호대는 6회차에 고침) |
 | 진입광장 | 2개소(북동 모서리 · 남측), 종합안내판 1 · 수목보호대 2씩, 도로로 바로 열림 | ✓ 보호대 합계 5개(모임광장 1 + 진입광장 2+2) |
 | 남북 동선 | 두 진입광장을 잇는 소형고압블록 포장 | ✓ 동측 도로와 평행 |
-| 배식 | 동선 서쪽 메타세쿼이아 열식 · 동쪽 마운딩에 소나무 7 + 철쭉 · 도로변 은행나무 열식 · 산림지구 다층림 | ✓ (4·5·6회차에 고침 — 한 줄로, 포장 아닌 잔디 위에) |
+| 배식 | 동선 서쪽 메타세쿼이아 열식 · 동쪽 마운딩에 소나무 7 + 철쭉 · 도로변 은행나무 열식 · 산림지구 다층림 · 저수지·관찰로 서쪽은 열린 잔디 | ✓ (4·5·6·10회차에 고침 — 한 줄로, 포장 아닌 잔디 위에, 서쪽은 비움) |
 | 글자 | 없음 | ✓ |
 
-비용은 7장 약 $0.29 입니다.
+남은 차이는 **저수지가 도면보다 조금 동쪽·넓다**는 것(도면 부지 폭의 14~44%, 그림 약 19~50%)과
+**남측 도로가 55% 지점에서 시작**한다는 것(도면 50%)입니다.
 
-## 프롬프트 — 마지막 회차(7회차, 참고: 색 배치도 + 배식설계도 + 6회차 그림)
+비용은 10장 약 $0.41 입니다.
 
-앞 회차 그림을 함께 주고 "그것만 고치고 나머지는 그대로"라고 한 것입니다. 1~6회차 프롬프트는 뺐습니다.
+## 프롬프트 — 마지막 회차(10회차, 참고: 색 배치도 + 배식설계도 + 7회차 그림)
 
-    The FIRST attached image is the authoritative colour-coded site plan (top-down) of a small Korean ecological park, 90 m x 60 m. The SECOND attached image is the hand-drawn planting plan of the same site. The THIRD attached image is an axonometric model of that site. Its CAMERA ANGLE, PARALLEL PROJECTION, STYLE, LIGHTING, FRAMING and every built element are CORRECT — keep all of them and do not move the camera.
+앞 회차 그림을 함께 주고 "무엇을 지울지"만 적은 것입니다. 1~9회차 프롬프트는 뺐습니다.
 
-    One thing is wrong: in the third image the dark EXISTING FOREST on the left has grown too far to the right, and it has pushed the reservoir to the right with it. Compare with the first image.
+    The FIRST attached image is the authoritative colour-coded site plan (top-down) of a small Korean ecological park. The SECOND attached image is the hand-drawn planting plan. The THIRD attached image is an axonometric model of the same park: copy its CAMERA, its PARALLEL PROJECTION, its MODEL STYLE, its LIGHTING and the three-dimensional shape of every object.
 
-    FIX — PULL THE LEFT-HAND FOREST BACK AND MOVE THE RESERVOIR BACK WEST.
-    1. In the first image, at half the depth of the site, the dark existing forest occupies only about the LEFT ONE EIGHTH of the site's width; in the third image it occupies almost a third. Pull its ragged edge back to the LEFT so it again takes only the left one eighth at half depth. The forest still widens as it goes down, filling about the left third at the very bottom of the site, and it still runs off the left side of the slab.
-    2. The strip freed by the forest becomes open light-green grass, so that there is a clear band of open grass between the forest edge and the WEST side of the timber boardwalk ring — the boardwalk must not be pressed against the trees.
-    3. Move the RESERVOIR back to the WEST and make it a little narrower, so that it sits in the upper-LEFT quarter of the site as it does in the first image: its west shore close to the forest edge, and its east shore no further right than about the middle of the site's width. It still touches the stream, and the bird-watching hut still stands on its lower-right shore attached to the boardwalk.
-    4. The stream still crosses the whole top of the site from left to right and passes behind the reservoir.
+    Render this fresh and sharp. Keep the third image's composition and every one of its objects, and make ONE change.
 
-    NOTHING ELSE MOVES. The boardwalk ring, the wetland pond, the rest area, the gathering plaza, both entrance plazas, the straight path, the mound, the roads and the houses all stay exactly where they are, at exactly their present size.
+    THE ONE CHANGE — CLEAR THE TREES OUT OF THE WESTERN LAWN.
+    Look at the left half of the third image: a dense mass of trees runs from the left edge across almost a third of the park and presses right up against the west side of the timber boardwalk ring and against the west shore of the reservoir.
 
-    THE PROJECTION MUST STAY EXACTLY AS IT IS:
-    - PARALLEL projection only. NO perspective, NO vanishing point, NO convergence anywhere.
-    - The ground slab keeps exactly its present width, depth and foreshortening. Its far and near edges stay exactly HORIZONTAL and parallel; its left and right edges stay exactly VERTICAL and parallel. It is NOT wider at the near edge than at the far edge.
-    - Every line running far-to-near in the plan — the right-hand road, the straight path, the dawn redwood row, the ginkgo row, the long mound — runs in one single direction and never converges with the others. Every line running left-to-right — the stream, the bottom road, the plaza kerbs — runs in one single other direction.
-    - An object near the bottom of the picture is exactly the same size as the identical object near the top.
-    - All vertical edges exactly vertical in the picture and exactly parallel to one another.
-    - Same orientation: stream and reservoir at the TOP, dense forest on the LEFT and lower left, road and houses on the RIGHT, second road and houses along the BOTTOM RIGHT. Do not rotate, flip, zoom or mirror.
+    In the first image that ground is NOT wooded. It is plain light-green mown grass. The dark woodland there is only a NARROW STRIP down the very left edge of the park — about as wide as the reservoir is tall, no wider.
 
-    EVERYTHING ELSE IS ALREADY CORRECT AND MUST BE REPRODUCED UNCHANGED: the reservoir's willows, reed beds and shoreline stones; the wetland pond with its reeds and stones; one closed angular timber boardwalk ring with EXACTLY 5 viewing platforms, each carrying one blank board; EXACTLY 1 bird-watching hut; the rest area with EXACTLY 1 pergola, 2 benches, 1 litter bin and its shade trees; the gathering plaza with EXACTLY 3 blank boards along its left edge and 1 tree in a square grate; the top-right entrance plaza with 2 trees in grates and 1 blank board; the bottom entrance plaza with 2 trees in grates and 1 blank board; five tree grates in all; the single row of about 12 dawn redwoods standing on grass beside the straight path; the long mound east of the path with 7 pines and azalea masses; the single ginkgo row inside the right-hand road continuing inside the bottom road; the multi-layered new woodland in the lower middle; the bottom road along the right half of the bottom edge only; the crisp site boundary; the shadows and the visible near-facing sides of every object.
+    So: DELETE the trees from the open ground between that narrow left-edge strip and the boardwalk ring, and between the strip and the reservoir. Leave plain, empty, light-green mown grass there — no canopy, no shrub masses, no flowering bushes. At most three or four isolated single specimen trees standing well apart on the open lawn, as the first image shows. The result must read as a broad open meadow wrapping round the west of the reservoir and the west and south-west of the boardwalk ring.
 
-    STRICT RULES: no new buildings, plazas, paths, bridges, fences, walls or car parks; every board and sign stays blank; NO text, letters, numbers, labels, legends, arrows, north arrow, scale bar, grid lines, dimension lines or watermark anywhere; no sky, no horizon, plain neutral background.
+    Then let the reservoir and the boardwalk ring sit further WEST, in the room the trees have given up, so the reservoir's west shore comes close to the narrow left-edge strip. Everything east of the boardwalk ring — the gathering plaza, the straight path, the mound, the entrance plazas, the roads, the houses — stays exactly where it is.
+
+    Two related corrections:
+    - The DENSE WOODLAND belongs in the LOWER LEFT and the LOWER MIDDLE, below the boardwalk ring, where it is the newly planted multi-layered woodland merging into the existing forest. It may fill the bottom-left third. It must NOT climb up the left side past the reservoir.
+    - The 6 m road along the bottom edge begins at the MIDDLE of the bottom edge and runs to the bottom-right corner, covering the whole right half. In the third image it begins too far right.
+
+    CAMERA AND PROJECTION — copy from the third image exactly:
+    - PARALLEL (axonometric) projection. NO perspective, NO vanishing point, NO convergence anywhere.
+    - The ground slab is a rectangle seen from 45 degrees above, its DEPTH foreshortened to 0.71 of true, exactly as in the third image. Nothing rotated: far and near edges exactly HORIZONTAL and parallel, left and right edges exactly VERTICAL and parallel, and the slab NOT wider at its near edge than at its far edge.
+    - Every line running far-to-near runs in one single direction and never converges with the others; every line running left-to-right runs in one single other direction.
+    - An object near the bottom of the picture is exactly the same size as the identical object near the top: all houses the same size, all ginkgos in a row the same size, all paving blocks the same size. All vertical edges exactly vertical and parallel.
+    - Same orientation and framing: stream and reservoir at the TOP, narrow woodland strip on the LEFT, road and houses on the RIGHT, second road and houses along the BOTTOM RIGHT.
+    - Same clean matte low-poly model look, same soft even light, same short shadows toward the bottom, the near-facing side of every object visible and shaded, an earth-coloured side face along the slab's near and left edges. Crisp and sharply detailed.
+
+    EVERYTHING ELSE IS EXACTLY AS IN THE THIRD IMAGE:
+    - The stream crossing the whole top with a wooded hillside beyond it.
+    - The reservoir with 5 willows, reed and cattail beds and shoreline stones; the wetland pond inside the ring, likewise reeded and stoned.
+    - ONE closed ANGULAR ring of raised timber boardwalk round the wetland, with deck edge, rails and low posts; both right-hand ends meeting the gathering plaza; its upper-left run along the reservoir's lower shore.
+    - EXACTLY 5 square timber viewing platforms bumping out from the boardwalk, each with one blank board: on the upper run at the reservoir shore, on the upper-right run near the hut, on the left run, on the lower-left diagonal run, on the lower run near the rest area.
+    - EXACTLY 1 timber bird-watching hut, hipped roof over a visible front wall, on the reservoir's lower-right shore.
+    - The rest area: EXACTLY 1 pergola on four visible posts under a slatted roof, 2 flat benches on its left, 1 litter bin, shaded by a group of broad deciduous trees.
+    - The gathering plaza: EXACTLY 3 blank signboards in a row along its left edge, EXACTLY 1 zelkova in a square grate.
+    - The top-right entrance plaza: EXACTLY 2 zelkovas in grates, 1 blank signboard on its left edge, opening onto the right-hand road.
+    - The bottom entrance plaza: EXACTLY 2 zelkovas in grates side by side, 1 blank signboard on its left edge, opening onto the bottom road. FIVE tree grates in all.
+    - ONE single evenly spaced row of about 12 conical dawn redwoods on the grass immediately LEFT of the straight block-paved path — one row only, never two, never on the paving.
+    - The long mound east of the path: EXACTLY 7 spreading pines with azalea masses, near slope lit, far slope shaded, in open mown lawn.
+    - ONE single row of yellow-green ginkgos inside the right-hand road, continuing inside the bottom road.
+    - Grey-roofed houses of identical size beyond both roads, each showing a lit front wall.
+
+    STRICT RULES: no new buildings, plazas, paths, bridges, fences, walls or car parks; every board and sign is blank; NO text, letters, numbers, labels, legends, arrows, north arrow, scale bar, grid lines, dimension lines or watermark anywhere; no sky, no horizon, plain neutral background.
