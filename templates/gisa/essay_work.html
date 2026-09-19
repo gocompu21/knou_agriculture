@@ -269,10 +269,20 @@
     .sv-bar button.on { color: #fff; background: #2d6a4f; border-color: #2d6a4f; }
     .sv-now { font-size: 0.88rem; font-weight: 800; color: #b3261e; margin-left: 4px; }
     .sv-now small { font-weight: 700; color: #6b7b72; margin-right: 6px; }
-    .sv-note { background: #fff8f7; border: 1px solid #f0d2cf; border-radius: 8px; padding: 6px 12px; margin: 6px 0 12px;
-        font-size: 0.86rem; }
-    .sv-note:empty { display: none; }
-    .sv-note ul { margin: 2px 0; }
+    /* 도면은 단추 바로 아래에 고정하고 설명은 옆 칸에 둔다 — 설명 길이가 단계마다 달라 위에 두면 도면이 위아래로 밀린다 */
+    .sv-stage { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 12px; align-items: start; }
+    .sv-stage > div:first-child { margin: 0 !important; }
+    .sv-note { position: sticky; top: 58px; max-height: calc(100vh - 80px); overflow-y: auto; background: #fff8f7;
+        border: 1px solid #f0d2cf; border-radius: 8px; padding: 8px 12px; font-size: 0.84rem; line-height: 1.7; }
+    .sv-note h5 { margin: 0 0 4px; font-size: 0.86rem; color: #b3261e; }
+    .sv-note ul { margin: 2px 0; padding-left: 4px; }
+    .sv-note .sv-hint { color: #6b7b72; }
+    @media (max-width: 900px) {
+        .sv-stage { grid-template-columns: minmax(0, 1fr); }
+        .sv-note { position: static; max-height: none; }
+        /* 단계 이름이 길어 단추 줄이 두 줄이 됐다 한 줄이 됐다 하면 도면이 또 밀린다 — 이름은 늘 제 줄에 */
+        .sv-now { flex-basis: 100%; margin-left: 0; height: 1.6em; line-height: 1.6em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    }
     .dw-md svg g[data-step].off { display: none; }
     .dw-md svg g[data-step].cur [stroke] { stroke: #d81e1e; }
     .dw-md svg g[data-step].cur [stroke="#a3a9b3"] { stroke: #ee7d78; stroke-width: 0.13; }
@@ -547,7 +557,8 @@ function initSteps(root) {
             + '<button type="button" data-a="next">다음 ▶</button><button type="button" data-a="all" class="on">전체 보기</button>'
             + '<span class="sv-now"></span>';
         const note = document.createElement('div'); note.className = 'sv-note';
-        wrap.before(bar); bar.after(note);      // 설명은 그림 위에 — 읽고 바로 그림을 본다
+        const stage = document.createElement('div'); stage.className = 'sv-stage';
+        wrap.before(bar); bar.after(stage); stage.append(wrap, note);   // 도면은 단추 바로 아래, 설명은 옆 칸
         const now = bar.querySelector('.sv-now'), btn = a => bar.querySelector(`[data-a="${a}"]`);
         /* 그 단계의 설명 — 같은 자료 안의 "(k) 제목" 아래 목록을 그대로 가져온다 */
         const steps = {};
@@ -565,8 +576,10 @@ function initSteps(root) {
             btn('all').classList.toggle('on', k === 0);
             btn('prev').disabled = k <= 1; btn('next').disabled = k >= N;
             now.innerHTML = k ? `<small>${k} / ${N}</small>(${k}) ${titles[k - 1]}` : '';
-            note.innerHTML = '';
+            note.innerHTML = k ? `<h5>(${k}) ${titles[k - 1]}</h5>`
+                : '<span class="sv-hint">‘처음부터’나 ‘다음 ▶’을 누르면 작도 순서대로 한 단계씩 그려지고, 이 칸에 그 단계의 설명이 나옵니다.</span>';
             if (k && steps[k]) note.appendChild(steps[k].cloneNode(true));
+            note.scrollTop = 0;
         }
         bar.addEventListener('click', ev => {
             const a = ev.target.dataset && ev.target.dataset.a; if (!a) return;
