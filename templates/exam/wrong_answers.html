@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% load exam_filters %}
 {% block title %}{{ subject.name }} 오답노트 | 한울회 A+{% endblock %}
 
 {% block extra_css %}
@@ -310,7 +311,7 @@
                 <span class="q-mark{% if c.is_correct %} correct-mark wrong-q-correct{% endif %}{% if c.user_wrong %} wrong-mark{% endif %}">{{ c.num }}</span> {{ c.text }}
                 {% if c.exp %}
                 <div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">→ <span
-                        class="exp-text-inner">{{ c.exp }}</span></div>
+                        class="exp-text-inner">{{ c.exp|sciname }}</span></div>
                 {% endif %}
             </div>
             {% endfor %}

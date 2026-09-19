@@ -1,4 +1,5 @@
 {% load static %}
+{% load exam_filters %}
 <!DOCTYPE html>
 <html lang="ko">
 
@@ -542,7 +543,7 @@
                 <div class="choices">
                     {% for c in r.choices %}
                     <div class="choice-item{% if c.is_selected %} user-selected{% endif %}{% if c.user_correct %} user-correct{% elif c.user_wrong %} user-wrong{% endif %}">
-                        <span class="q-mark{% if c.is_correct %} correct-mark{% if not r.is_correct %} wrong-q-correct{% endif %}{% endif %}{% if c.user_wrong %} wrong-mark{% endif %}">{{ c.num }}</span><div class="choice-text-wrap">{{ c.text }}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">↪ <span class="exp-text-inner">{{ c.exp }}</span></div>{% endif %}</div>
+                        <span class="q-mark{% if c.is_correct %} correct-mark{% if not r.is_correct %} wrong-q-correct{% endif %}{% endif %}{% if c.user_wrong %} wrong-mark{% endif %}">{{ c.num }}</span><div class="choice-text-wrap">{{ c.text }}{% if c.exp %}<div class="choice-exp{% if c.is_correct %} correct-choice-exp{% endif %}">↪ <span class="exp-text-inner">{{ c.exp|sciname }}</span></div>{% endif %}</div>
                     </div>
                     {% endfor %}
                 </div>

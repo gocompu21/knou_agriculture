@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% load exam_filters %}
 {% block title %}{{ subject.name }} {{ year }}년 학습모드 | 한울회 A+{% endblock %}
 
 {% block extra_css %}
@@ -468,19 +469,19 @@
             <div class="q-choices" data-question-id="{{ q.id }}" data-answer="{{ q.answer }}">
                 <div class="choice-item" onclick="selectChoice(this, 1)">
                     <span class="choice-num" data-choice="1">1</span>
-                    <div class="choice-text-wrap">{{ q.choice_1 }}{% if q.choice_1_exp %}<div class="choice-exp{% if '1' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_1_exp }}</span></div>{% endif %}</div>
+                    <div class="choice-text-wrap">{{ q.choice_1 }}{% if q.choice_1_exp %}<div class="choice-exp{% if '1' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_1_exp|sciname }}</span></div>{% endif %}</div>
                 </div>
                 <div class="choice-item" onclick="selectChoice(this, 2)">
                     <span class="choice-num" data-choice="2">2</span>
-                    <div class="choice-text-wrap">{{ q.choice_2 }}{% if q.choice_2_exp %}<div class="choice-exp{% if '2' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_2_exp }}</span></div>{% endif %}</div>
+                    <div class="choice-text-wrap">{{ q.choice_2 }}{% if q.choice_2_exp %}<div class="choice-exp{% if '2' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_2_exp|sciname }}</span></div>{% endif %}</div>
                 </div>
                 <div class="choice-item" onclick="selectChoice(this, 3)">
                     <span class="choice-num" data-choice="3">3</span>
-                    <div class="choice-text-wrap">{{ q.choice_3 }}{% if q.choice_3_exp %}<div class="choice-exp{% if '3' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_3_exp }}</span></div>{% endif %}</div>
+                    <div class="choice-text-wrap">{{ q.choice_3 }}{% if q.choice_3_exp %}<div class="choice-exp{% if '3' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_3_exp|sciname }}</span></div>{% endif %}</div>
                 </div>
                 <div class="choice-item" onclick="selectChoice(this, 4)">
                     <span class="choice-num" data-choice="4">4</span>
-                    <div class="choice-text-wrap">{{ q.choice_4 }}{% if q.choice_4_exp %}<div class="choice-exp{% if '4' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_4_exp }}</span></div>{% endif %}</div>
+                    <div class="choice-text-wrap">{{ q.choice_4 }}{% if q.choice_4_exp %}<div class="choice-exp{% if '4' in q.answer %} correct-exp{% endif %}"><span class="exp-arrow">↪ </span><span class="exp-text-inner">{{ q.choice_4_exp|sciname }}</span></div>{% endif %}</div>
                 </div>
                 {% if is_wrong_retry %}<div class="dismiss-line"><button type="button" class="dismiss-btn" onclick="dismissQuestion(this, '{% url 'exam:wrong_dismiss' subject.pk q.id %}')">노트 <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>{% endif %}
             </div>
