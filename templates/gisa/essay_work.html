@@ -260,6 +260,23 @@
         background: #f6f8f7; border: 1px solid #dfe7e2; border-radius: 8px; padding: 10px 14px;
         font-size: 0.8rem; line-height: 1.55; color: #2b3a31; }
     .note-md pre code { font-family: ui-monospace, Menlo, Consolas, monospace; white-space: inherit; }
+    /* 단계별 작도 재생 — data-steps 가 붙은 SVG 도면(작도 순서대로 <g data-step> 로 묶여 있다) */
+    .sv-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 10px 0 6px; }
+    .sv-bar button { font: inherit; font-size: 0.8rem; font-weight: 800; color: #2d6a4f; background: #fff;
+        border: 1px solid #cdd8d0; border-radius: 999px; padding: 5px 13px; cursor: pointer; }
+    .sv-bar button:hover:not(:disabled) { background: #eef4f0; }
+    .sv-bar button:disabled { opacity: .4; cursor: default; }
+    .sv-bar button.on { color: #fff; background: #2d6a4f; border-color: #2d6a4f; }
+    .sv-now { font-size: 0.88rem; font-weight: 800; color: #b3261e; margin-left: 4px; }
+    .sv-now small { font-weight: 700; color: #6b7b72; margin-right: 6px; }
+    .sv-note { background: #fff8f7; border: 1px solid #f0d2cf; border-radius: 8px; padding: 6px 12px; margin: 6px 0 12px;
+        font-size: 0.86rem; }
+    .sv-note:empty { display: none; }
+    .sv-note ul { margin: 2px 0; }
+    .dw-md svg g[data-step].off { display: none; }
+    .dw-md svg g[data-step].cur [stroke] { stroke: #d81e1e; }
+    .dw-md svg g[data-step].cur [stroke="#a3a9b3"] { stroke: #ee7d78; stroke-width: 0.13; }
+    .dw-md svg g[data-step].cur text { fill: #d81e1e; }
     @media (max-width: 600px) { .tk-meta { margin-left: 0; flex-basis: 100%; } }
 </style>
 {% endblock %}
@@ -517,6 +534,50 @@ document.querySelectorAll('.dw-subs').forEach(bar => {
             p.classList.toggle('on', p.dataset.pane === b.dataset.sub));
     }));
 });
+/* 단계별 작도 재생 — 작도 순서 (1)~(N) 을 단추로 넘기며 그 단계에 긋는 선만 빨갛게 보인다 */
+function initSteps(root) {
+    root.querySelectorAll('svg[data-steps]').forEach(svg => {
+        if (svg._sv) return;
+        let titles; try { titles = JSON.parse(svg.dataset.steps); } catch (e) { return; }
+        svg._sv = true;
+        const N = titles.length, groups = [...svg.querySelectorAll('g[data-step]')];
+        const wrap = svg.parentElement, md = svg.closest('.dw-md');
+        const bar = document.createElement('div'); bar.className = 'sv-bar';
+        bar.innerHTML = '<button type="button" data-a="first">처음부터</button><button type="button" data-a="prev">◀ 이전</button>'
+            + '<button type="button" data-a="next">다음 ▶</button><button type="button" data-a="all" class="on">전체 보기</button>'
+            + '<span class="sv-now"></span>';
+        const note = document.createElement('div'); note.className = 'sv-note';
+        wrap.before(bar); bar.after(note);      // 설명은 그림 위에 — 읽고 바로 그림을 본다
+        const now = bar.querySelector('.sv-now'), btn = a => bar.querySelector(`[data-a="${a}"]`);
+        /* 그 단계의 설명 — 같은 자료 안의 "(k) 제목" 아래 목록을 그대로 가져온다 */
+        const steps = {};
+        if (md) md.querySelectorAll('p > strong').forEach(st => {
+            const m = st.textContent.match(/^\((\d+)\)/), ul = st.parentElement.nextElementSibling;
+            if (m && ul && ul.tagName === 'UL') steps[m[1]] = ul;
+        });
+        let k = 0;                                   // 0 = 전체 보기
+        function show() {
+            groups.forEach(g => {
+                const n = +g.dataset.step;
+                g.classList.toggle('off', k > 0 && n > k);
+                g.classList.toggle('cur', k > 0 && n === k);
+            });
+            btn('all').classList.toggle('on', k === 0);
+            btn('prev').disabled = k <= 1; btn('next').disabled = k >= N;
+            now.innerHTML = k ? `<small>${k} / ${N}</small>(${k}) ${titles[k - 1]}` : '';
+            note.innerHTML = '';
+            if (k && steps[k]) note.appendChild(steps[k].cloneNode(true));
+        }
+        bar.addEventListener('click', ev => {
+            const a = ev.target.dataset && ev.target.dataset.a; if (!a) return;
+            if (a === 'first') k = 1; else if (a === 'all') k = 0;
+            else if (a === 'next') k = Math.min(N, k + 1 || 1); else if (a === 'prev') k = Math.max(1, k - 1);
+            show();
+        });
+        show();
+    });
+}
+initSteps(document);
 /* 관리자 — 도면 자료를 그 자리에서 고친다 */
 document.querySelectorAll('.dw-pane .dw-edit').forEach(bar => {
     const pane = bar.parentElement;
@@ -604,7 +665,7 @@ document.querySelectorAll('.dw-pane .dw-edit').forEach(bar => {
                 box.className = 'note-md dw-md';
                 pane.insertBefore(box, pane.querySelector('.dw-form'));
             }
-            if (box) box.innerHTML = d.html;
+            if (box) { box.innerHTML = d.html; initSteps(box); }
             pane.querySelectorAll('.dw-cap').forEach(c => {
                 const f = pane.querySelector(`.tk-imgs figure:nth-child(${[...pane.querySelectorAll('.dw-cap')].indexOf(c) + 1})`);
                 if (f) { f.querySelector('figcaption').textContent = c.value; f.querySelector('img').alt = c.value; }
