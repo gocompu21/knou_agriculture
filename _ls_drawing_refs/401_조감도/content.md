@@ -1,5 +1,5 @@
 '성운' 탭의 **답안지 II · 기본설계도**와 **답안지 III · 배식설계도**, 문제지 조건으로 만든 **입체 조감도**입니다.
-**GPT**(gpt-image-2.5-sunburst, 9회차)로 그렸습니다. 남동쪽 상공에서 북서쪽을 내려다본 시점이라 **도면의 북쪽이 그림의 위**입니다 —
+**GPT**(gpt-image-2.5-sunburst, 10회차)로 그렸습니다. 남동쪽 상공에서 북서쪽을 내려다본 시점이라 **도면의 북쪽이 그림의 위**입니다 —
 실개천이 위, 기존수림이 왼쪽, 6m 도로와 주택가가 오른쪽·아래입니다.
 
 ## 만든 방법 — 1회차 그림에서 **한 번에**
@@ -13,14 +13,17 @@
 3. 그래서 **6회차 위에 더 얹지 않고 1회차로 돌아가**, 2~6회차에서 고쳤던 것과 새로 지적된 것을 **모두 한 프롬프트에 넣어
    한 번에** 그렸습니다(8·9회차). 선명도가 **2945** 로 1회차보다도 높아졌습니다 — 배포본 542 의 **5.4배**입니다
 4. 8회차에서 ①~⑪이 모두 맞았고, 안내판의 **흰 판이 멀리서 흰 점으로 도드라진다**는 지적이 남아
-   9회차에 ⑫ "틀 안을 짙은 나뭇결 목재판으로, 주변 잔디·포장보다 어둡게"를 더했습니다.
-   판면 밝기를 재 보니 **102 : 주변 포장 162** 로 확실히 어둡습니다(8회차는 168 : 148 로 오히려 밝았습니다)
+   9회차에 ⑫ 판면을 짙은 나뭇결 목재로 바꿨더니 이번에는 **주변과 안 어울린다**는 지적이 나와,
+   10회차에서 **아주 연한 미색(회백색)** 으로 고쳤습니다 — 눈부신 순백도 아니고 짙은 목재도 아니며,
+   옆 포장과 비슷한 밝기라 멀리서 흰 점으로 보이지 않습니다. 함께 **두 진입광장의 안내판이
+   비스듬히 틀어져 있던 것**을 광장 포장 변과 나란히 돌려 세웠습니다(관찰데크 쪽은 9회차에 이미 나란해졌습니다).
+   선명도는 **3100** 으로 또 올랐습니다
 
 > **덧그리기는 곧 화질입니다.** 고칠 것이 생기면 마지막 그림 위에 얹지 말고, **덧그림이 적은 앞 회차로 돌아가
 > 고칠 것을 모두 한 프롬프트에 모아** 다시 그리는 편이 낫습니다. 같은 방식으로 'My' 탭 조감도와 '입체평면도'도 고쳤습니다.
 > 마스크 부분 수정이나 그림을 손으로 자르고 돌리는 일은 하지 않습니다.
 
-## 도면과 대조 (9회차)
+## 도면과 대조 (10회차)
 
 | 도면(성운 답안) | 결과 |
 | --- | --- |
@@ -33,14 +36,14 @@
 | 모임광장 — 습지 동쪽, 수목보호대 1 · **평의자 3** | ✓ 시설물 수량표가 평의자 8 · 안내판 6 · 종합안내판 1 인데 안내판 6은 관찰데크 5 + 조류관찰소 1 로 다 차므로, 평의자 8 − 휴게공간 5 = 3 이 모임광장 몫입니다 |
 | 진입광장 2 — 북동 모서리 · 남측, 종합안내판 1 · 수목보호대 2씩, 소형고압블록 | ✓ 안내판은 서쪽 변, 광장이 도로로 바로 열림. 북동 광장 북쪽 은행나무는 보호대 없이 녹지에 |
 | 두 진입광장을 잇는 남북 동선, 서쪽 메타세쿼이아 열식, 동쪽 마운딩에 소나무 7 · 철쭉, 도로변 은행나무 열식 | ✓ 마운딩은 **봉긋한 잔디 둔덕**이고 서쪽 변과 남쪽 변을 따라 **끊기지 않는 꽃관목 띠**를 둘렀습니다 |
-| 안내판 판면 | ✓ 짙은 나뭇결 목재판 — 주변 포장보다 어둡습니다(102 : 162) |
+| 안내판 판면 | ✓ 아주 연한 미색 — 옆 포장과 비슷한 밝기라 흰 점으로 도드라지지 않습니다. 진입광장 안내판도 광장 포장 변과 나란히 돌려 세웠습니다(10회차) |
 | 글자 없음 | ✓ |
 
-비용은 9장 약 $0.39 입니다(8·9회차만 `xhigh` 품질이라 장당 $0.074).
+비용은 10장 약 $0.46 입니다(8~10회차만 `xhigh` 품질이라 장당 $0.074).
 
-## 프롬프트 — 마지막 회차(9회차, 참고: 기본설계도 + 배식설계도 + 1회차 그림)
+## 프롬프트 — 마지막 회차(10회차, 참고: 기본설계도 + 배식설계도 + 1회차 그림)
 
-1회차 그림을 함께 주고 고칠 열두 가지를 한꺼번에 적은 것입니다. 1~8회차 프롬프트는 뺐습니다.
+1회차 그림을 함께 주고 고칠 열두 가지를 한꺼번에 적은 것입니다. 1~9회차 프롬프트는 뺐습니다.
 
     The FIRST attached image is the site and facilities plan of a small Korean ecological park (north is up in the drawing). The SECOND attached image is the planting plan of the same site. These two drawings are the ground truth for WHAT is where.
 
@@ -52,7 +55,7 @@
 
     2. REST AREA. The small paved square beside the pergola, at the south-east edge of the forest, must hold EXACTLY 1 timber pergola, EXACTLY 5 flat backless timber benches standing on the paving around it, all five clearly visible and none hidden under the pergola roof, and EXACTLY 1 round litter bin. Count the benches: one, two, three, four, five.
 
-    3. BOARDWALK DECKS. The timber boardwalk loop round the marsh must carry EXACTLY 5 small observation decks bulging outward from it, each one a small timber platform with rails and ONE small board with a dark timber panel. Count them: one, two, three, four, five.
+    3. BOARDWALK DECKS. The timber boardwalk loop round the marsh must carry EXACTLY 5 small observation decks bulging outward from it, each one a small timber platform with rails and ONE small board with a pale off-white panel. Count them: one, two, three, four, five.
 
     4. NORTH-EAST ENTRANCE PLAZA. It sits at the top-right corner and must open DIRECTLY onto the east road with a dropped kerb — nothing stands between the plaza and the road. Its large signboard stands on the plaza's WEST edge facing east, not on its north edge.
 
@@ -66,11 +69,13 @@
 
     9. GATHERING PLAZA — THREE BENCHES, NO BOARDS. The gathering plaza is the paved square on the east side of the marsh where the boardwalk loop meets the paths, the one with a single shade tree growing in a square tree grate. On its WEST edge, in the strip of paving between the timber boardwalk deck and that tree, stand EXACTLY 3 flat backless BROWN TIMBER BENCHES in a row, evenly spaced, all identical. Count them: one bench, two benches, three benches. There is NO signboard, NO upright panel and NO standing board of any kind anywhere on this plaza.
 
-    12. THE BOARD FACES ARE DARK TIMBER, NOT WHITE. Every signboard in the picture - the 5 small boards on the observation decks, the 1 board beside the bird-watching hide, and the large boards on both entrance plazas - currently has a BRIGHT WHITE face inside its timber frame, so it stands out as a white dot from far away. Replace that white face with a panel of DARK, GRAIN-TEXTURED TIMBER. The panel must be DARKER than the grass and darker than the block paving around it; never white, never light grey, never pale. Put only a few very faint lines on it and NO letters and NO text of any kind. Keep the timber frame and its legs exactly as they are - you are changing only the COLOUR AND MATERIAL OF THE PANEL, you are NOT removing any signboard. All of them still stand where they stand.
+    12. THE BOARD PANELS ARE PALE OFF-WHITE, NEITHER GLARING WHITE NOR DARK.
+    Every signboard in the picture - the 5 small boards on the 5 timber viewing platforms, the 1 board beside the bird-watching hut, and the large boards on BOTH entrance plazas - carries a panel inside its timber frame. That panel is a VERY PALE OFF-WHITE, a soft warm greyish cream. Do NOT make it a glaring pure white, and do NOT make it dark timber or any dark colour. Its brightness must be CLOSE TO the brightness of the block paving right beside it, so that from far away it does not read as a white dot against the ground. Put only a few very faint lines on it and NO letters and NO text of any kind. Keep the timber frame and its legs exactly as they are, and do not remove or move any signboard.
 
-    10. THE OTHER BOARDS ALL STAY. The 5 small blank boards on the 5 observation decks and the 1 blank board beside the timber bird-watching hide at the pond must ALL be there — SIX boards in all, each now with a dark timber panel. Do not delete them, do not move them and do not turn them into benches. The large signboards on the two entrance plazas also stay.
+    10. THE OTHER BOARDS ALL STAY. The 5 small blank boards on the 5 observation decks and the 1 blank board beside the timber bird-watching hide at the pond must ALL be there — SIX boards in all, each with a pale off-white panel. Do not delete them, do not move them and do not turn them into benches. The large signboards on the two entrance plazas also stay.
 
-    11. BOARDS STAND SQUARE. Every remaining signboard stands square to the paving or deck it is on: the long edge of each board is exactly PARALLEL to the edge of that paving or deck, and its face looks straight out across it. Not one board is left skewed or turned at an odd angle.
+    11. EVERY SIGNBOARD STANDS SQUARE TO THE PAVING BESIDE IT.
+    Every signboard stands square to the paving or the deck it is on: the long edge of each board is exactly PARALLEL to the nearest edge of that paving or deck, and its face looks straight out across it at a right angle. NOT ONE board is left skewed, tilted or turned at an odd angle. This applies ESPECIALLY to the two LARGE SIGNBOARDS ON THE ENTRANCE PLAZAS, which are at present turned at a careless angle - turn each of them so that its long edge runs exactly along the edge of its own plaza paving, in line with the kerb. The positions, sizes and pale panels of all the boards do not change.
 
     WHAT MUST NOT CHANGE:
     - The same camera and the same true perspective: an oblique aerial view from the SOUTH-EAST looking north-west, tilted about 45 degrees, with the stream at the top of the picture. The same framing and crop, the same late-spring daylight and soft shadows, the same colour balance.
@@ -81,4 +86,4 @@
 
     RENDER IT FRESH AT MAXIMUM RESOLUTION AND MAXIMUM DETAIL — this matters as much as the twelve fixes. Draw the whole picture again; do not retouch, soften or resample the third image. Every part must be at least as crisp and as finely detailed as the third image: the individual leaves in every canopy, the blades of the turf, the grain and board joints of the boardwalk, the individual blocks of the paving, the rocks at the water's edge, the roof tiles of the houses. Do not simplify, smooth or average any texture.
 
-    STRICT RULES: no new buildings, plazas, paths, bridges, fences, walls, cars or people; every board carries a dark timber panel with no writing on it; NO text, letters, numbers, labels, legends, arrows, north arrow, scale bar, grid lines, dimension lines or watermark anywhere in the picture.
+    STRICT RULES: no new buildings, plazas, paths, bridges, fences, walls, cars or people; every board carries a pale off-white panel with no writing on it; NO text, letters, numbers, labels, legends, arrows, north arrow, scale bar, grid lines, dimension lines or watermark anywhere in the picture.
