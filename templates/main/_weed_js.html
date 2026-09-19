@@ -775,12 +775,12 @@
             el.dataset.i = i;
             el.title = f.web ? (f.web.title + '\n' + f.web.license + ' · ' + f.web.author) : f.file.name;
             var tag = f.web ? (f.web.license === '공공누리' ? '수목원' : '위키') : '';
-            // 썸네일이 작아 무슨 사진인지 안 보인다 — 돋보기로 크게 본다.
-            // 드래그와 겹치지 않게 버튼을 따로 두고 클릭을 멈춘다
             el.innerHTML = '<img src="' + f.url + '" alt="">'
-                         + (tag ? '<span class="wd-pool-tag">' + tag + '</span>' : '')
-                         + '<button type="button" class="wd-pool-zoom" title="크게 보기"'
-                         + ' onclick="event.stopPropagation(); weedZoom(' + i + ')">⊕</button>';
+                         + (tag ? '<span class="wd-pool-tag">' + tag + '</span>' : '');
+            // 사진을 누르면 크게 본다 (끌어다 놓기는 그대로 된다 — 클릭과 드래그는 다르다).
+            // 예전에는 모서리 돋보기(⊕)를 눌러야 했는데, 작은 단추를 겨냥하기 번거로워
+            // 수정 창과 같이 사진 전체를 누르게 바꿨다
+            el.addEventListener('click', function() { weedZoom(i); });
             el.addEventListener('dragstart', function(e) {
                 e.dataTransfer.setData('text/plain', String(i));
                 // 목록 안에서 시작한 드래그임을 표시한다 — 목록에 도로 놓아도
