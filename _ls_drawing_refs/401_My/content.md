@@ -227,11 +227,11 @@ SVG 좌표로 모눈·글자·보조선을 뺀 **색 배치도**(물 파랑 · �
 | 4 | "데크는 발코니처럼 튀어나온 것"이라고 정의해 서쪽 · 남쪽 데크를 고침 |
 | 5 | 남서 데크를 대각선 변 중간, **숲 쪽 바깥**으로 — 데크 5개 제자리. 회차가 쌓여 화질이 흐려짐 |
 | 6 | 배치는 5회차 그대로, 화질은 1회차 기준으로 새로 렌더 |
-| 7 | **마운딩**이 평평한 판에 짙은 콩팥 모양 테두리만 그려져 파인 자국처럼 보이던 것을 가운데가 솟은 잔디 언덕으로 고치고, 배식설계도대로 **화단 서쪽·남쪽 변에 꽃관목 띠**를 둘렀습니다. 함께 **모임광장의 안내판을 평의자로**(수량표 근거), **휴게공간 평의자를 5개로**, **안내판을 모두 옆 포장 경계와 나란히** 고쳤습니다 |
+| 7 | 다섯 가지를 **6회차 그림에서 한 번에** 고쳤습니다 — ① **마운딩**이 평평한 판에 짙은 콩팥 모양 테두리만 그려져 파인 자국처럼 보이던 것을 가운데가 솟은 잔디 언덕으로 ② 배식설계도대로 **화단 서쪽·남쪽 변에 꽃관목 띠** ③ **모임광장의 안내판 3개를 평의자 3개로**(수량표 근거) ④ **휴게공간 평의자를 5개로**(문제 조건) ⑤ **안내판을 모두 옆 포장·데크 경계와 나란히**. 선명도는 1900 → 1835(−3%) |
 
 **도면과 맞는 것** — 실개천(북) · 기존수림(서 · 남서) · 도로와 주택(동, 남쪽은 동쪽 절반만) / 북서 저수지와 남동 물가의 조류관찰소 / 습지를 두르는 각진 관찰로와 관찰데크 5(남서 것은 숲 쪽) / 모임광장(수목보호대 1 · 평의자 3) / ㄱ자 진입로 / 진입광장 2곳(수목보호대 2 · 안내판 1씩) / 휴게공간 45° 입구 · 파고라 1 · 평의자 5 · 휴지통 / 진입로 서쪽 메타세쿼이아 열 / 진입로 동쪽의 남북으로 긴 마운딩(소나무 · 철쭉) / 도로변 은행나무.
 
-**남은 차이** — **모임광장 서쪽 셋 가운데 하나가 아직 안내판으로 남아 있습니다**(평의자 2 · 안내판 1). 7회차에 셋을 모두 평의자로 바꾸라고 했으나 둘만 바뀌었습니다. 8회차는 그 하나를 못 고친 채 선명도만 23% 떨어졌고, 9회차에 **"데크 난간이 꺾여 끝나는 모서리 바로 오른쪽의 액자"** 라고 자리를 짚어 주니 **평의자 3개로 고쳐졌으나** 이번에는 선명도가 7회차 대비 **25% 떨어져**(1781 → 1338) 채택하지 못했습니다 — 조류관찰소 주변을 1:1 로 견주면 잎과 데크 널 이음매가 눈에 띄게 뭉개집니다. **이 그림은 덧그리기 한 번에 화질을 20~25% 잃고**, 렌더 품질을 `xhigh` 로 올려도 막지 못했습니다. 고치려면 6회차에서 이 수정까지 한꺼번에 넣어 다시 가야 합니다. · 습지 연못의 '모래주머니' 허리가 뚜렷하지 않음 · 시점이 45°보다 가파름(55~60°) · 북동 변 데크가 꼭짓점 쪽으로 치우침 · 관찰로 서쪽 꼭짓점이 조금 북쪽 · 남측 진입광장 앞 도로변에 은행나무가 이어져 열린 느낌이 약함 · 구역 A 북단에 도면에 없는 소나무 서너 그루. 비용은 10장 약 $0.55 입니다.
+**남은 차이** — 습지 연못의 '모래주머니' 허리가 뚜렷하지 않음 · 시점이 45°보다 가파름(55~60°) · 북동 변 데크가 꼭짓점 쪽으로 치우침 · 관찰로 서쪽 꼭짓점이 조금 북쪽 · 남측 진입광장 앞 도로변에 은행나무가 이어져 열린 느낌이 약함 · 구역 A 북단에 도면에 없는 소나무 서너 그루. 비용은 12장 약 $0.70 입니다.
 
 ### 프롬프트 — 마지막 회차(7회차, 참고: 배식설계도 + 6회차 그림)
 
@@ -250,13 +250,17 @@ SVG 좌표로 모눈·글자·보조선을 뺀 **색 배치도**(물 파랑 · �
     The pines down the mound's middle stay exactly where they are, at the same size and the same number; the pink azalea masses between and around those pines stay exactly where they are.
 
     FIX 3 — THE THREE THINGS ON THE GATHERING PLAZA ARE BENCHES, NOT SIGNBOARDS.
-    The gathering plaza is the block-paved square where the two ends of the timber boardwalk meet, the one with a single tree in a square grate. Along its left-hand edge stand THREE upright timber-framed panels with white faces, one behind another. DELETE all three panels. In their place put THREE BACKLESS TIMBER BENCHES, in the same three positions and at the same spacing. Count them: one, two, three. A bench is a long, low seat of timber slats lying close to the ground, with no back and no upright panel of any kind — you look down on its seat, not at a standing board. Nothing else on this plaza changes: the tree in its square grate stays exactly where it is.
+    WHERE: look at the block-paved plaza on the right-hand side of the park, the one the timber boardwalk runs into, with a single tree growing in a square grate. Follow the boardwalk's timber handrail to the point where it BENDS AND ENDS at the edge of that paving. IMMEDIATELY TO THE RIGHT of that corner, and in a line running down the same paving edge below it, stand THREE tall timber frames holding WHITE PANELS, facing out across the paving.
+
+    DELETE all three frames and their white panels completely - frames, legs and panels. In exactly the same three spots put THREE BROWN TIMBER BENCHES, evenly spaced down that paving edge. A bench is a long, low seat of brown timber slats lying flat on the paving, with no back and no upright panel of any kind - seen from above it is a narrow plank, never a standing board. All three are identical in length, width, timber and orientation.
+
+    When you are done, that edge carries THREE IDENTICAL BROWN TIMBER BENCHES and nothing else. Count them from the top: one bench, two benches, three benches. There is NO white panel, NO timber frame, NO standing board and NO sign of any kind left anywhere on this plaza. The tree in its square grate stays exactly where it is.
 
     FIX 4 — EXACTLY 5 BENCHES AT THE PERGOLA REST AREA.
     The paved rest area holds one timber pergola, a litter bin and at present only two or three benches. It must hold EXACTLY 5 BACKLESS TIMBER BENCHES of the same design as the three on the gathering plaza — count them: one, two, three, four, five — standing on the paving around the pergola, evenly spread, none of them overlapping the pergola's posts. The pergola and the single litter bin stay exactly as they are.
 
     FIX 5 — EVERY SIGNBOARD STANDS SQUARE TO THE PAVING BESIDE IT.
-    The remaining upright signboards are the small blank boards on the five timber viewing platforms of the boardwalk, the one at the bird-watching hut, and the large ones on the two entrance plazas. Several of them are at present turned at a careless angle. Straighten every one of them: the long edge of each board must be exactly PARALLEL to the edge of the deck or the paving it stands on, and its face must look straight out across that deck or paving at a right angle to that edge. Not one board is left skewed, tilted or turned at an odd angle. Their positions, sizes and blank white faces do not change.
+    The remaining upright signboards are the small blank boards on the five timber viewing platforms of the boardwalk, the one at the bird-watching hut, and the large ones on the two entrance plazas. Several of them are at present turned at a careless angle. Straighten every one of them: the long edge of each board must be exactly PARALLEL to the edge of the deck or the paving it stands on, and its face must look straight out across that deck or paving at a right angle to that edge. Not one board is left skewed, tilted or turned at an odd angle. Their positions, sizes and blank white faces do not change. DO NOT DELETE ANY OF THEM: the five boards on the five viewing platforms and the one beside the bird-watching hut must ALL still be there when you are done, six blank white boards in all. Do not move them, do not remove them and do not turn them into benches - only their angle is corrected.
 
     EVERYTHING ELSE IN THE PICTURE IS ALREADY CORRECT AND MUST BE REPRODUCED UNCHANGED:
     - The same camera and the same perspective, looking down from high in the south-east with the stream at the top of the picture; the same framing and crop; the same warm low late-afternoon sunlight and the same long soft shadows; the same natural colour balance.
