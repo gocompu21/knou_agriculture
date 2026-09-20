@@ -85,6 +85,23 @@ def _pick_group(question, rubric, parsed):
     return need, idx
 
 
+def _written_order(results, idx, parsed):
+    """수험자가 쓴 차례(기준표 번호, 못 알아볼 답은 0)를 검증해 돌려준다.
+
+    **기준표가 통째로 보기 묶음일 때만 본다.** 정의처럼 반드시 써야 하는
+    항목이 섞여 있으면 쓴 차례 가운데 어느 것이 보기인지 가릴 수 없다.
+    점수를 받은 항목이 차례에 빠져 있으면 모델이 대충 적은 것이므로 버린다.
+    """
+    if len(idx) != len(results):
+        return None
+    raw = [int(i) for i in (getattr(parsed, 'answer_order', None) or [])
+           if isinstance(i, (int, float)) and 0 <= int(i) <= len(results)]
+    scored = {j for j, x in enumerate(results, 1) if x['score'] > 0}
+    if not raw or not scored <= set(raw):
+        return None
+    return raw
+
+
 def _sum_points(question, rubric, results, parsed):
     """항목 점수를 합쳐 (총점, 만점 여부)를 돌려준다.
 
@@ -92,6 +109,10 @@ def _sum_points(question, rubric, results, parsed):
     **보기 묶음의 배점 전부를 요구한 개수로 나눠** 준다 — 다섯 항목에 1점씩
     붙어 있어도 셋만 요구했으면 하나가 1.67점이다. 그래야 셋을 맞힌 답안이
     3점이 아니라 만점이 된다.
+
+    요구한 개수보다 많이 썼으면 **먼저 쓴 것부터 그 개수까지만** 점수에
+    넣는다. 실기 채점은 더 쓴다고 봐주지 않는다 — 셋을 요구했는데 넷을
+    적었다면 앞의 셋으로 판단하지, 맞은 것만 골라 주지 않는다.
     """
     pick = _pick_group(question, rubric, parsed)
     if not pick:
@@ -102,18 +123,40 @@ def _sum_points(question, rubric, results, parsed):
     group = [results[i - 1] for i in sorted(idx)]
     rest = [x for j, x in enumerate(results, 1) if j not in idx]
     pool = sum(x['max'] for x in group)
-    ratios = sorted(((x['score'] / x['max']) if x['max'] else 0.0) for x in group)
-    got = sum(x['score'] for x in rest) + pool * sum(ratios[::-1][:need]) / need
+    full = lambda x: x['max'] and x['score'] >= x['max'] - 1e-9
+    ratio = lambda x: (x['score'] / x['max']) if x['max'] else 0.0
 
-    # 요구한 개수를 채웠으면 못 쓴 보기는 '다른 정답'이지 빠뜨린 것이 아니다.
-    # 화면이 ✕ 대신 따로 그리도록 표시해 둔다.
-    met = sum(1 for x in group if x['max'] and x['score'] >= x['max'] - 1e-9) >= need
+    order = _written_order(results, idx, parsed)
+    if order is None:
+        # 쓴 차례를 알 수 없으면 잘 맞힌 것부터 센다(종전 방식)
+        head = sorted((ratio(x) for x in group), reverse=True)[:need]
+        counted, over = None, set()
+    else:
+        picked, over, seen = [], [], set()
+        for i in order:
+            if i and i in seen:
+                continue            # 같은 답을 두 번 쓴 것은 한 번으로 본다
+            seen.add(i)
+            (picked if len(picked) < need else over).append(i)
+        head = [ratio(results[i - 1]) for i in picked if i]   # 0 = 기준표에 없는 답
+        counted, over = seen, {i for i in over if i}
+
+    got = sum(x['score'] for x in rest) + pool * sum(head) / need
+    met = sum(1 for r in head if r >= 1 - 1e-9) >= need
+
+    # 넘겨 쓴 항목 — 맞았더라도 점수에 넣지 않았다는 것을 밝힌다
+    for i in over:
+        results[i - 1]['over'] = True
+        results[i - 1]['comment'] = (
+            f'{need}가지를 넘겨 쓴 항목입니다 — 먼저 쓴 {need}가지만 채점합니다.')
+    # 요구한 개수를 채웠으면 못 쓴 보기는 '다른 정답'이지 빠뜨린 것이 아니다
     if met:
-        for x in group:
-            if x['score'] < x['max'] - 1e-9:
+        for j, x in enumerate(results, 1):
+            if j in idx and not full(x) and j not in over \
+                    and (counted is None or j not in counted):
                 x['alt'] = True
                 x['comment'] = f'다른 정답입니다 — {need}가지를 이미 채웠으므로 쓰지 않아도 됩니다.'
-    return got, met and all(x['score'] >= x['max'] - 1e-9 for x in rest)
+    return got, met and all(full(x) for x in rest)
 
 
 # ---------------------------------------------------------------- LLM 채점
@@ -158,6 +201,12 @@ GRADE_SYSTEM = (
     "  따로 요구하면 보기 목록이 아니다 — pick_count=0 으로 둔다.\n"
     "- 보기 항목도 판정은 그대로 한다. 답안에 없으면 matched=false, score=0 이다.\n"
     "  몇 개를 채웠는지 세어 점수로 바꾸는 일은 채점 프로그램이 한다.\n"
+    "- answer_order: 수험자가 쓴 항목을 **쓴 차례대로**, 그 항목에 해당하는 기준표\n"
+    "  번호로 적는다. 기준표 어디에도 없는 답은 0 으로 적는다. 요구한 개수보다\n"
+    "  많이 썼으면 **먼저 쓴 것부터 그 개수까지만** 점수에 들어간다 — 더 썼다고\n"
+    "  봐주지 않는 실기 채점 방식이다. 그 자르는 일도 채점 프로그램이 하니\n"
+    "  차례만 빠짐없이 적으면 된다(점수를 준 항목은 반드시 들어 있어야 한다).\n"
+    "  그렇게 잘린 답안이면 총평에 '먼저 쓴 N가지만 채점했다'고 알린다.\n"
 )
 
 # 첨삭 — 채점위원이 빨간 색연필로 답안지에 표시하듯. 퀴즈 화면이 답안 글자 위에
@@ -233,7 +282,9 @@ def _grade_prompt(question, user_answer, rubric):
                       f"{len(rubric)}개가 적혀 있다. 기준표가 '인정되는 답을 모아 둔 "
                       f"목록'이라면 pick_count={need} 로 두고 그 보기들의 번호를 "
                       f"pick_indices 에 적는다. 정의·개념처럼 반드시 써야 하는 "
-                      f"항목은 빼고 적는다."]
+                      f"항목은 빼고 적는다. 수험자가 {need}가지보다 많이 썼으면 "
+                      f"answer_order 에 쓴 차례를 적어라 — 먼저 쓴 {need}가지만 "
+                      f"점수에 들어간다."]
     if question.answer_text:
         lines += ["", "[모범답안 보충]", question.answer_text.strip()[:1500]]
     lines += ["", "[수험자 답안]", (user_answer or '').strip() or '(빈 답안)']
@@ -372,6 +423,10 @@ def grade_by_llm(question, user_answer, model=None):
             default_factory=list,
             description="서로 바꿔 써도 되는 보기에 해당하는 기준표 항목 번호. "
                         "반드시 써야 하는 항목은 넣지 않는다")
+        answer_order: list[int] = Field(
+            default_factory=list,
+            description="수험자가 쓴 차례대로 그 항목의 기준표 번호. "
+                        "기준표에 없는 답은 0. 점수를 준 항목은 빠뜨리지 않는다")
 
     client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
