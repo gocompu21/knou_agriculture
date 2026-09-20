@@ -66,6 +66,10 @@
     .rs-pt.n { color: #777; }
     .rs-pt.half::before { content: '△'; font-size: 1.3em; top: 1px; }
     .rs-pt.half { color: #555; }
+    /* alt = 요구한 개수를 채워 쓰지 않아도 됐던 다른 정답. 빨간 ✗ 대신 회색 점 */
+    .rs-pt.alt::before { content: '·'; color: #aaa; font-size: 2em; top: -8px; left: 6px; }
+    .rs-pt.alt { color: #999; }
+    .rs-pt.alt .rs-cmt { color: #999; }
     .rs-half, .rs-cmt { font-family: 'Nanum Pen Script', 'SUIT', cursive; color: var(--pen);
         font-size: 1.3em; margin-left: 4px; }
     .rs-lab { margin: 14px 0 6px; font-size: 0.78rem; font-weight: 700; color: #40624f; }

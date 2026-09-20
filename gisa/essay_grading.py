@@ -43,6 +43,79 @@ def build_rubric(question):
     return [{'point': it, 'score': round(base, 2)} for it in items]
 
 
+# ------------------------------------------------- 'N가지' 를 요구한 문항
+
+_NUM_WORD = {'하나': 1, '한': 1, '둘': 2, '두': 2, '셋': 3, '세': 3, '넷': 4, '네': 4,
+             '다섯': 5, '여섯': 6, '일곱': 7, '여덟': 8, '아홉': 9, '열': 10}
+# 앞이 한글이면 낱말 꼬리다 — '다양한 가지'의 '한'을 세면 안 된다
+_ASK_RE = re.compile(
+    r'(\d+|(?<![가-힣])(?:하나|한|둘|두|셋|세|넷|네|다섯|여섯|일곱|여덟|아홉|열))\s*가지')
+
+
+def asked_count(text):
+    """문제문이 요구한 개수. '3가지'·'두 가지' 하나만 있을 때 그 수를 돌려준다.
+
+    **하나만 있을 때로 못박는 까닭**이 있다. 'A를 2가지와 B를 3가지 쓰시오'
+    처럼 묶음이 둘이면 기준표가 길어도 보기 목록이 아니라 다섯을 다 써야
+    하는 문항이다. '각각 …씩'도 대상마다 따로 요구하는 것이라 뺀다.
+    """
+    t = text or ''
+    if '각각' in t or '씩' in t:
+        return None
+    got = [m.group(1) for m in _ASK_RE.finditer(t)]
+    if len(got) != 1:
+        return None
+    return int(got[0]) if got[0].isdigit() else _NUM_WORD[got[0]]
+
+
+def _pick_group(question, rubric, parsed):
+    """모델이 '이 가운데 N가지만 쓰면 된다'고 본 보기 묶음을 검증해 돌려준다.
+
+    돌려주는 것은 (요구 개수, 항목 번호 집합) 이거나 None. 모델 말을 그대로
+    믿지 않고 **문제문에 그 개수가 실제로 적혀 있는지** 대조한다 — 지어낸
+    개수로 만점을 주면 안 된다.
+    """
+    need = int(getattr(parsed, 'pick_count', 0) or 0)
+    idx = {int(i) for i in (getattr(parsed, 'pick_indices', None) or [])
+           if isinstance(i, (int, float)) and 1 <= int(i) <= len(rubric)}
+    if need < 1 or len(idx) <= need:
+        return None
+    if need != asked_count(question.text):
+        return None
+    return need, idx
+
+
+def _sum_points(question, rubric, results, parsed):
+    """항목 점수를 합쳐 (총점, 만점 여부)를 돌려준다.
+
+    보통은 그냥 더한다. 보기 목록 문항('5가지 가운데 3가지를 쓰시오')이면
+    **보기 묶음의 배점 전부를 요구한 개수로 나눠** 준다 — 다섯 항목에 1점씩
+    붙어 있어도 셋만 요구했으면 하나가 1.67점이다. 그래야 셋을 맞힌 답안이
+    3점이 아니라 만점이 된다.
+    """
+    pick = _pick_group(question, rubric, parsed)
+    if not pick:
+        got = sum(x['score'] for x in results)
+        return got, all(x['score'] >= x['max'] - 1e-9 for x in results)
+
+    need, idx = pick
+    group = [results[i - 1] for i in sorted(idx)]
+    rest = [x for j, x in enumerate(results, 1) if j not in idx]
+    pool = sum(x['max'] for x in group)
+    ratios = sorted(((x['score'] / x['max']) if x['max'] else 0.0) for x in group)
+    got = sum(x['score'] for x in rest) + pool * sum(ratios[::-1][:need]) / need
+
+    # 요구한 개수를 채웠으면 못 쓴 보기는 '다른 정답'이지 빠뜨린 것이 아니다.
+    # 화면이 ✕ 대신 따로 그리도록 표시해 둔다.
+    met = sum(1 for x in group if x['max'] and x['score'] >= x['max'] - 1e-9) >= need
+    if met:
+        for x in group:
+            if x['score'] < x['max'] - 1e-9:
+                x['alt'] = True
+                x['comment'] = f'다른 정답입니다 — {need}가지를 이미 채웠으므로 쓰지 않아도 됩니다.'
+    return got, met and all(x['score'] >= x['max'] - 1e-9 for x in rest)
+
+
 # ---------------------------------------------------------------- LLM 채점
 
 GRADE_SYSTEM = (
@@ -72,7 +145,19 @@ GRADE_SYSTEM = (
     "- 부분적으로만 맞으면 matched=false 로 두되 **score 에 부분 점수를 적고**\n"
     "  comment 에 무엇이 부족한지 쓴다.\n"
     "- comment는 한 문장 이내로 간결하게, 존댓말로 쓴다.\n"
-    "- 채점 기준표에 없는 내용을 지어내지 않는다.\n"
+    "- 채점 기준표에 없는 내용을 지어내지 않는다.\n\n"
+    "**'N가지를 쓰시오' — 기준표가 보기 목록일 때 (pick_count·pick_indices)**\n"
+    "기준표 항목 수가 문제가 요구한 개수보다 많으면, 그 항목들은 대개 '인정되는\n"
+    "답을 모아 둔 목록'이다. 답안이 그 가운데 요구한 개수만큼 맞혔으면 만점이며,\n"
+    "쓰지 않은 나머지는 빠뜨린 것이 아니다.\n"
+    "- pick_count: 문제문이 요구한 개수('3가지'의 3). 그런 목록이 아니면 0.\n"
+    "- pick_indices: 서로 바꿔 써도 되는 보기에 해당하는 기준표 항목 번호.\n"
+    "- **반드시 써야 하는 항목은 pick_indices 에 넣지 않는다.** '개념을 쓰고 목적\n"
+    "  3가지를 설명하시오'라면 개념 항목은 필수이고 목적 항목만 보기다.\n"
+    "- 'A를 2가지, B를 3가지'처럼 묶음이 둘이거나 '각각 1가지씩'처럼 대상마다\n"
+    "  따로 요구하면 보기 목록이 아니다 — pick_count=0 으로 둔다.\n"
+    "- 보기 항목도 판정은 그대로 한다. 답안에 없으면 matched=false, score=0 이다.\n"
+    "  몇 개를 채웠는지 세어 점수로 바꾸는 일은 채점 프로그램이 한다.\n"
 )
 
 # 첨삭 — 채점위원이 빨간 색연필로 답안지에 표시하듯. 퀴즈 화면이 답안 글자 위에
@@ -142,6 +227,13 @@ def _grade_prompt(question, user_answer, rubric):
     ]
     for i, r in enumerate(rubric, 1):
         lines.append(f"{i}. ({r.get('score', 0)}점) {r['point']}")
+    need = asked_count(question.text)
+    if need and len(rubric) > need:
+        lines += ["", f"[유의] 문제는 {need}가지를 요구했는데 기준표에는 "
+                      f"{len(rubric)}개가 적혀 있다. 기준표가 '인정되는 답을 모아 둔 "
+                      f"목록'이라면 pick_count={need} 로 두고 그 보기들의 번호를 "
+                      f"pick_indices 에 적는다. 정의·개념처럼 반드시 써야 하는 "
+                      f"항목은 빼고 적는다."]
     if question.answer_text:
         lines += ["", "[모범답안 보충]", question.answer_text.strip()[:1500]]
     lines += ["", "[수험자 답안]", (user_answer or '').strip() or '(빈 답안)']
@@ -272,6 +364,14 @@ def grade_by_llm(question, user_answer, model=None):
         summary: str = Field(description="빠진 내용 위주의 총평 두 문장 이내")
         marks: list[Mark] = Field(default_factory=list, description="답안 위 첨삭, 6개 이내")
         missing: list[str] = Field(default_factory=list, description="빠진 핵심, 12자 이내")
+        pick_count: int = Field(
+            default=0,
+            description="기준표가 '이 가운데 N가지만 쓰면 되는' 보기 목록이면 "
+                        "문제가 요구한 개수 N. 아니면 0")
+        pick_indices: list[int] = Field(
+            default_factory=list,
+            description="서로 바꿔 써도 되는 보기에 해당하는 기준표 항목 번호. "
+                        "반드시 써야 하는 항목은 넣지 않는다")
 
     client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
@@ -289,8 +389,7 @@ def grade_by_llm(question, user_answer, model=None):
     # 항목 배점을 넘거나 음수인 값을 잘라 내고, 합산한다. 합계까지 모델에게
     # 맡기지 않는 까닭은 채점 판단과 달리 덧셈은 틀릴 이유가 없기 때문이다.
     by_index = {p.index: p for p in parsed.points}
-    results, got = [], 0.0
-    all_matched = True
+    results = []
     for i, r in enumerate(rubric, 1):
         p = by_index.get(i)
         matched = bool(p and p.matched)
@@ -302,9 +401,6 @@ def grade_by_llm(question, user_answer, model=None):
             given = cap
         else:
             given = max(0.0, min(cap, float(p.score)))
-        got += given
-        if given < cap:
-            all_matched = False
         results.append({
             'point': r['point'],
             'matched': matched,
@@ -313,10 +409,14 @@ def grade_by_llm(question, user_answer, model=None):
             'comment': (p.comment if p else '판정 없음'),
         })
 
+    got, all_matched = _sum_points(question, rubric, results, parsed)
+
     # 균등 배분에서 생기는 반올림 오차 보정 — 전부 맞았으면 만점
     if all_matched:
         got = float(question.points)
     marks, missing = _clean_marks(parsed.marks, parsed.missing, user_answer)
+    if got >= float(question.points) - 1e-9:
+        missing = []   # 만점인데 '빠짐'이 적히면 무엇이 틀렸나 찾게 된다
 
     return {
         'score': round(min(got, float(question.points)), 2),

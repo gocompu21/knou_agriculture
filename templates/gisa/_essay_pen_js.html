@@ -70,8 +70,11 @@ function penResultHtml(g) {
         h += '<div class="rs-pts">';
         g.points.forEach(p => {
             const half = !p.matched && p.score > 0;
-            h += `<div class="rs-pt ${p.matched ? 'y' : (half ? 'half' : 'n')}">${penEsc(p.point)}`;
-            if (half) h += ` <span class="rs-half">부분 인정 ${p.score}/${p.max}점</span>`;
+            // alt = 'N가지 가운데 아무거나' 문항에서 쓰지 않아도 됐던 다른 정답.
+            // ✕ 로 그리면 감점당한 것처럼 읽힌다.
+            const cls = p.alt ? 'alt' : (p.matched ? 'y' : (half ? 'half' : 'n'));
+            h += `<div class="rs-pt ${cls}">${penEsc(p.point)}`;
+            if (half && !p.alt) h += ` <span class="rs-half">부분 인정 ${p.score}/${p.max}점</span>`;
             if (!p.matched && p.comment) h += ` <span class="rs-cmt">— ${penEsc(p.comment)}</span>`;
             h += '</div>';
         });
