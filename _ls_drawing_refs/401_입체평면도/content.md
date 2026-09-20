@@ -1,5 +1,5 @@
 'My' 탭의 색 배치도와 '성운' 탭의 **기본설계도 · 배식설계도**를 GPT 이미지 모델
-(gpt-image-2.5-sunburst)에 주고 만든 **입체평면도**입니다(24회차).
+(gpt-image-2.5-sunburst)에 주고 만든 **입체평면도**입니다(26회차).
 
 '조감도' 탭과 달리 **원근이 없는 평행투영(축측투영)** 입니다. 멀리 있는 것도 가까이 있는 것과
 같은 크기로 그려지므로 **평면도와 그대로 견주어 볼 수 있습니다** — 주택 여덟 채가 모두 같은
@@ -80,6 +80,7 @@
 22. 90° 를 돌리고 나니 판이 **누워** 평의자처럼 보인다는 지적 — 방향은 그대로 두고 **다리 위에 곧게 선 판**으로 모양만 고쳤습니다. 선명도 1028, 평행투영 그대로
 23. "판면이 비스듬히 보이고"라고 적은 탓에 모델이 **방향을 되돌려** 카메라를 마주 보게 했습니다. **방향이 최우선**임을 못박고 "좁은 옆면이 보이는 것이 맞다"로 바꾸었습니다(23회차). 선명도 1115
 24. 포장 가장자리의 **키 큰 침엽수 줄**을 모두 걷어내고 **철쭉 경계식재**(무릎 높이 꽃관목 띠)로 바꿨습니다 — 성운 배식도의 의도가 "철쭉을 경계식재로, 둔덕에는 소나무, 상부에는 벚나무, 외곽에는 은행나무"이기 때문입니다(24회차). 선명도 1308
+25·26. 24회차의 "포장 가장자리 침엽수를 **모두** 지워라"가 너무 넓어, 살아 있어야 할 것까지 지웠습니다 — 배식도의 `7 − 메타세쿼이어 H4.0 × B8` 열식과 북동 광장 둘레의 `6 − 산벚나무`·`3 − 느티나무`입니다. 범위를 **마운딩 서쪽 동선 가장자리**로 좁혀 다시 적고 벚나무·느티나무를 더했습니다(26회차). 선명도 1356
 
 > 회차마다 색 배치도와 배식설계도를 첫 두 참고 그림으로 다시 주고, 앞 회차 그림을 셋째로 줍니다.
 > 마스크 부분 수정이나 그림을 손으로 자르고 돌리는 일은 하지 않습니다.
@@ -102,7 +103,7 @@
 10회차 1351·1349·1361px, 16회차 1353·1356·1361px 로 같고, 모형 왼쪽 변 기울기도
 10회차 −18px, 16회차 −16px(730px 기준)로 같습니다.
 
-## 도면과 대조 (24회차)
+## 도면과 대조 (26회차)
 
 | 항목 | 도면 | 그림 |
 | --- | --- | --- |
@@ -123,20 +124,20 @@
 | 안내판 판면 | — | ✓ 아주 연한 미색에 **읽히지 않는 흐린 무늬** — 옆 포장과 비슷한 밝기 |
 | 안내판 방향·수 | — | ✓ 진입광장 안내판은 **포장·관목 경계선과 나란히**, 광장마다 **1개씩**. 관찰데크 5 · 조류관찰소 1 은 그대로 |
 | 안내판 모양 | — | ✓ 안내판은 판의 긴 변이 **포장과 관목의 경계선과 나란**해서, 이 시점에서는 **좁은 옆면이 보입니다** — 판면이 안 보이는 것이 맞습니다. 안내판임은 **가는 다리 둘 · 판 아래의 빈 틈 · 바닥에 지는 선 판의 그림자**로 알아봅니다. 걸상은 앉는 면이 바닥 가까이 낮게 깔려 아래로 빛이 통하지 않으니, 둘이 뚜렷이 다릅니다. |
-| 배식 의도 | 철쭉을 **경계식재**로, 둔덕에는 **소나무**, 상부에는 **벚나무**, 외곽에는 **은행나무** 열식 (성운 배식도 · 철쭉 540주 H0.5×W0.6 으로 가장 많음) | ✓ 포장 가장자리의 키 큰 침엽수 줄을 모두 걷어내고 **무릎 높이 철쭉 띠**로 바꿨습니다 |
+| 배식 의도(26회차) | 철쭉을 **경계식재**로, 둔덕에는 **소나무**, 상부에는 **벚나무**, 외곽에는 **은행나무** 열식 (성운 배식도 · 철쭉 540주 H0.5×W0.6 으로 가장 많음) | ✓ 포장 가장자리의 키 큰 침엽수 줄을 모두 걷어내고 **무릎 높이 철쭉 띠**로 바꿨습니다 |
 | 글자 | 없음 | ✓ |
 
-남은 차이는 둘입니다. ① **저수지가 도면보다 조금 동쪽·넓습니다**(도면 부지 폭의 14~44%, 그림 약 19~50%). ② **남측 도로가 55% 지점에서 시작**합니다(도면 50%).
+남은 차이는 셋입니다. ⓪ **남측 진입광장 동쪽 변의 메타세쿼이아가 한 그루뿐**입니다(배식도는 7주). "오른쪽 변을 따라 일곱 그루"라고 두 회차에 걸쳐 적었으나 모델이 자리와 수를 맞추지 못했습니다. ① **저수지가 도면보다 조금 동쪽·넓습니다**(도면 부지 폭의 14~44%, 그림 약 19~50%). ② **남측 도로가 55% 지점에서 시작**합니다(도면 50%).
 
-비용은 24장 약 $1.28 입니다(16~24회차만 `xhigh` 품질이라 장당 $0.074).
+비용은 26장 약 $1.43 입니다(16~26회차만 `xhigh` 품질이라 장당 $0.074).
 
-## 프롬프트 — 마지막 회차(24회차, 참고: 색 배치도 + 배식설계도 + 13회차 그림)
+## 프롬프트 — 마지막 회차(26회차, 참고: 색 배치도 + 배식설계도 + 13회차 그림)
 
-13회차 그림을 함께 주고 고칠 넷만 적은 것입니다. 1~23회차 프롬프트는 뺐습니다.
+13회차 그림을 함께 주고 고칠 넷만 적은 것입니다. 1~25회차 프롬프트는 뺐습니다.
 
     The FIRST attached image is the colour-coded site plan of a small Korean ecological park. The SECOND is its hand-drawn planting plan. The THIRD attached image is a PHOTOREALISTIC axonometric render of the same park. Its LAYOUT, its CAMERA, its PARALLEL PROJECTION, its MATERIALS, its TEXTURES, its LIGHTING and every one of its objects are CORRECT and must be reproduced exactly. It stays photorealistic.
 
-    Five things are wrong. Fix exactly these five. Change nothing else at all.
+    Several things are wrong. Fix exactly the ones listed. Change nothing else at all.
 
     FIX 1 — THE MISSING SHRUB EDGING ON THE MOUND.
     Find the long grassy mound: the low turf hill in the open lawn east of the straight block-paved path, the one planted with seven pines and pink azaleas down its middle. Its LEFT side, where the turf meets the block paving of the path, is at present BARE GRASS, with only two or three loose clumps of shrubs at its top end and one near its bottom end.
@@ -175,16 +176,17 @@
 
     DO NOT TOUCH THE BOARDS ON THE BOARDWALK. The 5 small boards on the 5 timber viewing platforms and the 1 board beside the bird-watching hut are ALREADY RIGHT - each stands upright and runs along its own deck rail. Leave their shape, direction, position and size exactly as they are.
 
-    FIX 5 — THE PAVING EDGES ARE EDGED WITH LOW AZALEAS, NOT WITH TALL CONIFERS.
-    Along the edges of the block-paved plazas and of the straight block-paved path there stand at present ROWS OF TALL CONICAL CONIFERS, packed close together like a clipped hedge of cypress. DELETE EVERY ONE OF THEM - not one tall conifer is left anywhere along any paving edge.
+    FIX 5 — BESIDE THE MOUND, KEEP THE AZALEAS. Along the edge of the straight block-paved path where it runs beside the long grassy mound, and along the mound's own edges, the planting is a dense BAND OF LOW FLOWERING SHRUBS - AZALEAS, knee high, reading from above as a LOW FLAT RIBBON COVERED IN PINK AND WHITE BLOSSOM. No tall conical conifer stands along THAT stretch of path. This is already correct - reproduce it exactly.
 
-    In their place plant a dense BAND OF LOW FLOWERING SHRUBS - AZALEAS. They are KNEE HIGH, less than half the height of a person, and from this viewpoint the band reads as a LOW, FLAT RIBBON COVERED IN PINK AND WHITE BLOSSOM lying against the paving. NOTHING in that band rises up like a tree, and nothing in it is a cone or a spire. These azaleas are the commonest plant in the whole scheme, so the band is broad and continuous.
+    FIX 5 — ALONG THE EASTERN EDGE OF THE SOUTHERN ENTRANCE PLAZA: SEVEN METASEQUOIAS.
+    The southern entrance plaza is the block-paved rectangle at the bottom that opens onto the bottom road. Along its RIGHT-HAND (eastern) edge, in the planted strip between the plaza paving and the ginkgo row by the road, plant a single row of SEVEN METASEQUOIAS running from the top of that edge to the bottom. Count them: one, two, three, four, five, six, seven. Each is a TALL DECIDUOUS CONIFER with a straight trunk, a narrow conical crown and soft feathery foliage, and each stands WELL APART from its neighbours so that grass shows between them. They are NOT a dense evergreen hedge and must NOT stand shoulder to shoulder. Do not replace them with shrubs - this row of tall trees belongs here.
 
-    THE REST OF THE PLANTING STAYS EXACTLY AS IT IS - do not delete it and do not move it:
-      - PINES on the long grassy mound: seven of them, spreading, dark blue-green.
-      - CHERRY TREES at the upper (northern) end of the mound.
-      - GINKGOS in a single evenly spaced row along the OUTER boundary of the site beside the roads, in yellow autumn foliage.
-      - The willows and water plants at the pond edges, and the multi-layered woodland.
+    THE SOUTHERN PLAZA KEEPS EVERYTHING ELSE IT HAS: EXACTLY 2 square tree grates set into its paving, each holding one shade tree - do not remove them - and EXACTLY 1 signboard on its western edge.
+
+    FIX 5 — ROUND THE NORTH-EASTERN ENTRANCE PLAZA: SIX CHERRIES AND THREE ZELKOVAS.
+    Round the north-eastern entrance plaza plant SIX CHERRY TREES - broad-crowned deciduous trees in soft pale-pink blossom. Count them: one, two, three, four, five, six. Beside them stand THREE ZELKOVAS, tall broad-crowned deciduous shade trees. The plaza keeps EXACTLY 2 square tree grates, each holding one tree, EXACTLY 1 signboard, and the low shrub band along its northern edge.
+
+    FIX 5 — EVERY SIGNBOARD KEEPS ITS EDGE-ON DIRECTION. On each entrance plaza the signboard's LONG EDGE RUNS ALONG the line where the paving meets the shrubs, parallel to it, with its back to the shrubs, so that from this viewpoint you see the board almost EDGE-ON - its narrow side faces you and its pale panel is hidden. NEVER turn a board round to face the camera. It stands on TWO SLIM LEGS with an OPEN GAP beneath it and throws the long shadow of an upright slab.
 
     SHARPNESS — RENDER THIS FRESH AT FULL RESOLUTION AND FULL DETAIL.
     Do not retouch or resample the third image: draw the whole picture again from scratch. Every part of it must be at least as crisp and as finely detailed as the third image is — the individual leaves in every canopy, the blades and mowing stripes in the turf, the board joints and grain of the boardwalk, the joints of the block paving, the roof tiles of the houses, the pebbles at the water edge. Nothing may come out softer, blurrier, smoother or more washed out than in the third image.
