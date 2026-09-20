@@ -1,5 +1,5 @@
 'My' 탭의 색 배치도와 '성운' 탭의 **기본설계도 · 배식설계도**를 GPT 이미지 모델
-(gpt-image-2.5-sunburst)에 주고 만든 **입체평면도**입니다(21회차).
+(gpt-image-2.5-sunburst)에 주고 만든 **입체평면도**입니다(22회차).
 
 '조감도' 탭과 달리 **원근이 없는 평행투영(축측투영)** 입니다. 멀리 있는 것도 가까이 있는 것과
 같은 크기로 그려지므로 **평면도와 그대로 견주어 볼 수 있습니다** — 주택 여덟 채가 모두 같은
@@ -77,6 +77,7 @@
     판의 긴 변이 포장과 관목이 만나는 경계선과 나란해지게 하고(그 전에는 직각), 빈 미색 판이
     눈을 끌지 않도록 **읽히지 않을 만큼 흐린 회색 무늬**를 넣었습니다. 안내판은 **진입광장마다
     하나씩**입니다. 선명도 1052, 평행투영 그대로
+22. 90° 를 돌리고 나니 판이 **누워** 평의자처럼 보인다는 지적 — 방향은 그대로 두고 **다리 위에 곧게 선 판**으로 모양만 고쳤습니다. 선명도 1028, 평행투영 그대로
 
 > 회차마다 색 배치도와 배식설계도를 첫 두 참고 그림으로 다시 주고, 앞 회차 그림을 셋째로 줍니다.
 > 마스크 부분 수정이나 그림을 손으로 자르고 돌리는 일은 하지 않습니다.
@@ -99,7 +100,7 @@
 10회차 1351·1349·1361px, 16회차 1353·1356·1361px 로 같고, 모형 왼쪽 변 기울기도
 10회차 −18px, 16회차 −16px(730px 기준)로 같습니다.
 
-## 도면과 대조 (21회차)
+## 도면과 대조 (22회차)
 
 | 항목 | 도면 | 그림 |
 | --- | --- | --- |
@@ -119,13 +120,14 @@
 | 배식 | 동선 서쪽 메타세쿼이아 열식 · 동쪽 마운딩에 소나무 7 + 철쭉 · 도로변 은행나무 열식 · 산림지구 다층림 · 저수지·관찰로 서쪽은 열린 잔디 | ✓ 마운딩은 잔디 언덕에 소나무 7주(13회차), 서쪽 변과 남쪽 변을 따라 끊기지 않는 꽃관목 띠(16회차) |
 | 안내판 판면 | — | ✓ 아주 연한 미색에 **읽히지 않는 흐린 무늬** — 옆 포장과 비슷한 밝기 |
 | 안내판 방향·수 | — | ✓ 진입광장 안내판은 **포장·관목 경계선과 나란히**, 광장마다 **1개씩**. 관찰데크 5 · 조류관찰소 1 은 그대로 |
+| 안내판 모양 | — | ✓ 안내판은 **다리 위에 곧게 선 판**입니다 — 가로로 누운 널빤지가 아니라서 모임광장·휴게공간의 갈색 평의자와 뚜렷이 구별됩니다. 미색 판면이 비스듬히 보이고 바닥에 선 판의 그림자가 집니다. |
 | 글자 | 없음 | ✓ |
 
 남은 차이는 둘입니다. ① **저수지가 도면보다 조금 동쪽·넓습니다**(도면 부지 폭의 14~44%, 그림 약 19~50%). ② **남측 도로가 55% 지점에서 시작**합니다(도면 50%).
 
-비용은 21장 약 $1.07 입니다(16~21회차만 `xhigh` 품질이라 장당 $0.074).
+비용은 22장 약 $1.14 입니다(16~22회차만 `xhigh` 품질이라 장당 $0.074).
 
-## 프롬프트 — 마지막 회차(21회차, 참고: 색 배치도 + 배식설계도 + 13회차 그림)
+## 프롬프트 — 마지막 회차(22회차, 참고: 색 배치도 + 배식설계도 + 13회차 그림)
 
 13회차 그림을 함께 주고 고칠 넷만 적은 것입니다. 1~20회차 프롬프트는 뺐습니다.
 
@@ -154,10 +156,16 @@
 
     HOW MANY SIGNBOARDS THERE ARE. Each entrance plaza carries EXACTLY ONE signboard, never two - count them: one on the southern entrance plaza, one on the north-eastern entrance plaza. The boardwalk carries 5, one on each of the 5 viewing platforms, and there is 1 beside the bird-watching hut. SEVEN signboards in all in the whole park, no more and no fewer. The gathering plaza has NO signboard at all - it has three timber benches.
 
-    FIX 4 — THE TWO ENTRANCE-PLAZA SIGNBOARDS ARE TURNED 90 DEGREES ON THE SPOT.
-    On each entrance plaza the large signboard stands right beside the line where the block paving meets the mass of shrubs at the edge of the plaza. At present the board's LONG EDGE CROSSES that line at a right angle, which looks wrong. TURN EACH OF THE TWO BOARDS 90 DEGREES ABOUT ITS OWN FEET, so that its LONG EDGE RUNS ALONG that paving-and-shrub line, exactly PARALLEL to it. Each board then stands with its BACK TO THE SHRUBS and its FACE LOOKING IN ACROSS THE PLAZA PAVING. Do not move either board from its spot and do not change its size - only its direction changes. Do this on BOTH entrance plazas, the southern one and the north-eastern one.
+    FIX 4 — THE TWO ENTRANCE-PLAZA SIGNBOARDS ARE UPRIGHT BOARDS ON LEGS - THEY ARE NOT BENCHES.
+    On each entrance plaza the large signboard stands right beside the line where the block paving meets the mass of shrubs at the edge of the plaza, and its LONG EDGE RUNS ALONG that line, parallel to it, with its back to the shrubs. That DIRECTION is correct and must stay exactly as it is.
 
-    DO NOT TOUCH THE BOARDS ON THE BOARDWALK. The 5 small boards on the 5 timber viewing platforms and the 1 board beside the bird-watching hut are ALREADY RIGHT - each runs along its own deck rail. Leave their direction, position and size exactly as they are.
+    What is wrong is its SHAPE: the board has become a flat plank lying face-up on the ground, exactly like a bench. It must instead be a BOARD STANDING UPRIGHT ON TWO SLIM TIMBER LEGS. The panel is held up on edge, its bottom edge well clear of the ground, and from this high viewpoint you see its PALE OFF-WHITE FACE at a slant, tilted towards the plaza, with the LONG SHADOW of the standing panel thrown across the paving beside it.
+
+    IT MUST NOT LOOK LIKE A BENCH. This same picture contains brown timber benches - three on the gathering plaza and five at the pergola rest area. A BENCH is LOW, with a flat seat lying horizontally, and you look down onto its seat. A SIGNBOARD is TALL, stands on edge on its legs, and has nothing to sit on. The two must be unmistakably different at a glance. Never draw a signboard as a flat horizontal plank of timber.
+
+    Do not move either board from its spot, and do not change its size or its direction. Do this on BOTH entrance plazas, the southern one and the north-eastern one.
+
+    DO NOT TOUCH THE BOARDS ON THE BOARDWALK. The 5 small boards on the 5 timber viewing platforms and the 1 board beside the bird-watching hut are ALREADY RIGHT - each stands upright and runs along its own deck rail. Leave their shape, direction, position and size exactly as they are.
 
     SHARPNESS — RENDER THIS FRESH AT FULL RESOLUTION AND FULL DETAIL.
     Do not retouch or resample the third image: draw the whole picture again from scratch. Every part of it must be at least as crisp and as finely detailed as the third image is — the individual leaves in every canopy, the blades and mowing stripes in the turf, the board joints and grain of the boardwalk, the joints of the block paving, the roof tiles of the houses, the pebbles at the water edge. Nothing may come out softer, blurrier, smoother or more washed out than in the third image.
