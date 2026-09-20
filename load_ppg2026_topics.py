@@ -29,13 +29,11 @@ django.setup()
 from gisa.models import Certification, GisaEssayQuestion  # noqa: E402
 from gisa.essay_topics import siblings  # noqa: E402
 
-YEAR, RND = 2026, 1
-
-# 급수 → {문항번호: (기존 주제키 또는 None, 주제 분류)}
+# (급수, 연도, 회차) → {문항번호: (기존 주제키 또는 None, 주제 분류)}
 #   None 이면 이 문항의 발문으로 새 키를 만든다.
 MAPS = {}
 
-MAPS['식물보호기사'] = {
+MAPS['식물보호기사', 2026, 1] = {
     1:  ('18e9160aba35b609', 11),   # 「농약관리법」 정의 — 25-3 방제업과 같은 조문
     2:  ('5765453b76d8142a', 5),    # 배액 조제 계산 (시험지 18장)
     3:  ('8dcc81d387aeb13c', 5),    # 성분명 → 농약 갈래 고르기 (17장)
@@ -58,7 +56,53 @@ MAPS['식물보호기사'] = {
     20: (None, 9),                  # [신규] 풍해의 뜻
 }
 
-MAPS['식물보호산업기사'] = {
+MAPS['식물보호기사', 2026, 2] = {
+    1:  ('8dcc81d387aeb13c', 5),    # 성분명 → 농약 갈래 (카두사포스)
+    2:  ('f794a17864bd6d75', 2),    # 학명 → 해충 동정 (배나무방패벌레)
+    3:  (None, 1),                  # [신출] 개암나무 탄저병
+    4:  ('5765453b76d8142a', 5),    # 배액 조제 계산
+    5:  ('18327f64f29e1a40', 1),    # 병징 용어(퇴색·분열조직활성화·이층형성)
+    6:  ('9e33bd66fac0debb', 7),    # 관개법(고랑·일류·보더)
+    7:  ('39acc01eac618d87', 8),    # 대기오염물질(PAN·산성비)
+    8:  ('7361570b486033fa', 11),   # 식물방역법 — 규제병해충 갈래
+    9:  ('2b82691e433ba807', 11),   # 농약관리법의 목적
+    10: ('b47aa86b5de2e6d5', 6),    # 초기위조점·영구위조점
+    11: ('15d8dad1bed3cecb', 9),    # 세포외결빙·세포내결빙
+    12: ('4622e1ca698f0e1b', 8),    # 적산온도·유효적산온도
+    13: ('a9e03c6163017900', 3),    # 해충 조사법(육안조사·유살등)
+    14: ('ef0acba29c65a2e1', 10),   # 피소에 강한 수종
+    15: ('4b77c93376c3c669', 8),    # 광포화점·광보상점
+    16: ('2c9387f2a5ff9530', 9),    # 내동성을 크게 하는 요인
+    17: ('c32e6d4104d3742c', 4),    # 곤충병원성 바이러스(NPV·베큘로바이러스)
+    18: ('2250541e66a29050', 2),    # 곤충의 목 — 개미 = 벌목
+    19: (None, 4),                  # [신출] 곤충병원성 선충
+    20: ('18327f64f29e1a40', 1),    # 병징 용어(이상증식·쇠퇴)
+}
+
+MAPS['식물보호산업기사', 2026, 2] = {
+    1:  ('8dcc81d387aeb13c', 5),    # 성분명 → 농약 갈래 (사이퍼메트린)
+    2:  ('6ffc5857e77e2331', 2),    # 털두꺼비하늘소 — 25-3 과 같은 문항
+    3:  ('edc0aae693b9d659', 1),    # 붉나무 모무늬병 — 25-1 과 같은 문항
+    4:  ('5765453b76d8142a', 5),    # 배액 조제 계산
+    5:  ('ceb541cbded055be', 1),    # 병징과 표징
+    6:  ('029f633fb8a99f31', 1),    # 병원체의 종류 — 코흐의 법칙 미적용
+    7:  ('06d47905731c0595', 7),    # 드라이파밍 — 23-1 과 같은 문항
+    8:  ('274735515d9daa60', 9),    # 풍해의 재배적 대책
+    9:  ('b05658eb6e329632', 8),    # 이산화탄소 시비 — 23-4 와 같은 문항
+    10: (None, 1),                  # [신출] 순활물기생체
+    11: ('5dcaf5375f6ea833', 1),    # 병원체의 자연 침입 경로(자연개구부)
+    12: ('4d7e2bb290a5ac69', 8),    # 유효고온한계온도·유효적산온도
+    13: (None, 2),                  # [신출] 잠재해충
+    14: (None, 4),                  # [신출] 선충의 재배적 방제법
+    15: ('424e729ea0b56554', 7),    # 작부체계 — 답전윤환
+    16: ('2250541e66a29050', 2),    # 곤충의 목 — 모기·등에 = 파리목
+    17: ('514091af5fc648db', 8),    # 양생식물·음생식물
+    18: ('2c9387f2a5ff9530', 9),    # 내동성 — 경화·이경화
+    19: ('7a8c7abdcb107e99', 2),    # 곤충의 화학신호 — 페로몬의 종류
+    20: ('c4a14156a5032373', 6),    # 토양침식
+}
+
+MAPS['식물보호산업기사', 2026, 1] = {
     1:  ('5765453b76d8142a', 5),    # 배액 조제 계산
     2:  ('8dcc81d387aeb13c', 5),    # 성분명 → 농약 갈래 고르기
     3:  ('2b9f4d8972a7c14c', 1),    # 다릅나무 회색무늬병(Stagonospora) — 23-2 와 같은 문항
@@ -92,16 +136,16 @@ def main():
     short = {c.id: ('기사' if c.name.endswith('보호기사') else '산기') for c in pool}
 
     touched = set()
-    for cert_name, mapping in MAPS.items():
+    for (cert_name, year, rnd), mapping in sorted(MAPS.items()):
         cert = Certification.objects.get(name=cert_name)
         rows = {q.number: q for q in GisaEssayQuestion.objects.filter(
-            certification=cert, source='기출', year=YEAR, round=RND)}
+            certification=cert, source='기출', year=year, round=rnd)}
         missing = [n for n in mapping if n not in rows]
         if missing:
-            print(f'{cert_name}: DB 에 없는 문항 {missing}'
+            print(f'{cert_name} {year}-{rnd}회: DB 에 없는 문항 {missing}'
                   ' — load_pp_essay.py 를 먼저 돌릴 것')
             return 1
-        print(f'=== {cert_name}')
+        print(f'=== {cert_name} {year}-{rnd}회')
         for n, (key, group) in sorted(mapping.items()):
             q = rows[n]
             if key is None:
