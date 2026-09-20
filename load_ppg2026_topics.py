@@ -30,11 +30,12 @@ from gisa.models import Certification, GisaEssayQuestion  # noqa: E402
 from gisa.essay_topics import siblings  # noqa: E402
 
 YEAR, RND = 2026, 1
-CERT = '식물보호기사'
 
-# 문항번호 → (기존 주제키 또는 None, 주제 분류)
+# 급수 → {문항번호: (기존 주제키 또는 None, 주제 분류)}
 #   None 이면 이 문항의 발문으로 새 키를 만든다.
-MAP = {
+MAPS = {}
+
+MAPS['식물보호기사'] = {
     1:  ('18e9160aba35b609', 11),   # 「농약관리법」 정의 — 25-3 방제업과 같은 조문
     2:  ('5765453b76d8142a', 5),    # 배액 조제 계산 (시험지 18장)
     3:  ('8dcc81d387aeb13c', 5),    # 성분명 → 농약 갈래 고르기 (17장)
@@ -57,6 +58,29 @@ MAP = {
     20: (None, 9),                  # [신규] 풍해의 뜻
 }
 
+MAPS['식물보호산업기사'] = {
+    1:  ('5765453b76d8142a', 5),    # 배액 조제 계산
+    2:  ('8dcc81d387aeb13c', 5),    # 성분명 → 농약 갈래 고르기
+    3:  ('2b9f4d8972a7c14c', 1),    # 다릅나무 회색무늬병(Stagonospora) — 23-2 와 같은 문항
+    4:  ('0ee038f273601812', 2),    # 호랑나비(Papilio xuthus) 동정
+    5:  ('7f0dcaf2291aa7c6', 5),    # 농약의 잔류성 — 23-1 과 같은 문항
+    6:  ('a9e03c6163017900', 3),    # 해충 조사법(흡충기·쓸어잡기)
+    7:  ('5c5bd297eb214ea0', 4),    # 물리적 방제법 — 23-2 와 같은 문항
+    8:  ('6267d971d246dd6a', 4),    # 기계적 방제법(포살·유살)
+    9:  ('6520479b5d38278a', 4),    # 기생성·포식성 천적
+    10: (None, 1),                  # [신규] 곰팡이의 유성포자
+    11: ('029f633fb8a99f31', 1),    # 병원체의 종류·크기 — 가장 작은 것은 바이로이드
+    12: ('f35d0ce76f847ffd', 3),    # 식물병 진단법
+    13: ('3271bd3374c8711d', 8),    # 굴광현상
+    14: ('7ebb2230a895fdad', 8),    # 이산화탄소 보상점·포화점
+    15: ('9e33bd66fac0debb', 7),    # 관개법(살수·점적)
+    16: (None, 7),                  # [신규] 영양번식
+    17: ('483de2086f8a5633', 10),   # 피소(볕뎀) — 원본은 [신규]로 보았으나 25-3 과 같은 주제
+    18: ('2c9387f2a5ff9530', 9),    # 내동성을 크게 하는 요인
+    19: (None, 8),                  # [신규] 불화수소에 강한 식물
+    20: ('d2b03aa9a58bf983', 6),    # 질산화작용
+}
+
 
 def sheet_label(cert_id, short, year, rnd):
     return '%s%d-%d' % (short.get(cert_id, ''), year, rnd)
@@ -64,30 +88,32 @@ def sheet_label(cert_id, short, year, rnd):
 
 def main():
     apply_ = '--apply' in sys.argv
-    cert = Certification.objects.get(name=CERT)
-    pool = list(Certification.objects.filter(name__in=siblings(CERT)))
+    pool = list(Certification.objects.filter(name__in=siblings('식물보호기사')))
     short = {c.id: ('기사' if c.name.endswith('보호기사') else '산기') for c in pool}
 
-    rows = {q.number: q for q in GisaEssayQuestion.objects.filter(
-        certification=cert, source='기출', year=YEAR, round=RND)}
-    missing = [n for n in MAP if n not in rows]
-    if missing:
-        print('DB 에 없는 문항:', missing, '— load_pp_essay.py 를 먼저 돌릴 것')
-        return 1
-
     touched = set()
-    for n, (key, group) in sorted(MAP.items()):
-        q = rows[n]
-        if key is None:
-            key = hashlib.md5(q.text[:80].encode('utf-8')).hexdigest()[:16]
-            tag = '신규'
-        else:
-            tag = '기존'
-        print(f'{n:>2}번 {tag} {key} g{group} | {q.text[:38]}')
-        touched.add(key)
-        if apply_:
-            q.topic_key, q.topic_group = key, group
-            q.save(update_fields=['topic_key', 'topic_group'])
+    for cert_name, mapping in MAPS.items():
+        cert = Certification.objects.get(name=cert_name)
+        rows = {q.number: q for q in GisaEssayQuestion.objects.filter(
+            certification=cert, source='기출', year=YEAR, round=RND)}
+        missing = [n for n in mapping if n not in rows]
+        if missing:
+            print(f'{cert_name}: DB 에 없는 문항 {missing}'
+                  ' — load_pp_essay.py 를 먼저 돌릴 것')
+            return 1
+        print(f'=== {cert_name}')
+        for n, (key, group) in sorted(mapping.items()):
+            q = rows[n]
+            if key is None:
+                key = hashlib.md5(q.text[:80].encode('utf-8')).hexdigest()[:16]
+                tag = '신규'
+            else:
+                tag = '기존'
+            print(f'{n:>2}번 {tag} {key} g{group} | {q.text[:36]}')
+            touched.add(key)
+            if apply_:
+                q.topic_key, q.topic_group = key, group
+                q.save(update_fields=['topic_key', 'topic_group'])
 
     if not apply_:
         print('\n(검증만 했다. --apply 를 붙여야 DB 에 들어간다)')
