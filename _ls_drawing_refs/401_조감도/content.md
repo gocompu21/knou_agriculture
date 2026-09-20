@@ -1,5 +1,5 @@
 '성운' 탭의 **답안지 II · 기본설계도**와 **답안지 III · 배식설계도**, 문제지 조건으로 만든 **입체 조감도**입니다.
-**GPT**(gpt-image-2.5-sunburst, 13회차)로 그렸습니다. 남동쪽 상공에서 북서쪽을 내려다본 시점이라 **도면의 북쪽이 그림의 위**입니다 —
+**GPT**(gpt-image-2.5-sunburst, 14회차)로 그렸습니다. 남동쪽 상공에서 북서쪽을 내려다본 시점이라 **도면의 북쪽이 그림의 위**입니다 —
 실개천이 위, 기존수림이 왼쪽, 6m 도로와 주택가가 오른쪽·아래입니다.
 
 ## 만든 방법 — 1회차 그림에서 **한 번에**
@@ -24,12 +24,13 @@
    회색 무늬**(윗부분 작은 그림, 아래 글줄 두세 줄)를 넣어 질감을 주었습니다.
    안내판은 도면대로 **진입광장마다 하나씩**입니다
 6. 90° 를 돌리고 나니 판이 **누워** 평의자처럼 보인다는 지적이 나왔습니다(13회차). 방향은 그대로 두고 **다리 위에 곧게 선 판**으로 모양만 고쳤습니다 — 같은 그림의 갈색 평의자와 견줘 뚜렷이 달라야 한다고 적었습니다
+7. 그런데 "**미색 판면이 비스듬히 보이고**"라고 적은 탓에 모델이 판면을 보이려고 **방향을 되돌려** 카메라를 마주 보게 했습니다(사용자 지적). 14회차에서 **방향이 최우선**임을 못박고 "이 시점에서는 판의 **좁은 옆면**이 보이는 것이 맞다, 판면이 안 보여도 괜찮다"고 바꿔 적었습니다. 대신 안내판임을 알리는 것으로 **다리 둘 · 판 아래 빈 틈 · 선 판의 그림자** 셋을 요구했습니다
 
 > **덧그리기는 곧 화질입니다.** 고칠 것이 생기면 마지막 그림 위에 얹지 말고, **덧그림이 적은 앞 회차로 돌아가
 > 고칠 것을 모두 한 프롬프트에 모아** 다시 그리는 편이 낫습니다. 같은 방식으로 'My' 탭 조감도와 '입체평면도'도 고쳤습니다.
 > 마스크 부분 수정이나 그림을 손으로 자르고 돌리는 일은 하지 않습니다.
 
-## 도면과 대조 (13회차)
+## 도면과 대조 (14회차)
 
 | 도면(성운 답안) | 결과 |
 | --- | --- |
@@ -44,14 +45,14 @@
 | 두 진입광장을 잇는 남북 동선, 서쪽 메타세쿼이아 열식, 동쪽 마운딩에 소나무 7 · 철쭉, 도로변 은행나무 열식 | ✓ 마운딩은 **봉긋한 잔디 둔덕**이고 서쪽 변과 남쪽 변을 따라 **끊기지 않는 꽃관목 띠**를 둘렀습니다 |
 | 안내판 판면 | ✓ 아주 연한 미색에 **읽히지 않는 흐린 무늬** — 옆 포장과 비슷한 밝기라 도드라지지 않습니다 |
 | 안내판 방향·수 | ✓ 진입광장 안내판은 **포장·관목 경계선과 나란히**, 광장마다 **1개씩**. 관찰데크 5 · 조류관찰소 1 은 그대로 |
-| 안내판 모양 | ✓ 안내판은 **다리 위에 곧게 선 판**입니다 — 가로로 누운 널빤지가 아니라서 모임광장·휴게공간의 갈색 평의자와 뚜렷이 구별됩니다. 미색 판면이 비스듬히 보이고 바닥에 선 판의 그림자가 집니다. |
+| 안내판 모양 | ✓ 안내판은 판의 긴 변이 **포장과 관목의 경계선과 나란**해서, 이 시점에서는 **좁은 옆면이 보입니다** — 판면이 안 보이는 것이 맞습니다. 안내판임은 **가는 다리 둘 · 판 아래의 빈 틈 · 바닥에 지는 선 판의 그림자**로 알아봅니다. 걸상은 앉는 면이 바닥 가까이 낮게 깔려 아래로 빛이 통하지 않으니, 둘이 뚜렷이 다릅니다. |
 | 글자 없음 | ✓ |
 
-비용은 13장 약 $0.69 입니다(8~13회차만 `xhigh` 품질이라 장당 $0.074).
+비용은 14장 약 $0.76 입니다(8~14회차만 `xhigh` 품질이라 장당 $0.074).
 
-## 프롬프트 — 마지막 회차(13회차, 참고: 기본설계도 + 배식설계도 + 1회차 그림)
+## 프롬프트 — 마지막 회차(14회차, 참고: 기본설계도 + 배식설계도 + 1회차 그림)
 
-1회차 그림을 함께 주고 고칠 것을 한꺼번에 적은 것입니다. 1~11회차 프롬프트는 뺐습니다.
+1회차 그림을 함께 주고 고칠 것을 한꺼번에 적은 것입니다. 1~13회차 프롬프트는 뺐습니다.
 
     The FIRST attached image is the site and facilities plan of a small Korean ecological park (north is up in the drawing). The SECOND attached image is the planting plan of the same site. These two drawings are the ground truth for WHAT is where.
 
@@ -84,14 +85,19 @@
 
     10. THE OTHER BOARDS ALL STAY. The 5 small blank boards on the 5 observation decks and the 1 blank board beside the timber bird-watching hide at the pond must ALL be there — SIX boards in all, each with a pale off-white panel. Do not delete them, do not move them and do not turn them into benches. The large signboards on the two entrance plazas also stay.
 
-    11. THE TWO ENTRANCE-PLAZA SIGNBOARDS ARE UPRIGHT BOARDS ON LEGS - THEY ARE NOT BENCHES.
-    On each entrance plaza the large signboard stands right beside the line where the block paving meets the mass of shrubs at the edge of the plaza, and its LONG EDGE RUNS ALONG that line, parallel to it, with its back to the shrubs. That DIRECTION is correct and must stay exactly as it is.
+    11. THE TWO ENTRANCE-PLAZA SIGNBOARDS: DIRECTION FIRST, THEN LEGS AND SHADOW.
+    On each entrance plaza the large signboard stands right beside the line where the block paving meets the mass of shrubs at the edge of the plaza.
 
-    What is wrong is its SHAPE: the board has become a flat plank lying face-up on the ground, exactly like a bench. It must instead be a BOARD STANDING UPRIGHT ON TWO SLIM TIMBER LEGS. The panel is held up on edge, its bottom edge well clear of the ground, and from this high viewpoint you see its PALE OFF-WHITE FACE at a slant, tilted towards the plaza, with the LONG SHADOW of the standing panel thrown across the paving beside it.
+    DIRECTION MATTERS MORE THAN ANYTHING ELSE ABOUT THESE TWO BOARDS. The board's LONG EDGE RUNS ALONG that paving-and-shrub line, exactly PARALLEL to it, with its back to the shrubs. NEVER turn a board round to face the camera. From this high south-eastern viewpoint you therefore see the board almost EDGE-ON: a thin upright slab whose NARROW SIDE - its thickness - is what faces you. THAT IS CORRECT. It is perfectly fine that the pale face of the panel is hidden from us; do NOT rotate the board in order to show that face.
 
-    IT MUST NOT LOOK LIKE A BENCH. This same picture contains brown timber benches - three on the gathering plaza and five at the pergola rest area. A BENCH is LOW, with a flat seat lying horizontally, and you look down onto its seat. A SIGNBOARD is TALL, stands on edge on its legs, and has nothing to sit on. The two must be unmistakably different at a glance. Never draw a signboard as a flat horizontal plank of timber.
+    WHAT MAKES IT READ AS A SIGNBOARD is not its face but these three things, and all three must be there:
+      1. It stands on TWO SLIM TIMBER LEGS and does not touch the ground.
+      2. There is an OPEN GAP beneath the panel - you can see the paving through it, under the board and between the legs.
+      3. It throws the LONG SHADOW of a standing upright slab across the paving beside it.
 
-    Do not move either board from its spot, and do not change its size or its direction. Do this on BOTH entrance plazas, the southern one and the north-eastern one.
+    THAT IS EXACTLY WHAT SEPARATES IT FROM A BENCH. This picture contains brown timber benches - three on the gathering plaza and five at the pergola rest area. A bench's seat lies LOW and CLOSE to the ground with no daylight underneath it; a signboard is lifted HIGH on its legs with open space beneath. Never draw these two boards as flat planks lying on the ground.
+
+    Do not move either board from its spot and do not change its size. Do this on BOTH entrance plazas, the southern one and the north-eastern one.
 
     DO NOT TOUCH THE BOARDS ON THE BOARDWALK. The 5 small boards on the 5 timber viewing platforms and the 1 board beside the bird-watching hut are ALREADY RIGHT - each stands upright and runs along its own deck rail. Leave their shape, direction, position and size exactly as they are.
 
