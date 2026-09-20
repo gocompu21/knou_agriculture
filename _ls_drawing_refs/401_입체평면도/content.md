@@ -1,5 +1,5 @@
 'My' 탭의 색 배치도와 '성운' 탭의 **기본설계도 · 배식설계도**를 GPT 이미지 모델
-(gpt-image-2.5-sunburst)에 주고 만든 **입체평면도**입니다(23회차).
+(gpt-image-2.5-sunburst)에 주고 만든 **입체평면도**입니다(24회차).
 
 '조감도' 탭과 달리 **원근이 없는 평행투영(축측투영)** 입니다. 멀리 있는 것도 가까이 있는 것과
 같은 크기로 그려지므로 **평면도와 그대로 견주어 볼 수 있습니다** — 주택 여덟 채가 모두 같은
@@ -79,6 +79,7 @@
     하나씩**입니다. 선명도 1052, 평행투영 그대로
 22. 90° 를 돌리고 나니 판이 **누워** 평의자처럼 보인다는 지적 — 방향은 그대로 두고 **다리 위에 곧게 선 판**으로 모양만 고쳤습니다. 선명도 1028, 평행투영 그대로
 23. "판면이 비스듬히 보이고"라고 적은 탓에 모델이 **방향을 되돌려** 카메라를 마주 보게 했습니다. **방향이 최우선**임을 못박고 "좁은 옆면이 보이는 것이 맞다"로 바꾸었습니다(23회차). 선명도 1115
+24. 포장 가장자리의 **키 큰 침엽수 줄**을 모두 걷어내고 **철쭉 경계식재**(무릎 높이 꽃관목 띠)로 바꿨습니다 — 성운 배식도의 의도가 "철쭉을 경계식재로, 둔덕에는 소나무, 상부에는 벚나무, 외곽에는 은행나무"이기 때문입니다(24회차). 선명도 1308
 
 > 회차마다 색 배치도와 배식설계도를 첫 두 참고 그림으로 다시 주고, 앞 회차 그림을 셋째로 줍니다.
 > 마스크 부분 수정이나 그림을 손으로 자르고 돌리는 일은 하지 않습니다.
@@ -101,7 +102,7 @@
 10회차 1351·1349·1361px, 16회차 1353·1356·1361px 로 같고, 모형 왼쪽 변 기울기도
 10회차 −18px, 16회차 −16px(730px 기준)로 같습니다.
 
-## 도면과 대조 (23회차)
+## 도면과 대조 (24회차)
 
 | 항목 | 도면 | 그림 |
 | --- | --- | --- |
@@ -122,19 +123,20 @@
 | 안내판 판면 | — | ✓ 아주 연한 미색에 **읽히지 않는 흐린 무늬** — 옆 포장과 비슷한 밝기 |
 | 안내판 방향·수 | — | ✓ 진입광장 안내판은 **포장·관목 경계선과 나란히**, 광장마다 **1개씩**. 관찰데크 5 · 조류관찰소 1 은 그대로 |
 | 안내판 모양 | — | ✓ 안내판은 판의 긴 변이 **포장과 관목의 경계선과 나란**해서, 이 시점에서는 **좁은 옆면이 보입니다** — 판면이 안 보이는 것이 맞습니다. 안내판임은 **가는 다리 둘 · 판 아래의 빈 틈 · 바닥에 지는 선 판의 그림자**로 알아봅니다. 걸상은 앉는 면이 바닥 가까이 낮게 깔려 아래로 빛이 통하지 않으니, 둘이 뚜렷이 다릅니다. |
+| 배식 의도 | 철쭉을 **경계식재**로, 둔덕에는 **소나무**, 상부에는 **벚나무**, 외곽에는 **은행나무** 열식 (성운 배식도 · 철쭉 540주 H0.5×W0.6 으로 가장 많음) | ✓ 포장 가장자리의 키 큰 침엽수 줄을 모두 걷어내고 **무릎 높이 철쭉 띠**로 바꿨습니다 |
 | 글자 | 없음 | ✓ |
 
 남은 차이는 둘입니다. ① **저수지가 도면보다 조금 동쪽·넓습니다**(도면 부지 폭의 14~44%, 그림 약 19~50%). ② **남측 도로가 55% 지점에서 시작**합니다(도면 50%).
 
-비용은 23장 약 $1.21 입니다(16~23회차만 `xhigh` 품질이라 장당 $0.074).
+비용은 24장 약 $1.28 입니다(16~24회차만 `xhigh` 품질이라 장당 $0.074).
 
-## 프롬프트 — 마지막 회차(23회차, 참고: 색 배치도 + 배식설계도 + 13회차 그림)
+## 프롬프트 — 마지막 회차(24회차, 참고: 색 배치도 + 배식설계도 + 13회차 그림)
 
-13회차 그림을 함께 주고 고칠 넷만 적은 것입니다. 1~22회차 프롬프트는 뺐습니다.
+13회차 그림을 함께 주고 고칠 넷만 적은 것입니다. 1~23회차 프롬프트는 뺐습니다.
 
     The FIRST attached image is the colour-coded site plan of a small Korean ecological park. The SECOND is its hand-drawn planting plan. The THIRD attached image is a PHOTOREALISTIC axonometric render of the same park. Its LAYOUT, its CAMERA, its PARALLEL PROJECTION, its MATERIALS, its TEXTURES, its LIGHTING and every one of its objects are CORRECT and must be reproduced exactly. It stays photorealistic.
 
-    Four things are wrong. Fix exactly these four. Change nothing else at all.
+    Five things are wrong. Fix exactly these five. Change nothing else at all.
 
     FIX 1 — THE MISSING SHRUB EDGING ON THE MOUND.
     Find the long grassy mound: the low turf hill in the open lawn east of the straight block-paved path, the one planted with seven pines and pink azaleas down its middle. Its LEFT side, where the turf meets the block paving of the path, is at present BARE GRASS, with only two or three loose clumps of shrubs at its top end and one near its bottom end.
@@ -173,6 +175,17 @@
 
     DO NOT TOUCH THE BOARDS ON THE BOARDWALK. The 5 small boards on the 5 timber viewing platforms and the 1 board beside the bird-watching hut are ALREADY RIGHT - each stands upright and runs along its own deck rail. Leave their shape, direction, position and size exactly as they are.
 
+    FIX 5 — THE PAVING EDGES ARE EDGED WITH LOW AZALEAS, NOT WITH TALL CONIFERS.
+    Along the edges of the block-paved plazas and of the straight block-paved path there stand at present ROWS OF TALL CONICAL CONIFERS, packed close together like a clipped hedge of cypress. DELETE EVERY ONE OF THEM - not one tall conifer is left anywhere along any paving edge.
+
+    In their place plant a dense BAND OF LOW FLOWERING SHRUBS - AZALEAS. They are KNEE HIGH, less than half the height of a person, and from this viewpoint the band reads as a LOW, FLAT RIBBON COVERED IN PINK AND WHITE BLOSSOM lying against the paving. NOTHING in that band rises up like a tree, and nothing in it is a cone or a spire. These azaleas are the commonest plant in the whole scheme, so the band is broad and continuous.
+
+    THE REST OF THE PLANTING STAYS EXACTLY AS IT IS - do not delete it and do not move it:
+      - PINES on the long grassy mound: seven of them, spreading, dark blue-green.
+      - CHERRY TREES at the upper (northern) end of the mound.
+      - GINKGOS in a single evenly spaced row along the OUTER boundary of the site beside the roads, in yellow autumn foliage.
+      - The willows and water plants at the pond edges, and the multi-layered woodland.
+
     SHARPNESS — RENDER THIS FRESH AT FULL RESOLUTION AND FULL DETAIL.
     Do not retouch or resample the third image: draw the whole picture again from scratch. Every part of it must be at least as crisp and as finely detailed as the third image is — the individual leaves in every canopy, the blades and mowing stripes in the turf, the board joints and grain of the boardwalk, the joints of the block paving, the roof tiles of the houses, the pebbles at the water edge. Nothing may come out softer, blurrier, smoother or more washed out than in the third image.
 
@@ -186,11 +199,11 @@
     - PARALLEL (axonometric) projection. NO perspective, NO vanishing point, NO convergence anywhere.
     - The ground slab is a PARALLELOGRAM, never a trapezoid: far edge and near edge exactly the same length and exactly horizontal; left and right edges exactly the same length and exactly vertical. The model is NOT wider at the bottom of the picture than at the top.
     - The right-hand road is a band of CONSTANT width from the top of the picture to the bottom; its two kerb lines straight and parallel. The same for the bottom road.
-    - Every house is exactly the SAME size, near the top of the picture or near the bottom. The same for every ginkgo in its row, every dawn redwood in its row, every paving block, every tree grate.
-    - Every line running far-to-near in the plan — the right-hand road, the straight path, the dawn redwood row, the ginkgo row, the mound — runs in one single direction and never converges with the others. Every line running left-to-right — the stream, the bottom road, the plaza kerbs — runs in one single other direction.
+    - Every house is exactly the SAME size, near the top of the picture or near the bottom. The same for every ginkgo in its row, every paving block, every tree grate.
+    - Every line running far-to-near in the plan — the right-hand road, the straight path, the ginkgo row, the mound — runs in one single direction and never converges with the others. Every line running left-to-right — the stream, the bottom road, the plaza kerbs — runs in one single other direction.
     - All vertical edges exactly vertical in the picture and exactly parallel to one another.
     - The camera stays 45 degrees above the ground, the slab's DEPTH foreshortened to 0.71 of true, exactly as in the third image. Same framing and orientation: stream and reservoir at the TOP, narrow woodland strip and forest on the LEFT and lower left, road and houses on the RIGHT, second road and houses along the BOTTOM RIGHT. Do not rotate, flip, zoom or crop.
 
-    EVERYTHING ELSE IS EXACTLY AS IN THE THIRD IMAGE: the stream across the top with wooded hillside beyond; the reservoir with its willows, reed beds and shoreline stones; the wetland pond; ONE closed angular ring of raised timber boardwalk with EXACTLY 5 viewing platforms, each carrying one board with a pale off-white panel; EXACTLY 1 bird-watching hut on the reservoir's lower-right shore; the rest area with EXACTLY 1 pergola, 2 benches and 1 litter bin under shade trees; the gathering plaza with its EXACTLY 1 tree in a square grate; EXACTLY 2 trees in grates and 1 blank board on the top-right entrance plaza; EXACTLY 2 trees in grates and 1 blank board on the bottom entrance plaza — FIVE tree grates in all; ONE single row of about 12 dawn redwoods on the grass immediately LEFT of the straight path; ONE single row of ginkgos inside the right-hand road continuing inside the bottom road; open mown lawn west of the ring and west of the reservoir with only three or four isolated specimen trees; the dense multi-layered woodland only in the lower left and lower middle.
+    EVERYTHING ELSE IS EXACTLY AS IN THE THIRD IMAGE: the stream across the top with wooded hillside beyond; the reservoir with its willows, reed beds and shoreline stones; the wetland pond; ONE closed angular ring of raised timber boardwalk with EXACTLY 5 viewing platforms, each carrying one board with a pale off-white panel; EXACTLY 1 bird-watching hut on the reservoir's lower-right shore; the rest area with EXACTLY 1 pergola, 2 benches and 1 litter bin under shade trees; the gathering plaza with its EXACTLY 1 tree in a square grate; EXACTLY 2 trees in grates and 1 blank board on the top-right entrance plaza; EXACTLY 2 trees in grates and 1 blank board on the bottom entrance plaza — FIVE tree grates in all; ONE single row of ginkgos inside the right-hand road continuing inside the bottom road; open mown lawn west of the ring and west of the reservoir with only three or four isolated specimen trees; the dense multi-layered woodland only in the lower left and lower middle.
 
     STRICT RULES: no new buildings, plazas, paths, bridges, fences, walls, cars or people; NO text, letters, numbers, labels, legends, arrows, north arrow, scale bar, grid lines, dimension lines or watermark anywhere in the picture. The ONLY exception is the very faint, blurred, unreadable grey markings on the signboard panels described above - they must stay illegible.

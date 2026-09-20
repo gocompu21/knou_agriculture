@@ -1,5 +1,5 @@
 '성운' 탭의 **답안지 II · 기본설계도**와 **답안지 III · 배식설계도**, 문제지 조건으로 만든 **입체 조감도**입니다.
-**GPT**(gpt-image-2.5-sunburst, 14회차)로 그렸습니다. 남동쪽 상공에서 북서쪽을 내려다본 시점이라 **도면의 북쪽이 그림의 위**입니다 —
+**GPT**(gpt-image-2.5-sunburst, 15회차)로 그렸습니다. 남동쪽 상공에서 북서쪽을 내려다본 시점이라 **도면의 북쪽이 그림의 위**입니다 —
 실개천이 위, 기존수림이 왼쪽, 6m 도로와 주택가가 오른쪽·아래입니다.
 
 ## 만든 방법 — 1회차 그림에서 **한 번에**
@@ -25,12 +25,13 @@
    안내판은 도면대로 **진입광장마다 하나씩**입니다
 6. 90° 를 돌리고 나니 판이 **누워** 평의자처럼 보인다는 지적이 나왔습니다(13회차). 방향은 그대로 두고 **다리 위에 곧게 선 판**으로 모양만 고쳤습니다 — 같은 그림의 갈색 평의자와 견줘 뚜렷이 달라야 한다고 적었습니다
 7. 그런데 "**미색 판면이 비스듬히 보이고**"라고 적은 탓에 모델이 판면을 보이려고 **방향을 되돌려** 카메라를 마주 보게 했습니다(사용자 지적). 14회차에서 **방향이 최우선**임을 못박고 "이 시점에서는 판의 **좁은 옆면**이 보이는 것이 맞다, 판면이 안 보여도 괜찮다"고 바꿔 적었습니다. 대신 안내판임을 알리는 것으로 **다리 둘 · 판 아래 빈 틈 · 선 판의 그림자** 셋을 요구했습니다
+8. 식재가 틀렸습니다(사용자 지적) — 포장 가장자리를 따라 **키 큰 원뿔형 침엽수 줄**이 서 있었는데, 그 자리는 **철쭉 경계식재**여야 합니다. 성운 배식도의 의도는 "철쭉을 경계식재로, 둔덕에는 소나무, 상부에는 벚나무, 외곽에는 은행나무"이고 수량표에도 철쭉이 540주로 가장 많습니다. 침엽수 줄을 모두 지우고 **무릎 높이의 낮은 꽃관목 띠**로 바꿨습니다(15회차)
 
 > **덧그리기는 곧 화질입니다.** 고칠 것이 생기면 마지막 그림 위에 얹지 말고, **덧그림이 적은 앞 회차로 돌아가
 > 고칠 것을 모두 한 프롬프트에 모아** 다시 그리는 편이 낫습니다. 같은 방식으로 'My' 탭 조감도와 '입체평면도'도 고쳤습니다.
 > 마스크 부분 수정이나 그림을 손으로 자르고 돌리는 일은 하지 않습니다.
 
-## 도면과 대조 (14회차)
+## 도면과 대조 (15회차)
 
 | 도면(성운 답안) | 결과 |
 | --- | --- |
@@ -46,19 +47,20 @@
 | 안내판 판면 | ✓ 아주 연한 미색에 **읽히지 않는 흐린 무늬** — 옆 포장과 비슷한 밝기라 도드라지지 않습니다 |
 | 안내판 방향·수 | ✓ 진입광장 안내판은 **포장·관목 경계선과 나란히**, 광장마다 **1개씩**. 관찰데크 5 · 조류관찰소 1 은 그대로 |
 | 안내판 모양 | ✓ 안내판은 판의 긴 변이 **포장과 관목의 경계선과 나란**해서, 이 시점에서는 **좁은 옆면이 보입니다** — 판면이 안 보이는 것이 맞습니다. 안내판임은 **가는 다리 둘 · 판 아래의 빈 틈 · 바닥에 지는 선 판의 그림자**로 알아봅니다. 걸상은 앉는 면이 바닥 가까이 낮게 깔려 아래로 빛이 통하지 않으니, 둘이 뚜렷이 다릅니다. |
+| 배식 의도 | 철쭉을 **경계식재**로, 둔덕에는 **소나무**, 상부에는 **벚나무**, 외곽에는 **은행나무** 열식 (성운 배식도 · 철쭉 540주 H0.5×W0.6 으로 가장 많음) | ✓ 포장 가장자리의 키 큰 침엽수 줄을 모두 걷어내고 **무릎 높이 철쭉 띠**로 바꿨습니다 |
 | 글자 없음 | ✓ |
 
-비용은 14장 약 $0.76 입니다(8~14회차만 `xhigh` 품질이라 장당 $0.074).
+비용은 15장 약 $0.84 입니다(8~15회차만 `xhigh` 품질이라 장당 $0.074).
 
-## 프롬프트 — 마지막 회차(14회차, 참고: 기본설계도 + 배식설계도 + 1회차 그림)
+## 프롬프트 — 마지막 회차(15회차, 참고: 기본설계도 + 배식설계도 + 1회차 그림)
 
-1회차 그림을 함께 주고 고칠 것을 한꺼번에 적은 것입니다. 1~13회차 프롬프트는 뺐습니다.
+1회차 그림을 함께 주고 고칠 것을 한꺼번에 적은 것입니다. 1~14회차 프롬프트는 뺐습니다.
 
     The FIRST attached image is the site and facilities plan of a small Korean ecological park (north is up in the drawing). The SECOND attached image is the planting plan of the same site. These two drawings are the ground truth for WHAT is where.
 
     The THIRD attached image is a photorealistic bird's-eye rendering of that park. Its CAMERA, its PERSPECTIVE, its FRAMING, its DAYLIGHT, its MATERIALS, its TEXTURES and its SHARPNESS are all EXACTLY RIGHT, and so is the overall layout. Copy all of that.
 
-    Redraw the third image, fresh and sharp, changing ONLY the twelve things listed below so that it matches the two drawings. Nothing else changes.
+    Redraw the third image, fresh and sharp, changing ONLY the thirteen things listed below so that it matches the two drawings. Nothing else changes.
 
     1. SOUTH ROAD — EAST HALF ONLY. The 6 m residential road along the bottom edge must run ONLY along the EASTERN HALF of that edge, from the south entrance plaza east to the corner. Along the WESTERN HALF there is NO road at all: the park's forest runs straight on into the wooded hill beyond. Delete the western part of the road and its kerbs and fill that ground with woodland.
 
@@ -101,13 +103,24 @@
 
     DO NOT TOUCH THE BOARDS ON THE BOARDWALK. The 5 small boards on the 5 timber viewing platforms and the 1 board beside the bird-watching hut are ALREADY RIGHT - each stands upright and runs along its own deck rail. Leave their shape, direction, position and size exactly as they are.
 
+    13. THE PAVING EDGES ARE EDGED WITH LOW AZALEAS, NOT WITH TALL CONIFERS.
+    Along the edges of the block-paved plazas and of the straight block-paved path there stand at present ROWS OF TALL CONICAL CONIFERS, packed close together like a clipped hedge of cypress. DELETE EVERY ONE OF THEM - not one tall conifer is left anywhere along any paving edge.
+
+    In their place plant a dense BAND OF LOW FLOWERING SHRUBS - AZALEAS. They are KNEE HIGH, less than half the height of a person, and from this viewpoint the band reads as a LOW, FLAT RIBBON COVERED IN PINK AND WHITE BLOSSOM lying against the paving. NOTHING in that band rises up like a tree, and nothing in it is a cone or a spire. These azaleas are the commonest plant in the whole scheme, so the band is broad and continuous.
+
+    THE REST OF THE PLANTING STAYS EXACTLY AS IT IS - do not delete it and do not move it:
+      - PINES on the long grassy mound: seven of them, spreading, dark blue-green.
+      - CHERRY TREES at the upper (northern) end of the mound.
+      - GINKGOS in a single evenly spaced row along the OUTER boundary of the site beside the roads, in yellow autumn foliage.
+      - The willows and water plants at the pond edges, and the multi-layered woodland.
+
     WHAT MUST NOT CHANGE:
     - The same camera and the same true perspective: an oblique aerial view from the SOUTH-EAST looking north-west, tilted about 45 degrees, with the stream at the top of the picture. The same framing and crop, the same late-spring daylight and soft shadows, the same colour balance.
     - The EAST ROAD keeps exactly the angle it has in the third image. Do NOT rotate it, do NOT make it parallel to the north-south path, do NOT straighten it.
     - The rectangular site and its surroundings: the rocky stream along the whole north edge with a wooded hill beyond; dense existing woodland filling the west side and the south-west; the 6 m road with low-rise houses along the east edge.
     - The reservoir pond in the north-west with its rocky, reedy shoreline and its willows; the timber bird-watching hide on its south-east shore; the marsh with its kidney-shaped pool, cattails, rushes and reeds and its soft planted bank; the angular timber boardwalk loop on posts with low rails.
-    - The multi-layered forest in the south-west with its winding earth trail; the block-paved gathering plaza and the two entrance plazas; the straight north-south block-paved path; the two lines of tall metasequoias flanking that path; the single row of yellow-green ginkgos along the east road; the willows, dogwoods, spiraea and wild roses at the water's edge.
+    - The multi-layered forest in the south-west with its winding earth trail; the block-paved gathering plaza and the two entrance plazas; the straight north-south block-paved path; the single row of yellow-green ginkgos along the east road; the willows, dogwoods, spiraea and wild roses at the water's edge.
 
-    RENDER IT FRESH AT MAXIMUM RESOLUTION AND MAXIMUM DETAIL — this matters as much as the twelve fixes. Draw the whole picture again; do not retouch, soften or resample the third image. Every part must be at least as crisp and as finely detailed as the third image: the individual leaves in every canopy, the blades of the turf, the grain and board joints of the boardwalk, the individual blocks of the paving, the rocks at the water's edge, the roof tiles of the houses. Do not simplify, smooth or average any texture.
+    RENDER IT FRESH AT MAXIMUM RESOLUTION AND MAXIMUM DETAIL — this matters as much as the thirteen fixes. Draw the whole picture again; do not retouch, soften or resample the third image. Every part must be at least as crisp and as finely detailed as the third image: the individual leaves in every canopy, the blades of the turf, the grain and board joints of the boardwalk, the individual blocks of the paving, the rocks at the water's edge, the roof tiles of the houses. Do not simplify, smooth or average any texture.
 
     STRICT RULES: no new buildings, plazas, paths, bridges, fences, walls, cars or people; NO text, letters, numbers, labels, legends, arrows, north arrow, scale bar, grid lines, dimension lines or watermark anywhere in the picture. The ONLY exception is the very faint, blurred, unreadable grey markings on the signboard panels described above - they must stay illegible.
