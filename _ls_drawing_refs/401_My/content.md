@@ -217,7 +217,7 @@
 ## 내 도면 조감도 (GPT)
 
 위 사진의 **마지막 장**입니다. 성운 답안이 아니라 **위 모눈종이 도면(SVG)의 좌표대로** 만든 조감도입니다 — 남동쪽 상공에서 본 모습이고 북쪽이 그림 위입니다.
-SVG 좌표로 모눈·글자·보조선을 뺀 **색 배치도**(물 파랑 · 관찰로 갈색 · 데크 주황 · 포장 베이지 · 수림 녹색)를 따로 그려 매 회차 첫 참고 그림으로 주고, 회차마다 도면과 대조해 **6회차**까지 고치고, 뒤에 **7~9회차**로 마운딩·평의자·안내판을 손봤습니다.
+SVG 좌표로 모눈·글자·보조선을 뺀 **색 배치도**(물 파랑 · 관찰로 갈색 · 데크 주황 · 포장 베이지 · 수림 녹색)를 따로 그려 매 회차 첫 참고 그림으로 주고, 회차마다 도면과 대조해 **6회차**까지 고치고, 뒤에 **7~10회차**로 마운딩·평의자·안내판을 손봤습니다.
 
 | 회차 | 고친 것 |
 | --- | --- |
@@ -230,12 +230,13 @@ SVG 좌표로 모눈·글자·보조선을 뺀 **색 배치도**(물 파랑 · �
 | 7 | 다섯 가지를 **6회차 그림에서 한 번에** 고쳤습니다 — ① **마운딩**이 평평한 판에 짙은 콩팥 모양 테두리만 그려져 파인 자국처럼 보이던 것을 가운데가 솟은 잔디 언덕으로 ② 배식설계도대로 **화단 서쪽·남쪽 변에 꽃관목 띠** ③ **모임광장의 안내판 3개를 평의자 3개로**(수량표 근거) ④ **휴게공간 평의자를 5개로**(문제 조건) ⑤ **안내판을 모두 옆 포장·데크 경계와 나란히**. 선명도는 1900 → 1835(−3%) |
 | 8 | 안내판의 **흰 판이 멀리서 흰 점으로 도드라진다**는 지적을 받아, 다시 **6회차로 돌아가** 7회차의 다섯 가지에 **판면을 짙은 나뭇결 목재로** 를 더해 여섯을 한 번에 그렸습니다. 판면 밝기 **127 : 주변 포장 185**, 선명도 1784(−6%) |
 | 9 | 짙은 목재판이 **주변과 안 어울린다**는 지적을 받아 다시 6회차로 돌아가, 판면을 **아주 연한 미색(회백색)** 으로 하고 **두 진입광장의 안내판도 광장 변과 나란히** 돌려 세웠습니다. 선명도 1809(−5%) |
+| 10 | 진입광장 안내판이 **포장과 관목이 만나는 경계선과 직각**이라 어색하다는 지적 — 다시 6회차에서 **제자리에서 90° 돌려** 그 선과 나란하게, 관목을 등지고 광장 안쪽을 바라보게 했습니다. 안내판은 도면대로 **진입광장마다 하나씩**이고, 빈 미색 판이 오히려 눈을 끌기에 **읽히지 않을 만큼 흐린 회색 무늬**를 넣었습니다. 선명도 1567(−18%)이지만 관찰로 난간·데크 널·파고라 지붕·수림을 6~7배로 확대해 견줘도 9회차와 구분되지 않아 채택했습니다 |
 
 **도면과 맞는 것** — 실개천(북) · 기존수림(서 · 남서) · 도로와 주택(동, 남쪽은 동쪽 절반만) / 북서 저수지와 남동 물가의 조류관찰소 / 습지를 두르는 각진 관찰로와 관찰데크 5(남서 것은 숲 쪽) / 모임광장(수목보호대 1 · 평의자 3) / ㄱ자 진입로 / 진입광장 2곳(수목보호대 2 · 안내판 1씩) / 휴게공간 45° 입구 · 파고라 1 · 평의자 5 · 휴지통 / 진입로 서쪽 메타세쿼이아 열 / 진입로 동쪽의 남북으로 긴 마운딩(소나무 · 철쭉) / 도로변 은행나무.
 
-**남은 차이** — 습지 연못의 '모래주머니' 허리가 뚜렷하지 않음 · 시점이 45°보다 가파름(55~60°) · 북동 변 데크가 꼭짓점 쪽으로 치우침 · 관찰로 서쪽 꼭짓점이 조금 북쪽 · 남측 진입광장 앞 도로변에 은행나무가 이어져 열린 느낌이 약함 · 구역 A 북단에 도면에 없는 소나무 서너 그루. 비용은 14장 약 $0.86 입니다.
+**남은 차이** — 습지 연못의 '모래주머니' 허리가 뚜렷하지 않음 · 시점이 45°보다 가파름(55~60°) · 북동 변 데크가 꼭짓점 쪽으로 치우침 · 관찰로 서쪽 꼭짓점이 조금 북쪽 · 남측 진입광장 앞 도로변에 은행나무가 이어져 열린 느낌이 약함 · 구역 A 북단에 도면에 없는 소나무 서너 그루. 비용은 16장 약 $1.01 입니다.
 
-### 프롬프트 — 마지막 회차(9회차, 참고: 배식설계도 + 6회차 그림)
+### 프롬프트 — 마지막 회차(10회차, 참고: 배식설계도 + 6회차 그림)
 
     The FIRST attached image is the hand-drawn planting plan of a small Korean ecological park. The SECOND attached image is a photorealistic bird's-eye rendering of that park. Its CAMERA, its PERSPECTIVE, its FRAMING, its WARM LATE-AFTERNOON LIGHT, its MATERIALS and its TEXTURES are all CORRECT, and so is the position and size of everything in it. Reproduce all of that exactly.
 
@@ -261,11 +262,16 @@ SVG 좌표로 모눈·글자·보조선을 뺀 **색 배치도**(물 파랑 · �
     FIX 4 — EXACTLY 5 BENCHES AT THE PERGOLA REST AREA.
     The paved rest area holds one timber pergola, a litter bin and at present only two or three benches. It must hold EXACTLY 5 BACKLESS TIMBER BENCHES of the same design as the three on the gathering plaza — count them: one, two, three, four, five — standing on the paving around the pergola, evenly spread, none of them overlapping the pergola's posts. The pergola and the single litter bin stay exactly as they are.
 
-    FIX 5 — EVERY SIGNBOARD STANDS SQUARE TO THE PAVING BESIDE IT.
-    Every signboard stands square to the paving or the deck it is on: the long edge of each board is exactly PARALLEL to the nearest edge of that paving or deck, and its face looks straight out across it at a right angle. NOT ONE board is left skewed, tilted or turned at an odd angle. This applies ESPECIALLY to the two LARGE SIGNBOARDS ON THE ENTRANCE PLAZAS, which are at present turned at a careless angle - turn each of them so that its long edge runs exactly along the edge of its own plaza paving, in line with the kerb. The positions, sizes and pale panels of all the boards do not change.
+    FIX 5 — THE TWO ENTRANCE-PLAZA SIGNBOARDS ARE TURNED 90 DEGREES ON THE SPOT.
+    On each entrance plaza the large signboard stands right beside the line where the block paving meets the mass of shrubs at the edge of the plaza. At present the board's LONG EDGE CROSSES that line at a right angle, which looks wrong. TURN EACH OF THE TWO BOARDS 90 DEGREES ABOUT ITS OWN FEET, so that its LONG EDGE RUNS ALONG that paving-and-shrub line, exactly PARALLEL to it. Each board then stands with its BACK TO THE SHRUBS and its FACE LOOKING IN ACROSS THE PLAZA PAVING. Do not move either board from its spot and do not change its size - only its direction changes. Do this on BOTH entrance plazas, the southern one and the north-eastern one.
 
-    FIX 6 — THE BOARD PANELS ARE PALE OFF-WHITE, NEITHER GLARING WHITE NOR DARK.
-    Every signboard in the picture - the 5 small boards on the 5 timber viewing platforms, the 1 board beside the bird-watching hut, and the large boards on BOTH entrance plazas - carries a panel inside its timber frame. That panel is a VERY PALE OFF-WHITE, a soft warm greyish cream. Do NOT make it a glaring pure white, and do NOT make it dark timber or any dark colour. Its brightness must be CLOSE TO the brightness of the block paving right beside it, so that from far away it does not read as a white dot against the ground. Put only a few very faint lines on it and NO letters and NO text of any kind. Keep the timber frame and its legs exactly as they are, and do not remove or move any signboard.
+    DO NOT TOUCH THE BOARDS ON THE BOARDWALK. The 5 small boards on the 5 timber viewing platforms and the 1 board beside the bird-watching hut are ALREADY RIGHT - each runs along its own deck rail. Leave their direction, position and size exactly as they are.
+
+    FIX 6 — THE BOARD PANELS ARE PALE OFF-WHITE WITH VERY FAINT, UNREADABLE MARKINGS.
+    Every signboard in the picture - the 5 small boards on the 5 timber viewing platforms, the 1 board beside the bird-watching hut, and the large boards on BOTH entrance plazas - carries a panel inside its timber frame. That panel is a VERY PALE OFF-WHITE, a soft warm greyish cream, close in brightness to the block paving beside it so that it never reads as a bright white dot. On that panel, printed in VERY FAINT PALE GREY, is a simple notice: one small block of picture near the top and two or three short lines below it. Those markings must be SO FAINT AND SO BLURRED THAT THEY CANNOT BE READ - from a distance you can tell that something is printed on the board, but you cannot make out a single letter. Use no dark ink, no black strokes, no crisp lettering and no recognisable words in any language. The panel must NEVER be a smooth empty white surface, and it must NEVER carry legible text. Do not make the panel dark timber or any dark colour. Keep the timber frame and its legs exactly as they are, and do not remove or move any signboard.
+
+    HOW MANY SIGNBOARDS THERE ARE. Each entrance plaza carries EXACTLY ONE signboard, never two - count them: one on the southern entrance plaza, one on the north-eastern entrance plaza. The boardwalk carries 5, one on each of the 5 viewing platforms, and there is 1 beside the bird-watching hut. SEVEN signboards in all in the whole park, no more and no fewer. The gathering plaza has NO signboard at all - it has three timber benches.
+
 
     EVERYTHING ELSE IN THE PICTURE IS ALREADY CORRECT AND MUST BE REPRODUCED UNCHANGED:
     - The same camera and the same perspective, looking down from high in the south-east with the stream at the top of the picture; the same framing and crop; the same warm low late-afternoon sunlight and the same long soft shadows; the same natural colour balance.
@@ -278,4 +284,4 @@ SVG 좌표로 모눈·글자·보조선을 뺀 **색 배치도**(물 파랑 · �
 
     RENDER IT FRESH AT MAXIMUM RESOLUTION AND MAXIMUM DETAIL — this matters as much as the five fixes. Do not retouch, soften or resample the second image; draw the whole picture again. Every part must be at least as crisp and as finely detailed as the second image. Do not simplify, smooth or average any texture. Keep every fine high-frequency detail: the grain of the turf, the separate needles and leaves, the ripples on the water, the grain and joints of every timber board, the individual blocks of the paving, the gravel of the stream bed. A side-by-side crop of any part of the picture at full magnification must look at least as sharp as the same crop of the second image.
 
-    STRICT RULES: no new buildings, plazas, paths, bridges, fences, walls, cars or people; every board carries a pale off-white panel with no writing on it; NO text, letters, numbers, labels, legends, arrows, north arrow, scale bar, grid lines, dimension lines or watermark anywhere.
+    STRICT RULES: no new buildings, plazas, paths, bridges, fences, walls, cars or people; NO text, letters, numbers, labels, legends, arrows, north arrow, scale bar, grid lines, dimension lines or watermark anywhere in the picture. The ONLY exception is the very faint, blurred, unreadable grey markings on the signboard panels described above - they must stay illegible.
