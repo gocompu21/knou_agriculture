@@ -1,5 +1,5 @@
 {% comment %} 영상 카드 한 장. `v` 를 받는다. _videos.html 안에서만 쓴다. {% endcomment %}
-<div class="vd-card">
+<div class="vd-card" data-id="{{ v.id }}">
     {% if v.embeddable %}
     <div class="vd-thumb" data-embed="{{ v.embed }}" data-id="{{ v.id }}" onclick="vdPlay(this)">
         <img src="{{ v.thumb }}" alt="" loading="lazy">

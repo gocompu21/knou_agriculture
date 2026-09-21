@@ -281,9 +281,10 @@ def video_category_add(request, cert_id):
         return JsonResponse({'message': '같은 이름이 이미 있습니다.'})
     order = (GisaVideoCategory.objects.filter(certification=cert, part=part, parent=parent)
              .order_by('-order').values_list('order', flat=True).first() or 0) + 1
-    GisaVideoCategory.objects.create(certification=cert, part=part, parent=parent,
-                                     name=name, order=order)
-    return JsonResponse({'ok': True})
+    cat = GisaVideoCategory.objects.create(certification=cert, part=part, parent=parent,
+                                           name=name, order=order)
+    # 새 분류의 id 를 돌려준다 — 화면이 갱신한 뒤 그 줄을 잠깐 반전시켜 알린다
+    return JsonResponse({'ok': True, 'id': cat.pk})
 
 
 @require_POST
