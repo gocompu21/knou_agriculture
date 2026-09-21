@@ -157,6 +157,7 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
 </div>
 <div class="vd-admin" id="vdAdmin" hidden>
     <h4>1. 분류 — 목차처럼 짜 넣습니다</h4>
+    <div id="vdTree">
     {% if vid_outline %}
     <div class="vt">
         {% for r in vid_outline %}
@@ -179,6 +180,7 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
     {% else %}
     <div class="vd-msg">아직 분류가 없습니다. 아래에서 첫 분류를 만드세요.</div>
     {% endif %}
+    </div>
     <div class="vd-line" style="margin-top:8px">
         <input id="vdCatName" placeholder="맨 위 분류 이름 (예: 도면 기본기)"
                onkeydown="if(event.key==='Enter')vdAddCat('')">
@@ -201,6 +203,7 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
 </div>
 {% endif %}
 
+<div id="vdList">
 {% for t in vid_tree %}
 <details class="vd-major" open>
     <summary><span class="vd-sub-code">{{ t.code }}</span>{{ t.cat.name }}<span class="vd-cnt">{{ t.count }}개</span></summary>
@@ -231,6 +234,7 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
 {% if not vid_total and not vid_tree %}
 <div class="vd-empty" style="text-align:center;padding:30px 0">아직 등록된 영상이 없습니다.{% if request.user.is_staff %} 위의 <b>＋ 분류·영상 관리</b>에서 시작하세요.{% endif %}</div>
 {% endif %}
+</div>
 
 <script>
 function vdToggle() {
@@ -263,7 +267,36 @@ function vdOpen(id) {
     fetch('{% url "gisa:resource_open" 0 %}'.replace('/0/', '/' + id + '/'),
           {method: 'POST', headers: {'X-CSRFToken': vdCsrf()}});
 }
-function vdGo() { location.href = location.pathname + '?tab=video'; }
+/* **주소를 다시 부르지 않는다.** `location.href` 로 들어가면 관리 창이 닫히고
+   화면이 맨 위로 튀어, 분류를 여럿 손볼 때 그때마다 다시 열고 다시 내려와야 했다.
+   같은 주소를 받아 와 바뀐 자리만 갈아 끼운다 — 스크롤·관리 창·접은 가지가 그대로다. */
+function vdGo() {
+    var folded = [];
+    document.querySelectorAll('.vt-row.folded').forEach(function (r) { folded.push(r.dataset.id); });
+    var keep = (document.getElementById('vdCat') || {}).value;
+    return fetch(location.pathname + '?tab=video', {credentials: 'same-origin'})
+        .then(function (r) { return r.text(); })
+        .then(function (html) {
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            ['vdTree', 'vdList'].forEach(function (id) {
+                var now = document.getElementById(id), next = doc.getElementById(id);
+                if (now && next) now.innerHTML = next.innerHTML;
+            });
+            /* 새로 만든 분류가 '옮길 자리'에도 바로 보여야 한다 */
+            var sel = document.getElementById('vdCat'), nsel = doc.getElementById('vdCat');
+            if (sel && nsel) {
+                sel.innerHTML = nsel.innerHTML;
+                if (keep) sel.value = keep;
+            }
+            /* 접어 두었던 가지는 접힌 채로 되살린다 */
+            folded.forEach(function (id) {
+                var row = document.querySelector('.vt-row[data-id="' + id + '"]');
+                var cr = row && row.querySelector('.vt-cr');
+                if (cr) cr.click();
+            });
+        })
+        .catch(function () { location.href = location.pathname + '?tab=video'; });
+}
 /* 목차 접기 — 줄이 평평한 목록이라 '나보다 깊은 줄을 감춘다'로 푼다.
    가지를 하나씩 좇지 말고 **위에서 아래로 한 번 훑으며** 다시 계산한다 —
    접힌 가지 안에 또 접힌 가지가 있을 때, 좇는 방식은 포인터가 엉킨다. */
@@ -290,7 +323,13 @@ function vdAddCat(parent, name) {
     if (!name) { alert('분류 이름을 넣어 주세요.'); return; }
     vdPost('{% url "gisa:video_category_add" cert.pk %}',
            {name: name, parent: parent || '', part: '{{ vid_part }}'})
-        .then(function (d) { if (d.message) alert(d.message); else vdGo(); });
+        .then(function (d) {
+            if (d.message) { alert(d.message); return; }
+            /* 화면을 다시 부르지 않으므로 적어 둔 이름이 남는다 — 손으로 지운다 */
+            var top = document.getElementById('vdCatName');
+            if (top) top.value = '';
+            vdGo();
+        });
 }
 /* 줄의 ＋형제 / ↳자식 — 그 자리에 입력줄을 끼워 넣는다. 위쪽 칸까지 눈을 옮겨
    이름을 적고 부모를 고르는 것보다, 누른 자리에서 바로 적는 편이 빠르다. */
@@ -418,7 +457,10 @@ function vdAddVideo() {
         note: document.getElementById('vdNote').value
     }).then(function (d) {
         msg.textContent = d.message || '';
-        if (d.added) setTimeout(vdGo, 700);
+        if (d.added) {
+            document.getElementById('vdUrls').value = '';
+            setTimeout(vdGo, 700);
+        }
     });
 }
 function vdMove(sel, id) {
