@@ -137,18 +137,20 @@ def resource_open(request, res_id):
 # ------------------------------------------------------------ 동영상 (분류별)
 
 def video_tab_context(cert, part):
-    """동영상 탭 — 대분류 > 중분류 > 영상 으로 묶어 내려보낸다.
+    """동영상 탭 — 분류 트리와 그 아래 영상.
 
-    영상은 `GisaResource` 가운데 유튜브인 것이다(자료실 탭은 그 나머지를 맡는다).
+    **깊이를 정해 두지 않는다.** 처음에는 대분류 > 중분류 두 층으로 못 박았는데,
+    관리 화면을 목차꼴(1 · 1.1 · 1.2.1)로 바꾸면서 '자식 추가'가 어느 줄에나 있어야
+    자연스러워졌다. 모델의 `parent` 는 본래 self-FK 라 깊이 제한이 없었고, 화면만
+    재귀로 그리면 된다(`_video_node.html` 이 자기를 include 한다).
+
     분류가 없는 영상은 '분류 없음' 묶음에 모아, 등록만 해 두고 나중에 정리할 수
     있게 한다 — 분류를 먼저 만들게 강요하면 URL 을 붙여넣다 말게 된다.
     """
     cats = list(GisaVideoCategory.objects.filter(certification=cert, part=part))
-    majors = [c for c in cats if c.parent_id is None]
-    subs = {}
+    kids = {}
     for c in cats:
-        if c.parent_id:
-            subs.setdefault(c.parent_id, []).append(c)
+        kids.setdefault(c.parent_id, []).append(c)
 
     vids = list(GisaResource.objects
                 .filter(certification=cert, part=part, kind='youtube',
@@ -167,26 +169,49 @@ def video_tab_context(cert, part):
             by_cat.setdefault(v.category_id, []).append(v)
         else:
             loose.append(v)
-    tree = []
-    for m in majors:
-        groups = [{'cat': s, 'videos': by_cat.get(s.id, [])} for s in subs.get(m.id, [])]
-        # **대분류에 바로 붙인 영상도 보여 준다.** 중분류를 꼭 만들게 하면 영상 두어
-        # 개뿐인 분류에서도 한 칸을 더 파야 한다. 그런 것은 'direct' 로 따로 낸다.
-        direct = by_cat.get(m.id, [])
-        tree.append({'cat': m, 'groups': groups, 'direct': direct,
-                     'count': len(direct) + sum(len(g['videos']) for g in groups)})
-    # 옮길 자리 목록 — 대분류도 고를 수 있게 함께 낸다
-    choices = []
-    for m in majors:
-        choices.append((m.id, m.name))
-        for sub in subs.get(m.id, []):
-            choices.append((sub.id, f'{m.name} > {sub.name}'))
+
+    def build(parent_id, depth, prefix):
+        """`1`·`1.2`·`1.2.1` 목차 번호를 붙여 가며 내려간다."""
+        out = []
+        for i, c in enumerate(kids.get(parent_id, []), 1):
+            code = f'{prefix}{i}'
+            children = build(c.id, depth + 1, code + '.')
+            videos = by_cat.get(c.id, [])
+            out.append({
+                'cat': c, 'code': code, 'depth': depth,
+                'children': children, 'videos': videos,
+                # 아래 가지의 영상까지 센다 — 접힌 채로도 몇 편인지 보이게
+                'count': len(videos) + sum(n['count'] for n in children),
+            })
+        return out
+
+    tree = build(None, 0, '')
+
+    # 관리 화면(목차꼴 표)과 '옮길 자리' 셀렉트는 같은 트리를 평평하게 편 것이다
+    outline, choices = [], []
+    def walk(nodes, path):
+        for n in nodes:
+            c = n['cat']
+            choices.append((c.id, ' › '.join(path + [c.name])))
+            # 셈은 템플릿에서 짜깁기하지 않고 여기서 한 문장으로 만든다 —
+            # `{% if %}` 로 이어 붙였더니 영상이 없는 줄에 가운뎃점이 앞에 남았다
+            own, below = len(n['videos']), n['count'] - len(n['videos'])
+            bits = ([f'영상 {own}'] if own else []) + ([f'아래 {below}'] if below else [])
+            outline.append({
+                'id': c.id, 'name': c.name, 'code': n['code'], 'depth': n['depth'],
+                'parent': c.parent_id or '', 'own': own,
+                'label': ' · '.join(bits), 'has_children': bool(n['children']),
+            })
+            walk(n['children'], path + [c.name])
+    walk(tree, [])
+
     return {
         'vid_tree': tree,
         'vid_loose': loose,
         'vid_total': len(vids),
         'vid_part': part,
         'vid_choices': choices,
+        'vid_outline': outline,
         'vid_drawings': drawing_choices(cert) if part == 'work' else [],
     }
 

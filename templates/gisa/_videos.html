@@ -30,6 +30,14 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
     .vd-sub { margin: 0 0 16px; }
     .vd-sub-name { font-size: 0.87rem; font-weight: 700; color: #2d6a4f;
         margin: 0 0 8px; padding-left: 9px; border-left: 3px solid #74a58c; }
+    .vd-sub-code { color: #6f8a7c; font-weight: 700; margin-right: 7px;
+        font-variant-numeric: tabular-nums; }
+    /* 깊이가 정해져 있지 않으므로 넷째 층까지만 들여쓰고 그 아래는 같은 자리에 둔다 */
+    .vd-sub.lv2 { margin-left: 16px; }
+    .vd-sub.lv3 { margin-left: 32px; }
+    .vd-sub.lv2 > .vd-sub-name { font-size: 0.84rem; border-left-color: #9cc0ae; }
+    .vd-sub.lv3 > .vd-sub-name, .vd-sub.lv4 > .vd-sub-name {
+        font-size: 0.82rem; font-weight: 600; border-left-color: #bcd6c8; }
     .vd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
 
     .vd-card { border: 1px solid #e8ebe9; border-radius: 9px; overflow: hidden; background: #fff; }
@@ -94,15 +102,44 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
     .vd-line > input, .vd-line > select { flex: 1 1 130px; }
     .vd-line .go { flex: 0 0 auto; background: #1b4332; color: #fff; border: 0;
         border-radius: 7px; padding: 7px 15px; font-weight: 700; cursor: pointer; font-size: 0.83rem; }
-    .vd-catlist { display: flex; gap: 6px; flex-wrap: wrap; }
-    .vd-chip { background: #fff; border: 1px solid #d9e2dd; border-radius: 12px;
-        padding: 3px 10px; font-size: 0.78rem; color: #34594a; }
-    .vd-chip b { color: #1b4332; }
-    .vd-chip button { border: 0; background: none; color: #b34; cursor: pointer;
-        font-size: 0.76rem; margin-left: 3px; padding: 0 1px; }
-    .vd-chip button.mv, .vd-chip button.ed { color: #6f8a7c; }
-    .vd-chip button.mv:hover, .vd-chip button.ed:hover { color: #1b4332; }
-    .vd-chip.sub { background: #f4f8f6; }
+    /* 분류 목차 — 03_1_model 의 목차 관리 화면과 같은 결(번호·제목·줄마다 단추) */
+    .vt { background: #fff; border: 1px solid #e3eae6; border-radius: 8px;
+        overflow: hidden; margin-bottom: 4px; }
+    .vt-row { display: flex; align-items: center; gap: 9px; padding: 7px 11px;
+        border-bottom: 1px solid #eef2f0; }
+    .vt-row:last-child { border-bottom: 0; }
+    .vt-row:hover { background: #f8faf9; }
+    .vt-row.lv0 { background: #f1f8f5; font-weight: 700; }
+    .vt-row.lv0:hover { background: #e9f3ee; }
+    .vt-row.lv1 { padding-left: 32px; }
+    .vt-row.lv2 { padding-left: 54px; }
+    .vt-row.lv3 { padding-left: 76px; }
+    .vt-row.lv4 { padding-left: 98px; }
+    .vt-cr { width: 16px; flex-shrink: 0; border: 0; background: none; padding: 0;
+        color: #6c757d; font-size: 0.8rem; cursor: pointer; line-height: 1; }
+    .vt-row.folded .vt-cr { color: #2d6a4f; }
+    .vt-code { color: #2d6a4f; font-weight: 700; min-width: 42px;
+        font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+    .vt-name { flex: 1; font-size: 0.86rem; color: #223; word-break: keep-all; }
+    .vt-name input { width: 100%; font-size: 0.86rem; }
+    .vt-cnt { font-size: 0.74rem; color: #93a49c; white-space: nowrap; }
+    .vt-acts { display: flex; gap: 4px; flex-shrink: 0; }
+    .vt-acts .bt { border: 1px solid #ced4da; background: #fff; border-radius: 4px;
+        padding: 3px 7px; font-size: 0.76rem; color: #495057; cursor: pointer;
+        line-height: 1.3; white-space: nowrap; }
+    .vt-acts .bt:hover { background: #e9ecef; color: #212529; }
+    .vt-acts .bt.sib { color: #17a2b8; border-color: #17a2b8; }
+    .vt-acts .bt.chi { color: #2d6a4f; border-color: #2d6a4f; }
+    .vt-acts .bt.del { color: #e53935; border-color: #e53935; }
+    /* 새 분류를 그 자리에 끼워 넣는 줄 */
+    .vt-new { display: flex; gap: 6px; padding: 7px 11px; background: #fffdf2;
+        border-bottom: 1px solid #eef2f0; align-items: center; }
+    .vt-new input { flex: 1; font-size: 0.85rem; }
+    @media (max-width: 700px) {
+        .vt-row { flex-wrap: wrap; }
+        .vt-acts { width: 100%; justify-content: flex-end; }
+        .vt-cnt { order: 3; }
+    }
     .vd-msg { font-size: 0.82rem; color: #2d6a4f; white-space: pre-wrap; margin-top: 6px; }
 </style>
 
@@ -119,34 +156,35 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
     <button class="vd-manage" onclick="vdToggle()">＋ 분류·영상 관리</button>
 </div>
 <div class="vd-admin" id="vdAdmin" hidden>
-    <h4>1. 분류 만들기 — 대분류를 먼저, 그다음 그 아래 중분류</h4>
-    <div class="vd-line">
-        <select id="vdParent">
-            <option value="">대분류로 추가</option>
-            {% for t in vid_tree %}<option value="{{ t.cat.id }}">{{ t.cat.name }} 아래 중분류</option>{% endfor %}
-        </select>
-        <input id="vdCatName" placeholder="분류 이름 (예: 포장, 식재, 시설물)">
-        <button class="go" onclick="vdAddCat()">분류 추가</button>
-    </div>
-    {% if vid_tree %}
-    <div class="vd-catlist">
-        {% for t in vid_tree %}
-        <span class="vd-chip"><b>{{ t.cat.name }}</b>
-            <button class="mv" onclick="vdMoveCat({{ t.cat.id }}, 'up')" title="위로">▲</button>
-            <button class="mv" onclick="vdMoveCat({{ t.cat.id }}, 'down')" title="아래로">▼</button>
-            <button class="ed" onclick="vdRenameCat({{ t.cat.id }}, '{{ t.cat.name|escapejs }}')" title="이름 바꾸기">✎</button>
-            <button onclick="vdDelCat({{ t.cat.id }}, '{{ t.cat.name|escapejs }}')" title="지우기">✕</button></span>
-        {% for g in t.groups %}
-        <span class="vd-chip sub">{{ t.cat.name }} &rsaquo; {{ g.cat.name }}
-            <button class="mv" onclick="vdMoveCat({{ g.cat.id }}, 'up')" title="위로">▲</button>
-            <button class="mv" onclick="vdMoveCat({{ g.cat.id }}, 'down')" title="아래로">▼</button>
-            <button class="ed" onclick="vdRenameCat({{ g.cat.id }}, '{{ g.cat.name|escapejs }}')" title="이름 바꾸기">✎</button>
-            <button onclick="vdDelCat({{ g.cat.id }}, '{{ g.cat.name|escapejs }}')" title="지우기">✕</button></span>
-        {% endfor %}
+    <h4>1. 분류 — 목차처럼 짜 넣습니다</h4>
+    {% if vid_outline %}
+    <div class="vt">
+        {% for r in vid_outline %}
+        <div class="vt-row lv{{ r.depth }}" data-id="{{ r.id }}" data-parent="{{ r.parent }}">
+            {% if r.has_children %}<button class="vt-cr" onclick="vdFold(this)" title="접기">▾</button>{% else %}<span class="vt-cr"></span>{% endif %}
+            <span class="vt-code">{{ r.code }}</span>
+            <span class="vt-name">{{ r.name }}</span>
+            <span class="vt-cnt">{{ r.label }}</span>
+            <span class="vt-acts">
+                <button class="bt" onclick="vdMoveCat({{ r.id }}, 'up')" title="위로">↑</button>
+                <button class="bt" onclick="vdMoveCat({{ r.id }}, 'down')" title="아래로">↓</button>
+                <button class="bt sib" onclick="vdNewCat(this, 'sibling')" title="같은 층에 새 분류">＋ 형제</button>
+                <button class="bt chi" onclick="vdNewCat(this, 'child')" title="이 분류 아래 새 분류">↳ 자식</button>
+                <button class="bt" onclick="vdEditCat(this)" title="이름 고치기">✎ 수정</button>
+                <button class="bt del" onclick="vdDelCat({{ r.id }}, '{{ r.name|escapejs }}', {{ r.has_children|yesno:"true,false" }})" title="지우기"><svg viewBox="0 0 16 16" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M6 1h4l.5 1H14v2H2V2h3.5L6 1zM3 5h10l-.8 9.1a1 1 0 0 1-1 .9H4.8a1 1 0 0 1-1-.9L3 5zm3 2v6h1V7H6zm3 0v6h1V7H9z"/></svg></button>
+            </span>
+        </div>
         {% endfor %}
     </div>
-    <div class="vd-msg">▲▼ 로 차례를 바꾸고, ✎ 로 이름을 고칩니다. 영상 차례는 카드의 ▲▼ 입니다.</div>
+    {% else %}
+    <div class="vd-msg">아직 분류가 없습니다. 아래에서 첫 분류를 만드세요.</div>
     {% endif %}
+    <div class="vd-line" style="margin-top:8px">
+        <input id="vdCatName" placeholder="맨 위 분류 이름 (예: 도면 기본기)"
+               onkeydown="if(event.key==='Enter')vdAddCat('')">
+        <button class="go" onclick="vdAddCat('')">＋ 맨 위에 추가</button>
+    </div>
+    <div class="vd-msg">줄의 <b>＋형제</b>·<b>↳자식</b> 로 그 자리에 바로 만듭니다. 영상 차례는 카드의 ▲▼ 입니다.</div>
 
     <h4 style="margin-top:14px">2. 영상 등록 — 주소를 붙여넣으면 제목이 채워집니다</h4>
     <textarea id="vdUrls" placeholder="https://www.youtube.com/watch?v=...
@@ -165,28 +203,16 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
 
 {% for t in vid_tree %}
 <details class="vd-major" open>
-    <summary>{{ t.cat.name }}<span class="vd-cnt">{{ t.count }}개</span></summary>
+    <summary><span class="vd-sub-code">{{ t.code }}</span>{{ t.cat.name }}<span class="vd-cnt">{{ t.count }}개</span></summary>
     <div class="vd-inner">
-        {% if t.direct %}
-        {% comment %} 중분류 없이 대분류에 바로 붙인 영상 {% endcomment %}
+        {% if t.videos %}
+        {% comment %} 하위 분류 없이 이 분류에 바로 붙인 영상 {% endcomment %}
         <div class="vd-grid" style="margin-bottom:16px">
-            {% for v in t.direct %}{% include "gisa/_video_card.html" %}{% endfor %}
+            {% for v in t.videos %}{% include "gisa/_video_card.html" %}{% endfor %}
         </div>
         {% endif %}
-        {% for g in t.groups %}
-        <div class="vd-sub">
-            <div class="vd-sub-name">{{ g.cat.name }} <span class="vd-cnt">{{ g.videos|length }}</span></div>
-            {% if g.videos %}
-            <div class="vd-grid">
-                {% for v in g.videos %}{% include "gisa/_video_card.html" %}{% endfor %}
-            </div>
-            {% else %}
-            <div class="vd-empty">아직 영상이 없습니다.</div>
-            {% endif %}
-        </div>
-        {% empty %}
-        {% if not t.direct %}<div class="vd-empty">아직 영상이 없습니다.{% if request.user.is_staff %} 중분류를 만들거나 영상을 이 분류로 옮기세요.{% endif %}</div>{% endif %}
-        {% endfor %}
+        {% for sub in t.children %}{% include "gisa/_video_node.html" with node=sub %}{% endfor %}
+        {% if not t.count %}<div class="vd-empty">아직 영상이 없습니다.{% if request.user.is_staff %} 하위 분류를 만들거나 영상을 이 분류로 옮기세요.{% endif %}</div>{% endif %}
     </div>
 </details>
 {% endfor %}
@@ -238,24 +264,89 @@ function vdOpen(id) {
           {method: 'POST', headers: {'X-CSRFToken': vdCsrf()}});
 }
 function vdGo() { location.href = location.pathname + '?tab=video'; }
-function vdAddCat() {
-    var name = document.getElementById('vdCatName').value.trim();
-    if (!name) { alert('분류 이름을 넣어 주세요.'); return; }
-    vdPost('{% url "gisa:video_category_add" cert.pk %}',
-           {name: name, parent: document.getElementById('vdParent').value,
-            part: '{{ vid_part }}'})
-        .then(function (d) { if (d.message) alert(d.message); else vdGo(); });
+/* 목차 접기 — 줄이 평평한 목록이라 '나보다 깊은 줄을 감춘다'로 푼다.
+   가지를 하나씩 좇지 말고 **위에서 아래로 한 번 훑으며** 다시 계산한다 —
+   접힌 가지 안에 또 접힌 가지가 있을 때, 좇는 방식은 포인터가 엉킨다. */
+function vdFold(btn) {
+    var row = btn.closest('.vt-row');
+    var folded = row.classList.toggle('folded');
+    btn.textContent = folded ? '\u25b8' : '\u25be';
+    var box = row.closest('.vt');
+    var open = box.querySelector('.vt-new');
+    if (open) open.remove();          /* 열려 있던 입력줄은 자리를 잃으므로 치운다 */
+    var hideBelow = -1;
+    Array.prototype.forEach.call(box.querySelectorAll('.vt-row'), function (n) {
+        var d = +(n.className.match(/lv(\d+)/) || [0, 0])[1];
+        if (hideBelow >= 0 && d > hideBelow) { n.hidden = true; return; }
+        n.hidden = false;
+        hideBelow = n.classList.contains('folded') ? d : -1;
+    });
 }
 function vdCatUrl(id) {
     return '{% url "gisa:video_category_edit" 0 %}'.replace('/0/', '/' + id + '/');
 }
-function vdRenameCat(id, cur) {
-    var name = prompt('분류 이름', cur);
-    if (name === null) return;
-    name = name.trim();
-    if (!name || name === cur) return;
-    vdPost(vdCatUrl(id), {name: name})
+function vdAddCat(parent, name) {
+    name = (name === undefined ? document.getElementById('vdCatName').value : name).trim();
+    if (!name) { alert('분류 이름을 넣어 주세요.'); return; }
+    vdPost('{% url "gisa:video_category_add" cert.pk %}',
+           {name: name, parent: parent || '', part: '{{ vid_part }}'})
         .then(function (d) { if (d.message) alert(d.message); else vdGo(); });
+}
+/* 줄의 ＋형제 / ↳자식 — 그 자리에 입력줄을 끼워 넣는다. 위쪽 칸까지 눈을 옮겨
+   이름을 적고 부모를 고르는 것보다, 누른 자리에서 바로 적는 편이 빠르다. */
+function vdNewCat(btn, how) {
+    var row = btn.closest('.vt-row');
+    var open = row.nextElementSibling;
+    if (open && open.classList.contains('vt-new')) {
+        open.remove();
+        // **같은 단추를 다시 눌렀을 때만 닫는다.** 종류를 가리지 않고 닫으면
+        // 자식줄을 열어 둔 채 ＋형제 를 눌렀을 때 아무 일도 없는 것처럼 보인다
+        if (open.dataset.how === how) return;
+    }
+    var q = row.parentNode.querySelector('.vt-new');
+    if (q) q.remove();
+    var parent = how === 'child' ? row.dataset.id : (row.dataset.parent || '');
+    var box = document.createElement('div');
+    box.className = 'vt-new';
+    box.dataset.how = how;
+    box.innerHTML = '<span class="vt-code">＋</span>'
+        + '<input placeholder="' + (how === 'child' ? '아래에 넣을 새 분류 이름' : '같은 층에 넣을 새 분류 이름') + '">'
+        + '<button class="bt chi">넣기</button><button class="bt">취소</button>';
+    var inp = box.querySelector('input');
+    var bs = box.querySelectorAll('button');
+    bs[0].onclick = function () { vdAddCat(parent, inp.value); };
+    bs[1].onclick = function () { box.remove(); };
+    inp.onkeydown = function (e) {
+        if (e.key === 'Enter') vdAddCat(parent, inp.value);
+        if (e.key === 'Escape') box.remove();
+    };
+    row.after(box);
+    inp.focus();
+}
+/* 이름 고치기는 그 줄에서 바로 — prompt 창은 어느 줄을 고치는지가 안 보인다 */
+function vdEditCat(btn) {
+    var row = btn.closest('.vt-row');
+    var cell = row.querySelector('.vt-name');
+    if (cell.querySelector('input')) return;
+    var cur = cell.textContent.trim();
+    cell.innerHTML = '<input value="">';
+    var inp = cell.querySelector('input');
+    inp.value = cur;
+    function done(save) {
+        var v = inp.value.trim();
+        if (!save || !v || v === cur) { cell.textContent = cur; return; }
+        vdPost(vdCatUrl(row.dataset.id), {name: v}).then(function (d) {
+            if (d.ok) vdGo();
+            else { alert(d.message || '고치지 못했습니다.'); cell.textContent = cur; }
+        });
+    }
+    inp.onkeydown = function (e) {
+        if (e.key === 'Enter') done(true);
+        if (e.key === 'Escape') done(false);
+    };
+    inp.onblur = function () { done(true); };
+    inp.focus();
+    inp.select();
 }
 function vdMoveCat(id, dir) {
     vdPost(vdCatUrl(id), {move: dir}).then(function (d) { if (d.ok) vdGo(); });
@@ -308,10 +399,14 @@ function vdOrder(id, dir) {
     vdPost('{% url "gisa:video_move" 0 %}'.replace('/0/', '/' + id + '/'),
            {order: dir}).then(function (d) { if (d.ok) vdGo(); });
 }
-function vdDelCat(id, name) {
-    if (!confirm('"' + name + '" 분류를 지울까요?\n영상은 지워지지 않고 「분류 없음」으로 옮겨집니다.')) return;
-    vdPost('{% url "gisa:video_category_edit" 0 %}'.replace('/0/', '/' + id + '/'),
-           {delete: true}).then(vdGo);
+function vdDelCat(id, name, hasKids) {
+    /* 하위 분류는 함께 지워진다(FK CASCADE). 영상은 어느 경우에도 남아
+       '분류 없음' 으로 모인다 — 분류를 지웠다고 자료가 사라지면 곤란하다. */
+    var msg = '"' + name + '" 분류를 지울까요?\n'
+        + (hasKids ? '하위 분류도 함께 지워집니다. ' : '')
+        + '영상은 지워지지 않고 「분류 없음」으로 옮겨집니다.';
+    if (!confirm(msg)) return;
+    vdPost(vdCatUrl(id), {delete: true}).then(vdGo);
 }
 function vdAddVideo() {
     var msg = document.getElementById('vdMsg');

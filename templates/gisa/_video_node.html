@@ -1,0 +1,19 @@
+{% comment %}
+분류 한 마디와 그 아래 영상·하위 분류. `node` 를 받아 **자기를 다시 include** 한다
+— 분류 깊이에 제한이 없으므로 층마다 템플릿을 두지 않는다.
+
+맨 윗층(depth 0)은 `_videos.html` 이 `<details>` 로 감싸고, 이 조각은 그 안쪽
+(depth 1 이상)만 그린다.
+{% endcomment %}
+<div class="vd-sub lv{{ node.depth }}">
+    <div class="vd-sub-name">
+        <span class="vd-sub-code">{{ node.code }}</span>{{ node.cat.name }}
+        <span class="vd-cnt">{{ node.count }}</span>
+    </div>
+    {% if node.videos %}
+    <div class="vd-grid">
+        {% for v in node.videos %}{% include "gisa/_video_card.html" %}{% endfor %}
+    </div>
+    {% endif %}
+    {% for sub in node.children %}{% include "gisa/_video_node.html" with node=sub %}{% endfor %}
+</div>
