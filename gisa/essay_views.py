@@ -836,6 +836,9 @@ def essay_work(request, cert_id):
     if tab not in ('overview', 'basics', 'tasks', 'elements'):
         tab = 'tasks'               # 옛 주소 ?tab=sheets 는 기출분석으로 — 도면 자료가 그리로 옮겨 갔다
     return render(request, 'gisa/essay_work.html', {
+        # 자료실 — 도면 영상은 필답형과 섞이지 않게 part='work' 로 따로 둔다
+        **resource_tab_context(cert, 'work'),
+
         'cert': cert,
         'info': info,
         'active_tab': tab,

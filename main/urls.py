@@ -5,6 +5,7 @@ from . import views
 app_name = "main"
 
 urlpatterns = [
+    path('privacy/', views.privacy, name='privacy'),
     path("", views.index, name="index"),
     path("mypage/", views.mypage, name="mypage"),
     path("mypage/favorite/<int:subject_id>/", views.favorite_toggle, name="favorite_toggle"),

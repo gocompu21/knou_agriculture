@@ -3307,3 +3307,13 @@ def qna_delete(request, pk):
         return JsonResponse({"ok": False, "error": "지울 권한이 없습니다."})
     q.delete()
     return JsonResponse({"ok": True})
+
+
+def privacy(request):
+    """개인정보처리방침.
+
+    **코드가 실제로 하는 일을 적은 문서다**(templates/main/privacy.html 머리말 참조).
+    기능을 더하거나 뺄 때 — 특히 외부로 무엇을 보내는지가 달라질 때 — 함께 고친다.
+    로그인 없이 볼 수 있어야 한다(가입 전에 읽는 문서다).
+    """
+    return render(request, 'main/privacy.html', {'effective': '2026년 9월 21일'})

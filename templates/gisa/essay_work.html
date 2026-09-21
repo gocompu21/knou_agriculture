@@ -27,6 +27,9 @@
     .tab-nav { display: flex; background: #fff; border-bottom: 2px solid #e0e0e0; overflow-x: auto;
         scrollbar-width: none; position: sticky; top: 0; z-index: 10; margin-top: 12px; }
     .tab-nav::-webkit-scrollbar { display: none; }
+    /* 자료실 탭의 개수 배지 — 이 화면에는 배지 스타일이 없었다 */
+    .tab-badge { display: inline-block; background: #2d6a4f; color: #fff;
+        border-radius: 9px; padding: 1px 7px; font-size: 0.7rem; margin-left: 5px; }
     .tab-btn { flex: 0 0 auto; padding: 14px 18px; font-weight: 700; font-size: 0.9rem; color: #888;
         border: 0; border-bottom: 3px solid transparent; cursor: pointer; background: none;
         font-family: inherit; white-space: nowrap; margin-bottom: -2px; }
@@ -326,6 +329,7 @@
         <button class="tab-btn{% if active_tab == 'basics' %} active{% endif %}" data-tab="basics">도면 기본기</button>
         <button class="tab-btn{% if active_tab == 'tasks' %} active{% endif %}" data-tab="tasks">기출분석</button>
         <button class="tab-btn{% if active_tab == 'elements' %} active{% endif %}" data-tab="elements">설계 요소</button>
+        {% if res_count or request.user.is_staff %}<button class="tab-btn{% if active_tab == 'res' %} active{% endif %}" data-tab="res">자료실{% if res_count %}<span class="tab-badge">{{ res_count }}</span>{% endif %}</button>{% endif %}
     </div>
 
     <!-- 작업형 개요 -->
@@ -469,6 +473,10 @@
     <div id="tab-elements" class="tab-content{% if active_tab == 'elements' %} active{% endif %}">
         {% if elements_html %}<div class="note-md">{{ elements_html|safe }}</div>
         {% else %}<div class="empty">시설물 규격, 용도별 식재 수종, 요구조건 문장별 대응 방법 같은<br>설계 참고 자료를 정리할 자리입니다. <b>준비 중</b>입니다.</div>{% endif %}
+    </div>
+    <!-- ══════════ 자료실 ══════════ -->
+    <div id="tab-res" class="tab-content{% if active_tab == 'res' %} active{% endif %}">
+        {% include "gisa/_resources.html" %}
     </div>
 </div>
 

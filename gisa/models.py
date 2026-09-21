@@ -847,7 +847,10 @@ class GisaResource(models.Model):
     ]
     PART_CHOICES = [
         ('written', '필기'),
-        ('practical', '실기'),
+        ('practical', '실기 필답형'),
+        # 작업형(도면)은 필답형과 화면도 공부하는 것도 달라 따로 둔다 — 도면 그리는
+        # 영상이 필답형 목록에 섞이면 어수선하다.
+        ('work', '실기 작업형'),
         ('both', '공통'),
     ]
 

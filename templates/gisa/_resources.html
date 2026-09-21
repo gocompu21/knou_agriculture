@@ -59,11 +59,22 @@ CSS·JS 가 이 안에 함께 있다 — 탭 하나가 쓰는 것이라 굳이 �
         border-radius: 8px; padding: 8px 18px; font-weight: 700; cursor: pointer; }
     .rs-msg { font-size: 0.82rem; margin-top: 8px; color: #2d6a4f; white-space: pre-wrap; }
     .rs-form[hidden] { display: none; }
+    .rs-privacy { font-size: 0.78rem; color: #8a9a92; line-height: 1.6;
+        margin: -6px 0 14px; }
+    .rs-privacy b { color: #5d7a6c; }
+    .rs-privacy a { color: #2d6a4f; }
 </style>
 
 <div class="sec-title">자료실
     <small>유튜브 영상과 참고 글. 썸네일을 누르면 이 자리에서 재생됩니다</small>
 </div>
+
+{% comment %} 재생을 누르는 순간 유튜브로 로그인 쿠키가 간다 — 프리미엄이 먹는 것과
+시청 기록이 남는 것은 같은 일이다. 몰라서 놀라지 않도록 미리 적어 둔다. {% endcomment %}
+<p class="rs-privacy">영상을 재생하면 유튜브(구글)로 연결됩니다. 유튜브 계정에 로그인되어
+   있으면 <b>시청 기록이 남고</b> 프리미엄 회원은 광고 없이 보실 수 있습니다.
+   기록을 남기고 싶지 않으시면 시크릿 창에서 보세요.
+   <a href="{% url 'main:privacy' %}" target="_blank">개인정보처리방침</a></p>
 
 {% if request.user.is_staff %}
 <div class="rs-form" id="rsForm" hidden>
