@@ -80,7 +80,7 @@ def resource_add(request, cert_id):
 
     urls = [u.strip() for u in (body.get('urls') or '').splitlines() if u.strip()]
     if not urls:
-        return JsonResponse({'message': '주소를 넣어 주세요.'})
+        return JsonResponse({'added': 0, 'message': '✕ 주소를 넣어 주세요.'})
 
     added, msgs, new_ids = 0, [], []
     order = (GisaResource.objects.filter(certification=cert)
@@ -93,11 +93,11 @@ def resource_add(request, cert_id):
         dup = (GisaResource.objects.filter(certification=cert, video_id=vid)
                if vid else GisaResource.objects.filter(certification=cert, url=url))
         if dup.exists():
-            msgs.append(f'이미 있음 — {url[:60]}')
+            msgs.append(f'✕ 이미 있음 — {url[:60]}')
             continue
         meta = fetch(url)
         if meta.get('error') and not meta.get('video_id'):
-            msgs.append(f"{meta['error']} — {url[:60]}")
+            msgs.append(f"✕ {meta['error']} — {url[:60]}")
             continue
         order += 1
         obj = GisaResource.objects.create(
@@ -113,7 +113,7 @@ def resource_add(request, cert_id):
         # 목록 아래쪽('분류 없음' 이면 맨 밑)에 생겨 어디 붙었는지 안 보인다
         new_ids.append(obj.pk)
         tail = f" ({meta['info']})" if meta.get('info') else ''
-        msgs.append(f"등록 — {meta.get('title') or url[:60]}{tail}")
+        msgs.append(f"✓ 등록 — {meta.get('title') or url[:60]}{tail}")
     return JsonResponse({'added': added, 'ids': new_ids,
                          'message': '\n'.join(msgs)})
 
