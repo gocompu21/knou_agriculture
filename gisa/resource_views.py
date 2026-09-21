@@ -13,7 +13,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST
 
 from .models import Certification, GisaResource, GisaSubject
-from .resources import fetch
+from .resources import fetch, youtube_id
 
 
 def resource_tab_context(cert, part):
@@ -78,7 +78,13 @@ def resource_add(request, cert_id):
     order = (GisaResource.objects.filter(certification=cert)
              .order_by('-order').values_list('order', flat=True).first() or 0)
     for url in urls:
-        if GisaResource.objects.filter(certification=cert, url=url).exists():
+        # **중복은 영상 id 로 본다.** 유튜브 공유 버튼이 `?si=...` 추적 파라미터를
+        # 붙여 주므로 같은 영상인데도 주소가 달라진다 — 주소만 견주면 같은 영상이
+        # 두 번 등록된다(실제로 그렇게 됐다).
+        vid = youtube_id(url)
+        dup = (GisaResource.objects.filter(certification=cert, video_id=vid)
+               if vid else GisaResource.objects.filter(certification=cert, url=url))
+        if dup.exists():
             msgs.append(f'이미 있음 — {url[:60]}')
             continue
         meta = fetch(url)
