@@ -29,6 +29,10 @@ CSS·JS 가 이 안에 함께 있다 — 탭 하나가 쓰는 것이라 굳이 �
         border-top: 9px solid transparent; border-bottom: 9px solid transparent; }
     .rs-thumb:hover .play { background: #c4302b; }
     .rs-thumb iframe { width: 100%; height: 100%; border: 0; display: block; }
+    /* 퍼가기가 막힌 영상 — 눌러도 재생이 아니라 유튜브로 넘어간다 */
+    .rs-thumb.out { text-decoration: none; }
+    .rs-out { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.72);
+        color: #fff; font-size: 0.74rem; font-weight: 700; padding: 5px 9px; }
     /* 블로그·사이트는 썸네일이 없다 — 색 띠로 갈음한다 */
     .rs-strip { aspect-ratio: 16/5; background: linear-gradient(135deg, #2d6a4f, #40916c);
         color: #fff; display: flex; align-items: center; padding: 0 16px;
@@ -106,11 +110,20 @@ https://blog.example.com/..."></textarea>
 <div class="rs-grid" id="rsGrid">
     {% for r in res_items %}
     <div class="rs-card" data-kind="{{ r.kind }}" data-id="{{ r.id }}">
-        {% if r.video_id %}
+        {% if r.video_id and r.embeddable %}
         <div class="rs-thumb" data-embed="{{ r.embed }}" onclick="rsPlay(this)">
             <img src="{{ r.thumb }}" alt="" loading="lazy">
             <span class="play"></span>
         </div>
+        {% elif r.video_id %}
+        {% comment %} 소유자가 퍼가기를 막은 영상 — 여기서 재생할 수 없으니 유튜브로
+        넘긴다. 썸네일은 그대로 뜬다. {% endcomment %}
+        <a class="rs-thumb out" href="{{ r.url }}" target="_blank" rel="noopener"
+           onclick="rsOpen({{ r.id }})">
+            <img src="{{ r.thumb }}" alt="" loading="lazy">
+            <span class="play"></span>
+            <span class="rs-out">유튜브에서 보기 ↗</span>
+        </a>
         {% else %}
         <div class="rs-strip">{{ r.get_kind_display }}</div>
         {% endif %}

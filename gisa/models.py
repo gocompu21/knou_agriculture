@@ -880,8 +880,11 @@ class GisaResource(models.Model):
 
     order = models.PositiveSmallIntegerField('순서', default=0)
     is_active = models.BooleanField('노출', default=True)
-    # oEmbed 가 404 를 주면(비공개·삭제) 세워 둔다. 화면에서 내리되 기록은 남긴다.
+    # oEmbed 가 404 를 주면(없는 영상) 세워 둔다. 화면에서 내리되 기록은 남긴다.
     is_dead = models.BooleanField('끊긴 링크', default=False)
+    # **소유자가 퍼가기를 막은 영상**(oEmbed 401)은 죽은 것이 아니다 — 썸네일도 뜨고
+    # 유튜브로 넘어가면 볼 수 있다. 화면이 '유튜브에서 보기' 카드로 그리게 갈라 둔다.
+    embeddable = models.BooleanField('퍼가기 가능', default=True)
     checked_at = models.DateTimeField('확인 시각', null=True, blank=True)
 
     open_count = models.PositiveIntegerField('열람 수', default=0)
@@ -914,7 +917,7 @@ class GisaResource(models.Model):
         파이어폭스·시크릿 창에서는 막힌다(그때는 종전처럼 광고가 나온다). 확실히
         광고 없이 보려면 제목을 눌러 유튜브에서 여는 길이 따로 있다.
         """
-        if not self.video_id:
+        if not self.video_id or not self.embeddable:
             return ''
         t = f'&start={self.start_sec}' if self.start_sec else ''
         return f'https://www.youtube.com/embed/{self.video_id}?autoplay=1&rel=0{t}'

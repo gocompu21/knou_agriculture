@@ -87,32 +87,72 @@ def _get(url, limit=200_000):
         return r.read(limit)
 
 
+# 브라우저인 척해야 watch 페이지가 제목이 든 HTML 을 준다
+BROWSER_UA = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+              '(KHTML, like Gecko) Chrome/120.0 Safari/537.36')
+_OG_TITLE = re.compile(rb'<meta property="og:title" content="([^"]*)"')
+_ITEM_NAME = re.compile(rb'<link itemprop="name" content="([^"]*)"')
+
+
+def fetch_watch_meta(vid):
+    """oEmbed 가 막혔을 때 watch 페이지에서 제목·채널을 줍는다.
+
+    **퍼가기를 막은 영상에도 제목은 있다.** oEmbed 가 401 을 주더라도 영상 자체는
+    멀쩡하므로, 이름 없이 목록에 올려 두는 것보다 한 번 더 긁어 오는 편이 낫다.
+    페이지가 1MB 가까이 되므로 **oEmbed 가 실패했을 때만** 쓴다.
+    """
+    import html
+
+    req = urllib.request.Request(
+        f'https://www.youtube.com/watch?v={vid}',
+        headers={'User-Agent': BROWSER_UA, 'Accept-Language': 'ko'})
+    try:
+        with urllib.request.urlopen(req, timeout=12) as r:
+            raw = r.read(900_000)
+    except Exception:                                        # noqa: BLE001
+        return {}
+    out = {}
+    m = _OG_TITLE.search(raw)
+    if m:
+        out['title'] = html.unescape(m.group(1).decode('utf-8', 'replace'))[:200]
+    m = _ITEM_NAME.search(raw)
+    if m:
+        out['author'] = html.unescape(m.group(1).decode('utf-8', 'replace'))[:100]
+    return out
+
+
 def fetch_youtube(url):
     """oEmbed 로 제목·채널·썸네일을 가져온다. 키가 필요 없다.
 
-    되돌리는 것은 dict, 실패하면 `{'error': ...}`. 404 는 비공개이거나 지워진
-    영상이라는 뜻이므로 그대로 알려 준다(`is_dead` 로 세운다).
+    **401 은 '지워진 영상'이 아니라 소유자가 퍼가기를 막은 것이다.** 영상은 멀쩡히
+    살아 있어 썸네일도 뜨고 유튜브로 넘어가 볼 수도 있으므로 등록을 거절하면 안 된다
+    — 한 번 그렇게 만들었다가 "등록이 안 된다"는 말을 들었다. `embeddable=False` 로
+    두어 화면이 '유튜브에서 보기' 카드로 그리게 하고, 제목은 watch 페이지에서 줍는다.
+
+    **404 만 정말로 없는 영상이다**(`dead`).
     """
     vid = youtube_id(url)
     if not vid:
         return {'error': '유튜브 주소가 아니다'}
+    base = {'kind': 'youtube', 'video_id': vid, 'start_sec': start_seconds(url)}
     api = ('https://www.youtube.com/oembed?format=json&url='
            + urllib.parse.quote(f'https://www.youtube.com/watch?v={vid}', safe=''))
     try:
         data = json.loads(_get(api))
     except urllib.error.HTTPError as e:
-        if e.code in (401, 403, 404):
-            return {'error': '비공개이거나 삭제된 영상', 'dead': True, 'video_id': vid}
-        return {'error': f'가져오기 실패 ({e.code})', 'video_id': vid}
+        if e.code == 404:
+            return dict(base, error='없거나 삭제된 영상', dead=True)
+        if e.code in (401, 403):
+            meta = fetch_watch_meta(vid)
+            return dict(base, embeddable=False,
+                        title=meta.get('title', ''), author=meta.get('author', ''),
+                        info='퍼가기가 막힌 영상 — 유튜브로 넘어가 보게 등록했다')
+        return dict(base, error=f'가져오기 실패 ({e.code})')
     except Exception as e:                                   # noqa: BLE001
-        return {'error': f'가져오기 실패 ({e})', 'video_id': vid}
-    return {
-        'kind': 'youtube',
-        'video_id': vid,
-        'title': (data.get('title') or '')[:200],
-        'author': (data.get('author_name') or '')[:100],
-        'start_sec': start_seconds(url),
-    }
+        return dict(base, error=f'가져오기 실패 ({e})')
+    return dict(base,
+                title=(data.get('title') or '')[:200],
+                author=(data.get('author_name') or '')[:100])
 
 
 _TITLE_RX = re.compile(rb'<title[^>]*>(.*?)</title>', re.S | re.I)

@@ -92,9 +92,11 @@ def resource_add(request, cert_id):
             url=url, title=meta.get('title', ''), author=meta.get('author', ''),
             video_id=meta.get('video_id', ''), start_sec=meta.get('start_sec', 0),
             note=note, order=order, is_dead=bool(meta.get('dead')),
+            embeddable=meta.get('embeddable', True),
         )
         added += 1
-        msgs.append(f"등록 — {meta.get('title') or url[:60]}")
+        tail = f" ({meta['info']})" if meta.get('info') else ''
+        msgs.append(f"등록 — {meta.get('title') or url[:60]}{tail}")
     return JsonResponse({'added': added, 'message': '\n'.join(msgs)})
 
 
