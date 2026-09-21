@@ -193,7 +193,11 @@ function rsAdd() {
         })
     }).then(function (r) { return r.json(); }).then(function (d) {
         msg.textContent = d.message || '';
-        if (d.added) setTimeout(function () { location.reload(); }, 700);
+        /* 그냥 reload 하면 지금 주소의 탭으로 돌아간다 — 다른 탭에서 등록했거나
+           주소에 ?tab= 이 없으면 목록을 못 본다. 자료실 탭을 못박아 옮긴다. */
+        if (d.added) setTimeout(function () {
+            location.href = location.pathname + '?tab=res';
+        }, 700);
     }).catch(function () { msg.textContent = '등록에 실패했습니다.'; });
 }
 function rsDel(id) {

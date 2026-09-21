@@ -169,7 +169,7 @@ def essay_list(request, cert_id):
         a.score_disp = '%g' % round(a.score, 2)
 
     tab = request.GET.get('tab', 'textbook')
-    _tabs = ['textbook', 'study', 'solve', 'mock', 'wrong', 'history', 'qna']
+    _tabs = ['textbook', 'study', 'solve', 'mock', 'wrong', 'history', 'qna', 'res']
     # 해충·농약 DVD 는 'DVD' 탭 하나에 묶고 그 안에서 고른다(`?tab=dvd&dvd=pest`).
     # 예전 주소 ?tab=pest · ?tab=pesticide 는 그 칸을 연 DVD 탭으로 받는다.
     dvd_subs = ([('pest', '해충 DVD')] if bug_can_see(cert) else []) +                ([('pesticide', '농약 DVD')] if pest_can_see(cert) else [])
@@ -833,7 +833,7 @@ def essay_work(request, cert_id):
         return md.markdown(n.content, extensions=['tables']) if n else ''
 
     tab = request.GET.get('tab', 'tasks')
-    if tab not in ('overview', 'basics', 'tasks', 'elements'):
+    if tab not in ('overview', 'basics', 'tasks', 'elements', 'res'):
         tab = 'tasks'               # 옛 주소 ?tab=sheets 는 기출분석으로 — 도면 자료가 그리로 옮겨 갔다
     return render(request, 'gisa/essay_work.html', {
         # 자료실 — 도면 영상은 필답형과 섞이지 않게 part='work' 로 따로 둔다
