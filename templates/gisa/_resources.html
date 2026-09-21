@@ -1,0 +1,173 @@
+{% comment %}
+자료실 — 유튜브·블로그 목록. **필기 상세와 실기 목록이 같은 조각을 쓴다.**
+쓰는 쪽에서 `{% include "gisa/_resources.html" %}` 한 줄이면 되고, 컨텍스트는
+`gisa.resource_views.resource_tab_context(cert, part)` 하나가 만든다
+(`res_items` · `res_kinds` · `res_subjects` · `res_part`).
+
+CSS·JS 가 이 안에 함께 있다 — 탭 하나가 쓰는 것이라 굳이 세 벌로 가르지 않았다.
+이름은 `rs-` 로 맞춰 두었다(두 화면 모두 `.tb-`·`.nq-` 가 이미 있다).
+{% endcomment %}
+<style>
+    .rs-bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 0 0 14px; }
+    .rs-pill { border: 1px solid #dfe3e6; background: #fff; color: #555; border-radius: 14px;
+        padding: 5px 13px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+    .rs-pill.on { background: #1b4332; border-color: #1b4332; color: #fff; }
+    .rs-add { margin-left: auto; background: #1b4332; color: #fff; border: 0;
+        border-radius: 14px; padding: 6px 14px; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+
+    .rs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+    .rs-card { border: 1px solid #e8ebe9; border-radius: 10px; overflow: hidden; background: #fff; }
+    .rs-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+    /* 썸네일 자리 — 16:9 를 미리 잡아 두어야 그림이 늦게 와도 화면이 튀지 않는다 */
+    .rs-thumb { position: relative; aspect-ratio: 16/9; background: #111; cursor: pointer;
+        display: block; }
+    .rs-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .rs-thumb .play { position: absolute; inset: 0; margin: auto; width: 52px; height: 36px;
+        background: rgba(0,0,0,.65); border-radius: 8px; }
+    .rs-thumb .play::after { content: ''; position: absolute; inset: 0; margin: auto;
+        width: 0; height: 0; border-left: 14px solid #fff;
+        border-top: 9px solid transparent; border-bottom: 9px solid transparent; }
+    .rs-thumb:hover .play { background: #c4302b; }
+    .rs-thumb iframe { width: 100%; height: 100%; border: 0; display: block; }
+    /* 블로그·사이트는 썸네일이 없다 — 색 띠로 갈음한다 */
+    .rs-strip { aspect-ratio: 16/5; background: linear-gradient(135deg, #2d6a4f, #40916c);
+        color: #fff; display: flex; align-items: center; padding: 0 16px;
+        font-size: 0.82rem; font-weight: 700; letter-spacing: .3px; }
+    .rs-body { padding: 10px 12px 12px; }
+    .rs-title { font-size: 0.9rem; font-weight: 700; color: #222; line-height: 1.45;
+        text-decoration: none; display: block; }
+    .rs-title:hover { text-decoration: underline; }
+    .rs-meta { font-size: 0.76rem; color: #8a9a92; margin-top: 4px; }
+    .rs-note { font-size: 0.82rem; color: #40624f; margin-top: 6px; line-height: 1.55; }
+    .rs-tags { margin-top: 7px; display: flex; gap: 5px; flex-wrap: wrap; }
+    .rs-tag { font-size: 0.72rem; background: #eef4f0; color: #2d6a4f; border-radius: 8px;
+        padding: 2px 8px; font-weight: 600; }
+    .rs-del { float: right; border: 0; background: none; color: #c0392b; cursor: pointer;
+        font-size: 0.75rem; }
+    .rs-empty { color: #8a9a92; font-size: 0.88rem; padding: 26px 0; text-align: center; }
+
+    /* 등록 창 — 주소만 붙여넣으면 제목·채널이 채워진다 */
+    .rs-form { border: 1px solid #dfe7e2; border-radius: 10px; padding: 14px;
+        margin: 0 0 16px; background: #f9fbfa; }
+    .rs-form textarea, .rs-form input, .rs-form select {
+        width: 100%; border: 1px solid #d6dedb; border-radius: 7px; padding: 7px 9px;
+        font-size: 0.85rem; font-family: inherit; box-sizing: border-box; }
+    .rs-form textarea { min-height: 62px; resize: vertical; }
+    .rs-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+    .rs-row > * { flex: 1 1 130px; }
+    .rs-form .go { flex: 0 0 auto; background: #1b4332; color: #fff; border: 0;
+        border-radius: 8px; padding: 8px 18px; font-weight: 700; cursor: pointer; }
+    .rs-msg { font-size: 0.82rem; margin-top: 8px; color: #2d6a4f; white-space: pre-wrap; }
+    .rs-form[hidden] { display: none; }
+</style>
+
+<div class="sec-title">자료실
+    <small>유튜브 영상과 참고 글. 썸네일을 누르면 이 자리에서 재생됩니다</small>
+</div>
+
+{% if request.user.is_staff %}
+<div class="rs-form" id="rsForm" hidden>
+    <textarea id="rsUrls" placeholder="주소를 붙여넣으세요. 여러 개면 줄을 바꿔 한꺼번에 넣을 수 있습니다.
+https://www.youtube.com/watch?v=...
+https://blog.example.com/..."></textarea>
+    <div class="rs-row">
+        <select id="rsSubject">
+            <option value="">과목 — 공통</option>
+            {% for s in res_subjects %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+        </select>
+        <input id="rsNote" placeholder="한 줄 설명 (예: 배액 계산만 10분)">
+        <button class="go" onclick="rsAdd()">가져와 등록</button>
+    </div>
+    <div class="rs-msg" id="rsMsg"></div>
+</div>
+{% endif %}
+
+<div class="rs-bar">
+    <button class="rs-pill on" data-kind="" onclick="rsFilter(this)">전체 <b>{{ res_items|length }}</b></button>
+    {% for k, label, n in res_kinds %}
+    <button class="rs-pill" data-kind="{{ k }}" onclick="rsFilter(this)">{{ label }} <b>{{ n }}</b></button>
+    {% endfor %}
+    {% if request.user.is_staff %}
+    <button class="rs-add" onclick="document.getElementById('rsForm').hidden = !document.getElementById('rsForm').hidden">+ 자료 등록</button>
+    {% endif %}
+</div>
+
+<div class="rs-grid" id="rsGrid">
+    {% for r in res_items %}
+    <div class="rs-card" data-kind="{{ r.kind }}" data-id="{{ r.id }}">
+        {% if r.video_id %}
+        <div class="rs-thumb" data-embed="{{ r.embed }}" onclick="rsPlay(this)">
+            <img src="{{ r.thumb }}" alt="" loading="lazy">
+            <span class="play"></span>
+        </div>
+        {% else %}
+        <div class="rs-strip">{{ r.get_kind_display }}</div>
+        {% endif %}
+        <div class="rs-body">
+            {% if request.user.is_staff %}<button class="rs-del" onclick="rsDel({{ r.id }})">삭제</button>{% endif %}
+            <a class="rs-title" href="{{ r.url }}" target="_blank" rel="noopener"
+               onclick="rsOpen({{ r.id }})">{{ r.title|default:r.url }}</a>
+            <div class="rs-meta">{{ r.author }}{% if r.open_count %} · 열람 {{ r.open_count }}{% endif %}</div>
+            {% if r.note %}<div class="rs-note">{{ r.note }}</div>{% endif %}
+            <div class="rs-tags">
+                {% if r.subject %}<span class="rs-tag">{{ r.subject.name }}</span>{% endif %}
+                {% if r.topic_key %}<span class="rs-tag">쪽집게 연결</span>{% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="rs-empty">아직 등록된 자료가 없습니다.{% if request.user.is_staff %} 위의 <b>+ 자료 등록</b>으로 주소를 붙여넣으세요.{% endif %}</div>
+    {% endfor %}
+</div>
+
+<script>
+/* 썸네일을 누를 때 비로소 iframe 을 끼운다. 목록에 미리 박아 두면 하나당 1MB 안팎을
+   받아 와 화면이 눈에 띄게 느려진다. */
+function rsPlay(el) {
+    el.innerHTML = '<iframe src="' + el.dataset.embed + '" allow="accelerometer; autoplay; '
+        + 'encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+    el.style.cursor = 'default';
+    el.onclick = null;
+    var card = el.closest('.rs-card');
+    if (card) rsOpen(card.dataset.id);
+}
+function rsFilter(btn) {
+    document.querySelectorAll('.rs-bar .rs-pill').forEach(function (b) { b.classList.remove('on'); });
+    btn.classList.add('on');
+    var k = btn.dataset.kind;
+    document.querySelectorAll('#rsGrid .rs-card').forEach(function (c) {
+        c.style.display = (!k || c.dataset.kind === k) ? '' : 'none';
+    });
+}
+function rsCsrf() {
+    var m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? m[1] : '';
+}
+function rsOpen(id) {
+    fetch('{% url "gisa:resource_open" 0 %}'.replace('/0/', '/' + id + '/'),
+          {method: 'POST', headers: {'X-CSRFToken': rsCsrf()}});
+}
+function rsAdd() {
+    var msg = document.getElementById('rsMsg');
+    msg.textContent = '가져오는 중…';
+    fetch('{% url "gisa:resource_add" cert.pk %}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': rsCsrf()},
+        body: JSON.stringify({
+            urls: document.getElementById('rsUrls').value,
+            part: '{{ res_part }}',
+            subject: document.getElementById('rsSubject').value,
+            note: document.getElementById('rsNote').value
+        })
+    }).then(function (r) { return r.json(); }).then(function (d) {
+        msg.textContent = d.message || '';
+        if (d.added) setTimeout(function () { location.reload(); }, 700);
+    }).catch(function () { msg.textContent = '등록에 실패했습니다.'; });
+}
+function rsDel(id) {
+    if (!confirm('이 자료를 지울까요?')) return;
+    fetch('{% url "gisa:resource_delete" 0 %}'.replace('/0/', '/' + id + '/'),
+          {method: 'POST', headers: {'X-CSRFToken': rsCsrf()}})
+        .then(function () { location.reload(); });
+}
+</script>

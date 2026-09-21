@@ -1097,6 +1097,7 @@
         <button class="tab-btn{% if active_tab == 'latest' %} active{% endif %}" onclick="switchTab('latest')">최신기출{% if latest_year_cards %}<span class="tab-badge" style="background:#3949ab;">{{ latest_year_cards|length }}</span>{% endif %}</button>
         <button class="tab-btn{% if active_tab == 'glossary' %} active{% endif %}" onclick="switchTab('glossary')">용어집{% if glossary_count %}<span class="tab-badge" style="background:#6a1b9a;">{{ glossary_count }}</span>{% endif %}</button>
         <button class="tab-btn{% if active_tab == 'qna' %} active{% endif %}" onclick="switchTab('qna')">질의응답{% if qna_count %}<span class="tab-badge" style="background:#8a5cf6;">{{ qna_count }}</span>{% endif %}</button>
+        {% if res_count or request.user.is_staff %}<button class="tab-btn{% if active_tab == 'res' %} active{% endif %}" onclick="switchTab('res')">자료실{% if res_count %}<span class="tab-badge" style="background:#2d6a4f;">{{ res_count }}</span>{% endif %}</button>{% endif %}
     </div>
 
     <!-- Mobile Drawer -->
@@ -1607,6 +1608,11 @@
         {% endif %}
     </div>
 </div>
+    <!-- ══════════ 자료실 ══════════ -->
+    <div id="tab-res" class="tab-content{% if active_tab == 'res' %} active{% endif %}">
+        {% include "gisa/_resources.html" %}
+    </div>
+
 {% endblock %}
 
 {% block extra_js %}

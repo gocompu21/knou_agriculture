@@ -824,3 +824,84 @@ class GisaDrawingRefImage(models.Model):
         verbose_name_plural = '기출 도면 그림'
         ordering = ['order', 'id']
 
+
+
+class GisaResource(models.Model):
+    """자격증별 바깥 학습 자료 — 유튜브 영상·블로그 글·참고 사이트.
+
+    **유튜브는 목록에 iframe 을 박지 않는다.** iframe 하나가 1MB 안팎을 받아 오므로
+    열 개만 놓아도 화면이 눈에 띄게 느려진다. 목록에는 썸네일(`i.ytimg.com`, 키가
+    필요 없다)만 깔고, 누를 때 그 자리에 embed 를 끼운다.
+
+    제목·채널·썸네일은 **oEmbed 로 자동으로 채운다**(`gisa/resources.py`). 이것도
+    API 키가 필요 없어, 관리 화면에서 주소만 붙여넣으면 나머지가 채워진다.
+
+    `topic_key` 를 적어 두면 쪽집게 노트의 그 주제 안에도 함께 나온다 — 자료실
+    목록만 두면 한 번 구경하고 마는데, 공부하는 자리에 붙어 있어야 쓰인다.
+    """
+    KIND_CHOICES = [
+        ('youtube', '유튜브'),
+        ('blog', '블로그·글'),
+        ('site', '사이트'),
+        ('file', '내려받기'),
+    ]
+    PART_CHOICES = [
+        ('written', '필기'),
+        ('practical', '실기'),
+        ('both', '공통'),
+    ]
+
+    certification = models.ForeignKey(
+        Certification, on_delete=models.CASCADE,
+        related_name='resources', verbose_name='자격증')
+    # 과목을 비워 두면 '공통' 자료다(시험 전략·수험 요령 등).
+    subject = models.ForeignKey(
+        GisaSubject, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='resources', verbose_name='과목')
+    part = models.CharField('구분', max_length=10, choices=PART_CHOICES, default='written')
+    kind = models.CharField('유형', max_length=10, choices=KIND_CHOICES, default='youtube')
+
+    url = models.URLField('주소', max_length=500)
+    title = models.CharField('제목', max_length=200, blank=True)
+    author = models.CharField('출처', max_length=100, blank=True,
+                              help_text='채널명·블로그명. oEmbed 로 자동으로 채워진다')
+    # 유튜브 영상 id. 썸네일과 embed 주소를 이것으로 만든다.
+    video_id = models.CharField('영상 id', max_length=20, blank=True, db_index=True)
+    # 재생 시작 지점(초). 긴 강의에서 그 대목부터 틀 때 쓴다.
+    start_sec = models.PositiveIntegerField('시작 초', default=0)
+    note = models.CharField('한 줄 설명', max_length=200, blank=True,
+                            help_text='"배액 계산만 10분" 처럼 무엇에 쓰는 자료인지. 직접 적는다')
+
+    # 쪽집게 노트 주제와 잇는다(gisa.essay_textbook / GisaEssayQuestion.topic_key).
+    topic_key = models.CharField('주제 키', max_length=64, blank=True, db_index=True)
+
+    order = models.PositiveSmallIntegerField('순서', default=0)
+    is_active = models.BooleanField('노출', default=True)
+    # oEmbed 가 404 를 주면(비공개·삭제) 세워 둔다. 화면에서 내리되 기록은 남긴다.
+    is_dead = models.BooleanField('끊긴 링크', default=False)
+    checked_at = models.DateTimeField('확인 시각', null=True, blank=True)
+
+    open_count = models.PositiveIntegerField('열람 수', default=0)
+    created_at = models.DateTimeField('등록일', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '학습 자료'
+        verbose_name_plural = '학습 자료'
+        ordering = ['order', '-created_at']
+        indexes = [models.Index(fields=['certification', 'part', 'is_active'])]
+
+    def __str__(self):
+        return f"[{self.certification.name}] {self.title or self.url}"
+
+    @property
+    def thumb(self):
+        """유튜브 썸네일. 키가 필요 없는 정적 주소다."""
+        return f'https://i.ytimg.com/vi/{self.video_id}/mqdefault.jpg' if self.video_id else ''
+
+    @property
+    def embed(self):
+        """재생용 주소. 쿠키를 덜 심는 nocookie 도메인을 쓴다."""
+        if not self.video_id:
+            return ''
+        t = f'&start={self.start_sec}' if self.start_sec else ''
+        return f'https://www.youtube-nocookie.com/embed/{self.video_id}?autoplay=1&rel=0{t}'

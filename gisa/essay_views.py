@@ -26,6 +26,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .essay_examinfo import exam_info, hm
+from .resource_views import resource_tab_context
 from .essay_topics import siblings, topic_groups
 from .pesticide import can_see as pest_can_see, stats as pest_stats
 from .pest import can_see as bug_can_see, stats as bug_stats
@@ -240,6 +241,8 @@ def essay_list(request, cert_id):
             certification=cert, slug='freq58').exists(),
         # 합격 전략 문서가 있는 자격증에만 링크를 낸다(essay_pass 참조)
         'has_pass': bool(pass_doc_path(cert.name)),
+        # 자료실 — 필기 상세와 같은 조각을 쓴다(gisa/_resources.html)
+        **resource_tab_context(cert, 'practical'),
         # 질의응답 — 실기 질문만. cert_subject='실기' 로 표시해 두면
         # 프롬프트가 답안 형식(①②③)으로 답하도록 갈린다.
         'qna_items': QnaQuestion.objects.filter(

@@ -530,6 +530,7 @@
         <button class="tab-btn{% if active_tab == 'wrong' %} active{% endif %}" data-tab="wrong">오답노트{% if wrong_count %}<span class="tab-badge">{{ wrong_count }}</span>{% endif %}</button>
         <button class="tab-btn{% if active_tab == 'history' %} active{% endif %}" data-tab="history">시험이력</button>
         <button class="tab-btn{% if active_tab == 'qna' %} active{% endif %}" data-tab="qna">질의응답{% if qna_count %}<span class="tab-badge soft">{{ qna_count }}</span>{% endif %}</button>
+        {% if res_count %}<button class="tab-btn{% if active_tab == 'res' %} active{% endif %}" data-tab="res">자료실<span class="tab-badge soft">{{ res_count }}</span></button>{% elif request.user.is_staff %}<button class="tab-btn{% if active_tab == 'res' %} active{% endif %}" data-tab="res">자료실</button>{% endif %}
     </div>
 
     <!-- ══════════ 쪽집게 노트 ══════════ -->
@@ -978,6 +979,10 @@
         {% if qna_count > qna_items|length %}
         <div class="qna-more"><a href="/qna/?cert={{ cert.name|urlencode }}">실기 질문 {{ qna_count }}건 모두 보기 &rsaquo;</a></div>
         {% endif %}
+    </div>
+    <!-- ══════════ 자료실 ══════════ -->
+    <div id="tab-res" class="tab-content{% if active_tab == 'res' %} active{% endif %}">
+        {% include "gisa/_resources.html" %}
     </div>
 </div>
 

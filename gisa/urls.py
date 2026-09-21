@@ -1,5 +1,6 @@
 from django.urls import path
 
+from . import resource_views
 from . import essay_views, pest, pesticide, views
 
 app_name = "gisa"
@@ -67,6 +68,10 @@ urlpatterns = [
     path("<int:cert_id>/essay/work/", essay_views.essay_work, name="essay_work"),
     path("<int:cert_id>/essay/strategy/", essay_views.essay_strategy, name="essay_strategy"),
     path("<int:cert_id>/essay/pass/", essay_views.essay_pass, name="essay_pass"),
+    # 자료실 — 유튜브·블로그. 필기 상세와 실기 목록이 같은 조각을 쓴다.
+    path("<int:cert_id>/resources/add/", resource_views.resource_add, name="resource_add"),
+    path("resources/<int:res_id>/delete/", resource_views.resource_delete, name="resource_delete"),
+    path("resources/<int:res_id>/open/", resource_views.resource_open, name="resource_open"),
     path("<int:cert_id>/essay/<int:session_id>/submit/", essay_views.essay_submit, name="essay_submit"),
     path("<int:cert_id>/essay/<int:session_id>/save/", essay_views.essay_save, name="essay_save"),
     path("<int:cert_id>/essay/<int:session_id>/draft/", essay_views.essay_draft, name="essay_draft"),

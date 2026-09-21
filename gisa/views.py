@@ -14,6 +14,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
+from .resource_views import resource_tab_context
 from .models import (Certification, GisaAttempt, GisaEssayQuestion, GisaExam, GisaGlossary,
                      GisaQuestion, GisaStudyLog, GisaSubject, GisaTextbook)
 
@@ -739,6 +740,8 @@ def certification_detail(request, cert_id):
         {
             "cert": cert,
             **weed_ctx,          # weed_subject · weed_count · weed_stats · weed_modes
+            # 자료실 — 유튜브·블로그. 조각(_resources.html)을 실기와 함께 쓴다.
+            **resource_tab_context(cert, "written"),
             "exams": exams,
             "subjects": subjects,
             "mock_subjects": mock_subjects,

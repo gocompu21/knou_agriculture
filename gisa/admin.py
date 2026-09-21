@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from .models import (Certification, GisaExam, GisaSubject, GisaQuestion, GisaAttempt,
                      GisaTextbook, GisaGlossary, MockGeneration, CertificationViewLog,
-                     GisaEssayQuestion, GisaEssaySession, GisaEssayAttempt, GisaEssayUpload)
+                     GisaEssayQuestion, GisaEssaySession, GisaEssayAttempt, GisaEssayUpload, GisaResource)
 
 
 @admin.register(Certification)
@@ -196,3 +196,13 @@ class GisaDrawingRefAdmin(admin.ModelAdmin):
     list_filter = ('certification',)
     inlines = [GisaDrawingRefImageInline]
 
+
+
+@admin.register(GisaResource)
+class GisaResourceAdmin(admin.ModelAdmin):
+    """학습 자료 — 주제키·순서처럼 화면에서 고치기 번거로운 것을 여기서 손본다."""
+    list_display = ('title', 'certification', 'part', 'kind', 'subject',
+                    'topic_key', 'order', 'open_count', 'is_active', 'is_dead')
+    list_filter = ('certification', 'part', 'kind', 'is_active', 'is_dead')
+    list_editable = ('topic_key', 'order', 'is_active')
+    search_fields = ('title', 'url', 'author', 'note')
