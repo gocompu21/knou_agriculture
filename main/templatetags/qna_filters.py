@@ -15,7 +15,18 @@ _MD = [
     (re.compile(r"^\s*\d+\.\s+", re.M), ""),
     (re.compile(r"\$"), ""),                        # LaTeX 잔재
     (re.compile(r"\text\{([^}]*)\}"), r"\1"),
+    # "① [공간적 위치와 개념적 정의]" — 펼치면 소제목이 되는 자리라 대괄호는 걷어낸다
+    (re.compile(r"([①-⑳]\s*)\[([^\]\n]{2,40})\]"), r"\1\2"),
 ]
+
+
+@register.filter(name="qna_refs")
+def qna_refs(text):
+    """근거 절 문자열을 배지 목록으로 — "과목 · 7.7 제목 / 과목 · 2.5 제목" 을 쪼갠다.
+
+    한 줄로 이어 붙이면 어디서 어디까지가 한 절인지 안 보인다.
+    """
+    return [s.strip() for s in str(text or "").split("/") if s.strip()]
 
 
 @register.filter(name="qna_peek")

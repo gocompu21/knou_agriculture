@@ -37,15 +37,8 @@
         padding: 2px 9px; border-radius: 9px; }
     .ans-model { margin-left: auto; font-size: 0.72rem; color: #b3c0b7; }
 
-    .ans-text { font-size: 0.92rem; line-height: 1.85; color: #222;
-        word-break: keep-all; }
-    .ans-text h3 { font-size: 0.96rem; color: #1b4332; margin: 16px 0 6px; }
-    .ans-text p { margin: 0 0 10px; }
-    .ans-text ul { padding-left: 20px; margin: 6px 0 12px; }
-    .ans-text li { margin: 4px 0; }
-    .ans-text strong { color: #1b4332; }
-    .ans-text code { background: #f2f5f3; padding: 1px 5px; border-radius: 4px;
-        font-size: 0.92em; }
+{% include "main/_qna_render_css.html" %}
+    .qa-body { font-size: 0.92rem; }
 
     .qd-warn { font-size: 0.78rem; color: #96805a; background: #fdf9ef;
         border: 1px solid #f0e6cf; border-radius: 8px; padding: 9px 13px;
@@ -104,7 +97,7 @@
             {% endif %}
             <span class="ans-model">{{ q.answer_model }}</span>
         </div>
-        <div class="ans-text" id="ansText">{{ q.answer }}</div>
+        <div class="qa-body" id="ansText">{{ q.answer }}</div>
 
         <div class="qd-warn">
             AI가 쓴 답이라 <b>틀릴 수 있습니다</b>.
@@ -138,6 +131,7 @@
 </div>
 
 <script>
+{% include "main/_qna_render_js.html" %}
 const CSRF = "{{ csrf_token }}";
 const PK = {{ q.pk }};
 
@@ -145,33 +139,7 @@ const PK = {{ q.pk }};
    LaTeX 표기($\text{H}^+$)가 섞여 오므로 걷어낸다. */
 (function () {
     const el = document.getElementById('ansText');
-    if (!el) return;
-    let t = el.textContent;
-    t = t.replace(/\$\\text\{([^}]*)\}\$/g, '$1')
-         .replace(/\$([^$\n]{1,40})\$/g, '$1')
-         .replace(/\\text\{([^}]*)\}/g, '$1');
-    const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const out = [];
-    let ul = false;
-    t.split('\n').forEach(raw => {
-        const line = raw.trim();
-        if (!line) { if (ul) { out.push('</ul>'); ul = false; } return; }
-        let h = esc(line);
-        h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        h = h.replace(/`([^`]+)`/g, '<code>$1</code>');
-        if (/^#{1,4}\s/.test(line)) {
-            if (ul) { out.push('</ul>'); ul = false; }
-            out.push('<h3>' + h.replace(/^#{1,4}\s*/, '') + '</h3>');
-        } else if (/^[*\-•]\s/.test(line) || /^\d+\.\s/.test(line)) {
-            if (!ul) { out.push('<ul>'); ul = true; }
-            out.push('<li>' + h.replace(/^([*\-•]|\d+\.)\s*/, '') + '</li>');
-        } else {
-            if (ul) { out.push('</ul>'); ul = false; }
-            out.push('<p>' + h + '</p>');
-        }
-    });
-    if (ul) out.push('</ul>');
-    el.innerHTML = out.join('');
+    if (el) el.innerHTML = qnaRender(el.textContent);
 })();
 
 const flagBtn = document.getElementById('flagBtn');

@@ -1,0 +1,39 @@
+{% comment %}
+질의응답 답 본문 스타일 — 쓰는 쪽 {% block extra_css %} 의 <style> 안에 include 한다.
+짝은 main/_qna_render_js.html (qnaRender). 색은 --qa-accent 로 바꾼다.
+{% endcomment %}
+.qa-body { --qa-accent: #1b4332; --qa-accent-soft: #eef5ef;
+    font-size: 0.9rem; line-height: 1.85; color: #39473f;
+    word-break: keep-all; overflow-wrap: break-word; }
+.qa-body p { margin: 0 0 8px; }
+.qa-body p:last-child { margin-bottom: 0; }
+.qa-body ul { padding-left: 18px; margin: 5px 0 8px; }
+.qa-body li { margin: 5px 0; }
+.qa-body li::marker { color: #9fb3a6; }
+.qa-body strong { color: var(--qa-accent); }
+.qa-body em { font-style: italic; }
+.qa-body i { font-style: italic; color: #2f4a3a; }   /* 학명 */
+.qa-body code { background: #f1f5f2; padding: 1px 5px; border-radius: 4px;
+    font-family: Consolas, monospace; font-size: 0.92em; }
+
+/* ①②③ 한 항목 = 번호 배지 + 소제목 + 본문. 번호를 글 속에 두지 않고
+   왼쪽으로 빼야 항목 경계가 눈에 들어온다 */
+.qa-step { position: relative; padding-left: 31px; margin-bottom: 15px; }
+.qa-step:last-child { margin-bottom: 0; }
+.qa-num { position: absolute; left: 0; top: 2px; width: 22px; height: 22px;
+    border-radius: 50%; background: var(--qa-accent); color: #fff;
+    font-size: 0.72rem; font-weight: 700; line-height: 1;
+    display: flex; align-items: center; justify-content: center; }
+.qa-h { font-size: 0.93rem; font-weight: 700; color: var(--qa-accent);
+    margin: 2px 0 5px; line-height: 1.5; }
+.qa-body > .qa-h:first-child { margin-top: 0; }
+.qa-intro { margin-bottom: 12px; }
+.qa-outro { margin-top: 13px; padding-top: 11px; border-top: 1px dashed #dde6e0;
+    font-size: 0.85rem; color: #7d8b83; }
+.qa-outro p, .qa-outro li { margin: 0 0 5px; }
+
+@media (max-width: 480px) {
+    .qa-body { font-size: 0.88rem; line-height: 1.8; }
+    .qa-step { padding-left: 27px; }
+    .qa-num { width: 20px; height: 20px; font-size: 0.68rem; }
+}

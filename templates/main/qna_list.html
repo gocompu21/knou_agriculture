@@ -66,11 +66,7 @@
         line-height: 1.8; color: #263; border-top: 1px dashed #e3ece4; margin-top: 4px;
         padding-top: 10px; }
     .qna-item.open .qi-full { display: block; }
-    .qi-full h3 { font-size: 0.9rem; color: #1b4332; margin: 12px 0 5px; }
-    .qi-full p { margin: 0 0 8px; }
-    .qi-full ul { padding-left: 19px; margin: 5px 0 10px; }
-    .qi-full li { margin: 3px 0; }
-    .qi-full strong { color: #1b4332; }
+{% include "main/_qna_render_css.html" %}
     .qi-note-ref { font-size: 0.75rem; color: #6b8a72; background: #f1f7ee;
         display: inline-block; padding: 2px 9px; border-radius: 9px;
         margin-bottom: 8px; }
@@ -156,34 +152,7 @@
 <script>
     /* AI 답은 마크다운 비슷하게 온다. 제목·목록·강조만 살린다.
        LaTeX 표기가 섞여 오면 걷어낸다. */
-    function qnaRender(raw) {
-        var t = String(raw || '');
-        t = t.split('$').join('');
-        t = t.replace(/\\text\{([^}]*)\}/g, '$1');
-        var esc = function (x) {
-            return x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        };
-        var out = [], ul = false;
-        t.split('\n').forEach(function (rawLine) {
-            var line = rawLine.trim();
-            if (!line) { if (ul) { out.push('</ul>'); ul = false; } return; }
-            var h = esc(line)
-                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                .replace(/`([^`]+)`/g, '<code>$1</code>');
-            if (/^#{1,4}\s/.test(line)) {
-                if (ul) { out.push('</ul>'); ul = false; }
-                out.push('<h3>' + h.replace(/^#{1,4}\s*/, '') + '</h3>');
-            } else if (/^[*\-•]\s/.test(line) || /^\d+\.\s/.test(line)) {
-                if (!ul) { out.push('<ul>'); ul = true; }
-                out.push('<li>' + h.replace(/^([*\-•]|\d+\.)\s*/, '') + '</li>');
-            } else {
-                if (ul) { out.push('</ul>'); ul = false; }
-                out.push('<p>' + h + '</p>');
-            }
-        });
-        if (ul) out.push('</ul>');
-        return out.join('');
-    }
+{% include "main/_qna_render_js.html" %}
 
     function toggleQna(head) {
         var item = head.closest ? head.closest('.qna-item') : head.parentElement;
@@ -192,7 +161,7 @@
             var pk = item.dataset.pk;
             full.innerHTML =
                 (full.dataset.ref ? '<div class="qi-note-ref">📖 ' + full.dataset.ref + '</div>' : '')
-                + qnaRender(full.dataset.raw)
+                + '<div class="qa-body">' + qnaRender(full.dataset.raw) + '</div>'
                 + '<a class="qi-link" href="/qna/' + pk + '/">따로 보기 &rsaquo;</a>';
             full.dataset.done = '1';
         }

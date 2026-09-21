@@ -1,0 +1,105 @@
+{% comment %}
+질의응답 답 렌더러 — 쓰는 쪽 {% block extra_js %} 의 <script> 안에 include 한다.
+짝은 main/_qna_render_css.html. qnaRender(raw) 가 HTML 문자열을 돌려준다.
+
+실기 답은 "① 소제목: 본문" 꼴로 온다. ① 를 글 속에 그대로 두면 문단 덩어리가 되어
+무엇이 몇 번 항목인지 안 보이므로, 항목마다 번호를 왼쪽으로 빼고 소제목을 세운다.
+{% endcomment %}
+/* ── 질의응답 답 렌더러 (main/_qna_render_js.html) ── */
+var QNA_CIRC = /^([①-⑳])\s*/;        /* ① ~ ⑳ */
+/* 학명(속명 + 종소명)만 이탤릭. 'Point bar' 처럼 흔한 영어 낱말은 건너뛴다 */
+var QNA_NOTSP = /^(mixture|method|model|test|index|value|effect|law|code|chart|scale|cycle|curve|point|line|class|type|group|level|unit|table|list|form|rate|area|zone|site|acid|water|number|factor|system|process|theory|series|phase|state|stage|score|range|ratio|color|colour|paper|plate|filter|buffer|medium|agar|broth|bar|and|or|of|in|on|for|with|the|a|an)s?$/;
+
+function qnaEsc(x) {
+    return String(x == null ? '' : x)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function qnaSci(s) {
+    return s.replace(/(^|[^A-Za-z<>\/])([A-Z][a-z]{2,})\s+([a-z][a-z-]{2,})(?![A-Za-z])/g,
+        function (m, pre, genus, sp) {
+            return QNA_NOTSP.test(sp) ? m : pre + '<i>' + genus + ' ' + sp + '</i>';
+        });
+}
+function qnaInline(s) {
+    var h = qnaEsc(s)
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+    return qnaSci(h);
+}
+/* "분류: 마디풀과…" 처럼 앞머리가 라벨이면 굵게. 문장 한복판의 콜론은 집지 않도록
+   글자 수를 센다(태그 길이는 빼고) */
+function qnaLabel(item) {
+    if (/^<strong>/.test(item)) return item;
+    return item.replace(/^([^:：]+?)([:：])(\s)/, function (all, head, colon, sp) {
+        var plain = head.replace(/<[^>]+>/g, '');
+        return (plain.length >= 2 && plain.length <= 24)
+            ? '<strong>' + head + '</strong>' + colon + sp : all;
+    });
+}
+/* 불렛·문단 묶음을 그린다 */
+function qnaBlock(lines) {
+    var out = [], ul = false;
+    lines.forEach(function (rawLine) {
+        var line = String(rawLine).trim();
+        if (!line) { if (ul) { out.push('</ul>'); ul = false; } return; }
+        if (/^#{1,4}\s/.test(line)) {
+            if (ul) { out.push('</ul>'); ul = false; }
+            out.push('<div class="qa-h">' + qnaInline(line.replace(/^#{1,4}\s*/, '')) + '</div>');
+        } else if (/^[*\-•]\s/.test(line) || /^\d+[.)]\s/.test(line)) {
+            if (!ul) { out.push('<ul>'); ul = true; }
+            out.push('<li>' + qnaLabel(qnaInline(line.replace(/^([*\-•]|\d+[.)])\s*/, ''))) + '</li>');
+        } else {
+            if (ul) { out.push('</ul>'); ul = false; }
+            out.push('<p>' + qnaInline(line) + '</p>');
+        }
+    });
+    if (ul) out.push('</ul>');
+    return out.join('');
+}
+/* ① 줄의 첫 줄에서 소제목을 떼어 낸다. 세 가지 꼴이 온다:
+   "① [소제목]" · "① 소제목: 본문…" · "① 소제목"(그 줄에 본문 없음) */
+function qnaHead(first) {
+    var m = first.match(/^\[(.{2,40}?)\]\s*([\s\S]*)$/);
+    if (m) return { h: m[1], rest: m[2] };
+    m = first.match(/^(.{2,40}?)\s*[:：]\s*([\s\S]*)$/);
+    if (m && !/[.。]\s*$/.test(m[1])) return { h: m[1], rest: m[2] };
+    if (first.length <= 40 && !/[.。]$/.test(first) && !/(다|요|음)$/.test(first))
+        return { h: first, rest: '' };
+    return { h: '', rest: first };          /* 소제목 없이 본문만 */
+}
+function qnaRender(raw) {
+    var t = String(raw || '').split('$').join('').replace(/\\text\{([^}]*)\}/g, '$1');
+    var lines = t.split('\n');
+    var intro = [], steps = [], cur = null;
+    lines.forEach(function (rawLine) {
+        var line = String(rawLine).replace(/\s+$/, '');
+        var m = line.trim().match(QNA_CIRC);
+        if (m) { cur = { n: m[1].charCodeAt(0) - 0x245F, lines: [line.trim().replace(QNA_CIRC, '')] }; steps.push(cur); }
+        else if (cur) { cur.lines.push(line); }
+        else { intro.push(line); }
+    });
+    if (!steps.length) return qnaBlock(lines);
+
+    /* 마지막 항목 뒤에 빈 줄을 두고 붙는 글은 답 전체에 대한 단서다 —
+       그 항목 안에 넣으면 ⑤ 의 내용처럼 읽힌다 */
+    var last = steps[steps.length - 1], outro = [], blank = false;
+    for (var i = 1; i < last.lines.length; i++) {
+        if (!last.lines[i].trim()) { blank = true; continue; }
+        if (blank) outro.push(last.lines[i]);
+    }
+    if (outro.length) last.lines = last.lines.slice(0, last.lines.length - outro.length);
+
+    var out = [];
+    var introHtml = qnaBlock(intro);
+    if (introHtml) out.push('<div class="qa-intro">' + introHtml + '</div>');
+    steps.forEach(function (st) {
+        var sp = qnaHead(st.lines[0]);
+        var rest = (sp.rest ? [sp.rest] : []).concat(st.lines.slice(1));
+        out.push('<div class="qa-step"><span class="qa-num">' + st.n + '</span>'
+            + (sp.h ? '<div class="qa-h">' + qnaInline(sp.h) + '</div>' : '')
+            + qnaBlock(rest) + '</div>');
+    });
+    if (outro.length) out.push('<div class="qa-outro">' + qnaBlock(outro) + '</div>');
+    return out.join('');
+}
