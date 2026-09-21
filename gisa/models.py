@@ -900,8 +900,18 @@ class GisaResource(models.Model):
 
     @property
     def embed(self):
-        """재생용 주소. 쿠키를 덜 심는 nocookie 도메인을 쓴다."""
+        """재생용 주소.
+
+        **youtube-nocookie.com 을 쓰지 않는다.** 그쪽은 youtube.com 과 **다른
+        도메인**이라 로그인 쿠키가 가지 않는다 — 플레이어가 늘 로그아웃 상태여서
+        **프리미엄 회원도 광고를 보게 된다.** 시청 기록이 남지 않아 '이어서 보기'도
+        안 된다. 학습 사이트에서는 그 대가가 프라이버시 이점보다 크다.
+
+        youtube.com 이라고 늘 알아보는 것은 아니다 — 서드파티 쿠키라 사파리·
+        파이어폭스·시크릿 창에서는 막힌다(그때는 종전처럼 광고가 나온다). 확실히
+        광고 없이 보려면 제목을 눌러 유튜브에서 여는 길이 따로 있다.
+        """
         if not self.video_id:
             return ''
         t = f'&start={self.start_sec}' if self.start_sec else ''
-        return f'https://www.youtube-nocookie.com/embed/{self.video_id}?autoplay=1&rel=0{t}'
+        return f'https://www.youtube.com/embed/{self.video_id}?autoplay=1&rel=0{t}'
