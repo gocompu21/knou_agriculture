@@ -799,6 +799,8 @@ def essay_work(request, cert_id):
             x['tabs'] = [] if k in used else tabs_of.get(k, [])
             # 그 도면을 다룬 영상 — 자료와 같은 규칙으로 가장 최근 투표 줄에만 단다
             x['videos'] = [] if k in used else vids_of.get(k, [])
+            # 영상도 자료와 나란히 **탭 하나**다(조감도 옆). 탭 줄은 둘 이상일 때만 낸다
+            x['panes'] = len(x['tabs']) + (1 if x['videos'] else 0)
             f = rounds_of.get(k)
             x['rounds'] = f['rounds'] if f else []
             x['count'] = f['count'] if f else 0

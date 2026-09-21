@@ -362,18 +362,18 @@
                         <span class="dw-rounds">{% for t in x.rounds %}<span>{{ t.year|stringformat:"d"|slice:"2:" }}-{{ t.round }}</span>{% endfor %}</span>{% endif %}
                         {% if x.key %}<button type="button" class="fc-pick" data-key="{{ x.key }}" data-name="{{ x.name }}{% if x.code %} {{ x.code }}{% endif %}">연도별 표에서 보기 ›</button>{% endif %}
                     </div>
-                    {% if x.tabs|length > 1 %}
+                    {% if x.panes > 1 %}
                     <div class="dw-subs">
                         {% for t in x.tabs %}<button type="button" class="dw-sub{% if forloop.first %} on{% endif %}" data-sub="{{ forloop.counter0 }}">{{ t.name }}{% if t.imgs %} <em>도면 {{ t.imgs|length }}장</em>{% endif %}</button>{% endfor %}
+                        {% if x.videos %}<button type="button" class="dw-sub vid{% if not x.tabs %} on{% endif %}" data-sub="{{ x.tabs|length }}">동영상 <em>{{ x.videos|length }}편</em></button>{% endif %}
                     </div>
                     {% endif %}
                     {% for t in x.tabs %}
                     {% include "gisa/_drawing_pane.html" with t=t idx=forloop.counter0 %}
                     {% endfor %}
                     {% if x.videos %}
-                    {% comment %} 그 도면을 다룬 영상 — 동영상 탭에서 도면 번호를 적어 두면 여기 뜬다 {% endcomment %}
-                    <div class="dw-vids">
-                        <div class="dw-vids-h">이 도면 영상 {{ x.videos|length }}편</div>
+                    {% comment %} 그 도면을 다룬 영상 — 동영상 탭에서 도면 번호를 적어 두면 자료 옆 탭으로 붙는다 {% endcomment %}
+                    <div class="dw-pane dw-vids{% if not x.tabs %} on{% endif %}" data-pane="{{ x.tabs|length }}">
                         <div class="vd-grid">
                             {% for v in x.videos %}{% include "gisa/_video_card.html" %}{% endfor %}
                         </div>

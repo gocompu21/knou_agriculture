@@ -87,9 +87,11 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
     .vd-ts:hover { background: #2d6a4f; }
     .vd-empty { color: #9aa8a2; font-size: 0.84rem; padding: 10px 0; }
     .vd-hint { flex: 1; font-size: 0.74rem; color: #b0793a; align-self: center; }
-    /* 기출분석 안에 끼워 넣는 영상 줄 */
-    .dw-vids { margin-top: 14px; padding-top: 12px; border-top: 1px dashed #d8e2dc; }
-    .dw-vids-h { font-size: 0.84rem; font-weight: 700; color: #2d6a4f; margin: 0 0 8px; }
+    /* 기출분석 안에서는 자료(성운·조감도…)와 나란한 **탭 하나**다 — 탭 줄 바로 아래
+       붙으므로 구분선을 두지 않는다. 탭 전환은 .dw-pane 규칙이 맡는다 */
+    .dw-vids { margin-top: 0; }
+    .dw-vids .vd-grid { margin-top: 0; }
+    .dw-sub.vid em { opacity: .8; }
     .dw-tag.vid { background: #c4302b; color: #fff; }
 
     /* 관리 창 */
