@@ -204,6 +204,31 @@ def drawing_choices(cert):
     return sorted(out, key=lambda x: x[1])
 
 
+def _reorder(items, obj, direction):
+    """이웃과 자리를 맞바꾼다. 되었으면 True.
+
+    **먼저 1..N 으로 번호를 새로 매긴다.** 등록만 하고 순서를 건드린 적이 없으면
+    order 가 모두 0 이거나 겹쳐 있어, 값을 맞바꿔도 차례가 그대로다. 한 번 정규화해
+    두면 그다음부터는 맞바꾸기만으로 움직인다.
+    """
+    items = list(items)
+    for i, it in enumerate(items, 1):
+        if it.order != i:
+            it.order = i
+            it.save(update_fields=['order'])
+    idx = next((i for i, it in enumerate(items) if it.pk == obj.pk), None)
+    if idx is None:
+        return False
+    j = idx - 1 if direction == 'up' else idx + 1
+    if j < 0 or j >= len(items):
+        return False                      # 맨 위에서 위로, 맨 아래에서 아래로
+    a, b = items[idx], items[j]
+    a.order, b.order = b.order, a.order
+    a.save(update_fields=['order'])
+    b.save(update_fields=['order'])
+    return True
+
+
 @require_POST
 @login_required
 def video_category_add(request, cert_id):
@@ -243,8 +268,17 @@ def video_category_edit(request, cat_id):
         # 하위 중분류의 영상까지 분류를 떼어 낸다(FK 는 SET_NULL 이라 영상은 남는다)
         cat.delete()
         return JsonResponse({'ok': True})
+    if body.get('move'):
+        # 같은 자리끼리만 움직인다 — 대분류는 대분류끼리, 중분류는 제 부모 안에서
+        sibs = GisaVideoCategory.objects.filter(
+            certification=cat.certification, part=cat.part, parent=cat.parent)
+        return JsonResponse({'ok': _reorder(sibs, cat, body['move'])})
     name = (body.get('name') or '').strip()[:60]
     if name:
+        if GisaVideoCategory.objects.filter(
+                certification=cat.certification, part=cat.part,
+                parent=cat.parent, name=name).exclude(pk=cat.pk).exists():
+            return JsonResponse({'ok': False, 'message': '같은 이름이 이미 있습니다.'})
         cat.name = name
         cat.save(update_fields=['name'])
     return JsonResponse({'ok': True})
@@ -267,6 +301,12 @@ def video_move(request, res_id):
     if 'drawing' in body:
         res.drawing_code = (body['drawing'] or '')[:20]
         fields.append('drawing_code')
+    if body.get('order'):
+        # 같은 묶음(같은 분류) 안에서만 움직인다
+        sibs = GisaResource.objects.filter(
+            certification=res.certification, part=res.part, kind='youtube',
+            is_active=True, is_dead=False, category=res.category)
+        return JsonResponse({'ok': _reorder(sibs, res, body['order'])})
     if fields:
         res.save(update_fields=fields)
     return JsonResponse({'ok': True})

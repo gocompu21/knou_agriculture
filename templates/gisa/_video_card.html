@@ -33,6 +33,8 @@
             무엇을 해야 하는지 알려 준다. {% endcomment %}
             <span class="vd-hint">분류를 먼저 만드세요 ↑</span>
             {% endif %}
+            <button class="mv" onclick="vdOrder({{ v.id }}, 'up')" title="앞으로">▲</button>
+            <button class="mv" onclick="vdOrder({{ v.id }}, 'down')" title="뒤로">▼</button>
             <button onclick="vdDel({{ v.id }})">삭제</button>
         </div>
         {% if vid_drawings %}

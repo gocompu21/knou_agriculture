@@ -54,6 +54,8 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
     .vd-tools select { flex: 1; font-size: 0.74rem; padding: 2px 4px; border: 1px solid #dde3e0;
         border-radius: 6px; }
     .vd-tools button { border: 0; background: none; color: #c0392b; font-size: 0.74rem; cursor: pointer; }
+    .vd-tools button.mv { color: #6f8a7c; padding: 0 2px; }
+    .vd-tools button.mv:hover { color: #1b4332; }
     .vd-empty { color: #9aa8a2; font-size: 0.84rem; padding: 10px 0; }
     .vd-hint { flex: 1; font-size: 0.74rem; color: #b0793a; align-self: center; }
     /* 기출분석 안에 끼워 넣는 영상 줄 */
@@ -80,7 +82,10 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
         padding: 3px 10px; font-size: 0.78rem; color: #34594a; }
     .vd-chip b { color: #1b4332; }
     .vd-chip button { border: 0; background: none; color: #b34; cursor: pointer;
-        font-size: 0.76rem; margin-left: 4px; }
+        font-size: 0.76rem; margin-left: 3px; padding: 0 1px; }
+    .vd-chip button.mv, .vd-chip button.ed { color: #6f8a7c; }
+    .vd-chip button.mv:hover, .vd-chip button.ed:hover { color: #1b4332; }
+    .vd-chip.sub { background: #f4f8f6; }
     .vd-msg { font-size: 0.82rem; color: #2d6a4f; white-space: pre-wrap; margin-top: 6px; }
 </style>
 
@@ -110,13 +115,20 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
     <div class="vd-catlist">
         {% for t in vid_tree %}
         <span class="vd-chip"><b>{{ t.cat.name }}</b>
-            <button onclick="vdDelCat({{ t.cat.id }}, '{{ t.cat.name|escapejs }}')">✕</button></span>
+            <button class="mv" onclick="vdMoveCat({{ t.cat.id }}, 'up')" title="위로">▲</button>
+            <button class="mv" onclick="vdMoveCat({{ t.cat.id }}, 'down')" title="아래로">▼</button>
+            <button class="ed" onclick="vdRenameCat({{ t.cat.id }}, '{{ t.cat.name|escapejs }}')" title="이름 바꾸기">✎</button>
+            <button onclick="vdDelCat({{ t.cat.id }}, '{{ t.cat.name|escapejs }}')" title="지우기">✕</button></span>
         {% for g in t.groups %}
-        <span class="vd-chip">{{ t.cat.name }} &rsaquo; {{ g.cat.name }}
-            <button onclick="vdDelCat({{ g.cat.id }}, '{{ g.cat.name|escapejs }}')">✕</button></span>
+        <span class="vd-chip sub">{{ t.cat.name }} &rsaquo; {{ g.cat.name }}
+            <button class="mv" onclick="vdMoveCat({{ g.cat.id }}, 'up')" title="위로">▲</button>
+            <button class="mv" onclick="vdMoveCat({{ g.cat.id }}, 'down')" title="아래로">▼</button>
+            <button class="ed" onclick="vdRenameCat({{ g.cat.id }}, '{{ g.cat.name|escapejs }}')" title="이름 바꾸기">✎</button>
+            <button onclick="vdDelCat({{ g.cat.id }}, '{{ g.cat.name|escapejs }}')" title="지우기">✕</button></span>
         {% endfor %}
         {% endfor %}
     </div>
+    <div class="vd-msg">▲▼ 로 차례를 바꾸고, ✎ 로 이름을 고칩니다. 영상 차례는 카드의 ▲▼ 입니다.</div>
     {% endif %}
 
     <h4 style="margin-top:14px">2. 영상 등록 — 주소를 붙여넣으면 제목이 채워집니다</h4>
@@ -216,6 +228,24 @@ function vdAddCat() {
            {name: name, parent: document.getElementById('vdParent').value,
             part: '{{ vid_part }}'})
         .then(function (d) { if (d.message) alert(d.message); else vdGo(); });
+}
+function vdCatUrl(id) {
+    return '{% url "gisa:video_category_edit" 0 %}'.replace('/0/', '/' + id + '/');
+}
+function vdRenameCat(id, cur) {
+    var name = prompt('분류 이름', cur);
+    if (name === null) return;
+    name = name.trim();
+    if (!name || name === cur) return;
+    vdPost(vdCatUrl(id), {name: name})
+        .then(function (d) { if (d.message) alert(d.message); else vdGo(); });
+}
+function vdMoveCat(id, dir) {
+    vdPost(vdCatUrl(id), {move: dir}).then(function (d) { if (d.ok) vdGo(); });
+}
+function vdOrder(id, dir) {
+    vdPost('{% url "gisa:video_move" 0 %}'.replace('/0/', '/' + id + '/'),
+           {order: dir}).then(function (d) { if (d.ok) vdGo(); });
 }
 function vdDelCat(id, name) {
     if (!confirm('"' + name + '" 분류를 지울까요?\n영상은 지워지지 않고 「분류 없음」으로 옮겨집니다.')) return;
