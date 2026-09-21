@@ -79,7 +79,7 @@
     <div class="ov-hero">
         <a class="ov-back" href="{% url 'gisa:essay_list' cert.pk %}">실기 목록 &rsaquo;</a>
         <h1>{{ cert.name }} 실기 시험 개요</h1>
-        <p>출제기준 <b>{{ info.period }}</b> · {{ info.ministry }} / {{ info.agency }} 시행<br>
+        <p>출제기준 <b>{{ info.period }}</b> · {% if info.ministry %}{{ info.ministry }} / {% endif %}{{ info.agency }} 시행<br>
            실기 과목명은 <b>{{ info.practical_subject }}</b>이며, 이 사이트는 그 가운데
            <b>필답형</b>을 다룹니다.</p>
     </div>
@@ -114,8 +114,8 @@
     <div class="note">
         <b>합격 기준은 100점 만점에 60점</b>입니다. 필답과 작업형에 <b>따로 과락이 없어</b>
         한쪽에서 벌어 다른 쪽을 메울 수 있습니다.<br>
-        필답에서 <b>{{ info.essay_points }}점 가운데 25점</b>을 확보하면 작업형은
-        {{ info.work_points }}점 중 35점만 받으면 됩니다. 필답은 외운 만큼 나오지만
+        필답에서 <b>{{ info.essay_points }}점 가운데 {{ info.essay_target }}점</b>을 확보하면 작업형은
+        {{ info.work_points }}점 중 {{ info.work_target }}점만 받으면 됩니다. 필답은 외운 만큼 나오지만
         도면은 제한 시간이라는 변수가 커서, <b>필답에서 벌어 두는 편이 안전합니다.</b><br>
         <small>시험시간 합계 표기는 자료마다 다릅니다 — {{ info.time_note }}</small>
     </div>
@@ -239,7 +239,8 @@
     <div style="margin-top:26px">
         <a class="go" href="{% url 'gisa:essay_list' cert.pk %}">실기 목록으로</a>
         {% if sibling %}<a class="go sub" href="{% url 'gisa:essay_list' sibling.pk %}">{{ sibling.name }} 기출 보기</a>{% endif %}
-        <a class="go sub" href="https://www.q-net.or.kr/crf005.do?id=crf00503&amp;jmCd={{ info.jm_code }}&amp;gSite=Q" target="_blank" rel="noopener">Q-net 종목 정보</a>
+        {% comment %} 종목코드를 모르는 자격증은 링크를 내지 않는다 — 빈 jmCd 는 엉뚱한 목록으로 간다 {% endcomment %}
+        {% if info.jm_code %}<a class="go sub" href="https://www.q-net.or.kr/crf005.do?id=crf00503&amp;jmCd={{ info.jm_code }}&amp;gSite=Q" target="_blank" rel="noopener">Q-net 종목 정보</a>{% endif %}
     </div>
 </div>
 {% endblock %}

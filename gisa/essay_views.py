@@ -692,6 +692,7 @@ def essay_work(request, cert_id):
     에 쓰고, 기출분석은 GisaDrawingTask 다. 아직 자료가 없는 탭은 '준비 중'으로 둔다.
     """
     import markdown as md
+    from collections import Counter
     from .models import GisaDrawingTask, GisaResource
 
     cert = get_object_or_404(Certification, pk=cert_id)
@@ -737,9 +738,14 @@ def essay_work(request, cert_id):
         '391': '#548235', '412': '#d6dce4', '444': '#ffff00', '428': '#5b9bd5', '454': '#fbe5d6',
         '463': '#808080', '287': '#ffffff', '478': '#4472c4', '264': '#ffffff', '도시공원': '#e03c31',
     }
+    # **번호가 없는 종목은 팔레트를 돌려 쓴다.** 자연생태복원기사는 도면에 번호가
+    # 없어 위 표에 걸리지 않는데, 전부 같은 회색이면 연도표에서 되나온 도면을
+    # 알아볼 수 없다 — 색으로 묶어 보는 것이 이 표의 쓸모다.
+    PALETTE = ['#a9d18e', '#f4b183', '#bdd7ee', '#ffd966', '#c9b1d8', '#f2a7a7',
+               '#9fd8cb', '#d6dce4']
     for i, f in enumerate(freq):
         f['pct'] = round(f['count'] / top * 100)
-        f['color'] = DRAWING_COLORS.get(f['code'] or f['title'], '#d9d9d9')
+        f['color'] = DRAWING_COLORS.get(f['code'] or f['title'])             or PALETTE[i % len(PALETTE)]
         f['key'] = f'{f["title"]}{f["code"]}'
         for t in f['rounds']:
             t.color = f['color']
@@ -812,9 +818,17 @@ def essay_work(request, cert_id):
 
     # 연도마다 회차 자리를 고정한다(1·2·4회, 2020년처럼 3회가 있으면 1~4회) —
     # 아직 치르지 않은 회차는 빈 칸으로 남긴다
+    # **회차 자리를 종목마다 스스로 정한다.** 조경은 1·2·4회지만 자연생태복원은
+    # 1·2·3회다 — 1·2·4 로 박아 두면 해마다 빈 4회 칸이 선다. 절반 넘는 해에
+    # 나오는 회차를 '늘 있는 자리'로 보고, 그 해에만 있는 회차(2020년 4회)는
+    # 그 해에만 덧붙인다.
+    seen = Counter(t.round for t in tasks if t.round)
+    usual = sorted(r for r, n in seen.items() if n >= len(years) / 2) or [1, 2, 3]
+    # 머리말에 "칸 차례는 1·2·4회" 처럼 적는다 — 종목마다 다르므로 박아 두지 않는다
+    round_label = '·'.join(f'{r}' for r in usual) + '회'
     for y in years:
         have = {t.round: t for t in y['tasks']}
-        rounds = [1, 2, 3, 4] if 3 in have else [1, 2, 4]
+        rounds = sorted(set(usual) | set(have))
         y['slots'] = [{'round': r, 'task': have.get(r)} for r in rounds]
         y['cols'] = len(rounds)
 
@@ -848,6 +862,8 @@ def essay_work(request, cert_id):
     tab = request.GET.get('tab', 'video')
     if tab not in ('video', 'tasks', 'elements', 'res'):
         tab = 'video'               # 옛 주소 ?tab=sheets·overview·basics 는 여기로 받는다
+    if tab == 'elements' and 'work-elements' not in notes:
+        tab = 'video'               # 자료가 없으면 탭 자체가 없다(템플릿도 같은 조건)
     return render(request, 'gisa/essay_work.html', {
         # 자료실(블로그·사이트)과 동영상(분류별) — 둘 다 part='work' 를 본다
         **resource_tab_context(cert, 'work'),
@@ -855,6 +871,10 @@ def essay_work(request, cert_id):
 
         'cert': cert,
         'info': info,
+        # 표 머리말이 종목마다 달라진다 — 회차 차례(1·2·4회 / 1·2·3회)와,
+        # 도면에 번호가 있는지(조경은 있고 자연생태복원은 없다)
+        'round_label': round_label,
+        'has_codes': any(t.code for t in tasks),
         'active_tab': tab,
         'years': years,
         'freq': freq,
