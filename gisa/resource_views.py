@@ -154,6 +154,12 @@ def video_tab_context(cert, part):
                 .filter(certification=cert, part=part, kind='youtube',
                         is_active=True, is_dead=False)
                 .select_related('category'))
+    # 요약은 마크다운 비슷한 평문이라 서버에서 한 번만 HTML 로 만든다 — 카드마다
+    # 템플릿 필터를 부르면 목록 하나에 수십 번 돈다
+    from .video_summary import render as _render_summary
+    for v in vids:
+        v.summary_html = _render_summary(v.summary) if v.summary else ''
+
     by_cat = {}
     loose = []
     for v in vids:
@@ -310,3 +316,19 @@ def video_move(request, res_id):
     if fields:
         res.save(update_fields=fields)
     return JsonResponse({'ok': True})
+
+
+@login_required
+@require_POST
+def video_summarize(request, res_id):
+    """영상 하나를 AI 로 요약한다(스태프 전용).
+
+    한 편에 20~30초 걸리고 30원쯤 든다. 회원이 누를 수 있게 두면 같은 영상을
+    여러 번 요약하게 되므로 관리자만 부르고, 결과는 DB 에 남겨 모두가 읽는다.
+    """
+    if not request.user.is_staff:
+        return JsonResponse({'ok': False, 'error': '권한이 없다'}, status=403)
+    res = get_object_or_404(GisaResource, pk=res_id, kind='youtube')
+    from .video_summary import summarize
+    out = summarize(res)
+    return JsonResponse(out, status=200 if out.get('ok') else 400)

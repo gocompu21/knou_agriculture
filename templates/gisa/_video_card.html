@@ -19,6 +19,13 @@
            onclick="vdOpen({{ v.id }})">{{ v.title|default:v.url }}</a>
         <div class="vd-meta">{{ v.author }}{% if v.open_count %} · 열람 {{ v.open_count }}{% endif %}</div>
         {% if v.note %}<div class="vd-meta">{{ v.note }}</div>{% endif %}
+        {% comment %} AI 요약 — 접어 두고 '요약 보기'로 편다. 목차의 시각을 누르면
+        그 대목부터 영상이 열린다 {% endcomment %}
+        <div class="vd-sum-wrap" data-id="{{ v.id }}" data-vid="{{ v.video_id }}">
+            <button type="button" class="vd-sum-btn" onclick="vdSum(this)"
+                    {% if not v.summary_html %}hidden{% endif %}>요약 보기</button>
+            <div class="vd-sum" hidden>{{ v.summary_html|safe }}</div>
+        </div>
         {% if request.user.is_staff %}
         <div class="vd-tools">
             {% if vid_choices %}
@@ -35,6 +42,8 @@
             {% endif %}
             <button class="mv" onclick="vdOrder({{ v.id }}, 'up')" title="앞으로">▲</button>
             <button class="mv" onclick="vdOrder({{ v.id }}, 'down')" title="뒤로">▼</button>
+            <button class="ai" onclick="vdMakeSum(this, {{ v.id }})"
+                    title="영상을 보고 요약·목차를 만든다 (20~30초)">{% if v.summary %}요약 다시{% else %}AI 요약{% endif %}</button>
             <button onclick="vdDel({{ v.id }})">삭제</button>
         </div>
         {% if vid_drawings %}

@@ -886,6 +886,12 @@ class GisaResource(models.Model):
     # 그 도면을 펼칠 때 영상이 함께 뜬다. 번호가 없는 도면은 이름을 적는다.
     drawing_code = models.CharField('도면 번호', max_length=20, blank=True, db_index=True)
 
+    # **AI 요약**(gisa/video_summary.py). Gemini 에 유튜브 주소를 그대로 주면
+    # 영상을 보고 요약과 목차를 돌려준다 — 자막이 아니라 화면을 보므로, 작도
+    # 강의처럼 '말이 아니라 손이 내용'인 영상도 무엇을 그리는지 적어 준다.
+    summary = models.TextField('AI 요약', blank=True)
+    summary_at = models.DateTimeField('요약 시각', null=True, blank=True)
+
     order = models.PositiveSmallIntegerField('순서', default=0)
     is_active = models.BooleanField('노출', default=True)
     # oEmbed 가 404 를 주면(없는 영상) 세워 둔다. 화면에서 내리되 기록은 남긴다.

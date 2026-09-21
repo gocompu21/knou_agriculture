@@ -56,6 +56,23 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
     .vd-tools button { border: 0; background: none; color: #c0392b; font-size: 0.74rem; cursor: pointer; }
     .vd-tools button.mv { color: #6f8a7c; padding: 0 2px; }
     .vd-tools button.mv:hover { color: #1b4332; }
+    .vd-tools button.ai { color: #2d6a4f; }
+    .vd-tools button.ai:disabled { color: #aab5af; cursor: default; }
+    /* AI 요약 — 접어 두고 '요약 보기'로 편다 */
+    .vd-sum-btn { margin-top: 6px; border: 1px solid #cfe0d6; background: #f3f8f5;
+        color: #2d6a4f; font-size: 0.74rem; padding: 2px 9px; border-radius: 11px; cursor: pointer; }
+    .vd-sum-btn:hover { background: #e6f1ea; }
+    .vd-sum { margin-top: 7px; padding: 8px 10px; background: #f7faf8;
+        border: 1px solid #e3ebe6; border-radius: 6px; font-size: 0.78rem; line-height: 1.6; }
+    .vd-sum h5 { margin: 8px 0 3px; font-size: 0.78rem; color: #1b4332; }
+    .vd-sum h5:first-child { margin-top: 0; }
+    .vd-sum ul { margin: 0; padding-left: 16px; }
+    .vd-sum li { margin: 2px 0; color: #3c4a43; }
+    .vd-sum li.sub { list-style: none; color: #7a8a82; font-size: 0.74rem; margin-left: -10px; }
+    .vd-ts { border: 0; background: #1b4332; color: #fff; font-size: 0.72rem;
+        padding: 0 5px; border-radius: 3px; cursor: pointer; margin-right: 3px;
+        font-variant-numeric: tabular-nums; }
+    .vd-ts:hover { background: #2d6a4f; }
     .vd-empty { color: #9aa8a2; font-size: 0.84rem; padding: 10px 0; }
     .vd-hint { flex: 1; font-size: 0.74rem; color: #b0793a; align-self: center; }
     /* 기출분석 안에 끼워 넣는 영상 줄 */
@@ -243,6 +260,50 @@ function vdRenameCat(id, cur) {
 function vdMoveCat(id, dir) {
     vdPost(vdCatUrl(id), {move: dir}).then(function (d) { if (d.ok) vdGo(); });
 }
+/* ── AI 요약 ───────────────────────────────────────────────────────────── */
+function vdSum(btn) {
+    var box = btn.parentNode.querySelector('.vd-sum');
+    box.hidden = !box.hidden;
+    btn.textContent = box.hidden ? '요약 보기' : '요약 접기';
+}
+function vdMakeSum(btn, id) {
+    var old = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '보는 중…';           /* 20~30초 걸린다 — 눌러 놓고 기다리게 */
+    vdPost('{% url "gisa:video_summarize" 0 %}'.replace('/0/', '/' + id + '/'), {})
+        .then(function (d) {
+            btn.disabled = false;
+            if (!d.ok) { btn.textContent = old; alert(d.error || '요약 실패'); return; }
+            btn.textContent = '요약 다시';
+            var wrap = btn.closest('.vd-card').querySelector('.vd-sum-wrap');
+            wrap.querySelector('.vd-sum').innerHTML = d.summary_html;
+            var sb = wrap.querySelector('.vd-sum-btn');
+            sb.hidden = false;
+            wrap.querySelector('.vd-sum').hidden = true;
+            sb.textContent = '요약 보기';
+            vdSum(sb);                        /* 방금 만든 것은 펴서 보여 준다 */
+        })
+        .catch(function () { btn.disabled = false; btn.textContent = old; alert('요약 실패'); });
+}
+/* 목차의 시각을 누르면 그 대목부터 튼다. 카드마다 걸지 않고 한 번만 위임한다 */
+document.addEventListener('click', function (e) {
+    var ts = e.target.closest ? e.target.closest('.vd-ts') : null;
+    if (!ts) return;
+    var card = ts.closest('.vd-card');
+    var wrap = card && card.querySelector('.vd-sum-wrap');
+    var vid = wrap && wrap.dataset.vid;
+    if (!vid) return;
+    var t = ts.dataset.t || 0;
+    var thumb = card.querySelector('.vd-thumb');
+    /* 퍼가기를 막은 영상은 우리 화면에서 못 트니 유튜브로 넘긴다 */
+    if (!thumb || thumb.tagName === 'A' || !thumb.dataset.embed) {
+        window.open('https://www.youtube.com/watch?v=' + vid + '&t=' + t, '_blank');
+        return;
+    }
+    thumb.dataset.embed = 'https://www.youtube.com/embed/' + vid
+        + '?autoplay=1&rel=0&start=' + t;
+    vdPlay(thumb);
+});
 function vdOrder(id, dir) {
     vdPost('{% url "gisa:video_move" 0 %}'.replace('/0/', '/' + id + '/'),
            {order: dir}).then(function (d) { if (d.ok) vdGo(); });

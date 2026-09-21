@@ -134,6 +134,10 @@ GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-3.8-flash')
 # 질의응답(main/qna.py). 회원이 쓰는 기능이라 답변 품질이 곧 체감이다.
 GEMINI_QNA_MODEL = os.getenv('GEMINI_QNA_MODEL', 'gemini-3.8-flash')
 
+# 동영상 요약(gisa/video_summary.py). 유튜브 주소를 그대로 넘겨 영상을 보게 한다.
+# 관리자만 쓰고 영상 한 편에 한 번이라 flash 로 충분하다.
+GEMINI_VIDEO_MODEL = os.getenv('GEMINI_VIDEO_MODEL', 'gemini-3.8-flash')
+
 # 사용자당 하루 LLM 호출 한도 (채점·판독 각각)
 ESSAY_DAILY_GRADE_LIMIT = int(os.getenv('ESSAY_DAILY_GRADE_LIMIT', '20'))
 ESSAY_DAILY_OCR_LIMIT = int(os.getenv('ESSAY_DAILY_OCR_LIMIT', '40'))

@@ -76,6 +76,7 @@ urlpatterns = [
     path("<int:cert_id>/videos/category/add/", resource_views.video_category_add, name="video_category_add"),
     path("videos/category/<int:cat_id>/edit/", resource_views.video_category_edit, name="video_category_edit"),
     path("videos/<int:res_id>/move/", resource_views.video_move, name="video_move"),
+    path("videos/<int:res_id>/summarize/", resource_views.video_summarize, name="video_summarize"),
     path("<int:cert_id>/essay/<int:session_id>/submit/", essay_views.essay_submit, name="essay_submit"),
     path("<int:cert_id>/essay/<int:session_id>/save/", essay_views.essay_save, name="essay_save"),
     path("<int:cert_id>/essay/<int:session_id>/draft/", essay_views.essay_draft, name="essay_draft"),
