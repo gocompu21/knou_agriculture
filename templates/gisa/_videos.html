@@ -56,6 +56,10 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
     .vd-tools button { border: 0; background: none; color: #c0392b; font-size: 0.74rem; cursor: pointer; }
     .vd-empty { color: #9aa8a2; font-size: 0.84rem; padding: 10px 0; }
     .vd-hint { flex: 1; font-size: 0.74rem; color: #b0793a; align-self: center; }
+    /* 기출분석 안에 끼워 넣는 영상 줄 */
+    .dw-vids { margin-top: 14px; padding-top: 12px; border-top: 1px dashed #d8e2dc; }
+    .dw-vids-h { font-size: 0.84rem; font-weight: 700; color: #2d6a4f; margin: 0 0 8px; }
+    .dw-tag.vid { background: #c4302b; color: #fff; }
 
     /* 관리 창 */
     .vd-admin { border: 1px solid #dfe7e2; border-radius: 10px; padding: 14px;
@@ -234,6 +238,10 @@ function vdAddVideo() {
 function vdMove(sel, id) {
     vdPost('{% url "gisa:video_move" 0 %}'.replace('/0/', '/' + id + '/'),
            {category: sel.value}).then(vdGo);
+}
+function vdDraw(sel, id) {
+    vdPost('{% url "gisa:video_move" 0 %}'.replace('/0/', '/' + id + '/'),
+           {drawing: sel.value}).then(vdGo);
 }
 function vdDel(id) {
     if (!confirm('이 영상을 지울까요?')) return;

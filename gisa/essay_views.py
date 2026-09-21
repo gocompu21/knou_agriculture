@@ -692,7 +692,7 @@ def essay_work(request, cert_id):
     에 쓰고, 기출분석은 GisaDrawingTask 다. 아직 자료가 없는 탭은 '준비 중'으로 둔다.
     """
     import markdown as md
-    from .models import GisaDrawingTask
+    from .models import GisaDrawingTask, GisaResource
 
     cert = get_object_or_404(Certification, pk=cert_id)
     info = exam_info(cert.name)
@@ -758,6 +758,14 @@ def essay_work(request, cert_id):
                 for r in rs]
 
     tabs_of = {k: _sheet(rs) for k, rs in refs.items()}
+
+    # 도면 번호 → 그 도면을 다룬 영상. 번호가 없는 도면은 이름을 열쇠로 쓴다
+    # (GisaDrawingRef 가 쓰는 규칙과 같게 맞췄다).
+    vids_of = {}
+    for v in GisaResource.objects.filter(certification=cert, part='work',
+                                         kind='youtube', is_active=True,
+                                         is_dead=False).exclude(drawing_code=''):
+        vids_of.setdefault(v.drawing_code, []).append(v)
     rounds_of = {(f['code'] or f['title']): f for f in freq}
 
     # 출제 예상 투표 — 실제 출제와 맞대어 본다(투표 몇 위였나, AI 예상은 맞았나)
@@ -783,11 +791,13 @@ def essay_work(request, cert_id):
             k = x['code'] or x['name']
             # 같은 도면이 여러 회차 투표에 나오면 가장 최근 투표 줄에만 자료를 단다
             x['tabs'] = [] if k in used else tabs_of.get(k, [])
+            # 그 도면을 다룬 영상 — 자료와 같은 규칙으로 가장 최근 투표 줄에만 단다
+            x['videos'] = [] if k in used else vids_of.get(k, [])
             f = rounds_of.get(k)
             x['rounds'] = f['rounds'] if f else []
             x['count'] = f['count'] if f else 0
             x['avg'] = f['avg'] if f else None
-            if x['tabs']:
+            if x['tabs'] or x['videos']:
                 used.add(k)
             if x['actual']:
                 hit = x

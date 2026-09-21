@@ -181,7 +181,27 @@ def video_tab_context(cert, part):
         'vid_total': len(vids),
         'vid_part': part,
         'vid_choices': choices,
+        'vid_drawings': drawing_choices(cert) if part == 'work' else [],
     }
+
+
+def drawing_choices(cert):
+    """작업형 도면 목록 — 영상을 어느 기출 도면에 매달지 고르는 데 쓴다.
+
+    같은 도면이 여러 회차에 나오므로 **번호(없으면 이름)로 하나만** 낸다.
+    GisaDrawingRef·GisaDrawingTask 가 쓰는 열쇠와 같아야 기출분석에서 이어진다.
+    """
+    from .models import GisaDrawingTask
+
+    seen, out = set(), []
+    for t in (GisaDrawingTask.objects.filter(certification=cert)
+              .order_by('-year', 'round')):
+        key = t.code or t.title
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append((key, f'{t.title} {t.code}'.strip()))
+    return sorted(out, key=lambda x: x[1])
 
 
 @require_POST
@@ -238,10 +258,15 @@ def video_move(request, res_id):
         return JsonResponse({'ok': False}, status=403)
     res = get_object_or_404(GisaResource, pk=res_id)
     body = json.loads(request.body or '{}')
-    cat = None
-    if body.get('category'):
-        cat = GisaVideoCategory.objects.filter(
-            pk=body['category'], certification=res.certification).first()
-    res.category = cat
-    res.save(update_fields=['category'])
+    fields = []
+    # 분류와 도면 번호는 따로 보낸다 — 한 카드에서 셀렉트 두 개가 각각 움직인다
+    if 'category' in body:
+        res.category = GisaVideoCategory.objects.filter(
+            pk=body['category'], certification=res.certification).first()             if body['category'] else None
+        fields.append('category')
+    if 'drawing' in body:
+        res.drawing_code = (body['drawing'] or '')[:20]
+        fields.append('drawing_code')
+    if fields:
+        res.save(update_fields=fields)
     return JsonResponse({'ok': True})

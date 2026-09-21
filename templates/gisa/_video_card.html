@@ -35,6 +35,17 @@
             {% endif %}
             <button onclick="vdDel({{ v.id }})">삭제</button>
         </div>
+        {% if vid_drawings %}
+        {% comment %} 기출 도면과 잇기 — 번호를 적어 두면 기출분석의 그 도면 아래에도 뜬다 {% endcomment %}
+        <div class="vd-tools">
+            <select onchange="vdDraw(this, {{ v.id }})" title="이 영상이 다루는 기출 도면">
+                <option value="">기출 도면 연결 안 함</option>
+                {% for code, label in vid_drawings %}
+                <option value="{{ code }}"{% if v.drawing_code == code %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
         {% endif %}
     </div>
 </div>

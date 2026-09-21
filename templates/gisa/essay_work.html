@@ -349,9 +349,11 @@
                     <div class="fq-name"><span class="fq-dot" style="background:{{ x.color }}"></span>{{ x.name }}{% if x.code %} <b>{{ x.code }}</b>{% endif %}{% if x.actual %}<span class="fc-tag">출제</span>{% endif %}</div>
                     <div class="fq-bar"><span class="fq-fill" style="width:{{ x.pct }}%;background:{{ x.color }}"></span><div class="fq-in"><span class="fq-cnt">{{ x.votes }}명</span>{% if x.claude %}<span class="rd ai{% if x.claude == 1 %} top{% endif %}">클로드 {{ x.claude }}위</span>{% endif %}{% if x.gemini %}<span class="rd ai{% if x.gemini == 1 %} top{% endif %}">제미나이 {{ x.gemini }}위</span>{% endif %}</div></div>
                     <div class="fq-avg">{{ x.share }}%</div>
-                    <div class="fc-doc">{% if x.tabs %}<span class="dw-tag">자료{% if x.tabs|length > 1 %} {{ x.tabs|length }}벌{% endif %}</span><span class="dw-arrow">›</span>{% endif %}</div>
+                    <div class="fc-doc">{% if x.tabs %}<span class="dw-tag">자료{% if x.tabs|length > 1 %} {{ x.tabs|length }}벌{% endif %}</span>{% endif %}{% if x.videos %}<span class="dw-tag vid">영상 {{ x.videos|length }}</span>{% endif %}{% if x.tabs or x.videos %}<span class="dw-arrow">›</span>{% endif %}</div>
                 </div>
-                {% if x.tabs %}
+                {% comment %} 자료가 없고 **영상만 있어도** 펼쳐져야 한다 — 처음에는
+                x.tabs 만 보다가 영상만 달린 도면이 통째로 감춰졌다. {% endcomment %}
+                {% if x.tabs or x.videos %}
                 <div class="dw-body">
                     <div class="fc-bh">
                         <b>{{ x.name }}{% if x.code %} {{ x.code }}{% endif %}</b>
@@ -367,6 +369,15 @@
                     {% for t in x.tabs %}
                     {% include "gisa/_drawing_pane.html" with t=t idx=forloop.counter0 %}
                     {% endfor %}
+                    {% if x.videos %}
+                    {% comment %} 그 도면을 다룬 영상 — 동영상 탭에서 도면 번호를 적어 두면 여기 뜬다 {% endcomment %}
+                    <div class="dw-vids">
+                        <div class="dw-vids-h">이 도면 영상 {{ x.videos|length }}편</div>
+                        <div class="vd-grid">
+                            {% for v in x.videos %}{% include "gisa/_video_card.html" %}{% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
                 {% endif %}
             </div>

@@ -881,6 +881,10 @@ class GisaResource(models.Model):
     category = models.ForeignKey('GisaVideoCategory', on_delete=models.SET_NULL,
                                  null=True, blank=True, related_name='videos',
                                  verbose_name='동영상 분류')
+    # **기출 도면과 잇는다**(작업형). 도면 번호가 곧 열쇠다 — GisaDrawingTask.code 와
+    # GisaDrawingRef.code 가 쓰는 것과 같은 값이라, 번호만 적어 두면 기출분석에서
+    # 그 도면을 펼칠 때 영상이 함께 뜬다. 번호가 없는 도면은 이름을 적는다.
+    drawing_code = models.CharField('도면 번호', max_length=20, blank=True, db_index=True)
 
     order = models.PositiveSmallIntegerField('순서', default=0)
     is_active = models.BooleanField('노출', default=True)
