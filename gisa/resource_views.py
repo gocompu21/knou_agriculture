@@ -82,7 +82,7 @@ def resource_add(request, cert_id):
     if not urls:
         return JsonResponse({'message': '주소를 넣어 주세요.'})
 
-    added, msgs = 0, []
+    added, msgs, new_ids = 0, [], []
     order = (GisaResource.objects.filter(certification=cert)
              .order_by('-order').values_list('order', flat=True).first() or 0)
     for url in urls:
@@ -100,7 +100,7 @@ def resource_add(request, cert_id):
             msgs.append(f"{meta['error']} — {url[:60]}")
             continue
         order += 1
-        GisaResource.objects.create(
+        obj = GisaResource.objects.create(
             certification=cert, subject=subject, part=part,
             kind=meta.get('kind') or ('youtube' if meta.get('video_id') else 'site'),
             url=url, title=meta.get('title', ''), author=meta.get('author', ''),
@@ -109,9 +109,13 @@ def resource_add(request, cert_id):
             embeddable=meta.get('embeddable', True), category=category,
         )
         added += 1
+        # 화면이 그 카드를 찾아가 반전시킬 수 있게 id 를 함께 돌려준다 — 새 영상은
+        # 목록 아래쪽('분류 없음' 이면 맨 밑)에 생겨 어디 붙었는지 안 보인다
+        new_ids.append(obj.pk)
         tail = f" ({meta['info']})" if meta.get('info') else ''
         msgs.append(f"등록 — {meta.get('title') or url[:60]}{tail}")
-    return JsonResponse({'added': added, 'message': '\n'.join(msgs)})
+    return JsonResponse({'added': added, 'ids': new_ids,
+                         'message': '\n'.join(msgs)})
 
 
 @require_POST
