@@ -1,0 +1,34 @@
+{% comment %} 영상 카드 한 장. `v` 를 받는다. _videos.html 안에서만 쓴다. {% endcomment %}
+<div class="vd-card">
+    {% if v.embeddable %}
+    <div class="vd-thumb" data-embed="{{ v.embed }}" data-id="{{ v.id }}" onclick="vdPlay(this)">
+        <img src="{{ v.thumb }}" alt="" loading="lazy">
+        <span class="play"></span>
+    </div>
+    {% else %}
+    {% comment %} 소유자가 퍼가기를 막은 영상 — 여기서는 못 틀고 유튜브로 넘긴다 {% endcomment %}
+    <a class="vd-thumb" href="{{ v.url }}" target="_blank" rel="noopener"
+       onclick="vdOpen({{ v.id }})">
+        <img src="{{ v.thumb }}" alt="" loading="lazy">
+        <span class="play"></span>
+        <span class="vd-out">유튜브에서 보기 ↗</span>
+    </a>
+    {% endif %}
+    <div class="vd-body">
+        <a class="vd-title" href="{{ v.url }}" target="_blank" rel="noopener"
+           onclick="vdOpen({{ v.id }})">{{ v.title|default:v.url }}</a>
+        <div class="vd-meta">{{ v.author }}{% if v.open_count %} · 열람 {{ v.open_count }}{% endif %}</div>
+        {% if v.note %}<div class="vd-meta">{{ v.note }}</div>{% endif %}
+        {% if request.user.is_staff %}
+        <div class="vd-tools">
+            <select onchange="vdMove(this, {{ v.id }})">
+                <option value="">분류 없음</option>
+                {% for cid, label in vid_choices %}
+                <option value="{{ cid }}"{% if v.category_id == cid %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button onclick="vdDel({{ v.id }})">삭제</button>
+        </div>
+        {% endif %}
+    </div>
+</div>

@@ -877,6 +877,10 @@ class GisaResource(models.Model):
 
     # 쪽집게 노트 주제와 잇는다(gisa.essay_textbook / GisaEssayQuestion.topic_key).
     topic_key = models.CharField('주제 키', max_length=64, blank=True, db_index=True)
+    # 동영상 탭의 분류(중분류). 비어 있으면 '분류 없음'으로 모인다.
+    category = models.ForeignKey('GisaVideoCategory', on_delete=models.SET_NULL,
+                                 null=True, blank=True, related_name='videos',
+                                 verbose_name='동영상 분류')
 
     order = models.PositiveSmallIntegerField('순서', default=0)
     is_active = models.BooleanField('노출', default=True)
@@ -921,3 +925,38 @@ class GisaResource(models.Model):
             return ''
         t = f'&start={self.start_sec}' if self.start_sec else ''
         return f'https://www.youtube.com/embed/{self.video_id}?autoplay=1&rel=0{t}'
+
+
+class GisaVideoCategory(models.Model):
+    """동영상 분류 — 대분류 아래 중분류, 그 아래 영상이 붙는다(2단계 트리).
+
+    영상 자체는 `GisaResource` 를 그대로 쓴다 — 주소에서 제목·채널을 가져오는 일과
+    썸네일·재생 처리를 두 벌로 만들 까닭이 없다. 여기서는 **어디에 담을지**만 정한다.
+
+    자격증·구분(part)마다 트리가 따로다. 작업형의 '포장·식재' 분류가 필기 화면에
+    나오면 안 된다.
+    """
+    certification = models.ForeignKey(
+        Certification, on_delete=models.CASCADE,
+        related_name='video_categories', verbose_name='자격증')
+    part = models.CharField('구분', max_length=10,
+                            choices=GisaResource.PART_CHOICES, default='work')
+    # 대분류는 parent 가 비어 있다. 중분류만 parent 를 갖는다(3단계는 만들지 않는다).
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
+                               related_name='children', verbose_name='상위 분류')
+    name = models.CharField('이름', max_length=60)
+    order = models.PositiveSmallIntegerField('순서', default=0)
+
+    class Meta:
+        verbose_name = '동영상 분류'
+        verbose_name_plural = '동영상 분류'
+        ordering = ['order', 'id']
+        unique_together = ['certification', 'part', 'parent', 'name']
+
+    def __str__(self):
+        head = f'{self.parent.name} > ' if self.parent_id else ''
+        return f'[{self.certification.name}] {head}{self.name}'
+
+    @property
+    def is_major(self):
+        return self.parent_id is None

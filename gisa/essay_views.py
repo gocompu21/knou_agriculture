@@ -26,7 +26,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .essay_examinfo import exam_info, hm
-from .resource_views import resource_tab_context
+from .resource_views import resource_tab_context, video_tab_context
 from .essay_topics import siblings, topic_groups
 from .pesticide import can_see as pest_can_see, stats as pest_stats
 from .pest import can_see as bug_can_see, stats as bug_stats
@@ -832,12 +832,16 @@ def essay_work(request, cert_id):
         n = notes.get(slug)
         return md.markdown(n.content, extensions=['tables']) if n else ''
 
-    tab = request.GET.get('tab', 'tasks')
-    if tab not in ('overview', 'basics', 'tasks', 'elements', 'res'):
-        tab = 'tasks'               # 옛 주소 ?tab=sheets 는 기출분석으로 — 도면 자료가 그리로 옮겨 갔다
+    # 탭 차례: 동영상 · 기출분석 · 설계 요소 · 자료실 (사용자 결정).
+    # **개요와 도면 기본기는 화면에서 내렸다** — 자료(GisaEssayNote `work-basics`)는
+    # 지우지 않았으므로 되돌리려면 템플릿에 탭만 도로 넣으면 된다.
+    tab = request.GET.get('tab', 'video')
+    if tab not in ('video', 'tasks', 'elements', 'res'):
+        tab = 'video'               # 옛 주소 ?tab=sheets·overview·basics 는 여기로 받는다
     return render(request, 'gisa/essay_work.html', {
-        # 자료실 — 도면 영상은 필답형과 섞이지 않게 part='work' 로 따로 둔다
+        # 자료실(블로그·사이트)과 동영상(분류별) — 둘 다 part='work' 를 본다
         **resource_tab_context(cert, 'work'),
+        **video_tab_context(cert, 'work'),
 
         'cert': cert,
         'info': info,

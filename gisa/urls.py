@@ -72,6 +72,10 @@ urlpatterns = [
     path("<int:cert_id>/resources/add/", resource_views.resource_add, name="resource_add"),
     path("resources/<int:res_id>/delete/", resource_views.resource_delete, name="resource_delete"),
     path("resources/<int:res_id>/open/", resource_views.resource_open, name="resource_open"),
+    # 동영상 — 분류(대>중) 관리와 영상 옮기기. 영상 등록은 resource_add 를 함께 쓴다.
+    path("<int:cert_id>/videos/category/add/", resource_views.video_category_add, name="video_category_add"),
+    path("videos/category/<int:cat_id>/edit/", resource_views.video_category_edit, name="video_category_edit"),
+    path("videos/<int:res_id>/move/", resource_views.video_move, name="video_move"),
     path("<int:cert_id>/essay/<int:session_id>/submit/", essay_views.essay_submit, name="essay_submit"),
     path("<int:cert_id>/essay/<int:session_id>/save/", essay_views.essay_save, name="essay_save"),
     path("<int:cert_id>/essay/<int:session_id>/draft/", essay_views.essay_draft, name="essay_draft"),

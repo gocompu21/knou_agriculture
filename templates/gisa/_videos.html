@@ -1,0 +1,235 @@
+{% comment %}
+동영상 탭 — 대분류 > 중분류 > 영상. 컨텍스트는
+`gisa.resource_views.video_tab_context(cert, part)` 가 만든다.
+
+영상 자체는 자료실과 같은 `GisaResource` 다 — 주소에서 제목을 가져오는 일과
+썸네일·재생 처리를 두 벌로 만들지 않았다. 재생 규칙도 같다: **썸네일만 깔고
+누를 때 iframe 을 끼우며**(목록에 미리 박으면 하나당 1MB 를 받아 온다),
+iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
+
+이름은 `vd-` 로 맞췄다. 같은 화면에 `rs-`(자료실)가 함께 있으므로 겹치면 안 된다.
+{% endcomment %}
+<style>
+    .vd-head { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; flex-wrap: wrap; }
+    .vd-manage { margin-left: auto; background: #1b4332; color: #fff; border: 0;
+        border-radius: 14px; padding: 6px 14px; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+    .vd-note { font-size: 0.78rem; color: #8a9a92; line-height: 1.6; margin: -4px 0 14px; }
+    .vd-note b { color: #5d7a6c; }
+    .vd-note a { color: #2d6a4f; }
+
+    /* 대분류 — 접었다 펼 수 있게. 영상이 쌓이면 화면이 길어진다 */
+    .vd-major { border: 1px solid #e2e8e5; border-radius: 10px; margin: 0 0 12px; overflow: hidden; }
+    .vd-major > summary { background: #f3f7f4; padding: 11px 15px; cursor: pointer;
+        font-weight: 800; color: #1b4332; font-size: 0.94rem; list-style: none; }
+    .vd-major > summary::-webkit-details-marker { display: none; }
+    .vd-major > summary::before { content: '▸'; margin-right: 7px; color: #6f8a7c; }
+    .vd-major[open] > summary::before { content: '▾'; }
+    .vd-cnt { font-weight: 600; color: #7d9488; font-size: 0.82rem; margin-left: 6px; }
+    .vd-inner { padding: 12px 15px 16px; }
+
+    .vd-sub { margin: 0 0 16px; }
+    .vd-sub-name { font-size: 0.87rem; font-weight: 700; color: #2d6a4f;
+        margin: 0 0 8px; padding-left: 9px; border-left: 3px solid #74a58c; }
+    .vd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+
+    .vd-card { border: 1px solid #e8ebe9; border-radius: 9px; overflow: hidden; background: #fff; }
+    .vd-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+    .vd-thumb { position: relative; aspect-ratio: 16/9; background: #111; cursor: pointer; display: block; }
+    .vd-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .vd-thumb .play { position: absolute; inset: 0; margin: auto; width: 46px; height: 32px;
+        background: rgba(0,0,0,.65); border-radius: 7px; }
+    .vd-thumb .play::after { content: ''; position: absolute; inset: 0; margin: auto;
+        width: 0; height: 0; border-left: 12px solid #fff;
+        border-top: 8px solid transparent; border-bottom: 8px solid transparent; }
+    .vd-thumb:hover .play { background: #c4302b; }
+    .vd-thumb iframe { width: 100%; height: 100%; border: 0; display: block; }
+    .vd-out { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.72);
+        color: #fff; font-size: 0.72rem; font-weight: 700; padding: 4px 8px; }
+    .vd-body { padding: 9px 11px 11px; }
+    .vd-title { font-size: 0.86rem; font-weight: 700; color: #222; line-height: 1.45;
+        text-decoration: none; display: block; }
+    .vd-title:hover { text-decoration: underline; }
+    .vd-meta { font-size: 0.74rem; color: #8a9a92; margin-top: 3px; }
+    .vd-tools { margin-top: 7px; display: flex; gap: 5px; }
+    .vd-tools select { flex: 1; font-size: 0.74rem; padding: 2px 4px; border: 1px solid #dde3e0;
+        border-radius: 6px; }
+    .vd-tools button { border: 0; background: none; color: #c0392b; font-size: 0.74rem; cursor: pointer; }
+    .vd-empty { color: #9aa8a2; font-size: 0.84rem; padding: 10px 0; }
+
+    /* 관리 창 */
+    .vd-admin { border: 1px solid #dfe7e2; border-radius: 10px; padding: 14px;
+        margin: 0 0 16px; background: #f9fbfa; }
+    .vd-admin[hidden] { display: none; }
+    .vd-admin h4 { margin: 0 0 8px; font-size: 0.86rem; color: #1b4332; }
+    .vd-admin + .vd-admin { margin-top: -6px; }
+    .vd-admin input, .vd-admin select, .vd-admin textarea {
+        border: 1px solid #d6dedb; border-radius: 7px; padding: 6px 9px;
+        font-size: 0.84rem; font-family: inherit; box-sizing: border-box; }
+    .vd-admin textarea { width: 100%; min-height: 56px; resize: vertical; }
+    .vd-line { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; margin-bottom: 9px; }
+    .vd-line > input, .vd-line > select { flex: 1 1 130px; }
+    .vd-line .go { flex: 0 0 auto; background: #1b4332; color: #fff; border: 0;
+        border-radius: 7px; padding: 7px 15px; font-weight: 700; cursor: pointer; font-size: 0.83rem; }
+    .vd-catlist { display: flex; gap: 6px; flex-wrap: wrap; }
+    .vd-chip { background: #fff; border: 1px solid #d9e2dd; border-radius: 12px;
+        padding: 3px 10px; font-size: 0.78rem; color: #34594a; }
+    .vd-chip b { color: #1b4332; }
+    .vd-chip button { border: 0; background: none; color: #b34; cursor: pointer;
+        font-size: 0.76rem; margin-left: 4px; }
+    .vd-msg { font-size: 0.82rem; color: #2d6a4f; white-space: pre-wrap; margin-top: 6px; }
+</style>
+
+<div class="sec-title">동영상
+    <small>분류별로 모아 둔 강의 영상 {{ vid_total }}개. 썸네일을 누르면 이 자리에서 재생됩니다</small>
+</div>
+
+<p class="vd-note">영상을 재생하면 유튜브(구글)로 연결됩니다. 유튜브 계정에 로그인되어
+   있으면 <b>시청 기록이 남고</b> 프리미엄 회원은 광고 없이 보실 수 있습니다.
+   <a href="{% url 'main:privacy' %}" target="_blank">개인정보처리방침</a></p>
+
+{% if request.user.is_staff %}
+<div class="vd-head">
+    <button class="vd-manage" onclick="vdToggle()">＋ 분류·영상 관리</button>
+</div>
+<div class="vd-admin" id="vdAdmin" hidden>
+    <h4>1. 분류 만들기 — 대분류를 먼저, 그다음 그 아래 중분류</h4>
+    <div class="vd-line">
+        <select id="vdParent">
+            <option value="">대분류로 추가</option>
+            {% for t in vid_tree %}<option value="{{ t.cat.id }}">{{ t.cat.name }} 아래 중분류</option>{% endfor %}
+        </select>
+        <input id="vdCatName" placeholder="분류 이름 (예: 포장, 식재, 시설물)">
+        <button class="go" onclick="vdAddCat()">분류 추가</button>
+    </div>
+    {% if vid_tree %}
+    <div class="vd-catlist">
+        {% for t in vid_tree %}
+        <span class="vd-chip"><b>{{ t.cat.name }}</b>
+            <button onclick="vdDelCat({{ t.cat.id }}, '{{ t.cat.name|escapejs }}')">✕</button></span>
+        {% for g in t.groups %}
+        <span class="vd-chip">{{ t.cat.name }} &rsaquo; {{ g.cat.name }}
+            <button onclick="vdDelCat({{ g.cat.id }}, '{{ g.cat.name|escapejs }}')">✕</button></span>
+        {% endfor %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <h4 style="margin-top:14px">2. 영상 등록 — 주소를 붙여넣으면 제목이 채워집니다</h4>
+    <textarea id="vdUrls" placeholder="https://www.youtube.com/watch?v=...
+여러 개면 줄을 바꿔 한꺼번에 넣을 수 있습니다."></textarea>
+    <div class="vd-line" style="margin-top:8px">
+        <select id="vdCat">
+            <option value="">분류 없음 — 나중에 옮기기</option>
+            {% for cid, label in vid_choices %}<option value="{{ cid }}">{{ label }}</option>{% endfor %}
+        </select>
+        <input id="vdNote" placeholder="한 줄 설명 (선택)">
+        <button class="go" onclick="vdAddVideo()">가져와 등록</button>
+    </div>
+    <div class="vd-msg" id="vdMsg"></div>
+</div>
+{% endif %}
+
+{% for t in vid_tree %}
+<details class="vd-major" open>
+    <summary>{{ t.cat.name }}<span class="vd-cnt">{{ t.count }}개</span></summary>
+    <div class="vd-inner">
+        {% for g in t.groups %}
+        <div class="vd-sub">
+            <div class="vd-sub-name">{{ g.cat.name }} <span class="vd-cnt">{{ g.videos|length }}</span></div>
+            {% if g.videos %}
+            <div class="vd-grid">
+                {% for v in g.videos %}{% include "gisa/_video_card.html" %}{% endfor %}
+            </div>
+            {% else %}
+            <div class="vd-empty">아직 영상이 없습니다.</div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="vd-empty">중분류가 없습니다.{% if request.user.is_staff %} 위의 관리에서 만들어 주세요.{% endif %}</div>
+        {% endfor %}
+    </div>
+</details>
+{% endfor %}
+
+{% if vid_loose %}
+<details class="vd-major" open>
+    <summary>분류 없음<span class="vd-cnt">{{ vid_loose|length }}개</span></summary>
+    <div class="vd-inner">
+        <div class="vd-grid">
+            {% for v in vid_loose %}{% include "gisa/_video_card.html" %}{% endfor %}
+        </div>
+    </div>
+</details>
+{% endif %}
+
+{% if not vid_total and not vid_tree %}
+<div class="vd-empty" style="text-align:center;padding:30px 0">아직 등록된 영상이 없습니다.{% if request.user.is_staff %} 위의 <b>＋ 분류·영상 관리</b>에서 시작하세요.{% endif %}</div>
+{% endif %}
+
+<script>
+function vdToggle() {
+    var a = document.getElementById('vdAdmin');
+    a.hidden = !a.hidden;
+}
+function vdCsrf() {
+    var m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? m[1] : '';
+}
+function vdPost(url, body) {
+    return fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': vdCsrf()},
+        body: JSON.stringify(body || {})
+    }).then(function (r) { return r.json(); });
+}
+/* 썸네일을 누를 때 비로소 iframe 을 끼운다. referrerpolicy 가 없으면 이 사이트의
+   Referrer-Policy: same-origin 때문에 유튜브가 오류 153 을 낸다. */
+function vdPlay(el) {
+    el.innerHTML = '<iframe src="' + el.dataset.embed + '"'
+        + ' referrerpolicy="strict-origin-when-cross-origin"'
+        + ' allow="accelerometer; autoplay; encrypted-media; picture-in-picture"'
+        + ' allowfullscreen></iframe>';
+    el.style.cursor = 'default';
+    el.onclick = null;
+    vdOpen(el.dataset.id);
+}
+function vdOpen(id) {
+    fetch('{% url "gisa:resource_open" 0 %}'.replace('/0/', '/' + id + '/'),
+          {method: 'POST', headers: {'X-CSRFToken': vdCsrf()}});
+}
+function vdGo() { location.href = location.pathname + '?tab=video'; }
+function vdAddCat() {
+    var name = document.getElementById('vdCatName').value.trim();
+    if (!name) { alert('분류 이름을 넣어 주세요.'); return; }
+    vdPost('{% url "gisa:video_category_add" cert.pk %}',
+           {name: name, parent: document.getElementById('vdParent').value,
+            part: '{{ vid_part }}'})
+        .then(function (d) { if (d.message) alert(d.message); else vdGo(); });
+}
+function vdDelCat(id, name) {
+    if (!confirm('"' + name + '" 분류를 지울까요?\n영상은 지워지지 않고 「분류 없음」으로 옮겨집니다.')) return;
+    vdPost('{% url "gisa:video_category_edit" 0 %}'.replace('/0/', '/' + id + '/'),
+           {delete: true}).then(vdGo);
+}
+function vdAddVideo() {
+    var msg = document.getElementById('vdMsg');
+    msg.textContent = '가져오는 중…';
+    vdPost('{% url "gisa:resource_add" cert.pk %}', {
+        urls: document.getElementById('vdUrls').value,
+        part: '{{ vid_part }}',
+        category: document.getElementById('vdCat').value,
+        note: document.getElementById('vdNote').value
+    }).then(function (d) {
+        msg.textContent = d.message || '';
+        if (d.added) setTimeout(vdGo, 700);
+    });
+}
+function vdMove(sel, id) {
+    vdPost('{% url "gisa:video_move" 0 %}'.replace('/0/', '/' + id + '/'),
+           {category: sel.value}).then(vdGo);
+}
+function vdDel(id) {
+    if (!confirm('이 영상을 지울까요?')) return;
+    vdPost('{% url "gisa:resource_delete" 0 %}'.replace('/0/', '/' + id + '/')).then(vdGo);
+}
+</script>
