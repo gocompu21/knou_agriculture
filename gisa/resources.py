@@ -152,27 +152,6 @@ def fetch_watch_meta(vid):
     return out
 
 
-_LENGTH = re.compile(rb'"lengthSeconds":"(\d+)"')
-
-
-def video_seconds(vid):
-    """영상 길이(초). 못 읽으면 0.
-
-    oEmbed 는 길이를 주지 않아 watch 페이지에서 읽는다. 2MB 를 받으므로
-    **요약처럼 길이를 꼭 알아야 할 때만** 부른다.
-    """
-    req = urllib.request.Request(
-        f'https://www.youtube.com/watch?v={vid}',
-        headers={'User-Agent': BROWSER_UA, 'Accept-Language': 'ko'})
-    try:
-        with urllib.request.urlopen(req, timeout=15) as r:
-            raw = r.read(2_000_000)
-    except Exception:                                        # noqa: BLE001
-        return 0
-    m = _LENGTH.search(raw)
-    return int(m.group(1)) if m else 0
-
-
 def fetch_youtube(url):
     """oEmbed 로 제목·채널·썸네일을 가져온다. 키가 필요 없다.
 

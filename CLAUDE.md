@@ -1460,9 +1460,14 @@ staff 사용자가 학습모드에서 문제/보기/정답/해설을 인라인�
 - **client 를 변수에 담을 것.** `genai.Client(...).models.generate_content(...)`
   로 임시 객체에 바로 부르면 호출 도중 수거되어 `Cannot send a request, as the
   client has been closed` 가 난다(당했다)
-- **90분 넘는 영상은 막는다**(`MAX_SECONDS`). 두 시간짜리 통강의는 토큰이 70만을
-  넘어 한 번에 몇 천 원이고, 그런 것은 요약해도 목차가 성기다. 길이는
-  `resources.video_seconds()`(watch 페이지의 `lengthSeconds`) — oEmbed 는 안 준다
+- **길이를 재서 막지 말고 `end_offset` 으로 보는 데까지만 자른다**(`MAX_SECONDS`
+  90분). 두 시간짜리 통강의를 물려도 토큰이 거기서 멈춘다(실측 11분 62,724 →
+  `end_offset=120s` 10,935).
+  - 처음에는 watch 페이지의 `lengthSeconds` 로 길이를 재 막았는데, 그 값이
+    **집에서는 읽히고 서버(데이터센터 IP)에서는 응답에 아예 없어** 늘 0이었다 —
+    막으려던 바로 그 자리에서 관문이 열려 있었다. oEmbed 도 길이를 주지 않는다.
+    **유튜브가 IP 에 따라 다른 HTML 을 준다**는 것은 제목 긁기에서 이미 겪은 일인데
+    또 걸렸다. 유튜브 HTML 에 기대는 코드는 반드시 서버에서 확인할 것
 - 공개 영상만 된다. 비공개·삭제·한도 초과는 `_friendly()` 가 관리자가 무엇을
   해야 할지 아는 말로 바꿔 준다. 퍼가기를 막은 영상(`embeddable=False`)은
   요약은 되고, 목차 시각을 누르면 유튜브 새 탭으로 넘긴다

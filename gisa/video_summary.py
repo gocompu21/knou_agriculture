@@ -20,9 +20,13 @@ import re
 from django.conf import settings
 from django.utils import timezone
 
-# 영상 길이 상한(초). 강의 한 편이 보통 10~30분이라 넉넉하다. 두 시간짜리
-# 통강의를 물리면 토큰이 70만을 넘어 한 번에 몇 천 원이 든다 — 그런 것은
-# 요약해도 목차가 성기어 쓸모가 적으니 아예 막는다.
+# **보는 길이의 상한(초).** 길이를 미리 알아내 막는 대신 `end_offset` 으로
+# 여기까지만 보게 한다 — 두 시간짜리 통강의를 물려도 토큰이 이만큼에서 멈춘다.
+#
+# 길이를 재서 막으려 했다가 걷어냈다. watch 페이지의 `lengthSeconds` 는 집에서는
+# 읽히는데 **서버(데이터센터 IP)에서는 응답에 아예 없어** 늘 0이 나왔다 — 막으려던
+# 바로 그 자리에서 관문이 열려 있었다. oEmbed 도 길이를 주지 않는다.
+# 실측: 11분 영상 62,724토큰, `end_offset=120s` 로 자르면 10,935토큰.
 MAX_SECONDS = 90 * 60
 
 _PROMPT = """이 영상은 «{cert}» {part} 수험 강의다. 수험생이 "이 영상을 볼지,
@@ -63,13 +67,6 @@ def summarize(res, model=None):
     if not res.video_id:
         return {'ok': False, 'error': '유튜브 영상이 아니다'}
 
-    from .resources import video_seconds
-    secs = video_seconds(res.video_id)
-    if secs > MAX_SECONDS:
-        return {'ok': False,
-                'error': f'{secs // 60}분짜리라 너무 길다 '
-                         f'({MAX_SECONDS // 60}분까지). 나눠 올린 영상을 쓰라'}
-
     prompt = _PROMPT.format(cert=res.certification.name,
                             part=_PART_LABEL.get(res.part, ''))
     url = f'https://www.youtube.com/watch?v={res.video_id}'
@@ -81,7 +78,9 @@ def summarize(res, model=None):
         resp = client.models.generate_content(
             model=model or settings.GEMINI_VIDEO_MODEL,
             contents=types.Content(parts=[
-                types.Part(file_data=types.FileData(file_uri=url)),
+                types.Part(file_data=types.FileData(file_uri=url),
+                           video_metadata=types.VideoMetadata(
+                               end_offset=f'{MAX_SECONDS}s')),
                 types.Part(text=prompt)]))
     except Exception as e:                                   # noqa: BLE001
         return {'ok': False, 'error': _friendly(e)}
@@ -125,9 +124,9 @@ def _secs(ts):
 def render(text):
     """요약 글을 HTML 로. **시각은 눌러서 그 대목부터 트는 단추가 된다.**
 
-    목차만 읽고 끝나면 반쪽이다 — 11:11 을 눌러 바로 그 대목을 보는 것이
-    이 기능의 값어치다. 단추는 `data-t` 에 초를 싣고, 화면 쪽 `vdSeek` 가
-    그 초부터 영상을 연다.
+    목차만 읽고 끝나면 반쪽이다 — 10:48 을 눌러 바로 그 대목을 보는 것이
+    이 기능의 값어치다. 단추는 `data-t` 에 초를 싣고, `_videos.html` 의
+    위임 리스너가 `&start=` 를 붙여 그 자리에 영상을 끼운다.
     """
     from django.utils.html import escape
 
