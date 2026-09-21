@@ -164,16 +164,23 @@ def video_tab_context(cert, part):
     tree = []
     for m in majors:
         groups = [{'cat': s, 'videos': by_cat.get(s.id, [])} for s in subs.get(m.id, [])]
-        tree.append({'cat': m, 'groups': groups,
-                     'count': sum(len(g['videos']) for g in groups)})
+        # **대분류에 바로 붙인 영상도 보여 준다.** 중분류를 꼭 만들게 하면 영상 두어
+        # 개뿐인 분류에서도 한 칸을 더 파야 한다. 그런 것은 'direct' 로 따로 낸다.
+        direct = by_cat.get(m.id, [])
+        tree.append({'cat': m, 'groups': groups, 'direct': direct,
+                     'count': len(direct) + sum(len(g['videos']) for g in groups)})
+    # 옮길 자리 목록 — 대분류도 고를 수 있게 함께 낸다
+    choices = []
+    for m in majors:
+        choices.append((m.id, m.name))
+        for sub in subs.get(m.id, []):
+            choices.append((sub.id, f'{m.name} > {sub.name}'))
     return {
         'vid_tree': tree,
         'vid_loose': loose,
         'vid_total': len(vids),
         'vid_part': part,
-        # 등록 창의 분류 선택 — "대분류 > 중분류" 한 줄로 보여 준다
-        'vid_choices': [(s.id, f'{m.name} > {s.name}')
-                        for m in majors for s in subs.get(m.id, [])],
+        'vid_choices': choices,
     }
 
 

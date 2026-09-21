@@ -55,6 +55,7 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
         border-radius: 6px; }
     .vd-tools button { border: 0; background: none; color: #c0392b; font-size: 0.74rem; cursor: pointer; }
     .vd-empty { color: #9aa8a2; font-size: 0.84rem; padding: 10px 0; }
+    .vd-hint { flex: 1; font-size: 0.74rem; color: #b0793a; align-self: center; }
 
     /* 관리 창 */
     .vd-admin { border: 1px solid #dfe7e2; border-radius: 10px; padding: 14px;
@@ -133,6 +134,12 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
 <details class="vd-major" open>
     <summary>{{ t.cat.name }}<span class="vd-cnt">{{ t.count }}개</span></summary>
     <div class="vd-inner">
+        {% if t.direct %}
+        {% comment %} 중분류 없이 대분류에 바로 붙인 영상 {% endcomment %}
+        <div class="vd-grid" style="margin-bottom:16px">
+            {% for v in t.direct %}{% include "gisa/_video_card.html" %}{% endfor %}
+        </div>
+        {% endif %}
         {% for g in t.groups %}
         <div class="vd-sub">
             <div class="vd-sub-name">{{ g.cat.name }} <span class="vd-cnt">{{ g.videos|length }}</span></div>
@@ -145,7 +152,7 @@ iframe 에 `referrerpolicy` 를 줘야 오류 153 이 나지 않는다.
             {% endif %}
         </div>
         {% empty %}
-        <div class="vd-empty">중분류가 없습니다.{% if request.user.is_staff %} 위의 관리에서 만들어 주세요.{% endif %}</div>
+        {% if not t.direct %}<div class="vd-empty">아직 영상이 없습니다.{% if request.user.is_staff %} 중분류를 만들거나 영상을 이 분류로 옮기세요.{% endif %}</div>{% endif %}
         {% endfor %}
     </div>
 </details>

@@ -21,12 +21,18 @@
         {% if v.note %}<div class="vd-meta">{{ v.note }}</div>{% endif %}
         {% if request.user.is_staff %}
         <div class="vd-tools">
+            {% if vid_choices %}
             <select onchange="vdMove(this, {{ v.id }})">
                 <option value="">분류 없음</option>
                 {% for cid, label in vid_choices %}
                 <option value="{{ cid }}"{% if v.category_id == cid %} selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
+            {% else %}
+            {% comment %} 분류가 하나도 없으면 셀렉트가 빈 껍데기라 옮길 수 없다.
+            무엇을 해야 하는지 알려 준다. {% endcomment %}
+            <span class="vd-hint">분류를 먼저 만드세요 ↑</span>
+            {% endif %}
             <button onclick="vdDel({{ v.id }})">삭제</button>
         </div>
         {% endif %}
