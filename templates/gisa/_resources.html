@@ -122,10 +122,18 @@ https://blog.example.com/..."></textarea>
 
 <script>
 /* 썸네일을 누를 때 비로소 iframe 을 끼운다. 목록에 미리 박아 두면 하나당 1MB 안팎을
-   받아 와 화면이 눈에 띄게 느려진다. */
+   받아 와 화면이 눈에 띄게 느려진다.
+
+   **referrerpolicy 를 반드시 준다.** 이 사이트는 `Referrer-Policy: same-origin`
+   (Django 기본값)이라 그냥 두면 유튜브로 Referer 가 하나도 가지 않고, 플레이어가
+   어느 사이트에 심겼는지 확인하지 못해 **"동영상 플레이어 구성 오류(153)"** 를 낸다.
+   iframe 에만 정책을 덮어써 도메인(hanulstudy.kr)까지만 알린다 — 사이트 전체 정책을
+   느슨하게 바꾸지 않으려는 것이다. */
 function rsPlay(el) {
-    el.innerHTML = '<iframe src="' + el.dataset.embed + '" allow="accelerometer; autoplay; '
-        + 'encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+    el.innerHTML = '<iframe src="' + el.dataset.embed + '"'
+        + ' referrerpolicy="strict-origin-when-cross-origin"'
+        + ' allow="accelerometer; autoplay; encrypted-media; picture-in-picture"'
+        + ' allowfullscreen></iframe>';
     el.style.cursor = 'default';
     el.onclick = null;
     var card = el.closest('.rs-card');
