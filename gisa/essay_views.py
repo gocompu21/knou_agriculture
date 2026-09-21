@@ -12,6 +12,7 @@
   essay_confirm   판독 결과 확인·수정 후 채점
 """
 import json
+import os
 import random
 from datetime import timedelta
 
@@ -237,6 +238,8 @@ def essay_list(request, cert_id):
         # 학습전략 화면은 '빈출 58주제 정리'를 전제로 쓰여 있어 그 자료가 있을 때만 연다
         'has_strategy': GisaEssayNote.objects.filter(
             certification=cert, slug='freq58').exists(),
+        # 합격 전략 문서가 있는 자격증에만 링크를 낸다(essay_pass 참조)
+        'has_pass': bool(pass_doc_path(cert.name)),
         # 질의응답 — 실기 질문만. cert_subject='실기' 로 표시해 두면
         # 프롬프트가 답안 형식(①②③)으로 답하도록 갈린다.
         'qna_items': QnaQuestion.objects.filter(
@@ -937,6 +940,50 @@ def essay_overview(request, cert_id):
         'year_to': rounds[-1][0] if rounds else '',
         'exam_count': total,
         'types': types,
+    })
+
+
+# ------------------------------------------------------------------ 합격 전략
+
+# 자격증 → 합격 전략 문서. **본문에 그 종목의 수치가 박혀 있으므로**(재출제율·
+# 분야 비중·"잡초방제학은 건너뛰어도 된다") 다른 종목에서 열면 남의 수치를 읽게
+# 된다. 그래서 문서가 있는 종목에만 연다 — `essay_strategy` 와 같은 까닭이다.
+PASS_DOCS = {
+    '식물보호기사': 'docs/실기합격전략.md',
+    '식물보호산업기사': 'docs/실기합격전략.md',
+}
+
+
+def pass_doc_path(cert_name):
+    """그 자격증의 합격 전략 문서 경로. 없으면 None."""
+    rel = PASS_DOCS.get(cert_name)
+    if not rel:
+        return None
+    path = os.path.join(settings.BASE_DIR, rel)
+    return path if os.path.exists(path) else None
+
+
+@login_required
+def essay_pass(request, cert_id):
+    """합격 전략 — `docs/실기합격전략.md` 를 그대로 읽어 보여 준다.
+
+    **문서를 한 벌만 둔다.** 같은 글을 템플릿에도 적어 두면 수치를 고칠 때 한쪽만
+    고쳐 어긋난다(재출제율은 회차가 늘 때마다 바뀐다). 문서의 머리말(작성 경위와
+    갱신 방법)은 회원에게 보일 것이 아니므로 첫 `---` 앞을 잘라 낸다.
+    """
+    import markdown as md
+
+    cert = get_object_or_404(Certification, pk=cert_id)
+    path = pass_doc_path(cert.name)
+    if not path:
+        return redirect('gisa:essay_list', cert.pk)
+    with open(path, encoding='utf-8') as f:
+        text = f.read()
+    body = text.split('\n---\n', 1)[-1]
+    return render(request, 'gisa/essay_pass.html', {
+        'cert': cert,
+        'info': exam_info(cert.name),
+        'body': md.markdown(body, extensions=['tables']),
     })
 
 

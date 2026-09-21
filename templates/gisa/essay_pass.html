@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% comment %}
+합격 전략 — 본문은 `docs/실기합격전략.md` 를 읽어 마크다운으로 렌더한다.
+여기에 글을 적어 두지 말 것. 두 벌이 되면 수치를 고칠 때 한쪽만 고쳐 어긋난다.
+{% endcomment %}
+
+{% block title %}{{ cert.name }} 실기 합격 전략{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ps-wrap { max-width: 900px; margin: 0 auto; padding: 0 16px 70px; }
+
+    .ps-hero { background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+        color: #fff; padding: 22px 20px; border-radius: 12px; margin: 16px 0 22px; }
+    .ps-hero h1 { margin: 0 0 8px; font-size: 1.3rem; }
+    .ps-hero p { margin: 0; font-size: 0.9rem; line-height: 1.7; color: rgba(255,255,255,.93); }
+    .ps-back { float: right; color: #fff; text-decoration: none; font-size: 0.82rem;
+        background: rgba(255,255,255,.18); padding: 6px 14px; border-radius: 14px;
+        font-weight: 600; }
+    .ps-back:hover { background: rgba(255,255,255,.3); }
+
+    /* 본문 — 마크다운이 낸 태그에 그대로 스타일을 준다 */
+    .ps-body h2 { font-size: 1.08rem; color: #1b4332; margin: 32px 0 12px;
+        padding-bottom: 7px; border-bottom: 2px solid #dfe7e2; }
+    .ps-body h3 { font-size: 0.98rem; color: #2d6a4f; margin: 22px 0 8px; }
+    .ps-body p { font-size: 0.93rem; line-height: 1.85; color: #333; margin: 0 0 13px;
+        text-align: justify; }
+    .ps-body li { font-size: 0.93rem; line-height: 1.85; color: #333; margin-bottom: 5px; }
+    .ps-body ul { padding-left: 22px; margin: 0 0 14px; }
+    .ps-body strong { color: #1b4332; }
+
+    .ps-body table { width: 100%; border-collapse: collapse; font-size: 0.88rem;
+        margin: 0 0 18px; }
+    .ps-body th { background: #1b4332; color: #fff; padding: 8px 10px;
+        text-align: left; font-weight: 600; font-size: 0.82rem; }
+    .ps-body td { padding: 8px 10px; border-bottom: 1px solid #eceeed; }
+    .ps-body tr:hover td { background: #fafcfa; }
+    .ps-body td strong { color: #b3261e; }
+
+    .ps-go { margin-top: 30px; padding-top: 18px; border-top: 1px solid #e6ebe8; }
+    .ps-go a { display: inline-block; background: #1b4332; color: #fff;
+        padding: 9px 20px; border-radius: 16px; text-decoration: none;
+        font-size: 0.86rem; font-weight: 700; margin: 3px 5px 3px 0; }
+    .ps-go a:hover { background: #2d6a4f; }
+    .ps-go a.sub { background: #eef2ee; color: #40624f; }
+    .ps-go a.sub:hover { background: #dde7e0; }
+
+    @media (max-width: 600px) {
+        .ps-body table { font-size: 0.82rem; }
+        .ps-body th, .ps-body td { padding: 6px 7px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ps-wrap">
+    <div class="ps-hero">
+        <a class="ps-back" href="{% url 'gisa:essay_list' cert.pk %}">&lsaquo; 실기로</a>
+        <h1>{{ cert.name }} 실기 합격 전략</h1>
+        <p>우리 사이트에 쌓인 실기 기출을 직접 세어 얻은 결과입니다.
+           {% if info %}필답형 {{ info.essay_points }}점 만점에 {{ info.pass_line }}점이면 합격입니다.{% endif %}</p>
+    </div>
+
+    <div class="ps-body">{{ body|safe }}</div>
+
+    <div class="ps-go">
+        <a href="{% url 'gisa:essay_list' cert.pk %}?tab=textbook">쪽집게 노트로</a>
+        <a class="sub" href="{% url 'gisa:essay_list' cert.pk %}?tab=solve">기출고사로</a>
+        {% if info %}<a class="sub" href="{% url 'gisa:essay_overview' cert.pk %}">시험 개요</a>{% endif %}
+    </div>
+</div>
+{% endblock %}
