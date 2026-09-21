@@ -5,6 +5,7 @@
 함께 쓴다. 컨텍스트도 `resource_tab_context()` 하나가 만든다.
 """
 import json
+import os
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import F, Q
@@ -140,6 +141,30 @@ def resource_open(request, res_id):
 
 # ------------------------------------------------------------ 동영상 (분류별)
 
+def _markup_ver():
+    """동영상 화면 조각들의 판(version).
+
+    **그 자리에서 갈아 끼우게 되면서 열어 둔 탭이 옛 마크업에 굳는다.** 예전에는
+    무슨 작업이든 주소를 다시 불렀으므로 배포하면 다음 작업 때 새 화면을 받았는데,
+    이제는 `#vdTree`·`#vdList` 안쪽만 바꾸므로 카드 단추가 늘어도 옛 탭에는 영영
+    안 나온다(실제로 ▲▼·AI 요약·삭제가 안 보인다는 말을 들었다).
+
+    조각 파일의 mtime 을 판으로 삼아, 화면이 받아 온 판이 제 것과 다르면 통째로
+    다시 읽게 한다. **워커마다 달라지면 안 되므로** 프로세스 시각이 아니라 파일
+    시각을 쓴다 — git 이 받아 둔 파일이라 워커 둘이 같은 값을 본다.
+    """
+    from django.conf import settings
+
+    base = os.path.join(settings.BASE_DIR, 'templates', 'gisa')
+    out = 0
+    for name in ('_videos.html', '_video_card.html', '_video_node.html'):
+        try:
+            out = max(out, int(os.path.getmtime(os.path.join(base, name))))
+        except OSError:
+            pass
+    return str(out)
+
+
 def video_tab_context(cert, part):
     """동영상 탭 — 분류 트리와 그 아래 영상.
 
@@ -216,6 +241,7 @@ def video_tab_context(cert, part):
         'vid_part': part,
         'vid_choices': choices,
         'vid_outline': outline,
+        'vid_ver': _markup_ver(),
         'vid_drawings': drawing_choices(cert) if part == 'work' else [],
     }
 
