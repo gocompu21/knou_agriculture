@@ -92,6 +92,25 @@ BROWSER_UA = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
               '(KHTML, like Gecko) Chrome/120.0 Safari/537.36')
 _OG_TITLE = re.compile(rb'<meta property="og:title" content="([^"]*)"')
 _ITEM_NAME = re.compile(rb'<link itemprop="name" content="([^"]*)"')
+# **유튜브가 늘 같은 HTML 을 주지 않는다.** 집 회선에서는 og:title 이 붙어 오는데
+# 서버(데이터센터 IP)에서는 그것이 없고 제목이 JSON 안에만 들어 있었다. 그래서
+# 두 갈래를 다 본다 — 한쪽만 보고 만들었다가 서버에서 제목이 비었다.
+_JSON_TITLE = [
+    re.compile(rb'"playerOverlayVideoDetailsRenderer":\{"title":\{"simpleText":"((?:[^"\\]|\\.)*)"'),
+    re.compile(rb'"title":"((?:[^"\\]|\\.)*)","lengthSeconds"'),
+]
+_JSON_AUTHOR = [
+    re.compile(rb'"ownerChannelName":"((?:[^"\\]|\\.)*)"'),
+    re.compile(rb'"subtitle":\{"runs":\[\{"text":"((?:[^"\\]|\\.)*)"'),
+]
+
+
+def _unjson(b):
+    """JSON 문자열 조각의 이스케이프를 푼다(\\u.. · \\" 따위)."""
+    try:
+        return json.loads('"' + b.decode('utf-8', 'replace') + '"')
+    except ValueError:
+        return b.decode('utf-8', 'replace')
 
 
 def fetch_watch_meta(vid):
@@ -99,7 +118,7 @@ def fetch_watch_meta(vid):
 
     **퍼가기를 막은 영상에도 제목은 있다.** oEmbed 가 401 을 주더라도 영상 자체는
     멀쩡하므로, 이름 없이 목록에 올려 두는 것보다 한 번 더 긁어 오는 편이 낫다.
-    페이지가 1MB 가까이 되므로 **oEmbed 가 실패했을 때만** 쓴다.
+    페이지가 1MB 를 넘으므로 **oEmbed 가 실패했을 때만** 쓴다.
     """
     import html
 
@@ -107,17 +126,29 @@ def fetch_watch_meta(vid):
         f'https://www.youtube.com/watch?v={vid}',
         headers={'User-Agent': BROWSER_UA, 'Accept-Language': 'ko'})
     try:
-        with urllib.request.urlopen(req, timeout=12) as r:
-            raw = r.read(900_000)
+        with urllib.request.urlopen(req, timeout=15) as r:
+            raw = r.read(2_000_000)
     except Exception:                                        # noqa: BLE001
         return {}
     out = {}
     m = _OG_TITLE.search(raw)
     if m:
         out['title'] = html.unescape(m.group(1).decode('utf-8', 'replace'))[:200]
+    else:
+        for rx in _JSON_TITLE:
+            m = rx.search(raw)
+            if m:
+                out['title'] = _unjson(m.group(1))[:200]
+                break
     m = _ITEM_NAME.search(raw)
     if m:
         out['author'] = html.unescape(m.group(1).decode('utf-8', 'replace'))[:100]
+    else:
+        for rx in _JSON_AUTHOR:
+            m = rx.search(raw)
+            if m:
+                out['author'] = _unjson(m.group(1))[:100]
+                break
     return out
 
 
