@@ -24,7 +24,8 @@ sys.path.insert(0, HERE)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
-from gisa.models import Certification, GisaResource  # noqa: E402
+from gisa.models import (Certification, GisaDrawingRef,  # noqa: E402
+                         GisaDrawingTask, GisaResource)
 
 CERT = '조경기사'
 # 분류 이름 끝의 세 자리 번호 — "호안생태공원 428", "묘지공원 및 도시미관광장 344"
@@ -40,6 +41,13 @@ def main():
             .filter(certification=cert, part='work', kind='youtube')
             .select_related('category').order_by('category__name', 'order', 'pk'))
 
+    # 그 번호의 도면이 실제로 있는지 — 분류 이름의 번호가 어긋나면 이어 봐야
+    # 화면 어디에도 안 나온다(묘지공원 분류가 344 인데 도면은 345 였다)
+    known = set(GisaDrawingTask.objects.filter(certification=cert)
+                .exclude(code='').values_list('code', flat=True))
+    known |= set(GisaDrawingRef.objects.filter(certification=cert)
+                 .exclude(code='').values_list('code', flat=True))
+
     by_code, skipped, changed = {}, [], 0
     for v in rows:
         name = v.category.name if v.category_id else ''
@@ -52,11 +60,15 @@ def main():
             continue
         by_code.setdefault(code, []).append(v)
 
+    unknown = []
     for code in sorted(by_code):
         vids = by_code[code]
         todo = [v for v in vids if v.drawing_code != code]
+        if code not in known:
+            unknown.append((code, vids[0].category.name, len(vids)))
         print(f"{code} · {vids[0].category.name} — 영상 {len(vids)}편"
-              + (f" · 새로 이을 것 {len(todo)}편" if todo else " · 이미 이어져 있음"))
+              + (f" · 새로 이을 것 {len(todo)}편" if todo else " · 이미 이어져 있음")
+              + ('   << 그런 도면이 없다' if code not in known else ''))
         for v in todo:
             print(f"    + {v.title[:58]}"
                   + (f"   (지금 {v.drawing_code})" if v.drawing_code else ''))
@@ -70,6 +82,10 @@ def main():
         from collections import Counter
         print('\n번호 없는 분류라 건너뜀:',
               ', '.join(f'{n}({c})' for n, c in Counter(skipped).items()))
+    if unknown:
+        print('\n⚠ 그런 도면 번호가 없어 화면 어디에도 안 나온다 — 분류 이름의 번호를 고칠 것:')
+        for code, name, n in unknown:
+            print(f'    {code} · {name} — 영상 {n}편')
     print(f"\n{changed}편 반영" if apply_ else "\n검사만 했습니다 (--apply 로 반영)")
 
 
