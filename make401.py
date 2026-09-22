@@ -50,7 +50,11 @@ CONTOURS = [
 ]
 # 등고선만으로는 가운데 분지가 얼마나 패였는지 알 수 없다 — 못 바닥을 점으로 박아 준다
 SPOTS = [(26, 9, 70.5), (20, 14, 70.6), (32, 15, 70.6), (44, 27, 70.8), (30, 30, 70.9),
-         (86, 10, Z_NE_PLAZA), (73, 56, Z_SE_PLAZA), (79.5, 37, Z_MOUND), (79.5, 31, 72.2), (79.5, 43, 72.2)]
+         (86, 10, Z_NE_PLAZA), (73, 56, Z_SE_PLAZA),
+         # 마운딩 — 꼭대기 하나로는 IDW 가 퍼져 버린다. 능선 셋을 세우고 **바깥에 72.0 을 둘러** 판다
+         (79.5, 33, Z_MOUND), (79.5, 37, Z_MOUND), (79.5, 41, Z_MOUND),
+         (74.5, 30, 72.0), (74.5, 37, 72.0), (74.5, 45, 72.0), (84.5, 30, 72.0), (84.5, 37, 72.0),
+         (84.5, 45, 72.0), (79.5, 24, 72.0), (79.5, 51, 72.0)]
 
 # ── 물가 (닫힌 도형) ──────────────────────────────────────────────
 POND = [(14.7, 1.6), (16, 1), (19, 0.8), (22, 1), (25, 2.2), (27.5, 3.4), (30, 3.6), (32, 2.6), (34, 2.2), (36, 2.6),
@@ -74,11 +78,18 @@ MEET     = (64.0, 72.0, 13.0, 25.0)    # 모임광장
 SPINE    = (67.0, 72.0, 25.0, 52.0)    # 남북 보행로 (소형고압블럭)
 SE_PLAZA = (67.0, 79.0, 52.0, 60.0)    # 남동 진입광장 (남쪽 ENT)
 REST     = (50.0, 58.0, 40.0, 48.0)    # 휴게공간 8 x 8
+# 포장면 계획고 — 지형을 여기에 맞춰 평탄하게 깎는다(안 깎으면 지형이 포장을 덮는다)
+FLATS = [(NE_PLAZA, Z_NE_PLAZA), (EAST_WALK, 71.90), (MEET, 71.80),
+         (SPINE, 71.80), (SE_PLAZA, Z_SE_PLAZA), (REST, 71.65)]
 
 # ── 관찰로 (목재데크) — 바깥선 · 안선 ─────────────────────────────
-RO_OUT = [(64, 13), (48.6, 6.5), (45.3, 11), (42, 11), (42, 13), (44.2, 13), (42, 16.2), (35, 19.6), (33, 20.2),
+# 본선에서 **조류관찰소 접근로(지그재그)를 뺐다** — 안선과 길이 비례로 짝지을 때 띠가
+# 접혀 뒤집힌 면이 생겨 검게 나온다. 접근로는 SPUR 로 따로 깐다
+RO_OUT = [(64, 13), (48.6, 6.5), (44.6, 11.6), (42, 16.2), (35, 19.6), (33, 20.2),
           (23.2, 20.2), (19.2, 30.1), (26.2, 41.7), (40, 39.7), (46, 41.6), (48.7, 39.9), (50.4, 38.8), (53.5, 36.8),
           (54.8, 30.5), (64, 25)]
+SPUR = [(45.6, 11.9), (42.6, 11.6)]      # 관찰로 → 조류관찰소
+# **관찰소 벽에 닿기 전에 끊는다** — x=42 까지 밀면 동쪽 벽 상자와 면이 겹쳐 새까맣다
 RO_IN  = [(64, 23.2), (53.6, 29.4), (52.2, 35.6), (45.8, 39.9), (40, 37.9), (27.3, 39.8), (21.2, 29.8), (24.2, 22.2),
           (33, 22.2), (43.5, 17.5), (49, 9.4), (64, 15.3)]
 
@@ -121,6 +132,8 @@ SPECIES = {
 random.seed(401)
 TOP_VIEW = False
 BIRD = False
+CAM_TILT = 45.0                        # 평면을 뒤로 눕히는 각(깊이 0.71)
+RES = (1920, 1280)
 
 # ─────────────────────────────────────────────────────────────────
 def bl(x, y):
@@ -435,7 +448,7 @@ def bed_shape(pts, r_corner, m_soil, m_kerb_, species, z=None, gap=0.62,
                                    (0, shrub_inset), (0, -shrub_inset))):
                 keep.append((px, py))
     if keep:
-        scatter_species(keep, species, lambda _x: z)
+        scatter_species(keep, species, lambda _x, _y=None: z)
 
 
 def planting_bed(x0, x1, y0, y1, m_soil, m_kerb_, m_shrub_, r=0.30, gap=0.55,
@@ -579,6 +592,13 @@ def _heightfield():
     t = np.clip(ds / (STREAM_W / 2 + 1.2), 0.0, 1.0)
     Z = np.minimum(Z, Z * t + (Z_STREAM - 0.35) * (1 - t))
 
+    # 포장 자리는 평탄하게 깎는다 — 가장자리 1.5m 는 주변 지반과 이어 준다
+    for (x0, x1, y0, y1), zf in FLATS:
+        dx = np.maximum(np.maximum(x0 - PX, PX - x1), 0.0)
+        dy = np.maximum(np.maximum(y0 - PY, PY - y1), 0.0)
+        t = np.clip(np.hypot(dx, dy) / 1.5, 0.0, 1.0)
+        Z = Z * t + zf * (1 - t)
+
     _HF.update(z=Z, x0=-PAD, y0=-PAD)
     return Z, -PAD, -PAD
 
@@ -620,22 +640,34 @@ def terrain():
     return put(o, mat('ground', (0.24, 0.40, 0.13), spread=0.30, scale=420, bump=1.1))
 
 
+def _face_up(bmv):
+    """수평 판의 면이 아래를 보면 뒤집는다 — 뒤집힌 면은 빛을 못 받아 새까맣다."""
+    bmv.normal_update()
+    bad = [f for f in bmv.faces if f.normal.z < 0]
+    if bad:
+        bmesh.ops.reverse_faces(bmv, faces=bad)
+
+
 def water_plane(poly, z, m, inset=0.0):
-    """닫힌 물가를 수면 판으로 — 다각형을 부채꼴로 잇는다."""
+    """닫힌 물가를 수면 판으로.
+
+    **부채꼴(중심에서 삼각형)로 만들면 안 된다** — 습지처럼 오목한 도형에서는
+    삼각형이 도형 밖으로 튀어나가 잔디 위에 검은 쐐기가 생긴다. 평면이므로
+    ngon 하나로 두고 ear-clipping 에 맡긴다.
+    """
     cx = sum(p[0] for p in poly) / len(poly)
     cy = sum(p[1] for p in poly) / len(poly)
     me = bpy.data.meshes.new('water')
     bmv = bmesh.new()
-    c = bmv.verts.new((*bl(cx, cy), z))
-    ring_v = []
+    vs = []
     for x, y in poly:
         if inset:
             L = math.hypot(x - cx, y - cy) or 1.0
             x, y = x + (cx - x) / L * inset, y + (cy - y) / L * inset
-        ring_v.append(bmv.verts.new((*bl(x, y), z)))
-    for a, b in zip(ring_v, ring_v[1:] + ring_v[:1]):
-        bmv.faces.new([c, a, b])
-    bmv.normal_update()
+        vs.append(bmv.verts.new((*bl(x, y), z)))
+    bmv.faces.new(vs)
+    bmesh.ops.triangulate(bmv, faces=bmv.faces[:])
+    _face_up(bmv)
     bmv.to_mesh(me)
     bmv.free()
     o = bpy.data.objects.new('water', me)
@@ -662,7 +694,7 @@ def strip(pts, width, z_off, m, zfun=None):
                      bmv.verts.new((*bl(x - nx_, y - ny_), z))))
     for a, b in zip(rows, rows[1:]):
         bmv.faces.new([a[0], a[1], b[1], b[0]])
-    bmv.normal_update()
+    _face_up(bmv)                       # 서→동이냐 동→서냐에 따라 뒤집힌다
     bmv.to_mesh(me)
     bmv.free()
     o = bpy.data.objects.new('strip', me)
@@ -776,22 +808,36 @@ def _walk(pts, n):
     return out
 
 
-def deck_poly(outer, inner, z, m, n=90):
+def deck_poly(outer, inner, z, m, n=160):
     """관찰로 — 바깥선과 안선 사이의 띠.
 
-    **두 선을 한 ngon 으로 묶으면 안 된다** — 삼각분할이 even-odd 규칙을 안 써서
-    가운데(산림지구)까지 통째로 메워지고, 법선이 뒤집혀 새까맣게 나온다.
-    길이 비례로 짝지어 사각형을 잇는다(안선은 뒤집어 방향을 맞춘다).
+    **한 ngon 으로 묶으면 안 된다** — 삼각분할이 even-odd 규칙을 안 써서 가운데
+    (산림지구)까지 메워지고 법선이 뒤집혀 새까맣다.
+    **길이 비례로만 짝지어도 안 된다** — 한쪽에 꺾임이 많으면 짝이 어긋나 띠가 접히고,
+    접힌 자리가 검은 쐐기로 남는다. 바깥선의 각 점에서 **가장 가까운 안선 점**을 쓰되
+    **차례가 뒤로 가지 않게**(단조) 막는다.
     """
     A = _walk(list(outer), n)
-    B = _walk(list(reversed(inner)), n)
+    B = _walk(list(reversed(inner)), n * 4)
+    # **창을 좁게 두면 급한 꺾임에서 짝을 놓쳐 면이 접힌다**(검은 쐐기).
+    # 전역 최근접으로 고른 뒤 차례만 단조로 보정한다.
+    idx = []
+    for ax, ay in A:
+        bj = min(range(len(B)), key=lambda j2: (B[j2][0] - ax) ** 2 + (B[j2][1] - ay) ** 2)
+        idx.append(bj)
+    for k in range(1, len(idx)):
+        idx[k] = max(idx[k], idx[k - 1])
+    idx[0], idx[-1] = 0, len(B) - 1
     me = bpy.data.meshes.new('boardwalk')
     bmv = bmesh.new()
     va = [bmv.verts.new((*bl(x, y), z)) for x, y in A]
-    vb = [bmv.verts.new((*bl(x, y), z)) for x, y in B]
-    for i in range(n):
-        bmv.faces.new([va[i], vb[i], vb[i + 1], va[i + 1]])
-    bmv.normal_update()
+    vb = [bmv.verts.new((*bl(*B[k]), z)) for k in idx]
+    for k in range(n):
+        if idx[k] == idx[k + 1]:                     # 안선이 제자리면 삼각형으로
+            bmv.faces.new([va[k], vb[k], va[k + 1]])
+        else:
+            bmv.faces.new([va[k], vb[k], vb[k + 1], va[k + 1]])
+    _face_up(bmv)
     bmv.to_mesh(me)
     bmv.free()
     o = bpy.data.objects.new('boardwalk', me)
@@ -904,16 +950,18 @@ def build():
 
     # ── 포장 ────────────────────────────────────────────────────
     pad(*NE_PLAZA, Z_NE_PLAZA, m_plaza)
-    pad(*EAST_WALK, Z_NE_PLAZA - 0.3, m_block)
-    pad(*MEET, Z_NE_PLAZA - 0.4, m_plaza)
-    pad(*SPINE, Z_SE_PLAZA + 0.2, m_block)
+    pad(*EAST_WALK, 71.90, m_block)
+    pad(*MEET, 71.80, m_plaza)
+    pad(*SPINE, 71.80, m_block)
     pad(*SE_PLAZA, Z_SE_PLAZA, m_plaza)
-    pad(*REST, Z_DECK - 0.35, m_block)
+    pad(*REST, 71.65, m_block)
 
     # ── 관찰로 (목재데크) ───────────────────────────────────────
     deck_poly(RO_OUT, RO_IN, Z_DECK, m_wooddk)
     deck_posts(RO_OUT, Z_DECK, m_wood)
     deck_posts(RO_IN, Z_DECK, m_wood)
+    # **관찰로와 같은 72.0 에 두면 겹친 자리가 z-파이팅으로 새까맣다.** 1.2cm 올린다
+    strip(SPUR, 2.0, 0.012, m_wooddk, zfun=lambda x, y: Z_DECK)
 
     # ── 관찰데크 5 · 조류관찰소 ─────────────────────────────────
     for cx, cy, w, h, deg in DECKS:
@@ -921,7 +969,7 @@ def build():
     bird_hide(*BIRD_HIDE, Z_DECK, m_wood, m_roof, m_glass)
 
     # ── 휴게공간 안 시설 ────────────────────────────────────────
-    pergola4((PERGOLA[0] + PERGOLA[1]) / 2, (PERGOLA[2] + PERGOLA[3]) / 2, Z_DECK - 0.35, m_wood)
+    pergola4((PERGOLA[0] + PERGOLA[1]) / 2, (PERGOLA[2] + PERGOLA[3]) / 2, 71.65, m_wood)
 
     # ── 시설물 ──────────────────────────────────────────────────
     for cx, cy in GRATES:
@@ -935,17 +983,31 @@ def build():
     sign(*BIG_SIGN, height(*BIG_SIGN), m_steel, m_panel, w=1.8, h=2.2)
 
     # ── 식재 ────────────────────────────────────────────────────
-    # 기존수림 — 서쪽. 경계선 안쪽으로 채운다
-    for i in range(150):
-        x = random.uniform(0.5, 11.0)
-        y = random.uniform(0.5, 59.0)
-        if x > 8.0 and y < 22:                       # 저수지 쪽은 비운다
+    # 기존수림 — 도면의 수림경계선(WOOD_EDGE) 서쪽을 채운다. 경계가 남으로 갈수록 동쪽이다
+    def wood_x(y):
+        for a, b in zip(WOOD_EDGE, WOOD_EDGE[1:]):
+            if a[1] <= y <= b[1]:
+                t = (y - a[1]) / max(b[1] - a[1], 1e-6)
+                return a[0] + (b[0] - a[0]) * t
+        return WOOD_EDGE[0][0] if y < WOOD_EDGE[0][1] else WOOD_EDGE[-1][0]
+
+    for _ in range(420):
+        y = random.uniform(0.5, 59.5)
+        xe = wood_x(y)
+        x = random.uniform(0.5, xe - 0.5)
+        if x < 0.8 or _inside((x, y), POND):
             continue
-        tree(x, y, random.choice(['ball', 'cone', 'weep']))
-    # 산림지구 — 관찰로 안쪽 남서
-    for i in range(45):
-        x = random.uniform(22.0, 40.0)
-        y = random.uniform(28.0, 38.0)
+        tree(x, y, random.choice(['ball', 'ball', 'cone', 'weep']))
+    # 산림지구 — 관찰로 안쪽(습지·데크는 비운다)
+    for _ in range(260):
+        x = random.uniform(20.0, 56.0)
+        y = random.uniform(21.0, 40.0)
+        if not _inside((x, y), RO_IN) or _inside((x, y), MARSH):
+            continue
+        if min(math.hypot(x - mx, y - my) for mx, my in MARSH) < 2.5:
+            continue
+        if any(abs(x - cx) < 3 and abs(y - cy) < 3 for cx, cy, *_ in DECKS):
+            continue
         tree(x, y, random.choice(['ball', 'weep']))
     # 수변 초화 — 못과 습지 가장자리
     for poly, names in ((POND, ['꽃창포', '부처꽃']), (MARSH, ['꽃창포', '부처꽃', '쑥부쟁이'])):
@@ -956,6 +1018,10 @@ def build():
                 t = (k + 0.5) / max(1, int(L / 1.1))
                 pts.append((a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t))
         scatter_species(pts, names, height)
+    # 보행로 옆 식재지 — 도면에 빗금으로 표시된 두 곳
+    for (x0, x1, y0, y1) in ((67.0, 72.0, 25.0, 31.0), (67.0, 72.0, 45.0, 51.0)):
+        bed_shape([(x0, y0), (x1, y0), (x1, y1), (x0, y1)], 0.8, m_soil, m_kerb,
+                  ['회양목', '병꽃나무'], z=71.82, gap=0.62)
     # 광장 주변 관목
     for (x0, x1, y0, y1) in ((64.0, 67.0, 25.0, 31.0), (64.0, 67.0, 45.0, 52.0),
                              (79.0, 82.0, 6.0, 13.0), (79.0, 83.0, 52.0, 60.0)):
