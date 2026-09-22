@@ -510,7 +510,7 @@ def stalk_band(x0, x1, y0, y1, m, zfun, gap=0.5, per=7, h=(1.3, 1.9),
 import numpy as np
 
 GRID = 1.0                              # 높이면 격자 (m)
-PAD = 3.0                               # 부지 밖으로 조금 더 만든다(가장자리가 끊겨 보이지 않게)
+PAD = 8.0                               # 부지 밖으로 조금 더 만든다 — 실개천이 공중에 뜨지 않게
 
 
 def _resample(pts, step=1.5):
@@ -998,6 +998,9 @@ def build():
         if x < 0.8 or _inside((x, y), POND):
             continue
         tree(x, y, random.choice(['ball', 'ball', 'cone', 'weep']))
+    # 산림지구 바닥 — **평평한 판을 깔면 안 된다.** 지형이 70.9~71.05 로 울퉁불퉁해
+    #   높이를 하나로 정할 수 없고, 조금만 높으면 습지 수면(71.0)을 덮어 버린다.
+    #   지형을 따라가는 하부식생으로 구역을 읽히게 한다
     # 산림지구 — 관찰로 안쪽(습지·데크는 비운다)
     for _ in range(260):
         x = random.uniform(20.0, 56.0)
@@ -1009,6 +1012,17 @@ def build():
         if any(abs(x - cx) < 3 and abs(y - cy) < 3 for cx, cy, *_ in DECKS):
             continue
         tree(x, y, random.choice(['ball', 'weep']))
+    # 산림지구 하부식생 — 지형을 따라간다
+    und = []
+    for _ in range(700):
+        x = random.uniform(20.0, 56.0)
+        y = random.uniform(21.0, 40.0)
+        if not _inside((x, y), RO_IN) or _inside((x, y), MARSH):
+            continue
+        if min(math.hypot(x - mx, y - my) for mx, my in MARSH) < 1.6:
+            continue
+        und.append((x, y))
+    scatter_species(und, ['쑥부쟁이', '민들레'], height)
     # 수변 초화 — 못과 습지 가장자리
     for poly, names in ((POND, ['꽃창포', '부처꽃']), (MARSH, ['꽃창포', '부처꽃', '쑥부쟁이'])):
         pts = []
@@ -1018,6 +1032,13 @@ def build():
                 t = (k + 0.5) / max(1, int(L / 1.1))
                 pts.append((a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t))
         scatter_species(pts, names, height)
+    # 마운딩 — 도면에는 등고선만 있으나 비어 보인다. 성기게 교목을 얹어 둔덕이 읽히게 한다
+    for _ in range(26):
+        x = random.uniform(75.5, 83.5)
+        y = random.uniform(27.5, 47.5)
+        if not _inside((x, y), MOUND_OUT):
+            continue
+        tree(x, y, random.choice(['ball', 'cone']))
     # 보행로 옆 식재지 — 도면에 빗금으로 표시된 두 곳
     for (x0, x1, y0, y1) in ((67.0, 72.0, 25.0, 31.0), (67.0, 72.0, 45.0, 51.0)):
         bed_shape([(x0, y0), (x1, y0), (x1, y1), (x0, y1)], 0.8, m_soil, m_kerb,
