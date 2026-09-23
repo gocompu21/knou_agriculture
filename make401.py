@@ -77,7 +77,11 @@ EAST_WALK = (72.0, 90.0, 13.0, 18.0)   # 진입 통로
 MEET     = (64.0, 72.0, 13.0, 25.0)    # 모임광장
 SPINE    = (67.0, 72.0, 25.0, 52.0)    # 남북 보행로 (소형고압블럭)
 SE_PLAZA = (67.0, 79.0, 52.0, 60.0)    # 남동 진입광장 (남쪽 ENT)
-REST     = (50.0, 58.0, 40.0, 48.0)    # 휴게공간 8 x 8
+REST     = (50.0, 58.0, 40.0, 48.0)    # 휴게공간 8 x 8 (지형 평탄화용 사각 범위)
+# 도면의 휴게공간은 **북서 모서리가 45° 로 잘린 오각형**이고, 그 잘린 변에서
+# 관찰로로 2m 폭 사선 진입로가 나간다(P39 · P40 과 두 사선)
+REST_POLY = [(51.4, 40.0), (58.0, 40.0), (58.0, 48.0), (50.0, 48.0), (50.0, 41.5)]
+LINK = [(50.4, 38.8), (48.7, 39.9), (50.0, 41.5), (51.4, 40.0)]   # 관찰로 변 → 휴게공간 변
 # 포장면 계획고 — 지형을 여기에 맞춰 평탄하게 깎는다(안 깎으면 지형이 포장을 덮는다)
 FLATS = [(NE_PLAZA, Z_NE_PLAZA), (EAST_WALK, 71.90), (MEET, 71.80),
          (SPINE, 71.80), (SE_PLAZA, Z_SE_PLAZA), (REST, 71.65)]
@@ -99,7 +103,7 @@ PERGOLA   = (53.0, 57.0, 43.0, 47.0)   # 파고라 4.0 x 4.0
 DECKS = [(27.6, 19.2, 3.1, 2.0, 0.0), (54.4, 12.7, 3.0, 2.0, 23.0), (23.6, 26.2, 3.0, 2.0, -68.5),
          (22.2, 36.6, 3.0, 2.0, 59.0), (43.3, 38.0, 3.0, 2.0, 19.0)]     # 관찰데크 5 (cx, cy, w, h, 각도)
 GRATES = [(85.0, 8.0), (85.0, 13.2), (70.0, 54.8), (75.0, 54.8), (67.0, 18.0)]   # 수목보호대 2 x 2, 5개
-BENCHES = [(50.75, 43.05, 90.0), (50.75, 45.45, 90.0), (55.0, 41.2, 0.0), (55.0, 48.8, 0.0),
+BENCHES = [(50.75, 43.05, 90.0), (50.75, 45.45, 90.0), (55.0, 41.2, 0.0), (55.0, 47.0, 0.0),
            (68.5, 22.0, 90.0), (68.5, 28.0, 90.0), (70.5, 54.0, 0.0), (76.5, 54.0, 0.0)]   # 평의자 1.8 x 0.4, 8개
 BINS = [(52.0, 46.5), (69.5, 20.0)]                                     # 휴지통 Ø0.6
 SIGNS = [(64.2, 15.6), (64.2, 17.9), (64.2, 20.2), (82.4, 10.3), (67.6, 54.5), (69.5, 44.0)]   # 안내판 0.6 x 1.9
@@ -127,7 +131,35 @@ SPECIES = {
     '쑥부쟁이': (0.30, 0.70, (0.20, 0.34, 0.12), (0.72, 0.68, 0.85), 0.45),
     '부처꽃':   (0.30, 0.95, (0.18, 0.32, 0.11), (0.68, 0.33, 0.58), 0.50),
     '꽃창포':   (0.28, 1.15, (0.19, 0.36, 0.13), (0.52, 0.42, 0.74), 0.40),
+    # ── 배식설계도 수목수량표 (401) ──────────────────────────────
+    '진달래':   (0.50, 1.20, (0.16, 0.30, 0.12), (0.86, 0.55, 0.70), 0.55),   # H0.6 x W0.5
+    '철쭉':     (0.60, 0.85, (0.14, 0.28, 0.11), (0.82, 0.42, 0.62), 0.60),   # H0.5 x W0.6
+    '갯버들':   (0.40, 3.00, (0.30, 0.38, 0.22), None,               0.0),    # H1.2 x W0.4
+    '생강나무': (0.90, 2.20, (0.20, 0.34, 0.12), (0.88, 0.80, 0.24), 0.30),   # H2.0 x R4
+    '부들':     (0.30, 6.00, (0.22, 0.32, 0.12), (0.38, 0.24, 0.12), 0.70),   # 수생 4치포트
+    '골풀':     (0.25, 4.00, (0.26, 0.38, 0.15), None,               0.0),    # 수생
+    '갈대':     (0.30, 5.00, (0.34, 0.40, 0.18), (0.72, 0.68, 0.52), 0.35),   # 수생
 }
+
+# 교목 — 수량표 규격에서 뽑은 (꼴, 크기배율, 잎색)
+TREE_SPEC = {
+    '소나무':       ('ball', 1.35, (0.08, 0.20, 0.12)),   # H4.0 x W2.0 x R15 상록
+    '느티나무':     ('ball', 1.55, (0.16, 0.32, 0.11)),   # H4.0 x R15
+    '은행나무':     ('cone', 1.25, (0.33, 0.42, 0.11)),   # H4.0 x B10
+    '갈참나무':     ('ball', 1.45, (0.14, 0.29, 0.10)),   # H3.5 x R15
+    '졸참나무':     ('ball', 1.40, (0.15, 0.30, 0.10)),   # H3.5 x R15
+    '상수리나무':   ('ball', 1.35, (0.13, 0.27, 0.09)),   # H3.5 x R10
+    '층층나무':     ('ball', 1.15, (0.18, 0.33, 0.12)),   # H3.0 x R6
+    '산벚나무':     ('ball', 1.15, (0.21, 0.34, 0.14)),   # H3.0 x B6
+    '버드나무':     ('weep', 1.45, (0.22, 0.36, 0.13)),   # H4.0 x B10
+    '메타세쿼이아': ('cone', 1.30, (0.16, 0.30, 0.11)),   # H4.0 x B8
+    '산딸나무':     ('ball', 1.10, (0.17, 0.31, 0.12)),   # H3.0 x R8
+}
+
+
+def plant(x, y, name):
+    kind, sc, rgb = TREE_SPEC[name]
+    tree(x, y, kind, scale=sc, leaf_rgb=rgb, name=name)
 
 random.seed(401)
 TOP_VIEW = False
@@ -702,6 +734,25 @@ def strip(pts, width, z_off, m, zfun=None):
     return put(o, m)
 
 
+def poly_pad(pts, z, m):
+    """다각형 포장 판 — 윗면이 z. 지형을 그 높이로 평탄하게 깎아 두었으므로 판만 얹으면 된다."""
+    return water_plane(pts, z, m)
+
+
+def ramp(pts_z, m):
+    """높이가 다른 두 변을 잇는 비탈 판 — [(x, y, z), ...] 네 점."""
+    me = bpy.data.meshes.new('ramp')
+    bmv = bmesh.new()
+    vs = [bmv.verts.new((*bl(x, y), z)) for x, y, z in pts_z]
+    bmv.faces.new(vs)
+    _face_up(bmv)
+    bmv.to_mesh(me)
+    bmv.free()
+    o = bpy.data.objects.new('ramp', me)
+    bpy.context.collection.objects.link(o)
+    return put(o, m)
+
+
 def pad(x0, x1, y0, y1, z, m, h=0.12):
     """평평한 포장 판 — **윗면이 계획고에 오게** 한다.
 
@@ -710,23 +761,25 @@ def pad(x0, x1, y0, y1, z, m, h=0.12):
     """
     return slab(x0, x1, y0, y1, z, m, h=h)
 
-def tree(x, y, kind):
+def tree(x, y, kind, scale=1.0, leaf_rgb=None, name=''):
     """교목 한 주. **수관은 공 하나가 아니라 작은 덩이 여럿**을 겹쳐 만든다 —
     매끈한 공은 사탕처럼 보이고, 그것이 '만화 같다'의 가장 큰 원인이다."""
     z = height(x, y)
     bx, by = bl(x, y)
     bark = mat('bark', (0.19, 0.14, 0.10), rough=0.9, spread=0.25, scale=200, bump=0.9)
-    leaf = mat('canopy', (0.09, 0.20, 0.07), rough=0.95, spread=0.30, scale=90, bump=1.0)
-    ht = {'cone': 3.0, 'weep': 2.7, 'ball': 2.7}[kind]
-    cyl(x, y, z, 0.30, ht, bark, verts=12)
+    leaf = mat('canopy' + (name or ''), leaf_rgb or (0.09, 0.20, 0.07),
+               rough=0.95, spread=0.30, scale=90, bump=1.0)
+    ht = {'cone': 3.0, 'weep': 2.7, 'ball': 2.7}[kind] * scale
+    cyl(x, y, z, 0.30 * scale, ht, bark, verts=12)
     me = bpy.data.meshes.new('crown')
     bmv = bmesh.new()
-    if kind == 'cone':                      # 낙우송 — 좁고 높은 원추
+    if kind == 'cone':                      # 침엽·원추형 (메타세쿼이아 · 은행)
         lobes, rad, top, spread_r = 10, 0.74, 3.4, 0.68
-    elif kind == 'weep':                    # 왕버들 — 넓고 처지는 덩이
+    elif kind == 'weep':                    # 처지는 덩이 (버드나무)
         lobes, rad, top, spread_r = 12, 0.80, 1.7, 0.72
-    else:                                   # 물푸레나무 — 둥근
+    else:                                   # 둥근 (참나무류 · 느티 · 산벚)
         lobes, rad, top, spread_r = 11, 0.78, 1.8, 0.70
+    rad, top, spread_r = rad * scale, top * scale, spread_r * scale
     for i in range(lobes):
         t = i / max(lobes - 1, 1)
         if kind == 'cone':
@@ -954,7 +1007,11 @@ def build():
     pad(*MEET, 71.80, m_plaza)
     pad(*SPINE, 71.80, m_block)
     pad(*SE_PLAZA, Z_SE_PLAZA, m_plaza)
-    pad(*REST, 71.65, m_block)
+    poly_pad(REST_POLY, 71.65, m_block)
+    # 관찰로(72.0) ↔ 휴게공간(71.65) 을 잇는 사선 진입로. 이게 없으면 데크에서
+    # 휴게공간으로 들어갈 길이 없다
+    ramp([(LINK[0][0], LINK[0][1], Z_DECK), (LINK[1][0], LINK[1][1], Z_DECK),
+          (LINK[2][0], LINK[2][1], 71.66), (LINK[3][0], LINK[3][1], 71.66)], m_wooddk)
 
     # ── 관찰로 (목재데크) ───────────────────────────────────────
     deck_poly(RO_OUT, RO_IN, Z_DECK, m_wooddk)
@@ -982,72 +1039,135 @@ def build():
         sign(cx, cy, height(cx, cy), m_steel, m_panel)
     sign(*BIG_SIGN, height(*BIG_SIGN), m_steel, m_panel, w=1.8, h=2.2)
 
-    # ── 식재 ────────────────────────────────────────────────────
-    # 기존수림 — 도면의 수림경계선(WOOD_EDGE) 서쪽을 채운다. 경계가 남으로 갈수록 동쪽이다
+    # ── 식재 — 성운 배식설계도(답안지 III)의 수목수량표대로 ────────
     def wood_x(y):
+        """기존수림 경계선(WOOD_EDGE)의 그 y 에서의 x."""
         for a, b in zip(WOOD_EDGE, WOOD_EDGE[1:]):
             if a[1] <= y <= b[1]:
                 t = (y - a[1]) / max(b[1] - a[1], 1e-6)
                 return a[0] + (b[0] - a[0]) * t
         return WOOD_EDGE[0][0] if y < WOOD_EDGE[0][1] else WOOD_EDGE[-1][0]
 
-    for _ in range(420):
-        y = random.uniform(0.5, 59.5)
-        xe = wood_x(y)
-        x = random.uniform(0.5, xe - 0.5)
-        if x < 0.8 or _inside((x, y), POND):
-            continue
-        tree(x, y, random.choice(['ball', 'ball', 'cone', 'weep']))
-    # 산림지구 바닥 — **평평한 판을 깔면 안 된다.** 지형이 70.9~71.05 로 울퉁불퉁해
-    #   높이를 하나로 정할 수 없고, 조금만 높으면 습지 수면(71.0)을 덮어 버린다.
-    #   지형을 따라가는 하부식생으로 구역을 읽히게 한다
-    # 산림지구 — 관찰로 안쪽(습지·데크는 비운다)
-    for _ in range(260):
-        x = random.uniform(20.0, 56.0)
-        y = random.uniform(21.0, 40.0)
-        if not _inside((x, y), RO_IN) or _inside((x, y), MARSH):
-            continue
-        if min(math.hypot(x - mx, y - my) for mx, my in MARSH) < 2.5:
-            continue
-        if any(abs(x - cx) < 3 and abs(y - cy) < 3 for cx, cy, *_ in DECKS):
-            continue
-        tree(x, y, random.choice(['ball', 'weep']))
-    # 산림지구 하부식생 — 지형을 따라간다
-    und = []
-    for _ in range(700):
-        x = random.uniform(20.0, 56.0)
-        y = random.uniform(21.0, 40.0)
-        if not _inside((x, y), RO_IN) or _inside((x, y), MARSH):
-            continue
-        if min(math.hypot(x - mx, y - my) for mx, my in MARSH) < 1.6:
-            continue
-        und.append((x, y))
-    scatter_species(und, ['쑥부쟁이', '민들레'], height)
-    # 수변 초화 — 못과 습지 가장자리
-    for poly, names in ((POND, ['꽃창포', '부처꽃']), (MARSH, ['꽃창포', '부처꽃', '쑥부쟁이'])):
-        pts = []
+    PAVED = [NE_PLAZA, EAST_WALK, MEET, SPINE, SE_PLAZA, REST]
+
+    def free(x, y, m=1.2):
+        """포장·물·데크를 피한다."""
+        if not (0.6 < x < W - 0.6 and 0.6 < y < D - 0.6):
+            return False
+        for (x0, x1, y0, y1) in PAVED:
+            if x0 - m < x < x1 + m and y0 - m < y < y1 + m:
+                return False
+        return not (_inside((x, y), POND) or _inside((x, y), MARSH))
+
+    def pick(n, box, name, poly=None, avoid_ro=False, tries=4000):
+        """상자 안에서 자리를 골라 n 주 심는다."""
+        x0, x1, y0, y1 = box
+        done, used = 0, []
+        for _ in range(tries):
+            if done >= n:
+                break
+            x, y = random.uniform(x0, x1), random.uniform(y0, y1)
+            if not free(x, y):
+                continue
+            if poly and not _inside((x, y), poly):
+                continue
+            if avoid_ro and (_inside((x, y), RO_OUT) and not _inside((x, y), RO_IN)):
+                continue          # 관찰로 띠 위
+            if any(math.hypot(x - px, y - py) < 2.4 for px, py in used):
+                continue
+            plant(x, y, name)
+            used.append((x, y))
+            done += 1
+        return done
+
+    # 1) 동측 완충식재 — 은행나무 18 (주택가와의 기능 분리)
+    ge = 0
+    for i in range(30):
+        y = 1.5 + i * 2.0
+        if ge >= 18 or y > D - 1.0:
+            break
+        if free(88.6, y, m=0.4):
+            plant(88.6, y, '은행나무')
+            ge += 1
+
+    # 2) 유도식재 — 느티나무 7 (주동선을 따라 시선을 끈다)
+    for x, y in ((65.6, 28.0), (65.6, 34.0), (65.6, 40.0), (65.6, 46.0),
+                 (73.6, 20.6), (78.0, 20.6), (62.4, 16.0)):
+        if free(x, y, m=0.5):
+            plant(x, y, '느티나무')
+
+    # 3) 산림지구 — 서측 기존수림 + 관찰로 안쪽
+    #    소나무 7 · 갈참 5 · 졸참 9 · 상수리 4 · 층층 7 · 산벚 20
+    west = [(x, y) for x, y in
+            ((random.uniform(1.0, 30.0), random.uniform(1.0, 59.0)) for _ in range(3000))
+            if x < wood_x(y) - 0.5 and free(x, y)]
+    random.shuffle(west)
+    plan = [('소나무', 7), ('갈참나무', 5), ('졸참나무', 9), ('상수리나무', 4),
+            ('층층나무', 7), ('산벚나무', 14)]
+    k, placed = 0, []
+    for name, cnt in plan:
+        got = 0
+        while got < cnt and k < len(west):
+            x, y = west[k]; k += 1
+            if any(math.hypot(x - px, y - py) < 3.2 for px, py in placed[-60:]):
+                continue
+            plant(x, y, name); placed.append((x, y)); got += 1
+    # 기존수림을 메우는 이름 없는 배경목
+    for _ in range(300):
+        y = random.uniform(0.8, 59.2)
+        x = random.uniform(0.8, max(1.0, wood_x(y) - 0.8))
+        if free(x, y):
+            tree(x, y, random.choice(['ball', 'ball', 'cone', 'weep']))
+    # 관찰로 안쪽 산림지구 — 산벚나무 6 + 배경목
+    pick(6, (22.0, 56.0, 21.0, 40.0), '산벚나무', poly=RO_IN)
+    for _ in range(90):
+        x, y = random.uniform(20.0, 56.0), random.uniform(21.0, 40.0)
+        if _inside((x, y), RO_IN) and free(x, y) and                 min(math.hypot(x - mx, y - my) for mx, my in MARSH) > 2.0:
+            tree(x, y, random.choice(['ball', 'weep']))
+
+    # 4) 습지·저수지 주변 — 버드나무 5 · 메타세쿼이아 12 · 산딸나무 5 · 생강나무 4
+    for n, name, box in ((5, '버드나무', (14.0, 40.0, 1.0, 21.0)),
+                         (7, '메타세쿼이아', (30.0, 44.0, 2.0, 20.0)),
+                         (5, '메타세쿼이아', (44.0, 58.0, 20.0, 36.0)),
+                         (5, '산딸나무', (36.0, 56.0, 18.0, 36.0))):
+        pick(n, box, name, avoid_ro=True)
+    gs = [(random.uniform(44.0, 56.0), random.uniform(24.0, 36.0)) for _ in range(40)]
+    scatter_species([q for q in gs if free(*q)][:4], ['생강나무'], height)
+
+    # 5) 수생·수변 — 부들 · 갈대 · 골풀 (저수지), 갯버들 (습지·물가)
+    def rim(poly, step, off):
+        """물가를 따라 바깥으로 off 만큼 나간 점들."""
+        cx = sum(q[0] for q in poly) / len(poly)
+        cy = sum(q[1] for q in poly) / len(poly)
+        out = []
         for a, b in zip(poly, poly[1:] + poly[:1]):
             L = math.hypot(b[0] - a[0], b[1] - a[1])
-            for k in range(max(1, int(L / 1.1))):
-                t = (k + 0.5) / max(1, int(L / 1.1))
-                pts.append((a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t))
-        scatter_species(pts, names, height)
-    # 마운딩 — 도면에는 등고선만 있으나 비어 보인다. 성기게 교목을 얹어 둔덕이 읽히게 한다
-    for _ in range(26):
-        x = random.uniform(75.5, 83.5)
-        y = random.uniform(27.5, 47.5)
-        if not _inside((x, y), MOUND_OUT):
-            continue
-        tree(x, y, random.choice(['ball', 'cone']))
-    # 보행로 옆 식재지 — 도면에 빗금으로 표시된 두 곳
-    for (x0, x1, y0, y1) in ((67.0, 72.0, 25.0, 31.0), (67.0, 72.0, 45.0, 51.0)):
-        bed_shape([(x0, y0), (x1, y0), (x1, y1), (x0, y1)], 0.8, m_soil, m_kerb,
-                  ['회양목', '병꽃나무'], z=71.82, gap=0.62)
-    # 광장 주변 관목
-    for (x0, x1, y0, y1) in ((64.0, 67.0, 25.0, 31.0), (64.0, 67.0, 45.0, 52.0),
-                             (79.0, 82.0, 6.0, 13.0), (79.0, 83.0, 52.0, 60.0)):
-        pts = [(x0 + random.uniform(0, x1 - x0), y0 + random.uniform(0, y1 - y0)) for _ in range(28)]
-        scatter_species(pts, ['회양목', '무궁화', '병꽃나무'], height)
+            for t in range(max(1, int(L / step))):
+                u = (t + 0.5) / max(1, int(L / step))
+                x, y = a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u
+                d = math.hypot(x - cx, y - cy) or 1.0
+                out.append((x + (x - cx) / d * off, y + (y - cy) / d * off))
+        return [q for q in out if 0.4 < q[0] < W - 0.4 and 0.4 < q[1] < D - 0.4]
+
+    scatter_species(rim(POND, 1.0, -0.6), ['부들', '갈대'], lambda x, y: Z_POND)
+    scatter_species(rim(POND, 1.2, 0.9), ['골풀', '꽃창포'], height)
+    scatter_species(rim(MARSH, 0.9, -0.5), ['갈대', '부들'], lambda x, y: Z_MARSH)
+    scatter_species(rim(MARSH, 1.0, 1.0), ['갯버들', '꽃창포', '부처꽃'], height)
+    scatter_species(rim(POND, 1.4, 2.2), ['갯버들'], height)
+
+    # 6) 경관식재 — 마운딩 일대의 진달래 240 · 철쭉 540
+    az = [(random.uniform(74.0, 86.0), random.uniform(23.0, 50.0)) for _ in range(900)]
+    scatter_species([q for q in az if free(*q, m=0.8)], ['철쭉', '진달래', '철쭉'], height)
+    # 산림지구 하부 — 병꽃나무 600 (도면의 가장 큰 수량)
+    ug = [(random.uniform(1.0, 30.0), random.uniform(1.0, 59.0)) for _ in range(1400)]
+    ug = [q for q in ug if q[0] < wood_x(q[1]) - 1.0 and free(*q)]
+    scatter_species(ug, ['병꽃나무', '진달래', '철쭉'], height)
+
+    # 7) 광장 주변 관목 — 무궁화 · 회양목
+    for (x0, x1, y0, y1) in ((64.0, 66.8, 25.0, 31.0), (64.0, 66.8, 45.0, 52.0),
+                             (79.5, 82.0, 6.0, 13.0), (79.5, 83.0, 53.0, 59.5)):
+        pts = [(random.uniform(x0, x1), random.uniform(y0, y1)) for _ in range(30)]
+        scatter_species([q for q in pts if free(*q, m=0.3)], ['회양목', '무궁화', '병꽃나무'], height)
 
     # ── 카메라 · 빛
     cam_d = bpy.data.cameras.new('cam')
