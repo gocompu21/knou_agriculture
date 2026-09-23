@@ -1320,9 +1320,31 @@ def build():
         if free(x, y, m=1.0):
             plant(x, y, '산벚나무')
 
+    # 9-b) **북동 진입광장을 진달래 띠가 두른다 — 왼쪽과 위쪽.**
+    #   배식설계도: 광장 왼쪽 변과 윗변을 진달래(247 주)가 감싸고, **그 뒤(북쪽)에
+    #   은행나무 열식**이 선다. 여기를 회양목 30 주로 성기게 두었더니 광장 둘레가
+    #   비어 보였다 — 북측 길가 띠(8-b ①)와 같은 띠가 광장을 돌아 올라가는 것이다
+    ne = []
+    for _ in range(700):                        # ① 왼쪽 변 (x 79.6~82)
+        x, y = random.uniform(79.6, 82.0), random.uniform(4.3, 13.0)
+        if free(x, y, m=0.3):
+            ne.append((x, y))
+    for _ in range(900):                        # ② 윗변 (y 4.3~6) — 은행나무 줄 앞
+        x, y = random.uniform(79.6, 87.4), random.uniform(4.3, 6.0)
+        if free(x, y, m=0.3):
+            ne.append((x, y))
+    scatter_species(ne, ['진달래', '진달래', '철쭉'], height)
+
+    # 9-c) 동측 화단 남쪽 끝 — 띠가 광장을 돌아 내려온다(도면)
+    se = []
+    for _ in range(800):
+        x, y = random.uniform(79.4, 85.4), random.uniform(50.0, 57.6)
+        if free(x, y, m=0.3):
+            se.append((x, y))
+    scatter_species(se, ['진달래', '진달래', '철쭉'], height)
+
     # 10) 광장 주변 관목 — 무궁화 · 회양목
-    for (x0, x1, y0, y1) in ((64.0, 66.8, 25.0, 31.0), (64.0, 66.8, 45.0, 52.0),
-                             (79.5, 82.0, 6.0, 13.0), (79.5, 83.0, 53.0, 59.5)):
+    for (x0, x1, y0, y1) in ((64.0, 66.8, 25.0, 31.0), (64.0, 66.8, 45.0, 52.0)):
         pts2 = [(random.uniform(x0, x1), random.uniform(y0, y1)) for _ in range(30)]
         scatter_species([q for q in pts2 if free(*q, m=0.3)], ['회양목', '무궁화', '병꽃나무'], height)
 
