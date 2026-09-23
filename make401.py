@@ -1159,8 +1159,9 @@ def build():
 
     # 5) **산림지구 — 교목 + 관목.** 루프 바깥, 기존수림 동쪽
     FZ = (13.0, 62.0, 2.0, 59.0)
-    plan = [('소나무', 7), ('갈참나무', 5), ('졸참나무', 9), ('상수리나무', 4),
-            ('층층나무', 7), ('산벚나무', 20), ('느티나무', 2)]
+    # 소나무 7 과 산벚나무 6 은 **동측 진입광장 일대**로 간다(아래 11 참조)
+    plan = [('갈참나무', 5), ('졸참나무', 9), ('상수리나무', 4),
+            ('층층나무', 7), ('산벚나무', 14), ('느티나무', 2)]
     need = sum(c for _, c in plan)
     pts = spots(need + 40, FZ, in_forest, gap=3.0)
     random.shuffle(pts)
@@ -1220,9 +1221,28 @@ def build():
     scatter_species(rim(MARSH, 1.0, 1.0), ['갯버들', '꽃창포', '부처꽃'], height)
     scatter_species(rim(POND, 1.4, 2.2), ['갯버들'], height)
 
-    # 9) 경관식재 — 마운딩 일대의 진달래 240 · 철쭉 540
-    az = [(random.uniform(74.0, 86.0), random.uniform(23.0, 50.0)) for _ in range(900)]
-    scatter_species([q for q in az if free(*q, m=0.8)], ['철쭉', '진달래', '철쭉'], height)
+    # 9) **동측 진입광장 일대 — 도면대로.**
+    #    진입로(보행로) 쪽에 철쭉 띠 → 안쪽은 잔디 → 소나무 7 → 그 위(북쪽) 산벚나무 6
+    #    → 오른쪽 도로변에 은행나무 열식.
+    #    마운딩 전체에 진달래·철쭉을 흩어 놓았던 것을 걷어낸다 — 도면은 띠다
+    band = []
+    for _ in range(1400):                       # 철쭉 띠 — 보행로 동쪽 2.5m
+        x, y = random.uniform(72.3, 74.8), random.uniform(18.0, 52.0)
+        if free(x, y, m=0.3):
+            band.append((x, y))
+    scatter_species(band, ['철쭉', '철쭉', '진달래'], height)
+    for _ in range(500):                        # 남동 진입광장 둘레에도 조금
+        x, y = random.uniform(66.5, 80.0), random.uniform(50.0, 52.0)
+        if free(x, y, m=0.3):
+            band.append((x, y))
+    scatter_species(band[-400:], ['철쭉', '진달래'], height)
+
+    for q in spots(7, (76.0, 86.0, 32.0, 50.0),                     # 소나무 7 (지표식재)
+                   lambda x, y: free(x, y, m=1.5), gap=3.4):
+        plant(*q, '소나무')
+    for q in spots(6, (76.0, 86.0, 19.0, 31.0),                     # 산벚나무 6 — 소나무 위쪽
+                   lambda x, y: free(x, y, m=1.5), gap=3.4):
+        plant(*q, '산벚나무')
 
     # 10) 광장 주변 관목 — 무궁화 · 회양목
     for (x0, x1, y0, y1) in ((64.0, 66.8, 25.0, 31.0), (64.0, 66.8, 45.0, 52.0),
