@@ -1,3 +1,6 @@
+**맨 앞 두 장(0·0b)이 치수가 맞는 그림입니다.** 아래 글은 그 뒤 세 번째 그림
+(GPT 26회차)을 만든 기록이라, 분위기는 좋지만 치수는 맞지 않습니다.
+
 'My' 탭의 색 배치도와 '성운' 탭의 **기본설계도 · 배식설계도**를 GPT 이미지 모델
 (gpt-image-2.5-sunburst)에 주고 만든 **입체평면도**입니다(26회차).
 
@@ -212,3 +215,39 @@
     EVERYTHING ELSE IS EXACTLY AS IN THE THIRD IMAGE: the stream across the top with wooded hillside beyond; the reservoir with its willows, reed beds and shoreline stones; the wetland pond; ONE closed angular ring of raised timber boardwalk with EXACTLY 5 viewing platforms, each carrying one board with a pale off-white panel; EXACTLY 1 bird-watching hut on the reservoir's lower-right shore; the rest area with EXACTLY 1 pergola, 2 benches and 1 litter bin under shade trees; the gathering plaza with its EXACTLY 1 tree in a square grate; EXACTLY 2 trees in grates and 1 blank board on the top-right entrance plaza; EXACTLY 2 trees in grates and 1 blank board on the bottom entrance plaza — FIVE tree grates in all; ONE single row of ginkgos inside the right-hand road continuing inside the bottom road; open mown lawn west of the ring and west of the reservoir with only three or four isolated specimen trees; the dense multi-layered woodland only in the lower left and lower middle.
 
     STRICT RULES: no new buildings, plazas, paths, bridges, fences, walls, cars or people; NO text, letters, numbers, labels, legends, arrows, north arrow, scale bar, grid lines, dimension lines or watermark anywhere in the picture. The ONLY exception is the very faint, blurred, unreadable grey markings on the signboard panels described above - they must stay illegible.
+
+---
+
+# 블렌더로 다시 세운 입체 축측도 (0·0b번 그림)
+
+이미지 모델은 **화면에서 길이를 재지 못합니다.** "관찰데크 5개"·"관찰로 폭 2m"를 몇 번을
+말해도 회차마다 달라져, 26회차를 태우고도 치수는 맞지 않았습니다. 그래서 도면 치수를
+그대로 넣은 **3차원 모형**을 세웠습니다.
+
+## 좌표를 다시 읽지 않았습니다
+
+'My' 탭의 모눈종이 도면은 사진을 인쇄 눈금 틀로 편 뒤 구역별로 확대해 **미터 단위로 읽어 둔
+것**입니다. 그 좌표를 그대로 모형에 옮겼습니다 — 도면을 눈으로 다시 읽는 일(가장 오래 걸리고
+가장 많이 틀리는 일)이 이미 끝나 있었던 셈입니다.
+
+## 표고 — 성운 답안 도면의 계획고
+
+| 자리 | 표고 |
+| --- | --- |
+| 기존 등고선 | 71 · 72 · 73 |
+| 북동 진입광장 | 72.2 |
+| 목재데크광장 · 관찰로 | 72.0 |
+| 남동 진입광장 | 71.6 |
+| 마운딩 | 72.0 → 72.6 |
+
+등고선을 점으로 흩어 역거리가중으로 높이면을 만들고, 계획고를 무겁게 박았습니다.
+저수지·습지 밑은 파내려 갔습니다. **수면 높이는 도면에 없어 가정**했습니다
+(저수지 70.8 · 습지 71.0 · 실개천 70.9) — 401 에는 단면도가 없습니다.
+
+## 검증 — 겹쳐 보기
+
+직교 카메라는 축척이 딱 떨어집니다(`px/m = 해상도 ÷ ortho_scale`). 도면을 같은 축척으로
+그려 평면 렌더 위에 빨갛게 얹어, 어긋난 곳의 숫자를 고치고 다시 렌더하기를 되풀이했습니다.
+저수지·습지·관찰로·관찰데크 5·조류관찰소·휴게공간·진입광장 2·모임광장·수목보호대 5·
+기존수림 경계가 모두 도면 선 안에 들어옵니다.
+

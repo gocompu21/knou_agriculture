@@ -1,3 +1,6 @@
+**맨 앞 두 장(0·0b)이 치수가 맞는 그림입니다.** 아래 글은 세 번째 그림(GPT 20회차)을
+만든 기록입니다.
+
 '성운' 탭의 **답안지 II · 기본설계도**와 **답안지 III · 배식설계도**, 문제지 조건으로 만든 **입체 조감도**입니다.
 **GPT**(gpt-image-2.5-sunburst, 20회차)로 그렸습니다. 남동쪽 상공에서 북서쪽을 내려다본 시점이라 **도면의 북쪽이 그림의 위**입니다 —
 실개천이 위, 기존수림이 왼쪽, 6m 도로와 주택가가 오른쪽·아래입니다.
@@ -137,3 +140,17 @@
     RENDER IT FRESH AT MAXIMUM RESOLUTION AND MAXIMUM DETAIL — this matters as much as the thirteen fixes. Draw the whole picture again; do not retouch, soften or resample the fourth image. Every part must be at least as crisp and as finely detailed as the fourth image: the individual leaves in every canopy, the blades of the turf, the grain and board joints of the boardwalk, the individual blocks of the paving, the rocks at the water's edge, the roof tiles of the houses. Do not simplify, smooth or average any texture.
 
     STRICT RULES: no new buildings, plazas, paths, bridges, fences, walls, cars or people; NO text, letters, numbers, labels, legends, arrows, north arrow, scale bar, grid lines, dimension lines or watermark anywhere in the picture. The ONLY exception is the very faint, blurred, unreadable grey markings on the signboard panels described above - they must stay illegible.
+
+---
+
+# 블렌더 모형에서 뽑은 실사 조감도 (0·0b번 그림)
+
+도면 치수를 그대로 넣은 3차원 모형을 남동쪽 상공에서 원근으로 본 그림(0b)을 GPT 에 주어
+**재질만** 실사로 바꾸고, 사람 여섯을 넣고, 주변 경관을 이어 그리게 했습니다(0).
+
+주변은 문제지 현황도 그대로입니다 — **위쪽에 실개천, 그 너머와 아래쪽에 야산(도시자연림),
+왼쪽에 자연형 공원과 기존수림, 오른쪽과 오른쪽 아래에 6m 도로 건너 주택가**입니다.
+(현황도의 방위표는 북쪽이 도면 왼쪽입니다.)
+
+모형 이야기는 '입체평면도' 탭에 적어 두었습니다.
+
