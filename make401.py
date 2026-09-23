@@ -1085,10 +1085,36 @@ def build():
         """관찰로 띠 위(바깥선 안 · 안선 밖)."""
         return _inside((x, y), RO_OUT) and not _inside((x, y), RO_IN)
 
-    def in_forest(x, y):
+    def d_loop(x, y):
+        """관찰로 바깥선까지의 거리."""
+        best = 1e9
+        for a, b in zip(RO_OUT, RO_OUT[1:] + RO_OUT[:1]):
+            vx, vy = b[0] - a[0], b[1] - a[1]
+            L2 = vx * vx + vy * vy
+            t = 0.0 if L2 == 0 else max(0.0, min(1.0, ((x - a[0]) * vx + (y - a[1]) * vy) / L2))
+            best = min(best, math.hypot(x - (a[0] + t * vx), y - (a[1] + t * vy)))
+        return best
+
+    def d_built(x, y):
+        """조류관찰소·관찰데크까지의 거리."""
+        bx, by = (BIRD_HIDE[0] + BIRD_HIDE[1]) / 2, (BIRD_HIDE[2] + BIRD_HIDE[3]) / 2
+        best = math.hypot(x - bx, y - by) - 3.2
+        for cx, cy, *_ in DECKS:
+            best = min(best, math.hypot(x - cx, y - cy) - 2.0)
+        return best
+
+    # **교목은 관찰로에서 3.5m, 시설에서 3.5m 를 띄운다.** 안 띄우면 축측도에서
+    # 수관이 관찰로와 조류관찰소를 덮어 버린다(위에서 보면 멀쩡한데 비스듬히 보면 가린다)
+    CLEAR_PATH, CLEAR_BUILT = 3.5, 3.5
+
+    def in_forest(x, y, clear=True):
         """산림지구 — 관찰로 루프 **바깥**, 기존수림 **동쪽**, 공원 보행로 서쪽."""
-        return (free(x, y) and not _inside((x, y), RO_OUT)
-                and x > wood_x(y) + 0.5 and x < 63.0)
+        if not (free(x, y) and not _inside((x, y), RO_OUT)
+                and x > wood_x(y) + 0.5 and x < 63.0):
+            return False
+        if clear and (d_loop(x, y) < CLEAR_PATH or d_built(x, y) < CLEAR_BUILT):
+            return False
+        return True
 
     def spots(n, box, test, gap=2.6, tries=6000):
         x0, x1, y0, y1 = box
@@ -1128,7 +1154,7 @@ def build():
     for _ in range(420):
         y = random.uniform(0.8, 59.2)
         x = random.uniform(0.8, max(1.0, wood_x(y) - 0.8))
-        if free(x, y):
+        if free(x, y) and d_loop(x, y) > CLEAR_PATH and d_built(x, y) > CLEAR_BUILT:
             tree(x, y, random.choice(['ball', 'ball', 'cone', 'weep']))
 
     # 5) **산림지구 — 교목 + 관목.** 루프 바깥, 기존수림 동쪽
@@ -1145,15 +1171,17 @@ def build():
                 break
             plant(*pts[k], name); k += 1
     # 산림지구를 메우는 배경목
-    for x, y in spots(150, FZ, in_forest, gap=2.4):
+    for x, y in spots(120, FZ, in_forest, gap=2.8):
         tree(x, y, random.choice(['ball', 'ball', 'weep', 'cone']))
     # 산림지구 관목 — 병꽃나무 300 · 진달래 · 철쭉
     sh = [(random.uniform(*FZ[:2]), random.uniform(*FZ[2:])) for _ in range(2200)]
-    scatter_species([q for q in sh if in_forest(*q)], ['병꽃나무', '진달래', '철쭉'], height)
+    scatter_species([q for q in sh if in_forest(*q, clear=False) and d_loop(*q) > 1.2],
+                    ['병꽃나무', '진달래', '철쭉'], height)   # 관목은 1.2m 만 띄운다
 
     # 6) 저수지구 둘레 — 버드나무 · 메타세쿼이아 · 산딸나무 (물가 바깥)
-    near_pond = lambda x, y: (free(x, y) and not on_deck(x, y)
-                              and 1.0 < min(math.hypot(x - px, y - py) for px, py in POND) < 5.0)
+    near_pond = lambda x, y: (free(x, y) and d_loop(x, y) > CLEAR_PATH
+                              and d_built(x, y) > CLEAR_BUILT
+                              and 1.0 < min(math.hypot(x - px, y - py) for px, py in POND) < 6.0)
     wp = spots(5, (12.0, 42.0, 0.5, 22.0), near_pond, gap=4.0)
     for q in wp:
         plant(*q, '버드나무')
