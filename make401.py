@@ -1192,14 +1192,17 @@ def build():
         if x < W - 0.8 and free(x, 3.0, m=0.4):
             plant(x, 3.0, '은행나무'); gink += 1
     for x in [31.0 + i * 3.2 for i in range(19)]:         # 남측 경계
-        if x < W - 0.8 and free(x, 57.4, m=0.4):
-            plant(x, 57.4, '은행나무'); gink += 1
+        if x < W - 0.8 and free(x, 58.7, m=0.4):
+            plant(x, 58.7, '은행나무'); gink += 1
     print('은행나무', gink, '주')
 
-    # 3) 유도식재 — 느티나무 (주동선을 따라)
-    for x, y in ((65.6, 28.0), (65.6, 34.0), (65.6, 40.0), (65.6, 46.0), (62.4, 16.0)):
-        if free(x, y, m=0.5):
-            plant(x, y, '느티나무')
+    # 3) **유도식재 — 메타세쿼이아 7 (보행로 서쪽 열).**
+    #   남측 라벨 '7 - 메타세쿼이아 H4.0 x B8' 의 인출선이 x=66.4 의 이 열을
+    #   가리킨다. 느티나무로 넣어 두었던 것을 바로잡는다 — 느티나무 7주는
+    #   수목보호대 5 + 산림지구 2 로 이미 찬다. 북측 실개천가 5 와 합쳐 12주
+    for y in (26.8, 32.0, 37.2, 42.2, 47.0, 52.1, 57.4):
+        if free(66.4, y, m=0.4):
+            plant(66.4, y, '메타세쿼이아')
 
     # 4) 기존수림 — 서측. 경계선 서쪽을 빽빽하게
     for _ in range(420):
@@ -1324,11 +1327,6 @@ def build():
         if free(x, y, m=0.3):
             band.append((x, y))
     scatter_species(band, ['철쭉', '철쭉', '진달래'], height)
-    for _ in range(500):                        # 남동 진입광장 둘레에도 조금
-        x, y = random.uniform(66.5, 80.0), random.uniform(50.0, 52.0)
-        if free(x, y, m=0.3):
-            band.append((x, y))
-    scatter_species(band[-400:], ['철쭉', '진달래'], height)
 
     # 소나무 7 — **안쪽 잔디 한가운데에**(도면의 별 모양 기호 자리).
     #   잔디는 y 18(동측 통로) ~ 52(남동 진입광장) 인데 처음에 31~49 로 아래로
@@ -1358,13 +1356,18 @@ def build():
             ne.append((x, y))
     scatter_species(ne, ['진달래', '진달래', '철쭉'], height)
 
-    # 9-c) 동측 화단 남쪽 끝 — 띠가 광장을 돌아 내려온다(도면)
+    # 9-c) **동측 화단 남쪽 끝 — 띠가 남동 광장을 돌아 남측 경계까지 내려온다.**
+    #   배식설계도: 가로팔 x 73.5~84.0 · y 49.2~51.6,
+    #              세로팔 x 80.3~84.9 · y 49.2~59.6 (경계선에 닿는다)
     se = []
-    for _ in range(800):
-        x, y = random.uniform(79.4, 85.4), random.uniform(50.0, 57.6)
+    for _ in range(1600):
+        if random.random() < 0.40:
+            x, y = random.uniform(73.5, 84.0), random.uniform(49.2, 51.6)
+        else:
+            x, y = random.uniform(80.3, 84.9), random.uniform(49.2, 59.6)
         if free(x, y, m=0.3):
             se.append((x, y))
-    scatter_species(se, ['진달래', '진달래', '철쭉'], height)
+    scatter_species(se, ['철쭉', '철쭉', '진달래'], height)
 
     # 10) 광장 주변 관목 — 무궁화 · 회양목
     for (x0, x1, y0, y1) in ((64.0, 66.8, 25.0, 31.0), (64.0, 66.8, 45.0, 52.0)):
