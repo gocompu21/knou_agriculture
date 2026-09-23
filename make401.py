@@ -159,9 +159,9 @@ TREE_SPEC = {
 }
 
 
-def plant(x, y, name):
+def plant(x, y, name, k=1.0):
     kind, sc, rgb = TREE_SPEC[name]
-    tree(x, y, kind, scale=sc, leaf_rgb=rgb, name=name)
+    tree(x, y, kind, scale=sc * k, leaf_rgb=rgb, name=name)
 
 random.seed(401)
 TOP_VIEW = False
@@ -943,15 +943,26 @@ def bird_hide(x0, x1, y0, y1, z, wood, roof, glass):
 
 
 def pergola4(cx, cy, z, wood):
-    """파고라 4 x 4 — 기둥 넷 + 격자 지붕."""
+    """파고라 4 x 4 — 기둥 넷 + **두 켜 격자 지붕**.
+
+    살대를 0.45m 간격에 7cm 폭으로 두었더니 그늘이 거의 없었다(햇빛이 다 샌다).
+    큰 보 넷 위에 살대를 0.17m 간격으로 촘촘히 깔고, 그 위에 가로 살대를 한 켜 더
+    올려 **두 켜가 엇갈리게** 한다 — 실제 파고라의 짙은 줄그림자가 이렇게 난다.
+    """
     for dx in (-1.8, 1.8):
         for dy in (-1.8, 1.8):
             box(cx + dx, cy + dy, z, 0.18, 0.18, 2.4, wood)
-    for d in (-1.9, 1.9):
-        box(cx + d, cy, z + 2.4, 0.14, 4.0, 0.16, wood)
-        box(cx, cy + d, z + 2.4, 4.0, 0.14, 0.16, wood)
-    for i in range(9):                                                # 살대
-        box(cx - 1.8 + i * 0.45, cy, z + 2.56, 0.07, 3.9, 0.09, wood)
+    for d in (-1.9, 1.9):                                 # 테두리 보
+        box(cx + d, cy, z + 2.40, 0.16, 4.0, 0.18, wood)
+        box(cx, cy + d, z + 2.40, 4.0, 0.16, 0.18, wood)
+    for d in (-0.62, 0.62):                               # 가운데 보 둘
+        box(cx + d, cy, z + 2.40, 0.14, 4.0, 0.18, wood)
+    n = 18                                                # 아래 켜 — 서까래
+    for i in range(n):
+        box(cx - 1.85 + i * (3.7 / (n - 1)), cy, z + 2.58, 0.10, 3.9, 0.10, wood)
+    m = 12                                                # 위 켜 — **판재**(틈 5cm)
+    for i in range(m):                                    # 살대만으로는 빛이 24% 샌다
+        box(cx, cy - 1.80 + i * (3.6 / (m - 1)), z + 2.68, 3.9, 0.29, 0.06, wood)
 
 
 def bench(cx, cy, deg, z, wood, leg):
@@ -965,11 +976,15 @@ def bench(cx, cy, deg, z, wood, leg):
 
 
 def tree_grate(cx, cy, z, m_grate, m_soil):
-    """수목보호대 2 x 2."""
-    for (bx, by, bw, bh) in ((cx, cy - 0.9, 2.0, 0.2), (cx, cy + 0.9, 2.0, 0.2),
-                             (cx - 0.9, cy, 0.2, 2.0), (cx + 0.9, cy, 0.2, 2.0)):
-        box(bx, by, z - 0.06, bw, bh, 0.1, m_grate)
-    slab(cx - 0.8, cx + 0.8, cy - 0.8, cy + 0.8, z - 0.02, m_soil, h=0.06)
+    """수목보호대 2 x 2 — **사각 틀이 보여야 한다.**
+
+    위에서 내려다보면 수관이 틀을 덮는다. 틀 모서리는 중심에서 1.41m 이므로
+    여기에 심는 느티나무는 수관 반지름을 그보다 작게 준다(build 의 k 값).
+    """
+    for (bx, by, bw, bh) in ((cx, cy - 0.88, 2.0, 0.24), (cx, cy + 0.88, 2.0, 0.24),
+                             (cx - 0.88, cy, 0.24, 2.0), (cx + 0.88, cy, 0.24, 2.0)):
+        box(bx, by, z - 0.05, bw, bh, 0.14, m_grate)
+    slab(cx - 0.76, cx + 0.76, cy - 0.76, cy + 0.76, z - 0.01, m_soil, h=0.06)
 
 
 def sign(cx, cy, z, post, panel, w=0.6, h=1.9):
@@ -1089,9 +1104,10 @@ def build():
             out.append((x, y))
         return out
 
-    # 1) 수목보호대 5 — **느티나무를 심는다**(녹음수). 빈 구멍이 아니다
+    # 1) 수목보호대 5 — **느티나무를 심되 사각 틀이 보이게** 수관을 줄인다.
+    #    기본 크기(수관 반지름 2.3m)면 2x2 틀(모서리 1.41m)을 통째로 덮는다
     for cx, cy in GRATES:
-        plant(cx, cy, '느티나무')
+        plant(cx, cy, '느티나무', k=0.58)
 
     # 2) 동측 완충식재 — 은행나무 18 (주택가와의 기능 분리)
     ge = 0
