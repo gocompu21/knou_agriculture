@@ -82,11 +82,24 @@ REST     = (50.0, 58.0, 40.0, 48.0)    # 휴게공간 8 x 8 (지형 평탄화용
 # 관찰로로 2m 폭 사선 진입로가 나간다(P39 · P40 과 두 사선)
 REST_POLY = [(51.4, 40.0), (58.0, 40.0), (58.0, 48.0), (50.0, 48.0), (50.0, 41.5)]
 LINK = [(50.4, 38.8), (48.7, 39.9), (50.0, 41.5), (51.4, 40.0)]   # 관찰로 변 → 휴게공간 변
+PARK_PAVED = [NE_PLAZA, EAST_WALK, MEET, SPINE, SE_PLAZA]   # 서로 잇닿은 공원 포장
+
+
+def zpark(y):
+    """공원 포장면 — 북동 72.2 에서 남 71.6 으로 **하나의 경사면**으로 흐른다.
+
+    판마다 다른 높이를 주면 경계에 20cm 단차가 생겨 포장이 갈라져 보인다
+    (모임광장·동측 통로·보행로가 그랬다). 계획고는 도면의 두 점뿐이므로
+    그 사이를 곧게 잇는다.
+    """
+    t = min(max((y - 13.0) / (56.0 - 13.0), 0.0), 1.0)
+    return Z_NE_PLAZA + (Z_SE_PLAZA - Z_NE_PLAZA) * t
+
+
 # 포장면 계획고 — 지형을 여기에 맞춰 평탄하게 깎는다(안 깎으면 지형이 포장을 덮는다)
 # 진입광장과 동측 통로를 **같은 72.2 로** 둔다. 다르게 두면 경계에 30cm 단차가 생겨
 # 포장이 두 조각으로 갈라져 보이고, 경계에 걸친 수목보호대가 반쯤 묻힌다
-FLATS = [(NE_PLAZA, Z_NE_PLAZA), (EAST_WALK, Z_NE_PLAZA), (MEET, 72.00),
-         (SPINE, 71.80), (SE_PLAZA, Z_SE_PLAZA), (REST, 71.65)]
+FLATS = [(REST, 71.65)]                # 휴게공간만 평평 — 나머지는 zpark 경사면
 
 # ── 관찰로 (목재데크) — 바깥선 · 안선 ─────────────────────────────
 # 본선에서 **조류관찰소 접근로(지그재그)를 뺐다** — 안선과 길이 비례로 짝지을 때 띠가
@@ -626,8 +639,15 @@ def _heightfield():
     t = np.clip(ds / (STREAM_W / 2 + 1.2), 0.0, 1.0)
     Z = np.minimum(Z, Z * t + (Z_STREAM - 0.35) * (1 - t))
 
-    # 포장 자리는 평탄하게 깎는다 — 가장자리 1.5m 는 주변 지반과 이어 준다
-    for (x0, x1, y0, y1), zf in FLATS:
+    # 포장 자리는 평탄하게 깎는다 — 가장자리 1.5m 는 주변 지반과 이어 준다.
+    # 공원 포장(잇닿은 다섯 구역)은 **하나의 경사면** zpark 를 따라간다
+    ZP = Z_NE_PLAZA + (Z_SE_PLAZA - Z_NE_PLAZA) * np.clip((PY - 13.0) / 43.0, 0.0, 1.0)
+    for (x0, x1, y0, y1) in PARK_PAVED:
+        dx = np.maximum(np.maximum(x0 - PX, PX - x1), 0.0)
+        dy = np.maximum(np.maximum(y0 - PY, PY - y1), 0.0)
+        t = np.clip(np.hypot(dx, dy) / 1.5, 0.0, 1.0)
+        Z = Z * t + ZP * (1 - t)
+    for (x0, x1, y0, y1), zf in FLATS:          # 휴게공간만 평평하다
         dx = np.maximum(np.maximum(x0 - PX, PX - x1), 0.0)
         dy = np.maximum(np.maximum(y0 - PY, PY - y1), 0.0)
         t = np.clip(np.hypot(dx, dy) / 1.5, 0.0, 1.0)
@@ -751,6 +771,29 @@ def ramp(pts_z, m):
     bmv.to_mesh(me)
     bmv.free()
     o = bpy.data.objects.new('ramp', me)
+    bpy.context.collection.objects.link(o)
+    return put(o, m)
+
+
+def pad_slope(x0, x1, y0, y1, m, n=10):
+    """경사진 포장 판 — 네 모서리 높이를 zpark 에서 받는다.
+
+    평평한 상자를 잇대면 경계마다 단차가 생겨 '포장이 갈라졌다'로 보인다.
+    세로로 n 칸 나눠 경사를 부드럽게 준다.
+    """
+    me = bpy.data.meshes.new('pad')
+    bmv = bmesh.new()
+    rows = []
+    for i in range(n + 1):
+        y = y0 + (y1 - y0) * i / n
+        z = zpark(y)
+        rows.append((bmv.verts.new((*bl(x0, y), z)), bmv.verts.new((*bl(x1, y), z))))
+    for a, b in zip(rows, rows[1:]):
+        bmv.faces.new([a[0], a[1], b[1], b[0]])
+    _face_up(bmv)
+    bmv.to_mesh(me)
+    bmv.free()
+    o = bpy.data.objects.new('pad', me)
     bpy.context.collection.objects.link(o)
     return put(o, m)
 
@@ -1019,11 +1062,11 @@ def build():
     strip(STREAM, STREAM_W, 0.0, m_water, zfun=lambda x, y: Z_STREAM)
 
     # ── 포장 ────────────────────────────────────────────────────
-    pad(*NE_PLAZA, Z_NE_PLAZA, m_plaza)
-    pad(*EAST_WALK, Z_NE_PLAZA, m_plaza)
-    pad(*MEET, 72.00, m_plaza)
-    pad(*SPINE, 71.80, m_block)
-    pad(*SE_PLAZA, Z_SE_PLAZA, m_plaza)
+    pad_slope(*NE_PLAZA, m_plaza)
+    pad_slope(*EAST_WALK, m_plaza)
+    pad_slope(*MEET, m_plaza)
+    pad_slope(*SPINE, m_block)
+    pad_slope(*SE_PLAZA, m_plaza)
     poly_pad(REST_POLY, 71.65, m_block)
     # 관찰로(72.0) ↔ 휴게공간(71.65) 을 잇는 사선 진입로. 이게 없으면 데크에서
     # 휴게공간으로 들어갈 길이 없다
@@ -1237,12 +1280,16 @@ def build():
             band.append((x, y))
     scatter_species(band[-400:], ['철쭉', '진달래'], height)
 
-    for q in spots(7, (76.0, 86.0, 32.0, 50.0),                     # 소나무 7 (지표식재)
-                   lambda x, y: free(x, y, m=1.5), gap=3.4):
+    # 소나무 7 — **안쪽 잔디에**(도면의 별 모양 기호 자리). 보행로 쪽으로 치우쳐 있다
+    for q in spots(7, (76.0, 84.0, 31.0, 49.0),
+                   lambda x, y: free(x, y, m=1.5), gap=3.6):
         plant(*q, '소나무')
-    for q in spots(6, (76.0, 86.0, 19.0, 31.0),                     # 산벚나무 6 — 소나무 위쪽
-                   lambda x, y: free(x, y, m=1.5), gap=3.4):
-        plant(*q, '산벚나무')
+    # 산벚나무 6 — **윗 경계(y=18)에 붙여 한 줄로.** 안쪽으로 내려오지 않는다
+    for i in range(6):
+        x = 75.0 + i * 2.4
+        y = 20.2 + (0.5 if i % 2 else -0.3)          # 줄이 너무 곧지 않게만
+        if free(x, y, m=1.0):
+            plant(x, y, '산벚나무')
 
     # 10) 광장 주변 관목 — 무궁화 · 회양목
     for (x0, x1, y0, y1) in ((64.0, 66.8, 25.0, 31.0), (64.0, 66.8, 45.0, 52.0),
