@@ -554,11 +554,11 @@ function triGeom() {
     const base = is45 ? L : (tri.alt ? L : L / r3), h = is45 ? L : (tri.alt ? L / r3 : L);
     const sg = tri.flip ? 1 : -1, R = {x: tri.x, y: barY}, T = {x: tri.x, y: barY - h}, B = {x: tri.x + sg * base, y: barY};
     const hl = Math.hypot(base, h), ang = Math.round(Math.atan2(h, base) * 180 / Math.PI);
-    // 가운데 삼각형 구멍 — 내심 I 를 중심으로 세 변에서 **같은 거리(내접원 반지름의 45%)** 만큼 안으로 들인 닮은꼴.
+    // 가운데 삼각형 구멍 — 내심 I 를 중심으로 세 변에서 **같은 거리(내접원 반지름의 70%)** 만큼 안으로 들인 닮은꼴.
     // 띠 폭이 세 변 모두 같아 균형이 맞는다. 구멍의 세 변도 자의 변처럼 대고 그을 수 있다
     const la = Math.hypot(T.x - B.x, T.y - B.y), lb = base, lc = h, per = la + lb + lc;
     const I = {x: (la * R.x + lb * T.x + lc * B.x) / per, y: (la * R.y + lb * T.y + lc * B.y) / per}, rin = base * h / per;
-    const k = 0.55, hv = [R, T, B].map(q => ({x: I.x + (q.x - I.x) * k, y: I.y + (q.y - I.y) * k}));
+    const k = 0.3, hv = [R, T, B].map(q => ({x: I.x + (q.x - I.x) * k, y: I.y + (q.y - I.y) * k}));
     const [hR, hT, hB] = hv, hh = hR.y - hT.y, hbL = Math.abs(hB.x - hR.x), hhl = Math.hypot(hbL, hh);
     return {R, T, B, base, h, ang, I, rin, hole: hv, edges: [
         {ax: R.x, ay: R.y, dx: 0, dy: -1, lo: 0, hi: h, name: '삼각자 세로 변'},
