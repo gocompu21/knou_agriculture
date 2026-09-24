@@ -799,7 +799,8 @@ function arcCands(h) {
     return A;
 }
 function snapAng(a, cands, r) {
-    let best = a, bd = 14 / pxPer() / r;
+    // 붙는 범위는 원둘레 14px 이되 **6° 를 넘지 않게** — 작은 구멍은 14px 가 37° 나 돼서 135° 쯤에서 180° 로 건너뛰었다
+    let best = a, bd = Math.min(14 / pxPer() / r, 6 * Math.PI / 180);
     cands.forEach(c => { const k = c + Math.round((a - c) / (2 * Math.PI)) * 2 * Math.PI, dd = Math.abs(k - a); if (dd < bd) { bd = dd; best = k; } });
     return best;
 }
