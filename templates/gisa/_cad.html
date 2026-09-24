@@ -729,6 +729,55 @@ function startTplDrag(e, w) {
     H.forEach(h => { const d = Math.hypot(w.x - h.c.x, w.y - h.c.y) - h.hr; if (d < bd) { bd = d; best = h; } });
     drag = {kind: 'tpl', sx: e.clientX, sy: e.clientY, moved: false, hole: best, ox: best.c.x - tpl.x, oy: best.c.y - tpl.y, gx: w.x - best.c.x, gy: w.y - best.c.y};
 }
+// ── 접선 맞춤 ── 도면의 선(보이는 것)과 자의 변을 무한 직선으로 모은다: 점 a 와 단위 방향 d
+function tanLines() {
+    const L = [];
+    doc.ops.forEach(op => {
+        if (op.t !== 'line' || auxHidden(op)) return;
+        const a = P(op.a), b = P(op.b); if (!a || !b) return;
+        const n = Math.hypot(b.x - a.x, b.y - a.y); if (n < 1e-6) return;
+        L.push({a, d: {x: (b.x - a.x) / n, y: (b.y - a.y) / n}});
+    });
+    guideEdges().forEach(e => L.push({a: {x: e.ax, y: e.ay}, d: {x: e.dx, y: e.dy}}));
+    return L;
+}
+const sdist = (l, p) => (p.x - l.a.x) * -l.d.y + (p.y - l.a.y) * l.d.x;   // 왼쪽 법선 방향의 부호 있는 거리
+// 템플릿을 옮길 때 — 원이 선에 닿을 만한 곳이면 중심을 옮겨 **정확히 접하게** 한다. 두 선에 함께 닿으면 두 선 모두에 접한다(모서리 라운드)
+function tangentCenter(raw, snapped, r) {
+    const tol = 12 / pxPer(), hit = [];
+    tanLines().forEach(l => {
+        const sd = sdist(l, raw), g = Math.abs(sd) - r;
+        if (Math.abs(g) < tol) hit.push({l, s: Math.sign(sd) || 1, g: Math.abs(g)});
+    });
+    if (!hit.length) return null;
+    hit.sort((a, b) => a.g - b.g);
+    const off = h => ({a: {x: h.l.a.x - h.l.d.y * h.s * r, y: h.l.a.y + h.l.d.x * h.s * r}, d: h.l.d});   // 중심이 놓일 평행선
+    const o1 = off(hit[0]);
+    const h2 = hit.find(h => Math.abs(h.l.d.x * hit[0].l.d.y - h.l.d.y * hit[0].l.d.x) > 0.05);
+    if (h2) {                                           // 두 평행선의 교점
+        const o2 = off(h2), den = o1.d.x * o2.d.y - o1.d.y * o2.d.x;
+        const t = ((o2.a.x - o1.a.x) * o2.d.y - (o2.a.y - o1.a.y) * o2.d.x) / den;
+        return {c: {x: o1.a.x + o1.d.x * t, y: o1.a.y + o1.d.y * t}, n: 2};
+    }
+    const t = (snapped.x - o1.a.x) * o1.d.x + (snapped.y - o1.a.y) * o1.d.y;   // 선 방향으로는 눈금 자리를 지킨다
+    return {c: {x: o1.a.x + o1.d.x * t, y: o1.a.y + o1.d.y * t}, n: 1};
+}
+// 호의 끝 맞춤 — 원의 위·아래·왼쪽·오른쪽, 원이 접한 선의 접점, 원 위에 있는 점. 가까우면(14px) 그 각도로 붙인다
+function arcCands(h) {
+    const c = h.c, r = h.r, A = [0, Math.PI / 2, Math.PI, -Math.PI / 2], e = Math.max(0.002, r * 0.002);
+    tanLines().forEach(l => { const sd = sdist(l, c); if (Math.abs(Math.abs(sd) - r) < e) A.push(Math.atan2(l.d.x * -Math.sign(sd), -l.d.y * -Math.sign(sd))); });
+    doc.pts.forEach(q => { if (Math.abs(Math.hypot(q.x - c.x, q.y - c.y) - r) < e) A.push(Math.atan2(q.y - c.y, q.x - c.x)); });
+    return A;
+}
+function snapAng(a, cands, r) {
+    let best = a, bd = 14 / pxPer() / r;
+    cands.forEach(c => { const k = c + Math.round((a - c) / (2 * Math.PI)) * 2 * Math.PI, dd = Math.abs(k - a); if (dd < bd) { bd = dd; best = k; } });
+    return best;
+}
+function traceSweep(d) {                                // 끝을 맞춘 돈 각도
+    if (d.hole.s !== 'c' || !d.cands || Math.abs(d.sweep) >= 2 * Math.PI * 0.97) return d.sweep;
+    return snapAng(d.a0 + d.sweep, d.cands, d.hole.r) - d.a0;
+}
 // 다각형 구멍을 따라 돈 자리 — 중심에서 각도 θ 로 뻗은 반직선이 도형 둘레와 만나는 점
 function polyAt(v, c, th) {
     const dx = Math.cos(th), dy = Math.sin(th);
@@ -1968,7 +2017,11 @@ svg.addEventListener('pointerdown', e => {
         const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
         // 템플릿 — 구멍 안에서 누르면 구멍 가장자리를 따라 돌린다(어느 버튼이든), 판을 왼쪽으로 누르면 옮긴다
         const hole = tplHoleAt(w);
-        if (hole) { drag = {kind: 'tplTrace', hole, btn: e.button, sx: e.clientX, sy: e.clientY, moved: false, a0: Math.atan2(w.y - hole.c.y, w.x - hole.c.x), sweep: 0}; drag.last = drag.a0; return; }
+        if (hole) {
+            const a = Math.atan2(w.y - hole.c.y, w.x - hole.c.x), cands = hole.s === 'c' ? arcCands(hole) : null;
+            drag = {kind: 'tplTrace', hole, cands, btn: e.button, sx: e.clientX, sy: e.clientY, moved: false, a0: cands ? snapAng(a, cands, hole.r) : a, sweep: 0};
+            drag.last = a; return;
+        }
         if (c('#cadTpl .tpl-body')) { if (e.button === 0) startTplDrag(e, w); else drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return; }
         const onBody = c('#cadBar .bar-body'), onTri = c('#cadTri .tri-body');
         const nearTri = nearestEdge(w, 12, ed => !ed.bar);
@@ -2052,10 +2105,12 @@ svg.addEventListener('pointermove', e => {
     if (drag && drag.kind === 'tpl') {
         if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 4) { drag.moved = true; root.classList.add('bar-drag'); }
         if (drag.moved) {
-            const g = barStep(), cx = Math.round((w.x - drag.gx) / g) * g, cy = Math.round((w.y - drag.gy) / g) * g;
-            tpl.x = +(cx - drag.ox).toFixed(3); tpl.y = +(cy - drag.oy).toFixed(3);
+            const g = barStep(), raw = {x: w.x - drag.gx, y: w.y - drag.gy};
+            let cx = Math.round(raw.x / g) * g, cy = Math.round(raw.y / g) * g, tan = null;
+            if (drag.hole.s === 'c') { tan = tangentCenter(raw, {x: cx, y: cy}, drag.hole.r); if (tan) { cx = tan.c.x; cy = tan.c.y; } }
+            tpl.x = +(cx - drag.ox).toFixed(4); tpl.y = +(cy - drag.oy).toFixed(4);
             drawTpl(); hover = null; drawPre();
-            $('cadXY').textContent = `템플릿 ⌀${drag.hole.d}mm 중심 X ${fmt1(cx)} · Y ${fmt1(cy)}`;
+            $('cadXY').textContent = `템플릿 ${holeLabel(drag.hole)} 중심 X ${fmt1(+cx.toFixed(3))} · Y ${fmt1(+cy.toFixed(3))}` + (tan ? ` · 선 ${tan.n}개에 접함` : '');
         }
         return;
     }
@@ -2064,7 +2119,7 @@ svg.addEventListener('pointermove', e => {
         let da = a - drag.last; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
         drag.last = a; drag.sweep = Math.max(-2 * Math.PI, Math.min(2 * Math.PI, drag.sweep + da));
         if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 4) drag.moved = true;
-        const ss = strokeStyle(), st = stAttr(ss.ls, ss.w), r = h.r, sw = drag.sweep, a0 = drag.a0, full = Math.abs(sw) >= 2 * Math.PI * 0.97;
+        const ss = strokeStyle(), st = stAttr(ss.ls, ss.w), r = h.r, sw = traceSweep(drag), a0 = drag.a0, full = Math.abs(sw) >= 2 * Math.PI * 0.97;
         if (h.s === 'c') {
             const p0 = {x: h.c.x + r * Math.cos(a0), y: h.c.y + r * Math.sin(a0)}, p1 = {x: h.c.x + r * Math.cos(a0 + sw), y: h.c.y + r * Math.sin(a0 + sw)};
             gPre.innerHTML = full ? `<circle cx="${fmt(h.c.x)}" cy="${fmt(h.c.y)}" r="${fmt(r)}" ${st}/>`
@@ -2129,7 +2184,7 @@ function endPtr(e) {
     if (d.kind === 'tpl') { root.classList.remove('bar-drag'); if (d.moved) saveTpl(); drawTpl(); return; }
     if (d.kind === 'tplTrace') {
         gPre.innerHTML = '';
-        const h = d.hole, sw = d.sweep, r = h.r;
+        const h = d.hole, sw = traceSweep(d), r = h.r;
         if (!d.moved || Math.abs(sw) < 0.15) { if (!d.moved && d.btn === 0) penDot(toWorld(e), true); return; }   // 거의 안 돌렸으면 점
         snapHist();
         const lab = `템플릿 ${holeLabel(h)}`, full = Math.abs(sw) >= 2 * Math.PI * 0.97;
