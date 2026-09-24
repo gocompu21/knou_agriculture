@@ -1,0 +1,1176 @@
+{% comment %}
+작업형 CAD 탭 — 모눈종이 위에 점(번호·좌표)을 찍고, 점 번호를 이어 선·사각형·원·호를
+긋고 라이브러리 기호(퍼걸러·평의자…)를 넣는다. 401 생태공원을 SVG 로 옮긴 방식
+(make_grid401_svg.py — 점 번호 P1·P2 … 를 잡고 그 점들을 잇는다)을 화면에서 손으로 한다.
+
+- 좌표는 m, 원점은 종이의 0 눈금, y 는 아래로(모눈종이 라벨과 같다)
+- 선·원이 좌표가 아니라 **점 번호를 가리킨다** — 점을 옮기면 걸린 선이 모두 따라온다
+- 내보낸 SVG 는 `data-steps`·`<g data-step>`·`<g data-sub>` 꼴이라 작업형 화면의
+  단계별 작도 재생(initSteps)에 그대로 넣을 수 있다
+- 도면은 회원별로 서버(gisa/cad.py)에, 저장 전 작업은 localStorage 에 임시로 둔다
+{% endcomment %}
+<div class="cad" id="cad" data-cert="{{ cert.pk }}" data-staff="{% if request.user.is_staff %}1{% endif %}"
+     data-api="{% url 'gisa:cad_drawing_list' cert.pk %}" data-symapi="{% url 'gisa:cad_symbol_list' %}">
+    <div class="cad-top">
+        <select id="cadSheet" title="모눈종이"></select>
+        <input id="cadTitle" class="cad-title" placeholder="도면 이름" maxlength="100">
+        <span class="cad-saved" id="cadSaved"></span>
+        <span class="cad-sp"></span>
+        <button type="button" class="cad-b" id="cadNew">새 도면</button>
+        <button type="button" class="cad-b" id="cadOpenBtn">열기</button>
+        <button type="button" class="cad-b pri" id="cadSave" title="Ctrl+S">저장</button>
+        <button type="button" class="cad-b" id="cadExport">SVG 내려받기</button>
+        <button type="button" class="cad-b" id="cadCopy">작도 순서 복사</button>
+        <button type="button" class="cad-b" id="cadFull" title="전체 화면">⛶</button>
+        <div class="cad-open" id="cadOpen" hidden></div>
+    </div>
+    <div class="cad-tools" id="cadTools">
+        <button type="button" data-tool="select" title="선택·점 끌어 옮기기 (V)">선택</button>
+        <button type="button" data-tool="point" title="점 찍기 (P)">점</button>
+        <button type="button" data-tool="line" title="선 긋기 (L)">선</button>
+        <button type="button" data-tool="rect" title="사각형 (R)">사각형</button>
+        <button type="button" data-tool="circle" title="원 (C)">원</button>
+        <button type="button" data-tool="arc" title="호 (A)">호</button>
+        <button type="button" data-tool="sym" title="라이브러리 기호 넣기 (B)">기호</button>
+        <button type="button" data-tool="text" title="글자 (T)">글자</button>
+        <span class="cad-sep"></span>
+        <label class="cad-chk" title="F9"><input type="checkbox" id="cadSnap" checked> 스냅</label>
+        <select id="cadSnapStep" title="스냅 간격"></select>
+        <label class="cad-chk"><input type="checkbox" id="cadShowPts" checked> 점 번호</label>
+        <span class="cad-sep"></span>
+        <button type="button" id="cadUndo" title="되돌리기 (Ctrl+Z)">↶</button>
+        <button type="button" id="cadRedo" title="다시 하기 (Ctrl+Y)">↷</button>
+    </div>
+    <div class="cad-body">
+        <div class="cad-stage">
+            <svg id="cadSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                <g id="cadGrid"></g><g id="cadOps"></g><g id="cadPts"></g><g id="cadPre"></g>
+            </svg>
+            <div class="cad-zoom">
+                <button type="button" id="cadZin" title="확대">+</button>
+                <button type="button" id="cadZout" title="축소">−</button>
+                <button type="button" id="cadZfit" title="종이에 맞추기">맞춤</button>
+            </div>
+            <div class="cad-status"><span id="cadXY">X — · Y —</span><span id="cadHint"></span></div>
+        </div>
+        <div class="cad-panel">
+            <div class="cad-form" id="cadForm">
+                <div data-form="select">
+                    <h4>선택</h4>
+                    <p class="cad-help">객체를 누르면 고릅니다(Shift 로 여럿). 점은 끌어서 옮기고, 빈 곳을 끌면 화면이 움직입니다.
+                       고른 객체는 <b>Delete</b> 로 지우고, 작도 순서의 ✎ 로 고칩니다.</p>
+                </div>
+                <div data-form="point">
+                    <h4>점 찍기</h4>
+                    <div class="cad-row"><label>번호<input type="number" id="fpN" min="1" step="1"></label>
+                        <label>X<input type="number" id="fpX" step="any"></label>
+                        <label>Y<input type="number" id="fpY" step="any"></label></div>
+                    <div class="cad-row"><label class="cad-chk"><input type="checkbox" id="fpAuto" checked> 도면을 누르면 바로 추가</label>
+                        <button type="button" class="cad-go" id="fpGo">추가</button></div>
+                    <p class="cad-help">번호는 1부터 차례로 올라갑니다. 있는 번호를 적으면 그 점을 옮깁니다.</p>
+                </div>
+                <div data-form="line">
+                    <h4>선 긋기</h4>
+                    <div class="cad-row"><label>시작<input type="number" class="pk" id="flA" min="1"></label>
+                        <label>종료<input type="number" class="pk" id="flB" min="1"></label></div>
+                    <div class="cad-row"><label>선 종류<select class="ls" id="flLs"></select></label>
+                        <label>굵기<select class="wd" id="flW"></select></label></div>
+                    <div class="cad-row"><label class="cad-chk"><input type="checkbox" id="flChain" checked> 이어서 긋기</label>
+                        <button type="button" class="cad-go" id="flGo">긋기</button></div>
+                </div>
+                <div data-form="rect">
+                    <h4>사각형</h4>
+                    <div class="cad-row"><label>모서리 1<input type="number" class="pk" id="frA" min="1"></label>
+                        <label>모서리 2<input type="number" class="pk" id="frB" min="1"></label></div>
+                    <div class="cad-row"><label>선 종류<select class="ls" id="frLs"></select></label>
+                        <label>굵기<select class="wd" id="frW"></select></label></div>
+                    <div class="cad-row"><span></span><button type="button" class="cad-go" id="frGo">그리기</button></div>
+                </div>
+                <div data-form="circle">
+                    <h4>원 그리기</h4>
+                    <div class="cad-row"><label>중심<input type="number" class="pk" id="fcC" min="1"></label>
+                        <label>수치<select id="fcMode"><option value="r">반지름</option><option value="d">지름</option></select></label>
+                        <label>값(m)<input type="number" id="fcV" step="any" min="0"></label></div>
+                    <div class="cad-row"><label>선 종류<select class="ls" id="fcLs"></select></label>
+                        <label>굵기<select class="wd" id="fcW"></select></label></div>
+                    <div class="cad-row"><span class="cad-help">중심을 누른 뒤 값을 적거나, 한 번 더 눌러 크기를 정합니다</span>
+                        <button type="button" class="cad-go" id="fcGo">그리기</button></div>
+                </div>
+                <div data-form="arc">
+                    <h4>호 그리기</h4>
+                    <div class="cad-row"><label>시작<input type="number" class="pk" id="faA" min="1"></label>
+                        <label>종료<input type="number" class="pk" id="faB" min="1"></label></div>
+                    <div class="cad-row"><label>방향<select id="faDir"><option value="ccw">반시계</option><option value="cw">시계</option></select></label>
+                        <label>반지름(m)<input type="number" id="faR" step="any" min="0" placeholder="빈칸=반원"></label>
+                        <label class="cad-chk"><input type="checkbox" id="faBig"> 큰 호</label></div>
+                    <div class="cad-row"><label>선 종류<select class="ls" id="faLs"></select></label>
+                        <label>굵기<select class="wd" id="faW"></select></label></div>
+                    <div class="cad-row"><span></span><button type="button" class="cad-go" id="faGo">그리기</button></div>
+                </div>
+                <div data-form="sym">
+                    <h4>라이브러리 기호 넣기</h4>
+                    <div class="cad-row"><label>기준점<input type="number" class="pk" id="fsP" min="1"></label>
+                        <label class="wide">기호<select id="fsSym"></select></label></div>
+                    <div class="cad-row"><label class="wide">회전 <b id="fsRotV">0°</b><input type="range" id="fsRotR" min="0" max="360" step="5" value="0"></label>
+                        <label>각도<input type="number" id="fsRot" min="0" max="360" step="any" value="0"></label></div>
+                    <div class="cad-row"><span class="cad-help">도면을 누를 때마다 그 자리에 넣습니다</span>
+                        <button type="button" class="cad-go" id="fsGo">넣기</button></div>
+                </div>
+                <div data-form="text">
+                    <h4>글자</h4>
+                    <div class="cad-row"><label>기준점<input type="number" class="pk" id="ftP" min="1"></label>
+                        <label class="wide">내용<input id="ftS" maxlength="60" placeholder="예) 진입광장"></label></div>
+                    <div class="cad-row"><label>크기(m)<input type="number" id="ftSize" step="any" min="0"></label>
+                        <label>회전<input type="number" id="ftRot" step="any" value="0"></label>
+                        <button type="button" class="cad-go" id="ftGo">넣기</button></div>
+                </div>
+                <div class="cad-editing" id="cadEditing" hidden>
+                    <span>고치는 중: <b id="cadEditName"></b></span>
+                    <button type="button" class="cad-b" id="cadEditCancel">그만두기</button>
+                </div>
+            </div>
+            <div class="cad-tabs">
+                <button type="button" class="on" data-ptab="ops">작도 순서 <em id="cadOpsN"></em></button>
+                <button type="button" data-ptab="pts">점 <em id="cadPtsN"></em></button>
+                <button type="button" data-ptab="lib">라이브러리</button>
+            </div>
+            <div class="cad-pane on" data-ppane="ops">
+                <div class="cad-row"><input id="cadStepTitle" placeholder="단계 이름 — 예) 경계선 및 그리드 작성">
+                    <button type="button" class="cad-b" id="cadStepAdd">+ 단계</button></div>
+                <div id="cadOpList" class="cad-list"></div>
+            </div>
+            <div class="cad-pane" data-ppane="pts">
+                <div id="cadPtList" class="cad-list"></div>
+            </div>
+            <div class="cad-pane" data-ppane="lib">
+                <div class="cad-reg">
+                    <b>선택한 객체를 기호로 등록</b>
+                    <div class="cad-row"><label class="wide">이름<input id="lbName" maxlength="60" placeholder="예) 평의자 1.8×0.45"></label>
+                        <label>기준점<input type="number" class="pk" id="lbBase" min="1"></label></div>
+                    <div class="cad-row"><span class="cad-help" id="lbInfo">작도 순서나 도면에서 객체를 고르세요(Shift 로 여럿)</span>
+                        <button type="button" class="cad-go" id="lbGo">등록</button></div>
+                </div>
+                <div id="cadLib" class="cad-lib"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<svg id="cadMeasure" width="0" height="0" style="position:absolute;left:-9999px"></svg>
+{{ cad_sheets|json_script:"cadSheets" }}
+
+<style>
+.cad { border: 1px solid #dde4e0; border-radius: 10px; background: #fff; overflow: hidden; position: relative; }
+.cad [hidden] { display: none !important; }
+.cad-top { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 10px; border-bottom: 1px solid #eef1ef; position: relative; }
+.cad-top select, .cad-title { border: 1px solid #cfd8d3; border-radius: 6px; padding: 6px 8px; font-size: 0.86rem; }
+.cad-title { width: 190px; }
+.cad-saved { font-size: 0.76rem; color: #7a8a82; }
+.cad-saved.dirty { color: #c0632b; }
+.cad-sp { flex: 1; }
+.cad-b { border: 1px solid #cfd8d3; background: #fff; color: #1b4332; border-radius: 6px; padding: 6px 10px;
+    font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.cad-b:hover { background: #f1f6f3; }
+.cad-b.pri { background: #2d6a4f; color: #fff; border-color: #2d6a4f; }
+.cad-b.pri:hover { background: #1b4332; }
+.cad-open { position: absolute; right: 10px; top: 44px; z-index: 30; background: #fff; border: 1px solid #cfd8d3;
+    border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.14); width: min(360px, calc(100% - 20px)); max-height: 360px; overflow: auto; padding: 6px; }
+.cad-open .it { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; cursor: pointer; font-size: 0.84rem; }
+.cad-open .it:hover { background: #f1f6f3; }
+.cad-open .it span { flex: 1; min-width: 0; }
+.cad-open .it small { color: #8a9690; display: block; }
+.cad-open .it button { border: 0; background: none; color: #b0b8b4; cursor: pointer; font-size: 0.9rem; }
+.cad-open .it button:hover { color: #d93025; }
+.cad-tools { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; padding: 6px 10px; border-bottom: 1px solid #eef1ef; background: #fafcfb; }
+.cad-tools button { border: 1px solid #d5ddd9; background: #fff; border-radius: 6px; padding: 5px 11px; font-size: 0.84rem;
+    cursor: pointer; color: #333; font-weight: 600; }
+.cad-tools button.on { background: #1b4332; border-color: #1b4332; color: #fff; }
+.cad-tools select { border: 1px solid #d5ddd9; border-radius: 6px; padding: 4px 6px; font-size: 0.8rem; }
+.cad-sep { width: 1px; height: 20px; background: #dde4e0; margin: 0 4px; }
+.cad-chk { display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem; color: #444; cursor: pointer; white-space: nowrap; }
+.cad-body { display: flex; }
+.cad-stage { flex: 1; min-width: 0; position: relative; background: #eef1f4; }
+#cadSvg { display: block; width: 100%; height: 72vh; touch-action: none; user-select: none; cursor: crosshair; }
+.cad-tool-select #cadSvg { cursor: default; }
+.cad-zoom { position: absolute; right: 10px; top: 10px; display: flex; gap: 4px; }
+.cad-zoom button { border: 1px solid #cfd8d3; background: rgba(255,255,255,.94); border-radius: 6px; min-width: 32px; height: 30px;
+    font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #1b4332; }
+.cad-status { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 14px; padding: 4px 10px;
+    background: rgba(255,255,255,.9); font-size: 0.78rem; color: #45524c; border-top: 1px solid #e2e7e4; font-variant-numeric: tabular-nums; }
+#cadHint { color: #2d6a4f; }
+.cad-panel { width: 340px; flex-shrink: 0; border-left: 1px solid #eef1ef; display: flex; flex-direction: column; height: 72vh; }
+.cad-form { padding: 10px 12px; border-bottom: 1px solid #eef1ef; flex-shrink: 0; }
+.cad-form > div[data-form] { display: none; }
+.cad-form > div[data-form].on { display: block; }
+.cad-form h4 { margin: 0 0 8px; font-size: 0.9rem; color: #1b4332; }
+.cad-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 7px; flex-wrap: wrap; }
+.cad-row > label { display: flex; flex-direction: column; font-size: 0.74rem; color: #66736d; gap: 2px; flex: 1; min-width: 62px; }
+.cad-row > label.wide { flex: 2.4; }
+.cad-row > label.cad-chk { flex-direction: row; font-size: 0.8rem; flex: 0 1 auto; }
+.cad-row > span { flex: 1; }
+.cad-row input, .cad-row select { border: 1px solid #cfd8d3; border-radius: 5px; padding: 5px 6px; font-size: 0.86rem; min-width: 0; width: 100%; box-sizing: border-box; }
+.cad-row input[type=checkbox] { width: auto; }
+.cad-row input[type=range] { padding: 0; }
+.cad-row input.await { border-color: #d93025; box-shadow: 0 0 0 2px rgba(217,48,37,.18); }
+.cad-go { background: #2d6a4f; color: #fff; border: 0; border-radius: 6px; padding: 7px 16px; font-weight: 700; font-size: 0.84rem; cursor: pointer; }
+.cad-go:hover { background: #1b4332; }
+.cad-help { font-size: 0.74rem; color: #7a8a82; line-height: 1.5; margin: 0; }
+.cad-editing { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #fff4e5;
+    border: 1px solid #f3c98b; border-radius: 6px; padding: 6px 8px; font-size: 0.8rem; margin-top: 4px; }
+.cad-tabs { display: flex; border-bottom: 1px solid #eef1ef; flex-shrink: 0; }
+.cad-tabs button { flex: 1; border: 0; background: none; padding: 8px 4px; font-size: 0.82rem; font-weight: 700; color: #8a9690;
+    border-bottom: 2px solid transparent; cursor: pointer; }
+.cad-tabs button.on { color: #1b4332; border-bottom-color: #2d6a4f; }
+.cad-tabs em { font-style: normal; font-weight: 600; color: #9aa5a0; font-size: 0.74rem; }
+.cad-pane { display: none; padding: 8px 10px; overflow: auto; flex: 1; min-height: 0; }
+.cad-pane.on { display: block; }
+.cad-list { font-size: 0.82rem; }
+.cad-empty { color: #8a9690; font-size: 0.8rem; margin: 8px 2px; line-height: 1.6; }
+.cad-op { display: flex; align-items: flex-start; gap: 6px; padding: 5px 4px; border-radius: 5px; cursor: pointer; line-height: 1.45; }
+.cad-op:hover { background: #f4f7f5; }
+.cad-op.on { background: #fdecea; }
+.cad-op.step { font-weight: 700; color: #1b4332; margin-top: 6px; border-top: 1px dashed #dfe6e2; padding-top: 7px; }
+.cad-op .no { flex-shrink: 0; min-width: 22px; color: #2b4a9b; font-weight: 700; }
+.cad-op .tx { flex: 1; min-width: 0; word-break: keep-all; }
+.cad-op .bt { flex-shrink: 0; display: flex; gap: 1px; opacity: .45; }
+.cad-op:hover .bt, .cad-op.on .bt { opacity: 1; }
+.cad-op .bt button { border: 0; background: none; cursor: pointer; font-size: 0.78rem; padding: 1px 4px; color: #45524c; border-radius: 4px; }
+.cad-op .bt button:hover { background: #e3ebe7; }
+.cad-op .bt button[data-act=del]:hover { color: #d93025; }
+.cad-pt { display: grid; grid-template-columns: 38px 1fr 1fr 22px; gap: 4px; align-items: center; padding: 2px 0; }
+.cad-pt b { color: #2b4a9b; font-size: 0.82rem; }
+.cad-pt input { border: 1px solid #dde4e0; border-radius: 4px; padding: 3px 5px; font-size: 0.82rem; width: 100%; box-sizing: border-box; }
+.cad-pt.on input { border-color: #d93025; }
+.cad-pt button { border: 0; background: none; color: #b0b8b4; cursor: pointer; }
+.cad-pt button:hover { color: #d93025; }
+.cad-pt.head { font-size: 0.72rem; color: #8a9690; }
+.cad-reg { background: #f6f9f7; border: 1px solid #e3ebe7; border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; font-size: 0.82rem; }
+.cad-reg > b { display: block; margin-bottom: 6px; color: #1b4332; }
+.cad-lib { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.cad-lib h5 { grid-column: 1 / -1; margin: 6px 0 0; font-size: 0.76rem; color: #66736d; }
+.cad-sym { border: 1px solid #e3ebe7; border-radius: 7px; padding: 4px; text-align: center; cursor: pointer; position: relative; background: #fff; }
+.cad-sym:hover { border-color: #9cc3ad; }
+.cad-sym.on { border-color: #2d6a4f; box-shadow: 0 0 0 2px rgba(45,106,79,.2); }
+.cad-sym svg { width: 100%; height: 54px; display: block; }
+.cad-sym span { display: block; font-size: 0.7rem; color: #45524c; line-height: 1.3; word-break: keep-all; }
+.cad-sym .x, .cad-sym .sh { position: absolute; top: 2px; border: 0; background: rgba(255,255,255,.9); cursor: pointer; font-size: 0.7rem; border-radius: 4px; padding: 0 3px; }
+.cad-sym .x { right: 2px; color: #b0b8b4; }
+.cad-sym .x:hover { color: #d93025; }
+.cad-sym .sh { left: 2px; color: #7a8a82; }
+.cad-sym .sh.on { color: #2d6a4f; font-weight: 700; }
+/* 선택·잡기 영역 — CSS 가 표현 속성(stroke=…)을 이긴다 */
+#cadOps g.on > :not(.cad-hit), #cadOps g.on > :not(.cad-hit) * { stroke: #d93025; }
+#cadOps g.on text { fill: #d93025; }
+#cadOps .cad-hit, #cadOps .cad-hit * { stroke: transparent !important; fill: none !important; stroke-width: 12px !important;
+    vector-effect: non-scaling-stroke; stroke-dasharray: none !important; pointer-events: stroke; }
+#cadOps .cad-hit text { pointer-events: all; }
+.cad-tool-select #cadOps > g { cursor: pointer; }
+.cad.full { position: fixed; inset: 0; z-index: 2000; border-radius: 0; display: flex; flex-direction: column; }
+.cad.full .cad-body { flex: 1; min-height: 0; }
+.cad.full #cadSvg, .cad.full .cad-panel { height: 100%; }
+.cad.full .cad-stage { display: flex; flex-direction: column; }
+@media (max-width: 860px) {
+    .cad-body { flex-direction: column; }
+    .cad-panel { width: auto; border-left: 0; border-top: 1px solid #eef1ef; height: auto; max-height: none; }
+    .cad-pane { max-height: 50vh; }
+    #cadSvg { height: 58vh; }
+    .cad-title { width: 130px; }
+    .cad.full .cad-body { overflow: auto; }
+    .cad.full #cadSvg { height: 60vh; }
+}
+</style>
+
+<script>
+{% verbatim %}
+(function () {
+'use strict';
+const root = document.getElementById('cad');
+if (!root) return;
+const $ = id => document.getElementById(id);
+const SHEETS = JSON.parse($('cadSheets').textContent);
+SHEETS.push({key: 'blank', title: '빈 모눈종이 100×70', x0: -5, x1: 95, y0: -5, y1: 65, step: 5, scale: ''});
+const sheetOf = k => SHEETS.find(s => s.key === k) || SHEETS[0];
+const API = root.dataset.api, SYMAPI = root.dataset.symapi, CERT = root.dataset.cert;
+const STAFF = root.dataset.staff === '1';
+const svg = $('cadSvg'), gGrid = $('cadGrid'), gOps = $('cadOps'), gPts = $('cadPts'), gPre = $('cadPre');
+const INK = '#111', BLUE = '#2b4a9b', RED = '#d93025';
+const CIRC = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
+const circ = i => i <= 20 ? CIRC[i - 1] : `(${i})`;
+
+// 선 종류 — 굵기·간격은 종이 폭 100m 를 기준으로 한 m 값이고, 종이 크기에 비례해 늘고 준다(U)
+const LS = {
+    solid:  {name: '실선'},
+    chain:  {name: '일점쇄선', dash: [1.6, 0.45, 0.25, 0.45]},
+    chain2: {name: '이점쇄선', dash: [1.6, 0.45, 0.25, 0.45, 0.25, 0.45]},
+    aux:    {name: '보조선', color: '#a3a9b3', w: 0.06},
+    dot:    {name: '점선', dash: [0.35, 0.4]},
+};
+const WD = {thick: {name: '굵게', w: 0.35}, mid: {name: '보통', w: 0.24}, thin: {name: '가늘게', w: 0.13}};
+
+// ── 기본 기호 — 기준점(0,0)은 가운데. 단위 m ───────────────────────────────
+const pergola = s => { const h = s / 2; return [
+    {t: 'rect', x: -h, y: -h, rw: s, rh: s, fill: '#fff'},
+    {t: 'line', x1: -h, y1: -h, x2: h, y2: h, w: 'thin'}, {t: 'line', x1: h, y1: -h, x2: -h, y2: h, w: 'thin'}]; };
+const tree = (r, ever) => {
+    const it = [{t: 'circle', cx: 0, cy: 0, r: r, w: 'thin'}, {t: 'circle', cx: 0, cy: 0, r: r * 0.06, fill: INK, w: 'thin'}];
+    if (ever) for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6;
+        it.push({t: 'line', x1: Math.cos(a) * r * 0.55, y1: Math.sin(a) * r * 0.55, x2: Math.cos(a) * r, y2: Math.sin(a) * r, w: 'thin'}); }
+    else it.push({t: 'circle', cx: 0, cy: 0, r: r * 0.72, w: 'thin', ls: 'dot'});
+    return it; };
+const BUILTIN = [
+    {id: 'b:pergola3', name: '퍼걸러 3×3', items: pergola(3)},
+    {id: 'b:pergola4', name: '퍼걸러 4×4', items: pergola(4)},
+    {id: 'b:pergola5', name: '퍼걸러 5×5', items: pergola(5)},
+    {id: 'b:bench', name: '평의자 1.8×0.45', items: [{t: 'rect', x: -0.9, y: -0.225, rw: 1.8, rh: 0.45, fill: '#fff'}]},
+    {id: 'b:table', name: '야외탁자 1.8×0.8', items: [
+        {t: 'rect', x: -0.9, y: -0.4, rw: 1.8, rh: 0.8, fill: '#fff'},
+        {t: 'rect', x: -0.9, y: -0.85, rw: 1.8, rh: 0.3, fill: '#fff', w: 'thin'},
+        {t: 'rect', x: -0.9, y: 0.55, rw: 1.8, rh: 0.3, fill: '#fff', w: 'thin'}]},
+    {id: 'b:grate', name: '수목보호대 2×2', items: [
+        {t: 'rect', x: -1, y: -1, rw: 2, rh: 2, fill: '#fff'}, {t: 'rect', x: -0.65, y: -0.65, rw: 1.3, rh: 1.3}]},
+    {id: 'b:trash', name: '휴지통 ⌀0.6', items: [
+        {t: 'circle', cx: 0, cy: 0, r: 0.3, fill: '#fff', w: 'thin'}, {t: 'path', d: 'M0 -0.3A0.3 0.3 0 0 1 0 0.3Z', fill: INK}]},
+    {id: 'b:sign', name: '안내판 1.9×0.6', items: [{t: 'rect', x: -0.95, y: -0.3, rw: 1.9, rh: 0.6, fill: '#fff'}]},
+    {id: 'b:drink', name: '음수대 ⌀1.0', items: [
+        {t: 'circle', cx: 0, cy: 0, r: 0.5, fill: '#fff'}, {t: 'circle', cx: 0, cy: 0, r: 0.18, w: 'thin'}]},
+    {id: 'b:light', name: '조명등', items: [
+        {t: 'circle', cx: 0, cy: 0, r: 0.35, fill: '#fff', w: 'thin'},
+        {t: 'line', x1: -0.7, y1: 0, x2: 0.7, y2: 0, w: 'thin'}, {t: 'line', x1: 0, y1: -0.7, x2: 0, y2: 0.7, w: 'thin'}]},
+    {id: 'b:tree4', name: '낙엽교목 ⌀4', items: tree(2, false)},
+    {id: 'b:tree3', name: '낙엽교목 ⌀3', items: tree(1.5, false)},
+    {id: 'b:ever4', name: '상록교목 ⌀4', items: tree(2, true)},
+    {id: 'b:ever3', name: '상록교목 ⌀3', items: tree(1.5, true)},
+    {id: 'b:shrub', name: '관목 ⌀1', items: [{t: 'circle', cx: 0, cy: 0, r: 0.5, w: 'thin'}]},
+    {id: 'b:elev', name: '계획고 표시', items: [
+        {t: 'circle', cx: 0, cy: 0, r: 0.45, fill: '#fff', w: 'thin'},
+        {t: 'line', x1: -0.9, y1: 0, x2: 0.9, y2: 0, w: 'thin'}, {t: 'line', x1: 0, y1: -0.9, x2: 0, y2: 0.9, w: 'thin'}]},
+    {id: 'b:ent', name: '입구 화살표', items: [
+        {t: 'path', d: 'M0 -0.9L1.5 0L0 0.9Z', fill: INK}, {t: 'text', x: 1.9, y: 0, s: 'ENT', size: 1.4, anchor: 'start'}]},
+    {id: 'b:north', name: '방위표', items: [
+        {t: 'circle', cx: 0, cy: 0, r: 1.6, w: 'thin'}, {t: 'path', d: 'M0 -1.6L0.7 1L0 0.5L-0.7 1Z', fill: INK},
+        {t: 'text', x: 0, y: -2.4, s: 'N', size: 1.3}]},
+];
+let userSyms = [];
+const allSyms = () => BUILTIN.concat(userSyms);
+const symOf = id => allSyms().find(s => s.id === id);
+
+// ── 도면 상태 ────────────────────────────────────────────────────────────
+let doc, cur = {id: null}, dirty = false, sheet, U = 1, PREC = 0.1;
+let tool = 'select', pickIdx = 0, editing = null, selOps = new Set(), selPt = null;
+let hover = null;                                // 스냅된 커서 자리
+let hist = [], redoS = [];
+const blankDoc = key => ({v: 1, sheet: key, pts: [], ops: [], syms: {}, seq: 1});
+const P = n => doc.pts.find(p => p.n === +n);
+const nextN = () => doc.pts.reduce((m, p) => Math.max(m, p.n), 0) + 1;
+const fmt = v => String(+(+v).toFixed(3));
+const rnd = v => +(Math.round(v / PREC) * PREC).toFixed(3);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+
+function snapHist() { hist.push(JSON.stringify(doc)); if (hist.length > 200) hist.shift(); redoS = []; }
+function changed() { dirty = true; renderAll(); saveDraft(); }
+function undo() { if (!hist.length) return; redoS.push(JSON.stringify(doc)); doc = JSON.parse(hist.pop()); afterLoad(false); dirty = true; saveDraft(); }
+function redo() { if (!redoS.length) return; hist.push(JSON.stringify(doc)); doc = JSON.parse(redoS.pop()); afterLoad(false); dirty = true; saveDraft(); }
+
+// ── SVG 조각 ────────────────────────────────────────────────────────────
+function stAttr(ls, w, fill) {
+    const L = LS[ls] || LS.solid;
+    const sw = (L.w != null ? L.w : (WD[w] || WD.mid).w) * U;
+    let a = `fill="${fill || 'none'}" stroke="${L.color || INK}" stroke-width="${fmt(sw)}" stroke-linecap="round" stroke-linejoin="round"`;
+    if (L.dash) a += ` stroke-dasharray="${L.dash.map(d => fmt(d * U)).join(' ')}"`;
+    return a;
+}
+function arcD(x1, y1, x2, y2, r, cw, big) {
+    const c = Math.hypot(x2 - x1, y2 - y1), rr = Math.max(+r || 0, c / 2);
+    return `M${fmt(x1)} ${fmt(y1)}A${fmt(rr)} ${fmt(rr)} 0 ${big ? 1 : 0} ${cw ? 1 : 0} ${fmt(x2)} ${fmt(y2)}`;
+}
+function textSvg(x, y, s, size, rot, anchor) {
+    const tr = +rot ? ` transform="rotate(${fmt(rot)} ${fmt(x)} ${fmt(y)})"` : '';
+    return `<text x="${fmt(x)}" y="${fmt(y)}" font-size="${fmt(size)}" fill="${INK}" text-anchor="${anchor || 'middle'}" dominant-baseline="central" font-weight="600"${tr}>${esc(s)}</text>`;
+}
+function itemSvg(it) {
+    const st = () => stAttr(it.ls, it.w, it.fill);
+    switch (it.t) {
+        case 'line': return `<path d="M${fmt(it.x1)} ${fmt(it.y1)}L${fmt(it.x2)} ${fmt(it.y2)}" ${st()}/>`;
+        case 'rect': return `<rect x="${fmt(it.x)}" y="${fmt(it.y)}" width="${fmt(it.rw)}" height="${fmt(it.rh)}" ${st()}/>`;
+        case 'circle': return `<circle cx="${fmt(it.cx)}" cy="${fmt(it.cy)}" r="${fmt(it.r)}" ${st()}/>`;
+        case 'arc': return `<path d="${arcD(it.x1, it.y1, it.x2, it.y2, it.r, it.cw, it.big)}" ${st()}/>`;
+        case 'path': return `<path d="${esc(it.d)}" fill="${it.fill || 'none'}" stroke="none"/>`;
+        case 'text': return textSvg(it.x, it.y, it.s, it.size || 1.4, it.rot, it.anchor);
+        case 'g': return `<g transform="translate(${fmt(it.x)} ${fmt(it.y)}) rotate(${fmt(it.rot || 0)})">${(it.items || []).map(itemSvg).join('')}</g>`;
+    }
+    return '';
+}
+const radiusOf = op => op.mode === 'd' ? op.v / 2 : +op.v;
+function opSvg(op) {
+    const st = () => stAttr(op.ls, op.w);
+    if (op.t === 'line') { const a = P(op.a), b = P(op.b); if (!a || !b) return '';
+        return `<path d="M${fmt(a.x)} ${fmt(a.y)}L${fmt(b.x)} ${fmt(b.y)}" ${st()}/>`; }
+    if (op.t === 'rect') { const a = P(op.a), b = P(op.b); if (!a || !b) return '';
+        return `<path d="M${fmt(a.x)} ${fmt(a.y)}H${fmt(b.x)}V${fmt(b.y)}H${fmt(a.x)}Z" ${st()}/>`; }
+    if (op.t === 'circle') { const c = P(op.c), r = radiusOf(op); if (!c || !(r > 0)) return '';
+        return `<circle cx="${fmt(c.x)}" cy="${fmt(c.y)}" r="${fmt(r)}" ${st()}/>`; }
+    if (op.t === 'arc') { const a = P(op.a), b = P(op.b); if (!a || !b) return '';
+        return `<path d="${arcD(a.x, a.y, b.x, b.y, op.r, op.dir === 'cw', op.big)}" ${st()}/>`; }
+    if (op.t === 'sym') { const p = P(op.p), d = doc.syms[op.sym]; if (!p || !d) return '';
+        return `<g transform="translate(${fmt(p.x)} ${fmt(p.y)}) rotate(${fmt(op.rot || 0)})">${d.items.map(itemSvg).join('')}</g>`; }
+    if (op.t === 'text') { const p = P(op.p); if (!p) return '';
+        return textSvg(p.x, p.y, op.s, op.size, op.rot); }
+    return '';
+}
+const ptsOf = op => op.t === 'circle' ? [op.c] : (op.t === 'sym' || op.t === 'text') ? [op.p] : (op.a != null ? [op.a, op.b] : []);
+function dotSvg(p, ring) {
+    const r = 0.32 * U;
+    return `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r)}" fill="${INK}"/>`
+        + `<text x="${fmt(p.x + 0.6 * U)}" y="${fmt(p.y - 0.5 * U)}" font-size="${fmt(1.25 * U)}" fill="${BLUE}" font-weight="700">${p.n}</text>`
+        + (ring ? `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r * 2.6)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : '');
+}
+function gridSvg(s, id) {
+    const {x0, x1, y0, y1, step} = s, mi = step / 5, W = x1 - x0, H = y1 - y0, fs = 1.15 * U;
+    let o = `<defs><pattern id="${id}a" width="${mi}" height="${mi}" patternUnits="userSpaceOnUse"><path d="M${mi} 0H0V${mi}" fill="none" stroke="#c9d4ec" stroke-width="${fmt(0.1 * U)}"/></pattern>`
+        + `<pattern id="${id}b" width="${step}" height="${step}" patternUnits="userSpaceOnUse"><path d="M${step} 0H0V${step}" fill="none" stroke="#9fb0d6" stroke-width="${fmt(0.18 * U)}"/></pattern></defs>`
+        + `<rect x="${x0}" y="${y0}" width="${W}" height="${H}" fill="#fbfcfe"/>`
+        + `<rect x="${x0}" y="${y0}" width="${W}" height="${H}" fill="url(#${id}a)"/>`
+        + `<rect x="${x0}" y="${y0}" width="${W}" height="${H}" fill="url(#${id}b)"/>`
+        + `<rect x="${x0}" y="${y0}" width="${W}" height="${H}" fill="none" stroke="${BLUE}" stroke-width="${fmt(0.22 * U)}"/>`;
+    const t = (x, y, v, a) => `<text x="${fmt(x)}" y="${fmt(y)}" font-size="${fmt(fs)}" fill="${BLUE}" text-anchor="${a}" dominant-baseline="central">${fmt(v)}</text>`;
+    for (let v = x0; v <= x1 + 1e-9; v += step) o += t(v, y0 - 0.9 * U, v, 'middle') + t(v, y1 + 0.9 * U, v, 'middle');
+    for (let v = y0; v <= y1 + 1e-9; v += step) o += t(x0 - 0.7 * U, v, v, 'end') + t(x1 + 0.7 * U, v, v, 'start');
+    o += `<text x="${fmt((x0 + x1) / 2)}" y="${fmt(y0 - 2.8 * U)}" font-size="${fmt(1.7 * U)}" fill="${BLUE}" text-anchor="middle" font-weight="500">${esc(s.title)}</text>`;
+    if (s.scale) o += `<text x="${fmt(x1)}" y="${fmt(y1 + 2.6 * U)}" font-size="${fmt(1.2 * U)}" fill="${BLUE}" text-anchor="end" font-weight="600">SCALE ${esc(s.scale)}</text>`;
+    return o;
+}
+
+// ── 그리기 ──────────────────────────────────────────────────────────────
+function setSheet(key) {
+    sheet = sheetOf(key);
+    doc.sheet = sheet.key;
+    U = Math.max(sheet.x1 - sheet.x0, sheet.y1 - sheet.y0) / 100;
+    const mi = sheet.step / 5;
+    PREC = +(mi / 10).toPrecision(3);
+    gGrid.innerHTML = gridSvg(sheet, 'cg');
+    const sel = $('cadSnapStep'), keep = sel.value;
+    sel.innerHTML = [mi / 2, mi, sheet.step].map(v => `<option value="${v}">${fmt(v)}m</option>`).join('');
+    sel.value = [...sel.options].some(o => o.value === keep) ? keep : String(mi);
+    $('cadSheet').value = sheet.key;
+    if (!$('ftSize').value || !$('ftSize').dataset.touched) $('ftSize').value = fmt(1.5 * U);
+}
+function renderAll() { drawOps(); drawPts(); drawPre(); listOps(); listPts(); markAwait(); savedLabel(); }
+function drawOps() {
+    gOps.innerHTML = doc.ops.filter(o => o.t !== 'step').map(op => {
+        const s = opSvg(op);
+        return s ? `<g data-op="${op.id}"${selOps.has(op.id) ? ' class="on"' : ''}>${s}<g class="cad-hit">${s}</g></g>` : '';
+    }).join('');
+}
+function activePts() {
+    const on = new Set(); if (selPt) on.add(selPt);
+    const f = PICKS[tool] || [];
+    f.forEach(id => { const v = +$(id).value; if (v) on.add(v); });
+    return on;
+}
+function drawPts() {
+    if (!$('cadShowPts').checked) { gPts.innerHTML = ''; return; }
+    const on = activePts();
+    gPts.innerHTML = doc.pts.map(p => dotSvg(p, on.has(p.n))).join('');
+}
+function drawPre() {
+    let o = '';
+    const h = hover;
+    if (h && tool !== 'select') {
+        const hp = h.pt ? P(h.pt) : null, x = hp ? hp.x : h.x, y = hp ? hp.y : h.y, k = 0.8 * U;
+        const f = PICKS[tool] || [], A = f[0] ? P($(f[0]).value) : null;
+        const pre = `stroke="${RED}" stroke-width="${fmt(0.1 * U)}" fill="none" stroke-dasharray="${fmt(0.5 * U)} ${fmt(0.3 * U)}"`;
+        if ((tool === 'line' || tool === 'rect' || tool === 'arc') && pickIdx === 1 && A) {
+            if (tool === 'line') o += `<path d="M${fmt(A.x)} ${fmt(A.y)}L${fmt(x)} ${fmt(y)}" ${pre}/>`;
+            if (tool === 'rect') o += `<path d="M${fmt(A.x)} ${fmt(A.y)}H${fmt(x)}V${fmt(y)}H${fmt(A.x)}Z" ${pre}/>`;
+            if (tool === 'arc') o += `<path d="${arcD(A.x, A.y, x, y, $('faR').value, $('faDir').value === 'cw', $('faBig').checked)}" ${pre}/>`;
+        }
+        if (tool === 'circle' && pickIdx === 1 && A) o += `<circle cx="${fmt(A.x)}" cy="${fmt(A.y)}" r="${fmt(Math.hypot(x - A.x, y - A.y))}" ${pre}/>`;
+        if (tool === 'sym') { const d = symOf($('fsSym').value);
+            if (d) o += `<g opacity="0.45" transform="translate(${fmt(x)} ${fmt(y)}) rotate(${fmt(+$('fsRot').value || 0)})">${d.items.map(itemSvg).join('')}</g>`; }
+        if (hp) o += `<circle cx="${fmt(x)}" cy="${fmt(y)}" r="${fmt(0.9 * U)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.14 * U)}"/>`;
+        else o += `<path d="M${fmt(x - k)} ${fmt(y)}H${fmt(x + k)}M${fmt(x)} ${fmt(y - k)}V${fmt(y + k)}" stroke="${RED}" stroke-width="${fmt(0.1 * U)}"/>`;
+    }
+    gPre.innerHTML = o;
+}
+
+// ── 작도 순서 설명 ───────────────────────────────────────────────────────
+const ptxt = n => { const p = P(n); return p ? `P${p.n}(${fmt(p.x)}, ${fmt(p.y)})` : `P${n}(없음)`; };
+function lsTxt(op) {
+    const L = LS[op.ls] || LS.solid;
+    return op.ls === 'aux' || !op.w || op.w === 'mid' ? L.name : `${L.name}(${WD[op.w].name})`;
+}
+function desc(op) {
+    switch (op.t) {
+        case 'line': return `선 ${ptxt(op.a)} → ${ptxt(op.b)} · ${lsTxt(op)}`;
+        case 'rect': { const a = P(op.a), b = P(op.b);
+            const sz = a && b ? ` (${fmt(Math.abs(b.x - a.x))}×${fmt(Math.abs(b.y - a.y))}m)` : '';
+            return `사각형 ${ptxt(op.a)} ~ ${ptxt(op.b)}${sz} · ${lsTxt(op)}`; }
+        case 'circle': return `원 중심 ${ptxt(op.c)} · ${op.mode === 'd' ? '지름' : '반지름'} ${fmt(op.v)}m · ${lsTxt(op)}`;
+        case 'arc': return `호 ${ptxt(op.a)} → ${ptxt(op.b)} · ${op.dir === 'cw' ? '시계' : '반시계'} · ${+op.r ? '반지름 ' + fmt(op.r) + 'm' : '반원'}${op.big ? ' · 큰 호' : ''} · ${lsTxt(op)}`;
+        case 'sym': { const d = doc.syms[op.sym];
+            return `${d ? d.name : '(없는 기호)'} · 기준점 ${ptxt(op.p)}${+op.rot ? ' · 회전 ' + fmt(op.rot) + '°' : ''}`; }
+        case 'text': return `글자 "${op.s}" · ${ptxt(op.p)}`;
+    }
+    return '';
+}
+function listOps() {
+    let k = 0, i = 0;
+    const btn = (a, t, l) => `<button type="button" data-act="${a}" title="${t}">${l}</button>`;
+    const rows = doc.ops.map(op => {
+        const bt = `<span class="bt">${btn('edit', '고치기', '✎')}${btn('up', '위로', '↑')}${btn('down', '아래로', '↓')}${btn('del', '지우기', '✕')}</span>`;
+        if (op.t === 'step') { k++; i = 0;
+            return `<div class="cad-op step" data-id="${op.id}"><span class="no">(${k})</span><span class="tx">${esc(op.title)}</span>${bt}</div>`; }
+        i++;
+        return `<div class="cad-op${selOps.has(op.id) ? ' on' : ''}" data-id="${op.id}"><span class="no">${circ(i)}</span><span class="tx">${esc(desc(op))}</span>${bt}</div>`;
+    });
+    $('cadOpList').innerHTML = rows.join('') || '<p class="cad-empty">아직 그린 것이 없습니다. 위에서 도구를 고르고 도면을 눌러 보세요.<br>단계 이름을 먼저 넣어 두면 작도 순서가 (1)(2)… 로 묶입니다.</p>';
+    $('cadOpsN').textContent = doc.ops.filter(o => o.t !== 'step').length || '';
+}
+function usedBy(n) { return doc.ops.filter(op => ptsOf(op).map(Number).includes(+n)).length; }
+function listPts() {
+    const pts = doc.pts.slice().sort((a, b) => a.n - b.n);
+    $('cadPtList').innerHTML = pts.length
+        ? '<div class="cad-pt head"><span>번호</span><span>X</span><span>Y</span><span></span></div>'
+          + pts.map(p => `<div class="cad-pt${selPt === p.n ? ' on' : ''}" data-n="${p.n}"><b>P${p.n}</b>`
+            + `<input type="number" step="any" data-k="x" value="${fmt(p.x)}"><input type="number" step="any" data-k="y" value="${fmt(p.y)}">`
+            + `<button type="button" title="지우기">✕</button></div>`).join('')
+        : '<p class="cad-empty">점이 없습니다. \'점\' 도구로 찍거나, 선을 그을 때 도면을 누르면 생깁니다.</p>';
+    $('cadPtsN').textContent = pts.length || '';
+}
+function describeAll() {
+    const lines = [`■ ${$('cadTitle').value || sheet.title}  (모눈종이 ${sheet.title}${sheet.scale ? ', ' + sheet.scale : ''})`, '', '■ 점 좌표'];
+    doc.pts.slice().sort((a, b) => a.n - b.n).forEach(p => lines.push(`P${p.n}  (${fmt(p.x)}, ${fmt(p.y)})`));
+    lines.push('', '■ 작도 순서');
+    let k = 0, i = 0;
+    doc.ops.forEach(op => {
+        if (op.t === 'step') { k++; i = 0; lines.push(`(${k}) ${op.title}`); }
+        else { i++; lines.push(`  ${circ(i)} ${desc(op)}`); }
+    });
+    return lines.join('\n');
+}
+
+// ── 화면 이동·확대 ───────────────────────────────────────────────────────
+let vb = {x: 0, y: 0, w: 100, h: 70}, fitW = 100, fitted = false;
+function setVB() { svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); status(); }
+function aspect() { const r = svg.clientWidth / svg.clientHeight; return r > 0 && isFinite(r) ? r : 1.4; }
+function fit() {
+    const s = sheet, m = 3.4 * U;
+    let x = s.x0 - m, y = s.y0 - m - 1.6 * U, w = (s.x1 - s.x0) + 2 * m, h = (s.y1 - s.y0) + 2 * m + 1.6 * U;
+    const r = aspect();
+    if (w / h < r) { const nw = h * r; x -= (nw - w) / 2; w = nw; } else { const nh = w / r; y -= (nh - h) / 2; h = nh; }
+    vb = {x, y, w, h}; fitW = w; fitted = svg.clientWidth > 0; setVB();
+}
+function reAspect() {          // 칸 크기가 바뀌면 가운데·배율을 지키며 비율만 맞춘다
+    const r = aspect(), cx = vb.x + vb.w / 2, cy = vb.y + vb.h / 2;
+    vb.h = vb.w / r; vb.x = cx - vb.w / 2; vb.y = cy - vb.h / 2; setVB();
+}
+function zoomAt(f, cx, cy) {
+    const nw = vb.w / f;
+    if (nw < fitW / 80 || nw > fitW * 4) return;
+    vb.x = cx - (cx - vb.x) / f; vb.y = cy - (cy - vb.y) / f; vb.w = nw; vb.h /= f; setVB();
+}
+function zoomCenter(f) { zoomAt(f, vb.x + vb.w / 2, vb.y + vb.h / 2); }
+function toWorld(e) {
+    const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+const pxPer = () => svg.getScreenCTM().a;
+function snapXY(w) {
+    if ($('cadSnap').checked) { const g = +$('cadSnapStep').value; return {x: rnd(Math.round(w.x / g) * g), y: rnd(Math.round(w.y / g) * g)}; }
+    return {x: rnd(w.x), y: rnd(w.y)};
+}
+function hitPoint(w) {
+    let best = null, bd = 11 / pxPer();
+    doc.pts.forEach(p => { const d = Math.hypot(p.x - w.x, p.y - w.y); if (d < bd) { bd = d; best = p; } });
+    return best;
+}
+function status() {
+    const h = hover, hp = h && h.pt ? P(h.pt) : null;
+    $('cadXY').textContent = h ? (hp ? `P${hp.n}  X ${fmt(hp.x)} · Y ${fmt(hp.y)}` : `X ${fmt(h.x)} · Y ${fmt(h.y)}`) : 'X — · Y —';
+    const z = Math.round(fitW / vb.w * 100);
+    $('cadHint').textContent = `확대 ${z}% · 스냅 ${$('cadSnap').checked ? $('cadSnapStep').value + 'm' : '끔'}` + hintText();
+}
+function hintText() {
+    const f = PICKS[tool];
+    if (tool === 'point') return ' · 도면을 누르면 점이 생깁니다';
+    if (tool === 'select') return ' · 빈 곳을 끌면 화면 이동, 휠로 확대';
+    if (!f) return '';
+    const names = {line: ['시작점', '종료점'], rect: ['모서리 1', '모서리 2'], arc: ['시작점', '종료점'], circle: ['중심', '크기'], sym: ['기준점'], text: ['기준점']}[tool];
+    return ` · ${names[Math.min(pickIdx, names.length - 1)]}을(를) 누르세요 · 우클릭/Esc 취소`;
+}
+
+// ── 도구 ────────────────────────────────────────────────────────────────
+const PICKS = {line: ['flA', 'flB'], rect: ['frA', 'frB'], arc: ['faA', 'faB'], circle: ['fcC'], sym: ['fsP'], text: ['ftP']};
+const FORM_OF = {line: 'fl', rect: 'fr', circle: 'fc', arc: 'fa'};
+function setTool(t, keepEdit) {
+    tool = t;
+    if (!keepEdit) endEdit();
+    root.className = root.className.replace(/\bcad-tool-\S+/g, '').trim() + ' cad-tool-' + t;
+    document.querySelectorAll('#cadTools [data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === t));
+    document.querySelectorAll('#cadForm [data-form]').forEach(f => f.classList.toggle('on', f.dataset.form === t));
+    pickIdx = 0;
+    if (t === 'point') fillPointForm();
+    if (t === 'line' && !keepEdit) { $('flA').value = ''; $('flB').value = ''; }
+    renderAll(); status();
+}
+function markAwait() {
+    document.querySelectorAll('#cadForm input.await').forEach(i => i.classList.remove('await'));
+    const f = PICKS[tool];
+    if (f && f[pickIdx]) $(f[pickIdx]).classList.add('await');
+    if (tool === 'circle' && pickIdx === 1) $('fcV').classList.add('await');
+}
+function resetPick() {
+    const f = PICKS[tool];
+    if (f && !editing) f.forEach(id => { if (tool !== 'sym' && tool !== 'text') $(id).value = ''; });
+    pickIdx = 0; renderAll(); status();
+}
+function newPoint(x, y, n) {
+    snapHist();
+    n = n || nextN();
+    doc.pts.push({n, x: rnd(x), y: rnd(y)});
+    return n;
+}
+function pointAt(w) {             // 누른 자리의 점 — 있으면 그 점, 없으면 새로 만든다
+    const hp = hitPoint(w);
+    if (hp) return hp.n;
+    const s = snapXY(w);
+    const same = doc.pts.find(p => p.x === s.x && p.y === s.y);
+    return same ? same.n : newPoint(s.x, s.y);
+}
+function fillPointForm(p) {
+    $('fpN').value = p ? p.n : nextN();
+    if (p) { $('fpX').value = fmt(p.x); $('fpY').value = fmt(p.y); }
+    pointGoLabel();
+}
+function pointGoLabel() { $('fpGo').textContent = P($('fpN').value) ? '옮기기' : '추가'; }
+function commitPoint() {
+    const n = Math.floor(+$('fpN').value), x = parseFloat($('fpX').value), y = parseFloat($('fpY').value);
+    if (!(n >= 1) || !isFinite(x) || !isFinite(y)) { flash('번호와 X, Y 를 적어 주세요'); return; }
+    const p = P(n);
+    if (p) { snapHist(); p.x = rnd(x); p.y = rnd(y); }
+    else newPoint(x, y, n);
+    selPt = n; changed();
+    fillPointForm(); $('fpX').value = ''; $('fpY').value = '';
+    if (!p) $('fpN').value = nextN();
+    pointGoLabel();
+}
+function num(id) { const v = Math.floor(+$(id).value); return v >= 1 && P(v) ? v : null; }
+function commit(t) {
+    t = t || tool;
+    let op = null;
+    const f = FORM_OF[t];
+    if (t === 'point') return commitPoint();
+    if (t === 'line' || t === 'rect' || t === 'arc') {
+        const a = num(f + 'A'), b = num(f + 'B');
+        if (!a || !b) { flash('두 점의 번호를 넣어 주세요(있는 점이어야 합니다)'); return; }
+        if (a === b) { flash('시작점과 종료점이 같습니다'); return; }
+        op = {t, a, b, ls: $(f + 'Ls').value, w: $(f + 'W').value};
+        if (t === 'arc') Object.assign(op, {dir: $('faDir').value, r: parseFloat($('faR').value) || 0, big: $('faBig').checked});
+    } else if (t === 'circle') {
+        const c = num('fcC'), v = parseFloat($('fcV').value);
+        if (!c) { flash('중심점 번호를 넣어 주세요'); return; }
+        if (!(v > 0)) { flash('반지름(지름) 값을 넣거나, 도면을 한 번 더 눌러 크기를 정하세요'); pickIdx = 1; markAwait(); return; }
+        op = {t, c, mode: $('fcMode').value, v, ls: $('fcLs').value, w: $('fcW').value};
+    } else if (t === 'sym') {
+        const p = num('fsP'), id = $('fsSym').value, d = symOf(id);
+        if (!p) { flash('기준점 번호를 넣거나 도면을 누르세요'); return; }
+        if (!d) { flash('기호를 고르세요'); return; }
+        op = {t, p, sym: id, rot: +$('fsRot').value || 0};
+    } else if (t === 'text') {
+        const p = num('ftP'), s = $('ftS').value.trim();
+        if (!p) { flash('기준점 번호를 넣거나 도면을 누르세요'); return; }
+        if (!s) { flash('글자 내용을 적어 주세요'); $('ftS').focus(); return; }
+        op = {t, p, s, size: parseFloat($('ftSize').value) || 1.5 * U, rot: +$('ftRot').value || 0};
+    }
+    if (!op) return;
+    snapHist();
+    if (op.t === 'sym') doc.syms[op.sym] = {name: symOf(op.sym).name, items: clone(symOf(op.sym).items)};
+    if (editing) {
+        const i = doc.ops.findIndex(o => o.id === editing);
+        if (i >= 0) { op.id = editing; doc.ops[i] = op; }
+        endEdit();
+    } else {
+        op.id = doc.seq++;
+        doc.ops.push(op);
+    }
+    pruneSyms();
+    // 다음 입력 준비 — 선은 끝점에서 이어 긋는다
+    if (t === 'line' && $('flChain').checked) { $('flA').value = op.b; $('flB').value = ''; pickIdx = 1; }
+    else if (t === 'sym' || t === 'text') pickIdx = 0;
+    else { (PICKS[t] || []).forEach(id => $(id).value = ''); if (t === 'circle') $('fcV').value = ''; pickIdx = 0; }
+    changed();
+}
+function pruneSyms() {
+    const used = new Set(doc.ops.filter(o => o.t === 'sym').map(o => o.sym));
+    Object.keys(doc.syms).forEach(k => { if (!used.has(k)) delete doc.syms[k]; });
+}
+function onCanvasClick(w, e, tgt) {
+    if (tool === 'select') {
+        tgt = tgt || e.target;          // 포인터 캡처 때문에 떼는 순간의 target 은 늘 svg 다
+        const g = tgt.closest && tgt.closest('[data-op]');
+        if (g) selectOp(+g.dataset.op, e.shiftKey || e.ctrlKey || e.metaKey);
+        else { selOps.clear(); selPt = null; renderAll(); }
+        return;
+    }
+    if (tool === 'point') {
+        const hp = hitPoint(w);
+        if (hp) { selPt = hp.n; fillPointForm(hp); renderAll(); return; }
+        const s = snapXY(w);
+        $('fpX').value = fmt(s.x); $('fpY').value = fmt(s.y);
+        if (!P($('fpN').value)) { /* 새 번호 그대로 */ } else $('fpN').value = nextN();
+        if ($('fpAuto').checked) commitPoint(); else pointGoLabel();
+        return;
+    }
+    const f = PICKS[tool];
+    if (!f) return;
+    if (tool === 'circle' && pickIdx === 1) {     // 두 번째 누름 = 크기
+        const c = P($('fcC').value); if (!c) { pickIdx = 0; return; }
+        const hp = hitPoint(w), s = hp ? hp : snapXY(w);
+        let r = Math.hypot(s.x - c.x, s.y - c.y);
+        if ($('fcMode').value === 'd') r *= 2;
+        $('fcV').value = fmt(rnd(r));
+        commit('circle'); return;
+    }
+    const n = pointAt(w);
+    $(f[pickIdx]).value = n;
+    if (tool === 'sym' || tool === 'text') { commit(tool); return; }
+    pickIdx++;
+    if (pickIdx >= f.length) {
+        if (tool === 'circle') { if (parseFloat($('fcV').value) > 0) commit('circle'); else { pickIdx = 1; renderAll(); status(); } return; }
+        commit(tool); return;
+    }
+    renderAll(); status();
+}
+
+// ── 선택·고치기 ─────────────────────────────────────────────────────────
+function selectOp(id, add) {
+    if (add) { selOps.has(id) ? selOps.delete(id) : selOps.add(id); }
+    else { selOps = new Set([id]); }
+    renderAll(); regInfo();
+    const row = $('cadOpList').querySelector(`[data-id="${id}"]`);
+    if (row) row.scrollIntoView({block: 'nearest'});
+}
+function deleteSelected() {
+    if (!selOps.size) return;
+    snapHist();
+    doc.ops = doc.ops.filter(o => !selOps.has(o.id));
+    selOps.clear(); pruneSyms(); changed(); regInfo();
+}
+function editOp(id) {
+    const op = doc.ops.find(o => o.id === id);
+    if (!op) return;
+    if (op.t === 'step') {
+        const t = prompt('단계 이름', op.title);
+        if (t && t.trim()) { snapHist(); op.title = t.trim(); changed(); }
+        return;
+    }
+    setTool(op.t, true);
+    editing = id;
+    const f = FORM_OF[op.t];
+    if (f) { $(f + 'Ls').value = op.ls || 'solid'; $(f + 'W').value = op.w || 'mid'; }
+    if (op.t === 'line' || op.t === 'rect' || op.t === 'arc') { $(f + 'A').value = op.a; $(f + 'B').value = op.b; }
+    if (op.t === 'arc') { $('faDir').value = op.dir; $('faR').value = op.r || ''; $('faBig').checked = !!op.big; }
+    if (op.t === 'circle') { $('fcC').value = op.c; $('fcMode').value = op.mode; $('fcV').value = op.v; }
+    if (op.t === 'sym') { $('fsP').value = op.p; ensureSymOption(op.sym); $('fsSym').value = op.sym; setRot(op.rot || 0); }
+    if (op.t === 'text') { $('ftP').value = op.p; $('ftS').value = op.s; $('ftSize').value = op.size; $('ftRot').value = op.rot || 0; }
+    $('cadEditing').hidden = false; $('cadEditName').textContent = desc(op);
+    document.querySelectorAll('#cadForm .cad-go').forEach(b => { b.dataset.l = b.dataset.l || b.textContent; b.textContent = '고치기'; });
+    selOps = new Set([id]); pickIdx = 0; renderAll();
+}
+function endEdit() {
+    if (!editing) return;
+    editing = null; $('cadEditing').hidden = true;
+    document.querySelectorAll('#cadForm .cad-go').forEach(b => { if (b.dataset.l) b.textContent = b.dataset.l; });
+}
+function moveOp(id, d) {
+    const i = doc.ops.findIndex(o => o.id === id), j = i + d;
+    if (i < 0 || j < 0 || j >= doc.ops.length) return;
+    snapHist(); [doc.ops[i], doc.ops[j]] = [doc.ops[j], doc.ops[i]]; changed();
+}
+function ensureSymOption(id) {
+    if (symOf(id) || !doc.syms[id]) return;
+    userSyms.push({id, name: doc.syms[id].name + ' (도면에 든 것)', items: doc.syms[id].items, local: true});
+    fillSymSelect(); renderLib();
+}
+
+// ── 라이브러리 ──────────────────────────────────────────────────────────
+function symBBox(items) {
+    const m = $('cadMeasure');
+    m.innerHTML = `<g>${items.map(itemSvg).join('')}</g>`;
+    let b; try { b = m.firstChild.getBBox(); } catch (e) { b = null; }
+    m.innerHTML = '';
+    return b && b.width + b.height > 0 ? b : {x: -1, y: -1, width: 2, height: 2};
+}
+function symThumb(s) {
+    const saveU = U; U = 0.25;
+    const b = symBBox(s.items), pad = Math.max(b.width, b.height) * 0.12 + 0.1;
+    const o = `<svg viewBox="${fmt(b.x - pad)} ${fmt(b.y - pad)} ${fmt(b.width + 2 * pad)} ${fmt(b.height + 2 * pad)}" preserveAspectRatio="xMidYMid meet">${s.items.map(itemSvg).join('')}</svg>`;
+    U = saveU; return o;
+}
+function fillSymSelect() {
+    const keep = $('fsSym').value, grp = (label, arr) => arr.length ? `<optgroup label="${label}">${arr.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('')}</optgroup>` : '';
+    $('fsSym').innerHTML = grp('기본', BUILTIN) + grp('내 기호', userSyms.filter(s => s.mine || s.local)) + grp('공유 기호', userSyms.filter(s => !s.mine && !s.local));
+    if ([...$('fsSym').options].some(o => o.value === keep)) $('fsSym').value = keep;
+}
+function renderLib() {
+    const cur = $('fsSym').value, card = s => `<div class="cad-sym${s.id === cur ? ' on' : ''}" data-id="${esc(s.id)}">${symThumb(s)}<span>${esc(s.name)}</span>`
+        + (s.pk && (s.mine || STAFF) ? `<button type="button" class="x" data-del="${s.pk}" title="지우기">✕</button>` : '')
+        + (s.pk && STAFF ? `<button type="button" class="sh${s.shared ? ' on' : ''}" data-share="${s.pk}" title="모두에게 공유">${s.shared ? '공유됨' : '공유'}</button>` : '')
+        + '</div>';
+    const mine = userSyms.filter(s => s.mine || s.local), shared = userSyms.filter(s => !s.mine && !s.local);
+    $('cadLib').innerHTML = '<h5>기본 기호</h5>' + BUILTIN.map(card).join('')
+        + (mine.length ? '<h5>내 기호</h5>' + mine.map(card).join('') : '')
+        + (shared.length ? '<h5>공유 기호</h5>' + shared.map(card).join('') : '');
+}
+function loadSyms() {
+    fetch(SYMAPI, {credentials: 'same-origin'}).then(r => r.json()).then(j => {
+        if (!j.ok) return;
+        userSyms = j.items.map(s => ({...s}));
+        Object.keys(doc.syms || {}).forEach(ensureSymOption);   // 라이브러리에서 지운 기호도 도면에는 남는다
+        fillSymSelect(); renderLib();
+    }).catch(() => {});
+}
+function opToItem(op, bx, by) {
+    const L = {ls: op.ls, w: op.w};
+    const a = op.a != null ? P(op.a) : null, b = op.b != null ? P(op.b) : null;
+    switch (op.t) {
+        case 'line': return {t: 'line', x1: a.x - bx, y1: a.y - by, x2: b.x - bx, y2: b.y - by, ...L};
+        case 'rect': return {t: 'rect', x: Math.min(a.x, b.x) - bx, y: Math.min(a.y, b.y) - by, rw: Math.abs(b.x - a.x), rh: Math.abs(b.y - a.y), ...L};
+        case 'circle': { const c = P(op.c); return {t: 'circle', cx: c.x - bx, cy: c.y - by, r: radiusOf(op), ...L}; }
+        case 'arc': return {t: 'arc', x1: a.x - bx, y1: a.y - by, x2: b.x - bx, y2: b.y - by, r: op.r, cw: op.dir === 'cw', big: op.big, ...L};
+        case 'text': { const p = P(op.p); return {t: 'text', x: p.x - bx, y: p.y - by, s: op.s, size: op.size, rot: op.rot}; }
+        case 'sym': { const p = P(op.p), d = doc.syms[op.sym]; return {t: 'g', x: p.x - bx, y: p.y - by, rot: op.rot || 0, items: clone(d.items)}; }
+    }
+    return null;
+}
+function regInfo() {
+    const n = [...selOps].filter(id => doc.ops.some(o => o.id === id && o.t !== 'step')).length;
+    $('lbInfo').textContent = n ? `고른 객체 ${n}개를 담습니다` : '작도 순서나 도면에서 객체를 고르세요(Shift 로 여럿)';
+}
+function registerSym() {
+    const ops = doc.ops.filter(o => selOps.has(o.id) && o.t !== 'step');
+    const name = $('lbName').value.trim(), base = num('lbBase');
+    if (!ops.length) { flash('기호로 담을 객체를 먼저 고르세요'); return; }
+    if (!name) { flash('기호 이름을 적어 주세요'); $('lbName').focus(); return; }
+    if (!base) { flash('기준점 번호를 넣어 주세요 — 넣을 때 이 점이 누른 자리에 옵니다'); $('lbBase').focus(); return; }
+    const bp = P(base), items = ops.map(o => opToItem(o, bp.x, bp.y)).filter(Boolean);
+    post(SYMAPI + 'save/', {name, items}).then(j => {
+        if (!j.ok) { flash(j.error || '등록하지 못했습니다'); return; }
+        userSyms.push(j.item); fillSymSelect(); $('fsSym').value = j.item.id; renderLib();
+        $('lbName').value = ''; flash(`'${name}' 을(를) 라이브러리에 등록했습니다`);
+    });
+}
+
+// ── 서버·임시 저장 ───────────────────────────────────────────────────────
+function csrf() { const m = document.cookie.match(/csrftoken=([^;]+)/); return m ? m[1] : ''; }
+function post(url, body) {
+    return fetch(url, {method: 'POST', credentials: 'same-origin',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf()}, body: JSON.stringify(body || {})})
+        .then(r => r.json()).catch(() => ({ok: false, error: '서버에 닿지 못했습니다'}));
+}
+const DRAFT = 'cadDraft:' + CERT;
+function saveDraft() {
+    try { localStorage.setItem(DRAFT, JSON.stringify({id: cur.id, title: $('cadTitle').value, doc, dirty})); } catch (e) {}
+}
+function savedLabel() {
+    const el = $('cadSaved');
+    el.textContent = dirty ? '● 저장 안 됨' : (cur.id ? '저장됨' : '');
+    el.classList.toggle('dirty', dirty);
+}
+function save() {
+    const body = {id: cur.id, title: $('cadTitle').value.trim() || sheet.title + ' 도면', sheet: doc.sheet, data: doc};
+    $('cadTitle').value = body.title;
+    post(API + 'save/', body).then(j => {
+        if (!j.ok) { flash(j.error || '저장하지 못했습니다'); return; }
+        cur.id = j.id; dirty = false; saveDraft(); savedLabel(); flash('저장했습니다');
+    });
+}
+function openList() {
+    const box = $('cadOpen');
+    if (!box.hidden) { box.hidden = true; return; }
+    box.hidden = false; box.innerHTML = '<div class="cad-empty">불러오는 중…</div>';
+    fetch(API, {credentials: 'same-origin'}).then(r => r.json()).then(j => {
+        if (!j.ok || !j.items.length) { box.innerHTML = '<div class="cad-empty">저장한 도면이 없습니다.</div>'; return; }
+        box.innerHTML = j.items.map(d => `<div class="it" data-id="${d.id}"><span>${esc(d.title)}<small>${esc(sheetOf(d.sheet).title)} · ${esc(d.updated)}</small></span><button type="button" data-del="${d.id}" title="지우기">✕</button></div>`).join('');
+    });
+}
+function openDrawing(id) {
+    if (dirty && !confirm('저장하지 않은 작업이 있습니다. 버리고 열까요?')) return;
+    fetch(`${API}${id}/`, {credentials: 'same-origin'}).then(r => r.json()).then(j => {
+        if (!j.ok) { flash('열지 못했습니다'); return; }
+        doc = Object.assign(blankDoc(j.sheet), j.data || {});
+        cur.id = j.id; $('cadTitle').value = j.title; hist = []; redoS = []; dirty = false;
+        $('cadOpen').hidden = true; afterLoad(true); saveDraft();
+    });
+}
+function newDrawing() {
+    if (dirty && !confirm('저장하지 않은 작업이 있습니다. 버리고 새로 시작할까요?')) return;
+    doc = blankDoc($('cadSheet').value || '401'); cur.id = null; $('cadTitle').value = '';
+    hist = []; redoS = []; dirty = false; afterLoad(true); saveDraft();
+}
+function afterLoad(refit) {
+    selOps.clear(); selPt = null; endEdit();
+    Object.keys(doc.syms || {}).forEach(ensureSymOption);
+    setSheet(doc.sheet); renderAll(); regInfo();
+    if (refit) fit();
+}
+
+// ── 내보내기 — 작업형 화면의 단계 재생과 같은 꼴 ─────────────────────────
+function buildExport() {
+    const s = sheet, m = 3.4 * U, title = $('cadTitle').value.trim() || s.title;
+    const x = s.x0 - m, y = s.y0 - m - 1.6 * U, w = (s.x1 - s.x0) + 2 * m, h = (s.y1 - s.y0) + 2 * m + 1.6 * U;
+    const steps = []; let st = null;
+    doc.ops.forEach(op => {
+        if (op.t === 'step') { st = {title: op.title, ops: []}; steps.push(st); return; }
+        if (!st) { st = {title, ops: []}; steps.push(st); }
+        st.ops.push(op);
+    });
+    const withPts = $('cadShowPts').checked, shown = new Set();
+    let body = `<g>${gridSvg(s, 'eg')}</g>`;
+    steps.forEach((sp, k) => {
+        body += `<g data-step="${k + 1}">` + sp.ops.map((op, i) => {
+            let dots = '';
+            if (withPts) ptsOf(op).forEach(n => { n = +n; if (!shown.has(n) && P(n)) { shown.add(n); dots += dotSvg(P(n)); } });
+            return `<g data-sub="${i + 1}">${dots}${opSvg(op)}</g>`;
+        }).join('') + '</g>';
+    });
+    if (withPts) { const rest = doc.pts.filter(p => !shown.has(p.n)); if (rest.length) body += `<g>${rest.map(p => dotSvg(p)).join('')}</g>`; }
+    const titles = JSON.stringify(steps.map(sp => sp.title)).replace(/'/g, '’');
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${fmt(x)} ${fmt(y)} ${fmt(w)} ${fmt(h)}" role="img" aria-label="${esc(title)}" `
+        + `data-steps='${titles}' style="width:100%;height:auto;font-family:'Nanum Pen Script','Malgun Gothic',sans-serif">${body}</svg>`;
+}
+function download() {
+    const blob = new Blob([buildExport()], {type: 'image/svg+xml'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = ($('cadTitle').value.trim() || sheet.title).replace(/[\\/:*?"<>|]/g, '_') + '.svg';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function copyDesc() {
+    const t = describeAll();
+    const done = () => flash('작도 순서를 복사했습니다 — 워드에 붙여 넣으세요');
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(done, () => fallbackCopy(t));
+    else fallbackCopy(t);
+    function fallbackCopy(x) {
+        const ta = document.createElement('textarea'); ta.value = x; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) { prompt('복사해 가세요', x); }
+        ta.remove();
+    }
+}
+let flashT;
+function flash(msg) {
+    const el = $('cadHint'); clearTimeout(flashT);
+    el.textContent = ' · ' + msg; el.style.color = '#c0632b';
+    flashT = setTimeout(() => { el.style.color = ''; status(); }, 2600);
+}
+
+// ── 사건 ────────────────────────────────────────────────────────────────
+const ptrs = new Map();
+let drag = null, pinchD = 0, spaceDown = false;
+svg.addEventListener('pointerdown', e => {
+    svg.setPointerCapture(e.pointerId);
+    ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY});
+    if (ptrs.size === 2) { drag = {kind: 'pinch'}; pinchD = 0; return; }
+    if (e.button === 1 || spaceDown) { drag = {kind: 'pan', lx: e.clientX, ly: e.clientY, moved: true}; e.preventDefault(); return; }
+    if (e.button === 2) { drag = {kind: 'right', lx: e.clientX, ly: e.clientY, sx: e.clientX, sy: e.clientY, moved: false}; return; }
+    if (e.button !== 0) return;
+    const w = toWorld(e);
+    if (tool === 'select') { const hp = hitPoint(w);
+        if (hp) { drag = {kind: 'pt', n: hp.n, sx: e.clientX, sy: e.clientY, moved: false, saved: false}; return; } }
+    drag = {kind: 'click', sx: e.clientX, sy: e.clientY, lx: e.clientX, ly: e.clientY, moved: false, target: e.target};
+});
+svg.addEventListener('pointermove', e => {
+    if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY});
+    if (drag && drag.kind === 'pinch' && ptrs.size === 2) {
+        const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (pinchD) { const c = toWorld({clientX: (a.x + b.x) / 2, clientY: (a.y + b.y) / 2}); zoomAt(d / pinchD, c.x, c.y); }
+        pinchD = d; return;
+    }
+    const w = toWorld(e);
+    if (drag && (drag.kind === 'click' || drag.kind === 'pan' || drag.kind === 'right')) {
+        if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 5) drag.moved = true;
+        if (drag.moved) { const k = pxPer(); vb.x -= (e.clientX - drag.lx) / k; vb.y -= (e.clientY - drag.ly) / k; setVB(); }
+        drag.lx = e.clientX; drag.ly = e.clientY;
+        return;
+    }
+    if (drag && drag.kind === 'pt') {
+        if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 3) drag.moved = true;
+        if (drag.moved) {
+            if (!drag.saved) { snapHist(); drag.saved = true; }
+            const s = snapXY(w), p = P(drag.n); p.x = s.x; p.y = s.y;
+            hover = {x: s.x, y: s.y, pt: p.n}; drawOps(); drawPts(); status();
+        }
+        return;
+    }
+    const hp = hitPoint(w), s = snapXY(w);
+    hover = {x: s.x, y: s.y, pt: hp ? hp.n : null};
+    drawPre(); status();
+});
+function endPtr(e) {
+    ptrs.delete(e.pointerId);
+    if (!drag) return;
+    const d = drag;
+    if (d.kind === 'pinch') { if (!ptrs.size) drag = null; return; }
+    drag = null;
+    if (e.type === 'pointercancel') return;
+    if (d.kind === 'click' && !d.moved) onCanvasClick(toWorld(e), e, d.target);
+    else if (d.kind === 'right' && !d.moved) { endEdit(); resetPick(); }
+    else if (d.kind === 'pt') {
+        if (d.moved) { changed(); }
+        else { selPt = d.n; setTool('point'); fillPointForm(P(d.n)); renderAll(); }
+    }
+}
+svg.addEventListener('pointerup', endPtr);
+svg.addEventListener('pointercancel', endPtr);
+svg.addEventListener('pointerleave', () => { if (!drag) { hover = null; drawPre(); status(); } });
+svg.addEventListener('contextmenu', e => e.preventDefault());
+svg.addEventListener('wheel', e => {
+    e.preventDefault();
+    const w = toWorld(e);
+    zoomAt(e.deltaY < 0 ? 1.18 : 1 / 1.18, w.x, w.y);
+}, {passive: false});
+
+document.querySelectorAll('#cadTools [data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
+$('cadSnap').addEventListener('change', status);
+$('cadSnapStep').addEventListener('change', () => { $('cadSnap').checked = true; status(); });
+$('cadShowPts').addEventListener('change', drawPts);
+$('cadUndo').addEventListener('click', undo);
+$('cadRedo').addEventListener('click', redo);
+$('cadZin').addEventListener('click', () => zoomCenter(1.4));
+$('cadZout').addEventListener('click', () => zoomCenter(1 / 1.4));
+$('cadZfit').addEventListener('click', fit);
+$('cadNew').addEventListener('click', newDrawing);
+$('cadSave').addEventListener('click', save);
+$('cadExport').addEventListener('click', download);
+$('cadCopy').addEventListener('click', copyDesc);
+$('cadOpenBtn').addEventListener('click', openList);
+$('cadFull').addEventListener('click', () => { root.classList.toggle('full'); document.body.style.overflow = root.classList.contains('full') ? 'hidden' : ''; requestAnimationFrame(fit); });
+$('cadOpen').addEventListener('click', e => {
+    const del = e.target.closest('[data-del]');
+    if (del) { e.stopPropagation();
+        if (!confirm('이 도면을 지울까요? 되돌릴 수 없습니다.')) return;
+        post(`${API}${del.dataset.del}/delete/`).then(j => {
+            if (j.ok) { if (+del.dataset.del === cur.id) { cur.id = null; dirty = true; savedLabel(); } $('cadOpen').hidden = true; openList(); }
+        });
+        return; }
+    const it = e.target.closest('.it'); if (it) openDrawing(+it.dataset.id);
+});
+document.addEventListener('click', e => { if (!e.target.closest('#cadOpen') && e.target.id !== 'cadOpenBtn') $('cadOpen').hidden = true; });
+$('cadSheet').addEventListener('change', () => {
+    snapHist(); setSheet($('cadSheet').value); changed(); fit();
+});
+$('cadTitle').addEventListener('input', () => { dirty = true; savedLabel(); saveDraft(); });
+$('fpN').addEventListener('input', pointGoLabel);
+$('fpGo').addEventListener('click', () => commit('point'));
+['fl', 'fr', 'fc', 'fa'].forEach(f => $(f + 'Go').addEventListener('click', () => commit({fl: 'line', fr: 'rect', fc: 'circle', fa: 'arc'}[f])));
+$('fsGo').addEventListener('click', () => commit('sym'));
+$('ftGo').addEventListener('click', () => commit('text'));
+$('ftSize').addEventListener('input', () => { $('ftSize').dataset.touched = '1'; });
+$('cadEditCancel').addEventListener('click', () => { endEdit(); resetPick(); });
+function setRot(v) { v = ((+v % 360) + 360) % 360; $('fsRot').value = fmt(v); $('fsRotR').value = v; $('fsRotV').textContent = fmt(v) + '°'; drawPre(); }
+$('fsRotR').addEventListener('input', () => setRot($('fsRotR').value));
+$('fsRot').addEventListener('input', () => setRot($('fsRot').value));
+$('fsSym').addEventListener('change', () => { renderLib(); drawPre(); });
+document.querySelectorAll('#cadForm .pk').forEach(inp => inp.addEventListener('focus', () => {
+    const f = PICKS[tool] || []; const i = f.indexOf(inp.id); if (i >= 0) { pickIdx = i; markAwait(); status(); }
+}));
+document.querySelectorAll('#cadForm .pk').forEach(inp => inp.addEventListener('input', () => drawPts()));
+$('cadForm').addEventListener('keydown', e => {
+    if (e.key !== 'Enter' || e.isComposing) return;
+    e.preventDefault(); commit();
+});
+document.querySelectorAll('.cad-tabs [data-ptab]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.cad-tabs [data-ptab]').forEach(x => x.classList.toggle('on', x === b));
+    document.querySelectorAll('.cad-pane').forEach(p => p.classList.toggle('on', p.dataset.ppane === b.dataset.ptab));
+}));
+$('cadStepAdd').addEventListener('click', () => {
+    const t = $('cadStepTitle').value.trim();
+    if (!t) { flash('단계 이름을 적어 주세요'); $('cadStepTitle').focus(); return; }
+    snapHist(); doc.ops.push({id: doc.seq++, t: 'step', title: t}); $('cadStepTitle').value = ''; changed();
+});
+$('cadStepTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); $('cadStepAdd').click(); } });
+$('cadOpList').addEventListener('click', e => {
+    const row = e.target.closest('.cad-op'); if (!row) return;
+    const id = +row.dataset.id, act = e.target.closest('[data-act]');
+    if (act) {
+        const a = act.dataset.act;
+        if (a === 'del') { snapHist(); doc.ops = doc.ops.filter(o => o.id !== id); selOps.delete(id); pruneSyms(); changed(); }
+        if (a === 'up') moveOp(id, -1);
+        if (a === 'down') moveOp(id, 1);
+        if (a === 'edit') editOp(id);
+        return;
+    }
+    if (row.classList.contains('step')) return;
+    selectOp(id, e.shiftKey || e.ctrlKey || e.metaKey);
+});
+$('cadPtList').addEventListener('change', e => {
+    const row = e.target.closest('.cad-pt'), k = e.target.dataset.k; if (!row || !k) return;
+    const v = parseFloat(e.target.value), p = P(row.dataset.n); if (!p || !isFinite(v)) return;
+    snapHist(); p[k] = rnd(v); changed();
+});
+$('cadPtList').addEventListener('click', e => {
+    const row = e.target.closest('.cad-pt'); if (!row || row.classList.contains('head')) return;
+    const n = +row.dataset.n;
+    if (e.target.closest('button')) {
+        const u = usedBy(n);
+        if (u) { flash(`P${n} 는 객체 ${u}개가 쓰고 있어 지울 수 없습니다`); return; }
+        snapHist(); doc.pts = doc.pts.filter(p => p.n !== n); if (selPt === n) selPt = null; changed(); return;
+    }
+    if (selPt !== n) { selPt = n; drawPts(); row.parentNode.querySelectorAll('.cad-pt').forEach(r => r.classList.toggle('on', r === row)); }
+});
+$('cadLib').addEventListener('click', e => {
+    const del = e.target.closest('[data-del]'), sh = e.target.closest('[data-share]');
+    if (del) { if (!confirm('이 기호를 라이브러리에서 지울까요? (이미 넣은 도면에는 남습니다)')) return;
+        post(`${SYMAPI}${del.dataset.del}/delete/`).then(j => { if (j.ok) { userSyms = userSyms.filter(s => s.pk !== +del.dataset.del); fillSymSelect(); renderLib(); } });
+        return; }
+    if (sh) { const s = userSyms.find(x => x.pk === +sh.dataset.share);
+        post(SYMAPI + 'save/', {pk: s.pk, shared: !s.shared}).then(j => { if (j.ok) { Object.assign(s, j.item); renderLib(); } });
+        return; }
+    const c = e.target.closest('.cad-sym'); if (!c) return;
+    $('fsSym').value = c.dataset.id; setTool('sym'); renderLib();
+});
+$('lbGo').addEventListener('click', registerSym);
+
+document.addEventListener('keydown', e => {
+    if (!root.offsetParent && !root.classList.contains('full')) return;     // CAD 탭이 보일 때만
+    const tag = (e.target.tagName || '').toLowerCase(), typing = tag === 'input' || tag === 'textarea' || tag === 'select';
+    const k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
+    if (mod && k === 's') { e.preventDefault(); save(); return; }
+    if (e.key === 'Escape') { if (root.classList.contains('full') && !editing && !pickIdx) { $('cadFull').click(); return; }
+        endEdit(); resetPick(); selOps.clear(); renderAll(); return; }
+    if (e.key === 'F9') { e.preventDefault(); $('cadSnap').checked = !$('cadSnap').checked; status(); return; }
+    if (typing) return;
+    if (mod && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+    if (mod && k === 'y') { e.preventDefault(); redo(); return; }
+    if (mod) return;
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteSelected(); return; }
+    if (e.key === ' ') { e.preventDefault(); spaceDown = true; return; }
+    const map = {v: 'select', p: 'point', l: 'line', r: 'rect', c: 'circle', a: 'arc', b: 'sym', t: 'text'};
+    if (map[k]) setTool(map[k]);
+    if (k === '+' || k === '=') zoomCenter(1.4);
+    if (k === '-') zoomCenter(1 / 1.4);
+});
+document.addEventListener('keyup', e => { if (e.key === ' ') spaceDown = false; });
+window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+new ResizeObserver(() => { if (!svg.clientWidth) return; if (!fitted) fit(); else reAspect(); }).observe(svg);
+
+// ── 시작 ────────────────────────────────────────────────────────────────
+$('cadSheet').innerHTML = SHEETS.map(s => `<option value="${s.key}">${esc(s.title)}${s.scale ? ' · ' + s.scale : ''}</option>`).join('');
+const selOpts = (sel, obj) => sel.innerHTML = Object.entries(obj).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join('');
+document.querySelectorAll('#cadForm select.ls').forEach(s => selOpts(s, LS));
+document.querySelectorAll('#cadForm select.wd').forEach(s => { selOpts(s, WD); s.value = 'mid'; });
+fillSymSelect();
+let draft = null;
+try { draft = JSON.parse(localStorage.getItem(DRAFT) || 'null'); } catch (e) {}
+if (draft && draft.doc && draft.doc.pts) {
+    doc = Object.assign(blankDoc(draft.doc.sheet || '401'), draft.doc);
+    cur.id = draft.id || null; $('cadTitle').value = draft.title || ''; dirty = !!draft.dirty;
+} else doc = blankDoc(SHEETS.some(s => s.key === '401') ? '401' : SHEETS[0].key);
+afterLoad(false);
+setTool('point');
+renderLib();
+loadSyms();
+})();
+{% endverbatim %}
+</script>

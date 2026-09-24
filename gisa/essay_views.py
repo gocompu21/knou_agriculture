@@ -26,6 +26,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .essay_examinfo import exam_info, hm
+from .cad import sheets_json as cad_sheets_json
 from .resource_views import resource_tab_context, video_tab_context
 from .essay_topics import siblings, topic_groups
 from .pesticide import can_see as pest_can_see, stats as pest_stats
@@ -862,7 +863,7 @@ def essay_work(request, cert_id):
     # **개요와 도면 기본기는 화면에서 내렸다** — 자료(GisaEssayNote `work-basics`)는
     # 지우지 않았으므로 되돌리려면 템플릿에 탭만 도로 넣으면 된다.
     tab = request.GET.get('tab', 'video')
-    if tab not in ('video', 'tasks', 'elements', 'res'):
+    if tab not in ('video', 'tasks', 'elements', 'res', 'cad'):
         tab = 'video'               # 옛 주소 ?tab=sheets·overview·basics 는 여기로 받는다
     if tab == 'elements' and 'work-elements' not in notes:
         tab = 'video'               # 자료가 없으면 탭 자체가 없다(템플릿도 같은 조건)
@@ -873,6 +874,8 @@ def essay_work(request, cert_id):
 
         'cert': cert,
         'info': info,
+        # CAD 탭 — 모눈종이 목록(좌표 범위)만 내려준다. 도면·기호는 탭이 API 로 받는다
+        'cad_sheets': cad_sheets_json(),
         # 표 머리말이 종목마다 달라진다 — 회차 차례(1·2·4회 / 1·2·3회)와,
         # 도면에 번호가 있는지(조경은 있고 자연생태복원은 없다)
         'round_label': round_label,

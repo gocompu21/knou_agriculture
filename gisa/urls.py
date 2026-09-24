@@ -1,7 +1,7 @@
 from django.urls import path
 
 from . import resource_views
-from . import essay_views, pest, pesticide, views
+from . import cad, essay_views, pest, pesticide, views
 
 app_name = "gisa"
 
@@ -93,6 +93,14 @@ urlpatterns = [
     path("<int:cert_id>/essay/grade-one/<int:question_id>/", essay_views.essay_grade_one, name="essay_grade_one"),
     path("<int:cert_id>/essay/siblings/<int:question_id>/", essay_views.essay_siblings, name="essay_siblings"),
     path("<int:cert_id>/essay/edit/<int:question_id>/", essay_views.essay_question_update, name="essay_question_update"),
+    # 작업형 CAD 탭 — 도면(회원별)과 라이브러리 기호
+    path("<int:cert_id>/cad/drawings/", cad.drawing_list, name="cad_drawing_list"),
+    path("<int:cert_id>/cad/drawings/<int:pk>/", cad.drawing_get, name="cad_drawing_get"),
+    path("<int:cert_id>/cad/drawings/save/", cad.drawing_save, name="cad_drawing_save"),
+    path("<int:cert_id>/cad/drawings/<int:pk>/delete/", cad.drawing_delete, name="cad_drawing_delete"),
+    path("cad/symbols/", cad.symbol_list, name="cad_symbol_list"),
+    path("cad/symbols/save/", cad.symbol_save, name="cad_symbol_save"),
+    path("cad/symbols/<int:pk>/delete/", cad.symbol_delete, name="cad_symbol_delete"),
     path("<int:cert_id>/essay/work/ref/<int:ref_id>/", essay_views.drawing_ref_update,
          name="drawing_ref_update"),
     path("<int:cert_id>/essay/note/<slug:slug>/", essay_views.essay_note, name="essay_note"),

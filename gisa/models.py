@@ -970,3 +970,53 @@ class GisaVideoCategory(models.Model):
     @property
     def is_major(self):
         return self.parent_id is None
+
+
+class CadDrawing(models.Model):
+    """작업형 CAD 탭에서 그린 도면 한 장 — 회원마다 따로 둔다.
+
+    도면은 **점 목록 + 작도 순서(ops)** 를 JSON 하나(`data`)에 담는다. 선·원·호가
+    좌표가 아니라 점 번호를 가리키므로, 점 하나를 옮기면 거기 걸린 선이 모두 따라온다.
+    배경 모눈종이는 저장하지 않는다 — `gisa/cad.py` 의 SHEETS(좌표 범위)로 화면이 그린다.
+    """
+    certification = models.ForeignKey(
+        Certification, on_delete=models.CASCADE,
+        related_name='cad_drawings', verbose_name='자격증')
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                              related_name='cad_drawings', verbose_name='작성자')
+    sheet = models.CharField('모눈종이', max_length=30)
+    title = models.CharField('도면 이름', max_length=100)
+    data = models.JSONField('도면 자료', default=dict)
+    created_at = models.DateTimeField('만든 날', auto_now_add=True)
+    updated_at = models.DateTimeField('고친 날', auto_now=True)
+
+    class Meta:
+        verbose_name = 'CAD 도면'
+        verbose_name_plural = 'CAD 도면'
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f'{self.title} ({self.owner})'
+
+
+class CadSymbol(models.Model):
+    """CAD 라이브러리 — 퍼걸러·평의자처럼 되풀이해 넣는 기호.
+
+    기본 기호(퍼걸러 4×4 등)는 화면 코드에 들어 있고, 여기에는 회원이 도면에서
+    골라 등록한 것만 둔다. `data` = {items: [...]} — 좌표는 기준점을 (0,0)으로 한 m 단위.
+    스태프가 `shared` 를 켜면 모든 회원의 라이브러리에 보인다.
+    """
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                              related_name='cad_symbols', verbose_name='등록자')
+    name = models.CharField('이름', max_length=60)
+    data = models.JSONField('기호 자료', default=dict)
+    shared = models.BooleanField('모두에게 공유', default=False)
+    updated_at = models.DateTimeField('고친 날', auto_now=True)
+
+    class Meta:
+        verbose_name = 'CAD 라이브러리 기호'
+        verbose_name_plural = 'CAD 라이브러리 기호'
+        ordering = ['name', 'id']
+
+    def __str__(self):
+        return self.name

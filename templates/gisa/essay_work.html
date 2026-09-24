@@ -332,6 +332,7 @@
         {% comment %} 자료가 있을 때만 — 빈 '준비 중' 탭이 서 있으면 자리만 먹는다 {% endcomment %}
         {% if elements_html %}<button class="tab-btn{% if active_tab == 'elements' %} active{% endif %}" data-tab="elements">설계 요소</button>{% endif %}
         {% if res_count or request.user.is_staff %}<button class="tab-btn{% if active_tab == 'res' %} active{% endif %}" data-tab="res">자료실{% if res_count %}<span class="tab-badge">{{ res_count }}</span>{% endif %}</button>{% endif %}
+        <button class="tab-btn{% if active_tab == 'cad' %} active{% endif %}" data-tab="cad">CAD</button>
     </div>
 
     <!-- 작업형 개요 -->
@@ -472,6 +473,10 @@
     <!-- ══════════ 자료실 ══════════ -->
     <div id="tab-res" class="tab-content{% if active_tab == 'res' %} active{% endif %}">
         {% include "gisa/_resources.html" %}
+    </div>
+    <!-- ══════════ CAD — 모눈종이 위에 점을 찍고 이어 도면을 만든다 ══════════ -->
+    <div id="tab-cad" class="tab-content{% if active_tab == 'cad' %} active{% endif %}">
+        {% include "gisa/_cad.html" %}
     </div>
 </div>
 
