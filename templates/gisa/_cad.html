@@ -51,6 +51,7 @@
         <button type="button" id="cadTriFlip" class="cad-bar-btn" title="삼각자 좌우 뒤집기" hidden>⇆ 뒤집기</button>
         <button type="button" id="cadTriRot" class="cad-bar-btn" title="60° 삼각자 눕히기 — 빗변 60° ↔ 30°" hidden>빗변 30°</button>
         <button type="button" id="cadTplBtn" class="cad-bar-btn" title="원형 템플릿 — 몸통을 끌어 옮기고, 샤프로 구멍 안을 따라 돌리면 원(돌린 만큼 호)이 그려집니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="4.5" width="17" height="11" rx="1.5" fill="#f2c230" stroke="#b08a10" stroke-width="1"/><circle cx="5.5" cy="10" r="2.6" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="11" cy="10" r="1.9" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="15.3" cy="10" r="1.2" fill="#fff" stroke="#b08a10" stroke-width=".7"/></svg>템플릿</button>
+        <select id="cadTplKind" class="cad-txt" title="템플릿 종류"><option value="circle">원형</option><option value="geo">도형</option></select>
         <button type="button" id="cadCalcBtn" class="cad-bar-btn" title="템플릿 계산기 — 축척과 실제 지름으로 몇 번 구멍을 쓸지, 구멍 번호로 실제 지름을 계산"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="2" width="12" height="16" rx="1.6"/><rect x="6" y="4.2" width="8" height="3.2" rx=".5"/><path d="M7 10.3h.01M10 10.3h.01M13 10.3h.01M7 13h.01M10 13h.01M13 13h.01M7 15.6h.01M10 15.6h.01M13 15.6h.01" stroke-width="2.1"/></svg>계산기</button>
         <span class="cad-sep"></span>
         <button type="button" id="cadAuxBtn" class="cad-bar-btn on" title="보조선 레이어 보이기·감추기 — 색은 설정(⚙)에서"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6h16M2 10h16M2 14h16" stroke-dasharray="2 1.6"/></svg>보조선</button>
@@ -60,16 +61,17 @@
         <button type="button" id="cadSetBtn" class="cad-set-btn" title="설정 — 점 번호·자 크기·샤프·보조선" aria-label="설정" aria-expanded="false"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.2v2.3M10 15.5v2.3M2.2 10h2.3M15.5 10h2.3M4.5 4.5l1.6 1.6M13.9 13.9l1.6 1.6M4.5 15.5l1.6-1.6M13.9 6.1l1.6-1.6"/><circle cx="10" cy="10" r="5.4"/></svg></button>
         <div class="cad-set cad-calc" id="cadCalc" hidden>
             <h4>템플릿 계산기</h4>
+            <div class="cad-set-row"><label class="cad-set-sub">모양 <select id="ccShape" class="cad-set-ls"></select></label></div>
             <div class="cad-set-row"><label class="cad-set-sub">축척 1 : <input type="number" id="ccScale" class="cad-set-num" min="1" step="1" style="width:70px"></label>
                 <button type="button" class="cad-mini" id="ccSheet" title="지금 모눈종이의 축척으로">종이 축척</button></div>
-            <div class="cad-set-row cad-calc-sec"><b>실제 지름 → 템플릿 번호</b></div>
-            <div class="cad-set-row cad-set-in"><label class="cad-set-sub">실제 지름 <input type="number" id="ccReal" class="cad-set-num" min="0" step="any" style="width:80px"></label>
+            <div class="cad-set-row cad-calc-sec"><b>실제 크기 → 템플릿 번호</b></div>
+            <div class="cad-set-row cad-set-in"><label class="cad-set-sub" id="ccRealLb">실제 지름 <input type="number" id="ccReal" class="cad-set-num" min="0" step="any" style="width:80px"></label>
                 <select id="ccUnit" class="cad-set-ls"><option value="mm">mm</option><option value="m">m</option></select></div>
             <div class="cad-calc-out" id="ccOut1"></div>
-            <div class="cad-set-row cad-calc-sec"><b>템플릿 번호 → 실제 지름</b></div>
+            <div class="cad-set-row cad-calc-sec"><b>템플릿 번호 → 실제 크기</b></div>
             <div class="cad-set-row cad-set-in"><label class="cad-set-sub">템플릿 <select id="ccHole" class="cad-set-ls"></select> 번 (mm)</label></div>
             <div class="cad-calc-out" id="ccOut2"></div>
-            <p class="cad-set-note">종이 위 지름 = 실제 지름 ÷ 축척. 번호를 누르면 템플릿에서 그 구멍을 짚어 줍니다.</p>
+            <p class="cad-set-note">종이 위 크기 = 실제 크기 ÷ 축척(원은 지름, □·△ 는 한 변, ⬡ 는 마주 보는 변 사이). 번호를 누르면 템플릿에서 그 구멍을 짚어 줍니다.</p>
         </div>
         <div class="cad-set" id="cadSet" hidden>
             <h4>설정</h4>
@@ -602,83 +604,148 @@ function onRuler(p) {             // 자 위인가 — 변 위(자에 대고 그
     const G = triGeom();
     return !!G && inTri(p, G.R, G.T, G.B);
 }
-// ── 원형 템플릿(서클 템플릿) ── 실물(폭 235 × 111mm, 구멍 39개)을 종이 위 mm 로 적고 도면 축척으로 m 로 바꾼다.
-// 구멍은 표기 지름 + 0.5mm(연필 여유) — 구멍 안쪽을 샤프로 돌리면 표기 지름의 원이 그려진다
-const TPL_W = 235, TPL_H = 111, TPL_PX = 0.3584;       // 사진 1px = 0.3584mm(자 눈금 22cm = 614px 로 쟀다)
-const TPL_HOLES = (() => {
+// ── 템플릿 ── 실물을 종이 위 mm 로 적고 도면 축척으로 m 로 바꾼다. 구멍은 표기 + 0.5mm(연필 여유),
+// 구멍 안쪽을 샤프로 돌리면 표기 크기의 도형이 그려진다.
+//   원형(circle) — 폭 235×111mm, 원 39개(1~36). 사진에서 22cm = 614px 로 쟀다
+//   도형(geo)    — 폭 233×117mm, 원·정삼각형·정사각형·정육각형 각 14~15개. 사진이 작아(230px) 구멍 크기를
+//                  잰 값에 가장 가까운 흔한 계열로 적었다 — 선명한 사진이 오면 고칠 것
+// 도형 표기: 원 = 지름, 정사각형·정삼각형 = 한 변, 정육각형 = 마주 보는 변 사이(너트 치수처럼)
+const TPL_KINDS = (() => {
+    const cpx = 0.3584, gpx = 1 / 3.69, gx = px => (px - 26) * gpx, gy = py => (py - 245) * gpx;
     const r1 = [[1,32],[1.5,44],[2,57],[2.5,71],[3,88],[3.5,104],[4,122],[4.5,143],[5,164],[5.5,187],[6,211],[6.5,237],[7,264],[7.5,292],[8,322],[8.5,354],[9,387],[9.5,421],[10,457],[10.5,494],[11,533],[11.5,572],[12,612]];
     const r2 = [[22,60],[21,133],[20,203],[19,270],[18,333],[17,394],[16,454],[15,509],[14,561],[13,612]];
     const r3 = [[23,60],[25,150],[28,246],[30,351],[33,460],[36,580]];
-    return [...r1.map(([d, px]) => ({d, x: px * TPL_PX, y: 57 * TPL_PX})),
-            ...r2.map(([d, px]) => ({d, x: px * TPL_PX, y: 123 * TPL_PX})),
-            ...r3.map(([d, px]) => ({d, x: px * TPL_PX, y: 220 * TPL_PX}))];
+    const row = (s, ds, xs, py) => ds.map((d, i) => ({s, d, x: gx(xs[i]), y: gy(py)}));
+    return {
+        circle: {name: '원형', title: 'CIRCLE TEMPLATE', tx: 8, w: 235, h: 111, ruler0: 22 * cpx, color: 'rgba(242,194,48,.55)', edge: '#b08a10',
+            holes: [...r1.map(([d, px]) => ({s: 'c', d, x: px * cpx, y: 57 * cpx})), ...r2.map(([d, px]) => ({s: 'c', d, x: px * cpx, y: 123 * cpx})),
+                    ...r3.map(([d, px]) => ({s: 'c', d, x: px * cpx, y: 220 * cpx}))]},
+        geo: {name: '도형', title: 'GEOMETRIC TEMPLATE', tx: 118, w: 861 * gpx, h: 431 * gpx, ruler0: gx(50), color: 'rgba(240,150,30,.55)', edge: '#a0600a',
+            holes: [...row('c', [1,2,3,4,5,6,7,8,9,10,12,14,16,18,20], [71,91,114,142,174,211,252,296,343,399,461,536,619,709,805], 320),
+                    ...row('t', [20,18,16,14,12,10,9,8,7,6,5,4,3,2], [113,207,296,378,454,516,572,620,666,708,746,780,808,832], 415),
+                    ...row('s', [2,3,4,5,6,7,8,9,10,12,14,16,18,20,22], [70,89,112,140,173,211,251,295,343,400,462,537,621,711,807], 498),
+                    ...row('h', [18,16,15,14,12,10,9,8,7,6,5,4,3,2,1], [113,208,296,378,454,516,573,621,666,708,746,779,808,832,852], 597)]},
+    };
 })();
-let tpl = null;                                        // {x, y} 템플릿 왼쪽 위(도면 m)
-try { tpl = JSON.parse(localStorage.getItem('cadTpl') || 'null'); } catch (e) {}
+const SHAPE_NAME = {c: '원', s: '정사각형', t: '정삼각형', h: '정육각형'}, SHAPE_MARK = {c: '⌀', s: '□', t: '△', h: '⬡'};
+let tpl = null;                                        // {kind, x, y} 템플릿 왼쪽 위(도면 m)
+try { tpl = JSON.parse(localStorage.getItem('cadTpl') || 'null'); if (tpl && !TPL_KINDS[tpl.kind]) tpl.kind = 'circle'; } catch (e) {}
 function saveTpl() { try { localStorage.setItem('cadTpl', JSON.stringify(tpl)); } catch (e) {} }
 const tplK = () => scaleDenom() / 1000;               // 종이 위 1mm → 도면 m
-function tplHoles() {                                  // 도면 좌표의 구멍 — c(중심) · hr(구멍 반지름) · r(그려지는 원 반지름)
+const tplDef = () => TPL_KINDS[(tpl && tpl.kind) || 'circle'];
+// 도형의 꼭짓점 — 중심 c, 크기 a(도면 m). 정삼각형은 위가 뾰족하고 c 는 외접 상자의 가운데, 정육각형은 위가 뾰족하다
+function shapeVerts(s, c, a) {
+    if (s === 's') return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, v]) => ({x: c.x + u * a / 2, y: c.y + v * a / 2}));
+    if (s === 't') { const h = a * Math.sqrt(3) / 2; return [{x: c.x, y: c.y - h / 2}, {x: c.x + a / 2, y: c.y + h / 2}, {x: c.x - a / 2, y: c.y + h / 2}]; }
+    if (s === 'h') { const R = a / Math.sqrt(3); return [0, 1, 2, 3, 4, 5].map(i => ({x: c.x + R * Math.cos((-90 + 60 * i) * Math.PI / 180), y: c.y + R * Math.sin((-90 + 60 * i) * Math.PI / 180)})); }
+    return null;
+}
+function tplHoles() {                                  // 도면 좌표의 구멍 — c(중심) · hr(구멍 외접 반지름) · r·a(그려지는 크기) · hv·v(구멍·도형 꼭짓점)
     if (!tpl || !sheet) return [];
     const k = tplK();
-    return TPL_HOLES.map(h => ({d: h.d, c: {x: tpl.x + h.x * k, y: tpl.y + h.y * k}, hr: (h.d + 0.5) / 2 * k, r: h.d / 2 * k}));
+    return tplDef().holes.map(h => {
+        const c = {x: tpl.x + h.x * k, y: tpl.y + h.y * k}, ha = (h.d + 0.5) * k, a = h.d * k;
+        const R = h.s === 'c' ? ha / 2 : h.s === 's' ? ha / Math.SQRT2 : h.s === 't' ? ha / Math.sqrt(3) * 1.15 : ha / Math.sqrt(3);
+        return {s: h.s, d: h.d, c, hr: R, r: a / 2, a, hv: shapeVerts(h.s, c, ha), v: shapeVerts(h.s, c, a)};
+    });
 }
-function tplHoleAt(p) { return tplHoles().find(h => Math.hypot(p.x - h.c.x, p.y - h.c.y) < h.hr) || null; }
-function inTplBox(p) { if (!tpl || !sheet) return false; const k = tplK(); return p.x >= tpl.x && p.x <= tpl.x + TPL_W * k && p.y >= tpl.y && p.y <= tpl.y + TPL_H * k; }
+function inPoly(p, v) {                                // 볼록 다각형 안
+    let sg = 0;
+    for (let i = 0; i < v.length; i++) {
+        const a = v[i], b = v[(i + 1) % v.length], cr = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
+        if (cr !== 0) { if (sg && Math.sign(cr) !== sg) return false; sg = Math.sign(cr); }
+    }
+    return true;
+}
+const inHole = (h, p) => h.s === 'c' ? Math.hypot(p.x - h.c.x, p.y - h.c.y) < (h.d + 0.5) / 2 * tplK() : inPoly(p, h.hv);
+function tplHoleAt(p) { return tplHoles().find(h => inHole(h, p)) || null; }
+function inTplBox(p) { if (!tpl || !sheet) return false; const k = tplK(), D = tplDef(); return p.x >= tpl.x && p.x <= tpl.x + D.w * k && p.y >= tpl.y && p.y <= tpl.y + D.h * k; }
 function onTpl(p) { return inTplBox(p) && !tplHoleAt(p); }     // 템플릿 판 위(구멍은 종이)
+function holeLabel(h) { return `${SHAPE_MARK[h.s]}${h.d}mm`; }
 function drawTpl() {
     const g = $('cadTpl');
     $('cadTplBtn').classList.toggle('on', !!tpl);
+    if (tpl) $('cadTplKind').value = tpl.kind || 'circle';
     if (!tpl || !sheet) { g.innerHTML = ''; return; }
-    const k = tplK(), f = v => fmt(v), X = mm => tpl.x + mm * k, Y = mm => tpl.y + mm * k, H = tplHoles();
+    const D = tplDef(), k = tplK(), f = v => fmt(v), X = mm => tpl.x + mm * k, Y = mm => tpl.y + mm * k, H = tplHoles();
     const moving = drag && drag.kind === 'tpl' && drag.moved;
     // 판 — 바깥 사각형 + 구멍(evenodd). 구멍은 판이 아니라 누르면 종이다
-    let d = `M${f(X(0))} ${f(Y(0))}H${f(X(TPL_W))}V${f(Y(TPL_H))}H${f(X(0))}Z`;
-    H.forEach(h => { d += `M${f(h.c.x - h.hr)} ${f(h.c.y)}a${f(h.hr)} ${f(h.hr)} 0 1 0 ${f(2 * h.hr)} 0a${f(h.hr)} ${f(h.hr)} 0 1 0 ${f(-2 * h.hr)} 0Z`; });
-    let o = `<g class="tpl-body"><path d="${d}" fill-rule="evenodd" fill="rgba(242,194,48,.55)" stroke="#b08a10" stroke-width="${f(0.25 * k)}"/>`;
-    const ink = `stroke="#6b5200" stroke-width="${f(0.18 * k)}"`;
-    const tx = (x, y, s, sz, a) => `<text x="${f(x)}" y="${f(y)}" font-size="${f(sz * k)}" fill="#4a3900" text-anchor="${a || 'middle'}" dominant-baseline="central" font-weight="600">${s}</text>`;
+    let d = `M${f(X(0))} ${f(Y(0))}H${f(X(D.w))}V${f(Y(D.h))}H${f(X(0))}Z`;
+    H.forEach(h => {
+        if (h.s === 'c') { const e = (h.d + 0.5) / 2 * k; d += `M${f(h.c.x - e)} ${f(h.c.y)}a${f(e)} ${f(e)} 0 1 0 ${f(2 * e)} 0a${f(e)} ${f(e)} 0 1 0 ${f(-2 * e)} 0Z`; }
+        else d += 'M' + h.hv.map(q => `${f(q.x)} ${f(q.y)}`).join('L') + 'Z';
+    });
+    let o = `<g class="tpl-body"><path d="${d}" fill-rule="evenodd" fill="${D.color}" stroke="${D.edge}" stroke-width="${f(0.25 * k)}"/>`;
+    const ink = `stroke="#5a3a00" stroke-width="${f(0.18 * k)}"`;
+    const tx = (x, y, s, sz, a) => `<text x="${f(x)}" y="${f(y)}" font-size="${f(sz * k)}" fill="#402a00" text-anchor="${a || 'middle'}" dominant-baseline="central" font-weight="600">${s}</text>`;
     // 윗변 자 눈금 — 0 ~ 22cm, mm 눈금
-    const r0 = 22 * TPL_PX;
     let tk = '';
     for (let i = 0; i <= 220; i++) {
         const len = i % 10 === 0 ? 3.2 : i % 5 === 0 ? 2.2 : 1.3;
-        tk += `M${f(X(r0 + i))} ${f(Y(0))}v${f(len * k)}`;
-        if (i % 10 === 0) o += tx(X(r0 + i), Y(5), i / 10, 2.4);
+        tk += `M${f(X(D.ruler0 + i))} ${f(Y(0))}v${f(len * k)}`;
+        if (i % 10 === 0) o += tx(X(D.ruler0 + i), Y(5), i / 10, 2.4);
     }
     o += `<path d="${tk}" ${ink}/>`;
-    // 구멍마다 중심 맞춤 표시(바깥 네 방향 짧은 선)와 지름 표기
+    // 구멍마다 중심 맞춤 표시(바깥 네 방향 짧은 선)와 크기 표기
     let cm = '';
     H.forEach(h => {
-        const e = h.hr, t = Math.max(1.2, h.d * 0.12) * k;
-        cm += `M${f(h.c.x - e - t)} ${f(h.c.y)}h${f(t)}M${f(h.c.x + e)} ${f(h.c.y)}h${f(t)}M${f(h.c.x)} ${f(h.c.y - e - t)}v${f(t)}M${f(h.c.x)} ${f(h.c.y + e)}v${f(t)}`;
-        o += tx(h.c.x, h.c.y + e + t + (h.d < 13 ? 2.2 : 2.6) * k, h.d, h.d < 13 ? 2.1 : 2.6);
+        const hw = h.s === 'c' ? (h.d + 0.5) / 2 * k : Math.max(...h.hv.map(q => Math.abs(q.x - h.c.x)));
+        const hy0 = h.s === 'c' ? hw : h.c.y - Math.min(...h.hv.map(q => q.y)), hy1 = h.s === 'c' ? hw : Math.max(...h.hv.map(q => q.y)) - h.c.y;
+        const t = Math.max(1.2, h.d * 0.12) * k;
+        cm += `M${f(h.c.x - hw - t)} ${f(h.c.y)}h${f(t)}M${f(h.c.x + hw)} ${f(h.c.y)}h${f(t)}M${f(h.c.x)} ${f(h.c.y - hy0 - t)}v${f(t)}M${f(h.c.x)} ${f(h.c.y + hy1)}v${f(t)}`;
+        const sz = h.d < 10 ? 1.9 : 2.4;
+        o += tx(h.c.x, h.c.y + hy1 + t + sz * k, h.d, sz);
     });
     o += `<path d="${cm}" ${ink}/>`;
-    o += tx(X(8), Y(TPL_H - 6), 'CIRCLE TEMPLATE', 3.2, 'start') + tx(X(70), Y(TPL_H - 6), 'PENCIL ALLOWANCE 0.5', 2.4, 'start') + '</g>';
+    o += tx(X(D.tx), Y(D.h - 5), D.title, 3.2, 'start') + tx(X(D.tx + 62), Y(D.h - 5), 'PENCIL ALLOWANCE 0.5', 2.4, 'start') + '</g>';
     if (moving && drag.hole) {                          // 끄는 동안 잡은 구멍의 중심 좌표
-        const h = H.find(q => q.d === drag.hole.d), fs = 1.4 * U, lb = `⌀${h.d}mm  X ${fmt1(h.c.x)} · Y ${fmt1(h.c.y)}`, tw = lb.length * fs * 0.55;
+        const h = H.find(q => q.s === drag.hole.s && q.d === drag.hole.d), fs = 1.4 * U, lb = `${holeLabel(h)}  X ${fmt1(h.c.x)} · Y ${fmt1(h.c.y)}`, tw = lb.length * fs * 0.55;
         o += `<g pointer-events="none"><path d="M${f(h.c.x)} ${f(sheet.y0)}V${f(sheet.y1)}M${f(sheet.x0)} ${f(h.c.y)}H${f(sheet.x1)}" stroke="#c62828" stroke-width="${f(0.06 * U)}" stroke-dasharray="${f(0.5 * U)} ${f(0.35 * U)}"/>`
            + `<rect x="${f(h.c.x + h.hr + 0.6 * U)}" y="${f(h.c.y - h.hr - 2.2 * U)}" width="${f(tw)}" height="${f(fs * 1.5)}" rx="${f(0.3 * U)}" fill="#c62828"/>`
            + `<text x="${f(h.c.x + h.hr + 0.6 * U + tw / 2)}" y="${f(h.c.y - h.hr - 2.2 * U + fs * 0.75)}" font-size="${f(fs)}" fill="#fff" font-weight="700" text-anchor="middle" dominant-baseline="central">${lb}</text></g>`;
     }
     g.innerHTML = o;
 }
+function placeTpl(kind) {                              // 지금 보이는 화면 가운데에, 가장 큰 구멍의 중심을 눈금에 맞춰 놓는다
+    const D = TPL_KINDS[kind], k = tplK(), g = barStep();
+    const h0 = D.holes.reduce((a, b) => (b.d > a.d ? b : a));
+    const cx = Math.round((vb.x + vb.w / 2 - D.w * k / 2 + h0.x * k) / g) * g, cy = Math.round((vb.y + vb.h / 2 - D.h * k / 2 + h0.y * k) / g) * g;
+    return {kind, x: +(cx - h0.x * k).toFixed(3), y: +(cy - h0.y * k).toFixed(3)};
+}
 function toggleTpl() {
-    if (tpl) tpl = null;
-    else {                                              // 지금 보이는 화면 가운데에 놓는다
-        const k = tplK();
-        const g = barStep(), h0 = TPL_HOLES[TPL_HOLES.length - 1];   // 가장 큰 구멍의 중심을 눈금에 맞춰 놓는다
-        const cx = Math.round((vb.x + vb.w / 2 - TPL_W * k / 2 + h0.x * k) / g) * g, cy = Math.round((vb.y + vb.h / 2 - TPL_H * k / 2 + h0.y * k) / g) * g;
-        tpl = {x: +(cx - h0.x * k).toFixed(3), y: +(cy - h0.y * k).toFixed(3)};
-    }
-    saveTpl(); drawTpl();
-    flash(tpl ? '원형 템플릿을 놓았습니다 — 판을 끌어 옮기고(잡은 구멍의 중심이 눈금에 붙는다), 샤프로 구멍 안을 따라 돌리면 원이 그려집니다' : '템플릿을 치웠습니다');
+    tpl = tpl ? null : placeTpl($('cadTplKind').value || 'circle');
+    saveTpl(); drawTpl(); calcShapes();
+    flash(tpl ? `${tplDef().name} 템플릿을 놓았습니다 — 판을 끌어 옮기고(잡은 구멍의 중심이 눈금에 붙는다), 샤프로 구멍 안을 따라 돌리면 그 도형이 그려집니다` : '템플릿을 치웠습니다');
+}
+function setTplKind(kind) {                            // 펴 둔 채 바꾸면 그 자리에 다른 템플릿을 놓는다
+    if (tpl) { tpl = {kind, x: tpl.x, y: tpl.y}; saveTpl(); drawTpl(); flash(`${tplDef().name} 템플릿으로 바꿨습니다`); }
+    calcShapes();
 }
 function startTplDrag(e, w) {
     // 잡은 자리에서 가장 가까운 구멍의 중심을 눈금에 붙인다 — 실물도 구멍의 십자 표시를 눈금선에 맞춘다
     const H = tplHoles(); let best = H[0], bd = Infinity;
     H.forEach(h => { const d = Math.hypot(w.x - h.c.x, w.y - h.c.y) - h.hr; if (d < bd) { bd = d; best = h; } });
     drag = {kind: 'tpl', sx: e.clientX, sy: e.clientY, moved: false, hole: best, ox: best.c.x - tpl.x, oy: best.c.y - tpl.y, gx: w.x - best.c.x, gy: w.y - best.c.y};
+}
+// 다각형 구멍을 따라 돈 자리 — 중심에서 각도 θ 로 뻗은 반직선이 도형 둘레와 만나는 점
+function polyAt(v, c, th) {
+    const dx = Math.cos(th), dy = Math.sin(th);
+    for (let i = 0; i < v.length; i++) {
+        const a = v[i], b = v[(i + 1) % v.length], ex = b.x - a.x, ey = b.y - a.y, den = dx * ey - dy * ex;
+        if (Math.abs(den) < 1e-12) continue;
+        const t = ((a.x - c.x) * ey - (a.y - c.y) * ex) / den, u = ((a.x - c.x) * dy - (a.y - c.y) * dx) / den;
+        if (t >= 0 && u >= -1e-9 && u <= 1 + 1e-9) return {x: c.x + dx * t, y: c.y + dy * t};
+    }
+    return {x: c.x, y: c.y};
+}
+function polyTrace(h, a0, sw) {                        // 돌린 구간의 꺾은선 — 시작점, 지나간 꼭짓점들, 끝점
+    const pts = [polyAt(h.v, h.c, a0)], dir = Math.sign(sw) || 1;
+    const va = h.v.map(q => Math.atan2(q.y - h.c.y, q.x - h.c.x));
+    const inside = [];
+    va.forEach((a, i) => { let t = (a - a0) * dir; t = ((t % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); if (t > 1e-6 && t < Math.abs(sw) - 1e-6) inside.push([t, h.v[i]]); });
+    inside.sort((p, q) => p[0] - q[0]).forEach(([, q]) => pts.push(q));
+    pts.push(polyAt(h.v, h.c, a0 + sw));
+    return pts;
 }
 function covered(p) {
     if (onTpl(p)) return true;                          // 템플릿 판(구멍 빼고)도 자처럼 가린다
@@ -1983,11 +2050,16 @@ svg.addEventListener('pointermove', e => {
         let da = a - drag.last; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
         drag.last = a; drag.sweep = Math.max(-2 * Math.PI, Math.min(2 * Math.PI, drag.sweep + da));
         if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 4) drag.moved = true;
-        const ss = strokeStyle(), st = stAttr(ss.ls, ss.w), r = h.r, sw = drag.sweep, a0 = drag.a0;
-        const p0 = {x: h.c.x + r * Math.cos(a0), y: h.c.y + r * Math.sin(a0)}, p1 = {x: h.c.x + r * Math.cos(a0 + sw), y: h.c.y + r * Math.sin(a0 + sw)};
-        gPre.innerHTML = Math.abs(sw) >= 2 * Math.PI * 0.97 ? `<circle cx="${fmt(h.c.x)}" cy="${fmt(h.c.y)}" r="${fmt(r)}" ${st}/>`
-            : Math.abs(sw) > 0.02 ? `<path d="${arcD(p0.x, p0.y, p1.x, p1.y, r, sw > 0, Math.abs(sw) > Math.PI)}" ${st}/>` : '';
-        $('cadXY').textContent = `⌀${h.d}mm = 도면 ⌀${fmt(2 * r)}m · ${Math.round(Math.abs(sw) * 180 / Math.PI)}°`;
+        const ss = strokeStyle(), st = stAttr(ss.ls, ss.w), r = h.r, sw = drag.sweep, a0 = drag.a0, full = Math.abs(sw) >= 2 * Math.PI * 0.97;
+        if (h.s === 'c') {
+            const p0 = {x: h.c.x + r * Math.cos(a0), y: h.c.y + r * Math.sin(a0)}, p1 = {x: h.c.x + r * Math.cos(a0 + sw), y: h.c.y + r * Math.sin(a0 + sw)};
+            gPre.innerHTML = full ? `<circle cx="${fmt(h.c.x)}" cy="${fmt(h.c.y)}" r="${fmt(r)}" ${st}/>`
+                : Math.abs(sw) > 0.02 ? `<path d="${arcD(p0.x, p0.y, p1.x, p1.y, r, sw > 0, Math.abs(sw) > Math.PI)}" ${st}/>` : '';
+        } else {
+            const q = full ? [...h.v, h.v[0]] : polyTrace(h, a0, sw);
+            gPre.innerHTML = Math.abs(sw) > 0.02 ? `<path d="M${q.map(u => `${fmt(u.x)} ${fmt(u.y)}`).join('L')}" ${st}/>` : '';
+        }
+        $('cadXY').textContent = `${holeLabel(h)} = 도면 ${fmt(h.a)}m · ${Math.round(Math.abs(sw) * 180 / Math.PI)}°`;
         return;
     }
     if (drag && drag.kind === 'tri') {
@@ -2046,8 +2118,15 @@ function endPtr(e) {
         const h = d.hole, sw = d.sweep, r = h.r;
         if (!d.moved || Math.abs(sw) < 0.15) { if (!d.moved && d.btn === 0) penDot(toWorld(e), true); return; }   // 거의 안 돌렸으면 점
         snapHist();
-        const lab = `템플릿 ⌀${h.d}mm`;
-        if (Math.abs(sw) >= 2 * Math.PI * 0.97) {
+        const lab = `템플릿 ${holeLabel(h)}`, full = Math.abs(sw) >= 2 * Math.PI * 0.97;
+        if (h.s !== 'c') {                                 // 다각형 — 한 바퀴면 닫힌 도형, 아니면 돈 구간의 변들
+            const q = full ? [...h.v, h.v[0]] : polyTrace(h, d.a0, sw), ns = q.map(u => addPt(u.x, u.y));
+            let n = 0;
+            for (let i = 0; i + 1 < ns.length; i++) if (ns[i] !== ns[i + 1]) { doc.ops.push({id: doc.seq++, t: 'line', a: ns[i], b: ns[i + 1], ...strokeStyle()}); n++; }
+            changed(); flash(full ? `${lab} 로 ${SHAPE_NAME[h.s]}을(를) 그렸습니다 — 크기 ${fmt(h.a)}m` : `${lab} 로 선 ${n}개를 그었습니다`);
+            return;
+        }
+        if (full) {
             const c = addPt(h.c.x, h.c.y);
             doc.ops.push({id: doc.seq++, t: 'circle', c, mode: 'd', v: +(2 * r).toFixed(3), ...strokeStyle()});
             changed(); flash(`${lab} 로 원을 그렸습니다 — 중심 P${c}, 지름 ${fmt(2 * r)}m`);
@@ -2204,36 +2283,55 @@ $('cadPtList').addEventListener('change', e => {
 $('cadRenum').addEventListener('click', renumberAll);
 $('cadTri45').addEventListener('click', () => toggleTri('45'));
 $('cadTplBtn').addEventListener('click', toggleTpl);
+$('cadTplKind').addEventListener('change', () => setTplKind($('cadTplKind').value));
 // ── 템플릿 계산기 — 종이 위 지름(mm) = 실제 지름(mm) ÷ 축척
-const HOLE_DS = TPL_HOLES.map(h => h.d).sort((a, b) => a - b);
-$('ccHole').innerHTML = HOLE_DS.map(d => `<option value="${d}">${d}</option>`).join('');
-$('ccHole').value = '10';
+// 계산기는 지금 템플릿(없으면 고른 종류)의 그 모양 구멍들로 셈한다
+let HOLE_DS = [];
+const ccDef = () => TPL_KINDS[(tpl && tpl.kind) || $('cadTplKind').value || 'circle'];
+function calcShapes() {
+    const D = ccDef(), keep = $('ccShape').value, shapes = [...new Set(D.holes.map(h => h.s))];
+    $('ccShape').innerHTML = shapes.map(k => `<option value="${k}">${SHAPE_MARK[k]} ${SHAPE_NAME[k]}</option>`).join('');
+    $('ccShape').value = shapes.includes(keep) ? keep : shapes[0];
+    calcHoles();
+}
+function calcHoles() {
+    const sh = $('ccShape').value, keep = $('ccHole').value;
+    HOLE_DS = ccDef().holes.filter(h => h.s === sh).map(h => h.d).sort((a, b) => a - b);
+    $('ccHole').innerHTML = HOLE_DS.map(d => `<option value="${d}">${d}</option>`).join('');
+    $('ccHole').value = HOLE_DS.includes(+keep) ? keep : String(HOLE_DS[Math.floor(HOLE_DS.length / 2)]);
+    $('ccRealLb').firstChild.textContent = sh === 'c' ? '실제 지름 ' : sh === 'h' ? '실제 변 사이 ' : '실제 한 변 ';
+    calcRun();
+}
 const ccScale = () => +$('ccScale').value || 0;
 const mmTxt = v => `${fmt(+v.toFixed(1))}mm (${fmt(+(v / 1000).toFixed(3))}m)`;
 function calcRun() {
-    const sc = ccScale(), rv = +$('ccReal').value, real = $('ccUnit').value === 'm' ? rv * 1000 : rv;
-    if (sc > 0 && real > 0) {
+    const sc = ccScale(), rv = +$('ccReal').value, real = $('ccUnit').value === 'm' ? rv * 1000 : rv, mk = SHAPE_MARK[$('ccShape').value] || '';
+    if (sc > 0 && real > 0 && HOLE_DS.length) {
         const paper = real / sc;
         let best = HOLE_DS[0]; HOLE_DS.forEach(d => { if (Math.abs(d - paper) < Math.abs(best - paper)) best = d; });
         const lo = [...HOLE_DS].reverse().find(d => d <= paper + 1e-9), hi = HOLE_DS.find(d => d >= paper - 1e-9);
         const err = (best * sc - real) / real * 100;
-        let o = `종이 위 지름 <b>${fmt(+paper.toFixed(2))}mm</b><br>`;
-        if (paper < HOLE_DS[0] - 0.25 || paper > HOLE_DS[HOLE_DS.length - 1] + 0.25) o += `템플릿 범위(1~36mm)를 벗어납니다 — 가장 가까운 <b class="big hl" data-d="${best}">${best}번</b>`;
-        else o += `<b class="big hl" data-d="${best}">${best}번</b> 구멍을 쓰세요 → 실제 ${mmTxt(best * sc)}` + (Math.abs(err) > 0.05 ? ` <span style="color:#888">(${err > 0 ? '+' : ''}${err.toFixed(1)}%)</span>` : ' <span style="color:#1b5e20">(딱 맞음)</span>');
+        let o = `종이 위 크기 <b>${fmt(+paper.toFixed(2))}mm</b><br>`;
+        if (paper < HOLE_DS[0] - 0.25 || paper > HOLE_DS[HOLE_DS.length - 1] + 0.25) o += `템플릿 범위(${HOLE_DS[0]}~${HOLE_DS[HOLE_DS.length - 1]}mm)를 벗어납니다 — 가장 가까운 <b class="big hl" data-d="${best}">${mk}${best}번</b>`;
+        else o += `<b class="big hl" data-d="${best}">${mk}${best}번</b> 구멍을 쓰세요 → 실제 ${mmTxt(best * sc)}` + (Math.abs(err) > 0.05 ? ` <span style="color:#888">(${err > 0 ? '+' : ''}${err.toFixed(1)}%)</span>` : ' <span style="color:#1b5e20">(딱 맞음)</span>');
         if (lo != null && hi != null && lo !== hi) o += `<br><span style="color:#666">사이: <span class="hl" data-d="${lo}">${lo}번</span>(${mmTxt(lo * sc)}) · <span class="hl" data-d="${hi}">${hi}번</span>(${mmTxt(hi * sc)})</span>`;
         $('ccOut1').innerHTML = o;
     } else $('ccOut1').innerHTML = '';
     const d = +$('ccHole').value;
-    $('ccOut2').innerHTML = sc > 0 ? `<span class="hl" data-d="${d}">${d}번</span> 구멍 = 실제 지름 <b class="big">${mmTxt(d * sc)}</b><br><span style="color:#666">반지름 ${fmt(+(d * sc / 2000).toFixed(3))}m</span>` : '';
+    $('ccOut2').innerHTML = sc > 0 && d ? `<span class="hl" data-d="${d}">${mk}${d}번</span> 구멍 = 실제 <b class="big">${mmTxt(d * sc)}</b>` + ($('ccShape').value === 'c' ? `<br><span style="color:#666">반지름 ${fmt(+(d * sc / 2000).toFixed(3))}m</span>` : '') : '';
 }
 function tplPoint(d) {                               // 템플릿에서 그 구멍을 짚는다(붉은 고리가 잠깐 깜박인다)
     if (!tpl) { flash('템플릿을 먼저 펴세요 — 도구 줄의 템플릿'); return; }
-    const h = tplHoles().find(q => q.d === d); if (!h) return;
+    const h = tplHoles().find(q => q.d === d && q.s === $('ccShape').value);
+    if (!h) { flash('펴 둔 템플릿에 그 구멍이 없습니다 — 템플릿 종류를 확인하세요'); return; }
     gPre.innerHTML = `<circle cx="${fmt(h.c.x)}" cy="${fmt(h.c.y)}" r="${fmt(h.hr * 1.25 + 0.4 * U)}" fill="none" stroke="#c62828" stroke-width="${fmt(0.3 * U)}" class="cad-caret"/>`;
     clearTimeout(tplPoint.t); tplPoint.t = setTimeout(() => drawPre(), 2200);
-    flash(`${d}번 구멍 — 중심 X ${fmt1(h.c.x)} · Y ${fmt1(h.c.y)}`);
+    flash(`${holeLabel(h)} 구멍 — 중심 X ${fmt1(h.c.x)} · Y ${fmt1(h.c.y)}`);
 }
 ['ccScale', 'ccReal', 'ccUnit', 'ccHole'].forEach(id => $(id).addEventListener('input', calcRun));
+$('ccShape').addEventListener('change', calcHoles);
+if (tpl) $('cadTplKind').value = tpl.kind || 'circle';
+calcShapes();
 $('ccSheet').addEventListener('click', () => { $('ccScale').value = Math.round(scaleDenom()); calcRun(); });
 $('cadCalc').addEventListener('click', e => { const t = e.target.closest('[data-d]'); if (t) tplPoint(+t.dataset.d); });
 $('cadCalcBtn').addEventListener('click', e => {
