@@ -654,7 +654,7 @@ function drawBarOnly() {
            + `<path d="M${f(x0 + cw)} ${f(by + bh * k + 0.07 * U)}H${f(x1 - cw)}" stroke="rgba(90,100,110,.35)" stroke-width="${f(0.05 * U)}"/>`;
     });
     // 이름표·조임 나사
-    const lx = x0 + (x1 - x0) * 0.62;
+    const lx = x1 - cw - 6.5 * U;   // 상표는 오른쪽 끝 블록 곁
     o += `<rect x="${f(lx)}" y="${f(by + bh * 0.3)}" width="${f(5 * U)}" height="${f(bh * 0.4)}" rx="${f(0.1 * U)}" fill="#16181b"/>`
        + `<rect x="${f(lx + 0.25 * U)}" y="${f(by + bh * 0.37)}" width="${f(0.6 * U)}" height="${f(bh * 0.26)}" fill="#c62828"/>`
        + `<text x="${f(lx + 1.1 * U)}" y="${f(by + bh * 0.5)}" font-size="${f(0.7 * U)}" fill="#fff" font-weight="700" dominant-baseline="central" font-style="italic">I-BAR</text>`;
