@@ -107,8 +107,7 @@
                 <div data-form="select">
                     <h4>선택</h4>
                     <p class="cad-help">객체를 눌러 고릅니다(Shift+누르기로 더하기). <b>빈 곳을 끌면 도면이 움직입니다</b>(화면 이동).<br>
-                       영역으로 고르려면 <b>Shift 를 누른 채 끕니다</b> — → 오른쪽으로 끌면 <b>상자 안에 다 들어간 것만</b>(파란 실선), ← 왼쪽으로 끌면 <b>상자에 걸친 것까지</b>(초록 점선).<br>
-                       점은 끌어서 옮깁니다.</p>
+                       영역으로 고르려면 <b>Shift 를 누른 채 끕니다</b> — → 오른쪽으로 끌면 <b>상자 안에 다 들어간 것만</b>(파란 실선), ← 왼쪽으로 끌면 <b>상자에 걸친 것까지</b>(초록 점선).</p>
                     <div class="cad-row"><span class="cad-help" id="cadSelInfo">고른 것 없음</span>
                         <button type="button" class="cad-go" id="cadSelDel" title="Delete">고른 것 지우기</button></div>
                 </div>
@@ -2036,8 +2035,7 @@ svg.addEventListener('pointerdown', e => {
     if (e.button === 2) { drag = {kind: 'right', lx: e.clientX, ly: e.clientY, sx: e.clientX, sy: e.clientY, moved: false}; return; }
     if (e.button !== 0) return;
     const w = toWorld(e);
-    if (tool === 'select') { const hp = hitPoint(w);
-        if (hp) { drag = {kind: 'pt', n: hp.n, sx: e.clientX, sy: e.clientY, moved: false, saved: false}; return; } }
+    // 점 끌어 옮기기는 뺐다(사용자 요청) — 점 위에서 끌어도 화면 이동이다
     if (e.target.closest && e.target.closest('#cadTri .tri-body')) { startTriDrag(e, w); return; }   // 삼각자 — 끌면 밀고, 그냥 누르면 통과
     if (e.target.closest && e.target.closest('#cadTpl .tpl-body')) { startTplDrag(e, w); return; }     // 템플릿 — 옮기기만
     if (barOn && e.target.closest && e.target.closest('#cadBar')) {
