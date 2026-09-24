@@ -227,9 +227,10 @@
 .cad-tools .cad-bar-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; }
 .cad-bar-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 #cadPre { pointer-events: none; }            /* 커서 십자·미리보기가 밑의 I자·객체 누름을 가로채지 않게 */
-#cadBar .bar-body { cursor: ns-resize; }
+#cadBar .bar-body { cursor: grab; }                 /* 옮길 수 있는 자리 — 편 손 */
 #cadBar .bar-blade { cursor: crosshair; }
-#cadBar.drag .bar-body { cursor: grabbing; }
+/* 끄는 동안 — 오므린 손. 포인터 캡처 중에는 커서가 svg 를 따르므로 svg 통째로 바꾼다 */
+.cad.bar-drag #cadSvg, .cad.bar-drag #cadSvg * { cursor: grabbing !important; }
 .cad-sep { width: 1px; height: 20px; background: #dde4e0; margin: 0 4px; }
 .cad-chk { display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem; color: #444; cursor: pointer; white-space: nowrap; }
 .cad-body { display: flex; }
@@ -1362,7 +1363,7 @@ svg.addEventListener('pointermove', e => {
         return;
     }
     if (drag && drag.kind === 'bar') {
-        if (!drag.moved && Math.abs(e.clientY - drag.sy) > 4) { drag.moved = true; $('cadBar').classList.add('drag'); }
+        if (!drag.moved && Math.abs(e.clientY - drag.sy) > 4) { drag.moved = true; root.classList.add('bar-drag'); }
         if (drag.moved) { setBarY(w.y - drag.off); hover = null; drawPre(); status(); }
         return;
     }
@@ -1397,8 +1398,9 @@ function endPtr(e) {
     const d = drag;
     if (d.kind === 'pinch') { if (!ptrs.size) drag = null; return; }
     drag = null;
+    root.classList.remove('bar-drag');            // 취소돼도 오므린 손이 남지 않게
     if (e.type === 'pointercancel') return;
-    if (d.kind === 'bar') { $('cadBar').classList.remove('drag'); if (d.moved) saveBar(); return; }   // 몸통은 불투명 — 눌러도 점이 찍히지 않는다
+    if (d.kind === 'bar') { root.classList.remove('bar-drag'); if (d.moved) saveBar(); return; }   // 몸통은 불투명 — 눌러도 점이 찍히지 않는다
     if (d.kind === 'pencil') {
         gPre.innerHTML = '';
         if (!d.moved) { if (!d.right) onCanvasClick(toWorld(e), e, d.target); return; }   // 날은 투명 — 그냥 누르면 평소 누름
