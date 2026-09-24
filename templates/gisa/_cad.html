@@ -33,6 +33,8 @@
         <button type="button" data-tool="arc" title="호 (A)" aria-label="호"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 15A6.5 6.5 0 0 1 16.5 15"/><circle cx="3.5" cy="15" r="1.7" class="f"/><circle cx="16.5" cy="15" r="1.7" class="f"/></svg></button>
         <button type="button" data-tool="sym" title="라이브러리 기호 넣기 (B)" aria-label="기호"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="13" height="13"/><path d="M3.5 3.5l13 13M16.5 3.5l-13 13"/></svg></button>
         <button type="button" data-tool="text" title="글자 (T)" aria-label="글자"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4.5h12M10 4.5v12M7.5 16.5h5"/></svg></button>
+        <button type="button" data-tool="pen9" class="pen" title="샤프 0.9mm — I자 위에서 오른쪽 버튼을 누른 채 끌면 굵은 선 (9)" aria-label="샤프 0.9mm"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.2 2.6l4.2 4.2-8.9 8.9-4.2-4.2Z" class="pb"/><path d="M11.4 4.4l4.2 4.2" /><path d="M4.3 11.5l4.2 4.2-2.3 1.2-3.1-3.1Z" class="f"/><path d="M3.1 14.8 1.8 18.2" class="lead"/></svg><b>0.9</b></button>
+        <button type="button" data-tool="pen5" class="pen thin" title="샤프 0.5mm — I자 위에서 오른쪽 버튼을 누른 채 끌면 가는 선 (5)" aria-label="샤프 0.5mm"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.2 2.6l4.2 4.2-8.9 8.9-4.2-4.2Z" class="pb"/><path d="M11.4 4.4l4.2 4.2" /><path d="M4.3 11.5l4.2 4.2-2.3 1.2-3.1-3.1Z" class="f"/><path d="M3.1 14.8 1.8 18.2" class="lead"/></svg><b>0.5</b></button>
         <span class="cad-sep"></span>
         <label class="cad-chk" title="F9"><input type="checkbox" id="cadSnap" checked> 스냅</label>
         <select id="cadSnapStep" title="스냅 간격"></select>
@@ -132,6 +134,13 @@
                     <div class="cad-row"><span class="cad-help">도면을 누를 때마다 그 자리에 넣습니다</span>
                         <button type="button" class="cad-go" id="fsGo">넣기</button></div>
                 </div>
+                <div data-form="pen">
+                    <h4>샤프 <span id="fnName">0.9mm</span></h4>
+                    <div class="cad-row"><label>선 종류<select class="ls" id="fnLs"></select></label><span></span></div>
+                    <p class="cad-help">실제 제도처럼 <b>I자에 대고</b> 긋습니다. I자 위에서 <b>마우스 오른쪽 버튼을 누른 채</b>
+                       가로로 끌면 날을 따라 선이 그어집니다. 끄는 동안 길이가 보이고, 시작·끝은 눈금과 기존 점에 붙습니다.<br>
+                       I자는 몸통을 왼쪽 버튼으로 끌어 위아래로 옮깁니다.</p>
+                </div>
                 <div data-form="text">
                     <h4>글자</h4>
                     <div class="cad-row"><label>기준점<input type="number" class="pk" id="ftP" min="1"></label>
@@ -208,6 +217,12 @@
 .cad-tools [data-tool] svg .f { fill: currentColor; stroke: none; }
 .cad-tools [data-tool=select] svg .f { stroke: currentColor; stroke-width: 1; }
 .cad-tools [data-tool]:hover:not(.on) { background: #f1f6f3; }
+.cad-tools [data-tool].pen { width: auto; padding: 0 7px 0 5px; gap: 2px; }
+.cad-tools [data-tool].pen b { font-size: 0.74rem; font-weight: 800; }
+.cad-tools [data-tool].pen svg .pb { fill: #f6c343; stroke: currentColor; }
+.cad-tools [data-tool].pen.on svg .pb { fill: #f6c343; }
+.cad-tools [data-tool].pen svg .lead { stroke-width: 2.6; }
+.cad-tools [data-tool].pen.thin svg .lead { stroke-width: 1.3; }
 .cad-tools select { border: 1px solid #d5ddd9; border-radius: 6px; padding: 4px 6px; font-size: 0.8rem; }
 .cad-tools .cad-bar-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; }
 .cad-bar-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
@@ -339,7 +354,8 @@ const LS = {
     aux:    {name: '보조선', color: '#a3a9b3', w: 0.06},
     dot:    {name: '점선', dash: [0.35, 0.4]},
 };
-const WD = {thick: {name: '굵게', w: 0.35}, mid: {name: '보통', w: 0.24}, thin: {name: '가늘게', w: 0.13}};
+const WD = {thick: {name: '굵게', w: 0.35}, mid: {name: '보통', w: 0.24}, thin: {name: '가늘게', w: 0.13},
+            p9: {name: '샤프 0.9', w: 0.3}, p5: {name: '샤프 0.5', w: 0.17}};
 
 // ── 기본 기호 — 기준점(0,0)은 가운데. 단위 m ───────────────────────────────
 const pergola = s => { const h = s / 2; return [
@@ -396,6 +412,10 @@ let hover = null;
 let barOn = false, barY = null;
 try { const b = JSON.parse(localStorage.getItem('cadBar') || 'null'); if (b) { barOn = !!b.on; barY = b.y; } } catch (e) {}
 function saveBar() { try { localStorage.setItem('cadBar', JSON.stringify({on: barOn, y: barY})); } catch (e) {} }
+function strokeStyle() {
+    return tool.startsWith('pen') ? {ls: $('fnLs').value, w: tool === 'pen9' ? 'p9' : 'p5'}
+                                  : {ls: $('flLs').value, w: $('flW').value};
+}
 function barStep() { return $('cadSnap').checked ? +$('cadSnapStep').value : PREC; }
 function setBarY(y) {
     const g = barStep();
@@ -693,6 +713,7 @@ function status() {
 function hintText() {
     const f = picksOf(tool);
     if (tool === 'point') return ' · 도면을 누르면 점이 생깁니다';
+    if (tool.startsWith('pen')) return ' · I자 위에서 오른쪽 버튼을 누른 채 끌면 선이 그어집니다';
     if (tool === 'select') return ' · 빈 곳을 끌어 영역 선택 · 오른쪽 버튼으로 끌면 화면 이동';
     if (!f) return '';
     const names = {line: ['시작점', '종료점'], rect: ['모서리 1', '모서리 2'], arc: arcMode === 'fillet' ? ['모서리 점'] : ['시작점', '종료점'], circle: ['중심', '크기'], sym: ['기준점'], text: ['기준점']}[tool];
@@ -716,7 +737,12 @@ function setTool(t, keepEdit) {
     if (!keepEdit) endEdit();
     root.className = root.className.replace(/\bcad-tool-\S+/g, '').trim() + ' cad-tool-' + t;
     document.querySelectorAll('#cadTools [data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === t));
-    document.querySelectorAll('#cadForm [data-form]').forEach(f => f.classList.toggle('on', f.dataset.form === t));
+    const form = t.startsWith('pen') ? 'pen' : t;
+    document.querySelectorAll('#cadForm [data-form]').forEach(f => f.classList.toggle('on', f.dataset.form === form));
+    if (form === 'pen') {
+        $('fnName').textContent = t === 'pen9' ? '0.9mm (굵은 선)' : '0.5mm (가는 선)';
+        if (!barOn) { barOn = true; drawBar(); saveBar(); }
+    }
     pickIdx = 0; fcTyped = false;
     if (t === 'point') fillPointForm();
     if (t === 'line' && !keepEdit) { $('flA').value = ''; $('flB').value = ''; }
@@ -1270,6 +1296,12 @@ svg.addEventListener('pointerdown', e => {
     ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY});
     if (ptrs.size === 2) { drag = {kind: 'pinch'}; pinchD = 0; return; }
     if (e.button === 1 || spaceDown) { drag = {kind: 'pan', lx: e.clientX, ly: e.clientY, moved: true}; e.preventDefault(); return; }
+    if (e.button === 2 && tool.startsWith('pen') && barOn && e.target.closest && e.target.closest('#cadBar')) {
+        const w = toWorld(e), hp = hitPoint(w);
+        drag = {kind: 'pencil', right: true, sx: e.clientX, sy: e.clientY, moved: false, target: e.target,
+                x0: hp && Math.abs(hp.y - barY) < 1e-6 ? hp.x : snapXY(w).x};
+        return;
+    }
     if (e.button === 2) { drag = {kind: 'right', lx: e.clientX, ly: e.clientY, sx: e.clientX, sy: e.clientY, moved: false}; return; }
     if (e.button !== 0) return;
     const w = toWorld(e);
@@ -1306,7 +1338,7 @@ svg.addEventListener('pointermove', e => {
         if (drag.moved) {
             const hp = hitPoint(w), x = hp && Math.abs(hp.y - barY) < 1e-6 ? hp.x : snapXY(w).x;
             drag.x1 = x;
-            gPre.innerHTML = `<path d="M${fmt(drag.x0)} ${fmt(barY)}H${fmt(x)}" ${stAttr($('flLs').value, $('flW').value)}/>`
+            gPre.innerHTML = `<path d="M${fmt(drag.x0)} ${fmt(barY)}H${fmt(x)}" ${stAttr(strokeStyle().ls, strokeStyle().w)}/>`
                 + `<text x="${fmt(x)}" y="${fmt(barY - 1.2 * U)}" font-size="${fmt(1.1 * U)}" fill="${RED}" text-anchor="middle" font-weight="700">${fmt(Math.abs(x - drag.x0))}m</text>`;
             hover = {x, y: barY, pt: null}; status();
         }
@@ -1352,11 +1384,11 @@ function endPtr(e) {
     if (d.kind === 'bar') { $('cadBar').classList.remove('drag'); if (d.moved) saveBar(); return; }   // 몸통은 불투명 — 눌러도 점이 찍히지 않는다
     if (d.kind === 'pencil') {
         gPre.innerHTML = '';
-        if (!d.moved) { onCanvasClick(toWorld(e), e, d.target); return; }   // 날은 투명 — 그냥 누르면 평소 누름
+        if (!d.moved) { if (!d.right) onCanvasClick(toWorld(e), e, d.target); return; }   // 날은 투명 — 그냥 누르면 평소 누름
         if (d.x1 == null || Math.abs(d.x1 - d.x0) < 1e-6) return;
         snapHist();
         const a = addPt(d.x0, barY), b = addPt(d.x1, barY);
-        doc.ops.push({id: doc.seq++, t: 'line', a, b, ls: $('flLs').value, w: $('flW').value});
+        doc.ops.push({id: doc.seq++, t: 'line', a, b, ...strokeStyle()});
         changed(); flash(`I자를 따라 P${a} → P${b} (${fmt(Math.abs(d.x1 - d.x0))}m) 를 그었습니다`);
         return;
     }
@@ -1517,7 +1549,7 @@ document.addEventListener('keydown', e => {
     if (barOn && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         e.preventDefault(); setBarY(barY + (e.key === 'ArrowUp' ? -1 : 1) * barStep() * (e.shiftKey ? 5 : 1)); saveBar(); return;
     }
-    const map = {v: 'select', p: 'point', l: 'line', r: 'rect', c: 'circle', a: 'arc', b: 'sym', t: 'text'};
+    const map = {v: 'select', p: 'point', l: 'line', r: 'rect', c: 'circle', a: 'arc', b: 'sym', t: 'text', 9: 'pen9', 5: 'pen5'};
     if (map[k]) setTool(map[k]);
     if (k === '+' || k === '=') zoomCenter(1.4);
     if (k === '-') zoomCenter(1 / 1.4);
