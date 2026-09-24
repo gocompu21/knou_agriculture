@@ -718,7 +718,7 @@ function textSvg(x, y, s, size, rot, anchor, font, dir) {
         if (v) { tx = x + o.vx * fs; ty = y - o.vy * fs; } else { tx = x - o.hx * fs; ty = y - o.hy * fs; bl = 'alphabetic'; }
         anchor = 'start';
     }
-    return `<text x="${fmt(tx)}" y="${fmt(ty)}" font-size="${fmt(fs)}" fill="${INK}" text-anchor="${anchor || 'middle'}" dominant-baseline="${bl}"${v ? ' style="writing-mode:vertical-rl;text-orientation:upright"' : ''}${font && FONTS[font] ? ` font-family="${FONTS[font]}"` : ''} font-weight="${font === 'hand' ? 400 : 600}"${tr}>${esc(s)}</text>`;
+    return `<text xml:space="preserve" x="${fmt(tx)}" y="${fmt(ty)}" font-size="${fmt(fs)}" fill="${INK}" text-anchor="${anchor || 'middle'}" dominant-baseline="${bl}"${v ? ' style="writing-mode:vertical-rl;text-orientation:upright"' : ''}${font && FONTS[font] ? ` font-family="${FONTS[font]}"` : ''} font-weight="${font === 'hand' ? 400 : 600}"${tr}>${esc(s)}</text>`;
 }
 function itemSvg(it) {
     const st = () => stAttr(it.ls, it.w, it.fill);
@@ -1121,12 +1121,14 @@ function drawTextPre() {
     const {el, w, g} = txtBox, font = $('ftFont').value, vert = $('ftDir').value === 'v';
     const size = parseFloat($('ftSize').value) || 1.5 * U, fs = font === 'hand' ? size * 1.35 : size;
     g.innerHTML = el.value ? textSvg(w.x, w.y, el.value, size, 0, 'corner', font, vert ? 'v' : 'h') : '';
-    let b = null; const t = g.querySelector('text');
-    if (t) try { b = t.getBBox(); } catch (e) { b = null; }
+    // 띄어쓰기도 바로 보이게 — SVG 는 끝 공백을 접고 getBBox 도 공백을 빼므로 white-space:pre 로 두고
+    // 커서는 글자 폭(getComputedTextLength, 공백 포함)으로 잡는다
+    const t = g.querySelector('text'); let len = 0;
+    if (t) { t.style.whiteSpace = 'pre'; try { len = t.getComputedTextLength(); } catch (e) { len = 0; } }
     const sw = fmt(0.12 * U), c = `stroke="${RED}" stroke-width="${sw}" class="cad-caret"`;
     let d;
-    if (vert) { const y = b ? b.y + b.height : w.y - fs; d = `M${fmt(w.x)} ${fmt(y)}h${fmt(fs)}`; }
-    else { const x = b ? b.x + b.width : w.x; d = `M${fmt(x)} ${fmt(w.y)}v${fmt(-fs)}`; }
+    if (vert) { const y = t ? +t.getAttribute('y') + len : w.y - fs; d = `M${fmt(w.x)} ${fmt(y)}h${fmt(fs)}`; }
+    else { const x = t ? +t.getAttribute('x') + len : w.x; d = `M${fmt(x)} ${fmt(w.y)}v${fmt(-fs)}`; }
     g.insertAdjacentHTML('beforeend', `<path d="${d}" ${c}/>`);
 }
 function closeTextBox(keep) {
