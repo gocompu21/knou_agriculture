@@ -696,7 +696,7 @@ function snapXY(w) {
     let r;
     if ($('cadSnap').checked) { const g = +$('cadSnapStep').value; r = {x: rnd(Math.round(w.x / g) * g), y: rnd(Math.round(w.y / g) * g)}; }
     else r = {x: rnd(w.x), y: rnd(w.y)};
-    if (barOn && barY != null && Math.abs(w.y - barY) * pxPer() < 16) r.y = barY;   // I자 윗변에 붙는다
+    if (barOn && barY != null && Math.abs(w.y - barY) * pxPer() < (tool.startsWith('pen') ? 40 : 16)) r.y = barY;   // I자 윗변에 붙는다
     return r;
 }
 function hitPoint(w) {
@@ -1296,10 +1296,20 @@ svg.addEventListener('pointerdown', e => {
     ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY});
     if (ptrs.size === 2) { drag = {kind: 'pinch'}; pinchD = 0; return; }
     if (e.button === 1 || spaceDown) { drag = {kind: 'pan', lx: e.clientX, ly: e.clientY, moved: true}; e.preventDefault(); return; }
-    if (e.button === 2 && tool.startsWith('pen') && barOn && e.target.closest && e.target.closest('#cadBar')) {
-        const w = toWorld(e), hp = hitPoint(w);
-        drag = {kind: 'pencil', right: true, sx: e.clientX, sy: e.clientY, moved: false, target: e.target,
-                x0: hp && Math.abs(hp.y - barY) < 1e-6 ? hp.x : snapXY(w).x};
+    // 샤프를 든 동안에는 끌어도 화면이 움직이지 않는다 — 날이 얇아 조금만 빗나가도 화면이 밀렸다.
+    // 몸통을 왼쪽으로 끌면 자를 옮기고, 날 근처(위아래 40px)에서 끌면 어느 버튼이든 날을 따라 긋는다
+    if (tool.startsWith('pen') && (e.button === 0 || e.button === 2)) {
+        const w = toWorld(e), onBar = e.target.closest && e.target.closest('#cadBar');
+        if (e.button === 0 && onBar && e.target.closest('.bar-body')) {
+            drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return;
+        }
+        if (barOn && (onBar || Math.abs(w.y - barY) * pxPer() < 40)) {
+            const hp = hitPoint(w);
+            drag = {kind: 'pencil', right: true, sx: e.clientX, sy: e.clientY, moved: false, target: e.target,
+                    x0: hp && Math.abs(hp.y - barY) < 1e-6 ? hp.x : snapXY(w).x};
+            return;
+        }
+        drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: false};
         return;
     }
     if (e.button === 2) { drag = {kind: 'right', lx: e.clientX, ly: e.clientY, sx: e.clientX, sy: e.clientY, moved: false}; return; }
@@ -1331,6 +1341,13 @@ svg.addEventListener('pointermove', e => {
         if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 5) drag.moved = true;
         if (drag.moved) { const k = pxPer(); vb.x -= (e.clientX - drag.lx) / k; vb.y -= (e.clientY - drag.ly) / k; setVB(); }
         drag.lx = e.clientX; drag.ly = e.clientY;
+        return;
+    }
+    if (drag && drag.kind === 'nop') {
+        if (!drag.warned && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 6) {
+            drag.warned = true;
+            flash(barOn ? '샤프는 I자 날에 대고 긋습니다 — 몸통을 끌어 긋고 싶은 높이로 옮기세요' : 'I자를 먼저 펴세요');
+        }
         return;
     }
     if (drag && drag.kind === 'pencil') {
