@@ -37,7 +37,7 @@
         <label class="cad-chk" title="F9"><input type="checkbox" id="cadSnap" checked> 스냅</label>
         <select id="cadSnapStep" title="스냅 간격"></select>
         <label class="cad-chk"><input type="checkbox" id="cadShowPts" checked> 점 번호</label>
-        <button type="button" id="cadBarBtn" class="cad-bar-btn" title="I자(평행자) — 끌어서 위아래로 옮기고 ↑↓ 키로 한 칸씩. 윗변 근처를 누르면 그 높이에 붙습니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="8" width="17" height="5" rx="0.6"/><path d="M4 8v2M7 8v1.3M10 8v2M13 8v1.3M16 8v2"/><path d="M10 2.5v3M8.3 4.2 10 2.5l1.7 1.7M10 18v-3M8.3 16.3 10 18l1.7-1.7"/></svg>I자</button>
+        <button type="button" id="cadBarBtn" class="cad-bar-btn" title="I자(평행자) — 몸통을 끌어 위아래로(↑↓ 키로 한 칸씩). 투명 날을 따라 끌면 수평선이 그어집니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="8" width="17" height="5" rx="0.6"/><path d="M4 8v2M7 8v1.3M10 8v2M13 8v1.3M16 8v2"/><path d="M10 2.5v3M8.3 4.2 10 2.5l1.7 1.7M10 18v-3M8.3 16.3 10 18l1.7-1.7"/></svg>I자</button>
         <span class="cad-sep"></span>
         <button type="button" id="cadUndo" title="되돌리기 (Ctrl+Z)">↶</button>
         <button type="button" id="cadRedo" title="다시 하기 (Ctrl+Y)">↷</button>
@@ -211,8 +211,10 @@
 .cad-tools select { border: 1px solid #d5ddd9; border-radius: 6px; padding: 4px 6px; font-size: 0.8rem; }
 .cad-tools .cad-bar-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; }
 .cad-bar-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-#cadBar { cursor: ns-resize; }
-#cadBar.drag { cursor: grabbing; }
+#cadPre { pointer-events: none; }            /* 커서 십자·미리보기가 밑의 I자·객체 누름을 가로채지 않게 */
+#cadBar .bar-body { cursor: ns-resize; }
+#cadBar .bar-blade { cursor: crosshair; }
+#cadBar.drag .bar-body { cursor: grabbing; }
 .cad-sep { width: 1px; height: 20px; background: #dde4e0; margin: 0 4px; }
 .cad-chk { display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem; color: #444; cursor: pointer; white-space: nowrap; }
 .cad-body { display: flex; }
@@ -401,21 +403,43 @@ function setBarY(y) {
     drawBar();
 }
 function drawBar() {
+    // 실물 I자 — 알루미늄 몸통(불투명)과 양 끝 고정 블록, 긋는 쪽에만 투명 아크릴 날이 나와 있다.
+    // 날의 윗변(barY)이 긋는 기준선이다. 몸통은 밑의 도면을 가린다(실물처럼).
     const g = $('cadBar');
     $('cadBarBtn').classList.toggle('on', barOn);
     if (!barOn || !sheet) { g.innerHTML = ''; return; }
     if (barY == null || barY < sheet.y0 || barY > sheet.y1) barY = Math.round((sheet.y0 + sheet.y1) / 2);
-    const s = sheet, mi = s.step / 5, x0 = s.x0 - 1.5 * U, x1 = s.x1 + 1.5 * U, y = barY, h = 2.6 * U;
-    let o = `<rect x="${fmt(x0)}" y="${fmt(y)}" width="${fmt(x1 - x0)}" height="${fmt(h)}" rx="${fmt(0.3 * U)}" fill="rgba(150,190,230,.30)" stroke="#6f8fbf" stroke-width="${fmt(0.07 * U)}"/>`;
-    let t = '';
-    for (let v = Math.ceil(s.x0 / mi) * mi; v <= s.x1 + 1e-9; v += mi) {
-        const major = Math.abs(v / s.step - Math.round(v / s.step)) < 1e-6;
-        t += `M${fmt(v)} ${fmt(y)}v${fmt((major ? 0.95 : 0.45) * U)}`;
-        if (major) o += `<text x="${fmt(v)}" y="${fmt(y + 1.75 * U)}" font-size="${fmt(0.8 * U)}" fill="#35507f" text-anchor="middle" dominant-baseline="central">${fmt(v)}</text>`;
-    }
-    o += `<path d="${t}" stroke="#35507f" stroke-width="${fmt(0.06 * U)}"/>`;
-    o += `<path d="M${fmt(x0)} ${fmt(y)}H${fmt(x1)}" stroke="#1f4e9c" stroke-width="${fmt(0.13 * U)}"/>`;
-    o += `<text x="${fmt(s.x0 + 0.4 * U)}" y="${fmt(y - 0.75 * U)}" font-size="${fmt(1.05 * U)}" fill="#1f4e9c" font-weight="700" dominant-baseline="central" stroke="#fff" stroke-width="${fmt(0.3 * U)}" paint-order="stroke">Y ${fmt(y)}</text>`;
+    const s = sheet, y = barY, x0 = s.x0 - 4 * U, x1 = s.x1 + 4 * U;
+    const bl = 0.9 * U, by = y + bl, bh = 2.6 * U, cw = 2.8 * U, f = v => fmt(v);
+    let o = `<defs><linearGradient id="cadAl" x1="0" y1="0" x2="0" y2="1">`
+        + `<stop offset="0" stop-color="#eef1f3"/><stop offset=".18" stop-color="#d5dade"/><stop offset=".55" stop-color="#c3c9ce"/>`
+        + `<stop offset=".82" stop-color="#b1b8be"/><stop offset="1" stop-color="#9aa2a9"/></linearGradient>`
+        + `<linearGradient id="cadBlk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#454a52"/><stop offset="1" stop-color="#1f2328"/></linearGradient></defs>`;
+    // 투명 날 — 여기를 따라 끌면 선이 그어진다
+    o += `<g class="bar-blade"><rect x="${f(x0 + cw)}" y="${f(y)}" width="${f(x1 - x0 - 2 * cw)}" height="${f(bl + 0.1 * U)}" fill="rgba(200,232,244,.38)" stroke="rgba(90,140,175,.55)" stroke-width="${f(0.05 * U)}"/>`
+        + `<path d="M${f(x0 + cw)} ${f(y)}H${f(x1 - cw)}" stroke="#4d86b5" stroke-width="${f(0.07 * U)}"/></g>`;
+    // 알루미늄 몸통 + 홈
+    o += `<g class="bar-body"><rect x="${f(x0)}" y="${f(by)}" width="${f(x1 - x0)}" height="${f(bh)}" rx="${f(0.2 * U)}" fill="url(#cadAl)" stroke="#88919a" stroke-width="${f(0.06 * U)}"/>`;
+    [0.22, 0.4, 0.6, 0.78].forEach(k => {
+        o += `<path d="M${f(x0 + cw)} ${f(by + bh * k)}H${f(x1 - cw)}" stroke="rgba(255,255,255,.75)" stroke-width="${f(0.05 * U)}"/>`
+           + `<path d="M${f(x0 + cw)} ${f(by + bh * k + 0.07 * U)}H${f(x1 - cw)}" stroke="rgba(90,100,110,.35)" stroke-width="${f(0.05 * U)}"/>`;
+    });
+    // 이름표·조임 나사
+    const lx = x0 + (x1 - x0) * 0.62;
+    o += `<rect x="${f(lx)}" y="${f(by + bh * 0.3)}" width="${f(5 * U)}" height="${f(bh * 0.36)}" rx="${f(0.1 * U)}" fill="#16181b"/>`
+       + `<rect x="${f(lx + 0.25 * U)}" y="${f(by + bh * 0.36)}" width="${f(0.6 * U)}" height="${f(bh * 0.24)}" fill="#c62828"/>`
+       + `<text x="${f(lx + 1.1 * U)}" y="${f(by + bh * 0.48)}" font-size="${f(0.7 * U)}" fill="#fff" font-weight="700" dominant-baseline="central" font-style="italic">I-BAR</text>`;
+    const kx = x0 + cw + 3.2 * U, ky = by + bh * 0.5;
+    o += `<circle cx="${f(kx)}" cy="${f(ky)}" r="${f(0.55 * U)}" fill="#a9b0b6" stroke="#5f666d" stroke-width="${f(0.08 * U)}"/>`
+       + `<circle cx="${f(kx)}" cy="${f(ky)}" r="${f(0.22 * U)}" fill="#6b7279"/>`;
+    // 지금 높이
+    o += `<text x="${f(kx + 1.4 * U)}" y="${f(ky)}" font-size="${f(1.05 * U)}" fill="#26303a" font-weight="700" dominant-baseline="central">Y ${fmt(y)}</text></g>`;
+    // 양 끝 고정 블록
+    [x0, x1 - cw].forEach(bx => {
+        o += `<g class="bar-body"><rect x="${f(bx)}" y="${f(y - 0.35 * U)}" width="${f(cw)}" height="${f(bl + bh + 0.75 * U)}" rx="${f(0.35 * U)}" fill="url(#cadBlk)"/>`
+           + [0.3, 0.72].map(k => `<circle cx="${f(bx + cw / 2)}" cy="${f(y + (bl + bh) * k)}" r="${f(0.28 * U)}" fill="#7a8088" stroke="#15181b" stroke-width="${f(0.06 * U)}"/>`).join('')
+           + '</g>';
+    });
     g.innerHTML = o;
 }
 let fcTyped = false;                              // 원 값 칸을 손으로 쳤는가 — 쳤으면 마우스가 덮어쓰지 않는다                                // 스냅된 커서 자리
@@ -1251,8 +1275,13 @@ svg.addEventListener('pointerdown', e => {
     const w = toWorld(e);
     if (tool === 'select') { const hp = hitPoint(w);
         if (hp) { drag = {kind: 'pt', n: hp.n, sx: e.clientX, sy: e.clientY, moved: false, saved: false}; return; } }
-    if (barOn && e.target.closest && e.target.closest('#cadBar')) {      // I자를 끌면 위아래로, 그냥 누르면 평소 누름
-        drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false, target: e.target};
+    if (barOn && e.target.closest && e.target.closest('#cadBar')) {
+        if (e.target.closest('.bar-blade')) {         // 투명 날 — 따라 끌면 연필로 긋듯 수평선
+            const hp = hitPoint(w);
+            drag = {kind: 'pencil', sx: e.clientX, sy: e.clientY, x0: hp && Math.abs(hp.y - barY) < 1e-6 ? hp.x : snapXY(w).x, moved: false, target: e.target};
+        } else {                                       // 몸통 — 위아래로만 옮긴다
+            drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false};
+        }
         return;
     }
     drag = {kind: tool === 'select' ? 'box' : 'click', sx: e.clientX, sy: e.clientY, lx: e.clientX, ly: e.clientY,
@@ -1270,6 +1299,17 @@ svg.addEventListener('pointermove', e => {
         if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 5) drag.moved = true;
         if (drag.moved) { const k = pxPer(); vb.x -= (e.clientX - drag.lx) / k; vb.y -= (e.clientY - drag.ly) / k; setVB(); }
         drag.lx = e.clientX; drag.ly = e.clientY;
+        return;
+    }
+    if (drag && drag.kind === 'pencil') {
+        if (!drag.moved && Math.abs(e.clientX - drag.sx) > 5) drag.moved = true;
+        if (drag.moved) {
+            const hp = hitPoint(w), x = hp && Math.abs(hp.y - barY) < 1e-6 ? hp.x : snapXY(w).x;
+            drag.x1 = x;
+            gPre.innerHTML = `<path d="M${fmt(drag.x0)} ${fmt(barY)}H${fmt(x)}" ${stAttr($('flLs').value, $('flW').value)}/>`
+                + `<text x="${fmt(x)}" y="${fmt(barY - 1.2 * U)}" font-size="${fmt(1.1 * U)}" fill="${RED}" text-anchor="middle" font-weight="700">${fmt(Math.abs(x - drag.x0))}m</text>`;
+            hover = {x, y: barY, pt: null}; status();
+        }
         return;
     }
     if (drag && drag.kind === 'bar') {
@@ -1309,8 +1349,18 @@ function endPtr(e) {
     if (d.kind === 'pinch') { if (!ptrs.size) drag = null; return; }
     drag = null;
     if (e.type === 'pointercancel') return;
-    if (d.kind === 'bar') { $('cadBar').classList.remove('drag'); if (d.moved) { saveBar(); return; } }
-    if ((d.kind === 'click' || d.kind === 'box' || d.kind === 'bar') && !d.moved) onCanvasClick(toWorld(e), e, d.target);
+    if (d.kind === 'bar') { $('cadBar').classList.remove('drag'); if (d.moved) saveBar(); return; }   // 몸통은 불투명 — 눌러도 점이 찍히지 않는다
+    if (d.kind === 'pencil') {
+        gPre.innerHTML = '';
+        if (!d.moved) { onCanvasClick(toWorld(e), e, d.target); return; }   // 날은 투명 — 그냥 누르면 평소 누름
+        if (d.x1 == null || Math.abs(d.x1 - d.x0) < 1e-6) return;
+        snapHist();
+        const a = addPt(d.x0, barY), b = addPt(d.x1, barY);
+        doc.ops.push({id: doc.seq++, t: 'line', a, b, ls: $('flLs').value, w: $('flW').value});
+        changed(); flash(`I자를 따라 P${a} → P${b} (${fmt(Math.abs(d.x1 - d.x0))}m) 를 그었습니다`);
+        return;
+    }
+    if ((d.kind === 'click' || d.kind === 'box') && !d.moved) onCanvasClick(toWorld(e), e, d.target);
     else if (d.kind === 'box') {
         const w = toWorld(e), a = d.w0;
         gPre.innerHTML = '';
