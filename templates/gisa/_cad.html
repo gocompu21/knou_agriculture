@@ -71,9 +71,9 @@
                 <g id="cadGrid"></g><g id="cadOps"></g><g id="cadPts"></g><g id="cadBar"></g><g id="cadTri"></g><g id="cadPre"></g>
             </svg>
             <div class="cad-zoom">
+                <button type="button" id="cadZfit" title="종이에 맞추기">맞춤</button>
                 <button type="button" id="cadZin" title="확대">+</button>
                 <button type="button" id="cadZout" title="축소">−</button>
-                <button type="button" id="cadZfit" title="종이에 맞추기">맞춤</button>
             </div>
             <div class="cad-status"><span id="cadXY">X — · Y —</span><span id="cadHint"></span></div>
         </div>
@@ -304,7 +304,7 @@
 .cad-stage { flex: 1; min-width: 0; position: relative; background: #eef1f4; }
 #cadSvg { display: block; width: 100%; height: 72vh; touch-action: none; user-select: none; cursor: crosshair; }
 .cad-tool-select #cadSvg { cursor: default; }
-.cad-zoom { position: absolute; right: 10px; top: 10px; display: flex; gap: 4px; }
+.cad-zoom { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 4px; }   /* 맞춤 아래로 + − 세로 */
 .cad-zoom button { border: 1px solid #cfd8d3; background: rgba(255,255,255,.94); border-radius: 6px; min-width: 32px; height: 30px;
     font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #1b4332; }
 .cad-status { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 14px; padding: 4px 10px;
