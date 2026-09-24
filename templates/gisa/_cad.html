@@ -1496,8 +1496,16 @@ function flash(msg) {
 // ── 사건 ────────────────────────────────────────────────────────────────
 const ptrs = new Map();
 let drag = null, pinchD = 0, spaceDown = false;
+// 삼각자가 I자 윗날에 얹혀 있으면 그 밑변 구간은 연필이 지나갈 수 없다 — [왼쪽 x, 오른쪽 x]
+function triBlock(edge) {
+    const G = triGeom();
+    if (!G || !edge.bar || Math.abs(edge.ay - barY) > 1e-6) return null;
+    return [Math.min(G.B.x, G.R.x), Math.max(G.B.x, G.R.x)];
+}
 function startPencil(e, w, edge, right) {
-    drag = {kind: 'pencil', right, edge, p0: onEdge(edge, w), sx: e.clientX, sy: e.clientY, moved: false, target: e.target};
+    const p0 = onEdge(edge, w), bl = triBlock(edge);
+    drag = {kind: 'pencil', right, edge, p0, sx: e.clientX, sy: e.clientY, moved: false, target: e.target,
+            blocked: !!(bl && p0.x > bl[0] + 1e-6 && p0.x < bl[1] - 1e-6), bl};
 }
 function startTriDrag(e, w) {
     drag = {kind: 'tri', sx: e.clientX, sy: e.clientY, off: w.x - tri.x, moved: false, target: e.target};
@@ -1528,7 +1536,7 @@ svg.addEventListener('pointerdown', e => {
         if (e.button === 0 && onTri && !nearTri) { startTriDrag(e, w); return; }          // 삼각자 몸통 — 좌우로 민다
         if (e.button === 0 && onBody) { drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return; }
         // 오른쪽 버튼(또는 변 근처 왼쪽)은 가까운 변을 따라 긋는다. 몸통 위면 그 자의 변 가운데 가까운 것
-        const ed = onBody ? nearestEdge(w, 1e9, x => x.bar) : onTri ? nearestEdge(w, 1e9, x => !x.bar) : nearestEdge(w, 40);
+        const ed = onBody ? nearestEdge(w, 1e9, x => x.bar) : onTri ? nearestEdge(w, 1e9) : nearestEdge(w, 40);   // 삼각자 위면 I자 날까지 넣어 가장 가까운 변
         if (ed) { startPencil(e, w, ed, true); return; }
         drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: false};
         return;
@@ -1583,7 +1591,15 @@ svg.addEventListener('pointermove', e => {
     if (drag && drag.kind === 'pencil') {
         if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 5) drag.moved = true;
         if (drag.moved) {
+            if (drag.blocked) {                      // 삼각자 밑 — 연필이 종이에 닿지 않는다
+                if (!drag.warned) { drag.warned = true; flash('삼각자가 놓인 구간이라 그을 수 없습니다 — 삼각자 밖에서 그으세요'); }
+                return;
+            }
             const q = onEdge(drag.edge, w), a = drag.p0, st = strokeStyle();
+            if (drag.bl) {                           // 삼각자에 부딪히면 그 모서리에서 멈춘다
+                if (a.x <= drag.bl[0] + 1e-6 && q.x > drag.bl[0]) q.x = drag.bl[0];
+                if (a.x >= drag.bl[1] - 1e-6 && q.x < drag.bl[1]) q.x = drag.bl[1];
+            }
             drag.p1 = q;
             gPre.innerHTML = `<path d="M${fmt(a.x)} ${fmt(a.y)}L${fmt(q.x)} ${fmt(q.y)}" ${stAttr(st.ls, st.w)}/>`
                 + `<text x="${fmt(q.x + 0.8 * U)}" y="${fmt(q.y - 1.0 * U)}" font-size="${fmt(1.1 * U)}" fill="${RED}" font-weight="700">${fmt(Math.hypot(q.x - a.x, q.y - a.y))}m</text>`;
@@ -1644,6 +1660,7 @@ function endPtr(e) {
     if (d.kind === 'pencil') {
         gPre.innerHTML = '';
         if (!d.moved) { if (!d.right) onCanvasClick(toWorld(e), e, d.target); return; }   // 날은 투명 — 그냥 누르면 평소 누름
+        if (d.blocked) return;
         const q = d.p1, a0 = d.p0;
         if (!q || Math.hypot(q.x - a0.x, q.y - a0.y) < 1e-6) return;
         snapHist();
