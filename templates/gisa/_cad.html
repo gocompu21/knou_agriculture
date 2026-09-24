@@ -48,6 +48,8 @@
         <button type="button" id="cadTriFlip" class="cad-bar-btn" title="삼각자 좌우 뒤집기" hidden>⇆ 뒤집기</button>
         <button type="button" id="cadTriRot" class="cad-bar-btn" title="60° 삼각자 눕히기 — 빗변 60° ↔ 30°" hidden>빗변 30°</button>
         <span class="cad-sep"></span>
+        <button type="button" id="cadAuxBtn" class="cad-bar-btn on" title="보조선 레이어 보이기·감추기 — 색은 설정(⚙)에서"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6h16M2 10h16M2 14h16" stroke-dasharray="2 1.6"/></svg>보조선</button>
+        <span class="cad-sep"></span>
         <button type="button" id="cadUndo" title="되돌리기 (Ctrl+Z)">↶</button>
         <button type="button" id="cadRedo" title="다시 하기 (Ctrl+Y)">↷</button>
         <button type="button" id="cadSetBtn" class="cad-set-btn" title="설정 — 스냅·점 번호·자 크기" aria-label="설정" aria-expanded="false"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.2v2.3M10 15.5v2.3M2.2 10h2.3M15.5 10h2.3M4.5 4.5l1.6 1.6M13.9 13.9l1.6 1.6M4.5 15.5l1.6-1.6M13.9 6.1l1.6-1.6"/><circle cx="10" cy="10" r="5.4"/></svg></button>
@@ -62,6 +64,9 @@
             <div class="cad-set-row"><span class="cad-set-lb">샤프 선 굵기 <small class="cad-set-note">(종이 위, 축척으로 환산)</small></span></div>
             <div class="cad-set-row cad-set-in"><label class="cad-set-sub">샤프 0.9 <input type="number" id="cadP9" class="cad-set-num" step="0.05" min="0.05" max="3"> mm</label>
                 <label class="cad-set-sub">샤프 0.5 <input type="number" id="cadP5" class="cad-set-num" step="0.05" min="0.05" max="3"> mm</label></div>
+            <div class="cad-set-row"><span class="cad-set-lb">보조선 레이어</span>
+                <label class="cad-chk"><input type="checkbox" id="cadAuxOn" checked> 보이기</label>
+                <label class="cad-set-sub">색 <input type="color" id="cadAuxColor" class="cad-set-color"></label></div>
             <p class="cad-set-note">설정은 이 브라우저에 남습니다.</p>
         </div>
     </div>
@@ -288,6 +293,10 @@
 .cad-set select { border: 1px solid #d5ddd9; border-radius: 5px; padding: 2px 4px; font-size: 0.78rem; }
 .cad-set-in { border-top: 0; padding-top: 0; gap: 14px; }
 .cad-set-num { width: 52px; border: 1px solid #d5ddd9; border-radius: 5px; padding: 2px 4px; font-size: 0.78rem; }
+.cad-set-color { width: 34px; height: 22px; padding: 0 2px; border: 1px solid #d5ddd9; border-radius: 4px; background: #fff; cursor: pointer; }
+#cadAuxBtn:not(.on) { color: #9aa3a0; }
+/* 보조선 레이어 — 끄면 화면에서 감추고, 지우개·영역 선택도 건드리지 않는다 */
+.cad.aux-off #cadOps g.aux { display: none; }
 .cad-set-note { font-size: 0.72rem; color: #888; margin: 4px 0 0; }
 .cad-tools .cad-txt { border: 1px solid #d5ddd9; border-radius: 5px; font-size: 0.74rem; height: 26px; }
 .cad-tools select.cad-txt { padding: 0 2px; }
@@ -478,10 +487,10 @@ let tool = 'select', pickIdx = 0, editing = null, selOps = new Set(), selPt = nu
 let hover = null;
 // I자(평행자) — 제도판의 가로자. 켜 두면 윗변(barY) 근처를 누른 점이 그 높이에 붙는다
 // 설정(스냅·간격·점 번호·삼각자 크기) — 도면이 아니라 화면 습관이라 localStorage 에 둔다
-let SET = {snap: true, step: '', pts: true, triSize: 12, p9: 0.7, p5: 0.4};   // 샤프 굵기는 종이 위 mm
+let SET = {snap: true, step: '', pts: true, triSize: 12, p9: 0.7, p5: 0.4, auxOn: true, auxColor: '#a3a9b3'};   // 샤프 굵기는 종이 위 mm
 try { Object.assign(SET, JSON.parse(localStorage.getItem('cadSet') || '{}')); } catch (e) {}
 function saveSet() {
-    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.triSize = +$('cadTriSize').value; SET.font = $('ftFont').value; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
+    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.triSize = +$('cadTriSize').value; SET.font = $('ftFont').value; SET.auxOn = $('cadAuxOn').checked; SET.auxColor = $('cadAuxColor').value || SET.auxColor; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
     try { localStorage.setItem('cadSet', JSON.stringify(SET)); } catch (e) {}
 }
 let barOn = false, barY = null;
@@ -697,7 +706,7 @@ function stAttr(ls, w, fill) {
     const L = LS[ls] || LS.solid;
     // 샤프 선은 설정의 종이 위 mm 를 도면 축척으로 m 로 바꾼다(1:430 에서 0.7mm = 0.3m)
     const sw = L.w != null ? L.w * U : (w === 'p9' || w === 'p5') ? SET[w] / 1000 * scaleDenom() : (WD[w] || WD.mid).w * U;
-    let a = `fill="${fill || 'none'}" stroke="${L.color || INK}" stroke-width="${fmt(sw)}" stroke-linecap="round" stroke-linejoin="round"`;
+    let a = `fill="${fill || 'none'}" stroke="${ls === 'aux' ? SET.auxColor : L.color || INK}" stroke-width="${fmt(sw)}" stroke-linecap="round" stroke-linejoin="round"`;
     if (L.dash) a += ` stroke-dasharray="${L.dash.map(d => fmt(d * U)).join(' ')}"`;
     return a;
 }
@@ -791,10 +800,20 @@ function setSheet(key) {
     if (!$('ftSize').value || !$('ftSize').dataset.touched) $('ftSize').value = fmt(1.5 * U);
 }
 function renderAll() { drawBar(); drawOps(); drawPts(); drawPre(); listOps(); listPts(); markAwait(); savedLabel(); selInfo(); }
+const isAux = op => op.ls === 'aux';
+const auxHidden = op => isAux(op) && !SET.auxOn;          // 꺼진 보조선 — 지우개·선택이 건드리지 않는다
+function setAux(on) {
+    SET.auxOn = on; $('cadAuxOn').checked = on; $('cadAuxBtn').classList.toggle('on', on);
+    root.classList.toggle('aux-off', !on);
+    [...selOps].forEach(id => { const o = doc.ops.find(x => x.id === id); if (o && auxHidden(o)) selOps.delete(id); });
+    saveSet(); drawOps(); selInfo();
+}
 function drawOps() {
-    gOps.innerHTML = doc.ops.filter(o => o.t !== 'step').map(op => {
-        const s = opSvg(op);
-        return s ? `<g data-op="${op.id}"${selOps.has(op.id) ? ' class="on"' : ''}>${s}<g class="cad-hit">${s}</g></g>` : '';
+    // 보조선은 따로 된 레이어 — 맨 아래에 먼저 그리고(class aux) 설정·도구 줄에서 켜고 끈다
+    const ops = doc.ops.filter(o => o.t !== 'step'), aux = ops.filter(isAux), rest = ops.filter(o => !isAux(o));
+    gOps.innerHTML = [...aux, ...rest].map(op => {
+        const s = opSvg(op), cl = [isAux(op) ? 'aux' : '', selOps.has(op.id) ? 'on' : ''].filter(Boolean).join(' ');
+        return s ? `<g data-op="${op.id}"${cl ? ` class="${cl}"` : ''}>${s}<g class="cad-hit">${s}</g></g>` : '';
     }).join('');
 }
 function activePts() {
@@ -1399,11 +1418,13 @@ function eraseAt(C, r) {
     doc.ops.filter(op => op.t === 'rect').forEach(op => {       // 사각형은 네 선으로 풀어 한 변만 지울 수 있게
         const a = P(op.a), b = P(op.b); if (!a || !b) return;
         const q = [a, {x: b.x, y: a.y}, b, {x: a.x, y: b.y}];
+        if (auxHidden(op)) return;
         if (q.some((u, i) => segDist(C, u, q[(i + 1) % 4]) < r) && !covered(C)) explodeRect(op);
     });
     const out = [];
     doc.ops.forEach(op => {
         let pcs = null;
+        if (auxHidden(op)) { out.push(op); return; }
         if (op.t === 'line') pcs = cutLine(op, C, r);
         else if (op.t === 'circle' || op.t === 'arc') pcs = cutArc(op, C, r);
         else if ((op.t === 'sym' || op.t === 'text') && !covered(C) && touchBox(op, C, r)) pcs = [];
@@ -1462,7 +1483,7 @@ function boxSelect(r, crossing, add) {
     const inside = q => q.x >= r.x0 && q.x <= r.x1 && q.y >= r.y0 && q.y <= r.y1;
     gOps.querySelectorAll(':scope > g[data-op]').forEach(g => {
         const id = +g.dataset.op, op = doc.ops.find(o => o.id === id);
-        if (!op) return;
+        if (!op || auxHidden(op)) return;
         let b; try { b = g.getBBox(); } catch (e) { return; }
         const bb = {x0: b.x, y0: b.y, x1: b.x + b.width, y1: b.y + b.height};
         let hit;
@@ -1650,7 +1671,7 @@ function buildExport() {
     doc.ops.forEach(op => {
         if (op.t === 'step') { st = {title: op.title, ops: []}; steps.push(st); return; }
         if (!st) { st = {title, ops: []}; steps.push(st); }
-        st.ops.push(op);
+        if (!auxHidden(op)) st.ops.push(op);
     });
     const withPts = $('cadShowPts').checked, shown = new Set();
     let body = `<g>${gridSvg(s, 'eg')}</g>`;
@@ -1658,7 +1679,7 @@ function buildExport() {
         body += `<g data-step="${k + 1}">` + sp.ops.map((op, i) => {
             let dots = '';
             if (withPts) ptsOf(op).forEach(n => { n = +n; if (!shown.has(n) && P(n)) { shown.add(n); dots += dotSvg(P(n)); } });
-            return `<g data-sub="${i + 1}">${dots}${opSvg(op)}</g>`;
+            return `<g data-sub="${i + 1}"${isAux(op) ? ' data-layer="aux"' : ''}>${dots}${opSvg(op)}</g>`;
         }).join('') + '</g>';
     });
     if (withPts) { const rest = doc.pts.filter(p => !shown.has(p.n)); if (rest.length) body += `<g>${rest.map(p => dotSvg(p)).join('')}</g>`; }
@@ -1885,6 +1906,7 @@ function endPtr(e) {
         snapHist();
         const a = addPt(a0.x, a0.y), b = addPt(q.x, q.y);
         doc.ops.push({id: doc.seq++, t: 'line', a, b, ...strokeStyle()});
+        if (strokeStyle().ls === 'aux' && !SET.auxOn) setAux(true);   // 감춘 채 보조선을 그으면 안 보이므로 레이어를 켠다
         changed(); flash(`${d.edge.name}을(를) 따라 P${a} → P${b} (${fmt(Math.hypot(q.x - a0.x, q.y - a0.y))}m) 를 그었습니다`);
         return;
     }
@@ -2026,6 +2048,11 @@ function triSizeNote() {                // 종이 위 길이 — 도면 축척�
 if (SET.font) $('ftFont').value = SET.font;
 ['ftFont', 'ftDir', 'ftSize'].forEach(id => $(id).addEventListener('input', () => { if (txtBox) { drawTextPre(); } }));
 $('cadP9').value = SET.p9; $('cadP5').value = SET.p5;
+$('cadAuxColor').value = SET.auxColor; $('cadAuxOn').checked = SET.auxOn !== false;
+$('cadAuxBtn').classList.toggle('on', SET.auxOn !== false); root.classList.toggle('aux-off', SET.auxOn === false);
+$('cadAuxBtn').addEventListener('click', () => { setAux(!SET.auxOn); flash(SET.auxOn ? '보조선을 보입니다' : '보조선을 감췄습니다 — 지우개·선택도 건드리지 않습니다'); });
+$('cadAuxOn').addEventListener('change', () => setAux($('cadAuxOn').checked));
+$('cadAuxColor').addEventListener('input', () => { SET.auxColor = $('cadAuxColor').value; saveSet(); drawOps(); drawPre(); });
 ['cadP9', 'cadP5'].forEach(id => $(id).addEventListener('change', () => {
     const v = +$(id).value; if (!(v > 0)) { $(id).value = SET[id === 'cadP9' ? 'p9' : 'p5']; return; }
     saveSet(); drawOps(); drawPre();
