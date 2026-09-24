@@ -1008,7 +1008,7 @@ function opSvg(op) {
             else for (let x = x0 + g / 2; x < x1; x += g) dd += `M${fmt(x)} ${fmt(y0)}V${fmt(y1)}`;
             return `<clipPath id="${id}"><path d="${op.d}" clip-rule="evenodd"/></clipPath>`
                 + `<path d="${op.d}" fill="none" stroke="none" fill-rule="evenodd"/>`
-                + `<path d="${dd}" clip-path="url(#${id})" stroke="${op.color}" stroke-opacity="${Math.max(fo, 0.85)}" stroke-width="${fmt(0.14 * U)}" fill="none"/>`;
+                + `<path d="${dd}" clip-path="url(#${id})" stroke="${op.color}" stroke-opacity="${Math.max(fo, 0.85)}" stroke-width="${fmt(Math.min(0.14 * U, g * 0.2))}" fill="none"/>`;   // 좁은 면은 간격이 좁아 선을 가늘게(간격의 1/5 이하) — 면처럼 뭉치지 않게
         }
         return `<path d="${op.d}" fill="${op.color}" fill-opacity="${fo}" fill-rule="evenodd" stroke="none"/>`;
     }
