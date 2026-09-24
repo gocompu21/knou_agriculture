@@ -732,6 +732,8 @@ function drawPre() {
         gPre.innerHTML = `<circle cx="${fmt(h.w.x)}" cy="${fmt(h.w.y)}" r="${fmt(eraserR())}" fill="rgba(244,163,177,.25)" stroke="#c2185b" stroke-width="${fmt(0.08 * U)}"/>`;
         return;
     }
+    const onTriNow = h && h.w && triGeom() && inTri(h.w, triGeom().R, triGeom().T, triGeom().B);
+    if (onTriNow && !tool.startsWith('pen')) { gPre.innerHTML = ''; return; }   // 삼각자 위 — 도구 미리보기 없음(손 커서)
     if (h && tool !== 'select') {
         const hp = h.pt ? P(h.pt) : null, x = hp ? hp.x : h.x, y = hp ? hp.y : h.y, k = 0.8 * U;
         const f = picksOf(tool) || [], A = f[0] ? P($(f[0]).value) : null;
@@ -1730,7 +1732,7 @@ function endPtr(e) {
     }
     if (d.kind === 'tri') {
         if (d.moved) { saveTri(); return; }
-        if (!tool.startsWith('pen') && !tool.startsWith('erase')) onCanvasClick(toWorld(e), e, d.target);   // 삼각자는 투명 — 그냥 누르면 통과
+        // 삼각자 위에서는 어느 도구도 점·선을 만들지 않는다 — 삼각자는 옮기기만 한다(사용자 요청)
         return;
     }
     if ((d.kind === 'click' || d.kind === 'box') && !d.moved) onCanvasClick(toWorld(e), e, d.target);
