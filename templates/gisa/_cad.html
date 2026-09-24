@@ -1432,7 +1432,14 @@ $('cadSave').addEventListener('click', save);
 $('cadExport').addEventListener('click', download);
 $('cadCopy').addEventListener('click', copyDesc);
 $('cadOpenBtn').addEventListener('click', openList);
-$('cadFull').addEventListener('click', () => { root.classList.toggle('full'); document.body.style.overflow = root.classList.contains('full') ? 'hidden' : ''; requestAnimationFrame(fit); });
+function setFull(on) {
+    root.classList.toggle('full', on);
+    document.body.style.overflow = on ? 'hidden' : '';
+    requestAnimationFrame(fit);
+}
+$('cadFull').addEventListener('click', () => setFull(!root.classList.contains('full')));
+// CAD 탭을 누르면 바로 전체 화면 — 제도판처럼 도면만 크게 두고 쓴다(⛶·Esc 로 빠져나온다)
+document.querySelectorAll('.tab-btn[data-tab="cad"]').forEach(b => b.addEventListener('click', () => setFull(true)));
 $('cadOpen').addEventListener('click', e => {
     const del = e.target.closest('[data-del]');
     if (del) { e.stopPropagation();
@@ -1572,6 +1579,7 @@ if (draft && draft.doc && draft.doc.pts) {
 } else doc = blankDoc(SHEETS.some(s => s.key === '401') ? '401' : SHEETS[0].key);
 afterLoad(false);
 setTool('point');
+if (root.offsetParent) setFull(true);                // ?tab=cad 로 들어와도 전체 화면으로
 renderLib();
 loadSyms();
 })();
