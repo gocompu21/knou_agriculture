@@ -27,12 +27,12 @@
     </div>
     <div class="cad-tools" id="cadTools">
         <button type="button" data-tool="select" title="선택·점 끌어 옮기기 (V)" aria-label="선택"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 2.5V16l3.6-3.4 2.6 5.4 2.2-1-2.6-5.3H16Z" class="f"/></svg></button>
-        <button type="button" data-tool="point" title="점 찍기 (P)" aria-label="점"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.4" class="f"/><path d="M10 2.5v4M10 13.5v4M2.5 10h4M13.5 10h4"/></svg></button>
-        <button type="button" data-tool="line" title="선 긋기 (L)" aria-label="선"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 15.5 15.5 4.5"/><circle cx="4.5" cy="15.5" r="1.9" class="f"/><circle cx="15.5" cy="4.5" r="1.9" class="f"/></svg></button>
-        <button type="button" data-tool="rect" title="사각형 (R)" aria-label="사각형"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="5" width="14" height="10" rx="0.5"/></svg></button>
-        <button type="button" data-tool="circle" title="원 (C)" aria-label="원"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="1.2" class="f"/></svg></button>
-        <button type="button" data-tool="arc" title="호 (A)" aria-label="호"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 15A6.5 6.5 0 0 1 16.5 15"/><circle cx="3.5" cy="15" r="1.7" class="f"/><circle cx="16.5" cy="15" r="1.7" class="f"/></svg></button>
-        <button type="button" data-tool="sym" title="라이브러리 기호 넣기 (B)" aria-label="기호"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="13" height="13"/><path d="M3.5 3.5l13 13M16.5 3.5l-13 13"/></svg></button>
+        <button type="button" data-tool="point" hidden title="점 찍기 (P)" aria-label="점"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.4" class="f"/><path d="M10 2.5v4M10 13.5v4M2.5 10h4M13.5 10h4"/></svg></button>
+        <button type="button" data-tool="line" hidden title="선 긋기 (L)" aria-label="선"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 15.5 15.5 4.5"/><circle cx="4.5" cy="15.5" r="1.9" class="f"/><circle cx="15.5" cy="4.5" r="1.9" class="f"/></svg></button>
+        <button type="button" data-tool="rect" hidden title="사각형 (R)" aria-label="사각형"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="5" width="14" height="10" rx="0.5"/></svg></button>
+        <button type="button" data-tool="circle" hidden title="원 (C)" aria-label="원"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="1.2" class="f"/></svg></button>
+        <button type="button" data-tool="arc" hidden title="호 (A)" aria-label="호"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 15A6.5 6.5 0 0 1 16.5 15"/><circle cx="3.5" cy="15" r="1.7" class="f"/><circle cx="16.5" cy="15" r="1.7" class="f"/></svg></button>
+        <button type="button" data-tool="sym" hidden title="라이브러리 기호 넣기 (B)" aria-label="기호"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="13" height="13"/><path d="M3.5 3.5l13 13M16.5 3.5l-13 13"/></svg></button>
         <button type="button" data-tool="text" title="글자 (T)" aria-label="글자"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4.5h12M10 4.5v12M7.5 16.5h5"/></svg></button>
         <select id="ftDir" class="cad-txt" title="글자 방향"><option value="h">가로</option><option value="v">세로</option></select>
         <select id="ftFont" class="cad-txt" title="글자 글꼴"><option value="gothic">고딕</option><option value="myeongjo">명조</option><option value="hand">손글씨</option></select>
@@ -186,7 +186,7 @@
             <div class="cad-tabs">
                 <button type="button" class="on" data-ptab="ops">작도 순서 <em id="cadOpsN"></em></button>
                 <button type="button" data-ptab="pts">점 <em id="cadPtsN"></em></button>
-                <button type="button" data-ptab="lib">라이브러리</button>
+                <button type="button" data-ptab="lib" hidden>라이브러리</button>
             </div>
             <div class="cad-pane on" data-ppane="ops">
                 <div class="cad-row"><input id="cadStepTitle" placeholder="단계 이름 — 예) 경계선 및 그리드 작성">
@@ -245,6 +245,8 @@
     stroke-linecap: round; stroke-linejoin: round; }
 .cad-tools [data-tool] svg .f { fill: currentColor; stroke: none; }
 .cad-tools [data-tool=select] svg .f { stroke: currentColor; stroke-width: 1; }
+/* 제도판 모사 — CAD 식 작도 도구(점·선·사각형·원·호·기호)는 감춰 둔다. 코드는 살아 있어 되살리려면 hidden 만 뗀다 */
+.cad-tools [data-tool][hidden] { display: none; }
 .cad-tools [data-tool]:hover:not(.on) { background: #f1f6f3; }
 .cad-tools [data-tool].pen { width: auto; padding: 0 5px 0 3px; gap: 1px; }
 .cad-tools [data-tool].pen b { font-size: 0.68rem; font-weight: 800; }
@@ -1870,7 +1872,7 @@ function endPtr(e) {
     else if (d.kind === 'right' && !d.moved) { endEdit(); resetPick(); }
     else if (d.kind === 'pt') {
         if (d.moved) { changed(); }
-        else { selPt = d.n; setTool('point'); fillPointForm(P(d.n)); renderAll(); }
+        else { selPt = d.n; renderAll(); }
     }
 }
 svg.addEventListener('pointerup', endPtr);
@@ -2057,7 +2059,7 @@ document.addEventListener('keydown', e => {
     if (barOn && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         e.preventDefault(); setBarY(barY + (e.key === 'ArrowUp' ? -1 : 1) * barStep() * (e.shiftKey ? 5 : 1)); saveBar(); return;
     }
-    const map = {v: 'select', p: 'point', l: 'line', r: 'rect', c: 'circle', a: 'arc', b: 'sym', t: 'text', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
+    const map = {v: 'select', t: 'text', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
     if (map[k]) setTool(map[k]);
     if (k === '+' || k === '=') zoomCenter(1.4);
     if (k === '-') zoomCenter(1 / 1.4);
@@ -2079,7 +2081,7 @@ if (draft && draft.doc && draft.doc.pts) {
     cur.id = draft.id || null; $('cadTitle').value = draft.title || ''; dirty = !!draft.dirty;
 } else doc = blankDoc(SHEETS.some(s => s.key === '401') ? '401' : SHEETS[0].key);
 afterLoad(false);
-setTool('point');
+setTool('select');
 if (root.offsetParent) setFull(true);                // ?tab=cad 로 들어와도 전체 화면으로
 renderLib();
 loadSyms();
