@@ -1255,9 +1255,10 @@ function status() {
 function hintText() {
     const f = picksOf(tool);
     if (tool === 'point') return ' · 도면을 누르면 점이 생깁니다';
-    if (tool.startsWith('erase')) return ' · 누른 채 문지르면 지워집니다';
-    if (tool.startsWith('pen')) return ' · 누르면 점, I자·삼각자의 변에서 오른쪽 버튼을 누른 채 끌면 선';
+    if (tool.startsWith('erase')) return ' · 누른 채 문지르면 지워집니다 · Ctrl+끌기로 화면 이동';
+    if (tool.startsWith('pen')) return ' · 누르면 점, 자의 변에서 오른쪽 버튼으로 끌면 선 · Ctrl+끌기로 화면 이동';
     if (tool === 'select') return ' · 끌면 화면 이동 · Shift+끌기로 영역 선택';
+    if (tool === 'free') return ' · 누른 채 끌면 선 · Ctrl+끌기로 화면 이동';
     if (!f) return '';
     const names = {line: ['시작점', '종료점'], rect: ['모서리 1', '모서리 2'], arc: arcMode === 'fillet' ? ['모서리 점'] : ['시작점', '종료점'], circle: ['중심', '크기'], sym: ['기준점'], text: ['기준점']}[tool];
     return ` · ${names[Math.min(pickIdx, names.length - 1)]}을(를) 누르세요 · 우클릭/Esc 취소`;
@@ -2165,6 +2166,12 @@ svg.addEventListener('pointerdown', e => {
     ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY});
     if (ptrs.size === 2) { drag = {kind: 'pinch'}; pinchD = 0; return; }
     if (e.button === 1 || spaceDown) { drag = {kind: 'pan', lx: e.clientX, ly: e.clientY, moved: true}; e.preventDefault(); return; }
+    // Ctrl(맥은 ⌘)을 누른 채 끌면 어느 도구든 화면 이동 — 선택 도구는 끌지 않고 떼면 종전처럼 Ctrl+누르기(더해 고르기)
+    if (e.button === 0 && (e.ctrlKey || e.metaKey)) {
+        drag = tool === 'select' ? {kind: 'click', sx: e.clientX, sy: e.clientY, lx: e.clientX, ly: e.clientY, moved: false, target: e.target, w0: toWorld(e), shift: true}
+                                 : {kind: 'pan', lx: e.clientX, ly: e.clientY, moved: true};
+        e.preventDefault(); return;
+    }
     // 샤프를 든 동안에는 끌어도 화면이 움직이지 않는다 — 날이 얇아 조금만 빗나가도 화면이 밀렸다.
     // 몸통을 왼쪽으로 끌면 자를 옮기고, 날 근처(위아래 40px)에서 끌면 어느 버튼이든 날을 따라 긋는다
     if (tool === 'free' && e.button === 0) {
