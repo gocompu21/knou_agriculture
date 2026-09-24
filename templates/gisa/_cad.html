@@ -106,9 +106,9 @@
             <div class="cad-form" id="cadForm">
                 <div data-form="select">
                     <h4>선택</h4>
-                    <p class="cad-help">객체를 누르거나 <b>빈 곳을 끌어 영역</b>으로 고릅니다(Shift 로 더하기).<br>
-                       → 오른쪽으로 끌면 <b>상자 안에 다 들어간 것만</b>(파란 실선), ← 왼쪽으로 끌면 <b>상자에 걸친 것까지</b>(초록 점선).<br>
-                       점은 끌어서 옮기고, 화면 이동은 오른쪽 버튼·휠 버튼으로 끌거나 Space 를 누른 채 끕니다.</p>
+                    <p class="cad-help">객체를 눌러 고릅니다(Shift+누르기로 더하기). <b>빈 곳을 끌면 도면이 움직입니다</b>(화면 이동).<br>
+                       영역으로 고르려면 <b>Shift 를 누른 채 끕니다</b> — → 오른쪽으로 끌면 <b>상자 안에 다 들어간 것만</b>(파란 실선), ← 왼쪽으로 끌면 <b>상자에 걸친 것까지</b>(초록 점선).<br>
+                       점은 끌어서 옮깁니다.</p>
                     <div class="cad-row"><span class="cad-help" id="cadSelInfo">고른 것 없음</span>
                         <button type="button" class="cad-go" id="cadSelDel" title="Delete">고른 것 지우기</button></div>
                 </div>
@@ -1148,7 +1148,7 @@ function hintText() {
     if (tool === 'point') return ' · 도면을 누르면 점이 생깁니다';
     if (tool.startsWith('erase')) return ' · 누른 채 문지르면 지워집니다';
     if (tool.startsWith('pen')) return ' · 누르면 점, I자·삼각자의 변에서 오른쪽 버튼을 누른 채 끌면 선';
-    if (tool === 'select') return ' · 빈 곳을 끌어 영역 선택 · 오른쪽 버튼으로 끌면 화면 이동';
+    if (tool === 'select') return ' · 끌면 화면 이동 · Shift+끌기로 영역 선택';
     if (!f) return '';
     const names = {line: ['시작점', '종료점'], rect: ['모서리 1', '모서리 2'], arc: arcMode === 'fillet' ? ['모서리 점'] : ['시작점', '종료점'], circle: ['중심', '크기'], sym: ['기준점'], text: ['기준점']}[tool];
     return ` · ${names[Math.min(pickIdx, names.length - 1)]}을(를) 누르세요 · 우클릭/Esc 취소`;
@@ -1995,7 +1995,8 @@ svg.addEventListener('pointerdown', e => {
         }
         return;
     }
-    drag = {kind: tool === 'select' ? 'box' : 'click', sx: e.clientX, sy: e.clientY, lx: e.clientX, ly: e.clientY,
+    // 선택 도구로 빈 곳을 끌면 화면 이동(pan) — 영역 선택은 Shift 를 누른 채 끈다
+    drag = {kind: tool === 'select' && e.shiftKey ? 'box' : 'click', sx: e.clientX, sy: e.clientY, lx: e.clientX, ly: e.clientY,
             moved: false, target: e.target, w0: w, shift: e.shiftKey || e.ctrlKey || e.metaKey};
 });
 svg.addEventListener('pointermove', e => {
