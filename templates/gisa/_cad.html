@@ -59,6 +59,9 @@
             <div class="cad-set-row"><span class="cad-set-lb">삼각자 크기</span>
                 <select id="cadTriSize" title="삼각자 크기 — 직각을 낀 긴 변의 실제 길이. 도면 축척으로 환산해 그린다"><option value="9">9cm</option><option value="12">12cm</option><option value="15">15cm</option><option value="18">18cm</option><option value="24">24cm</option><option value="30">30cm</option></select>
                 <span class="cad-set-note" id="cadTriSizeNote"></span></div>
+            <div class="cad-set-row"><span class="cad-set-lb">샤프 선 굵기 <small class="cad-set-note">(종이 위, 축척으로 환산)</small></span></div>
+            <div class="cad-set-row cad-set-in"><label class="cad-set-sub">샤프 0.9 <input type="number" id="cadP9" class="cad-set-num" step="0.05" min="0.05" max="3"> mm</label>
+                <label class="cad-set-sub">샤프 0.5 <input type="number" id="cadP5" class="cad-set-num" step="0.05" min="0.05" max="3"> mm</label></div>
             <p class="cad-set-note">설정은 이 브라우저에 남습니다.</p>
         </div>
     </div>
@@ -281,6 +284,8 @@
 .cad-set-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 5px 0; border-top: 1px solid #f0f3f1; }
 .cad-set-sub, .cad-set-lb { font-size: 0.8rem; color: #444; display: inline-flex; align-items: center; gap: 4px; }
 .cad-set select { border: 1px solid #d5ddd9; border-radius: 5px; padding: 2px 4px; font-size: 0.78rem; }
+.cad-set-in { border-top: 0; padding-top: 0; gap: 14px; }
+.cad-set-num { width: 52px; border: 1px solid #d5ddd9; border-radius: 5px; padding: 2px 4px; font-size: 0.78rem; }
 .cad-set-note { font-size: 0.72rem; color: #888; margin: 4px 0 0; }
 .cad-tools .cad-txt { border: 1px solid #d5ddd9; border-radius: 5px; font-size: 0.74rem; height: 26px; }
 .cad-tools select.cad-txt { padding: 0 2px; }
@@ -470,10 +475,10 @@ let tool = 'select', pickIdx = 0, editing = null, selOps = new Set(), selPt = nu
 let hover = null;
 // I자(평행자) — 제도판의 가로자. 켜 두면 윗변(barY) 근처를 누른 점이 그 높이에 붙는다
 // 설정(스냅·간격·점 번호·삼각자 크기) — 도면이 아니라 화면 습관이라 localStorage 에 둔다
-let SET = {snap: true, step: '', pts: true, triSize: 12};
+let SET = {snap: true, step: '', pts: true, triSize: 12, p9: 0.7, p5: 0.4};   // 샤프 굵기는 종이 위 mm
 try { Object.assign(SET, JSON.parse(localStorage.getItem('cadSet') || '{}')); } catch (e) {}
 function saveSet() {
-    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.triSize = +$('cadTriSize').value; SET.font = $('ftFont').value; SET.dir = $('ftDir').value;
+    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.triSize = +$('cadTriSize').value; SET.font = $('ftFont').value; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
     try { localStorage.setItem('cadSet', JSON.stringify(SET)); } catch (e) {}
 }
 let barOn = false, barY = null;
@@ -674,7 +679,8 @@ function redo() { if (!redoS.length) return; hist.push(JSON.stringify(doc)); doc
 // ── SVG 조각 ────────────────────────────────────────────────────────────
 function stAttr(ls, w, fill) {
     const L = LS[ls] || LS.solid;
-    const sw = (L.w != null ? L.w : (WD[w] || WD.mid).w) * U;
+    // 샤프 선은 설정의 종이 위 mm 를 도면 축척으로 m 로 바꾼다(1:430 에서 0.7mm = 0.3m)
+    const sw = L.w != null ? L.w * U : (w === 'p9' || w === 'p5') ? SET[w] / 1000 * scaleDenom() : (WD[w] || WD.mid).w * U;
     let a = `fill="${fill || 'none'}" stroke="${L.color || INK}" stroke-width="${fmt(sw)}" stroke-linecap="round" stroke-linejoin="round"`;
     if (L.dash) a += ` stroke-dasharray="${L.dash.map(d => fmt(d * U)).join(' ')}"`;
     return a;
@@ -1986,6 +1992,11 @@ function triSizeNote() {                // 종이 위 길이 — 도면 축척�
 }
 ['cadSnap', 'cadSnapStep', 'cadShowPts', 'ftFont', 'ftDir'].forEach(id => $(id).addEventListener('change', saveSet));
 if (SET.font) $('ftFont').value = SET.font;
+$('cadP9').value = SET.p9; $('cadP5').value = SET.p5;
+['cadP9', 'cadP5'].forEach(id => $(id).addEventListener('change', () => {
+    const v = +$(id).value; if (!(v > 0)) { $(id).value = SET[id === 'cadP9' ? 'p9' : 'p5']; return; }
+    saveSet(); drawOps(); drawPre();
+}));
 if (SET.dir) $('ftDir').value = SET.dir;
 $('cadSetBtn').addEventListener('click', e => {
     e.stopPropagation(); const on = $('cadSet').hidden;
