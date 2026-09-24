@@ -572,9 +572,23 @@ function drawTri() {
     if (G) $('cadTriRot').textContent = tri.alt ? '빗변 60°' : '빗변 30°';
     if (!G) { g.innerHTML = ''; return; }
     const {R, T, B} = G, f = v => fmt(v), cx = (R.x + T.x + B.x) / 3, cy = (R.y + T.y + B.y) / 3;
-    // 구멍 없는 통판(사용자 요청으로 가운데 구멍을 막았다)
-    let o = `<g class="tri-body"><path d="M${f(R.x)} ${f(R.y)}L${f(T.x)} ${f(T.y)}L${f(B.x)} ${f(B.y)}Z" `
-        + `fill="rgba(215,232,244,.16)" stroke="#8fb0c8" stroke-width="${f(0.07 * U)}" stroke-linejoin="round"/>`;
+    // 구멍 없는 통판(사용자 요청으로 가운데 구멍을 막았다). 투명해서 없는 것처럼 보이지 않게 실물 아크릴의 단서 셋을 둔다 —
+    // ① 종이에 지는 옅은 그림자 ② 두께가 보이는 가장자리의 푸른 띠(안쪽만) ③ 두 직각변의 눈금. 가운데는 맑게 두어 도면이 읽힌다
+    const tp = `M${f(R.x)} ${f(R.y)}L${f(T.x)} ${f(T.y)}L${f(B.x)} ${f(B.y)}Z`;
+    let o = `<defs><filter id="cadTriBlur" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="${f(0.35 * U)}"/></filter>`
+        + `<clipPath id="cadTriClip"><path d="${tp}"/></clipPath>`
+        // 그림자는 판 바깥에만 — 판 밑까지 깔면 투명한 판이 통째로 잿빛이 되어 도면이 흐려진다
+        + `<clipPath id="cadTriOut"><path clip-rule="evenodd" d="M${f(sheet.x0 - 500)} ${f(sheet.y0 - 500)}H${f(sheet.x1 + 500)}V${f(sheet.y1 + 500)}H${f(sheet.x0 - 500)}Z${tp}"/></clipPath></defs>`
+        + `<g clip-path="url(#cadTriOut)" pointer-events="none"><path d="${tp}" transform="translate(${f(0.4 * U)} ${f(0.55 * U)})" fill="rgba(30,50,75,.28)" filter="url(#cadTriBlur)"/></g>`;
+    o += `<g class="tri-body"><path d="${tp}" fill="rgba(215,232,244,.16)" stroke="#8fb0c8" stroke-width="${f(0.07 * U)}" stroke-linejoin="round"/>`
+       + `<path d="${tp}" fill="none" stroke="rgba(95,150,190,.30)" stroke-width="${f(1.5 * U)}" stroke-linejoin="round" clip-path="url(#cadTriClip)"/>`;
+    {   // 눈금 — 종이 위 1cm·5mm(도면 축척으로 환산), 직각변 두 개에 안쪽으로
+        const cm = scaleDenom() / 100, sg = B.x > R.x ? 1 : -1, hL = R.y - T.y, bL = Math.abs(B.x - R.x);
+        let tk = '';
+        for (let i = 1; i * cm / 2 < hL - 0.5 * U; i++) { const y = R.y - i * cm / 2, l = (i % 2 ? 0.45 : 0.8) * U; tk += `M${f(R.x)} ${f(y)}h${f(sg * l)}`; }
+        for (let i = 1; i * cm / 2 < bL - 0.5 * U; i++) { const x = R.x + sg * i * cm / 2, l = (i % 2 ? 0.45 : 0.8) * U; tk += `M${f(x)} ${f(R.y)}v${f(-l)}`; }
+        o += `<path d="${tk}" stroke="rgba(50,90,125,.6)" stroke-width="${f(0.05 * U)}" fill="none"/>`;
+    }
     o += `<path d="M${f(R.x)} ${f(R.y)}L${f(T.x)} ${f(T.y)}L${f(B.x)} ${f(B.y)}" fill="none" stroke="#4f7896" stroke-width="${f(0.1 * U)}"/>`
        + `<path d="M${f(R.x)} ${f(R.y)}L${f(T.x)} ${f(T.y)}L${f(B.x)} ${f(B.y)}Z" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="${f(0.06 * U)}" transform="translate(${f(0.18 * U * (tri.flip ? 1 : -1))} ${f(-0.18 * U)})"/>`;
     const lx = B.x + (R.x - B.x) * 0.28, ly = B.y - 1.2 * U;
