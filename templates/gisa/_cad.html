@@ -57,8 +57,11 @@
             <div class="cad-form" id="cadForm">
                 <div data-form="select">
                     <h4>선택</h4>
-                    <p class="cad-help">객체를 누르면 고릅니다(Shift 로 여럿). 점은 끌어서 옮기고, 빈 곳을 끌면 화면이 움직입니다.
-                       고른 객체는 <b>Delete</b> 로 지우고, 작도 순서의 ✎ 로 고칩니다.</p>
+                    <p class="cad-help">객체를 누르거나 <b>빈 곳을 끌어 영역</b>으로 고릅니다(Shift 로 더하기).<br>
+                       → 오른쪽으로 끌면 <b>상자 안에 다 들어간 것만</b>(파란 실선), ← 왼쪽으로 끌면 <b>상자에 걸친 것까지</b>(초록 점선).<br>
+                       점은 끌어서 옮기고, 화면 이동은 오른쪽 버튼·휠 버튼으로 끌거나 Space 를 누른 채 끕니다.</p>
+                    <div class="cad-row"><span class="cad-help" id="cadSelInfo">고른 것 없음</span>
+                        <button type="button" class="cad-go" id="cadSelDel" title="Delete">고른 것 지우기</button></div>
                 </div>
                 <div data-form="point">
                     <h4>점 찍기</h4>
@@ -374,7 +377,7 @@ const symOf = id => allSyms().find(s => s.id === id);
 
 // ── 도면 상태 ────────────────────────────────────────────────────────────
 let doc, cur = {id: null}, dirty = false, sheet, U = 1, PREC = 0.1;
-let tool = 'select', pickIdx = 0, editing = null, selOps = new Set(), selPt = null;
+let tool = 'select', pickIdx = 0, editing = null, selOps = new Set(), selPt = null, selPts = new Set();
 let hover = null;                                // 스냅된 커서 자리
 let hist = [], redoS = [];
 const blankDoc = key => ({v: 1, sheet: key, pts: [], ops: [], syms: {}, seq: 1});
@@ -473,7 +476,7 @@ function setSheet(key) {
     $('cadSheet').value = sheet.key;
     if (!$('ftSize').value || !$('ftSize').dataset.touched) $('ftSize').value = fmt(1.5 * U);
 }
-function renderAll() { drawOps(); drawPts(); drawPre(); listOps(); listPts(); markAwait(); savedLabel(); }
+function renderAll() { drawOps(); drawPts(); drawPre(); listOps(); listPts(); markAwait(); savedLabel(); selInfo(); }
 function drawOps() {
     gOps.innerHTML = doc.ops.filter(o => o.t !== 'step').map(op => {
         const s = opSvg(op);
@@ -481,7 +484,7 @@ function drawOps() {
     }).join('');
 }
 function activePts() {
-    const on = new Set(); if (selPt) on.add(selPt);
+    const on = new Set(selPts); if (selPt) on.add(selPt);
     const f = picksOf(tool) || [];
     f.forEach(id => { const v = +$(id).value; if (v) on.add(v); });
     return on;
@@ -620,7 +623,7 @@ function status() {
 function hintText() {
     const f = picksOf(tool);
     if (tool === 'point') return ' · 도면을 누르면 점이 생깁니다';
-    if (tool === 'select') return ' · 빈 곳을 끌면 화면 이동, 휠로 확대';
+    if (tool === 'select') return ' · 빈 곳을 끌어 영역 선택 · 오른쪽 버튼으로 끌면 화면 이동';
     if (!f) return '';
     const names = {line: ['시작점', '종료점'], rect: ['모서리 1', '모서리 2'], arc: arcMode === 'fillet' ? ['모서리 점'] : ['시작점', '종료점'], circle: ['중심', '크기'], sym: ['기준점'], text: ['기준점']}[tool];
     return ` · ${names[Math.min(pickIdx, names.length - 1)]}을(를) 누르세요 · 우클릭/Esc 취소`;
@@ -746,7 +749,7 @@ function onCanvasClick(w, e, tgt) {
         tgt = tgt || e.target;          // 포인터 캡처 때문에 떼는 순간의 target 은 늘 svg 다
         const g = tgt.closest && tgt.closest('[data-op]');
         if (g) selectOp(+g.dataset.op, e.shiftKey || e.ctrlKey || e.metaKey);
-        else { selOps.clear(); selPt = null; renderAll(); }
+        else if (!(e.shiftKey || e.ctrlKey || e.metaKey)) { selOps.clear(); selPts.clear(); selPt = null; renderAll(); regInfo(); }
         return;
     }
     if (tool === 'point') {
@@ -875,6 +878,7 @@ function remapPts(map) {          // map: {옛 번호: 새 번호}
     // 입력칸에 적혀 있던 번호도 따라간다
     document.querySelectorAll('#cadForm input.pk, #fpN').forEach(i => { if (i.value && map[+i.value] != null) i.value = map[+i.value]; });
     if (selPt != null) selPt = m(selPt);
+    selPts = new Set([...selPts].map(m));
 }
 function renumberPt(o, nw) {
     nw = Math.floor(nw);
@@ -909,10 +913,64 @@ function selectOp(id, add) {
     if (row) row.scrollIntoView({block: 'nearest'});
 }
 function deleteSelected() {
-    if (!selOps.size) return;
+    if (!selOps.size && !selPts.size) { flash('지울 것을 먼저 고르세요'); return; }
     snapHist();
+    const nOps = [...selOps].filter(id => doc.ops.some(o => o.id === id)).length;
     doc.ops = doc.ops.filter(o => !selOps.has(o.id));
-    selOps.clear(); pruneSyms(); changed(); regInfo();
+    // 고른 점은 이제 아무도 쓰지 않을 때만 지운다 — 남은 선이 쓰는 점을 지우면 선이 사라진다
+    let gone = 0, kept = 0;
+    doc.pts = doc.pts.filter(p => {
+        if (!selPts.has(p.n)) return true;
+        if (usedBy(p.n)) { kept++; return true; }
+        gone++; return false;
+    });
+    if (selPt && !P(selPt)) selPt = null;
+    selOps.clear(); selPts.clear(); pruneSyms(); changed(); regInfo();
+    flash(`객체 ${nOps}개 · 점 ${gone}개를 지웠습니다` + (kept ? ` (다른 객체가 쓰는 점 ${kept}개는 남김)` : ''));
+}
+function selInfo() {
+    const n = [...selOps].filter(id => doc.ops.some(o => o.id === id)).length, m = selPts.size;
+    $('cadSelInfo').textContent = n || m ? `객체 ${n}개 · 점 ${m}개 고름` : '고른 것 없음';
+}
+// ── 영역 선택 ── AutoCAD 처럼 끄는 방향으로 가른다: → 는 '안에 다 든 것', ← 는 '걸친 것까지'
+function segHitsRect(a, b, r) {   // 선분이 상자에 닿는가(끝점이 안에 있거나 변과 교차)
+    const inR = q => q.x >= r.x0 && q.x <= r.x1 && q.y >= r.y0 && q.y <= r.y1;
+    if (inR(a) || inR(b)) return true;
+    const cr = (p, q, u, v) => {
+        const d = (q.x - p.x) * (v.y - u.y) - (q.y - p.y) * (v.x - u.x);
+        if (!d) return false;
+        const t = ((u.x - p.x) * (v.y - u.y) - (u.y - p.y) * (v.x - u.x)) / d;
+        const s2 = ((u.x - p.x) * (q.y - p.y) - (u.y - p.y) * (q.x - p.x)) / d;
+        return t >= 0 && t <= 1 && s2 >= 0 && s2 <= 1;
+    };
+    const c = [{x: r.x0, y: r.y0}, {x: r.x1, y: r.y0}, {x: r.x1, y: r.y1}, {x: r.x0, y: r.y1}];
+    return c.some((u, i) => cr(a, b, u, c[(i + 1) % 4]));
+}
+function boxSelect(r, crossing, add) {
+    if (!add) { selOps.clear(); selPts.clear(); selPt = null; }
+    const inside = q => q.x >= r.x0 && q.x <= r.x1 && q.y >= r.y0 && q.y <= r.y1;
+    gOps.querySelectorAll(':scope > g[data-op]').forEach(g => {
+        const id = +g.dataset.op, op = doc.ops.find(o => o.id === id);
+        if (!op) return;
+        let b; try { b = g.getBBox(); } catch (e) { return; }
+        const bb = {x0: b.x, y0: b.y, x1: b.x + b.width, y1: b.y + b.height};
+        let hit;
+        if (!crossing) hit = bb.x0 >= r.x0 && bb.x1 <= r.x1 && bb.y0 >= r.y0 && bb.y1 <= r.y1;
+        else if (op.t === 'line') hit = segHitsRect(P(op.a), P(op.b), r);
+        else if (op.t === 'rect') { const a = P(op.a), c = P(op.b), q = [a, {x: c.x, y: a.y}, c, {x: a.x, y: c.y}];
+            hit = q.some((u, i) => segHitsRect(u, q[(i + 1) % 4], r)); }
+        else if (op.t === 'circle') { const c = P(op.c), rad = radiusOf(op);
+            const nx = Math.max(r.x0, Math.min(c.x, r.x1)), ny = Math.max(r.y0, Math.min(c.y, r.y1));
+            const far = Math.max(...[[r.x0, r.y0], [r.x1, r.y0], [r.x1, r.y1], [r.x0, r.y1]].map(([x, y]) => Math.hypot(x - c.x, y - c.y)));
+            hit = Math.hypot(nx - c.x, ny - c.y) <= rad && far >= rad;      // 둘레가 상자에 걸칠 때
+        }
+        else hit = bb.x0 <= r.x1 && bb.x1 >= r.x0 && bb.y0 <= r.y1 && bb.y1 >= r.y0;
+        if (hit) selOps.add(id);
+    });
+    doc.pts.forEach(p => { if (inside(p)) selPts.add(p.n); });
+    renderAll(); regInfo();
+    const n = selOps.size, m = selPts.size;
+    flash(n || m ? `객체 ${n}개 · 점 ${m}개를 골랐습니다 — Delete 로 지웁니다` : '상자 안에 고를 것이 없습니다');
 }
 function editOp(id) {
     const op = doc.ops.find(o => o.id === id);
@@ -1067,7 +1125,7 @@ function newDrawing() {
     hist = []; redoS = []; dirty = false; afterLoad(true); saveDraft();
 }
 function afterLoad(refit) {
-    selOps.clear(); selPt = null; endEdit();
+    selOps.clear(); selPts.clear(); selPt = null; endEdit();
     Object.keys(doc.syms || {}).forEach(ensureSymOption);
     setSheet(doc.sheet); renderAll(); regInfo();
     if (refit) fit();
@@ -1136,7 +1194,8 @@ svg.addEventListener('pointerdown', e => {
     const w = toWorld(e);
     if (tool === 'select') { const hp = hitPoint(w);
         if (hp) { drag = {kind: 'pt', n: hp.n, sx: e.clientX, sy: e.clientY, moved: false, saved: false}; return; } }
-    drag = {kind: 'click', sx: e.clientX, sy: e.clientY, lx: e.clientX, ly: e.clientY, moved: false, target: e.target};
+    drag = {kind: tool === 'select' ? 'box' : 'click', sx: e.clientX, sy: e.clientY, lx: e.clientX, ly: e.clientY,
+            moved: false, target: e.target, w0: w, shift: e.shiftKey || e.ctrlKey || e.metaKey};
 });
 svg.addEventListener('pointermove', e => {
     if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY});
@@ -1150,6 +1209,17 @@ svg.addEventListener('pointermove', e => {
         if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 5) drag.moved = true;
         if (drag.moved) { const k = pxPer(); vb.x -= (e.clientX - drag.lx) / k; vb.y -= (e.clientY - drag.ly) / k; setVB(); }
         drag.lx = e.clientX; drag.ly = e.clientY;
+        return;
+    }
+    if (drag && drag.kind === 'box') {
+        if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 5) drag.moved = true;
+        if (drag.moved) {
+            const a = drag.w0, cross = w.x < a.x, sw = fmt(0.12 * U);
+            const x = Math.min(a.x, w.x), y = Math.min(a.y, w.y), bw = Math.abs(w.x - a.x), bh = Math.abs(w.y - a.y);
+            gPre.innerHTML = `<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(bw)}" height="${fmt(bh)}" `
+                + (cross ? `fill="rgba(46,160,67,.10)" stroke="#2ea043" stroke-width="${sw}" stroke-dasharray="${fmt(0.6 * U)} ${fmt(0.4 * U)}"/>`
+                         : `fill="rgba(43,74,155,.10)" stroke="${BLUE}" stroke-width="${sw}"/>`);
+        }
         return;
     }
     if (drag && drag.kind === 'pt') {
@@ -1172,7 +1242,12 @@ function endPtr(e) {
     if (d.kind === 'pinch') { if (!ptrs.size) drag = null; return; }
     drag = null;
     if (e.type === 'pointercancel') return;
-    if (d.kind === 'click' && !d.moved) onCanvasClick(toWorld(e), e, d.target);
+    if ((d.kind === 'click' || d.kind === 'box') && !d.moved) onCanvasClick(toWorld(e), e, d.target);
+    else if (d.kind === 'box') {
+        const w = toWorld(e), a = d.w0;
+        gPre.innerHTML = '';
+        boxSelect({x0: Math.min(a.x, w.x), y0: Math.min(a.y, w.y), x1: Math.max(a.x, w.x), y1: Math.max(a.y, w.y)}, w.x < a.x, d.shift);
+    }
     else if (d.kind === 'right' && !d.moved) { endEdit(); resetPick(); }
     else if (d.kind === 'pt') {
         if (d.moved) { changed(); }
@@ -1275,6 +1350,7 @@ $('cadPtList').addEventListener('change', e => {
     snapHist(); p[k] = rnd(v); changed();
 });
 $('cadRenum').addEventListener('click', renumberAll);
+$('cadSelDel').addEventListener('click', deleteSelected);
 $('cadPtList').addEventListener('click', e => {
     const row = e.target.closest('.cad-pt'); if (!row || row.classList.contains('head')) return;
     const n = +row.dataset.n;
@@ -1304,7 +1380,7 @@ document.addEventListener('keydown', e => {
     const k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
     if (mod && k === 's') { e.preventDefault(); save(); return; }
     if (e.key === 'Escape') { if (root.classList.contains('full') && !editing && !pickIdx) { $('cadFull').click(); return; }
-        endEdit(); resetPick(); selOps.clear(); renderAll(); return; }
+        endEdit(); resetPick(); selOps.clear(); selPts.clear(); renderAll(); regInfo(); return; }
     if (e.key === 'F9') { e.preventDefault(); $('cadSnap').checked = !$('cadSnap').checked; status(); return; }
     if (typing) return;
     if (mod && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
