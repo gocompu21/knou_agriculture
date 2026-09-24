@@ -591,8 +591,7 @@ function drawTri() {
     let o = `<g class="tri-body"><path d="M${f(R.x)} ${f(R.y)}L${f(T.x)} ${f(T.y)}L${f(B.x)} ${f(B.y)}Z${hp}" fill-rule="evenodd" `
         + `fill="rgba(255,196,60,.22)" stroke="#c9a24a" stroke-width="${f(0.07 * U)}" stroke-linejoin="round"/>`
         + `<path d="${hp}" fill="none" stroke="#9a7318" stroke-width="${f(0.08 * U)}" stroke-linejoin="round"/>`;
-    o += `<path d="M${f(R.x)} ${f(R.y)}L${f(T.x)} ${f(T.y)}L${f(B.x)} ${f(B.y)}" fill="none" stroke="#9a7318" stroke-width="${f(0.1 * U)}"/>`
-       + `<path d="M${f(R.x)} ${f(R.y)}L${f(T.x)} ${f(T.y)}L${f(B.x)} ${f(B.y)}Z" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="${f(0.06 * U)}" transform="translate(${f(0.18 * U * (tri.flip ? 1 : -1))} ${f(-0.18 * U)})"/>`;
+    o += `<path d="M${f(R.x)} ${f(R.y)}L${f(T.x)} ${f(T.y)}L${f(B.x)} ${f(B.y)}" fill="none" stroke="#9a7318" stroke-width="${f(0.1 * U)}"/>`;
     const lx = B.x + (R.x - B.x) * 0.28, ly = B.y - 1.2 * U;
     o += `<text x="${f(lx)}" y="${f(ly)}" font-size="${f(1.1 * U)}" fill="#9a7318" font-weight="700" text-anchor="middle" dominant-baseline="central">${G.ang}°</text></g>`;
     // 수직변의 X — 삼각자 바깥쪽, 직각 모서리 곁(꼭대기는 종이 밖으로 나가기 쉽다). 끄는 동안에는 크게·붉은 바탕으로 실시간 표시
