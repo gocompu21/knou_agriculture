@@ -796,8 +796,8 @@ function setSheet(key) {
     PREC = +(mi / 10).toPrecision(3);
     gGrid.innerHTML = gridSvg(sheet, 'cg');
     const sel = $('cadSnapStep'), keep = sel.value || String(SET.step || '');
-    // 0.1m 는 늘 둔다 — 시설 치수(평의자 0.45m 등)를 잡을 때 쓴다
-    sel.innerHTML = [...new Set([0.1, mi / 2, mi, sheet.step].map(v => +v.toFixed(3)))].sort((x, y) => x - y).map(v => `<option value="${v}">${fmt(v)}m</option>`).join('');
+    // 0.1m·0.2m 는 늘 둔다 — 시설 치수(평의자 0.45m 등)를 잡을 때 쓴다
+    sel.innerHTML = [...new Set([0.1, 0.2, mi / 2, mi, sheet.step].map(v => +v.toFixed(3)))].sort((x, y) => x - y).map(v => `<option value="${v}">${fmt(v)}m</option>`).join('');
     sel.value = [...sel.options].some(o => o.value === keep) ? keep : String(mi);
     $('cadSheet').value = sheet.key;
     if (!$('ftSize').value || !$('ftSize').dataset.touched) $('ftSize').value = fmt(1.5 * U);
