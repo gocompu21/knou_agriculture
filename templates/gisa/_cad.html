@@ -293,10 +293,11 @@
 .cad-tools select.cad-txt { padding: 0 2px; }
 .cad-txt-size { display: inline-flex; align-items: center; gap: 2px; padding: 0 5px 0 2px; background: #fff; color: #555; }
 .cad-txt-size input { width: 42px; border: 0; font-size: 0.74rem; outline: none; text-align: right; }
-.cad-txtbox { position: absolute; z-index: 20; transform: translate(-4px, calc(-100% + 3px)); text-align: left !important; min-width: 60px; padding: 1px 5px;
-    border: 1.5px solid #c62828; border-radius: 3px; background: rgba(255,255,255,.9); color: #1d1d1d; outline: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,.15); text-align: center; field-sizing: content; }
-.cad-txtbox.v { writing-mode: vertical-rl; text-orientation: upright; transform: translate(-3px, 0); min-width: 0; min-height: 60px; padding: 5px 1px; }
+/* 글자 입력 — 입력칸은 투명(키·한글 조합만 받는다)이고 글자는 도면에 바로 그린다(#cadTxtPre). 칸을 그 자리에 두는 것은 한글 후보창이 곁에 뜨게 하려는 것 */
+.cad-txtbox { position: absolute; z-index: 20; width: 2px; height: 1.2em; padding: 0; border: 0; outline: none; background: transparent;
+    color: transparent; caret-color: transparent; box-shadow: none; opacity: 0.01; }
+.cad-caret { animation: cadBlink 1s steps(1) infinite; }
+@keyframes cadBlink { 50% { opacity: 0; } }
 .cad-sep { width: 1px; height: 20px; background: #dde4e0; margin: 0 4px; }
 .cad-chk { display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem; color: #444; cursor: pointer; white-space: nowrap; }
 .cad-body { display: flex; }
@@ -668,6 +669,12 @@ function drawBarOnly() {
            + [0.28, 0.72].map(k => `<circle cx="${f(bx + cw / 2)}" cy="${f(y + W * k)}" r="${f(0.28 * U)}" fill="#7a8088" stroke="#15181b" stroke-width="${f(0.06 * U)}"/>`).join('')
            + '</g>';
     });
+    // 윗날(상단 수평자)의 Y — 왼쪽 끝 블록 바로 오른쪽, 날 위에. 끄는 동안에는 크게·붉은 바탕으로 실시간 표시
+    const moving = drag && drag.kind === 'bar' && drag.moved, fs = (moving ? 1.5 : 1.05) * U;
+    const yl = `Y ${fmt(y)}`, tw = yl.length * fs * 0.62 + 0.8 * U, bx0 = Math.max(x0 + cw, vb.x) + 0.6 * U, byy = y - fs * 0.75 - 0.4 * U;
+    o += `<g class="bar-y" pointer-events="none"><rect x="${f(bx0)}" y="${f(byy - fs * 0.75)}" width="${f(tw)}" height="${f(fs * 1.5)}" rx="${f(0.3 * U)}" `
+       + `fill="${moving ? '#c62828' : 'rgba(255,255,255,.85)'}" stroke="${moving ? 'none' : '#8fb0c8'}" stroke-width="${f(0.05 * U)}"/>`
+       + `<text x="${f(bx0 + tw / 2)}" y="${f(byy)}" font-size="${f(fs)}" fill="${moving ? '#fff' : '#3f6a88'}" font-weight="700" text-anchor="middle" dominant-baseline="central">${yl}</text></g>`;
     g.innerHTML = o;
 }
 let fcTyped = false;                              // 원 값 칸을 손으로 쳤는가 — 쳤으면 마우스가 덮어쓰지 않는다                                // 스냅된 커서 자리
@@ -1088,31 +1095,44 @@ function pruneSyms() {
 let txtBox = null;
 function openTextBox(w) {
     closeTextBox(true);
-    const hp = hitPoint(w), s = hp ? {x: hp.x, y: hp.y} : snapXY(w), vert = $('ftDir').value === 'v';
+    const hp = hitPoint(w), s = hp ? {x: hp.x, y: hp.y} : snapXY(w);
     const m = svg.getScreenCTM(), st = svg.parentNode.getBoundingClientRect();
-    const sx = m.a * s.x + m.e - st.left, sy = m.d * s.y + m.f - st.top;
     const el = document.createElement('input');
-    el.className = 'cad-txtbox'; el.maxLength = 60; el.placeholder = '글자 입력 후 Enter';
-    const size = parseFloat($('ftSize').value) || 1.5 * U;
-    el.style.left = sx + 'px'; el.style.top = sy + 'px';
-    el.style.fontSize = Math.max(12, Math.min(48, size * pxPer() * ($('ftFont').value === 'hand' ? 1.35 : 1))) + 'px';
-    if (vert) { el.classList.add('v'); el.style.top = (sy - parseFloat(el.style.fontSize) * 1.05) + 'px'; }
-    el.style.fontFamily = FONTS[$('ftFont').value] || '';
+    el.className = 'cad-txtbox'; el.maxLength = 60;
+    el.style.left = (m.a * s.x + m.e - st.left) + 'px'; el.style.top = (m.d * s.y + m.f - st.top - 16) + 'px';
     svg.parentNode.appendChild(el);
-    txtBox = {el, w: s};
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.id = 'cadTxtPre'; g.setAttribute('pointer-events', 'none'); svg.appendChild(g);
+    txtBox = {el, w: s, g};
     el.addEventListener('keydown', e => {
         e.stopPropagation();
         if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); closeTextBox(true); }
         if (e.key === 'Escape') { e.preventDefault(); closeTextBox(false); }
     });
+    el.addEventListener('input', drawTextPre);
     el.addEventListener('blur', () => setTimeout(() => { if (txtBox && txtBox.el === el) closeTextBox(true); }, 0));
     setTimeout(() => el.focus(), 0);
     gPre.innerHTML = '';
+    drawTextPre();
+}
+// 쓰는 중인 글자를 넣을 때와 똑같이(textSvg 'corner') 도면에 그리고, 끝에 깜박이는 커서를 둔다(한글 조합 중인 글자도 보인다)
+function drawTextPre() {
+    if (!txtBox) return;
+    const {el, w, g} = txtBox, font = $('ftFont').value, vert = $('ftDir').value === 'v';
+    const size = parseFloat($('ftSize').value) || 1.5 * U, fs = font === 'hand' ? size * 1.35 : size;
+    g.innerHTML = el.value ? textSvg(w.x, w.y, el.value, size, 0, 'corner', font, vert ? 'v' : 'h') : '';
+    let b = null; const t = g.querySelector('text');
+    if (t) try { b = t.getBBox(); } catch (e) { b = null; }
+    const sw = fmt(0.12 * U), c = `stroke="${RED}" stroke-width="${sw}" class="cad-caret"`;
+    let d;
+    if (vert) { const y = b ? b.y + b.height : w.y - fs; d = `M${fmt(w.x)} ${fmt(y)}h${fmt(fs)}`; }
+    else { const x = b ? b.x + b.width : w.x; d = `M${fmt(x)} ${fmt(w.y)}v${fmt(-fs)}`; }
+    g.insertAdjacentHTML('beforeend', `<path d="${d}" ${c}/>`);
 }
 function closeTextBox(keep) {
     if (!txtBox) return;
-    const {el, w} = txtBox, v = el.value.trim();
-    txtBox = null; el.remove();
+    const {el, w, g} = txtBox, v = el.value.trim();
+    txtBox = null; el.remove(); g.remove();
     if (!keep || !v) { drawPre(); return; }
     $('ftX').value = fmt(w.x); $('ftY').value = fmt(w.y); $('ftS').value = v;
     commit('text'); $('ftS').value = '';
@@ -1814,7 +1834,7 @@ svg.addEventListener('pointermove', e => {
     }
     if (drag && drag.kind === 'bar') {
         if (!drag.moved && Math.abs(e.clientY - drag.sy) > 4) { drag.moved = true; root.classList.add('bar-drag'); }
-        if (drag.moved) { setBarY(w.y - drag.off); hover = null; drawPre(); status(); }
+        if (drag.moved) { setBarY(w.y - drag.off); hover = null; drawPre(); status(); $('cadXY').textContent = `I자 윗날 Y ${fmt(barY)}`; }
         return;
     }
     if (drag && drag.kind === 'box') {
@@ -1853,7 +1873,7 @@ function endPtr(e) {
     if (e.type === 'pointercancel') return;
     if (d.kind === 'trirot') { rotateTri(); return; }
     if (d.kind === 'erase') { if (d.hit) changed(); else hist.pop(); return; }   // 아무것도 안 지웠으면 되돌리기 칸을 도로 뺀다
-    if (d.kind === 'bar') { root.classList.remove('bar-drag'); if (d.moved) saveBar(); return; }   // 몸통은 불투명 — 눌러도 점이 찍히지 않는다
+    if (d.kind === 'bar') { root.classList.remove('bar-drag'); if (d.moved) { saveBar(); drawBar(); } return; }   // 몸통은 불투명 — 눌러도 점이 찍히지 않는다
     if (d.kind === 'pencil') {
         gPre.innerHTML = '';
         if (!d.moved) { if (!d.right) onCanvasClick(toWorld(e), e, d.target); return; }   // 날은 투명 — 그냥 누르면 평소 누름
@@ -2002,6 +2022,7 @@ function triSizeNote() {                // 종이 위 길이 — 도면 축척�
 }
 ['cadSnap', 'cadSnapStep', 'cadShowPts', 'ftFont', 'ftDir'].forEach(id => $(id).addEventListener('change', saveSet));
 if (SET.font) $('ftFont').value = SET.font;
+['ftFont', 'ftDir', 'ftSize'].forEach(id => $(id).addEventListener('input', () => { if (txtBox) { drawTextPre(); } }));
 $('cadP9').value = SET.p9; $('cadP5').value = SET.p5;
 ['cadP9', 'cadP5'].forEach(id => $(id).addEventListener('change', () => {
     const v = +$(id).value; if (!(v > 0)) { $(id).value = SET[id === 'cadP9' ? 'p9' : 'p5']; return; }
