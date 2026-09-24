@@ -47,16 +47,30 @@
         <span class="cad-sep"></span>
         <button type="button" id="cadBarBtn" class="cad-bar-btn" title="I자(평행자) — 몸통을 끌어 위아래로(↑↓ 키로 한 칸씩). 투명 날을 따라 끌면 수평선이 그어집니다"><svg class="real" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="iiba" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f6f7"/><stop offset=".3" stop-color="#d4d9dd"/><stop offset=".7" stop-color="#b3bac0"/><stop offset="1" stop-color="#8a9299"/></linearGradient><linearGradient id="iibk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4b5058"/><stop offset="1" stop-color="#15181b"/></linearGradient></defs><rect x="1.5" y="6.6" width="17" height="1.3" fill="#bfe3f2" fill-opacity=".8" stroke="#6ea6c7" stroke-width=".25"/><rect x="1.5" y="12.1" width="17" height="1.3" fill="#bfe3f2" fill-opacity=".8" stroke="#6ea6c7" stroke-width=".25"/><rect x="1" y="7.8" width="18" height="4.4" rx=".4" fill="url(#iiba)"/><path d="M3 9.1h14M3 10.9h14" stroke="#fff" stroke-opacity=".8" stroke-width=".3"/><path d="M3 9.4h14M3 11.2h14" stroke="#6b737a" stroke-opacity=".45" stroke-width=".3"/><rect x=".4" y="6.2" width="2.2" height="7.6" rx=".5" fill="url(#iibk)"/><rect x="17.4" y="6.2" width="2.2" height="7.6" rx=".5" fill="url(#iibk)"/></svg>I자</button>
         <button type="button" id="cadTri45" class="cad-bar-btn" title="45° 삼각자 — I자 윗날에 얹혀 있습니다. 손으로 끌어 좌우로 밀고, 샤프로 세로 변·빗변을 따라 긋습니다"><svg class="real" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="it45a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset=".5" stop-color="#dfeaf2" stop-opacity=".55"/><stop offset="1" stop-color="#b9cddc" stop-opacity=".75"/></linearGradient></defs><path d="M2.5 17.5H17.5V2.5Z" fill="url(#it45a)" stroke="#5f7f99" stroke-width=".7" stroke-linejoin="round"/><path d="M2.5 17.5H17.5V2.5Z" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width=".35" transform="translate(.45 -.45) scale(.955)" transform-origin="17.5 17.5"/><path d="M17.5 16h-.9M17.5 13.5h-.6M17.5 11h-.9M17.5 8.5h-.6M17.5 6h-.9" stroke="#4a6378" stroke-width=".35"/></svg>45°</button>
-        <button type="button" id="cadTplBtn" class="cad-bar-btn" title="원형 템플릿 — 몸통을 끌어 옮기고, 샤프로 구멍 안을 따라 돌리면 원(돌린 만큼 호)이 그려집니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="4.5" width="17" height="11" rx="1.5" fill="#f2c230" stroke="#b08a10" stroke-width="1"/><circle cx="5.5" cy="10" r="2.6" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="11" cy="10" r="1.9" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="15.3" cy="10" r="1.2" fill="#fff" stroke="#b08a10" stroke-width=".7"/></svg>템플릿</button>
         <button type="button" id="cadTri60" class="cad-bar-btn" title="60° 삼각자(30°·60°) — I자 윗날에 얹혀 있습니다. 손으로 끌어 좌우로 밀고, 샤프로 세로 변·빗변을 따라 긋습니다"><svg class="real" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="it60a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset=".5" stop-color="#dfeaf2" stop-opacity=".55"/><stop offset="1" stop-color="#b9cddc" stop-opacity=".75"/></linearGradient></defs><path d="M7.5 17.5H17.5V1Z" fill="url(#it60a)" stroke="#5f7f99" stroke-width=".7" stroke-linejoin="round"/><path d="M7.5 17.5H17.5V1Z" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width=".35" transform="translate(.45 -.45) scale(.955)" transform-origin="17.5 17.5"/><path d="M17.5 16h-.9M17.5 13.5h-.6M17.5 11h-.9M17.5 8.5h-.6M17.5 6h-.9" stroke="#4a6378" stroke-width=".35"/></svg>60°</button>
         <button type="button" id="cadTriFlip" class="cad-bar-btn" title="삼각자 좌우 뒤집기" hidden>⇆ 뒤집기</button>
         <button type="button" id="cadTriRot" class="cad-bar-btn" title="60° 삼각자 눕히기 — 빗변 60° ↔ 30°" hidden>빗변 30°</button>
+        <button type="button" id="cadTplBtn" class="cad-bar-btn" title="원형 템플릿 — 몸통을 끌어 옮기고, 샤프로 구멍 안을 따라 돌리면 원(돌린 만큼 호)이 그려집니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="4.5" width="17" height="11" rx="1.5" fill="#f2c230" stroke="#b08a10" stroke-width="1"/><circle cx="5.5" cy="10" r="2.6" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="11" cy="10" r="1.9" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="15.3" cy="10" r="1.2" fill="#fff" stroke="#b08a10" stroke-width=".7"/></svg>템플릿</button>
+        <button type="button" id="cadCalcBtn" class="cad-bar-btn" title="템플릿 계산기 — 축척과 실제 지름으로 몇 번 구멍을 쓸지, 구멍 번호로 실제 지름을 계산"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="2" width="12" height="16" rx="1.6"/><rect x="6" y="4.2" width="8" height="3.2" rx=".5"/><path d="M7 10.3h.01M10 10.3h.01M13 10.3h.01M7 13h.01M10 13h.01M13 13h.01M7 15.6h.01M10 15.6h.01M13 15.6h.01" stroke-width="2.1"/></svg>계산기</button>
         <span class="cad-sep"></span>
         <button type="button" id="cadAuxBtn" class="cad-bar-btn on" title="보조선 레이어 보이기·감추기 — 색은 설정(⚙)에서"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6h16M2 10h16M2 14h16" stroke-dasharray="2 1.6"/></svg>보조선</button>
         <span class="cad-sep"></span>
         <button type="button" id="cadUndo" title="되돌리기 (Ctrl+Z)">↶</button>
         <button type="button" id="cadRedo" title="다시 하기 (Ctrl+Y)">↷</button>
         <button type="button" id="cadSetBtn" class="cad-set-btn" title="설정 — 점 번호·자 크기·샤프·보조선" aria-label="설정" aria-expanded="false"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.2v2.3M10 15.5v2.3M2.2 10h2.3M15.5 10h2.3M4.5 4.5l1.6 1.6M13.9 13.9l1.6 1.6M4.5 15.5l1.6-1.6M13.9 6.1l1.6-1.6"/><circle cx="10" cy="10" r="5.4"/></svg></button>
+        <div class="cad-set cad-calc" id="cadCalc" hidden>
+            <h4>템플릿 계산기</h4>
+            <div class="cad-set-row"><label class="cad-set-sub">축척 1 : <input type="number" id="ccScale" class="cad-set-num" min="1" step="1" style="width:70px"></label>
+                <button type="button" class="cad-mini" id="ccSheet" title="지금 모눈종이의 축척으로">종이 축척</button></div>
+            <div class="cad-set-row cad-calc-sec"><b>실제 지름 → 템플릿 번호</b></div>
+            <div class="cad-set-row cad-set-in"><label class="cad-set-sub">실제 지름 <input type="number" id="ccReal" class="cad-set-num" min="0" step="any" style="width:80px"></label>
+                <select id="ccUnit" class="cad-set-ls"><option value="mm">mm</option><option value="m">m</option></select></div>
+            <div class="cad-calc-out" id="ccOut1"></div>
+            <div class="cad-set-row cad-calc-sec"><b>템플릿 번호 → 실제 지름</b></div>
+            <div class="cad-set-row cad-set-in"><label class="cad-set-sub">템플릿 <select id="ccHole" class="cad-set-ls"></select> 번 (mm)</label></div>
+            <div class="cad-calc-out" id="ccOut2"></div>
+            <p class="cad-set-note">종이 위 지름 = 실제 지름 ÷ 축척. 번호를 누르면 템플릿에서 그 구멍을 짚어 줍니다.</p>
+        </div>
         <div class="cad-set" id="cadSet" hidden>
             <h4>설정</h4>
             <div class="cad-set-row"><label class="cad-chk"><input type="checkbox" id="cadShowPts" checked> 점 번호 보이기</label></div>
@@ -302,6 +316,13 @@
 #cadAuxBtn:not(.on) { color: #9aa3a0; }
 /* 보조선 레이어 — 끄면 화면에서 감추고, 지우개·영역 선택도 건드리지 않는다 */
 .cad.aux-off #cadOps g.aux { display: none; }
+.cad-calc { right: 44px; width: 290px; }
+.cad-calc-sec { color: #1b4332; font-size: 0.8rem; padding-top: 8px; }
+.cad-calc-out { font-size: 0.8rem; color: #333; background: #f6faf7; border: 1px solid #e3ece6; border-radius: 6px; padding: 6px 8px; margin: 2px 0 4px; line-height: 1.6; }
+.cad-calc-out:empty { display: none; }
+.cad-calc-out b.big { font-size: 1.05rem; color: #c62828; }
+.cad-calc-out .hl { cursor: pointer; text-decoration: underline dotted; }
+.cad-mini { border: 1px solid #d5ddd9; background: #fff; border-radius: 5px; padding: 1px 7px; font-size: 0.74rem; cursor: pointer; }
 .cad-set-note { font-size: 0.72rem; color: #888; margin: 4px 0 0; }
 .cad-tools .cad-txt { border: 1px solid #d5ddd9; border-radius: 5px; font-size: 0.74rem; height: 26px; }
 .cad-tools select.cad-txt { padding: 0 2px; }
@@ -2183,6 +2204,48 @@ $('cadPtList').addEventListener('change', e => {
 $('cadRenum').addEventListener('click', renumberAll);
 $('cadTri45').addEventListener('click', () => toggleTri('45'));
 $('cadTplBtn').addEventListener('click', toggleTpl);
+// ── 템플릿 계산기 — 종이 위 지름(mm) = 실제 지름(mm) ÷ 축척
+const HOLE_DS = TPL_HOLES.map(h => h.d).sort((a, b) => a - b);
+$('ccHole').innerHTML = HOLE_DS.map(d => `<option value="${d}">${d}</option>`).join('');
+$('ccHole').value = '10';
+const ccScale = () => +$('ccScale').value || 0;
+const mmTxt = v => `${fmt(+v.toFixed(1))}mm (${fmt(+(v / 1000).toFixed(3))}m)`;
+function calcRun() {
+    const sc = ccScale(), rv = +$('ccReal').value, real = $('ccUnit').value === 'm' ? rv * 1000 : rv;
+    if (sc > 0 && real > 0) {
+        const paper = real / sc;
+        let best = HOLE_DS[0]; HOLE_DS.forEach(d => { if (Math.abs(d - paper) < Math.abs(best - paper)) best = d; });
+        const lo = [...HOLE_DS].reverse().find(d => d <= paper + 1e-9), hi = HOLE_DS.find(d => d >= paper - 1e-9);
+        const err = (best * sc - real) / real * 100;
+        let o = `종이 위 지름 <b>${fmt(+paper.toFixed(2))}mm</b><br>`;
+        if (paper < HOLE_DS[0] - 0.25 || paper > HOLE_DS[HOLE_DS.length - 1] + 0.25) o += `템플릿 범위(1~36mm)를 벗어납니다 — 가장 가까운 <b class="big hl" data-d="${best}">${best}번</b>`;
+        else o += `<b class="big hl" data-d="${best}">${best}번</b> 구멍을 쓰세요 → 실제 ${mmTxt(best * sc)}` + (Math.abs(err) > 0.05 ? ` <span style="color:#888">(${err > 0 ? '+' : ''}${err.toFixed(1)}%)</span>` : ' <span style="color:#1b5e20">(딱 맞음)</span>');
+        if (lo != null && hi != null && lo !== hi) o += `<br><span style="color:#666">사이: <span class="hl" data-d="${lo}">${lo}번</span>(${mmTxt(lo * sc)}) · <span class="hl" data-d="${hi}">${hi}번</span>(${mmTxt(hi * sc)})</span>`;
+        $('ccOut1').innerHTML = o;
+    } else $('ccOut1').innerHTML = '';
+    const d = +$('ccHole').value;
+    $('ccOut2').innerHTML = sc > 0 ? `<span class="hl" data-d="${d}">${d}번</span> 구멍 = 실제 지름 <b class="big">${mmTxt(d * sc)}</b><br><span style="color:#666">반지름 ${fmt(+(d * sc / 2000).toFixed(3))}m</span>` : '';
+}
+function tplPoint(d) {                               // 템플릿에서 그 구멍을 짚는다(붉은 고리가 잠깐 깜박인다)
+    if (!tpl) { flash('템플릿을 먼저 펴세요 — 도구 줄의 템플릿'); return; }
+    const h = tplHoles().find(q => q.d === d); if (!h) return;
+    gPre.innerHTML = `<circle cx="${fmt(h.c.x)}" cy="${fmt(h.c.y)}" r="${fmt(h.hr * 1.25 + 0.4 * U)}" fill="none" stroke="#c62828" stroke-width="${fmt(0.3 * U)}" class="cad-caret"/>`;
+    clearTimeout(tplPoint.t); tplPoint.t = setTimeout(() => drawPre(), 2200);
+    flash(`${d}번 구멍 — 중심 X ${fmt1(h.c.x)} · Y ${fmt1(h.c.y)}`);
+}
+['ccScale', 'ccReal', 'ccUnit', 'ccHole'].forEach(id => $(id).addEventListener('input', calcRun));
+$('ccSheet').addEventListener('click', () => { $('ccScale').value = Math.round(scaleDenom()); calcRun(); });
+$('cadCalc').addEventListener('click', e => { const t = e.target.closest('[data-d]'); if (t) tplPoint(+t.dataset.d); });
+$('cadCalcBtn').addEventListener('click', e => {
+    e.stopPropagation(); const on = $('cadCalc').hidden;
+    $('cadCalc').hidden = !on; $('cadCalcBtn').classList.toggle('on', on);
+    if (on) { if (!$('ccScale').value) $('ccScale').value = Math.round(scaleDenom()); calcRun(); setTimeout(() => $('ccReal').focus(), 0); }
+});
+document.addEventListener('pointerdown', e => {
+    if ($('cadCalc').hidden || e.target.closest('#cadCalc, #cadCalcBtn')) return;
+    if (e.target.closest('#cadSvg')) return;          // 도면을 만지는 동안(템플릿 옮기기 등)에는 열어 둔다
+    $('cadCalc').hidden = true; $('cadCalcBtn').classList.remove('on');
+});
 $('cadTri60').addEventListener('click', () => toggleTri('60'));
 $('cadTriSize').addEventListener('change', () => { saveSet(); if (tri) { tri.size = +$('cadTriSize').value; tri.sz = 2; saveTri(); drawTri(); } else triSizeNote(); });
 function triSizeNote() {                // 종이 위 길이 — 도면 축척으로 환산한 값을 함께 보인다
