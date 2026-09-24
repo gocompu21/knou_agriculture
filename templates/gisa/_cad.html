@@ -33,6 +33,7 @@
         <button type="button" data-tool="circle" hidden title="원 (C)" aria-label="원"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="1.2" class="f"/></svg></button>
         <button type="button" data-tool="arc" hidden title="호 (A)" aria-label="호"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 15A6.5 6.5 0 0 1 16.5 15"/><circle cx="3.5" cy="15" r="1.7" class="f"/><circle cx="16.5" cy="15" r="1.7" class="f"/></svg></button>
         <button type="button" data-tool="sym" hidden title="라이브러리 기호 넣기 (B)" aria-label="기호"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="13" height="13"/><path d="M3.5 3.5l13 13M16.5 3.5l-13 13"/></svg></button>
+        <button type="button" data-tool="fill" title="도형 채우기 (F) — 선으로 둘러싸인 면의 안쪽을 누르면 설정의 색으로 칠합니다" aria-label="채우기"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.2 9.6 9.6 4.2l6 6-5.4 5.4a1.4 1.4 0 0 1-2 0l-4-4a1.4 1.4 0 0 1 0-2Z"/><path d="M4.4 10.8h11" /><path d="M16.8 12.6c.9 1.3 1.4 2.2 1.4 2.8a1.4 1.4 0 0 1-2.8 0c0-.6.5-1.5 1.4-2.8Z" class="f"/></svg></button>
         <button type="button" data-tool="text" title="글자 (T)" aria-label="글자"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4.5h12M10 4.5v12M7.5 16.5h5"/></svg></button>
         <select id="ftDir" class="cad-txt" title="글자 방향"><option value="h">가로</option><option value="v">세로</option></select>
         <select id="ftFont" class="cad-txt" title="글자 글꼴"><option value="gothic">고딕</option><option value="myeongjo">명조</option><option value="hand">손글씨</option></select>
@@ -84,6 +85,8 @@
                 <input type="number" id="cadP9" class="cad-set-num" step="0.05" min="0.05" max="3"><span class="cad-set-sub">mm</span></div>
             <div class="cad-set-row cad-set-in"><span class="cad-set-sub cad-set-pen">샤프 0.5</span><select id="cadLs5" class="cad-set-ls"></select>
                 <input type="number" id="cadP5" class="cad-set-num" step="0.05" min="0.05" max="3"><span class="cad-set-sub">mm</span></div>
+            <div class="cad-set-row"><span class="cad-set-lb">채우기 색</span>
+                <input type="color" id="cadFillColor" class="cad-set-color"><label class="cad-set-sub">진하기 <input type="range" id="cadFillOp" min="0.15" max="1" step="0.05" style="width:90px"></label></div>
             <div class="cad-set-row"><span class="cad-set-lb">보조선 레이어</span>
                 <label class="cad-chk"><input type="checkbox" id="cadAuxOn" checked> 보이기</label>
                 <label class="cad-set-sub">색 <input type="color" id="cadAuxColor" class="cad-set-color"></label></div>
@@ -192,6 +195,11 @@
                     <p class="cad-help">실제 제도처럼 <b>I자·삼각자에 대고</b> 긋습니다. 자의 변 근처에서 <b>마우스 오른쪽 버튼을 누른 채</b>
                        끌면 그 변을 따라 선이 그어집니다 — I자 날은 수평선, 삼각자 세로 변은 수직선, 빗변은 45°·60°·30° 선. 끄는 동안 길이가 보이고, 시작·끝은 눈금과 기존 점에 붙습니다.<br>
                        I자는 몸통을 왼쪽 버튼으로 끌어 위아래로 옮깁니다.</p>
+                </div>
+                <div data-form="fill">
+                    <h4>도형 채우기</h4>
+                    <p class="cad-help">선·원·호로 <b>둘러싸인 면의 안쪽</b>을 누르면 설정(⚙)의 채우기 색으로 칠합니다.<br>
+                       면이 막혀 있지 않으면(틈이 있어 종이 끝까지 새면) 칠하지 않고 알려 줍니다. 칠한 면은 작도 순서에서 ✎ 로 지금 색으로 다시 칠하고 ✕ 로 지웁니다.</p>
                 </div>
                 <div data-form="text">
                     <h4>글자</h4>
@@ -514,10 +522,10 @@ let tool = 'select', pickIdx = 0, editing = null, selOps = new Set(), selPt = nu
 let hover = null;
 // I자(평행자) — 제도판의 가로자. 켜 두면 윗변(barY) 근처를 누른 점이 그 높이에 붙는다
 // 설정(스냅·간격·점 번호·삼각자 크기) — 도면이 아니라 화면 습관이라 localStorage 에 둔다
-let SET = {snap: true, step: '', pts: true, triSize: 12, p9: 0.7, p5: 0.4, auxOn: true, auxColor: '#a3a9b3', ls9: 'solid', ls5: 'aux'};   // 샤프마다 선 종류   // 샤프 굵기는 종이 위 mm
+let SET = {snap: true, step: '', pts: true, triSize: 12, p9: 0.7, p5: 0.4, auxOn: true, auxColor: '#a3a9b3', fillColor: '#9ccc65', fillOp: 0.6, ls9: 'solid', ls5: 'aux'};   // 샤프마다 선 종류   // 샤프 굵기는 종이 위 mm
 try { Object.assign(SET, JSON.parse(localStorage.getItem('cadSet') || '{}')); } catch (e) {}
 function saveSet() {
-    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.triSize = +$('cadTriSize').value; SET.font = $('ftFont').value; SET.ls9 = $('cadLs9').value || SET.ls9; SET.ls5 = $('cadLs5').value || SET.ls5; SET.auxOn = $('cadAuxOn').checked; SET.auxColor = $('cadAuxColor').value || SET.auxColor; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
+    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.triSize = +$('cadTriSize').value; SET.font = $('ftFont').value; SET.ls9 = $('cadLs9').value || SET.ls9; SET.ls5 = $('cadLs5').value || SET.ls5; SET.fillColor = $('cadFillColor').value || SET.fillColor; SET.fillOp = +$('cadFillOp').value || SET.fillOp; SET.auxOn = $('cadAuxOn').checked; SET.auxColor = $('cadAuxColor').value || SET.auxColor; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
     try { localStorage.setItem('cadSet', JSON.stringify(SET)); } catch (e) {}
 }
 let barOn = false, barY = null;
@@ -973,6 +981,7 @@ function itemSvg(it) {
 }
 const radiusOf = op => op.mode === 'd' ? op.v / 2 : +op.v;
 function opSvg(op) {
+    if (op.t === 'fill') return `<path d="${op.d}" fill="${op.color}" fill-opacity="${op.op != null ? op.op : 0.6}" fill-rule="evenodd" stroke="none"/>`;
     const st = () => stAttr(op.ls, op.w);
     if (op.t === 'line') { const a = P(op.a), b = P(op.b); if (!a || !b) return '';
         return `<path d="M${fmt(a.x)} ${fmt(a.y)}L${fmt(b.x)} ${fmt(b.y)}" ${st()}/>`; }
@@ -1039,8 +1048,8 @@ function setAux(on) {
 }
 function drawOps() {
     // 보조선은 따로 된 레이어 — 맨 아래에 먼저 그리고(class aux) 설정·도구 줄에서 켜고 끈다
-    const ops = doc.ops.filter(o => o.t !== 'step'), aux = ops.filter(isAux), rest = ops.filter(o => !isAux(o));
-    gOps.innerHTML = [...aux, ...rest].map(op => {
+    const ops = doc.ops.filter(o => o.t !== 'step'), fills = ops.filter(o => o.t === 'fill'), aux = ops.filter(isAux), rest = ops.filter(o => !isAux(o) && o.t !== 'fill');
+    gOps.innerHTML = [...fills, ...aux, ...rest].map(op => {   // 칠한 면이 맨 아래
         const s = opSvg(op), cl = [isAux(op) ? 'aux' : '', selOps.has(op.id) ? 'on' : ''].filter(Boolean).join(' ');
         return s ? `<g data-op="${op.id}"${cl ? ` class="${cl}"` : ''}>${s}<g class="cad-hit">${s}</g></g>` : '';
     }).join('');
@@ -1103,6 +1112,7 @@ function lsTxt(op) {
 }
 function desc(op) {
     switch (op.t) {
+        case 'fill': return `채우기 · 면적 약 ${fmt(+(op.area || 0).toFixed(1))}㎡ · 색 ${op.color}`;
         case 'line': return `선 ${ptxt(op.a)} → ${ptxt(op.b)} · ${lsTxt(op)}`;
         case 'rect': { const a = P(op.a), b = P(op.b);
             const sz = a && b ? ` (${fmt(Math.abs(b.x - a.x))}×${fmt(Math.abs(b.y - a.y))}m)` : '';
@@ -1389,6 +1399,81 @@ function closeTextBox(keep) {
     $('ftX').value = fmt(w.x); $('ftY').value = fmt(w.y); $('ftS').value = v;
     commit('text'); $('ftS').value = '';
 }
+// ── 도형 채우기 ── 종이 전체를 격자(긴 변 1600칸)로 놓고 보이는 선·원·호·사각형을 벽으로 그린 뒤, 누른 칸에서 번져 나간다.
+// 종이 가장자리에 닿으면 면이 막혀 있지 않은 것 — 칠하지 않는다. 칠할 면은 칸 경계를 이어 고리로 만들고(구멍은 evenodd),
+// 계단을 줄여(더글러스-포이커) 경로로 저장한다. 선을 나중에 옮겨도 따라가지 않는다(AutoCAD 의 비연관 해치처럼)
+function fillAt(w) {
+    const s0 = sheet, span = Math.max(s0.x1 - s0.x0, s0.y1 - s0.y0), res = span / 1600;
+    const W = Math.ceil((s0.x1 - s0.x0) / res) + 2, H = Math.ceil((s0.y1 - s0.y0) / res) + 2, ox = s0.x0 - res, oy = s0.y0 - res;
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const cx = cv.getContext('2d');
+    cx.setTransform(1 / res, 0, 0, 1 / res, -ox / res, -oy / res);
+    cx.lineWidth = 2.2 * res; cx.lineCap = 'round'; cx.lineJoin = 'round'; cx.strokeStyle = '#000';
+    let walls = 0;
+    doc.ops.forEach(op => {
+        if (op.t === 'step' || op.t === 'fill' || op.t === 'text' || op.t === 'sym' || auxHidden(op)) return;
+        let d = '';
+        if (op.t === 'line') { const a = P(op.a), b = P(op.b); if (a && b) d = `M${a.x} ${a.y}L${b.x} ${b.y}`; }
+        else if (op.t === 'rect') { const a = P(op.a), b = P(op.b); if (a && b) d = `M${a.x} ${a.y}H${b.x}V${b.y}H${a.x}Z`; }
+        else if (op.t === 'circle') { const c = P(op.c), r = radiusOf(op); if (c && r > 0) d = `M${c.x - r} ${c.y}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z`; }
+        else if (op.t === 'arc') { const a = P(op.a), b = P(op.b); if (a && b) d = arcD(a.x, a.y, b.x, b.y, op.r, op.dir === 'cw', op.big); }
+        if (d) { cx.stroke(new Path2D(d)); walls++; }
+    });
+    if (!walls) { flash('칠할 면이 없습니다 — 먼저 선으로 면을 둘러싸세요'); return; }
+    const img = cx.getImageData(0, 0, W, H).data, wall = new Uint8Array(W * H);
+    for (let i = 0; i < W * H; i++) wall[i] = img[i * 4 + 3] > 20 ? 1 : 0;
+    const sx = Math.floor((w.x - ox) / res), sy = Math.floor((w.y - oy) / res);
+    if (sx < 1 || sy < 1 || sx >= W - 1 || sy >= H - 1) { flash('종이 안쪽을 누르세요'); return; }
+    if (wall[sy * W + sx]) { flash('선 위입니다 — 면의 안쪽을 누르세요'); return; }
+    const m = new Uint8Array(W * H), st = new Int32Array(W * H); let sp = 0, n = 0, leak = false;
+    st[sp++] = sy * W + sx; m[sy * W + sx] = 1;
+    while (sp) {
+        const i = st[--sp], x = i % W, y = (i - x) / W; n++;
+        if (x === 0 || y === 0 || x === W - 1 || y === H - 1) { leak = true; break; }
+        for (const j of [i - 1, i + 1, i - W, i + W]) if (!m[j] && !wall[j]) { m[j] = 1; st[sp++] = j; }
+    }
+    if (leak) { flash('면이 막혀 있지 않습니다 — 틈이 있어 종이 끝까지 샙니다. 칠하지 않았습니다'); return; }
+    // 선 두께 밑으로 2칸 넓힌다 — 칠과 선 사이에 흰 틈이 보이지 않게(벽 칸으로만)
+    for (let k = 0; k < 2; k++) {
+        const add = [];
+        for (let i = W; i < W * (H - 1); i++) if (!m[i] && wall[i] && (m[i - 1] === 1 || m[i + 1] === 1 || m[i - W] === 1 || m[i + W] === 1)) add.push(i);
+        add.forEach(i => { m[i] = 1; n++; });
+    }
+    // 칸 경계 → 고리. 칠한 칸을 왼쪽에 두는 방향의 변을 모아 잇는다(evenodd 라 어떻게 이어도 결과가 같다)
+    const nxt = new Map(), key = (x, y) => y * (W + 1) + x, E = (x1, y1, x2, y2) => { const k = key(x1, y1); (nxt.get(k) || nxt.set(k, []).get(k)).push([x2, y2]); };
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        if (!m[y * W + x]) continue;
+        if (!m[(y - 1) * W + x]) E(x, y, x + 1, y);
+        if (!m[y * W + x + 1]) E(x + 1, y, x + 1, y + 1);
+        if (!m[(y + 1) * W + x]) E(x + 1, y + 1, x, y + 1);
+        if (!m[y * W + x - 1]) E(x, y + 1, x, y);
+    }
+    const loops = [];
+    for (const [k0, arr] of nxt) {
+        while (arr.length) {
+            let x = k0 % (W + 1), y = (k0 - x) / (W + 1); const lp = [[x, y]];
+            let [nx, ny] = arr.pop();
+            while (!(nx === lp[0][0] && ny === lp[0][1])) {
+                lp.push([nx, ny]); const a2 = nxt.get(key(nx, ny)); if (!a2 || !a2.length) break; [nx, ny] = a2.pop();
+            }
+            if (lp.length > 3) loops.push(lp);
+        }
+    }
+    const simp = (pts, tol) => {                        // 더글러스-포이커(닫힌 고리 — 첫 점에서 가장 먼 점으로 둘로 나눠 푼다)
+        const dp = (a, b) => {
+            let md = -1, mi = -1; const [x1, y1] = pts[a], [x2, y2] = pts[b], L = Math.hypot(x2 - x1, y2 - y1) || 1;
+            for (let i = a + 1; i < b; i++) { const dd = Math.abs((x2 - x1) * (y1 - pts[i][1]) - (x1 - pts[i][0]) * (y2 - y1)) / L; if (dd > md) { md = dd; mi = i; } }
+            return md > tol ? [...dp(a, mi).slice(0, -1), ...dp(mi, b)] : [pts[a], pts[b]];
+        };
+        let far = 0, fd = -1; pts.forEach((q, i) => { const dd = Math.hypot(q[0] - pts[0][0], q[1] - pts[0][1]); if (dd > fd) { fd = dd; far = i; } });
+        pts = [...pts, pts[0]];
+        return [...dp(0, far).slice(0, -1), ...dp(far, pts.length - 1).slice(0, -1)];
+    };
+    const d = loops.map(lp => 'M' + simp(lp, 0.75).map(([x, y]) => `${fmt(ox + x * res)} ${fmt(oy + y * res)}`).join('L') + 'Z').join('');
+    snapHist();
+    doc.ops.push({id: doc.seq++, t: 'fill', d, color: SET.fillColor, op: SET.fillOp, area: +(n * res * res).toFixed(2)});
+    changed(); flash(`면을 칠했습니다 — 약 ${fmt(+(n * res * res).toFixed(1))}㎡`);
+}
 function onCanvasClick(w, e, tgt) {
     if (tool === 'select') {
         tgt = tgt || e.target;          // 포인터 캡처 때문에 떼는 순간의 target 은 늘 svg 다
@@ -1406,6 +1491,7 @@ function onCanvasClick(w, e, tgt) {
         if ($('fpAuto').checked) commitPoint(); else pointGoLabel();
         return;
     }
+    if (tool === 'fill') { fillAt(w); return; }
     if (tool === 'text') {                        // 고치는 중이면 자리만 옮기고, 아니면 입력 상자
         if (editing) { const s = snapXY(w); $('ftX').value = fmt(s.x); $('ftY').value = fmt(s.y); return; }
         openTextBox(w); return;
@@ -1742,6 +1828,9 @@ function editOp(id) {
         const t = prompt('단계 이름', op.title);
         if (t && t.trim()) { snapHist(); op.title = t.trim(); changed(); }
         return;
+    }
+    if (op.t === 'fill') {                           // 채운 면 — 지금 설정의 색·진하기로 다시 칠한다
+        snapHist(); op.color = SET.fillColor; op.op = SET.fillOp; changed(); flash('설정의 채우기 색으로 다시 칠했습니다'); return;
     }
     setTool(op.t, true);
     editing = id;
@@ -2429,7 +2518,8 @@ $('cadP9').value = SET.p9; $('cadP5').value = SET.p5;
 ['cadLs9', 'cadLs5'].forEach(id => { $(id).innerHTML = Object.entries(LS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join(''); $(id).value = SET[id === 'cadLs9' ? 'ls9' : 'ls5']; $(id).addEventListener('change', () => { saveSet(); syncPenLs(); }); });
 function syncPenLs() { if (tool.startsWith('pen')) $('fnLs').value = SET[tool === 'pen9' ? 'ls9' : 'ls5']; }
 $('fnLs').addEventListener('change', () => { if (!tool.startsWith('pen')) return; const k = tool === 'pen9' ? 'Ls9' : 'Ls5'; $('cad' + k).value = $('fnLs').value; saveSet(); });
-$('cadAuxColor').value = SET.auxColor; $('cadAuxOn').checked = SET.auxOn !== false;
+$('cadAuxColor').value = SET.auxColor; $('cadFillColor').value = SET.fillColor; $('cadFillOp').value = SET.fillOp;
+['cadFillColor', 'cadFillOp'].forEach(id => $(id).addEventListener('input', saveSet)); $('cadAuxOn').checked = SET.auxOn !== false;
 $('cadAuxBtn').classList.toggle('on', SET.auxOn !== false); root.classList.toggle('aux-off', SET.auxOn === false);
 $('cadAuxBtn').addEventListener('click', () => { setAux(!SET.auxOn); flash(SET.auxOn ? '보조선을 보입니다' : '보조선을 감췄습니다 — 지우개·선택도 건드리지 않습니다'); });
 $('cadAuxOn').addEventListener('change', () => setAux($('cadAuxOn').checked));
@@ -2498,7 +2588,7 @@ document.addEventListener('keydown', e => {
     if (barOn && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         e.preventDefault(); setBarY(barY + (e.key === 'ArrowUp' ? -1 : 1) * barStep() * (e.shiftKey ? 5 : 1)); saveBar(); return;
     }
-    const map = {v: 'select', t: 'text', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
+    const map = {v: 'select', t: 'text', f: 'fill', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
     if (map[k]) setTool(map[k]);
     if (k === '+' || k === '=') zoomCenter(1.4);
     if (k === '-') zoomCenter(1 / 1.4);
