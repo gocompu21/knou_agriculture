@@ -42,6 +42,10 @@
         <select id="cadSnapStep" title="스냅 간격"></select>
         <label class="cad-chk"><input type="checkbox" id="cadShowPts" checked> 점 번호</label>
         <button type="button" id="cadBarBtn" class="cad-bar-btn" title="I자(평행자) — 몸통을 끌어 위아래로(↑↓ 키로 한 칸씩). 투명 날을 따라 끌면 수평선이 그어집니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="8" width="17" height="5" rx="0.6"/><path d="M4 8v2M7 8v1.3M10 8v2M13 8v1.3M16 8v2"/><path d="M10 2.5v3M8.3 4.2 10 2.5l1.7 1.7M10 18v-3M8.3 16.3 10 18l1.7-1.7"/></svg>I자</button>
+        <button type="button" id="cadTri45" class="cad-bar-btn" title="45° 삼각자 — I자 윗날에 얹혀 있습니다. 손으로 끌어 좌우로 밀고, 샤프로 세로 변·빗변을 따라 긋습니다"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 17H17V3Z"/><path d="M11.5 14.2H14.2V11.5Z"/></svg>45°</button>
+        <button type="button" id="cadTri60" class="cad-bar-btn" title="60° 삼각자(30°·60°) — I자 윗날에 얹혀 있습니다. 손으로 끌어 좌우로 밀고, 샤프로 세로 변·빗변을 따라 긋습니다"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 17.5H17V2Z"/><path d="M13.6 15H15.2V11.4Z"/></svg>60°</button>
+        <button type="button" id="cadTriFlip" class="cad-bar-btn" title="삼각자 좌우 뒤집기" hidden>⇆ 뒤집기</button>
+        <button type="button" id="cadTriRot" class="cad-bar-btn" title="60° 삼각자 눕히기 — 빗변 60° ↔ 30°" hidden>빗변 30°</button>
         <span class="cad-sep"></span>
         <button type="button" id="cadUndo" title="되돌리기 (Ctrl+Z)">↶</button>
         <button type="button" id="cadRedo" title="다시 하기 (Ctrl+Y)">↷</button>
@@ -49,7 +53,7 @@
     <div class="cad-body">
         <div class="cad-stage">
             <svg id="cadSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-                <g id="cadGrid"></g><g id="cadOps"></g><g id="cadPts"></g><g id="cadBar"></g><g id="cadPre"></g>
+                <g id="cadGrid"></g><g id="cadOps"></g><g id="cadPts"></g><g id="cadBar"></g><g id="cadTri"></g><g id="cadPre"></g>
             </svg>
             <div class="cad-zoom">
                 <button type="button" id="cadZin" title="확대">+</button>
@@ -146,8 +150,8 @@
                 <div data-form="pen">
                     <h4>샤프 <span id="fnName">0.9mm</span></h4>
                     <div class="cad-row"><label>선 종류<select class="ls" id="fnLs"></select></label><span></span></div>
-                    <p class="cad-help">실제 제도처럼 <b>I자에 대고</b> 긋습니다. I자 위에서 <b>마우스 오른쪽 버튼을 누른 채</b>
-                       가로로 끌면 날을 따라 선이 그어집니다. 끄는 동안 길이가 보이고, 시작·끝은 눈금과 기존 점에 붙습니다.<br>
+                    <p class="cad-help">실제 제도처럼 <b>I자·삼각자에 대고</b> 긋습니다. 자의 변 근처에서 <b>마우스 오른쪽 버튼을 누른 채</b>
+                       끌면 그 변을 따라 선이 그어집니다 — I자 날은 수평선, 삼각자 세로 변은 수직선, 빗변은 45°·60°·30° 선. 끄는 동안 길이가 보이고, 시작·끝은 눈금과 기존 점에 붙습니다.<br>
                        I자는 몸통을 왼쪽 버튼으로 끌어 위아래로 옮깁니다.</p>
                 </div>
                 <div data-form="text">
@@ -241,7 +245,7 @@
 .cad-bar-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 #cadPre { pointer-events: none; }            /* 커서 십자·미리보기가 밑의 I자·객체 누름을 가로채지 않게 */
 /* 옮길 수 있는 자리 — 편 손(살색, 40px). 그림을 못 읽는 브라우저는 기본 grab */
-#cadBar .bar-body { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect x='3.5' y='17' width='5.4' height='13' rx='2.7' transform='rotate%28-38 6.2 23.5%29' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='9.5' y='6' width='5.6' height='17' rx='2.8' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='15.3' y='2.5' width='5.6' height='20' rx='2.8' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='21.1' y='4' width='5.6' height='19' rx='2.8' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='26.9' y='8.5' width='5.2' height='15' rx='2.6' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Cpath d='M9.5 18.5H32.1V26.5A10 10 0 0 1 22.1 36.5H18A9 9 0 0 1 9.5 29Z' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3C/svg%3E") 20 20, grab; }
+#cadBar .bar-body, #cadTri .tri-body { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect x='3.5' y='17' width='5.4' height='13' rx='2.7' transform='rotate%28-38 6.2 23.5%29' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='9.5' y='6' width='5.6' height='17' rx='2.8' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='15.3' y='2.5' width='5.6' height='20' rx='2.8' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='21.1' y='4' width='5.6' height='19' rx='2.8' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='26.9' y='8.5' width='5.2' height='15' rx='2.6' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Cpath d='M9.5 18.5H32.1V26.5A10 10 0 0 1 22.1 36.5H18A9 9 0 0 1 9.5 29Z' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3C/svg%3E") 20 20, grab; }
 #cadBar .bar-blade { cursor: crosshair; }
 /* 끄는 동안 — 오므린 손. 포인터 캡처 중에는 커서가 svg 를 따르므로 svg 통째로 바꾼다 */
 .cad.bar-drag #cadSvg, .cad.bar-drag #cadSvg * { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect x='5' y='19' width='5.4' height='10' rx='2.7' transform='rotate%28-50 7.7 24%29' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='9.5' y='12' width='5.6' height='10' rx='2.8' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='15.3' y='10.5' width='5.6' height='11' rx='2.8' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='21.1' y='11' width='5.6' height='11' rx='2.8' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='26.9' y='12.5' width='5.2' height='10' rx='2.6' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Cpath d='M9.5 17.5H32.1V25.5A10 10 0 0 1 22.1 35.5H18A9 9 0 0 1 9.5 28Z' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3C/svg%3E") 20 20, grabbing !important; }
@@ -439,13 +443,80 @@ function setBarY(y) {
 }
 // 자의 폭 — 윗날에서 아랫날까지. 눈금의 배수로 잡아, 윗날이 눈금 위면 아랫날도 눈금 위에 온다
 function barW() { const mi = sheet.step / 5; return Math.max(2 * mi, Math.round(4 * U / mi) * mi); }
-function barEdges() { return [barY, +(barY + barW()).toFixed(3)]; }
-function nearEdge(y, px) {        // y 에서 px 화면 픽셀 안에 있는 날 — 가까운 쪽
-    if (!barOn || barY == null) return null;
-    const k = pxPer(), e = barEdges().map(v => ({v, d: Math.abs(y - v) * k})).sort((a, b) => a.d - b.d)[0];
-    return e.d < px ? e.v : null;
+// ── 삼각자 ── I자 윗날에 얹혀 좌우로만 민다(I자를 옮기면 함께 따라온다). 긋는 변은 세로 변과 빗변
+let tri = null;                   // {kind: '45'|'60', x: 직각 꼭짓점 x, flip: 빗변이 오른쪽, alt: 60° 자를 눕혀 빗변 30°}
+try { tri = JSON.parse(localStorage.getItem('cadTri') || 'null'); } catch (e) {}
+function saveTri() { try { localStorage.setItem('cadTri', JSON.stringify(tri)); } catch (e) {} }
+function triGeom() {
+    if (!tri || !barOn || barY == null || !sheet) return null;
+    const is45 = tri.kind === '45', S = 15 * U, L = 24 * U;
+    const base = is45 ? L : (tri.alt ? S * Math.sqrt(3) : S), h = is45 ? L : (tri.alt ? S : S * Math.sqrt(3));
+    const sg = tri.flip ? 1 : -1, R = {x: tri.x, y: barY}, T = {x: tri.x, y: barY - h}, B = {x: tri.x + sg * base, y: barY};
+    const hl = Math.hypot(base, h), ang = Math.round(Math.atan2(h, base) * 180 / Math.PI);
+    return {R, T, B, base, h, ang, edges: [
+        {ax: R.x, ay: R.y, dx: 0, dy: -1, lo: 0, hi: h, name: '삼각자 세로 변'},
+        {ax: B.x, ay: B.y, dx: (T.x - B.x) / hl, dy: (T.y - B.y) / hl, lo: 0, hi: hl, name: `삼각자 빗변(${ang}°)`}]};
 }
-function drawBar() {
+function drawTri() {
+    const g = $('cadTri'), G = triGeom();
+    $('cadTri45').classList.toggle('on', !!G && tri.kind === '45');
+    $('cadTri60').classList.toggle('on', !!G && tri.kind === '60');
+    $('cadTriFlip').hidden = !G;
+    $('cadTriRot').hidden = !G || tri.kind !== '60';
+    if (G) $('cadTriRot').textContent = tri.alt ? '빗변 60°' : '빗변 30°';
+    if (!G) { g.innerHTML = ''; return; }
+    const {R, T, B} = G, f = v => fmt(v), cx = (R.x + T.x + B.x) / 3, cy = (R.y + T.y + B.y) / 3;
+    const inn = q => ({x: cx + (q.x - cx) * 0.42, y: cy + (q.y - cy) * 0.42});
+    const [r2, t2, b2] = [R, T, B].map(inn);
+    // 가운데 구멍은 뚫려 있다(evenodd) — 구멍으로는 밑의 종이를 누를 수 있다
+    let o = `<g class="tri-body"><path d="M${f(R.x)} ${f(R.y)}L${f(T.x)} ${f(T.y)}L${f(B.x)} ${f(B.y)}Z M${f(r2.x)} ${f(r2.y)}L${f(t2.x)} ${f(t2.y)}L${f(b2.x)} ${f(b2.y)}Z" `
+        + `fill-rule="evenodd" fill="rgba(255,150,60,.24)" stroke="#d9772b" stroke-width="${f(0.07 * U)}" stroke-linejoin="round"/>`;
+    o += `<path d="M${f(R.x)} ${f(R.y)}L${f(T.x)} ${f(T.y)}L${f(B.x)} ${f(B.y)}" fill="none" stroke="#a9520f" stroke-width="${f(0.1 * U)}"/>`;
+    const lx = B.x + (R.x - B.x) * 0.28, ly = B.y - 1.2 * U;
+    o += `<text x="${f(lx)}" y="${f(ly)}" font-size="${f(1.1 * U)}" fill="#a9520f" font-weight="700" text-anchor="middle" dominant-baseline="central">${G.ang}°</text></g>`;
+    g.innerHTML = o;
+}
+function toggleTri(kind) {
+    if (tri && tri.kind === kind && triGeom()) { tri = null; }
+    else {
+        if (!barOn) { barOn = true; saveBar(); }
+        const mid = sheet ? Math.round((sheet.x0 + sheet.x1) / 2) : 45;
+        tri = {kind, x: tri ? tri.x : mid, flip: tri ? tri.flip : false, alt: tri ? tri.alt : false};
+    }
+    saveTri(); drawBar();
+    flash(tri ? `${kind}° 삼각자를 I자 위에 올렸습니다 — 손으로 끌어 좌우로 밀고, 샤프로 변을 따라 긋습니다` : '삼각자를 치웠습니다');
+}
+// ── 자의 변(긋는 기준) ── I자 날 둘 + 삼각자 세로 변·빗변. 샤프로 긋기와 점 붙기가 모두 이것을 쓴다
+function guideEdges() {
+    const E = [];
+    if (barOn && barY != null && sheet) barEdges().forEach(ey => E.push({ax: 0, ay: ey, dx: 1, dy: 0, lo: -Infinity, hi: Infinity, bar: true, name: 'I자'}));
+    const G = triGeom(); if (G) E.push(...G.edges);
+    return E;
+}
+const clampT = (t, e) => Math.max(e.lo, Math.min(e.hi, t));
+function nearestEdge(w, px, only) {
+    let best = null, bd = px;
+    const k = pxPer();
+    guideEdges().filter(only || (() => true)).forEach(e => {
+        const t = clampT((w.x - e.ax) * e.dx + (w.y - e.ay) * e.dy, e);
+        const d = Math.hypot(e.ax + e.dx * t - w.x, e.ay + e.dy * t - w.y) * k;
+        if (d < bd) { bd = d; best = e; }
+    });
+    return best;
+}
+function onEdge(e, w) {           // 변 위의 자리 — 가파른 변은 y 를, 누운 변은 x 를 눈금에 맞춘다
+    const hp = hitPoint(w);
+    if (hp && Math.abs((hp.x - e.ax) * e.dy - (hp.y - e.ay) * e.dx) < 1e-3) return {x: hp.x, y: hp.y};
+    let t = clampT((w.x - e.ax) * e.dx + (w.y - e.ay) * e.dy, e);
+    const g = $('cadSnap').checked ? +$('cadSnapStep').value : PREC;
+    if (Math.abs(e.dy) >= Math.abs(e.dx)) { const y = Math.round((e.ay + e.dy * t) / g) * g; t = (y - e.ay) / e.dy; }
+    else { const x = Math.round((e.ax + e.dx * t) / g) * g; t = (x - e.ax) / e.dx; }
+    t = clampT(t, e);
+    return {x: +(e.ax + e.dx * t).toFixed(3), y: +(e.ay + e.dy * t).toFixed(3)};
+}
+function barEdges() { return [barY, +(barY + barW()).toFixed(3)]; }
+function drawBar() { drawBarOnly(); drawTri(); }
+function drawBarOnly() {
     // 실물 I자 — 알루미늄 몸통(불투명)과 양 끝 고정 블록, **위아래 양쪽**에 투명 아크릴 날이 나와 있다.
     // 두 날의 바깥 변(barY, barY + 폭)이 긋는 기준선이다. 몸통은 밑의 도면을 가린다(실물처럼).
     const g = $('cadBar');
@@ -725,7 +796,7 @@ function snapXY(w) {
     let r;
     if ($('cadSnap').checked) { const g = +$('cadSnapStep').value; r = {x: rnd(Math.round(w.x / g) * g), y: rnd(Math.round(w.y / g) * g)}; }
     else r = {x: rnd(w.x), y: rnd(w.y)};
-    const ey = nearEdge(w.y, tool.startsWith('pen') ? 40 : 16); if (ey != null) r.y = ey;   // I자 날(위·아래)에 붙는다
+    const ed = nearestEdge(w, tool.startsWith('pen') ? 40 : 16); if (ed) return onEdge(ed, w);   // I자 날·삼각자 변에 붙는다
     return r;
 }
 function hitPoint(w) {
@@ -743,7 +814,7 @@ function hintText() {
     const f = picksOf(tool);
     if (tool === 'point') return ' · 도면을 누르면 점이 생깁니다';
     if (tool.startsWith('erase')) return ' · 누른 채 문지르면 지워집니다';
-    if (tool.startsWith('pen')) return ' · I자 위에서 오른쪽 버튼을 누른 채 끌면 선이 그어집니다';
+    if (tool.startsWith('pen')) return ' · I자·삼각자의 변에서 오른쪽 버튼을 누른 채 끌면 선이 그어집니다';
     if (tool === 'select') return ' · 빈 곳을 끌어 영역 선택 · 오른쪽 버튼으로 끌면 화면 이동';
     if (!f) return '';
     const names = {line: ['시작점', '종료점'], rect: ['모서리 1', '모서리 2'], arc: arcMode === 'fillet' ? ['모서리 점'] : ['시작점', '종료점'], circle: ['중심', '크기'], sym: ['기준점'], text: ['기준점']}[tool];
@@ -1408,6 +1479,12 @@ function flash(msg) {
 // ── 사건 ────────────────────────────────────────────────────────────────
 const ptrs = new Map();
 let drag = null, pinchD = 0, spaceDown = false;
+function startPencil(e, w, edge, right) {
+    drag = {kind: 'pencil', right, edge, p0: onEdge(edge, w), sx: e.clientX, sy: e.clientY, moved: false, target: e.target};
+}
+function startTriDrag(e, w) {
+    drag = {kind: 'tri', sx: e.clientX, sy: e.clientY, off: w.x - tri.x, moved: false, target: e.target};
+}
 svg.addEventListener('pointerdown', e => {
     svg.setPointerCapture(e.pointerId);
     ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY});
@@ -1420,23 +1497,21 @@ svg.addEventListener('pointerdown', e => {
         if (barOn && e.target.closest && e.target.closest('#cadBar .bar-body')) {   // 자 몸통은 지우개로도 옮긴다
             drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return;
         }
+        if (e.target.closest && e.target.closest('#cadTri .tri-body')) { startTriDrag(e, w); return; }
         snapHist();
         drag = {kind: 'erase', last: {x: w.x, y: w.y}, hit: false};
         if (eraseAt(w, eraserR())) { drag.hit = true; drawOps(); drawPts(); }
         return;
     }
     if (tool.startsWith('pen') && (e.button === 0 || e.button === 2)) {
-        const w = toWorld(e), onBar = e.target.closest && e.target.closest('#cadBar');
-        if (e.button === 0 && onBar && e.target.closest('.bar-body')) {
-            drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return;
-        }
-        const ey = nearEdge(w.y, onBar ? 1e9 : 40);
-        if (ey != null) {
-            const hp = hitPoint(w);
-            drag = {kind: 'pencil', right: true, ey, sx: e.clientX, sy: e.clientY, moved: false, target: e.target,
-                    x0: hp && Math.abs(hp.y - ey) < 1e-6 ? hp.x : snapXY(w).x};
-            return;
-        }
+        const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
+        const onBody = c('#cadBar .bar-body'), onTri = c('#cadTri .tri-body');
+        const nearTri = nearestEdge(w, 12, ed => !ed.bar);
+        if (e.button === 0 && onTri && !nearTri) { startTriDrag(e, w); return; }          // 삼각자 몸통 — 좌우로 민다
+        if (e.button === 0 && onBody) { drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return; }
+        // 오른쪽 버튼(또는 변 근처 왼쪽)은 가까운 변을 따라 긋는다. 몸통 위면 그 자의 변 가운데 가까운 것
+        const ed = onBody ? nearestEdge(w, 1e9, x => x.bar) : onTri ? nearestEdge(w, 1e9, x => !x.bar) : nearestEdge(w, 40);
+        if (ed) { startPencil(e, w, ed, true); return; }
         drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: false};
         return;
     }
@@ -1445,10 +1520,10 @@ svg.addEventListener('pointerdown', e => {
     const w = toWorld(e);
     if (tool === 'select') { const hp = hitPoint(w);
         if (hp) { drag = {kind: 'pt', n: hp.n, sx: e.clientX, sy: e.clientY, moved: false, saved: false}; return; } }
+    if (e.target.closest && e.target.closest('#cadTri .tri-body')) { startTriDrag(e, w); return; }   // 삼각자 — 끌면 밀고, 그냥 누르면 통과
     if (barOn && e.target.closest && e.target.closest('#cadBar')) {
         if (e.target.closest('.bar-blade')) {         // 투명 날 — 따라 끌면 연필로 긋듯 수평선
-            const hp = hitPoint(w), ey = nearEdge(w.y, 1e9);
-            drag = {kind: 'pencil', ey, sx: e.clientX, sy: e.clientY, x0: hp && Math.abs(hp.y - ey) < 1e-6 ? hp.x : snapXY(w).x, moved: false, target: e.target};
+            startPencil(e, w, nearestEdge(w, 1e9, x => x.bar), false);
         } else {                                       // 몸통 — 위아래로만 옮긴다
             drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false};
         }
@@ -1488,13 +1563,22 @@ svg.addEventListener('pointermove', e => {
         return;
     }
     if (drag && drag.kind === 'pencil') {
-        if (!drag.moved && Math.abs(e.clientX - drag.sx) > 5) drag.moved = true;
+        if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 5) drag.moved = true;
         if (drag.moved) {
-            const hp = hitPoint(w), ey = drag.ey, x = hp && Math.abs(hp.y - ey) < 1e-6 ? hp.x : snapXY(w).x;
-            drag.x1 = x;
-            gPre.innerHTML = `<path d="M${fmt(drag.x0)} ${fmt(ey)}H${fmt(x)}" ${stAttr(strokeStyle().ls, strokeStyle().w)}/>`
-                + `<text x="${fmt(x)}" y="${fmt(ey - 1.2 * U)}" font-size="${fmt(1.1 * U)}" fill="${RED}" text-anchor="middle" font-weight="700">${fmt(Math.abs(x - drag.x0))}m</text>`;
-            hover = {x, y: ey, pt: null}; status();
+            const q = onEdge(drag.edge, w), a = drag.p0, st = strokeStyle();
+            drag.p1 = q;
+            gPre.innerHTML = `<path d="M${fmt(a.x)} ${fmt(a.y)}L${fmt(q.x)} ${fmt(q.y)}" ${stAttr(st.ls, st.w)}/>`
+                + `<text x="${fmt(q.x + 0.8 * U)}" y="${fmt(q.y - 1.0 * U)}" font-size="${fmt(1.1 * U)}" fill="${RED}" font-weight="700">${fmt(Math.hypot(q.x - a.x, q.y - a.y))}m</text>`;
+            hover = {x: q.x, y: q.y, pt: null}; status();
+        }
+        return;
+    }
+    if (drag && drag.kind === 'tri') {
+        if (!drag.moved && Math.abs(e.clientX - drag.sx) > 4) { drag.moved = true; root.classList.add('bar-drag'); }
+        if (drag.moved) {
+            const g = barStep(), G = triGeom();
+            tri.x = +(Math.round(Math.max(sheet.x0 - G.base, Math.min(sheet.x1 + G.base, w.x - drag.off)) / g) * g).toFixed(3);
+            drawTri(); hover = null; drawPre(); status();
         }
         return;
     }
@@ -1541,11 +1625,17 @@ function endPtr(e) {
     if (d.kind === 'pencil') {
         gPre.innerHTML = '';
         if (!d.moved) { if (!d.right) onCanvasClick(toWorld(e), e, d.target); return; }   // 날은 투명 — 그냥 누르면 평소 누름
-        if (d.x1 == null || Math.abs(d.x1 - d.x0) < 1e-6) return;
+        const q = d.p1, a0 = d.p0;
+        if (!q || Math.hypot(q.x - a0.x, q.y - a0.y) < 1e-6) return;
         snapHist();
-        const a = addPt(d.x0, d.ey), b = addPt(d.x1, d.ey);
+        const a = addPt(a0.x, a0.y), b = addPt(q.x, q.y);
         doc.ops.push({id: doc.seq++, t: 'line', a, b, ...strokeStyle()});
-        changed(); flash(`I자를 따라 P${a} → P${b} (${fmt(Math.abs(d.x1 - d.x0))}m) 를 그었습니다`);
+        changed(); flash(`${d.edge.name}을(를) 따라 P${a} → P${b} (${fmt(Math.hypot(q.x - a0.x, q.y - a0.y))}m) 를 그었습니다`);
+        return;
+    }
+    if (d.kind === 'tri') {
+        if (d.moved) { saveTri(); return; }
+        if (!tool.startsWith('pen') && !tool.startsWith('erase')) onCanvasClick(toWorld(e), e, d.target);   // 삼각자는 투명 — 그냥 누르면 통과
         return;
     }
     if ((d.kind === 'click' || d.kind === 'box') && !d.moved) onCanvasClick(toWorld(e), e, d.target);
@@ -1670,6 +1760,10 @@ $('cadPtList').addEventListener('change', e => {
     snapHist(); p[k] = rnd(v); changed();
 });
 $('cadRenum').addEventListener('click', renumberAll);
+$('cadTri45').addEventListener('click', () => toggleTri('45'));
+$('cadTri60').addEventListener('click', () => toggleTri('60'));
+$('cadTriFlip').addEventListener('click', () => { if (!tri) return; tri.flip = !tri.flip; saveTri(); drawTri(); });
+$('cadTriRot').addEventListener('click', () => { if (!tri) return; tri.alt = !tri.alt; saveTri(); drawTri(); });
 $('cadBarBtn').addEventListener('click', () => { barOn = !barOn; drawBar(); saveBar(); flash(barOn ? 'I자를 폈습니다 — 끌어서 위아래로, ↑↓ 키로 한 칸씩' : 'I자를 치웠습니다'); });
 $('cadSelDel').addEventListener('click', deleteSelected);
 $('cadPtList').addEventListener('click', e => {
