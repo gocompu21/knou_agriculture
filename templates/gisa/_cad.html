@@ -168,7 +168,7 @@
                 </div>
                 <div data-form="text">
                     <h4>글자</h4>
-                    <p class="cad-help"><b>도면을 누르면 그 자리에 입력 상자</b>가 뜹니다. 누른 자리에서 <b>가로는 오른쪽으로, 세로는 아래로</b> 써지고, <b>Enter</b> 로 넣고 Esc 로 그만둡니다. 점은 찍지 않습니다.<br>가로·세로, 글꼴, 크기는 위 도구 줄(T 옆)에서 고릅니다. 아래 칸은 좌표로 넣거나 고칠 때 씁니다.</p>
+                    <p class="cad-help"><b>도면을 누르면 그 자리에 입력 상자</b>가 뜹니다. <b>누른 자리가 첫 글자의 왼쪽 아래 모서리</b>이고 가로는 오른쪽으로, 세로는 아래로 이어 써지며, <b>Enter</b> 로 넣고 Esc 로 그만둡니다. 점은 찍지 않습니다.<br>가로·세로, 글꼴, 크기는 위 도구 줄(T 옆)에서 고릅니다. 아래 칸은 좌표로 넣거나 고칠 때 씁니다.</p>
                     <div class="cad-row"><label>X<input type="number" id="ftX" step="any"></label><label>Y<input type="number" id="ftY" step="any"></label></div>
                     <div class="cad-row">
                         <label class="wide">내용<input id="ftS" maxlength="60" placeholder="예) 진입광장"></label></div>
@@ -286,10 +286,10 @@
 .cad-tools select.cad-txt { padding: 0 2px; }
 .cad-txt-size { display: inline-flex; align-items: center; gap: 2px; padding: 0 5px 0 2px; background: #fff; color: #555; }
 .cad-txt-size input { width: 42px; border: 0; font-size: 0.74rem; outline: none; text-align: right; }
-.cad-txtbox { position: absolute; z-index: 20; transform: translate(0, -50%); text-align: left !important; min-width: 60px; padding: 1px 5px;
+.cad-txtbox { position: absolute; z-index: 20; transform: translate(-4px, calc(-100% + 3px)); text-align: left !important; min-width: 60px; padding: 1px 5px;
     border: 1.5px solid #c62828; border-radius: 3px; background: rgba(255,255,255,.9); color: #1d1d1d; outline: none;
     box-shadow: 0 2px 8px rgba(0,0,0,.15); text-align: center; field-sizing: content; }
-.cad-txtbox.v { writing-mode: vertical-rl; text-orientation: upright; transform: translate(-50%, 0); min-width: 0; min-height: 60px; padding: 5px 1px; }
+.cad-txtbox.v { writing-mode: vertical-rl; text-orientation: upright; transform: translate(-3px, 0); min-width: 0; min-height: 60px; padding: 5px 1px; }
 .cad-sep { width: 1px; height: 20px; background: #dde4e0; margin: 0 4px; }
 .cad-chk { display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem; color: #444; cursor: pointer; white-space: nowrap; }
 .cad-body { display: flex; }
@@ -684,9 +684,19 @@ function arcD(x1, y1, x2, y2, r, cw, big) {
     return `M${fmt(x1)} ${fmt(y1)}A${fmt(rr)} ${fmt(rr)} 0 ${big ? 1 : 0} ${cw ? 1 : 0} ${fmt(x2)} ${fmt(y2)}`;
 }
 const FONTS = {gothic: "'Nanum Gothic','Malgun Gothic',sans-serif", myeongjo: "'Nanum Myeongjo','Batang',serif", hand: "'Nanum Pen Script',cursive"};
+// 'corner' — (x, y) 가 첫 글자의 왼쪽 아래 모서리다. 글꼴마다 잉크가 글자 칸 안에서 놓이는 자리가 달라
+// 실제로 그려 잰 값(글자 크기에 대한 비)으로 옮긴다: 가로는 alphabetic 기준선, 세로는 central
+const INKOFF = {gothic: {hx: 0.06, hy: 0.10, vx: 0.41, vy: 0.97}, myeongjo: {hx: 0.07, hy: 0.10, vx: 0.41, vy: 0.99}, hand: {hx: 0.01, hy: 0.03, vx: 0.27, vy: 0.76}};
 function textSvg(x, y, s, size, rot, anchor, font, dir) {
     const tr = +rot ? ` transform="rotate(${fmt(rot)} ${fmt(x)} ${fmt(y)})"` : '';
-    return `<text x="${fmt(x)}" y="${fmt(y)}" font-size="${fmt(font === 'hand' ? size * 1.35 : size)}" fill="${INK}" text-anchor="${anchor || 'middle'}" dominant-baseline="central"${dir === 'v' ? ' style="writing-mode:vertical-rl;text-orientation:upright"' : ''}${font && FONTS[font] ? ` font-family="${FONTS[font]}"` : ''} font-weight="${font === 'hand' ? 400 : 600}"${tr}>${esc(s)}</text>`;
+    const fs = font === 'hand' ? size * 1.35 : size, v = dir === 'v';
+    let tx = x, ty = y, bl = 'central';
+    if (anchor === 'corner') {
+        const o = INKOFF[font] || INKOFF.gothic;
+        if (v) { tx = x + o.vx * fs; ty = y - o.vy * fs; } else { tx = x - o.hx * fs; ty = y - o.hy * fs; bl = 'alphabetic'; }
+        anchor = 'start';
+    }
+    return `<text x="${fmt(tx)}" y="${fmt(ty)}" font-size="${fmt(fs)}" fill="${INK}" text-anchor="${anchor || 'middle'}" dominant-baseline="${bl}"${v ? ' style="writing-mode:vertical-rl;text-orientation:upright"' : ''}${font && FONTS[font] ? ` font-family="${FONTS[font]}"` : ''} font-weight="${font === 'hand' ? 400 : 600}"${tr}>${esc(s)}</text>`;
 }
 function itemSvg(it) {
     const st = () => stAttr(it.ls, it.w, it.fill);
@@ -715,7 +725,7 @@ function opSvg(op) {
     if (op.t === 'sym') { const p = P(op.p), d = doc.syms[op.sym]; if (!p || !d) return '';
         return `<g transform="translate(${fmt(p.x)} ${fmt(p.y)}) rotate(${fmt(op.rot || 0)})">${d.items.map(itemSvg).join('')}</g>`; }
     if (op.t === 'text') { const p = textPos(op); if (!p) return '';
-        return textSvg(p.x, p.y, op.s, op.size, op.rot, op.p != null ? 'middle' : 'start', op.font, op.dir); }
+        return textSvg(p.x, p.y, op.s, op.size, op.rot, op.p != null ? 'middle' : 'corner', op.font, op.dir); }
     return '';
 }
 // 글자는 점을 쓰지 않고 좌표(x, y)를 직접 가진다 — 누른 자리가 글의 시작(가로는 왼쪽, 세로는 위). 옛 글자(p)는 가운데 맞춤
@@ -1059,7 +1069,7 @@ function pruneSyms() {
     Object.keys(doc.syms).forEach(k => { if (!used.has(k)) delete doc.syms[k]; });
 }
 // 글자 — 누른 자리에 입력 상자를 띄우고 Enter 로 넣는다(Esc 그만두기, 다른 곳을 누르면 쓴 것을 넣고 닫는다).
-// 점은 찍지 않는다 — 글자는 좌표를 직접 갖는다. 누른 자리에서 가로는 오른쪽으로, 세로는 아래로 써진다
+// 점은 찍지 않는다 — 글자는 좌표를 직접 갖는다. 누른 자리 = 첫 글자의 왼쪽 아래 모서리, 가로는 오른쪽으로 세로는 아래로
 let txtBox = null;
 function openTextBox(w) {
     closeTextBox(true);
@@ -1070,8 +1080,8 @@ function openTextBox(w) {
     el.className = 'cad-txtbox'; el.maxLength = 60; el.placeholder = '글자 입력 후 Enter';
     const size = parseFloat($('ftSize').value) || 1.5 * U;
     el.style.left = sx + 'px'; el.style.top = sy + 'px';
-    if (vert) el.classList.add('v');
     el.style.fontSize = Math.max(12, Math.min(48, size * pxPer() * ($('ftFont').value === 'hand' ? 1.35 : 1))) + 'px';
+    if (vert) { el.classList.add('v'); el.style.top = (sy - parseFloat(el.style.fontSize) * 1.05) + 'px'; }
     el.style.fontFamily = FONTS[$('ftFont').value] || '';
     svg.parentNode.appendChild(el);
     txtBox = {el, w: s};
@@ -1518,7 +1528,7 @@ function opToItem(op, bx, by) {
         case 'rect': return {t: 'rect', x: Math.min(a.x, b.x) - bx, y: Math.min(a.y, b.y) - by, rw: Math.abs(b.x - a.x), rh: Math.abs(b.y - a.y), ...L};
         case 'circle': { const c = P(op.c); return {t: 'circle', cx: c.x - bx, cy: c.y - by, r: radiusOf(op), ...L}; }
         case 'arc': return {t: 'arc', x1: a.x - bx, y1: a.y - by, x2: b.x - bx, y2: b.y - by, r: op.r, cw: op.dir === 'cw', big: op.big, ...L};
-        case 'text': { const p = textPos(op); return {t: 'text', x: p.x - bx, y: p.y - by, s: op.s, size: op.size, rot: op.rot, font: op.font, dir: op.dir, anchor: op.p != null ? 'middle' : 'start'}; }
+        case 'text': { const p = textPos(op); return {t: 'text', x: p.x - bx, y: p.y - by, s: op.s, size: op.size, rot: op.rot, font: op.font, dir: op.dir, anchor: op.p != null ? 'middle' : 'corner'}; }
         case 'sym': { const p = P(op.p), d = doc.syms[op.sym]; return {t: 'g', x: p.x - bx, y: p.y - by, rot: op.rot || 0, items: clone(d.items)}; }
     }
     return null;
