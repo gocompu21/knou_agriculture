@@ -296,6 +296,8 @@
 .cad-tools .cad-bar-btn { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; height: 26px; }
 .cad-bar-btn svg:not(.real) { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 #cadPre { pointer-events: none; }            /* 커서 십자·미리보기가 밑의 I자·객체 누름을 가로채지 않게 */
+/* 템플릿 구멍 안에서는 밑에 깔린 자(삼각자·I자·템플릿 판 테두리)의 손 커서 대신 샤프 커서 */
+.cad.in-hole #cadSvg * { cursor: inherit !important; }
 /* 옮길 수 있는 자리 — 편 손(실사 사진, 48px). 그림을 못 읽는 브라우저는 기본 grab */
 #cadTri .tri-rot { cursor: pointer; }
 #cadTri .tri-rot:hover circle { fill: rgba(255,255,255,.7); }
@@ -1165,6 +1167,7 @@ function setArcMode(m) {
 }
 const FORM_OF = {line: 'fl', rect: 'fr', circle: 'fc', arc: 'fa'};
 function setTool(t, keepEdit) {
+    root.classList.remove('in-hole');
     if (t !== tool) closeTextBox(true);
     tool = t;
     if (!keepEdit) endEdit();
@@ -1901,6 +1904,16 @@ function triBlock(edge) {
 // 커서 그림은 촉이 왼쪽 아래·몸통이 오른쪽 위인 한 벌을 좌우(lean-h)·위아래(lean-v)로 뒤집어 쓴다.
 function penLean(w) {
     let h = false, v = false;
+    // 템플릿 구멍 안 — 판은 구멍 바깥에 있으므로 몸통을 구멍 가운데 쪽으로 눕힌다(돌아가며 방향이 바뀐다).
+    // 구멍 밑의 삼각자·I자가 손 커서를 띄우지 않게 in-hole 로 샤프 커서를 지킨다
+    const hole = tool.startsWith('pen') ? (drag && drag.kind === 'tplTrace' ? drag.hole : tplHoleAt(w)) : null;
+    root.classList.toggle('in-hole', !!hole);
+    if (hole) {
+        const ax = hole.c.x - w.x, ay = hole.c.y - w.y, n = Math.hypot(ax, ay);
+        if (n > hole.hr * 0.15) { h = ax / n < -0.2; v = ay / n > 0.2; }
+        root.classList.toggle('lean-h', h); root.classList.toggle('lean-v', v);
+        return;
+    }
     const edge = drag && drag.kind === 'pencil' ? drag.edge : (tool.startsWith('pen') ? nearestEdge(w, 60) : null);
     if (edge) {
         const t = clampT((w.x - edge.ax) * edge.dx + (w.y - edge.ay) * edge.dy, edge);
