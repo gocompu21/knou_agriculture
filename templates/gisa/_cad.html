@@ -976,7 +976,7 @@ function hintText() {
     const f = picksOf(tool);
     if (tool === 'point') return ' · 도면을 누르면 점이 생깁니다';
     if (tool.startsWith('erase')) return ' · 누른 채 문지르면 지워집니다';
-    if (tool.startsWith('pen')) return ' · I자·삼각자의 변에서 오른쪽 버튼을 누른 채 끌면 선이 그어집니다';
+    if (tool.startsWith('pen')) return ' · 누르면 점, I자·삼각자의 변에서 오른쪽 버튼을 누른 채 끌면 선';
     if (tool === 'select') return ' · 빈 곳을 끌어 영역 선택 · 오른쪽 버튼으로 끌면 화면 이동';
     if (!f) return '';
     const names = {line: ['시작점', '종료점'], rect: ['모서리 1', '모서리 2'], arc: arcMode === 'fillet' ? ['모서리 점'] : ['시작점', '종료점'], circle: ['중심', '크기'], sym: ['기준점'], text: ['기준점']}[tool];
@@ -1742,9 +1742,18 @@ function penLean(w) {
     }
     root.classList.toggle('lean-h', h); root.classList.toggle('lean-v', v);
 }
+// 샤프로 누르면 점을 찍는다 — 자의 변 곁이면 변 위에, 아니면 스냅 자리에. 자가 덮은 곳(몸통·삼각자 안)에는 못 찍는다
+function penDot(w, free) {
+    const hp = free ? hitPoint(w) : null, q = hp ? {x: hp.x, y: hp.y} : free ? snapXY(w) : w;
+    if (hp) { selPt = hp.n; renderAll(); flash(`P${hp.n} (${fmt(hp.x)}, ${fmt(hp.y)}) — 이미 있는 점입니다`); return; }
+    if (covered(q)) { flash('자가 덮은 곳에는 점을 찍을 수 없습니다'); return; }
+    snapHist();
+    const n = addPt(q.x, q.y); selPt = n;
+    changed(); flash(`점 P${n} (${fmt(q.x)}, ${fmt(q.y)}) 을 찍었습니다`);
+}
 function startPencil(e, w, edge, right) {
     const p0 = onEdge(edge, w), bl = triBlock(edge);
-    drag = {kind: 'pencil', right, edge, p0, sx: e.clientX, sy: e.clientY, moved: false, target: e.target,
+    drag = {kind: 'pencil', right, edge, p0, btn: e.button, sx: e.clientX, sy: e.clientY, moved: false, target: e.target,
             blocked: !!(bl && p0.x > bl[0] + 1e-6 && p0.x < bl[1] - 1e-6), bl};
 }
 function startTriDrag(e, w) {
@@ -1781,7 +1790,7 @@ svg.addEventListener('pointerdown', e => {
         // 오른쪽 버튼(또는 변 근처 왼쪽)은 가까운 변을 따라 긋는다. 몸통 위면 그 자의 변 가운데 가까운 것
         const ed = onBody ? nearestEdge(w, 1e9, x => x.bar) : onTri ? nearestEdge(w, 1e9) : nearestEdge(w, 40);   // 삼각자 위면 I자 날까지 넣어 가장 가까운 변
         if (ed) { startPencil(e, w, ed, true); return; }
-        drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: false};
+        drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: false, btn: e.button};
         return;
     }
     if (e.button === 2) { drag = {kind: 'right', lx: e.clientX, ly: e.clientY, sx: e.clientX, sy: e.clientY, moved: false}; return; }
@@ -1902,10 +1911,11 @@ function endPtr(e) {
     if (e.type === 'pointercancel') return;
     if (d.kind === 'trirot') { rotateTri(); return; }
     if (d.kind === 'erase') { if (d.hit) changed(); else hist.pop(); return; }   // 아무것도 안 지웠으면 되돌리기 칸을 도로 뺀다
+    if (d.kind === 'nop') { if (!d.warned && d.btn === 0) penDot(toWorld(e), true); return; }   // 자 밖을 누르면 점
     if (d.kind === 'bar') { root.classList.remove('bar-drag'); if (d.moved) { saveBar(); drawBar(); } return; }   // 몸통은 불투명 — 눌러도 점이 찍히지 않는다
     if (d.kind === 'pencil') {
         gPre.innerHTML = '';
-        if (!d.moved) { if (!d.right) onCanvasClick(toWorld(e), e, d.target); return; }   // 날은 투명 — 그냥 누르면 평소 누름
+        if (!d.moved) { if (d.btn === 0) penDot(d.p0); return; }   // 끌지 않고 왼쪽으로 누르면 그 변 위에 점
         if (d.blocked) return;
         const q = d.p1, a0 = d.p0;
         if (!q || Math.hypot(q.x - a0.x, q.y - a0.y) < 1e-6) return;
