@@ -384,7 +384,8 @@ const symOf = id => allSyms().find(s => s.id === id);
 // ── 도면 상태 ────────────────────────────────────────────────────────────
 let doc, cur = {id: null}, dirty = false, sheet, U = 1, PREC = 0.1;
 let tool = 'select', pickIdx = 0, editing = null, selOps = new Set(), selPt = null, selPts = new Set();
-let hover = null;                                // 스냅된 커서 자리
+let hover = null;
+let fcTyped = false;                              // 원 값 칸을 손으로 쳤는가 — 쳤으면 마우스가 덮어쓰지 않는다                                // 스냅된 커서 자리
 let hist = [], redoS = [];
 const blankDoc = key => ({v: 1, sheet: key, pts: [], ops: [], syms: {}, seq: 1});
 const P = n => doc.pts.find(p => p.n === +n);
@@ -519,7 +520,10 @@ function drawPre() {
             if (g.ok) o += `<path d="${arcD(g.t1.x, g.t1.y, g.t2.x, g.t2.y, g.r, g.cw, false)}" ${pre}/>`
                 + [g.t1, g.t2].map(t => `<circle cx="${fmt(t.x)}" cy="${fmt(t.y)}" r="${fmt(0.3 * U)}" fill="${RED}"/>`).join('');
         }
-        if (tool === 'circle' && pickIdx === 1 && A) o += `<circle cx="${fmt(A.x)}" cy="${fmt(A.y)}" r="${fmt(Math.hypot(x - A.x, y - A.y))}" ${pre}/>`;
+        if (tool === 'circle' && pickIdx === 1 && A) {
+            const v = parseFloat($('fcV').value), rr = fcTyped && v > 0 ? ($('fcMode').value === 'd' ? v / 2 : v) : Math.hypot(x - A.x, y - A.y);
+            o += `<circle cx="${fmt(A.x)}" cy="${fmt(A.y)}" r="${fmt(rr)}" ${pre}/>`;
+        }
         if (tool === 'sym') { const d = symOf($('fsSym').value);
             if (d) o += `<g opacity="0.45" transform="translate(${fmt(x)} ${fmt(y)}) rotate(${fmt(+$('fsRot').value || 0)})">${d.items.map(itemSvg).join('')}</g>`; }
         if (hp) o += `<circle cx="${fmt(x)}" cy="${fmt(y)}" r="${fmt(0.9 * U)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.14 * U)}"/>`;
@@ -653,7 +657,7 @@ function setTool(t, keepEdit) {
     root.className = root.className.replace(/\bcad-tool-\S+/g, '').trim() + ' cad-tool-' + t;
     document.querySelectorAll('#cadTools [data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === t));
     document.querySelectorAll('#cadForm [data-form]').forEach(f => f.classList.toggle('on', f.dataset.form === t));
-    pickIdx = 0;
+    pickIdx = 0; fcTyped = false;
     if (t === 'point') fillPointForm();
     if (t === 'line' && !keepEdit) { $('flA').value = ''; $('flB').value = ''; }
     renderAll(); status();
@@ -664,7 +668,16 @@ function markAwait() {
     if (f && f[pickIdx]) $(f[pickIdx]).classList.add('await');
     if (tool === 'circle' && pickIdx === 1) $('fcV').classList.add('await');
 }
+function liveRadius() {           // 원 — 중심을 잡은 뒤 커서까지의 거리를 값 칸에 그대로 보여 준다
+    const c = P($('fcC').value), h = hover;
+    if (!c || !h) return;
+    const q = h.pt ? P(h.pt) : h;
+    let r = Math.hypot(q.x - c.x, q.y - c.y);
+    if ($('fcMode').value === 'd') r *= 2;
+    $('fcV').value = fmt(rnd(r));
+}
 function resetPick() {
+    if (tool === 'circle' && !fcTyped) $('fcV').value = '';
     const f = picksOf(tool);
     if (f && !editing) f.forEach(id => { if (tool !== 'sym' && tool !== 'text') $(id).value = ''; });
     pickIdx = 0; renderAll(); status();
@@ -743,7 +756,7 @@ function commit(t) {
     // 다음 입력 준비 — 선은 끝점에서 이어 긋는다
     if (t === 'line' && $('flChain').checked) { $('flA').value = op.b; $('flB').value = ''; pickIdx = 1; }
     else if (t === 'sym' || t === 'text') pickIdx = 0;
-    else { (picksOf(t) || []).forEach(id => $(id).value = ''); if (t === 'circle') $('fcV').value = ''; pickIdx = 0; }
+    else { (picksOf(t) || []).forEach(id => $(id).value = ''); if (t === 'circle') { $('fcV').value = ''; fcTyped = false; } pickIdx = 0; }
     changed();
 }
 function pruneSyms() {
@@ -771,10 +784,12 @@ function onCanvasClick(w, e, tgt) {
     if (!f) return;
     if (tool === 'circle' && pickIdx === 1) {     // 두 번째 누름 = 크기
         const c = P($('fcC').value); if (!c) { pickIdx = 0; return; }
-        const hp = hitPoint(w), s = hp ? hp : snapXY(w);
-        let r = Math.hypot(s.x - c.x, s.y - c.y);
-        if ($('fcMode').value === 'd') r *= 2;
-        $('fcV').value = fmt(rnd(r));
+        if (!fcTyped || !(parseFloat($('fcV').value) > 0)) {
+            const hp = hitPoint(w), s = hp ? hp : snapXY(w);
+            let r = Math.hypot(s.x - c.x, s.y - c.y);
+            if ($('fcMode').value === 'd') r *= 2;
+            $('fcV').value = fmt(rnd(r));
+        }
         commit('circle'); return;
     }
     if (tool === 'arc' && arcMode === 'fillet') {          // 모서리는 이미 있는 점이어야 한다
@@ -788,7 +803,7 @@ function onCanvasClick(w, e, tgt) {
     if (tool === 'sym' || tool === 'text') { commit(tool); return; }
     pickIdx++;
     if (pickIdx >= f.length) {
-        if (tool === 'circle') { if (parseFloat($('fcV').value) > 0) commit('circle'); else { pickIdx = 1; renderAll(); status(); } return; }
+        if (tool === 'circle') { if (fcTyped && parseFloat($('fcV').value) > 0) commit('circle'); else { pickIdx = 1; renderAll(); status(); } return; }
         commit(tool); return;
     }
     renderAll(); status();
@@ -992,7 +1007,7 @@ function editOp(id) {
     if (f) { $(f + 'Ls').value = op.ls || 'solid'; $(f + 'W').value = op.w || 'mid'; }
     if (op.t === 'line' || op.t === 'rect' || op.t === 'arc') { $(f + 'A').value = op.a; $(f + 'B').value = op.b; }
     if (op.t === 'arc') { setArcMode('pts'); $('faDir').value = op.dir; $('faR').value = op.r || ''; $('faBig').checked = !!op.big; }
-    if (op.t === 'circle') { $('fcC').value = op.c; $('fcMode').value = op.mode; $('fcV').value = op.v; }
+    if (op.t === 'circle') { $('fcC').value = op.c; $('fcMode').value = op.mode; $('fcV').value = op.v; fcTyped = true; }
     if (op.t === 'sym') { $('fsP').value = op.p; ensureSymOption(op.sym); $('fsSym').value = op.sym; setRot(op.rot || 0); }
     if (op.t === 'text') { $('ftP').value = op.p; $('ftS').value = op.s; $('ftSize').value = op.size; $('ftRot').value = op.rot || 0; }
     $('cadEditing').hidden = false; $('cadEditName').textContent = desc(op);
@@ -1239,6 +1254,7 @@ svg.addEventListener('pointermove', e => {
     }
     const hp = hitPoint(w), s = snapXY(w);
     hover = {x: s.x, y: s.y, pt: hp ? hp.n : null, w: {x: w.x, y: w.y}};
+    if (tool === 'circle' && pickIdx === 1 && !fcTyped) liveRadius();
     drawPre(); status();
 });
 function endPtr(e) {
@@ -1310,6 +1326,13 @@ $('fpGo').addEventListener('click', () => commit('point'));
 $('fsGo').addEventListener('click', () => commit('sym'));
 document.querySelectorAll('#faMode [data-m]').forEach(b => b.addEventListener('click', () => setArcMode(b.dataset.m)));
 $('faFr').addEventListener('input', drawPre);
+$('fcV').addEventListener('input', () => { fcTyped = $('fcV').value !== ''; drawPre(); });
+$('fcMode').addEventListener('change', () => {
+    if (fcTyped) { const v = parseFloat($('fcV').value);      // 친 값은 크기를 지키며 반지름↔지름으로 바꿔 적는다
+        if (v > 0) $('fcV').value = fmt($('fcMode').value === 'd' ? v * 2 : v / 2); }
+    else if (pickIdx === 1) liveRadius();
+    drawPre();
+});
 $('ftGo').addEventListener('click', () => commit('text'));
 $('ftSize').addEventListener('input', () => { $('ftSize').dataset.touched = '1'; });
 $('cadEditCancel').addEventListener('click', () => { endEdit(); resetPick(); });
