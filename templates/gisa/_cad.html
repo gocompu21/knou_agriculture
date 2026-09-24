@@ -539,6 +539,13 @@ function drawTri() {
        + `<path d="M${f(R.x)} ${f(R.y)}L${f(T.x)} ${f(T.y)}L${f(B.x)} ${f(B.y)}Z" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="${f(0.06 * U)}" transform="translate(${f(0.18 * U * (tri.flip ? 1 : -1))} ${f(-0.18 * U)})"/>`;
     const lx = B.x + (R.x - B.x) * 0.28, ly = B.y - 1.2 * U;
     o += `<text x="${f(lx)}" y="${f(ly)}" font-size="${f(1.1 * U)}" fill="#4f7896" font-weight="700" text-anchor="middle" dominant-baseline="central">${G.ang}°</text></g>`;
+    // 수직변의 X — 삼각자 바깥쪽, 직각 모서리 곁(꼭대기는 종이 밖으로 나가기 쉽다). 끄는 동안에는 크게·붉은 바탕으로 실시간 표시
+    const out = B.x > R.x ? -1 : 1, moving = drag && drag.kind === 'tri' && drag.moved, fs = (moving ? 1.5 : 1.05) * U;
+    const xl = `X ${fmt(R.x)}`, tw = xl.length * fs * 0.62 + 0.8 * U, tx = R.x + out * (0.5 * U + tw / 2), ty = R.y - fs * 0.75 - 0.4 * U;   // 직각 모서리 바로 위, I자 날 곁
+    o += `<g class="tri-x" pointer-events="none"><rect x="${f(tx - tw / 2)}" y="${f(ty - fs * 0.75)}" width="${f(tw)}" height="${f(fs * 1.5)}" rx="${f(0.3 * U)}" `
+       + `fill="${moving ? '#c62828' : 'rgba(255,255,255,.85)'}" stroke="${moving ? 'none' : '#8fb0c8'}" stroke-width="${f(0.05 * U)}"/>`
+       + `<text x="${f(tx)}" y="${f(ty)}" font-size="${f(fs)}" fill="${moving ? '#fff' : '#3f6a88'}" font-weight="700" text-anchor="middle" dominant-baseline="central">${xl}</text></g>`;
+    if (moving) o += `<path d="M${f(R.x)} ${f(sheet.y0)}V${f(sheet.y1)}" stroke="#c62828" stroke-width="${f(0.06 * U)}" stroke-dasharray="${f(0.5 * U)} ${f(0.35 * U)}" pointer-events="none"/>`;
     // 가운데 투명 회전 아이콘 — 누르면 시계방향 90°
     const rr = 1.25 * U;
     o += `<g class="tri-rot" transform="translate(${f(cx)} ${f(cy)})"><title>삼각자 시계방향 회전</title>`
@@ -1801,6 +1808,7 @@ svg.addEventListener('pointermove', e => {
             const g = barStep(), G = triGeom();
             tri.x = +(Math.round(Math.max(sheet.x0 - G.base, Math.min(sheet.x1 + G.base, w.x - drag.off)) / g) * g).toFixed(3);
             drawTri(); hover = null; drawPre(); status();
+            $('cadXY').textContent = `삼각자 수직변 X ${fmt(tri.x)}`;
         }
         return;
     }
@@ -1859,7 +1867,7 @@ function endPtr(e) {
         return;
     }
     if (d.kind === 'tri') {
-        if (d.moved) { saveTri(); return; }
+        if (d.moved) { saveTri(); drawTri(); return; }
         // 삼각자 위에서는 어느 도구도 점·선을 만들지 않는다 — 삼각자는 옮기기만 한다(사용자 요청)
         return;
     }
