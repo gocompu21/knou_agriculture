@@ -1148,11 +1148,11 @@ svg.addEventListener('contextmenu', e => e.preventDefault());
 svg.addEventListener('wheel', e => {
     e.preventDefault();
     const w = toWorld(e);
-    // 굴린 양만큼만 — 휠 한 칸(deltaY 100)에 8%. 터치패드·고해상도 휠은 사건이 잘게
+    // 굴린 양만큼만 — 휠 한 칸(deltaY 100)에 13%. 터치패드·고해상도 휠은 사건이 잘게
     // 여러 번 오므로 한 번에 정해진 배율로 뛰면 순식간에 몇 배가 된다
     let dy = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 400 : 1);
     dy = Math.max(-100, Math.min(100, dy));
-    zoomAt(Math.exp(-dy * 0.0008), w.x, w.y);
+    zoomAt(Math.exp(-dy * 0.0012), w.x, w.y);
 }, {passive: false});
 
 document.querySelectorAll('#cadTools [data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
@@ -1161,8 +1161,8 @@ $('cadSnapStep').addEventListener('change', () => { $('cadSnap').checked = true;
 $('cadShowPts').addEventListener('change', drawPts);
 $('cadUndo').addEventListener('click', undo);
 $('cadRedo').addEventListener('click', redo);
-$('cadZin').addEventListener('click', () => zoomCenter(1.2));
-$('cadZout').addEventListener('click', () => zoomCenter(1 / 1.2));
+$('cadZin').addEventListener('click', () => zoomCenter(1.3));
+$('cadZout').addEventListener('click', () => zoomCenter(1 / 1.3));
 $('cadZfit').addEventListener('click', fit);
 $('cadNew').addEventListener('click', newDrawing);
 $('cadSave').addEventListener('click', save);
@@ -1274,8 +1274,8 @@ document.addEventListener('keydown', e => {
     if (e.key === ' ') { e.preventDefault(); spaceDown = true; return; }
     const map = {v: 'select', p: 'point', l: 'line', r: 'rect', c: 'circle', a: 'arc', b: 'sym', t: 'text'};
     if (map[k]) setTool(map[k]);
-    if (k === '+' || k === '=') zoomCenter(1.2);
-    if (k === '-') zoomCenter(1 / 1.2);
+    if (k === '+' || k === '=') zoomCenter(1.3);
+    if (k === '-') zoomCenter(1 / 1.3);
 });
 document.addEventListener('keyup', e => { if (e.key === ' ') spaceDown = false; });
 window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
