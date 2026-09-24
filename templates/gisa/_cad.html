@@ -460,7 +460,10 @@ function scaleDenom() {           // '1:430' → 430. 축척이 없는 빈 종�
 function triGeom() {
     if (!tri || !barOn || barY == null || !sheet) return null;
     // 크기는 실물 — 직각을 낀 긴 변이 tri.size(cm). 도면 축척(1:430 이면 1cm = 4.3m)으로 m 로 바꾼다
-    const L = (tri.size || 12) * scaleDenom() / 100, is45 = tri.kind === '45', r3 = Math.sqrt(3);
+    const is45 = tri.kind === '45', r3 = Math.sqrt(3);
+    let L = (tri.size || 12) * scaleDenom() / 100;
+    // 45° 자는 직각을 낀 두 변을 굵은 눈금(step) 배수로 — 세 꼭짓점이 모두 눈금 교차점에 온다
+    if (is45) L = Math.max(sheet.step, Math.round(L / sheet.step) * sheet.step);
     const base = is45 ? L : (tri.alt ? L : L / r3), h = is45 ? L : (tri.alt ? L / r3 : L);
     const sg = tri.flip ? 1 : -1, R = {x: tri.x, y: barY}, T = {x: tri.x, y: barY - h}, B = {x: tri.x + sg * base, y: barY};
     const hl = Math.hypot(base, h), ang = Math.round(Math.atan2(h, base) * 180 / Math.PI);
