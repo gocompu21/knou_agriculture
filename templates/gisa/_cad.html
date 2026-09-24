@@ -78,6 +78,7 @@
         <div class="cad-set" id="cadSet" hidden>
             <h4>설정</h4>
             <div class="cad-set-row"><label class="cad-chk"><input type="checkbox" id="cadShowPts" checked> 점 번호 보이기</label></div>
+            <div class="cad-set-row"><label class="cad-chk"><input type="checkbox" id="cadRulerNums"> 자 위치 숫자 보이기 <small class="cad-set-note">(I자 Y · 삼각자 X)</small></label></div>
             <div class="cad-set-row"><span class="cad-set-lb">삼각자 크기</span>
                 <select id="cadTriSize" title="삼각자 크기 — 직각을 낀 긴 변의 실제 길이. 도면 축척으로 환산해 그린다"><option value="9">9cm</option><option value="12">12cm</option><option value="15">15cm</option><option value="18">18cm</option><option value="24">24cm</option><option value="30">30cm</option></select>
                 <span class="cad-set-note" id="cadTriSizeNote"></span></div>
@@ -312,7 +313,9 @@
 .cad-tools select { border: 1px solid #d5ddd9; border-radius: 5px; padding: 2px 4px; font-size: 0.74rem; }
 .cad-tools .cad-bar-btn { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; height: 26px; }
 .cad-bar-btn svg:not(.real) { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-#cadPre { pointer-events: none; }            /* 커서 십자·미리보기가 밑의 I자·객체 누름을 가로채지 않게 */
+#cadPre { pointer-events: none; }
+/* 자 위치 숫자(I자 Y · 삼각자 X) — 설정에서 켤 때만(기본은 감춤) */
+.cad:not(.ruler-nums) #cadBar .bar-y, .cad:not(.ruler-nums) #cadBar .bar-ytext, .cad:not(.ruler-nums) #cadTri .tri-x { display: none; }            /* 커서 십자·미리보기가 밑의 I자·객체 누름을 가로채지 않게 */
 /* 템플릿 구멍 안에서는 밑에 깔린 자(삼각자·I자·템플릿 판 테두리)의 손 커서 대신 샤프 커서 */
 .cad.in-hole #cadSvg * { cursor: inherit !important; }
 /* 옮길 수 있는 자리 — 편 손(실사 사진, 48px). 그림을 못 읽는 브라우저는 기본 grab */
@@ -532,10 +535,10 @@ let tool = 'select', pickIdx = 0, editing = null, selOps = new Set(), selPt = nu
 let hover = null;
 // I자(평행자) — 제도판의 가로자. 켜 두면 윗변(barY) 근처를 누른 점이 그 높이에 붙는다
 // 설정(스냅·간격·점 번호·삼각자 크기) — 도면이 아니라 화면 습관이라 localStorage 에 둔다
-let SET = {snap: true, step: '', pts: true, triSize: 12, p9: 0.7, p5: 0.4, auxOn: true, auxColor: '#a3a9b3', fillColor: '#9ccc65', fillOp: 0.6, fillType: 'solid', ls9: 'solid', ls5: 'aux'};   // 샤프마다 선 종류   // 샤프 굵기는 종이 위 mm
+let SET = {snap: true, step: '', pts: true, triSize: 12, p9: 0.7, p5: 0.4, auxOn: true, auxColor: '#a3a9b3', rulerNums: false, fillColor: '#9ccc65', fillOp: 0.6, fillType: 'solid', ls9: 'solid', ls5: 'aux'};   // 샤프마다 선 종류   // 샤프 굵기는 종이 위 mm
 try { Object.assign(SET, JSON.parse(localStorage.getItem('cadSet') || '{}')); } catch (e) {}
 function saveSet() {
-    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.triSize = +$('cadTriSize').value; SET.font = $('ftFont').value; SET.ls9 = $('cadLs9').value || SET.ls9; SET.ls5 = $('cadLs5').value || SET.ls5; SET.fillType = $('cadFillType').value || SET.fillType; SET.fillColor = $('cadFillColor').value || SET.fillColor; SET.fillOp = +$('cadFillOp').value || SET.fillOp; SET.auxOn = $('cadAuxOn').checked; SET.auxColor = $('cadAuxColor').value || SET.auxColor; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
+    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.triSize = +$('cadTriSize').value; SET.font = $('ftFont').value; SET.ls9 = $('cadLs9').value || SET.ls9; SET.ls5 = $('cadLs5').value || SET.ls5; SET.fillType = $('cadFillType').value || SET.fillType; SET.fillColor = $('cadFillColor').value || SET.fillColor; SET.fillOp = +$('cadFillOp').value || SET.fillOp; SET.rulerNums = $('cadRulerNums').checked; SET.auxOn = $('cadAuxOn').checked; SET.auxColor = $('cadAuxColor').value || SET.auxColor; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
     try { localStorage.setItem('cadSet', JSON.stringify(SET)); } catch (e) {}
 }
 let barOn = false, barY = null;
@@ -934,7 +937,7 @@ function drawBarOnly() {
     o += `<circle cx="${f(kx)}" cy="${f(ky)}" r="${f(0.55 * U)}" fill="#a9b0b6" stroke="#5f666d" stroke-width="${f(0.08 * U)}"/>`
        + `<circle cx="${f(kx)}" cy="${f(ky)}" r="${f(0.22 * U)}" fill="#6b7279"/>`;
     // 지금 높이 — 윗날 · 아랫날
-    o += `<text x="${f(kx + 1.4 * U)}" y="${f(ky)}" font-size="${f(1.05 * U)}" fill="#26303a" font-weight="700" dominant-baseline="central">Y ${fmt1(y)} · ${fmt1(y2)}</text></g>`;
+    o += `<text x="${f(kx + 1.4 * U)}" y="${f(ky)}" font-size="${f(1.05 * U)}" fill="#26303a" font-weight="700" dominant-baseline="central" class="bar-ytext">Y ${fmt1(y)} · ${fmt1(y2)}</text></g>`;
     // 양 끝 고정 블록
     [x0, x1 - cw].forEach(bx => {
         o += `<g class="bar-body"><rect x="${f(bx)}" y="${f(y - 0.35 * U)}" width="${f(cw)}" height="${f(W + 0.7 * U)}" rx="${f(0.35 * U)}" fill="url(#cadBlk)"/>`
@@ -2630,6 +2633,8 @@ $('cadP9').value = SET.p9; $('cadP5').value = SET.p5;
 ['cadLs9', 'cadLs5'].forEach(id => { $(id).innerHTML = Object.entries(LS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join(''); $(id).value = SET[id === 'cadLs9' ? 'ls9' : 'ls5']; $(id).addEventListener('change', () => { saveSet(); syncPenLs(); }); });
 function syncPenLs() { if (tool.startsWith('pen')) $('fnLs').value = SET[tool === 'pen9' ? 'ls9' : 'ls5']; }
 $('fnLs').addEventListener('change', () => { if (!tool.startsWith('pen')) return; const k = tool === 'pen9' ? 'Ls9' : 'Ls5'; $('cad' + k).value = $('fnLs').value; saveSet(); });
+$('cadRulerNums').checked = !!SET.rulerNums; root.classList.toggle('ruler-nums', !!SET.rulerNums);
+$('cadRulerNums').addEventListener('change', () => { root.classList.toggle('ruler-nums', $('cadRulerNums').checked); saveSet(); });
 $('cadAuxColor').value = SET.auxColor; $('cadFillColor').value = SET.fillColor; $('cadFillType').value = SET.fillType || 'solid'; $('cadFillType').addEventListener('change', saveSet); $('cadFillOp').value = SET.fillOp;
 ['cadFillColor', 'cadFillOp'].forEach(id => $(id).addEventListener('input', saveSet)); $('cadAuxOn').checked = SET.auxOn !== false;
 $('cadAuxBtn').classList.toggle('on', SET.auxOn !== false); root.classList.toggle('aux-off', SET.auxOn === false);
