@@ -9,6 +9,7 @@
   단계별 작도 재생(initSteps)에 그대로 넣을 수 있다
 - 도면은 회원별로 서버(gisa/cad.py)에, 저장 전 작업은 localStorage 에 임시로 둔다
 {% endcomment %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Pen+Script&display=swap">
 <div class="cad" id="cad" data-cert="{{ cert.pk }}" data-staff="{% if request.user.is_staff %}1{% endif %}"
      data-api="{% url 'gisa:cad_drawing_list' cert.pk %}" data-symapi="{% url 'gisa:cad_symbol_list' %}">
     <div class="cad-top">
@@ -33,6 +34,8 @@
         <button type="button" data-tool="arc" title="호 (A)" aria-label="호"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 15A6.5 6.5 0 0 1 16.5 15"/><circle cx="3.5" cy="15" r="1.7" class="f"/><circle cx="16.5" cy="15" r="1.7" class="f"/></svg></button>
         <button type="button" data-tool="sym" title="라이브러리 기호 넣기 (B)" aria-label="기호"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="13" height="13"/><path d="M3.5 3.5l13 13M16.5 3.5l-13 13"/></svg></button>
         <button type="button" data-tool="text" title="글자 (T)" aria-label="글자"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4.5h12M10 4.5v12M7.5 16.5h5"/></svg></button>
+        <select id="ftFont" class="cad-txt" title="글자 글꼴"><option value="gothic">고딕</option><option value="myeongjo">명조</option><option value="hand">손글씨</option></select>
+        <label class="cad-txt cad-txt-size" title="글자 크기 — 도면 위 글자 높이(m)"><input type="number" id="ftSize" step="any" min="0">m</label>
         <button type="button" data-tool="pen9" class="pen" title="샤프 0.9mm — I자 위에서 오른쪽 버튼을 누른 채 끌면 굵은 선 (9)" aria-label="샤프 0.9mm"><svg class="real" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="ip9b" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(45 .5 .5)"><stop offset="0" stop-color="#ffd36b"/><stop offset=".45" stop-color="#e8a317"/><stop offset="1" stop-color="#a86f00"/></linearGradient><linearGradient id="ip9m" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(45 .5 .5)"><stop offset="0" stop-color="#f4f6f8"/><stop offset=".5" stop-color="#a9b1b9"/><stop offset="1" stop-color="#5e666e"/></linearGradient><linearGradient id="ip9g" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(45 .5 .5)"><stop offset="0" stop-color="#f2bf4a"/><stop offset=".5" stop-color="#d9951a"/><stop offset="1" stop-color="#9a6300"/></linearGradient></defs><g transform="rotate(45 10 10)"><rect x="8.3" y="-1.2" width="3.4" height="12.2" rx="1" fill="url(#ip9b)"/><rect x="8.3" y="-1.2" width="3.4" height="2.2" rx=".8" fill="url(#ip9m)"/><rect x="11.2" y="0.2" width=".9" height="6.4" rx=".4" fill="url(#ip9m)"/><rect x="8.3" y="10.6" width="3.4" height="4.6" fill="url(#ip9g)"/><path d="M8.5 11.6h3M8.5 12.5h3M8.5 13.4h3M8.5 14.3h3" stroke="#8a5a00" stroke-width=".28"/><path d="M8.3 15.2h3.4l-1.1 2.6h-1.2Z" fill="url(#ip9m)"/><rect x="9.6" y="17.8" width=".8" height="1.3" fill="#b9c0c7"/><rect x="9.78" y="19" width=".44" height="1.6" fill="#1b1b1b"/><path d="M8.9 -0.4V9.8" stroke="#fff" stroke-opacity=".55" stroke-width=".5" stroke-linecap="round"/></g></svg><b>0.9</b></button>
         <button type="button" data-tool="pen5" class="pen thin" title="샤프 0.5mm — I자 위에서 오른쪽 버튼을 누른 채 끌면 가는 선 (5)" aria-label="샤프 0.5mm"><svg class="real" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="ip5b" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(45 .5 .5)"><stop offset="0" stop-color="#6a6f76"/><stop offset=".45" stop-color="#2a2d31"/><stop offset="1" stop-color="#0b0c0d"/></linearGradient><linearGradient id="ip5m" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(45 .5 .5)"><stop offset="0" stop-color="#f4f6f8"/><stop offset=".5" stop-color="#a9b1b9"/><stop offset="1" stop-color="#5e666e"/></linearGradient><linearGradient id="ip5g" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(45 .5 .5)"><stop offset="0" stop-color="#5a5f66"/><stop offset=".5" stop-color="#2a2d31"/><stop offset="1" stop-color="#131517"/></linearGradient></defs><g transform="rotate(45 10 10)"><rect x="8.3" y="-1.2" width="3.4" height="12.2" rx="1" fill="url(#ip5b)"/><rect x="8.3" y="-1.2" width="3.4" height="2.2" rx=".8" fill="url(#ip5m)"/><rect x="11.2" y="0.2" width=".9" height="6.4" rx=".4" fill="url(#ip5m)"/><rect x="8.3" y="10.6" width="3.4" height="4.6" fill="url(#ip5g)"/><path d="M8.5 11.6h3M8.5 12.5h3M8.5 13.4h3M8.5 14.3h3" stroke="#6b7078" stroke-width=".28"/><path d="M8.3 15.2h3.4l-1.1 2.6h-1.2Z" fill="url(#ip5m)"/><rect x="9.6" y="17.8" width=".8" height="1.3" fill="#b9c0c7"/><rect x="9.78" y="19" width=".44" height="1.6" fill="#1b1b1b"/><path d="M8.9 -0.4V9.8" stroke="#fff" stroke-opacity=".55" stroke-width=".5" stroke-linecap="round"/></g></svg><b>0.5</b></button>
         <button type="button" data-tool="erase5" class="er" title="미세 지우개(지우개 연필) — 누른 채 문지르면 지나간 자리만 지웁니다 (W)" aria-label="미세 지우개"><svg class="real" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="iepb" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(45 .5 .5)"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#e6e8ec"/><stop offset="1" stop-color="#b8bdc4"/></linearGradient><linearGradient id="iepw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e9c9a2"/><stop offset=".5" stop-color="#f7dfc0"/><stop offset="1" stop-color="#cfa77d"/></linearGradient><linearGradient id="iepe" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f7f7f7"/><stop offset=".6" stop-color="#ffffff"/><stop offset="1" stop-color="#d9dadd"/></linearGradient></defs><g transform="rotate(45 10 10)"><rect x="8.1" y="-1.5" width="3.8" height="14" rx=".5" fill="url(#iepb)"/><path d="M8.1 -1.5h3.8v1.4H8.1Z" fill="#c62828"/><path d="M8.1 3.2h3.8" stroke="#c62828" stroke-width=".35"/><path d="M8.1 12.5h3.8l-1.25 4.3h-1.3Z" fill="url(#iepw)"/><path d="M9.35 16.8h1.3l-.1 1.6a.55.55 0 0 1-1.1 0Z" fill="url(#iepe)" stroke="#b9b9bd" stroke-width=".15"/><path d="M8.7 -1v12.6" stroke="#fff" stroke-width=".55" stroke-opacity=".9"/><path d="M11.4 -1v12.6" stroke="#8b929a" stroke-width=".3" stroke-opacity=".6"/></g></svg></button>
@@ -164,10 +167,10 @@
                 </div>
                 <div data-form="text">
                     <h4>글자</h4>
+                    <p class="cad-help"><b>도면을 누르면 그 자리에 입력 상자</b>가 뜹니다. 쓰고 <b>Enter</b> 로 넣고, Esc 로 그만둡니다.<br>글꼴·크기는 위 도구 줄(T 옆)에서 고릅니다. 아래 칸은 점 번호로 넣을 때 씁니다.</p>
                     <div class="cad-row"><label>기준점<input type="number" class="pk" id="ftP" min="1"></label>
                         <label class="wide">내용<input id="ftS" maxlength="60" placeholder="예) 진입광장"></label></div>
-                    <div class="cad-row"><label>크기(m)<input type="number" id="ftSize" step="any" min="0"></label>
-                        <label>회전<input type="number" id="ftRot" step="any" value="0"></label>
+                    <div class="cad-row"><label>회전<input type="number" id="ftRot" step="any" value="0"></label>
                         <button type="button" class="cad-go" id="ftGo">넣기</button></div>
                 </div>
                 <div class="cad-editing" id="cadEditing" hidden>
@@ -277,6 +280,13 @@
 .cad-set-sub, .cad-set-lb { font-size: 0.8rem; color: #444; display: inline-flex; align-items: center; gap: 4px; }
 .cad-set select { border: 1px solid #d5ddd9; border-radius: 5px; padding: 2px 4px; font-size: 0.78rem; }
 .cad-set-note { font-size: 0.72rem; color: #888; margin: 4px 0 0; }
+.cad-tools .cad-txt { border: 1px solid #d5ddd9; border-radius: 5px; font-size: 0.74rem; height: 26px; }
+.cad-tools select.cad-txt { padding: 0 2px; }
+.cad-txt-size { display: inline-flex; align-items: center; gap: 2px; padding: 0 5px 0 2px; background: #fff; color: #555; }
+.cad-txt-size input { width: 42px; border: 0; font-size: 0.74rem; outline: none; text-align: right; }
+.cad-txtbox { position: absolute; z-index: 20; transform: translate(-50%, -50%); min-width: 60px; padding: 1px 5px;
+    border: 1.5px solid #c62828; border-radius: 3px; background: rgba(255,255,255,.9); color: #1d1d1d; outline: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15); text-align: center; field-sizing: content; }
 .cad-sep { width: 1px; height: 20px; background: #dde4e0; margin: 0 4px; }
 .cad-chk { display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem; color: #444; cursor: pointer; white-space: nowrap; }
 .cad-body { display: flex; }
@@ -460,7 +470,7 @@ let hover = null;
 let SET = {snap: true, step: '', pts: true, triSize: 12};
 try { Object.assign(SET, JSON.parse(localStorage.getItem('cadSet') || '{}')); } catch (e) {}
 function saveSet() {
-    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.triSize = +$('cadTriSize').value;
+    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.triSize = +$('cadTriSize').value; SET.font = $('ftFont').value;
     try { localStorage.setItem('cadSet', JSON.stringify(SET)); } catch (e) {}
 }
 let barOn = false, barY = null;
@@ -670,9 +680,10 @@ function arcD(x1, y1, x2, y2, r, cw, big) {
     const c = Math.hypot(x2 - x1, y2 - y1), rr = Math.max(+r || 0, c / 2);
     return `M${fmt(x1)} ${fmt(y1)}A${fmt(rr)} ${fmt(rr)} 0 ${big ? 1 : 0} ${cw ? 1 : 0} ${fmt(x2)} ${fmt(y2)}`;
 }
-function textSvg(x, y, s, size, rot, anchor) {
+const FONTS = {gothic: "'Nanum Gothic','Malgun Gothic',sans-serif", myeongjo: "'Nanum Myeongjo','Batang',serif", hand: "'Nanum Pen Script',cursive"};
+function textSvg(x, y, s, size, rot, anchor, font) {
     const tr = +rot ? ` transform="rotate(${fmt(rot)} ${fmt(x)} ${fmt(y)})"` : '';
-    return `<text x="${fmt(x)}" y="${fmt(y)}" font-size="${fmt(size)}" fill="${INK}" text-anchor="${anchor || 'middle'}" dominant-baseline="central" font-weight="600"${tr}>${esc(s)}</text>`;
+    return `<text x="${fmt(x)}" y="${fmt(y)}" font-size="${fmt(font === 'hand' ? size * 1.35 : size)}" fill="${INK}" text-anchor="${anchor || 'middle'}" dominant-baseline="central"${font && FONTS[font] ? ` font-family="${FONTS[font]}"` : ''} font-weight="${font === 'hand' ? 400 : 600}"${tr}>${esc(s)}</text>`;
 }
 function itemSvg(it) {
     const st = () => stAttr(it.ls, it.w, it.fill);
@@ -682,7 +693,7 @@ function itemSvg(it) {
         case 'circle': return `<circle cx="${fmt(it.cx)}" cy="${fmt(it.cy)}" r="${fmt(it.r)}" ${st()}/>`;
         case 'arc': return `<path d="${arcD(it.x1, it.y1, it.x2, it.y2, it.r, it.cw, it.big)}" ${st()}/>`;
         case 'path': return `<path d="${esc(it.d)}" fill="${it.fill || 'none'}" stroke="none"/>`;
-        case 'text': return textSvg(it.x, it.y, it.s, it.size || 1.4, it.rot, it.anchor);
+        case 'text': return textSvg(it.x, it.y, it.s, it.size || 1.4, it.rot, it.anchor, it.font);
         case 'g': return `<g transform="translate(${fmt(it.x)} ${fmt(it.y)}) rotate(${fmt(it.rot || 0)})">${(it.items || []).map(itemSvg).join('')}</g>`;
     }
     return '';
@@ -701,7 +712,7 @@ function opSvg(op) {
     if (op.t === 'sym') { const p = P(op.p), d = doc.syms[op.sym]; if (!p || !d) return '';
         return `<g transform="translate(${fmt(p.x)} ${fmt(p.y)}) rotate(${fmt(op.rot || 0)})">${d.items.map(itemSvg).join('')}</g>`; }
     if (op.t === 'text') { const p = P(op.p); if (!p) return '';
-        return textSvg(p.x, p.y, op.s, op.size, op.rot); }
+        return textSvg(p.x, p.y, op.s, op.size, op.rot, null, op.font); }
     return '';
 }
 const ptsOf = op => op.t === 'circle' ? [op.c] : (op.t === 'sym' || op.t === 'text') ? [op.p] : (op.a != null ? [op.a, op.b] : []);
@@ -924,6 +935,7 @@ function setArcMode(m) {
 }
 const FORM_OF = {line: 'fl', rect: 'fr', circle: 'fc', arc: 'fa'};
 function setTool(t, keepEdit) {
+    if (t !== tool) closeTextBox(true);
     tool = t;
     if (!keepEdit) endEdit();
     root.className = root.className.replace(/\bcad-tool-\S+/g, '').trim() + ' cad-tool-' + t;
@@ -1017,7 +1029,7 @@ function commit(t) {
         const p = num('ftP'), s = $('ftS').value.trim();
         if (!p) { flash('기준점 번호를 넣거나 도면을 누르세요'); return; }
         if (!s) { flash('글자 내용을 적어 주세요'); $('ftS').focus(); return; }
-        op = {t, p, s, size: parseFloat($('ftSize').value) || 1.5 * U, rot: +$('ftRot').value || 0};
+        op = {t, p, s, size: parseFloat($('ftSize').value) || 1.5 * U, rot: +$('ftRot').value || 0, font: $('ftFont').value};
     }
     if (!op) return;
     snapHist();
@@ -1040,6 +1052,39 @@ function commit(t) {
 function pruneSyms() {
     const used = new Set(doc.ops.filter(o => o.t === 'sym').map(o => o.sym));
     Object.keys(doc.syms).forEach(k => { if (!used.has(k)) delete doc.syms[k]; });
+}
+// 글자 — 누른 자리에 입력 상자를 띄우고 Enter 로 넣는다(Esc 그만두기, 다른 곳을 누르면 쓴 것을 넣고 닫는다).
+// 점은 넣을 때 만든다 — 그만두면 빈 점이 남지 않는다
+let txtBox = null;
+function openTextBox(w) {
+    closeTextBox(true);
+    const hp = hitPoint(w), s = hp ? {x: hp.x, y: hp.y} : snapXY(w);
+    const m = svg.getScreenCTM(), st = svg.parentNode.getBoundingClientRect();
+    const sx = m.a * s.x + m.e - st.left, sy = m.d * s.y + m.f - st.top;
+    const el = document.createElement('input');
+    el.className = 'cad-txtbox'; el.maxLength = 60; el.placeholder = '글자 입력 후 Enter';
+    const size = parseFloat($('ftSize').value) || 1.5 * U;
+    el.style.left = sx + 'px'; el.style.top = sy + 'px';
+    el.style.fontSize = Math.max(12, Math.min(48, size * pxPer() * ($('ftFont').value === 'hand' ? 1.35 : 1))) + 'px';
+    el.style.fontFamily = FONTS[$('ftFont').value] || '';
+    svg.parentNode.appendChild(el);
+    txtBox = {el, w: s, hp};
+    el.addEventListener('keydown', e => {
+        e.stopPropagation();
+        if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); closeTextBox(true); }
+        if (e.key === 'Escape') { e.preventDefault(); closeTextBox(false); }
+    });
+    el.addEventListener('blur', () => setTimeout(() => { if (txtBox && txtBox.el === el) closeTextBox(true); }, 0));
+    setTimeout(() => el.focus(), 0);
+    gPre.innerHTML = `<circle cx="${fmt(s.x)}" cy="${fmt(s.y)}" r="${fmt(0.35 * U)}" fill="${RED}"/>`;
+}
+function closeTextBox(keep) {
+    if (!txtBox) return;
+    const {el, w, hp} = txtBox, v = el.value.trim();
+    txtBox = null; el.remove();
+    if (!keep || !v) { drawPre(); return; }
+    $('ftP').value = hp ? hp.n : pointAt(w); $('ftS').value = v;
+    commit('text'); $('ftS').value = '';
 }
 function onCanvasClick(w, e, tgt) {
     if (tool === 'select') {
@@ -1076,6 +1121,7 @@ function onCanvasClick(w, e, tgt) {
         if (rc) { $('faC').value = ''; commitFillet(rc); return; }
         flash('두 선이 만나는 모서리 점을 누르세요'); return;
     }
+    if (tool === 'text' && !editing) { openTextBox(w); return; }
     const n = pointAt(w);
     $(f[pickIdx]).value = n;
     if (tool === 'sym' || tool === 'text') { commit(tool); return; }
@@ -1397,7 +1443,7 @@ function editOp(id) {
     if (op.t === 'arc') { setArcMode('pts'); $('faDir').value = op.dir; $('faR').value = op.r || ''; $('faBig').checked = !!op.big; }
     if (op.t === 'circle') { $('fcC').value = op.c; $('fcMode').value = op.mode; $('fcV').value = op.v; fcTyped = true; }
     if (op.t === 'sym') { $('fsP').value = op.p; ensureSymOption(op.sym); $('fsSym').value = op.sym; setRot(op.rot || 0); }
-    if (op.t === 'text') { $('ftP').value = op.p; $('ftS').value = op.s; $('ftSize').value = op.size; $('ftRot').value = op.rot || 0; }
+    if (op.t === 'text') { $('ftP').value = op.p; $('ftS').value = op.s; $('ftSize').value = op.size; $('ftRot').value = op.rot || 0; $('ftFont').value = op.font || 'gothic'; }
     $('cadEditing').hidden = false; $('cadEditName').textContent = desc(op);
     document.querySelectorAll('#cadForm .cad-go').forEach(b => { b.dataset.l = b.dataset.l || b.textContent; b.textContent = '고치기'; });
     selOps = new Set([id]); pickIdx = 0; renderAll();
@@ -1463,7 +1509,7 @@ function opToItem(op, bx, by) {
         case 'rect': return {t: 'rect', x: Math.min(a.x, b.x) - bx, y: Math.min(a.y, b.y) - by, rw: Math.abs(b.x - a.x), rh: Math.abs(b.y - a.y), ...L};
         case 'circle': { const c = P(op.c); return {t: 'circle', cx: c.x - bx, cy: c.y - by, r: radiusOf(op), ...L}; }
         case 'arc': return {t: 'arc', x1: a.x - bx, y1: a.y - by, x2: b.x - bx, y2: b.y - by, r: op.r, cw: op.dir === 'cw', big: op.big, ...L};
-        case 'text': { const p = P(op.p); return {t: 'text', x: p.x - bx, y: p.y - by, s: op.s, size: op.size, rot: op.rot}; }
+        case 'text': { const p = P(op.p); return {t: 'text', x: p.x - bx, y: p.y - by, s: op.s, size: op.size, rot: op.rot, font: op.font}; }
         case 'sym': { const p = P(op.p), d = doc.syms[op.sym]; return {t: 'g', x: p.x - bx, y: p.y - by, rot: op.rot || 0, items: clone(d.items)}; }
     }
     return null;
@@ -1919,7 +1965,8 @@ function triSizeNote() {                // 종이 위 길이 — 도면 축척�
     const el = $('cadTriSizeNote'); if (!el || !sheet) return;
     const d = scaleDenom(); el.textContent = d ? `= 도면 ${fmt(+$('cadTriSize').value * d / 100)}m` : '';
 }
-['cadSnap', 'cadSnapStep', 'cadShowPts'].forEach(id => $(id).addEventListener('change', saveSet));
+['cadSnap', 'cadSnapStep', 'cadShowPts', 'ftFont'].forEach(id => $(id).addEventListener('change', saveSet));
+if (SET.font) $('ftFont').value = SET.font;
 $('cadSetBtn').addEventListener('click', e => {
     e.stopPropagation(); const on = $('cadSet').hidden;
     $('cadSet').hidden = !on; $('cadSetBtn').classList.toggle('on', on); $('cadSetBtn').setAttribute('aria-expanded', on);
