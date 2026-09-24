@@ -1877,9 +1877,13 @@ $('cadPtList').addEventListener('click', e => {
     const row = e.target.closest('.cad-pt'); if (!row || row.classList.contains('head')) return;
     const n = +row.dataset.n;
     if (e.target.closest('button')) {
+        // 쓰는 객체가 있으면 함께 지울지 묻는다 — 상태줄 알림만 띄우면 단추가 먹통처럼 보였다
         const u = usedBy(n);
-        if (u) { flash(`P${n} 는 객체 ${u}개가 쓰고 있어 지울 수 없습니다`); return; }
-        snapHist(); doc.pts = doc.pts.filter(p => p.n !== n); if (selPt === n) selPt = null; changed(); return;
+        if (u && !confirm(`P${n} 를 쓰는 객체 ${u}개(선·원 등)도 함께 지웁니다. 계속할까요?`)) return;
+        snapHist();
+        if (u) doc.ops = doc.ops.filter(op => !ptsOf(op).map(Number).includes(n));
+        doc.pts = doc.pts.filter(p => p.n !== n); if (selPt === n) selPt = null;
+        pruneSyms(); changed(); flash(`P${n}` + (u ? ` 과 객체 ${u}개를` : '를') + ' 지웠습니다 (Ctrl+Z 로 되돌리기)'); return;
     }
     if (selPt !== n) { selPt = n; drawPts(); row.parentNode.querySelectorAll('.cad-pt').forEach(r => r.classList.toggle('on', r === row)); }
 });
