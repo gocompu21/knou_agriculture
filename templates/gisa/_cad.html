@@ -152,6 +152,8 @@
                 <div id="cadOpList" class="cad-list"></div>
             </div>
             <div class="cad-pane" data-ppane="pts">
+                <div class="cad-row"><span class="cad-help">번호 칸을 고치면 그 점을 쓰는 선·원·기호가 모두 새 번호를 따릅니다.</span>
+                    <button type="button" class="cad-b" id="cadRenum" title="작도 순서에 처음 나오는 차례로 1, 2, 3 …">번호 다시 매기기</button></div>
                 <div id="cadPtList" class="cad-list"></div>
             </div>
             <div class="cad-pane" data-ppane="lib">
@@ -252,8 +254,9 @@
 .cad-op .bt button { border: 0; background: none; cursor: pointer; font-size: 0.78rem; padding: 1px 4px; color: #45524c; border-radius: 4px; }
 .cad-op .bt button:hover { background: #e3ebe7; }
 .cad-op .bt button[data-act=del]:hover { color: #d93025; }
-.cad-pt { display: grid; grid-template-columns: 38px 1fr 1fr 22px; gap: 4px; align-items: center; padding: 2px 0; }
-.cad-pt b { color: #2b4a9b; font-size: 0.82rem; }
+.cad-pt { display: grid; grid-template-columns: 58px 1fr 1fr 22px; gap: 4px; align-items: center; padding: 2px 0; }
+.cad-pt .pn { display: flex; align-items: center; gap: 2px; color: #2b4a9b; font-weight: 700; font-size: 0.82rem; }
+.cad-pt .pn input { color: #2b4a9b; font-weight: 700; padding: 3px 3px; }
 .cad-pt input { border: 1px solid #dde4e0; border-radius: 4px; padding: 3px 5px; font-size: 0.82rem; width: 100%; box-sizing: border-box; }
 .cad-pt.on input { border-color: #d93025; }
 .cad-pt button { border: 0; background: none; color: #b0b8b4; cursor: pointer; }
@@ -555,7 +558,7 @@ function listPts() {
     const pts = doc.pts.slice().sort((a, b) => a.n - b.n);
     $('cadPtList').innerHTML = pts.length
         ? '<div class="cad-pt head"><span>번호</span><span>X</span><span>Y</span><span></span></div>'
-          + pts.map(p => `<div class="cad-pt${selPt === p.n ? ' on' : ''}" data-n="${p.n}"><b>P${p.n}</b>`
+          + pts.map(p => `<div class="cad-pt${selPt === p.n ? ' on' : ''}" data-n="${p.n}"><label class="pn">P<input type="number" min="1" step="1" data-k="n" value="${p.n}"></label>`
             + `<input type="number" step="any" data-k="x" value="${fmt(p.x)}"><input type="number" step="any" data-k="y" value="${fmt(p.y)}">`
             + `<button type="button" title="지우기">✕</button></div>`).join('')
         : '<p class="cad-empty">점이 없습니다. \'점\' 도구로 찍거나, 선을 그을 때 도면을 누르면 생깁니다.</p>';
@@ -860,6 +863,41 @@ function commitFillet(cornerXY) {
     $('faC').value = '';
     changed();
     flash(`P${cn} 모서리를 반지름 ${fmt(r)}m 로 둥글게 했습니다`);
+}
+
+// ── 점 번호 고치기 ───────────────────────────────────────────────────────
+// 객체는 점을 번호로 가리키므로, 번호를 바꾸면 그 번호를 쓰는 곳을 모두 함께 바꾼다.
+const REF_KEYS = ['a', 'b', 'c', 'p', 'fr'];     // 선·사각형·호 a,b · 원 c · 기호·글자 p · 라운드 모서리 fr
+function remapPts(map) {          // map: {옛 번호: 새 번호}
+    const m = k => map[k] != null ? map[k] : k;
+    doc.pts.forEach(p => { p.n = m(p.n); });
+    doc.ops.forEach(op => REF_KEYS.forEach(k => { if (op[k] != null && op.t !== 'step') op[k] = m(+op[k]); }));
+    // 입력칸에 적혀 있던 번호도 따라간다
+    document.querySelectorAll('#cadForm input.pk, #fpN').forEach(i => { if (i.value && map[+i.value] != null) i.value = map[+i.value]; });
+    if (selPt != null) selPt = m(selPt);
+}
+function renumberPt(o, nw) {
+    nw = Math.floor(nw);
+    if (!(nw >= 1)) { flash('번호는 1 이상이어야 합니다'); listPts(); return; }
+    if (nw === o) return;
+    const map = {[o]: nw};
+    if (P(nw)) {
+        if (!confirm(`P${nw} 가 이미 있습니다. P${o} 와 P${nw} 의 번호를 서로 바꿀까요?`)) { listPts(); return; }
+        map[nw] = o;
+    }
+    snapHist(); remapPts(map); changed();
+    flash(map[nw] != null ? `P${o} ↔ P${nw} 번호를 바꿨습니다` : `P${o} → P${nw}`);
+}
+function renumberAll() {          // 작도 순서에 처음 나오는 차례로 1, 2, 3 … 쓰지 않는 점은 그 뒤에
+    const order = [];
+    doc.ops.forEach(op => { if (op.t !== 'step') REF_KEYS.forEach(k => { if (op[k] != null && P(op[k]) && !order.includes(+op[k])) order.push(+op[k]); }); });
+    doc.pts.slice().sort((a, b) => a.n - b.n).forEach(p => { if (!order.includes(p.n)) order.push(p.n); });
+    const map = {}; let moved = 0;
+    order.forEach((n, i) => { map[n] = i + 1; if (n !== i + 1) moved++; });
+    if (!moved) { flash('이미 차례대로 매겨져 있습니다'); return; }
+    if (!confirm(`점 ${moved}개의 번호가 바뀝니다. 작도 순서에 처음 나오는 차례로 다시 매길까요?`)) return;
+    snapHist(); remapPts(map); changed(); fillPointForm();
+    flash(`번호를 1 ~ ${order.length} 로 다시 매겼습니다`);
 }
 
 // ── 선택·고치기 ─────────────────────────────────────────────────────────
@@ -1233,8 +1271,10 @@ $('cadOpList').addEventListener('click', e => {
 $('cadPtList').addEventListener('change', e => {
     const row = e.target.closest('.cad-pt'), k = e.target.dataset.k; if (!row || !k) return;
     const v = parseFloat(e.target.value), p = P(row.dataset.n); if (!p || !isFinite(v)) return;
+    if (k === 'n') { renumberPt(p.n, v); return; }
     snapHist(); p[k] = rnd(v); changed();
 });
+$('cadRenum').addEventListener('click', renumberAll);
 $('cadPtList').addEventListener('click', e => {
     const row = e.target.closest('.cad-pt'); if (!row || row.classList.contains('head')) return;
     const n = +row.dataset.n;
