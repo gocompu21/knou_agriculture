@@ -61,9 +61,11 @@
             <div class="cad-set-row"><span class="cad-set-lb">삼각자 크기</span>
                 <select id="cadTriSize" title="삼각자 크기 — 직각을 낀 긴 변의 실제 길이. 도면 축척으로 환산해 그린다"><option value="9">9cm</option><option value="12">12cm</option><option value="15">15cm</option><option value="18">18cm</option><option value="24">24cm</option><option value="30">30cm</option></select>
                 <span class="cad-set-note" id="cadTriSizeNote"></span></div>
-            <div class="cad-set-row"><span class="cad-set-lb">샤프 선 굵기 <small class="cad-set-note">(종이 위, 축척으로 환산)</small></span></div>
-            <div class="cad-set-row cad-set-in"><label class="cad-set-sub">샤프 0.9 <input type="number" id="cadP9" class="cad-set-num" step="0.05" min="0.05" max="3"> mm</label>
-                <label class="cad-set-sub">샤프 0.5 <input type="number" id="cadP5" class="cad-set-num" step="0.05" min="0.05" max="3"> mm</label></div>
+            <div class="cad-set-row"><span class="cad-set-lb">샤프 선 종류 · 굵기</span><span class="cad-set-note" style="margin:0">(종이 위 mm)</span></div>
+            <div class="cad-set-row cad-set-in"><span class="cad-set-sub cad-set-pen">샤프 0.9</span><select id="cadLs9" class="cad-set-ls"></select>
+                <input type="number" id="cadP9" class="cad-set-num" step="0.05" min="0.05" max="3"><span class="cad-set-sub">mm</span></div>
+            <div class="cad-set-row cad-set-in"><span class="cad-set-sub cad-set-pen">샤프 0.5</span><select id="cadLs5" class="cad-set-ls"></select>
+                <input type="number" id="cadP5" class="cad-set-num" step="0.05" min="0.05" max="3"><span class="cad-set-sub">mm</span></div>
             <div class="cad-set-row"><span class="cad-set-lb">보조선 레이어</span>
                 <label class="cad-chk"><input type="checkbox" id="cadAuxOn" checked> 보이기</label>
                 <label class="cad-set-sub">색 <input type="color" id="cadAuxColor" class="cad-set-color"></label></div>
@@ -291,7 +293,8 @@
 .cad-set-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 5px 0; border-top: 1px solid #f0f3f1; }
 .cad-set-sub, .cad-set-lb { font-size: 0.8rem; color: #444; display: inline-flex; align-items: center; gap: 4px; }
 .cad-set select { border: 1px solid #d5ddd9; border-radius: 5px; padding: 2px 4px; font-size: 0.78rem; }
-.cad-set-in { border-top: 0; padding-top: 0; gap: 14px; }
+.cad-set-in { border-top: 0; padding-top: 0; gap: 6px; flex-wrap: nowrap; }
+.cad-set-pen { width: 52px; }
 .cad-set-num { width: 52px; border: 1px solid #d5ddd9; border-radius: 5px; padding: 2px 4px; font-size: 0.78rem; }
 .cad-set-color { width: 34px; height: 22px; padding: 0 2px; border: 1px solid #d5ddd9; border-radius: 4px; background: #fff; cursor: pointer; }
 #cadAuxBtn:not(.on) { color: #9aa3a0; }
@@ -487,17 +490,17 @@ let tool = 'select', pickIdx = 0, editing = null, selOps = new Set(), selPt = nu
 let hover = null;
 // I자(평행자) — 제도판의 가로자. 켜 두면 윗변(barY) 근처를 누른 점이 그 높이에 붙는다
 // 설정(스냅·간격·점 번호·삼각자 크기) — 도면이 아니라 화면 습관이라 localStorage 에 둔다
-let SET = {snap: true, step: '', pts: true, triSize: 12, p9: 0.7, p5: 0.4, auxOn: true, auxColor: '#a3a9b3'};   // 샤프 굵기는 종이 위 mm
+let SET = {snap: true, step: '', pts: true, triSize: 12, p9: 0.7, p5: 0.4, auxOn: true, auxColor: '#a3a9b3', ls9: 'solid', ls5: 'aux'};   // 샤프마다 선 종류   // 샤프 굵기는 종이 위 mm
 try { Object.assign(SET, JSON.parse(localStorage.getItem('cadSet') || '{}')); } catch (e) {}
 function saveSet() {
-    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.triSize = +$('cadTriSize').value; SET.font = $('ftFont').value; SET.auxOn = $('cadAuxOn').checked; SET.auxColor = $('cadAuxColor').value || SET.auxColor; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
+    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.triSize = +$('cadTriSize').value; SET.font = $('ftFont').value; SET.ls9 = $('cadLs9').value || SET.ls9; SET.ls5 = $('cadLs5').value || SET.ls5; SET.auxOn = $('cadAuxOn').checked; SET.auxColor = $('cadAuxColor').value || SET.auxColor; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
     try { localStorage.setItem('cadSet', JSON.stringify(SET)); } catch (e) {}
 }
 let barOn = false, barY = null;
 try { const b = JSON.parse(localStorage.getItem('cadBar') || 'null'); if (b) { barOn = !!b.on; barY = b.y; } } catch (e) {}
 function saveBar() { try { localStorage.setItem('cadBar', JSON.stringify({on: barOn, y: barY})); } catch (e) {} }
 function strokeStyle() {
-    return tool.startsWith('pen') ? {ls: $('fnLs').value, w: tool === 'pen9' ? 'p9' : 'p5'}
+    return tool.startsWith('pen') ? {ls: SET[tool === 'pen9' ? 'ls9' : 'ls5'] || 'solid', w: tool === 'pen9' ? 'p9' : 'p5'}
                                   : {ls: $('flLs').value, w: $('flW').value};
 }
 function barStep() { return $('cadSnap').checked ? +$('cadSnapStep').value : PREC; }
@@ -705,7 +708,7 @@ function redo() { if (!redoS.length) return; hist.push(JSON.stringify(doc)); doc
 function stAttr(ls, w, fill) {
     const L = LS[ls] || LS.solid;
     // 샤프 선은 설정의 종이 위 mm 를 도면 축척으로 m 로 바꾼다(1:430 에서 0.7mm = 0.3m)
-    const sw = L.w != null ? L.w * U : (w === 'p9' || w === 'p5') ? SET[w] / 1000 * scaleDenom() : (WD[w] || WD.mid).w * U;
+    const sw = (w === 'p9' || w === 'p5') ? SET[w] / 1000 * scaleDenom() : L.w != null ? L.w * U : (WD[w] || WD.mid).w * U;
     let a = `fill="${fill || 'none'}" stroke="${ls === 'aux' ? SET.auxColor : L.color || INK}" stroke-width="${fmt(sw)}" stroke-linecap="round" stroke-linejoin="round"`;
     if (L.dash) a += ` stroke-dasharray="${L.dash.map(d => fmt(d * U)).join(' ')}"`;
     return a;
@@ -1001,6 +1004,7 @@ function setTool(t, keepEdit) {
     document.querySelectorAll('#cadForm [data-form]').forEach(f => f.classList.toggle('on', f.dataset.form === form));
     if (form === 'pen') {
         $('fnName').textContent = t === 'pen9' ? '0.9mm (굵은 선)' : '0.5mm (가는 선)';
+        if (typeof syncPenLs === 'function' && $('fnLs').options.length) $('fnLs').value = SET[t === 'pen9' ? 'ls9' : 'ls5'];
         if (!barOn) { barOn = true; drawBar(); saveBar(); }
     }
     pickIdx = 0; fcTyped = false;
@@ -2048,6 +2052,10 @@ function triSizeNote() {                // 종이 위 길이 — 도면 축척�
 if (SET.font) $('ftFont').value = SET.font;
 ['ftFont', 'ftDir', 'ftSize'].forEach(id => $(id).addEventListener('input', () => { if (txtBox) { drawTextPre(); } }));
 $('cadP9').value = SET.p9; $('cadP5').value = SET.p5;
+// 샤프 선 종류 — 설정 창과 오른쪽 샤프 칸(fnLs)이 같은 값을 본다
+['cadLs9', 'cadLs5'].forEach(id => { $(id).innerHTML = Object.entries(LS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join(''); $(id).value = SET[id === 'cadLs9' ? 'ls9' : 'ls5']; $(id).addEventListener('change', () => { saveSet(); syncPenLs(); }); });
+function syncPenLs() { if (tool.startsWith('pen')) $('fnLs').value = SET[tool === 'pen9' ? 'ls9' : 'ls5']; }
+$('fnLs').addEventListener('change', () => { if (!tool.startsWith('pen')) return; const k = tool === 'pen9' ? 'Ls9' : 'Ls5'; $('cad' + k).value = $('fnLs').value; saveSet(); });
 $('cadAuxColor').value = SET.auxColor; $('cadAuxOn').checked = SET.auxOn !== false;
 $('cadAuxBtn').classList.toggle('on', SET.auxOn !== false); root.classList.toggle('aux-off', SET.auxOn === false);
 $('cadAuxBtn').addEventListener('click', () => { setAux(!SET.auxOn); flash(SET.auxOn ? '보조선을 보입니다' : '보조선을 감췄습니다 — 지우개·선택도 건드리지 않습니다'); });
