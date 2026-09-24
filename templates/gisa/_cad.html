@@ -1041,7 +1041,7 @@ function opSvg(op) {
                 for (let c = y0 - x1 + st / 2; c < y1 - x0; c += st) dd += `M${fmt(x0)} ${fmt(x0 + c)}L${fmt(x1)} ${fmt(x1 + c)}`;
             }
             return clip
-                + `<path d="${dd}" clip-path="url(#${id})" stroke="${op.color}" stroke-opacity="${Math.max(fo, 0.85)}" stroke-width="${fmt(Math.min(0.14 * U, g * 0.2))}" fill="none"/>`;   // 좁은 면은 간격이 좁아 선을 가늘게(간격의 1/5 이하) — 면처럼 뭉치지 않게
+                + `<path d="${dd}" clip-path="url(#${id})" stroke="${op.color}" stroke-opacity="${Math.max(fo, 0.85)}" stroke-width="${fmt(k === 'x' ? Math.min(0.07 * U, g * 0.1) : Math.min(0.14 * U, g * 0.2))}" fill="none"/>`;   // X자는 두 겹이라 절반 굵기   // 좁은 면은 간격이 좁아 선을 가늘게(간격의 1/5 이하) — 면처럼 뭉치지 않게
         }
         return `<path d="${op.d}" fill="${op.color}" fill-opacity="${fo}" fill-rule="evenodd" stroke="none"/>`;
     }
