@@ -35,6 +35,8 @@
         <button type="button" data-tool="text" title="글자 (T)" aria-label="글자"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4.5h12M10 4.5v12M7.5 16.5h5"/></svg></button>
         <button type="button" data-tool="pen9" class="pen" title="샤프 0.9mm — I자 위에서 오른쪽 버튼을 누른 채 끌면 굵은 선 (9)" aria-label="샤프 0.9mm"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.2 2.6l4.2 4.2-8.9 8.9-4.2-4.2Z" class="pb"/><path d="M11.4 4.4l4.2 4.2" /><path d="M4.3 11.5l4.2 4.2-2.3 1.2-3.1-3.1Z" class="f"/><path d="M3.1 14.8 1.8 18.2" class="lead"/></svg><b>0.9</b></button>
         <button type="button" data-tool="pen5" class="pen thin" title="샤프 0.5mm — I자 위에서 오른쪽 버튼을 누른 채 끌면 가는 선 (5)" aria-label="샤프 0.5mm"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.2 2.6l4.2 4.2-8.9 8.9-4.2-4.2Z" class="pb"/><path d="M11.4 4.4l4.2 4.2" /><path d="M4.3 11.5l4.2 4.2-2.3 1.2-3.1-3.1Z" class="f"/><path d="M3.1 14.8 1.8 18.2" class="lead"/></svg><b>0.5</b></button>
+        <button type="button" data-tool="erase5" class="er" title="미세 지우개(지우개 연필) — 누른 채 문지르면 지나간 자리만 지웁니다 (W)" aria-label="미세 지우개"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.2 2.6l4.2 4.2-7.6 7.6-4.2-4.2Z" class="eb"/><path d="M5.6 10.2l4.2 4.2-2.1 2.1a1.7 1.7 0 0 1-2.4 0l-1.8-1.8a1.7 1.7 0 0 1 0-2.4Z" class="et"/><path d="M11.4 4.4l4.2 4.2"/></svg></button>
+        <button type="button" data-tool="erase" class="er" title="일반 지우개 — 누른 채 문지르면 넓게 지웁니다 (E)" aria-label="일반 지우개"><svg viewBox="0 0 20 20" aria-hidden="true"><g transform="rotate(-35 10 9.5)"><rect x="2.5" y="6" width="15" height="7.5" rx="1.2" class="et"/><rect x="8" y="6" width="9.5" height="7.5" rx="1" class="es"/></g><path d="M3 18.2h14"/></svg></button>
         <span class="cad-sep"></span>
         <label class="cad-chk" title="F9"><input type="checkbox" id="cadSnap" checked> 스냅</label>
         <select id="cadSnapStep" title="스냅 간격"></select>
@@ -134,6 +136,13 @@
                     <div class="cad-row"><span class="cad-help">도면을 누를 때마다 그 자리에 넣습니다</span>
                         <button type="button" class="cad-go" id="fsGo">넣기</button></div>
                 </div>
+                <div data-form="erase">
+                    <h4 id="feName">지우개</h4>
+                    <p class="cad-help">누른 채 <b>문지르면</b> 지나간 자리가 지워집니다. 선·원·호는 <b>닿은 부분만</b> 지워지고
+                       나머지는 남습니다(선은 둘로 잘리고, 원은 호로 남습니다). 기호·글자는 닿으면 통째로, 지운 자리의
+                       빈 점도 함께 지워집니다. 한 번 문지른 것은 <b>Ctrl+Z</b> 한 번으로 되돌립니다.<br>
+                       지우개 크기는 종이에 대한 실제 크기라, 확대하면 더 세밀하게 지울 수 있습니다.</p>
+                </div>
                 <div data-form="pen">
                     <h4>샤프 <span id="fnName">0.9mm</span></h4>
                     <div class="cad-row"><label>선 종류<select class="ls" id="fnLs"></select></label><span></span></div>
@@ -223,14 +232,19 @@
 .cad-tools [data-tool].pen.on svg .pb { fill: #f6c343; }
 .cad-tools [data-tool].pen svg .lead { stroke-width: 2.6; }
 .cad-tools [data-tool].pen.thin svg .lead { stroke-width: 1.3; }
+.cad-tools [data-tool].er svg .eb { fill: #fff; stroke: currentColor; }
+.cad-tools [data-tool].er svg .et { fill: #f4a3b1; stroke: currentColor; }
+.cad-tools [data-tool].er svg .es { fill: #6d9ad6; stroke: currentColor; }
+.cad-tool-erase #cadSvg, .cad-tool-erase5 #cadSvg { cursor: none; }
 .cad-tools select { border: 1px solid #d5ddd9; border-radius: 6px; padding: 4px 6px; font-size: 0.8rem; }
 .cad-tools .cad-bar-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; }
 .cad-bar-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 #cadPre { pointer-events: none; }            /* 커서 십자·미리보기가 밑의 I자·객체 누름을 가로채지 않게 */
-#cadBar .bar-body { cursor: grab; }                 /* 옮길 수 있는 자리 — 편 손 */
+/* 옮길 수 있는 자리 — 편 손(살색, 40px). 그림을 못 읽는 브라우저는 기본 grab */
+#cadBar .bar-body { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect x='3.5' y='17' width='5.4' height='13' rx='2.7' transform='rotate%28-38 6.2 23.5%29' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='9.5' y='6' width='5.6' height='17' rx='2.8' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='15.3' y='2.5' width='5.6' height='20' rx='2.8' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='21.1' y='4' width='5.6' height='19' rx='2.8' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='26.9' y='8.5' width='5.2' height='15' rx='2.6' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Cpath d='M9.5 18.5H32.1V26.5A10 10 0 0 1 22.1 36.5H18A9 9 0 0 1 9.5 29Z' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3C/svg%3E") 20 20, grab; }
 #cadBar .bar-blade { cursor: crosshair; }
 /* 끄는 동안 — 오므린 손. 포인터 캡처 중에는 커서가 svg 를 따르므로 svg 통째로 바꾼다 */
-.cad.bar-drag #cadSvg, .cad.bar-drag #cadSvg * { cursor: grabbing !important; }
+.cad.bar-drag #cadSvg, .cad.bar-drag #cadSvg * { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect x='5' y='19' width='5.4' height='10' rx='2.7' transform='rotate%28-50 7.7 24%29' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='9.5' y='12' width='5.6' height='10' rx='2.8' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='15.3' y='10.5' width='5.6' height='11' rx='2.8' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='21.1' y='11' width='5.6' height='11' rx='2.8' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Crect x='26.9' y='12.5' width='5.2' height='10' rx='2.6' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3Cpath d='M9.5 17.5H32.1V25.5A10 10 0 0 1 22.1 35.5H18A9 9 0 0 1 9.5 28Z' fill='%23f5c9a3' stroke='%238a5a3b' stroke-width='1.3' stroke-linejoin='round'/%3E%3C/svg%3E") 20 20, grabbing !important; }
 .cad-sep { width: 1px; height: 20px; background: #dde4e0; margin: 0 4px; }
 .cad-chk { display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem; color: #444; cursor: pointer; white-space: nowrap; }
 .cad-body { display: flex; }
@@ -420,25 +434,35 @@ function strokeStyle() {
 function barStep() { return $('cadSnap').checked ? +$('cadSnapStep').value : PREC; }
 function setBarY(y) {
     const g = barStep();
-    barY = +(Math.round(Math.max(sheet.y0, Math.min(sheet.y1, y)) / g) * g).toFixed(3);
+    barY = +(Math.round(Math.max(sheet.y0 - barW(), Math.min(sheet.y1, y)) / g) * g).toFixed(3);
     drawBar();
 }
+// 자의 폭 — 윗날에서 아랫날까지. 눈금의 배수로 잡아, 윗날이 눈금 위면 아랫날도 눈금 위에 온다
+function barW() { const mi = sheet.step / 5; return Math.max(2 * mi, Math.round(4 * U / mi) * mi); }
+function barEdges() { return [barY, +(barY + barW()).toFixed(3)]; }
+function nearEdge(y, px) {        // y 에서 px 화면 픽셀 안에 있는 날 — 가까운 쪽
+    if (!barOn || barY == null) return null;
+    const k = pxPer(), e = barEdges().map(v => ({v, d: Math.abs(y - v) * k})).sort((a, b) => a.d - b.d)[0];
+    return e.d < px ? e.v : null;
+}
 function drawBar() {
-    // 실물 I자 — 알루미늄 몸통(불투명)과 양 끝 고정 블록, 긋는 쪽에만 투명 아크릴 날이 나와 있다.
-    // 날의 윗변(barY)이 긋는 기준선이다. 몸통은 밑의 도면을 가린다(실물처럼).
+    // 실물 I자 — 알루미늄 몸통(불투명)과 양 끝 고정 블록, **위아래 양쪽**에 투명 아크릴 날이 나와 있다.
+    // 두 날의 바깥 변(barY, barY + 폭)이 긋는 기준선이다. 몸통은 밑의 도면을 가린다(실물처럼).
     const g = $('cadBar');
     $('cadBarBtn').classList.toggle('on', barOn);
     if (!barOn || !sheet) { g.innerHTML = ''; return; }
-    if (barY == null || barY < sheet.y0 || barY > sheet.y1) barY = Math.round((sheet.y0 + sheet.y1) / 2);
+    const W = barW();
+    if (barY == null || barY < sheet.y0 - W || barY > sheet.y1) barY = Math.round((sheet.y0 + sheet.y1) / 2);
     const s = sheet, y = barY, x0 = s.x0 - 4 * U, x1 = s.x1 + 4 * U;
-    const bl = 0.9 * U, by = y + bl, bh = 2.6 * U, cw = 2.8 * U, f = v => fmt(v);
+    const bl = W * 0.2, by = y + bl, bh = W * 0.6, y2 = y + W, cw = 2.8 * U, f = v => fmt(v);
     let o = `<defs><linearGradient id="cadAl" x1="0" y1="0" x2="0" y2="1">`
         + `<stop offset="0" stop-color="#eef1f3"/><stop offset=".18" stop-color="#d5dade"/><stop offset=".55" stop-color="#c3c9ce"/>`
         + `<stop offset=".82" stop-color="#b1b8be"/><stop offset="1" stop-color="#9aa2a9"/></linearGradient>`
         + `<linearGradient id="cadBlk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#454a52"/><stop offset="1" stop-color="#1f2328"/></linearGradient></defs>`;
-    // 투명 날 — 여기를 따라 끌면 선이 그어진다
-    o += `<g class="bar-blade"><rect x="${f(x0 + cw)}" y="${f(y)}" width="${f(x1 - x0 - 2 * cw)}" height="${f(bl + 0.1 * U)}" fill="rgba(200,232,244,.38)" stroke="rgba(90,140,175,.55)" stroke-width="${f(0.05 * U)}"/>`
-        + `<path d="M${f(x0 + cw)} ${f(y)}H${f(x1 - cw)}" stroke="#4d86b5" stroke-width="${f(0.07 * U)}"/></g>`;
+    // 투명 날 둘 — 따라 끌면 선이 그어진다(윗날은 윗변, 아랫날은 아랫변)
+    const blade = (ty, ey) => `<g class="bar-blade"><rect x="${f(x0 + cw)}" y="${f(ty)}" width="${f(x1 - x0 - 2 * cw)}" height="${f(bl)}" fill="rgba(200,232,244,.38)" stroke="rgba(90,140,175,.55)" stroke-width="${f(0.05 * U)}"/>`
+        + `<path d="M${f(x0 + cw)} ${f(ey)}H${f(x1 - cw)}" stroke="#4d86b5" stroke-width="${f(0.07 * U)}"/></g>`;
+    o += blade(y, y) + blade(by + bh, y2);
     // 알루미늄 몸통 + 홈
     o += `<g class="bar-body"><rect x="${f(x0)}" y="${f(by)}" width="${f(x1 - x0)}" height="${f(bh)}" rx="${f(0.2 * U)}" fill="url(#cadAl)" stroke="#88919a" stroke-width="${f(0.06 * U)}"/>`;
     [0.22, 0.4, 0.6, 0.78].forEach(k => {
@@ -447,18 +471,18 @@ function drawBar() {
     });
     // 이름표·조임 나사
     const lx = x0 + (x1 - x0) * 0.62;
-    o += `<rect x="${f(lx)}" y="${f(by + bh * 0.3)}" width="${f(5 * U)}" height="${f(bh * 0.36)}" rx="${f(0.1 * U)}" fill="#16181b"/>`
-       + `<rect x="${f(lx + 0.25 * U)}" y="${f(by + bh * 0.36)}" width="${f(0.6 * U)}" height="${f(bh * 0.24)}" fill="#c62828"/>`
-       + `<text x="${f(lx + 1.1 * U)}" y="${f(by + bh * 0.48)}" font-size="${f(0.7 * U)}" fill="#fff" font-weight="700" dominant-baseline="central" font-style="italic">I-BAR</text>`;
+    o += `<rect x="${f(lx)}" y="${f(by + bh * 0.3)}" width="${f(5 * U)}" height="${f(bh * 0.4)}" rx="${f(0.1 * U)}" fill="#16181b"/>`
+       + `<rect x="${f(lx + 0.25 * U)}" y="${f(by + bh * 0.37)}" width="${f(0.6 * U)}" height="${f(bh * 0.26)}" fill="#c62828"/>`
+       + `<text x="${f(lx + 1.1 * U)}" y="${f(by + bh * 0.5)}" font-size="${f(0.7 * U)}" fill="#fff" font-weight="700" dominant-baseline="central" font-style="italic">I-BAR</text>`;
     const kx = x0 + cw + 3.2 * U, ky = by + bh * 0.5;
     o += `<circle cx="${f(kx)}" cy="${f(ky)}" r="${f(0.55 * U)}" fill="#a9b0b6" stroke="#5f666d" stroke-width="${f(0.08 * U)}"/>`
        + `<circle cx="${f(kx)}" cy="${f(ky)}" r="${f(0.22 * U)}" fill="#6b7279"/>`;
-    // 지금 높이
-    o += `<text x="${f(kx + 1.4 * U)}" y="${f(ky)}" font-size="${f(1.05 * U)}" fill="#26303a" font-weight="700" dominant-baseline="central">Y ${fmt(y)}</text></g>`;
+    // 지금 높이 — 윗날 · 아랫날
+    o += `<text x="${f(kx + 1.4 * U)}" y="${f(ky)}" font-size="${f(1.05 * U)}" fill="#26303a" font-weight="700" dominant-baseline="central">Y ${fmt(y)} · ${fmt(y2)}</text></g>`;
     // 양 끝 고정 블록
     [x0, x1 - cw].forEach(bx => {
-        o += `<g class="bar-body"><rect x="${f(bx)}" y="${f(y - 0.35 * U)}" width="${f(cw)}" height="${f(bl + bh + 0.75 * U)}" rx="${f(0.35 * U)}" fill="url(#cadBlk)"/>`
-           + [0.3, 0.72].map(k => `<circle cx="${f(bx + cw / 2)}" cy="${f(y + (bl + bh) * k)}" r="${f(0.28 * U)}" fill="#7a8088" stroke="#15181b" stroke-width="${f(0.06 * U)}"/>`).join('')
+        o += `<g class="bar-body"><rect x="${f(bx)}" y="${f(y - 0.35 * U)}" width="${f(cw)}" height="${f(W + 0.7 * U)}" rx="${f(0.35 * U)}" fill="url(#cadBlk)"/>`
+           + [0.28, 0.72].map(k => `<circle cx="${f(bx + cw / 2)}" cy="${f(y + W * k)}" r="${f(0.28 * U)}" fill="#7a8088" stroke="#15181b" stroke-width="${f(0.06 * U)}"/>`).join('')
            + '</g>';
     });
     g.innerHTML = o;
@@ -582,6 +606,10 @@ function drawPts() {
 function drawPre() {
     let o = '';
     const h = hover;
+    if (h && h.w && tool.startsWith('erase')) {
+        gPre.innerHTML = `<circle cx="${fmt(h.w.x)}" cy="${fmt(h.w.y)}" r="${fmt(eraserR())}" fill="rgba(244,163,177,.25)" stroke="#c2185b" stroke-width="${fmt(0.08 * U)}"/>`;
+        return;
+    }
     if (h && tool !== 'select') {
         const hp = h.pt ? P(h.pt) : null, x = hp ? hp.x : h.x, y = hp ? hp.y : h.y, k = 0.8 * U;
         const f = picksOf(tool) || [], A = f[0] ? P($(f[0]).value) : null;
@@ -697,7 +725,7 @@ function snapXY(w) {
     let r;
     if ($('cadSnap').checked) { const g = +$('cadSnapStep').value; r = {x: rnd(Math.round(w.x / g) * g), y: rnd(Math.round(w.y / g) * g)}; }
     else r = {x: rnd(w.x), y: rnd(w.y)};
-    if (barOn && barY != null && Math.abs(w.y - barY) * pxPer() < (tool.startsWith('pen') ? 40 : 16)) r.y = barY;   // I자 윗변에 붙는다
+    const ey = nearEdge(w.y, tool.startsWith('pen') ? 40 : 16); if (ey != null) r.y = ey;   // I자 날(위·아래)에 붙는다
     return r;
 }
 function hitPoint(w) {
@@ -714,6 +742,7 @@ function status() {
 function hintText() {
     const f = picksOf(tool);
     if (tool === 'point') return ' · 도면을 누르면 점이 생깁니다';
+    if (tool.startsWith('erase')) return ' · 누른 채 문지르면 지워집니다';
     if (tool.startsWith('pen')) return ' · I자 위에서 오른쪽 버튼을 누른 채 끌면 선이 그어집니다';
     if (tool === 'select') return ' · 빈 곳을 끌어 영역 선택 · 오른쪽 버튼으로 끌면 화면 이동';
     if (!f) return '';
@@ -738,7 +767,8 @@ function setTool(t, keepEdit) {
     if (!keepEdit) endEdit();
     root.className = root.className.replace(/\bcad-tool-\S+/g, '').trim() + ' cad-tool-' + t;
     document.querySelectorAll('#cadTools [data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === t));
-    const form = t.startsWith('pen') ? 'pen' : t;
+    const form = t.startsWith('pen') ? 'pen' : t.startsWith('erase') ? 'erase' : t;
+    if (form === 'erase') $('feName').textContent = t === 'erase5' ? '미세 지우개 (지우개 연필)' : '일반 지우개';
     document.querySelectorAll('#cadForm [data-form]').forEach(f => f.classList.toggle('on', f.dataset.form === form));
     if (form === 'pen') {
         $('fnName').textContent = t === 'pen9' ? '0.9mm (굵은 선)' : '0.5mm (가는 선)';
@@ -1010,6 +1040,92 @@ function renumberAll() {          // 작도 순서에 처음 나오는 차례로
     if (!confirm(`점 ${moved}개의 번호가 바뀝니다. 작도 순서에 처음 나오는 차례로 다시 매길까요?`)) return;
     snapHist(); remapPts(map); changed(); fillPointForm();
     flash(`번호를 1 ~ ${order.length} 로 다시 매겼습니다`);
+}
+
+// ── 지우개 ──────────────────────────────────────────────────────────────
+// 문지른 자리(반지름 r 의 원판)에 닿은 부분만 지운다 — 선은 잘리고, 원·호는 호로 남는다.
+// 기호·글자는 쪼갤 수 없어 닿으면 통째로 지운다. 크기는 종이에 대한 실제 크기(U 배)라
+// 확대하면 더 세밀하게 지울 수 있다(실물 지우개처럼).
+const TAU = Math.PI * 2;
+const modT = v => ((v % TAU) + TAU) % TAU;
+function eraserR() { return (tool === 'erase5' ? 0.6 : 2.2) * U; }
+function segDist(c, a, b) {
+    const dx = b.x - a.x, dy = b.y - a.y, L2 = dx * dx + dy * dy;
+    const t = L2 ? Math.max(0, Math.min(1, ((c.x - a.x) * dx + (c.y - a.y) * dy) / L2)) : 0;
+    return Math.hypot(a.x + dx * t - c.x, a.y + dy * t - c.y);
+}
+function arcGeom(a, b, r, cw, big) {   // SVG 호(두 끝점·반지름·방향·큰 호) → 중심·시작각·펼친 각
+    const chord = Math.hypot(b.x - a.x, b.y - a.y);
+    if (!chord) return null;
+    const R = Math.max(+r || 0, chord / 2), k = Math.sqrt(Math.max(0, R * R - chord * chord / 4));
+    const sign = !!big !== !!cw ? 1 : -1;               // SVG 명세: fA ≠ fS 면 +
+    const cx = (a.x + b.x) / 2 + sign * k * (a.y - b.y) / chord, cy = (a.y + b.y) / 2 + sign * k * (b.x - a.x) / chord;
+    const t1 = Math.atan2(a.y - cy, a.x - cx), t2 = Math.atan2(b.y - cy, b.x - cx), sgn = cw ? 1 : -1;
+    return {cx, cy, R, th0: t1, span: modT(sgn * (t2 - t1)) || TAU, sgn};
+}
+function cutLine(op, C, r) {
+    const A = P(op.a), B = P(op.b); if (!A || !B) return null;
+    const dx = B.x - A.x, dy = B.y - A.y, a = dx * dx + dy * dy; if (!a) return null;
+    const fx = A.x - C.x, fy = A.y - C.y, b = 2 * (fx * dx + fy * dy), c = fx * fx + fy * fy - r * r;
+    const disc = b * b - 4 * a * c; if (disc <= 0) return null;
+    const sq = Math.sqrt(disc), t1 = (-b - sq) / (2 * a), t2 = (-b + sq) / (2 * a);
+    if (t2 <= 0 || t1 >= 1) return null;
+    const minT = 0.05 * U / Math.sqrt(a), out = [];
+    const at = t => addPt(A.x + dx * t, A.y + dy * t);
+    if (t1 > minT) out.push({...op, b: at(t1)});
+    if (t2 < 1 - minT) out.push({...op, id: out.length ? doc.seq++ : op.id, a: at(t2)});
+    return out;
+}
+function cutArc(op, C, r) {
+    let g;
+    if (op.t === 'circle') { const c = P(op.c); if (!c) return null; g = {cx: c.x, cy: c.y, R: radiusOf(op)}; }
+    else { const a = P(op.a), b = P(op.b); if (!a || !b) return null; g = arcGeom(a, b, op.r, op.dir === 'cw', op.big); if (!g) return null; }
+    const d = Math.hypot(C.x - g.cx, C.y - g.cy);
+    if (d + g.R <= r) return [];                               // 원판 안에 통째로 들었다
+    if (d > g.R + r || d < g.R - r) return null;                // 둘레가 원판에 닿지 않는다
+    const phi = Math.atan2(C.y - g.cy, C.x - g.cx);
+    const al = Math.acos(Math.max(-1, Math.min(1, (g.R * g.R + d * d - r * r) / (2 * g.R * d))));
+    let kept;
+    if (op.t === 'circle') { g.th0 = phi + al; g.sgn = 1; kept = [[0, TAU - 2 * al]]; }
+    else {
+        const s0 = modT(g.sgn * (phi - g.th0)), cuts = [-TAU, 0, TAU].map(k => [s0 - al + k, s0 + al + k])
+            .filter(([u, v]) => v > 0 && u < g.span).sort((p, q) => p[0] - q[0]);
+        if (!cuts.length) return null;
+        kept = []; let from = 0;
+        cuts.forEach(([u, v]) => { if (u > from) kept.push([from, u]); from = Math.max(from, v); });
+        if (from < g.span) kept.push([from, g.span]);
+    }
+    const pt = s => { const t = g.th0 + g.sgn * s; return addPt(g.cx + g.R * Math.cos(t), g.cy + g.R * Math.sin(t)); };
+    const base = {t: 'arc', ls: op.ls, w: op.w, dir: g.sgn > 0 ? 'cw' : 'ccw', r: +g.R.toFixed(3)};
+    return kept.filter(([u, v]) => (v - u) * g.R > 0.05 * U)
+        .map(([u, v], i) => ({...base, id: i ? doc.seq++ : op.id, a: pt(u), b: pt(v), big: v - u > Math.PI}));
+}
+function touchBox(op, C, r) {
+    const el = gOps.querySelector(`:scope > g[data-op="${op.id}"]`);
+    let b; try { b = el && el.getBBox(); } catch (e) { b = null; }
+    if (!b) return false;
+    const nx = Math.max(b.x, Math.min(C.x, b.x + b.width)), ny = Math.max(b.y, Math.min(C.y, b.y + b.height));
+    return Math.hypot(nx - C.x, ny - C.y) < r;
+}
+function eraseAt(C, r) {
+    let hit = false;
+    doc.ops.filter(op => op.t === 'rect').forEach(op => {       // 사각형은 네 선으로 풀어 한 변만 지울 수 있게
+        const a = P(op.a), b = P(op.b); if (!a || !b) return;
+        const q = [a, {x: b.x, y: a.y}, b, {x: a.x, y: b.y}];
+        if (q.some((u, i) => segDist(C, u, q[(i + 1) % 4]) < r)) explodeRect(op);
+    });
+    const out = [];
+    doc.ops.forEach(op => {
+        let pcs = null;
+        if (op.t === 'line') pcs = cutLine(op, C, r);
+        else if (op.t === 'circle' || op.t === 'arc') pcs = cutArc(op, C, r);
+        else if ((op.t === 'sym' || op.t === 'text') && touchBox(op, C, r)) pcs = [];
+        if (pcs) { hit = true; out.push(...pcs); } else out.push(op);
+    });
+    if (hit) { doc.ops = out; pruneSyms(); }
+    const n = doc.pts.length;                                   // 지운 자리에 남은 빈 점
+    doc.pts = doc.pts.filter(p => Math.hypot(p.x - C.x, p.y - C.y) >= r || usedBy(p.n));
+    return hit || doc.pts.length !== n;
 }
 
 // ── 선택·고치기 ─────────────────────────────────────────────────────────
@@ -1299,15 +1415,26 @@ svg.addEventListener('pointerdown', e => {
     if (e.button === 1 || spaceDown) { drag = {kind: 'pan', lx: e.clientX, ly: e.clientY, moved: true}; e.preventDefault(); return; }
     // 샤프를 든 동안에는 끌어도 화면이 움직이지 않는다 — 날이 얇아 조금만 빗나가도 화면이 밀렸다.
     // 몸통을 왼쪽으로 끌면 자를 옮기고, 날 근처(위아래 40px)에서 끌면 어느 버튼이든 날을 따라 긋는다
+    if (tool.startsWith('erase') && e.button === 0) {
+        const w = toWorld(e);
+        if (barOn && e.target.closest && e.target.closest('#cadBar .bar-body')) {   // 자 몸통은 지우개로도 옮긴다
+            drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return;
+        }
+        snapHist();
+        drag = {kind: 'erase', last: {x: w.x, y: w.y}, hit: false};
+        if (eraseAt(w, eraserR())) { drag.hit = true; drawOps(); drawPts(); }
+        return;
+    }
     if (tool.startsWith('pen') && (e.button === 0 || e.button === 2)) {
         const w = toWorld(e), onBar = e.target.closest && e.target.closest('#cadBar');
         if (e.button === 0 && onBar && e.target.closest('.bar-body')) {
             drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return;
         }
-        if (barOn && (onBar || Math.abs(w.y - barY) * pxPer() < 40)) {
+        const ey = nearEdge(w.y, onBar ? 1e9 : 40);
+        if (ey != null) {
             const hp = hitPoint(w);
-            drag = {kind: 'pencil', right: true, sx: e.clientX, sy: e.clientY, moved: false, target: e.target,
-                    x0: hp && Math.abs(hp.y - barY) < 1e-6 ? hp.x : snapXY(w).x};
+            drag = {kind: 'pencil', right: true, ey, sx: e.clientX, sy: e.clientY, moved: false, target: e.target,
+                    x0: hp && Math.abs(hp.y - ey) < 1e-6 ? hp.x : snapXY(w).x};
             return;
         }
         drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: false};
@@ -1320,8 +1447,8 @@ svg.addEventListener('pointerdown', e => {
         if (hp) { drag = {kind: 'pt', n: hp.n, sx: e.clientX, sy: e.clientY, moved: false, saved: false}; return; } }
     if (barOn && e.target.closest && e.target.closest('#cadBar')) {
         if (e.target.closest('.bar-blade')) {         // 투명 날 — 따라 끌면 연필로 긋듯 수평선
-            const hp = hitPoint(w);
-            drag = {kind: 'pencil', sx: e.clientX, sy: e.clientY, x0: hp && Math.abs(hp.y - barY) < 1e-6 ? hp.x : snapXY(w).x, moved: false, target: e.target};
+            const hp = hitPoint(w), ey = nearEdge(w.y, 1e9);
+            drag = {kind: 'pencil', ey, sx: e.clientX, sy: e.clientY, x0: hp && Math.abs(hp.y - ey) < 1e-6 ? hp.x : snapXY(w).x, moved: false, target: e.target};
         } else {                                       // 몸통 — 위아래로만 옮긴다
             drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false};
         }
@@ -1344,6 +1471,15 @@ svg.addEventListener('pointermove', e => {
         drag.lx = e.clientX; drag.ly = e.clientY;
         return;
     }
+    if (drag && drag.kind === 'erase') {
+        const r = eraserR(), a = drag.last, L = Math.hypot(w.x - a.x, w.y - a.y), n = Math.max(1, Math.ceil(L / (r * 0.5)));
+        let hit = false;
+        for (let i = 1; i <= n; i++) hit = eraseAt({x: a.x + (w.x - a.x) * i / n, y: a.y + (w.y - a.y) * i / n}, r) || hit;
+        drag.last = {x: w.x, y: w.y};
+        if (hit) { drag.hit = true; drawOps(); drawPts(); }
+        hover = {x: w.x, y: w.y, pt: null, w: {x: w.x, y: w.y}}; drawPre();
+        return;
+    }
     if (drag && drag.kind === 'nop') {
         if (!drag.warned && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 6) {
             drag.warned = true;
@@ -1354,11 +1490,11 @@ svg.addEventListener('pointermove', e => {
     if (drag && drag.kind === 'pencil') {
         if (!drag.moved && Math.abs(e.clientX - drag.sx) > 5) drag.moved = true;
         if (drag.moved) {
-            const hp = hitPoint(w), x = hp && Math.abs(hp.y - barY) < 1e-6 ? hp.x : snapXY(w).x;
+            const hp = hitPoint(w), ey = drag.ey, x = hp && Math.abs(hp.y - ey) < 1e-6 ? hp.x : snapXY(w).x;
             drag.x1 = x;
-            gPre.innerHTML = `<path d="M${fmt(drag.x0)} ${fmt(barY)}H${fmt(x)}" ${stAttr(strokeStyle().ls, strokeStyle().w)}/>`
-                + `<text x="${fmt(x)}" y="${fmt(barY - 1.2 * U)}" font-size="${fmt(1.1 * U)}" fill="${RED}" text-anchor="middle" font-weight="700">${fmt(Math.abs(x - drag.x0))}m</text>`;
-            hover = {x, y: barY, pt: null}; status();
+            gPre.innerHTML = `<path d="M${fmt(drag.x0)} ${fmt(ey)}H${fmt(x)}" ${stAttr(strokeStyle().ls, strokeStyle().w)}/>`
+                + `<text x="${fmt(x)}" y="${fmt(ey - 1.2 * U)}" font-size="${fmt(1.1 * U)}" fill="${RED}" text-anchor="middle" font-weight="700">${fmt(Math.abs(x - drag.x0))}m</text>`;
+            hover = {x, y: ey, pt: null}; status();
         }
         return;
     }
@@ -1400,13 +1536,14 @@ function endPtr(e) {
     drag = null;
     root.classList.remove('bar-drag');            // 취소돼도 오므린 손이 남지 않게
     if (e.type === 'pointercancel') return;
+    if (d.kind === 'erase') { if (d.hit) changed(); else hist.pop(); return; }   // 아무것도 안 지웠으면 되돌리기 칸을 도로 뺀다
     if (d.kind === 'bar') { root.classList.remove('bar-drag'); if (d.moved) saveBar(); return; }   // 몸통은 불투명 — 눌러도 점이 찍히지 않는다
     if (d.kind === 'pencil') {
         gPre.innerHTML = '';
         if (!d.moved) { if (!d.right) onCanvasClick(toWorld(e), e, d.target); return; }   // 날은 투명 — 그냥 누르면 평소 누름
         if (d.x1 == null || Math.abs(d.x1 - d.x0) < 1e-6) return;
         snapHist();
-        const a = addPt(d.x0, barY), b = addPt(d.x1, barY);
+        const a = addPt(d.x0, d.ey), b = addPt(d.x1, d.ey);
         doc.ops.push({id: doc.seq++, t: 'line', a, b, ...strokeStyle()});
         changed(); flash(`I자를 따라 P${a} → P${b} (${fmt(Math.abs(d.x1 - d.x0))}m) 를 그었습니다`);
         return;
@@ -1575,7 +1712,7 @@ document.addEventListener('keydown', e => {
     if (barOn && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         e.preventDefault(); setBarY(barY + (e.key === 'ArrowUp' ? -1 : 1) * barStep() * (e.shiftKey ? 5 : 1)); saveBar(); return;
     }
-    const map = {v: 'select', p: 'point', l: 'line', r: 'rect', c: 'circle', a: 'arc', b: 'sym', t: 'text', 9: 'pen9', 5: 'pen5'};
+    const map = {v: 'select', p: 'point', l: 'line', r: 'rect', c: 'circle', a: 'arc', b: 'sym', t: 'text', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
     if (map[k]) setTool(map[k]);
     if (k === '+' || k === '=') zoomCenter(1.4);
     if (k === '-') zoomCenter(1 / 1.4);
