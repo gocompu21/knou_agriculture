@@ -98,6 +98,11 @@
                 </div>
                 <div data-form="arc">
                     <h4>호 그리기</h4>
+                    <div class="cad-seg" id="faMode">
+                        <button type="button" class="on" data-m="pts">두 점 호</button>
+                        <button type="button" data-m="fillet">모서리 라운드</button>
+                    </div>
+                    <div class="fa-pts">
                     <div class="cad-row"><label>시작<input type="number" class="pk" id="faA" min="1"></label>
                         <label>종료<input type="number" class="pk" id="faB" min="1"></label></div>
                     <div class="cad-row"><label>방향<select id="faDir"><option value="ccw">반시계</option><option value="cw">시계</option></select></label>
@@ -105,6 +110,13 @@
                         <label class="cad-chk"><input type="checkbox" id="faBig"> 큰 호</label></div>
                     <div class="cad-row"><label>선 종류<select class="ls" id="faLs"></select></label>
                         <label>굵기<select class="wd" id="faW"></select></label></div>
+                    </div>
+                    <div class="fa-fil" hidden>
+                    <div class="cad-row"><label>모서리 점<input type="number" class="pk" id="faC" min="1"></label>
+                        <label>반지름(m)<input type="number" id="faFr" step="any" min="0" value="3"></label></div>
+                    <p class="cad-help">두 선(또는 사각형)이 만나는 모서리 점을 누르면 그 모서리를 반지름만큼 둥글게 깎습니다.
+                       선은 접점까지 잘리고, 호는 그 선의 선 종류·굵기를 따릅니다.</p>
+                    </div>
                     <div class="cad-row"><span></span><button type="button" class="cad-go" id="faGo">그리기</button></div>
                 </div>
                 <div data-form="sym">
@@ -211,6 +223,10 @@
 .cad-row input[type=checkbox] { width: auto; }
 .cad-row input[type=range] { padding: 0; }
 .cad-row input.await { border-color: #d93025; box-shadow: 0 0 0 2px rgba(217,48,37,.18); }
+.cad-seg { display: inline-flex; border: 1px solid #cfd8d3; border-radius: 7px; overflow: hidden; margin-bottom: 8px; }
+.cad-seg button { border: 0; background: #fff; padding: 5px 12px; font-size: 0.8rem; font-weight: 600; color: #66736d; cursor: pointer; }
+.cad-seg button + button { border-left: 1px solid #cfd8d3; }
+.cad-seg button.on { background: #1b4332; color: #fff; }
 .cad-go { background: #2d6a4f; color: #fff; border: 0; border-radius: 6px; padding: 7px 16px; font-weight: 700; font-size: 0.84rem; cursor: pointer; }
 .cad-go:hover { background: #1b4332; }
 .cad-help { font-size: 0.74rem; color: #7a8a82; line-height: 1.5; margin: 0; }
@@ -463,7 +479,7 @@ function drawOps() {
 }
 function activePts() {
     const on = new Set(); if (selPt) on.add(selPt);
-    const f = PICKS[tool] || [];
+    const f = picksOf(tool) || [];
     f.forEach(id => { const v = +$(id).value; if (v) on.add(v); });
     return on;
 }
@@ -477,12 +493,19 @@ function drawPre() {
     const h = hover;
     if (h && tool !== 'select') {
         const hp = h.pt ? P(h.pt) : null, x = hp ? hp.x : h.x, y = hp ? hp.y : h.y, k = 0.8 * U;
-        const f = PICKS[tool] || [], A = f[0] ? P($(f[0]).value) : null;
+        const f = picksOf(tool) || [], A = f[0] ? P($(f[0]).value) : null;
         const pre = `stroke="${RED}" stroke-width="${fmt(0.1 * U)}" fill="none" stroke-dasharray="${fmt(0.5 * U)} ${fmt(0.3 * U)}"`;
         if ((tool === 'line' || tool === 'rect' || tool === 'arc') && pickIdx === 1 && A) {
             if (tool === 'line') o += `<path d="M${fmt(A.x)} ${fmt(A.y)}L${fmt(x)} ${fmt(y)}" ${pre}/>`;
             if (tool === 'rect') o += `<path d="M${fmt(A.x)} ${fmt(A.y)}H${fmt(x)}V${fmt(y)}H${fmt(A.x)}Z" ${pre}/>`;
-            if (tool === 'arc') o += `<path d="${arcD(A.x, A.y, x, y, $('faR').value, $('faDir').value === 'cw', $('faBig').checked)}" ${pre}/>`;
+            if (tool === 'arc' && arcMode === 'pts') o += `<path d="${arcD(A.x, A.y, x, y, $('faR').value, $('faDir').value === 'cw', $('faBig').checked)}" ${pre}/>`;
+        }
+        const rc = tool === 'arc' && arcMode === 'fillet' && !hp && h.w ? rectCornerNear(h.w) : null;
+        if (rc) o += `<circle cx="${fmt(rc.x)}" cy="${fmt(rc.y)}" r="${fmt(0.9 * U)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.14 * U)}"/>`;
+        if (tool === 'arc' && arcMode === 'fillet' && (hp || rc)) {
+            const g = filletGeom(hp || rc, parseFloat($('faFr').value));
+            if (g.ok) o += `<path d="${arcD(g.t1.x, g.t1.y, g.t2.x, g.t2.y, g.r, g.cw, false)}" ${pre}/>`
+                + [g.t1, g.t2].map(t => `<circle cx="${fmt(t.x)}" cy="${fmt(t.y)}" r="${fmt(0.3 * U)}" fill="${RED}"/>`).join('');
         }
         if (tool === 'circle' && pickIdx === 1 && A) o += `<circle cx="${fmt(A.x)}" cy="${fmt(A.y)}" r="${fmt(Math.hypot(x - A.x, y - A.y))}" ${pre}/>`;
         if (tool === 'sym') { const d = symOf($('fsSym').value);
@@ -506,7 +529,8 @@ function desc(op) {
             const sz = a && b ? ` (${fmt(Math.abs(b.x - a.x))}×${fmt(Math.abs(b.y - a.y))}m)` : '';
             return `사각형 ${ptxt(op.a)} ~ ${ptxt(op.b)}${sz} · ${lsTxt(op)}`; }
         case 'circle': return `원 중심 ${ptxt(op.c)} · ${op.mode === 'd' ? '지름' : '반지름'} ${fmt(op.v)}m · ${lsTxt(op)}`;
-        case 'arc': return `호 ${ptxt(op.a)} → ${ptxt(op.b)} · ${op.dir === 'cw' ? '시계' : '반시계'} · ${+op.r ? '반지름 ' + fmt(op.r) + 'm' : '반원'}${op.big ? ' · 큰 호' : ''} · ${lsTxt(op)}`;
+        case 'arc': if (op.fr) return `라운드 · 모서리 P${op.fr} · 반지름 ${fmt(op.r)}m (${ptxt(op.a)} → ${ptxt(op.b)}) · ${lsTxt(op)}`;
+            return `호 ${ptxt(op.a)} → ${ptxt(op.b)} · ${op.dir === 'cw' ? '시계' : '반시계'} · ${+op.r ? '반지름 ' + fmt(op.r) + 'm' : '반원'}${op.big ? ' · 큰 호' : ''} · ${lsTxt(op)}`;
         case 'sym': { const d = doc.syms[op.sym];
             return `${d ? d.name : '(없는 기호)'} · 기준점 ${ptxt(op.p)}${+op.rot ? ' · 회전 ' + fmt(op.rot) + '°' : ''}`; }
         case 'text': return `글자 "${op.s}" · ${ptxt(op.p)}`;
@@ -591,16 +615,25 @@ function status() {
     $('cadHint').textContent = `확대 ${z}% · 스냅 ${$('cadSnap').checked ? $('cadSnapStep').value + 'm' : '끔'}` + hintText();
 }
 function hintText() {
-    const f = PICKS[tool];
+    const f = picksOf(tool);
     if (tool === 'point') return ' · 도면을 누르면 점이 생깁니다';
     if (tool === 'select') return ' · 빈 곳을 끌면 화면 이동, 휠로 확대';
     if (!f) return '';
-    const names = {line: ['시작점', '종료점'], rect: ['모서리 1', '모서리 2'], arc: ['시작점', '종료점'], circle: ['중심', '크기'], sym: ['기준점'], text: ['기준점']}[tool];
+    const names = {line: ['시작점', '종료점'], rect: ['모서리 1', '모서리 2'], arc: arcMode === 'fillet' ? ['모서리 점'] : ['시작점', '종료점'], circle: ['중심', '크기'], sym: ['기준점'], text: ['기준점']}[tool];
     return ` · ${names[Math.min(pickIdx, names.length - 1)]}을(를) 누르세요 · 우클릭/Esc 취소`;
 }
 
 // ── 도구 ────────────────────────────────────────────────────────────────
 const PICKS = {line: ['flA', 'flB'], rect: ['frA', 'frB'], arc: ['faA', 'faB'], circle: ['fcC'], sym: ['fsP'], text: ['ftP']};
+let arcMode = 'pts';                              // 호 도구 — 'pts' 두 점 호 · 'fillet' 모서리 라운드
+const picksOf = t => t === 'arc' && arcMode === 'fillet' ? ['faC'] : PICKS[t];
+function setArcMode(m) {
+    arcMode = m;
+    document.querySelectorAll('#faMode [data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+    document.querySelector('.fa-pts').hidden = m !== 'pts';
+    document.querySelector('.fa-fil').hidden = m !== 'fillet';
+    pickIdx = 0; renderAll(); status();
+}
 const FORM_OF = {line: 'fl', rect: 'fr', circle: 'fc', arc: 'fa'};
 function setTool(t, keepEdit) {
     tool = t;
@@ -615,12 +648,12 @@ function setTool(t, keepEdit) {
 }
 function markAwait() {
     document.querySelectorAll('#cadForm input.await').forEach(i => i.classList.remove('await'));
-    const f = PICKS[tool];
+    const f = picksOf(tool);
     if (f && f[pickIdx]) $(f[pickIdx]).classList.add('await');
     if (tool === 'circle' && pickIdx === 1) $('fcV').classList.add('await');
 }
 function resetPick() {
-    const f = PICKS[tool];
+    const f = picksOf(tool);
     if (f && !editing) f.forEach(id => { if (tool !== 'sym' && tool !== 'text') $(id).value = ''; });
     pickIdx = 0; renderAll(); status();
 }
@@ -660,6 +693,7 @@ function commit(t) {
     let op = null;
     const f = FORM_OF[t];
     if (t === 'point') return commitPoint();
+    if (t === 'arc' && arcMode === 'fillet' && !editing) return commitFillet();
     if (t === 'line' || t === 'rect' || t === 'arc') {
         const a = num(f + 'A'), b = num(f + 'B');
         if (!a || !b) { flash('두 점의 번호를 넣어 주세요(있는 점이어야 합니다)'); return; }
@@ -697,7 +731,7 @@ function commit(t) {
     // 다음 입력 준비 — 선은 끝점에서 이어 긋는다
     if (t === 'line' && $('flChain').checked) { $('flA').value = op.b; $('flB').value = ''; pickIdx = 1; }
     else if (t === 'sym' || t === 'text') pickIdx = 0;
-    else { (PICKS[t] || []).forEach(id => $(id).value = ''); if (t === 'circle') $('fcV').value = ''; pickIdx = 0; }
+    else { (picksOf(t) || []).forEach(id => $(id).value = ''); if (t === 'circle') $('fcV').value = ''; pickIdx = 0; }
     changed();
 }
 function pruneSyms() {
@@ -721,7 +755,7 @@ function onCanvasClick(w, e, tgt) {
         if ($('fpAuto').checked) commitPoint(); else pointGoLabel();
         return;
     }
-    const f = PICKS[tool];
+    const f = picksOf(tool);
     if (!f) return;
     if (tool === 'circle' && pickIdx === 1) {     // 두 번째 누름 = 크기
         const c = P($('fcC').value); if (!c) { pickIdx = 0; return; }
@@ -730,6 +764,12 @@ function onCanvasClick(w, e, tgt) {
         if ($('fcMode').value === 'd') r *= 2;
         $('fcV').value = fmt(rnd(r));
         commit('circle'); return;
+    }
+    if (tool === 'arc' && arcMode === 'fillet') {          // 모서리는 이미 있는 점이어야 한다
+        const hp = hitPoint(w), rc = hp ? null : rectCornerNear(w);
+        if (hp) { $('faC').value = hp.n; commitFillet(); return; }
+        if (rc) { $('faC').value = ''; commitFillet(rc); return; }
+        flash('두 선이 만나는 모서리 점을 누르세요'); return;
     }
     const n = pointAt(w);
     $(f[pickIdx]).value = n;
@@ -740,6 +780,86 @@ function onCanvasClick(w, e, tgt) {
         commit(tool); return;
     }
     renderAll(); status();
+}
+
+// ── 모서리 라운드(필렛) ──────────────────────────────────────────────────
+// 모서리 점을 지나는 두 선을 접점까지 자르고 그 사이에 접하는 호를 넣는다. AutoCAD 의
+// FILLET 처럼 결과는 보통 선·호로 남는다(모서리 점을 나중에 옮겨도 호는 따라가지 않는다).
+const same = (p, q) => Math.abs(p.x - q.x) < 1e-6 && Math.abs(p.y - q.y) < 1e-6;
+function cornerSegs(C) {          // 모서리 자리(좌표)를 지나는 선분 — 선은 반대쪽 끝점, 사각형은 이웃 두 꼭짓점
+    const segs = [];
+    doc.ops.forEach(op => {
+        if (op.t === 'line') {
+            const a = P(op.a), b = P(op.b); if (!a || !b) return;
+            if (same(a, C)) segs.push({op, o: b, end: 'a'});
+            else if (same(b, C)) segs.push({op, o: a, end: 'b'});
+        }
+        if (op.t === 'rect') {
+            const a = P(op.a), b = P(op.b); if (!a || !b) return;
+            const cs = [[a.x, a.y], [b.x, a.y], [b.x, b.y], [a.x, b.y]];
+            const i = cs.findIndex(c => Math.abs(c[0] - C.x) < 1e-6 && Math.abs(c[1] - C.y) < 1e-6);
+            if (i >= 0) [cs[(i + 1) % 4], cs[(i + 3) % 4]].forEach(c => segs.push({op, o: {x: c[0], y: c[1]}, rect: true}));
+        }
+    });
+    return segs;
+}
+function filletGeom(C, r) {       // C = 모서리 자리 {x, y}
+    if (!C) return {err: '없는 점입니다'};
+    if (!(r > 0)) return {err: '반지름을 넣어 주세요'};
+    const segs = cornerSegs(C);
+    if (segs.length !== 2) return {err: `(${fmt(C.x)}, ${fmt(C.y)}) 에서 만나는 선이 ${segs.length}개입니다 — 두 선이 만나는 모서리여야 합니다`};
+    const [L1, L2] = segs.map(s => Math.hypot(s.o.x - C.x, s.o.y - C.y));
+    if (!L1 || !L2) return {err: '길이가 0 인 선이 있습니다'};
+    const u = {x: (segs[0].o.x - C.x) / L1, y: (segs[0].o.y - C.y) / L1};
+    const v = {x: (segs[1].o.x - C.x) / L2, y: (segs[1].o.y - C.y) / L2};
+    const th = Math.acos(Math.max(-1, Math.min(1, u.x * v.x + u.y * v.y)));
+    if (th < 1e-3 || Math.PI - th < 1e-3) return {err: '두 선이 한 줄로 이어져 있어 둥글게 할 모서리가 없습니다'};
+    const d = r / Math.tan(th / 2);                    // 모서리에서 접점까지
+    if (d > Math.min(L1, L2) + 1e-9) return {err: `반지름이 너무 큽니다 — 이 모서리는 최대 ${fmt(Math.min(L1, L2) * Math.tan(th / 2))}m 입니다`};
+    const t1 = {x: C.x + u.x * d, y: C.y + u.y * d}, t2 = {x: C.x + v.x * d, y: C.y + v.y * d};
+    const bl = Math.hypot(u.x + v.x, u.y + v.y), h = r / Math.sin(th / 2);
+    const O = {x: C.x + (u.x + v.x) / bl * h, y: C.y + (u.y + v.y) / bl * h};
+    const cw = (t1.x - O.x) * (t2.y - O.y) - (t1.y - O.y) * (t2.x - O.x) > 0;    // y 가 아래로라 양수 = 시계
+    return {ok: true, C, segs, t1, t2, r, cw};
+}
+function addPt(x, y) {            // 그 자리에 점이 있으면 그 점, 없으면 새 점 (계산한 자리라 0.001m 까지 둔다)
+    const same = doc.pts.find(p => Math.abs(p.x - x) < 1e-6 && Math.abs(p.y - y) < 1e-6);
+    if (same) return same.n;
+    const n = nextN(); doc.pts.push({n, x: +x.toFixed(3), y: +y.toFixed(3)}); return n;
+}
+function explodeRect(op) {        // 사각형은 한 변만 잘라 낼 수 없어 네 선으로 풀어 둔다
+    const a = P(op.a), b = P(op.b), i = doc.ops.indexOf(op);
+    const ns = [+op.a, addPt(b.x, a.y), +op.b, addPt(a.x, b.y)];
+    doc.ops.splice(i, 1, ...ns.map((k, j) => ({id: doc.seq++, t: 'line', a: k, b: ns[(j + 1) % 4], ls: op.ls, w: op.w})));
+    selOps.delete(op.id);
+}
+function rectCornerNear(w) {      // 사각형은 마주 보는 두 꼭짓점만 점으로 갖는다 — 나머지 둘도 누를 수 있게
+    const lim = 11 / pxPer();
+    for (const op of doc.ops) {
+        if (op.t !== 'rect') continue;
+        const a = P(op.a), b = P(op.b); if (!a || !b) continue;
+        for (const c of [{x: b.x, y: a.y}, {x: a.x, y: b.y}]) if (Math.hypot(c.x - w.x, c.y - w.y) < lim) return c;
+    }
+    return null;
+}
+function commitFillet(cornerXY) {
+    const r = parseFloat($('faFr').value);
+    let cn = num('faC'), C = cornerXY || (cn ? P(cn) : null);
+    if (!C) { flash('모서리 점 번호를 넣거나 도면에서 누르세요'); return; }
+    let g = filletGeom(C, r);
+    if (!g.ok) { flash(g.err); return; }
+    snapHist();
+    [...new Set(g.segs.filter(s => s.rect).map(s => s.op))].forEach(explodeRect);
+    cn = addPt(C.x, C.y);                             // 사각형 꼭짓점이었다면 여기서 번호가 생긴다
+    g = filletGeom(C, r);                             // 이제 둘 다 선이다
+    const n1 = addPt(g.t1.x, g.t1.y), n2 = addPt(g.t2.x, g.t2.y);
+    g.segs.forEach((s, i) => { s.op[s.end] = i ? n2 : n1; });
+    const st = g.segs[0].op;
+    const arc = {id: doc.seq++, t: 'arc', a: n1, b: n2, dir: g.cw ? 'cw' : 'ccw', r: +fmt(r), big: false, ls: st.ls, w: st.w, fr: cn};
+    doc.ops.splice(Math.max(...g.segs.map(s => doc.ops.indexOf(s.op))) + 1, 0, arc);   // 두 선 바로 뒤에
+    $('faC').value = '';
+    changed();
+    flash(`P${cn} 모서리를 반지름 ${fmt(r)}m 로 둥글게 했습니다`);
 }
 
 // ── 선택·고치기 ─────────────────────────────────────────────────────────
@@ -769,7 +889,7 @@ function editOp(id) {
     const f = FORM_OF[op.t];
     if (f) { $(f + 'Ls').value = op.ls || 'solid'; $(f + 'W').value = op.w || 'mid'; }
     if (op.t === 'line' || op.t === 'rect' || op.t === 'arc') { $(f + 'A').value = op.a; $(f + 'B').value = op.b; }
-    if (op.t === 'arc') { $('faDir').value = op.dir; $('faR').value = op.r || ''; $('faBig').checked = !!op.big; }
+    if (op.t === 'arc') { setArcMode('pts'); $('faDir').value = op.dir; $('faR').value = op.r || ''; $('faBig').checked = !!op.big; }
     if (op.t === 'circle') { $('fcC').value = op.c; $('fcMode').value = op.mode; $('fcV').value = op.v; }
     if (op.t === 'sym') { $('fsP').value = op.p; ensureSymOption(op.sym); $('fsSym').value = op.sym; setRot(op.rot || 0); }
     if (op.t === 'text') { $('ftP').value = op.p; $('ftS').value = op.s; $('ftSize').value = op.size; $('ftRot').value = op.rot || 0; }
@@ -1004,7 +1124,7 @@ svg.addEventListener('pointermove', e => {
         return;
     }
     const hp = hitPoint(w), s = snapXY(w);
-    hover = {x: s.x, y: s.y, pt: hp ? hp.n : null};
+    hover = {x: s.x, y: s.y, pt: hp ? hp.n : null, w: {x: w.x, y: w.y}};
     drawPre(); status();
 });
 function endPtr(e) {
@@ -1065,6 +1185,8 @@ $('fpN').addEventListener('input', pointGoLabel);
 $('fpGo').addEventListener('click', () => commit('point'));
 ['fl', 'fr', 'fc', 'fa'].forEach(f => $(f + 'Go').addEventListener('click', () => commit({fl: 'line', fr: 'rect', fc: 'circle', fa: 'arc'}[f])));
 $('fsGo').addEventListener('click', () => commit('sym'));
+document.querySelectorAll('#faMode [data-m]').forEach(b => b.addEventListener('click', () => setArcMode(b.dataset.m)));
+$('faFr').addEventListener('input', drawPre);
 $('ftGo').addEventListener('click', () => commit('text'));
 $('ftSize').addEventListener('input', () => { $('ftSize').dataset.touched = '1'; });
 $('cadEditCancel').addEventListener('click', () => { endEdit(); resetPick(); });
@@ -1073,7 +1195,7 @@ $('fsRotR').addEventListener('input', () => setRot($('fsRotR').value));
 $('fsRot').addEventListener('input', () => setRot($('fsRot').value));
 $('fsSym').addEventListener('change', () => { renderLib(); drawPre(); });
 document.querySelectorAll('#cadForm .pk').forEach(inp => inp.addEventListener('focus', () => {
-    const f = PICKS[tool] || []; const i = f.indexOf(inp.id); if (i >= 0) { pickIdx = i; markAwait(); status(); }
+    const f = picksOf(tool) || []; const i = f.indexOf(inp.id); if (i >= 0) { pickIdx = i; markAwait(); status(); }
 }));
 document.querySelectorAll('#cadForm .pk').forEach(inp => inp.addEventListener('input', () => drawPts()));
 $('cadForm').addEventListener('keydown', e => {
