@@ -497,6 +497,11 @@ function inTri(p, a, b, c) {
     return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
 }
 // 자가 덮은 곳 — I자(몸통·두 날)와 삼각자 아크릴(구멍 빼고). 변 위(자에 대고 그은 선)는 덮인 것으로 치지 않는다
+function onRuler(p) {             // 자 위인가 — 변 위(자에 대고 그은 선)까지 포함
+    if (barOn && barY != null && sheet && p.y >= barY && p.y <= barY + barW()) return true;
+    const G = triGeom();
+    return !!G && inTri(p, G.R, G.T, G.B);
+}
 function covered(p) {
     const e = 1e-3;
     if (barOn && barY != null && sheet && p.y > barY + e && p.y < barY + barW() - e) return true;
@@ -722,6 +727,8 @@ function drawPre() {
     let o = '';
     const h = hover;
     if (h && h.w && tool.startsWith('erase')) {
+        // 자(I자·삼각자) 위는 지워지지 않고 끌면 자가 옮겨지는 곳 — 지우개 원을 감춘다(커서는 손)
+        if (covered(h.w) || onRuler(h.w)) { gPre.innerHTML = ''; return; }
         gPre.innerHTML = `<circle cx="${fmt(h.w.x)}" cy="${fmt(h.w.y)}" r="${fmt(eraserR())}" fill="rgba(244,163,177,.25)" stroke="#c2185b" stroke-width="${fmt(0.08 * U)}"/>`;
         return;
     }
