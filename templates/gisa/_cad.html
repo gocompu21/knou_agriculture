@@ -246,10 +246,9 @@
 .cad-bar-btn svg:not(.real) { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 #cadPre { pointer-events: none; }            /* 커서 십자·미리보기가 밑의 I자·객체 누름을 가로채지 않게 */
 /* 옮길 수 있는 자리 — 편 손(실사 사진, 48px). 그림을 못 읽는 브라우저는 기본 grab */
+#cadTri .tri-rot { cursor: pointer; }
+#cadTri .tri-rot:hover circle { fill: rgba(255,255,255,.7); }
 #cadBar .bar-body, #cadTri .tri-body { cursor: url("data:image/png;base64,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") 24 24, grab; }
-/* 지우개를 든 동안 삼각자 안쪽은 지우개 커서(밑을 지운다), 테두리 근처만 손(잡아 옮긴다) */
-.cad-tool-erase #cadTri .tri-body, .cad-tool-erase5 #cadTri .tri-body { cursor: inherit; }
-.cad.grab-tri #cadSvg, .cad.grab-tri #cadSvg * { cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAPHklEQVR42u1Za2xm1XVd+5z7+u73sP35wdjzIDBAkKeThpA2JIV2lLYJVIlI1I4bFEVtowpRUpVWEKIGqR6rUSqlCSp5NVUjlZK0qHYUBQolKEEYNZQSNMxAamAyT8/YHnv8+vw97r3nufvDHpKmDAPzaP/kSPfH/XHPPWuftfdZax/g5+Pn47wGXayJmZlAhBPjX0ioNPinSaVWnz86/cWdH//EDDODiPhC/EdcvNjsIQJ4daH91Xqt57N9my+7KxbuW3s++MHSyMiI+Ong8eioYB4V/y8AGCAeH5fMTOPj4/J09InG/NN/feeAteJ3Z+aW3cmTi8Za+uXLt9e3T0xMiPHduwUAjI6OChob80RjnpnfNCOCC8BBxsiI23h1DNCePXsIAM/MnBrYfmktMvDUyTKprbLHFpYrAKLvHzmiAfixsTF/7KEHLpMWNSJ64f9sBxggZqaHR29Npx8d/2pr7w+eefkfvvBhAuiDQyclALIiSsGZrKDpU7sMgYyW2msRgICGKARAz9/76ZsD4/6ra9OW/VP333cvADE+vltedACTo6OSiHhz9yW3D6TpH8WV+nVhkD7wjTt/f/CuB3/MAGC4SJ0toIs2mbwF7wx5QAIQq0shA2Dn5N3eUtpsZx6ebv/ybSObR0Ym6I3S6ZwptGvHDgYAz/KdJ2cXHbiiZFiq9CSV90xOTj4MwDtlyDsP1WnDOQ/vrDPaewAYf+YZe+u115YM89a2l4x2QVppNX18vgIgHBkZYQDuYicxNRrL0puG5OYcxSJjkP4FABEAqXSHRRQh7R9AOtCPpKtLRgGdDhptf9u2Ae+z3hBNpKJDKm+0xve+UAAIjkxMiDdS5s83iSk3yvtiFbJpIUoxSUlvBRAC0KGIPIUBomoXomoPdJGJtFaOT39cj+VAIDgVZG3os0CZvDW9sOYAiL0XPQempggAtYvOWqfdQqfZhso6KMfRZmzwnIIoiZIEnsHWeo6iGL3VcuX0HEkcbCrFIYpW06lWA1nWOQUAW7fW5HqdAPP4uOQnnwzOlBPnsQOTAMCdTnGQhYBMIhF29yLtZIO9pVK8nOdZFMtKEEVw1kI445NSSfbWKvVXAYhgS6XeC0q7feQUlOc5AL6buvkEmlg/sEfcRdmBxZcGGAAyrQ/n1iLp7hJU7uJSOd18y69fsxWASOKwRzCDrWY2BQQY/T1dgxvcpnJ39fKkWkPaN4i41oXcunkAPg4Cv2vXLhCBD99/7+/MP/Lg2Avf+OrAxUhiNpIWNQjWOmG9d319fcm7hq/cCUBI4j6rcnil4fIMVimUS6VLTwNI0/RtCCLYIietNbR1ywDczm3bqH9ykp/9/KffnwTJRF//4F+wKr60QU26IACmhoc3xFjY9iTY6oJs1uQ4jnHp0OAuAJIZobMWJs+hV1bA1iGO480A6Ld/5RdrcRLvdAzoIhPWGBjnWgC8SXM/AbC3uFuLMh88MmdNpi47Xd0uqBbyzihV5C5vNUk329RpZaiV4usByMZas8FgWO9hrCHHHoJdFYC88R1X7yyFwSZttGNmYa2GYxQA/Df/7Vl1320f2RanwXUiJU/FcrDaWD4GIDldIM4bwJ49YwwAx7PmSrvdaXnjSbVa1F5b80kp2XzHLTcOnphfnGt3OqAAJNMUjj285xIAuamnekMaSJhO7kzWgcpzKG30RvWhLbXkhkoapMTKkl7B3PL8gY3y/D9odC4ACAARgfcA9OXxyZXCuOPOajABHt5Vy6l4+5ZN7zw2tzAHEgjCgOJaFUGSgohKAEgKcTVkAJPnZNtNKvICC43VxuncSqLo+kAQ1pYX5GKj4fYdnt77ExkGPh8Ar04wd+u1EgBnSk8Zq0EB+bhaRZxW0N9dvebxFw/NqyI3YBZgAgkJkBAAhC2KIccOzjlAQHZ00d5/4PgsAHzghp1prV6/UfQMcFJKg9VW6+DXvvfDKQB+43njANbNxmsfIrcMVhgAK+P2yyhEGIeQQUwUBKiVy8NNkSqVF4tkDRE79t5DSMlJkoQkRE8QxyjXeziulqGsP/n9Hx1eAYA//M1d79+8ZXCbSKsqLpexrOzTSimzoY38m0ridbNBfNq0vMZZ4NtKv9jJFBgkvPNkrEe5VLo8yzLS1s44q+Gcg7MGcRJXiqIgQRQRSYRRyHEUIVP6mFLK1Go1uqS7644oSaHyjBoryzi6sPwcALvxvCEKvbrQ6W//3fZn//GzvTQy4oiIefQn1m/3+IQHwCdONl5qtrKWVVp6p0kp5SuVdMs9t9z0bs/EWhuwd2Qd+ySO+x781B+MOaN7tSrYW0/OGqw1W0cBuC/83geur8ThdZ12ZovVlWhpeVXvOzT7MgCzAeDsO8DM+M4nP17d//XPPUomeGVT2P/SK/d/5d6/vf2jPTQ2xuO71w3H6UT+2vd+sJBrdVQXOdgZBnskaUn+xjuufrBSLV+rjHWCvYjCAEEU09uH3/rRSqXcq61nbbQolEJe6BNpmvqBruotpTRFu7FqTbNJa632kcf3Pj9XrVbdBoX4rACIiFss+paXVn6rkSnZLvRAb1f9z973nhv+4+HRT1wzMjHxk53YtUsAYAgxa50BO8eBDEBC8tatm4NLhoaEkALeWkghIAUhrddNpdblhACIGJ4ZLatnsyxz5TR5r48igJkcexxdWH5CKdihahU/u/gzAhjfvVt+7PNfP/7ysRP3TB8/QbOrmT46M626evquHr7sqse//ee3DdPYGPHoqBi+vZ8BcJqWlAwjFJ0OCAKCGUm1xpWebiRxTGw0BAiBEJBRJMvdXRQFEoEUCKTE8Fvect1ffeR9u/rqPf0QgU1rtaDjrH/u4PHHAViVZf+L/2cEMDIx4Ud27JB//LV/uu9Hx6YfXVudjfLWnGy0lnRPb1/ftoG+B66/ui8de+qp098zsY+CMITXFl4pEEnAM6QMIACwUoCxkCCwsUjSCsIgBIGFcuwvvaT/1l2/9PYHpBQOzkLAy7WsOPTtp/cdKJdhjjUaxc/y//WSmE/19/uhoSF+aurlexZmDzaZnPC6LTuqbTb19V1zx80f+vCeyUlR+fdNAQCoQpMxBgBglIJVar0WEIEZsFrDdNpg58HOgYgghAQ7jzCKEMSRq9bKIQkCG8PWGCysrD6nlDJDtUH/Wvx/3TI6OTlpr7oq8o//cN+RDOJb1nrRaSx7awohymW/fcvQX9583c7uLx367romIiLvGdZZOKvBzsIZA5LBqyCcNTB5BqtyOOvgnQN5hyiKEEQRSSm93CgiuVJYbOcvAjBJGL4mfc56DuzCWywAM7vS/Ob8UgPtTltoXZCB90ODm7bddtN773zssYP0qZtvTuMk3m7hkauM2p0WSEh47yCDGBACxmg4ZuRZE1opkBTwzsJpBfIO7BzCJKEwislZTcZZMLACwPhqbl6LPmcFsGdy0u7YscPf99BTz86srD2kjJXOO0+BED5O3GVbNv3JJz/03s2XbatsHejt3h5GsYu7umhhdgbWOzjPMN4hrFSQWwUPhpABPK1HWcgA3nsYlcM7u95sgoDKcoggAJFwAFyShP61ov+GLOXw8JTDFDD5yuG7+7vKv1rvq3eVfS8Ql7heryc3vmPHl5Skpd7eXmGctbV6PxWdDtZWF1EdGIJqt5CkFaT1Ohw7hGkKzQzHDBkEsIUFOQ/BBsI6eOtgvSHjCKvNVhOAj05JPmdLOTEBN7x7GN997sDM0cW1v1ldXRMq73gPFiaMXF+9+6Z6rfIxR9JHSSrAHvVNQ2h3cmhjwDqHKjIEaRUiECAZrMsK7+BIwDODghDOOcgoQp5nsB6io7Q7udRoAMBJeR4A1kG8ZK644gr3rWee//sDx0/OrC0vSW81iyggpKlDIJ0MA4AEvPMIkwSeAJu3EccxXFHAWAtRqsCzB7GDAKMwGjJKACkhwxDGWuQq5zAtk1Zqde+RmQUAXC4f8+dr6vmaayJ+5fhSYznXDy4vrVCnseyd0QAxERERM4QgWGvWRVtaAluNMEoQhgFskaOdF+AwQRAlCIMQVhdAksIZBc+MdruJuFJlGQbQjJOvHDnRqdVqNDUFPl8AAHY4AHYxzx9ebhd8am5eqE4bYA+wh3MOzB7WaBhVIIxisHdg7yClQBhHcJ01dFpNaA+ALcgpaGNhjYHRCkEcIyyVmZmRKTMDwG/t6sKZSuibAjAxMeF274b/5hPPv9jMiwOnlpbk/OycJ2J4Z1EUOVSRwxgNqxUIDG0MdJFDSAkBIC2XEZOHUgVYBIjCGN5ZGGvAAMIkhXUOTIRWXhwF4MRZbnLelCPbsbiLVlZWiiOzi2PzjTYOHD6CxsoKnDUosg6yTgtF1oJRBazVsMzI22uQQkIIAeccoiRCyA6GIsg4hpQSQRgiLqXw3sMag0IbLK42fwzAFnHsznQGvGkAeyYn7U1XXkmf/84Tj8w3O190EMGhYzMuLwqwNdB5BlVkMEbBagUpJHRegK1FGEjAGQiSCGCQt9fgRQQiIIpiCCnB3sFYG6yute3UwRNTAFyn07EXtDP32MGD5tqhIX/fvzz9mRVl9kOG4ez8kmcApTRFKAMIXndEUkp49lB5B0EcQYp15R3FKQK2KPS6dhJCwlsHo7UXBOrkxfRDz+w7XgV4bm7Onon/52rqPQYHTRvtzguHTt5ROKhCWzo6fQJhIFHr7kEcxwiIAG9BMkCRtwHPEFKAvQcJgVIcwVsFqzXAHkZrKK2ZCVhYbfxQKaU3DQ7S6y3+nPtCe/fute9+9xb+5yef2T99auVzXV1dstEu3MsvH4QgoFStIgxDEHtIKcBuXUjKINjwPgIyjABmkBAgIlhTwDonV9da2Hdg+hEA1uS5eb0KhJ9t072ZMTPT9NcODYmJ/9y3911XX/5rWy/p3XZiftG5vE19fT3rWgYEQQAJIIoSkBAQMoAQAtooKGtRSssgZlirvWeWh06cfO4zD/zrl8vlcr7YanV+yshf8Bsaj8FBAyDff+jYXUuN5lp/vVscnlnAzPHjAHsEYQgpAxADzmqQWJfWnhlgIC6VEQQSQhCECGAZ+NH0/P0AdK1G7kwe4ELf1AcASgCqAMobDVhxzkEBNIA2gBaA/Gz3ZMEFAOAAqA06MoD4dPvxHDt+emPh+vXq/4UEwD8Fgjc4S+cxl9mY66z0AYD/BgdantusNcmBAAAAAElFTkSuQmCC") 24 24, grab !important; }
 /* 끄는 동안 — 오므린 손. 포인터 캡처 중에는 커서가 svg 를 따르므로 svg 통째로 바꾼다 */
 .cad.bar-drag #cadSvg, .cad.bar-drag #cadSvg * { cursor: url("data:image/png;base64,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") 24 24, grabbing !important; }
 .cad-sep { width: 1px; height: 20px; background: #dde4e0; margin: 0 4px; }
@@ -477,8 +476,7 @@ function drawTri() {
     if (G) $('cadTriRot').textContent = tri.alt ? '빗변 60°' : '빗변 30°';
     if (!G) { g.innerHTML = ''; return; }
     const {R, T, B} = G, f = v => fmt(v), cx = (R.x + T.x + B.x) / 3, cy = (R.y + T.y + B.y) / 3;
-    const inn = q => ({x: cx + (q.x - cx) * 0.42, y: cy + (q.y - cy) * 0.42});
-    const [r2, t2, b2] = [R, T, B].map(inn);
+    const [r2, t2, b2] = triHole(G);
     // 가운데 구멍은 뚫려 있다(evenodd) — 구멍으로는 밑의 종이를 누를 수 있다
     let o = `<g class="tri-body"><path d="M${f(R.x)} ${f(R.y)}L${f(T.x)} ${f(T.y)}L${f(B.x)} ${f(B.y)}Z M${f(r2.x)} ${f(r2.y)}L${f(t2.x)} ${f(t2.y)}L${f(b2.x)} ${f(b2.y)}Z" `
         + `fill-rule="evenodd" fill="rgba(215,232,244,.16)" stroke="#8fb0c8" stroke-width="${f(0.07 * U)}" stroke-linejoin="round"/>`;
@@ -486,12 +484,48 @@ function drawTri() {
        + `<path d="M${f(R.x)} ${f(R.y)}L${f(T.x)} ${f(T.y)}L${f(B.x)} ${f(B.y)}Z" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="${f(0.06 * U)}" transform="translate(${f(0.18 * U * (tri.flip ? 1 : -1))} ${f(-0.18 * U)})"/>`;
     const lx = B.x + (R.x - B.x) * 0.28, ly = B.y - 1.2 * U;
     o += `<text x="${f(lx)}" y="${f(ly)}" font-size="${f(1.1 * U)}" fill="#4f7896" font-weight="700" text-anchor="middle" dominant-baseline="central">${G.ang}°</text></g>`;
+    // 가운데 투명 회전 아이콘 — 누르면 시계방향 90°
+    const rr = 1.25 * U;
+    o += `<g class="tri-rot" transform="translate(${f(cx)} ${f(cy)})"><title>삼각자 시계방향 회전</title>`
+        + `<circle r="${f(2.1 * U)}" fill="rgba(255,255,255,.38)" stroke="#6f93ad" stroke-width="${f(0.07 * U)}"/>`
+        + `<path d="M0 ${f(-rr)}A${f(rr)} ${f(rr)} 0 1 1 ${f(-rr)} 0" fill="none" stroke="#3f6a88" stroke-width="${f(0.22 * U)}" stroke-linecap="round"/>`
+        + `<path d="M${f(-rr - 0.55 * U)} ${f(0.05 * U)}L${f(-rr + 0.55 * U)} ${f(0.05 * U)}L${f(-rr)} ${f(-0.7 * U)}Z" fill="#3f6a88"/></g>`;
     g.innerHTML = o;
 }
-function nearTriOutline(w, px) {   // 삼각자 세 변(밑변 포함)까지의 화면 거리가 px 안인가
-    const G = triGeom(); if (!G) return false;
-    const k = pxPer(), q = [G.R, G.T, G.B];
-    return q.some((a, i) => segDist(w, a, q[(i + 1) % 3]) * k < px);
+function triHole(G) {             // 가운데 구멍 — 무게중심 쪽으로 0.42 배
+    const cx = (G.R.x + G.T.x + G.B.x) / 3, cy = (G.R.y + G.T.y + G.B.y) / 3;
+    return [G.R, G.T, G.B].map(q => ({x: cx + (q.x - cx) * 0.42, y: cy + (q.y - cy) * 0.42}));
+}
+function inTri(p, a, b, c) {
+    const sd = (u, v, w) => (u.x - w.x) * (v.y - w.y) - (v.x - w.x) * (u.y - w.y);
+    const d1 = sd(p, a, b), d2 = sd(p, b, c), d3 = sd(p, c, a);
+    return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
+}
+// 자가 덮은 곳 — I자(몸통·두 날)와 삼각자 아크릴(구멍 빼고). 변 위(자에 대고 그은 선)는 덮인 것으로 치지 않는다
+function covered(p) {
+    const e = 1e-3;
+    if (barOn && barY != null && sheet && p.y > barY + e && p.y < barY + barW() - e) return true;
+    const G = triGeom();
+    if (!G) return false;
+    const cx = (G.R.x + G.T.x + G.B.x) / 3, cy = (G.R.y + G.T.y + G.B.y) / 3;
+    const [a, b, c] = [G.R, G.T, G.B].map(q => ({x: cx + (q.x - cx) * 0.998, y: cy + (q.y - cy) * 0.998}));
+    if (!inTri(p, a, b, c)) return false;
+    const h = triHole(G);
+    return !inTri(p, h[0], h[1], h[2]);
+}
+function rotateTri() {            // 가운데 회전 아이콘 — 시계방향 90°. 다시 I자 위에 얹힌다
+    if (!tri || !triGeom()) return;
+    const G0 = triGeom(), cx0 = (G0.R.x + G0.T.x + G0.B.x) / 3;
+    if (tri.kind === '45') tri.flip = !tri.flip;
+    else {  // 90° 돌리면 다른 변으로 눕고(짧은 변↔긴 변), 그다음 방향은 뒤집어 놓아야 얹힌다
+        const seq = [[false, false], [true, true], [true, false], [false, true]];
+        const i = seq.findIndex(([a, f]) => a === !!tri.alt && f === !!tri.flip);
+        [tri.alt, tri.flip] = seq[(i + 1) % 4];
+    }
+    const G = triGeom(), g = barStep();
+    tri.x = +(Math.round((cx0 - (tri.flip ? 1 : -1) * G.base / 3) / g) * g).toFixed(3);   // 무게중심 자리를 지킨다
+    saveTri(); drawTri();
+    flash(`삼각자를 시계방향으로 돌렸습니다 — 빗변 ${triGeom().ang}°`);
 }
 function toggleTri(kind) {
     if (tri && tri.kind === kind && triGeom()) { tri = null; }
@@ -1151,6 +1185,24 @@ function arcGeom(a, b, r, cw, big) {   // SVG 호(두 끝점·반지름·방향�
     const t1 = Math.atan2(a.y - cy, a.x - cx), t2 = Math.atan2(b.y - cy, b.x - cx), sgn = cw ? 1 : -1;
     return {cx, cy, R, th0: t1, span: modT(sgn * (t2 - t1)) || TAU, sgn};
 }
+// [lo, hi] 가운데 자가 덮지 않은 구간들 — 지우개가 실제로 닿는 곳. f(s) → 그 자리의 점
+function freeRuns(lo, hi, len, f) {
+    const n = Math.max(2, Math.ceil(len / (0.03 * U))), step = (hi - lo) / n, runs = [];
+    let st = null;
+    for (let i = 0; i <= n; i++) {
+        const sv = lo + step * i, ok = !covered(f(sv));
+        if (ok && st === null) st = i === 0 ? lo : sv - step / 2;
+        if (!ok && st !== null) { runs.push([st, sv - step / 2]); st = null; }
+    }
+    if (st !== null) runs.push([st, hi]);
+    return runs.filter(([u, v]) => v > u);
+}
+function keptOf(runs, total) {     // 지운 구간들의 여집합
+    const kept = []; let from = 0;
+    runs.slice().sort((a, b) => a[0] - b[0]).forEach(([u, v]) => { if (u > from) kept.push([from, u]); from = Math.max(from, v); });
+    if (from < total) kept.push([from, total]);
+    return kept;
+}
 function cutLine(op, C, r) {
     const A = P(op.a), B = P(op.b); if (!A || !B) return null;
     const dx = B.x - A.x, dy = B.y - A.y, a = dx * dx + dy * dy; if (!a) return null;
@@ -1158,31 +1210,37 @@ function cutLine(op, C, r) {
     const disc = b * b - 4 * a * c; if (disc <= 0) return null;
     const sq = Math.sqrt(disc), t1 = (-b - sq) / (2 * a), t2 = (-b + sq) / (2 * a);
     if (t2 <= 0 || t1 >= 1) return null;
-    const minT = 0.05 * U / Math.sqrt(a), out = [];
-    const at = t => addPt(A.x + dx * t, A.y + dy * t);
-    if (t1 > minT) out.push({...op, b: at(t1)});
-    if (t2 < 1 - minT) out.push({...op, id: out.length ? doc.seq++ : op.id, a: at(t2)});
-    return out;
+    const len = Math.sqrt(a), lo = Math.max(0, t1), hi = Math.min(1, t2);
+    const runs = freeRuns(lo, hi, (hi - lo) * len, t => ({x: A.x + dx * t, y: A.y + dy * t}));
+    if (!runs.length) return null;                              // 자에 덮여 하나도 못 지웠다
+    const minT = 0.05 * U / len, at = t => addPt(A.x + dx * t, A.y + dy * t);
+    return keptOf(runs, 1).filter(([u, v]) => v - u > minT)
+        .map(([u, v], i) => ({...op, id: i ? doc.seq++ : op.id, a: u <= 1e-9 ? op.a : at(u), b: v >= 1 - 1e-9 ? op.b : at(v)}));
 }
 function cutArc(op, C, r) {
     let g;
     if (op.t === 'circle') { const c = P(op.c); if (!c) return null; g = {cx: c.x, cy: c.y, R: radiusOf(op)}; }
     else { const a = P(op.a), b = P(op.b); if (!a || !b) return null; g = arcGeom(a, b, op.r, op.dir === 'cw', op.big); if (!g) return null; }
     const d = Math.hypot(C.x - g.cx, C.y - g.cy);
-    if (d + g.R <= r) return [];                               // 원판 안에 통째로 들었다
-    if (d > g.R + r || d < g.R - r) return null;                // 둘레가 원판에 닿지 않는다
-    const phi = Math.atan2(C.y - g.cy, C.x - g.cx);
-    const al = Math.acos(Math.max(-1, Math.min(1, (g.R * g.R + d * d - r * r) / (2 * g.R * d))));
-    let kept;
-    if (op.t === 'circle') { g.th0 = phi + al; g.sgn = 1; kept = [[0, TAU - 2 * al]]; }
-    else {
-        const s0 = modT(g.sgn * (phi - g.th0)), cuts = [-TAU, 0, TAU].map(k => [s0 - al + k, s0 + al + k])
-            .filter(([u, v]) => v > 0 && u < g.span).sort((p, q) => p[0] - q[0]);
-        if (!cuts.length) return null;
-        kept = []; let from = 0;
-        cuts.forEach(([u, v]) => { if (u > from) kept.push([from, u]); from = Math.max(from, v); });
-        if (from < g.span) kept.push([from, g.span]);
+    let cuts;
+    if (d + g.R <= r) {                                         // 원판 안에 통째로 들었다
+        if (op.t === 'circle') { g.th0 = 0; g.sgn = 1; g.span = TAU; }
+        cuts = [[0, g.span]];
+    } else {
+        if (d > g.R + r || d < g.R - r) return null;            // 둘레가 원판에 닿지 않는다
+        const phi = Math.atan2(C.y - g.cy, C.x - g.cx);
+        const al = Math.acos(Math.max(-1, Math.min(1, (g.R * g.R + d * d - r * r) / (2 * g.R * d))));
+        if (op.t === 'circle') { g.th0 = phi + al; g.sgn = 1; g.span = TAU; cuts = [[TAU - 2 * al, TAU]]; }
+        else {
+            const s0 = modT(g.sgn * (phi - g.th0));
+            cuts = [-TAU, 0, TAU].map(k => [Math.max(0, s0 - al + k), Math.min(g.span, s0 + al + k)]).filter(([u, v]) => v > u);
+            if (!cuts.length) return null;
+        }
     }
+    const at = s => { const t = g.th0 + g.sgn * s; return {x: g.cx + g.R * Math.cos(t), y: g.cy + g.R * Math.sin(t)}; };
+    const runs = [].concat(...cuts.map(([u, v]) => freeRuns(u, v, (v - u) * g.R, at)));
+    if (!runs.length) return null;                              // 자에 덮여 하나도 못 지웠다
+    const kept = keptOf(runs, g.span);
     const pt = s => { const t = g.th0 + g.sgn * s; return addPt(g.cx + g.R * Math.cos(t), g.cy + g.R * Math.sin(t)); };
     const base = {t: 'arc', ls: op.ls, w: op.w, dir: g.sgn > 0 ? 'cw' : 'ccw', r: +g.R.toFixed(3)};
     return kept.filter(([u, v]) => (v - u) * g.R > 0.05 * U)
@@ -1200,19 +1258,19 @@ function eraseAt(C, r) {
     doc.ops.filter(op => op.t === 'rect').forEach(op => {       // 사각형은 네 선으로 풀어 한 변만 지울 수 있게
         const a = P(op.a), b = P(op.b); if (!a || !b) return;
         const q = [a, {x: b.x, y: a.y}, b, {x: a.x, y: b.y}];
-        if (q.some((u, i) => segDist(C, u, q[(i + 1) % 4]) < r)) explodeRect(op);
+        if (q.some((u, i) => segDist(C, u, q[(i + 1) % 4]) < r) && !covered(C)) explodeRect(op);
     });
     const out = [];
     doc.ops.forEach(op => {
         let pcs = null;
         if (op.t === 'line') pcs = cutLine(op, C, r);
         else if (op.t === 'circle' || op.t === 'arc') pcs = cutArc(op, C, r);
-        else if ((op.t === 'sym' || op.t === 'text') && touchBox(op, C, r)) pcs = [];
+        else if ((op.t === 'sym' || op.t === 'text') && !covered(C) && touchBox(op, C, r)) pcs = [];
         if (pcs) { hit = true; out.push(...pcs); } else out.push(op);
     });
     if (hit) { doc.ops = out; pruneSyms(); }
     const n = doc.pts.length;                                   // 지운 자리에 남은 빈 점
-    doc.pts = doc.pts.filter(p => Math.hypot(p.x - C.x, p.y - C.y) >= r || usedBy(p.n));
+    doc.pts = doc.pts.filter(p => Math.hypot(p.x - C.x, p.y - C.y) >= r || covered(p) || usedBy(p.n));
     return hit || doc.pts.length !== n;
 }
 
@@ -1514,16 +1572,17 @@ svg.addEventListener('pointerdown', e => {
     svg.setPointerCapture(e.pointerId);
     ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY});
     if (ptrs.size === 2) { drag = {kind: 'pinch'}; pinchD = 0; return; }
+    if (e.button === 0 && e.target.closest && e.target.closest('#cadTri .tri-rot')) { drag = {kind: 'trirot'}; return; }
     if (e.button === 1 || spaceDown) { drag = {kind: 'pan', lx: e.clientX, ly: e.clientY, moved: true}; e.preventDefault(); return; }
     // 샤프를 든 동안에는 끌어도 화면이 움직이지 않는다 — 날이 얇아 조금만 빗나가도 화면이 밀렸다.
     // 몸통을 왼쪽으로 끌면 자를 옮기고, 날 근처(위아래 40px)에서 끌면 어느 버튼이든 날을 따라 긋는다
     if (tool.startsWith('erase') && e.button === 0) {
         const w = toWorld(e);
-        if (barOn && e.target.closest && e.target.closest('#cadBar .bar-body')) {   // 자 몸통은 지우개로도 옮긴다
+        if (barOn && e.target.closest && e.target.closest('#cadBar')) {   // 자(몸통·날)는 지우개로 누르면 옮긴다
             drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return;
         }
-        // 삼각자 안쪽은 그대로 지우고, 테두리(12px 안)를 잡으면 옮긴다 — 안쪽까지 옮기기로 잡으면 밑의 선이 안 지워진다
-        if (nearTriOutline(w, 12)) { startTriDrag(e, w); return; }
+        // 자가 덮은 곳은 지워지지 않는다 — 삼각자를 누르면 옮긴다(가운데 구멍은 종이라 지운다)
+        if (e.target.closest && e.target.closest('#cadTri .tri-body')) { startTriDrag(e, w); return; }
         snapHist();
         drag = {kind: 'erase', last: {x: w.x, y: w.y}, hit: false};
         if (eraseAt(w, eraserR())) { drag.hit = true; drawOps(); drawPts(); }
@@ -1641,7 +1700,6 @@ svg.addEventListener('pointermove', e => {
         }
         return;
     }
-    root.classList.toggle('grab-tri', tool.startsWith('erase') && nearTriOutline(w, 12));
     const hp = hitPoint(w), s = snapXY(w);
     hover = {x: s.x, y: s.y, pt: hp ? hp.n : null, w: {x: w.x, y: w.y}};
     if (tool === 'circle' && pickIdx === 1 && !fcTyped) liveRadius();
@@ -1655,6 +1713,7 @@ function endPtr(e) {
     drag = null;
     root.classList.remove('bar-drag');            // 취소돼도 오므린 손이 남지 않게
     if (e.type === 'pointercancel') return;
+    if (d.kind === 'trirot') { rotateTri(); return; }
     if (d.kind === 'erase') { if (d.hit) changed(); else hist.pop(); return; }   // 아무것도 안 지웠으면 되돌리기 칸을 도로 뺀다
     if (d.kind === 'bar') { root.classList.remove('bar-drag'); if (d.moved) saveBar(); return; }   // 몸통은 불투명 — 눌러도 점이 찍히지 않는다
     if (d.kind === 'pencil') {
