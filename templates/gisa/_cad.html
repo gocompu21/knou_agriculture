@@ -88,7 +88,7 @@
             <div class="cad-set-row cad-set-in"><span class="cad-set-sub cad-set-pen">샤프 0.5</span><select id="cadLs5" class="cad-set-ls"></select>
                 <input type="number" id="cadP5" class="cad-set-num" step="0.05" min="0.05" max="3"><span class="cad-set-sub">mm</span></div>
             <div class="cad-set-row"><span class="cad-set-lb">채우기 유형</span>
-                <select id="cadFillType" class="cad-set-ls"><option value="solid">전체 채우기</option><option value="h">수평선 채우기</option><option value="v">수직선 채우기</option></select></div>
+                <select id="cadFillType" class="cad-set-ls"><option value="solid">전체 채우기</option><option value="h">수평선 채우기</option><option value="v">수직선 채우기</option><option value="d">사선 채우기</option><option value="x">X자 채우기</option><option value="dot">점 채우기</option></select></div>
             <div class="cad-set-row"><span class="cad-set-lb">채우기 색</span>
                 <input type="color" id="cadFillColor" class="cad-set-color"><label class="cad-set-sub">진하기 <input type="range" id="cadFillOp" min="0.15" max="1" step="0.05" style="width:90px"></label></div>
             <div class="cad-set-row"><span class="cad-set-lb">보조선 레이어</span>
@@ -209,7 +209,7 @@
                 </div>
                 <div data-form="fill">
                     <h4>도형 채우기</h4>
-                    <p class="cad-help">선·원·호로 <b>둘러싸인 면의 안쪽</b>을 누르면 설정(⚙)의 채우기 유형(전체·수평선·수직선)과 색으로 칠합니다. 선 간격은 면 크기에 맞춰 정해집니다.<br>
+                    <p class="cad-help">선·원·호로 <b>둘러싸인 면의 안쪽</b>을 누르면 설정(⚙)의 채우기 유형(전체·수평선·수직선·사선·X자·점)과 색으로 칠합니다. 선 간격은 면 크기에 맞춰 정해집니다.<br>
                        면이 막혀 있지 않으면(틈이 있어 종이 끝까지 새면) 칠하지 않고 알려 줍니다. 칠한 면은 작도 순서에서 ✎ 로 지금 색으로 다시 칠하고 ✕ 로 지웁니다.</p>
                 </div>
                 <div data-form="text">
@@ -1020,12 +1020,27 @@ function opSvg(op) {
     if (op.t === 'free') return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${stAttr(op.ls, op.w)}/>` : '';
     if (op.t === 'fill') {
         const fo = op.op != null ? op.op : 0.6;
-        if ((op.kind === 'h' || op.kind === 'v') && op.bb && op.gap > 0) {   // 해칭 — 면 모양(clipPath)으로 오린 평행선
-            const [x0, y0, x1, y1] = op.bb, g = op.gap, id = `cadFc${op.id}`; let dd = '';
-            if (op.kind === 'h') for (let y = y0 + g / 2; y < y1; y += g) dd += `M${fmt(x0)} ${fmt(y)}H${fmt(x1)}`;
-            else for (let x = x0 + g / 2; x < x1; x += g) dd += `M${fmt(x)} ${fmt(y0)}V${fmt(y1)}`;
-            return `<clipPath id="${id}"><path d="${op.d}" clip-rule="evenodd"/></clipPath>`
-                + `<path d="${op.d}" fill="none" stroke="none" fill-rule="evenodd"/>`
+        if (op.kind && op.kind !== 'solid' && op.bb && op.gap > 0) {   // 해칭 — 면 모양(clipPath)으로 오린 선·점
+            const [x0, y0, x1, y1] = op.bb, g = op.gap, id = `cadFc${op.id}`, k = op.kind; let dd = '';
+            const clip = `<clipPath id="${id}"><path d="${op.d}" clip-rule="evenodd"/></clipPath><path d="${op.d}" fill="none" stroke="none" fill-rule="evenodd"/>`;
+            if (k === 'dot') {                               // 점 — 한 줄씩 반 칸 엇갈려 찍는다
+                const r = Math.min(0.28 * U, g * 0.13);
+                for (let y = y0 + g / 2, row = 0; y < y1; y += g, row++)
+                    for (let x = x0 + g / 2 + (row % 2 ? g / 2 : 0); x < x1; x += g)
+                        dd += `M${fmt(x - r)} ${fmt(y)}a${fmt(r)} ${fmt(r)} 0 1 0 ${fmt(2 * r)} 0a${fmt(r)} ${fmt(r)} 0 1 0 ${fmt(-2 * r)} 0Z`;
+                return clip + `<path d="${dd}" clip-path="url(#${id})" fill="${op.color}" fill-opacity="${Math.max(fo, 0.85)}" stroke="none"/>`;
+            }
+            if (k === 'h') for (let y = y0 + g / 2; y < y1; y += g) dd += `M${fmt(x0)} ${fmt(y)}H${fmt(x1)}`;
+            if (k === 'v') for (let x = x0 + g / 2; x < x1; x += g) dd += `M${fmt(x)} ${fmt(y0)}V${fmt(y1)}`;
+            if (k === 'd' || k === 'x') {                    // 사선(／) — 선 사이 수직 간격이 g 가 되게 x+y 를 g√2 씩
+                const st = g * Math.SQRT2;
+                for (let c = x0 + y0 + st / 2; c < x1 + y1; c += st) dd += `M${fmt(c - y1)} ${fmt(y1)}L${fmt(c - y0)} ${fmt(y0)}`;
+            }
+            if (k === 'x') {                                 // 반대 사선(＼)을 더해 X 자
+                const st = g * Math.SQRT2;
+                for (let c = y0 - x1 + st / 2; c < y1 - x0; c += st) dd += `M${fmt(x0)} ${fmt(x0 + c)}L${fmt(x1)} ${fmt(x1 + c)}`;
+            }
+            return clip
                 + `<path d="${dd}" clip-path="url(#${id})" stroke="${op.color}" stroke-opacity="${Math.max(fo, 0.85)}" stroke-width="${fmt(Math.min(0.14 * U, g * 0.2))}" fill="none"/>`;   // 좁은 면은 간격이 좁아 선을 가늘게(간격의 1/5 이하) — 면처럼 뭉치지 않게
         }
         return `<path d="${op.d}" fill="${op.color}" fill-opacity="${fo}" fill-rule="evenodd" stroke="none"/>`;
@@ -1161,7 +1176,7 @@ function lsTxt(op) {
 function desc(op) {
     switch (op.t) {
         case 'free': return `프리드로잉 · 점 ${op.pts ? op.pts.length : 0}개 · ${lsTxt(op)}`;
-        case 'fill': return `${op.kind === 'h' ? `수평선 채우기(간격 ${fmt(op.gap)}m)` : op.kind === 'v' ? `수직선 채우기(간격 ${fmt(op.gap)}m)` : '채우기'} · 면적 약 ${fmt(+(op.area || 0).toFixed(1))}㎡ · 색 ${op.color}`;
+        case 'fill': return `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점'})[op.kind] ? `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점'})[op.kind]} 채우기(간격 ${fmt(op.gap)}m)` : '채우기'} · 면적 약 ${fmt(+(op.area || 0).toFixed(1))}㎡ · 색 ${op.color}`;
         case 'line': return `선 ${ptxt(op.a)} → ${ptxt(op.b)} · ${lsTxt(op)}`;
         case 'rect': { const a = P(op.a), b = P(op.b);
             const sz = a && b ? ` (${fmt(Math.abs(b.x - a.x))}×${fmt(Math.abs(b.y - a.y))}m)` : '';
