@@ -1128,8 +1128,9 @@ function drawSr() {
            + `<path d="M${f(-2.1 * k)} ${f(0.9 * k)}A${f(2.25 * k)} ${f(2.25 * k)} 0 0 0 ${f(2.1 * k)} ${f(0.9 * k)}" fill="none" stroke="#454a50" stroke-width="${f(0.28 * k)}" stroke-linecap="round"/>`
            + `<path d="M${f(2.6 * k)} ${f(0.1 * k)}L${f(2.35 * k)} ${f(1.35 * k)}L${f(1.35 * k)} ${f(0.7 * k)}Z" fill="#454a50"/></g>`;
     }
-    {   // 회전 핸들 — 윗변 가운데 바깥
-        const q = srMap(SR_L / 2, -9), q0 = srMap(SR_L / 2, 0), rr = 1.6 * k, turning = drag && drag.kind === 'srrotd' && drag.moved;
+    // 회전 핸들 — 윗변 바깥 셋(가운데 + 양 끝 가까이, 사용자). 자가 길어 가운데 하나만으로는 끝에서 작업할 때 멀다. 어느 것이든 같다
+    [SR_L / 2, 28, SR_L - 28].forEach((hu, hi) => {
+        const q = srMap(hu, -9), q0 = srMap(hu, 0), rr = 1.6 * k, turning = hi === 0 && drag && drag.kind === 'srrotd' && drag.moved;
         o += `<path d="M${f(q0.x)} ${f(q0.y)}L${f(q.x)} ${f(q.y)}" stroke="#8a8f94" stroke-width="${f(0.2 * k)}" stroke-dasharray="${f(0.8 * k)} ${f(0.5 * k)}" pointer-events="none"/>`;
         if (turning) {
             const lb = `${Math.round(deg)}°`, fs = 1.4 * U, tw = lb.length * fs * 0.6 + 0.8 * U;
@@ -1140,7 +1141,7 @@ function drawSr() {
             + `<circle r="${f(2.8 * k)}" fill="rgba(255,255,255,.75)" stroke="#6b7076" stroke-width="${f(0.12 * k)}"/>`
             + `<path d="M0 ${f(-rr)}A${f(rr)} ${f(rr)} 0 1 1 ${f(-rr)} 0" fill="none" stroke="#454a50" stroke-width="${f(0.35 * k)}" stroke-linecap="round"/>`
             + `<path d="M${f(-rr - 0.7 * k)} ${f(0.05 * k)}L${f(-rr + 0.7 * k)} ${f(0.05 * k)}L${f(-rr)} ${f(-0.9 * k)}Z" fill="#454a50"/></g>`;
-    }
+    });
     g.innerHTML = o;
 }
 function toggleSr() {
