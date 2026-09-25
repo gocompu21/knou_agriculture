@@ -778,7 +778,7 @@ function drawTpl() {
         const q = tplMap(D.w / 2, -9), q0 = tplMap(D.w / 2, 0), rr = 1.6 * k, turning = drag && drag.kind === 'tplrotd' && drag.moved;
         o += `<path d="M${f(q0.x)} ${f(q0.y)}L${f(q.x)} ${f(q.y)}" stroke="#8a6410" stroke-width="${f(0.2 * k)}" stroke-dasharray="${f(0.8 * k)} ${f(0.5 * k)}" pointer-events="none"/>`;
         if (turning) {
-            const lb = `${fmt(+(tpl.rot || 0).toFixed(1))}°`, fs = 1.4 * U, tw = lb.length * fs * 0.6 + 0.8 * U;
+            const lb = `${Math.round(tpl.rot || 0)}°`, fs = 1.4 * U, tw = lb.length * fs * 0.6 + 0.8 * U;
             o += `<g pointer-events="none"><rect x="${f(q.x + 3.4 * k)}" y="${f(q.y - fs * 0.75)}" width="${f(tw)}" height="${f(fs * 1.5)}" rx="${f(0.3 * U)}" fill="#c62828"/>`
                + `<text x="${f(q.x + 3.4 * k + tw / 2)}" y="${f(q.y)}" font-size="${f(fs)}" fill="#fff" font-weight="700" text-anchor="middle" dominant-baseline="central">${lb}</text></g>`;
         }
@@ -2377,7 +2377,7 @@ svg.addEventListener('pointermove', e => {
         if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 3) drag.moved = true;
         if (drag.moved) {
             let r = drag.r0 + (Math.atan2(w.y - drag.c.y, w.x - drag.c.x) - drag.a0) * 180 / Math.PI;
-            r = e.shiftKey ? Math.round(r / 15) * 15 : Math.round(r * 10) / 10;
+            r = e.shiftKey ? Math.round(r / 15) * 15 : Math.round(r);   // 정수 각도
             tpl.rot = ((r % 360) + 360) % 360; drawTpl();
             $('cadXY').textContent = `템플릿 회전 ${fmt(tpl.rot)}°`;
         }
