@@ -98,6 +98,9 @@
             <div class="cad-set-row"><span class="cad-set-lb">보조선 레이어</span>
                 <label class="cad-chk"><input type="checkbox" id="cadAuxOn" checked> 보이기</label>
                 <label class="cad-set-sub">색 <input type="color" id="cadAuxColor" class="cad-set-color"></label></div>
+            <div class="cad-set-row"><span class="cad-set-lb" title="스케일자 눈금 모서리를 샤프로 찍어 남긴 표시">마킹 레이어</span>
+                <label class="cad-chk"><input type="checkbox" id="cadMarkOn" checked> 보이기</label>
+                <button type="button" id="cadMarkClear" class="cad-bar-btn" title="마킹 표시와, 다른 선이 쓰지 않는 마킹 점을 모두 지웁니다 (Ctrl+Z 로 되돌림)">모두 지우기</button></div>
             <p class="cad-set-note">설정은 이 브라우저에 남습니다.</p>
         </div>
     </div>
@@ -348,6 +351,7 @@
 #cadAuxBtn:not(.on) { color: #9aa3a0; }
 /* 보조선 레이어 — 끄면 화면에서 감추고, 지우개·영역 선택도 건드리지 않는다 */
 .cad.aux-off #cadOps g.aux { display: none; }
+.cad.mark-off #cadOps g.mark { display: none; }
 .cad-calc { right: 44px; width: 290px; }
 .cad-calc-sec { color: #1b4332; font-size: 0.8rem; padding-top: 8px; }
 .cad-calc-out { font-size: 0.8rem; color: #333; background: #f6faf7; border: 1px solid #e3ece6; border-radius: 6px; padding: 6px 8px; margin: 2px 0 4px; line-height: 1.6; }
@@ -932,7 +936,7 @@ const SR_BANDS = {
 // 면 차례는 단면을 한 방향으로 돈 차례다. a = 앞 모서리 축척, b = 뒤 모서리 축척(다음 면의 a 와 한 꼭짓점에서 만난다)
 const SR_FACES = [{a: 100, b: 200, band: 'red'}, {a: 300, b: 400, band: 'teal'}, {a: 500, b: 600, band: 'black'}];
 const SRG = {100: [0.1, 0.5, 0, 1], 200: [0.1, 0.5, 1, 5], 300: [0.5, 1, 5, 10], 400: [0.5, 1, 5, 10], 500: [0.5, 1, 5, 10], 600: [0.5, 1, 5, 10]};
-const SR_MARK = 6;                                     // 눈금 표시 보조선 길이(종이 위 mm)
+const SR_MARK = 3;                                     // 마킹 길이(종이 위 mm) — 실제 연필 표시처럼 짧게
 let sr = null;                                         // {x, y, rot, roll} 돌리기 전 왼쪽 위(도면 m) · 회전(°) · 바닥 면(0~2)
 try { sr = JSON.parse(localStorage.getItem('cadSr') || 'null'); } catch (e) {}
 if (sr && !(sr.roll >= 0 && sr.roll <= 2)) { sr.roll = 2; delete sr.s; }   // 예전 저장(축척을 고르던 때) → 검정 면 바닥
@@ -970,15 +974,38 @@ function srEdge(w) {                                   // 누른 곳에 가까�
     return d(E[0]) <= d(E[1]) ? E[0] : E[1];
 }
 // 스케일자 눈금 모서리를 샤프로 찍으면 — 가장 가까운 작은 눈금 자리에서 눈금과 나란히, 자 바깥(종이) 쪽으로 짧은 보조선을 긋는다
+// 마킹 = 모서리 위의 점 하나(나중에 I자·삼각자를 맞추고 선을 잇는 기준, 스냅된다) + 짧은 표시(종이 위 3mm).
+// 표시는 점 번호를 쓰지 않는 두 좌표 획(free)이라 점이 늘지 않는다. op.mark 가 붙은 획은 '마킹' 레이어(보이기·모두 지우기)
+let lastMark = null;                                   // 앞 마킹 — 같은 자리·같은 모서리면 간격을 알려 준다
 function srMark(edge, w) {
     const l = srLocal(w), perM = 1000 / edge.srS, minor = SRG[edge.srS][0], tot = SR_RUN / perM;
-    const r = Math.max(0, Math.min(tot, Math.round(((l.u - edge.srU0) * edge.srDu / perM) / minor) * minor));
+    const r = +Math.max(0, Math.min(tot, Math.round(((l.u - edge.srU0) * edge.srDu / perM) / minor) * minor)).toFixed(4);
     const u = edge.srU0 + edge.srDu * r * perM, p = srMap(u, edge.srv), q = srMap(u, edge.srv + edge.srOut * SR_MARK);
     snapHist();
-    const a = addPt(+p.x.toFixed(4), +p.y.toFixed(4)), b = addPt(+q.x.toFixed(4), +q.y.toFixed(4));
-    doc.ops.push({id: doc.seq++, t: 'line', a, b, ls: 'aux', w: strokeStyle().w});
-    if (!SET.auxOn) setAux(true);
-    changed(); flash(`1/${edge.srS} 눈금 ${fmt(+r.toFixed(4))}m 자리에 보조선을 그었습니다 (P${a})`);
+    const a = addPt(p.x, p.y);
+    doc.ops.push({id: doc.seq++, t: 'free', pts: [[+p.x.toFixed(4), +p.y.toFixed(4)], [+q.x.toFixed(4), +q.y.toFixed(4)]], ls: 'solid', w: strokeStyle().w, mark: {s: edge.srS, r}});
+    if (SET.markOn === false) setMark(true);
+    // 간격은 자를 옮기지 않고 같은 모서리에서 이어 찍을 때만 뜻이 있다
+    const key = [edge.srS, sr.x, sr.y, sr.rot, sr.roll].join('|'), gap = lastMark && lastMark.key === key ? +(r - lastMark.r).toFixed(4) : null;
+    lastMark = {key, r};
+    changed(); flash(`마킹 1/${edge.srS} · ${fmt(r)}m (P${a})` + (gap != null && gap !== 0 ? ` — 앞 마킹에서 ${gap > 0 ? '+' : ''}${fmt(gap)}m` : ''));
+}
+const isMark = op => !!op.mark;
+function setMark(on) {
+    SET.markOn = on; $('cadMarkOn').checked = on;
+    root.classList.toggle('mark-off', !on);
+    [...selOps].forEach(id => { const o = doc.ops.find(x => x.id === id); if (o && auxHidden(o)) selOps.delete(id); });
+    saveSet(); drawOps(); selInfo();
+}
+function clearMarks() {                                // 마킹을 모두 지운다 — 표시와, 다른 것이 쓰지 않는 마킹 점
+    const ms = doc.ops.filter(isMark);
+    if (!ms.length) { flash('지울 마킹이 없습니다'); return; }
+    snapHist();
+    doc.ops = doc.ops.filter(o => !isMark(o));
+    const at = ms.map(o => o.pts[0]);
+    doc.pts = doc.pts.filter(p => usedBy(p.n) || !at.some(([x, y]) => Math.abs(p.x - x) < 2e-3 && Math.abs(p.y - y) < 2e-3));
+    [...selOps].forEach(id => { if (!doc.ops.some(o => o.id === id)) selOps.delete(id); });
+    lastMark = null; changed(); flash(`마킹 ${ms.length}개를 지웠습니다`);
 }
 function rollSr(back) {                                // 자를 굴린다 — 바닥 면이 바뀌어 종이에 닿는 축척 둘이 바뀐다
     if (!sr) return;
@@ -1455,7 +1482,7 @@ function ftMmFrom(size) {            // 도면 m → 종이 mm. 목록에 없는
 }
 function renderAll() { drawBar(); drawOps(); drawPts(); drawPre(); listOps(); listPts(); markAwait(); savedLabel(); selInfo(); }
 const isAux = op => op.ls === 'aux';
-const auxHidden = op => isAux(op) && !SET.auxOn;          // 꺼진 보조선 — 지우개·선택이 건드리지 않는다
+const auxHidden = op => (isAux(op) && !SET.auxOn) || (!!op.mark && SET.markOn === false);   // 꺼진 보조선·마킹 — 지우개·선택이 건드리지 않는다
 function setAux(on) {
     SET.auxOn = on; $('cadAuxOn').checked = on; $('cadAuxBtn').classList.toggle('on', on);
     root.classList.toggle('aux-off', !on);
@@ -1464,9 +1491,10 @@ function setAux(on) {
 }
 function drawOps() {
     // 보조선은 따로 된 레이어 — 맨 아래에 먼저 그리고(class aux) 설정·도구 줄에서 켜고 끈다
-    const ops = doc.ops.filter(o => o.t !== 'step'), fills = ops.filter(o => o.t === 'fill'), aux = ops.filter(isAux), rest = ops.filter(o => !isAux(o) && o.t !== 'fill');
-    gOps.innerHTML = [...fills, ...aux, ...rest].map(op => {   // 칠한 면이 맨 아래
-        const s = opSvg(op), cl = [isAux(op) ? 'aux' : '', selOps.has(op.id) ? 'on' : ''].filter(Boolean).join(' ');
+    const ops = doc.ops.filter(o => o.t !== 'step'), fills = ops.filter(o => o.t === 'fill'), aux = ops.filter(isAux), marks = ops.filter(o => o.mark && !isAux(o)),
+          rest = ops.filter(o => !isAux(o) && !o.mark && o.t !== 'fill');
+    gOps.innerHTML = [...fills, ...aux, ...marks, ...rest].map(op => {   // 칠한 면이 맨 아래
+        const s = opSvg(op), cl = [isAux(op) ? 'aux' : '', op.mark ? 'mark' : '', selOps.has(op.id) ? 'on' : ''].filter(Boolean).join(' ');
         return s ? `<g data-op="${op.id}"${cl ? ` class="${cl}"` : ''}>${s}<g class="cad-hit">${s}</g></g>` : '';
     }).join('');
 }
@@ -1528,7 +1556,7 @@ function lsTxt(op) {
 }
 function desc(op) {
     switch (op.t) {
-        case 'free': return `프리드로잉 · 점 ${op.pts ? op.pts.length : 0}개 · ${lsTxt(op)}`;
+        case 'free': return op.mark ? `마킹 · 1/${op.mark.s} ${fmt(op.mark.r)}m` : `프리드로잉 · 점 ${op.pts ? op.pts.length : 0}개 · ${lsTxt(op)}`;
         case 'fill': return `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자', grass: '잔디'})[op.kind] ? `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자', grass: '잔디'})[op.kind]} 채우기(간격 ${fmt(+(op.gap * (op.kind === 'gl' ? 1.5 : op.kind === 'gs' ? 1 : 1)).toFixed(3))}m)` : '채우기'} · 면적 약 ${fmt(+(op.area || 0).toFixed(1))}㎡ · 색 ${op.color}`;
         case 'line': return `선 ${ptxt(op.a)} → ${ptxt(op.b)} · ${lsTxt(op)}`;
         case 'rect': { const a = P(op.a), b = P(op.b);
@@ -3141,6 +3169,9 @@ fillPickDraw(); $('cadFillOp').value = SET.fillOp;
 $('cadAuxBtn').classList.toggle('on', SET.auxOn !== false); root.classList.toggle('aux-off', SET.auxOn === false);
 $('cadAuxBtn').addEventListener('click', () => { setAux(!SET.auxOn); flash(SET.auxOn ? '보조선을 보입니다' : '보조선을 감췄습니다 — 지우개·선택도 건드리지 않습니다'); });
 $('cadAuxOn').addEventListener('change', () => setAux($('cadAuxOn').checked));
+$('cadMarkOn').checked = SET.markOn !== false; root.classList.toggle('mark-off', SET.markOn === false);
+$('cadMarkOn').addEventListener('change', () => setMark($('cadMarkOn').checked));
+$('cadMarkClear').addEventListener('click', clearMarks);
 $('cadAuxColor').addEventListener('input', () => { SET.auxColor = $('cadAuxColor').value; saveSet(); drawOps(); drawPre(); });
 ['cadP9', 'cadP5'].forEach(id => $(id).addEventListener('change', () => {
     const v = +$(id).value; if (!(v > 0)) { $(id).value = SET[id === 'cadP9' ? 'p9' : 'p5']; return; }
