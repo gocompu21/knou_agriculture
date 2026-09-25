@@ -939,7 +939,7 @@ function drawSr() {
         if (isL) o += tx(u, 6.4, fmt(r), 2.4);
     }
     o += `<path d="${tk}" stroke="#222" stroke-width="${f(0.13 * k)}"/>`
-       + tx(2.2, 11.3, `1:${S}`, 2.6, 'start', 700) + tx(SR_L - 3, 11.3, 'm', 2.4, 'end', 700) + '</g>';
+       + tx(2.2, 11.3, `1:${fmt(S)}`, 2.6, 'start', 700) + tx(SR_L - 3, 11.3, 'm', 2.4, 'end', 700) + '</g>';
     {   // 회전 핸들 — 윗변 가운데 바깥
         const q = srMap(SR_L / 2, -9), q0 = srMap(SR_L / 2, 0), rr = 1.6 * k, turning = drag && drag.kind === 'srrotd' && drag.moved;
         o += `<path d="M${f(q0.x)} ${f(q0.y)}L${f(q.x)} ${f(q.y)}" stroke="#8a8f94" stroke-width="${f(0.2 * k)}" stroke-dasharray="${f(0.8 * k)} ${f(0.5 * k)}" pointer-events="none"/>`;
@@ -2392,10 +2392,18 @@ function penDot(w, free) {
     const n = addPt(q.x, q.y); selPt = n;
     changed(); flash(`점 P${n} (${fmt(q.x)}, ${fmt(q.y)}) 을 찍었습니다`);
 }
-function startPencil(e, w, edge, right) {
+function pencilOn(edge, w) {                         // 그 변으로 긋기 시작할 때의 자리·삼각자 막힘
     const p0 = onEdge(edge, w), bl = triBlock(edge);
-    drag = {kind: 'pencil', right, edge, p0, btn: e.button, sx: e.clientX, sy: e.clientY, moved: false, target: e.target,
-            blocked: !!(bl && p0.x > bl[0] + 1e-6 && p0.x < bl[1] - 1e-6), bl};
+    return {edge, p0, bl, blocked: !!(bl && p0.x > bl[0] + 1e-6 && p0.x < bl[1] - 1e-6)};
+}
+function startPencil(e, w, edge, right) {
+    // 모서리(I자 날과 삼각자 세로 변이 만나는 곳 등)에서는 가까운 변이 둘 이상이다. 누른 곳만으로 고르면 엉뚱한 변이 잡혀
+    // 옆으로 끌어도 길이가 0m 에 머물렀다 — 곁의 변들을 후보로 두고, 처음 끄는 방향과 가장 나란한 변으로 정한다
+    const k = pxPer(), cands = guideEdges().filter(g => {
+        const t = clampT((w.x - g.ax) * g.dx + (w.y - g.ay) * g.dy, g);
+        return Math.hypot(g.ax + g.dx * t - w.x, g.ay + g.dy * t - w.y) * k < 40;
+    });
+    drag = {kind: 'pencil', right, btn: e.button, sx: e.clientX, sy: e.clientY, moved: false, target: e.target, w0: {x: w.x, y: w.y}, cands, ...pencilOn(edge, w)};
 }
 function startTriDrag(e, w) {
     drag = {kind: 'tri', sx: e.clientX, sy: e.clientY, off: w.x - tri.x, moved: false, target: e.target};
@@ -2523,7 +2531,15 @@ svg.addEventListener('pointermove', e => {
         return;
     }
     if (drag && drag.kind === 'pencil') {
-        if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 5) drag.moved = true;
+        if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 5) {
+            drag.moved = true;
+            if (drag.cands && drag.cands.length > 1) {    // 끄는 방향과 가장 나란한 변으로
+                const mx = w.x - drag.w0.x, my = w.y - drag.w0.y, n = Math.hypot(mx, my) || 1;
+                let best = drag.edge, ba = Math.abs(mx * best.dx + my * best.dy) / n;
+                drag.cands.forEach(g => { const al = Math.abs(mx * g.dx + my * g.dy) / n; if (al > ba + 0.05) { ba = al; best = g; } });
+                if (best !== drag.edge) Object.assign(drag, pencilOn(best, drag.w0));
+            }
+        }
         if (drag.moved) {
             if (drag.blocked) {                      // 삼각자 밑 — 연필이 종이에 닿지 않는다
                 if (!drag.warned) { drag.warned = true; flash('삼각자가 놓인 구간이라 그을 수 없습니다 — 삼각자 밖에서 그으세요'); }
@@ -2844,10 +2860,28 @@ $('cadPtList').addEventListener('change', e => {
 $('cadRenum').addEventListener('click', renumberAll);
 $('cadTri45').addEventListener('click', () => toggleTri('45'));
 $('cadTplBtn').addEventListener('click', toggleTpl);
-$('cadSrScale').innerHTML = SR_SCALES.map(v => `<option value="${v}">1:${v}</option>`).join('');
-$('cadSrScale').value = String((sr && sr.s) || 500);
+// 축척 목록 — 기본 9가지 + 사용자 지정(고르면 1:N 의 N 을 묻는다). 넣은 값은 목록에 남는다(localStorage cadSrCustom)
+let srCustom = []; try { srCustom = JSON.parse(localStorage.getItem('cadSrCustom') || '[]'); } catch (e) {}
+function srFillScales(sel) {
+    const all = [...new Set([...SR_SCALES, ...srCustom, ...(sr && sr.s ? [sr.s] : [])])].sort((a, b) => a - b);
+    $('cadSrScale').innerHTML = all.map(v => `<option value="${v}">1:${fmt(v)}</option>`).join('') + '<option value="custom">사용자 지정…</option>';
+    $('cadSrScale').value = String(sel || (sr && sr.s) || 500);
+}
+srFillScales();
+$('cadSrScale').dataset.prev = $('cadSrScale').value;
 $('cadSrBtn').addEventListener('click', toggleSr);
-$('cadSrScale').addEventListener('change', () => { if (sr) { sr.s = +$('cadSrScale').value; saveSr(); drawSr(); flash(`스케일자를 1:${sr.s} 면으로 바꿨습니다`); } });
+$('cadSrScale').addEventListener('change', () => {
+    let v = $('cadSrScale').value;
+    if (v === 'custom') {
+        const t = prompt('스케일자 축척 1 : N — N 을 넣으세요 (예: 430)', sr ? sr.s : '');
+        const n = parseFloat(String(t || '').replace(/[^\d.]/g, ''));
+        if (!(n >= 1 && n <= 100000)) { $('cadSrScale').value = $('cadSrScale').dataset.prev; return; }
+        if (!srCustom.includes(n)) { srCustom.push(n); try { localStorage.setItem('cadSrCustom', JSON.stringify(srCustom)); } catch (e) {} }
+        srFillScales(n); v = String(n);
+    }
+    $('cadSrScale').dataset.prev = v;
+    if (sr) { sr.s = +v; saveSr(); drawSr(); flash(`스케일자를 1:${fmt(sr.s)} 면으로 바꿨습니다`); }
+});
 $('cadTplKind').addEventListener('change', () => setTplKind($('cadTplKind').value));
 // ── 템플릿 계산기 — 종이 위 지름(mm) = 실제 지름(mm) ÷ 축척
 // 계산기는 지금 템플릿(없으면 고른 종류)의 그 모양 구멍들로 셈한다
