@@ -47,15 +47,16 @@
         <label class="cad-chk" title="스냅 켜기·끄기 (F9)"><input type="checkbox" id="cadSnap" checked> 스냅</label>
         <select id="cadSnapStep" class="cad-txt" title="스냅 간격"></select>
         <span class="cad-sep"></span>
+        <button type="button" id="cadSrBtn" class="cad-bar-btn" aria-label="스케일자" title="스케일자 — 축척을 고르고 놓습니다. 몸통을 끌어 옮기고, 위 손잡이로 돌리며, 눈금 변에 샤프를 대고 긋습니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="6" width="17" height="8" rx="1" fill="#fbfbf8" stroke="#8a8f94" stroke-width=".9"/><path d="M1.5 11.2h17" stroke="#d93025" stroke-width="1.4"/><path d="M3 6v2M5 6v1.2M7 6v2M9 6v1.2M11 6v2M13 6v1.2M15 6v2M17 6v1.2" stroke="#333" stroke-width=".6"/></svg></button>
+        <select id="cadSrScale" class="cad-txt" title="스케일자 축척"></select>
         <button type="button" id="cadTri45" class="cad-bar-btn" aria-label="45°" title="45° 삼각자 — I자 윗날에 얹혀 있습니다. 손으로 끌어 좌우로 밀고, 샤프로 세로 변·빗변을 따라 긋습니다"><svg class="real" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="it45a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset=".5" stop-color="#dfeaf2" stop-opacity=".55"/><stop offset="1" stop-color="#b9cddc" stop-opacity=".75"/></linearGradient></defs><path d="M2.5 17.5H17.5V2.5Z" fill="url(#it45a)" stroke="#5f7f99" stroke-width=".7" stroke-linejoin="round"/><path d="M2.5 17.5H17.5V2.5Z" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width=".35" transform="translate(.45 -.45) scale(.955)" transform-origin="17.5 17.5"/><path d="M17.5 16h-.9M17.5 13.5h-.6M17.5 11h-.9M17.5 8.5h-.6M17.5 6h-.9" stroke="#4a6378" stroke-width=".35"/></svg></button>
         <button type="button" id="cadTri60" class="cad-bar-btn" aria-label="60°" title="60° 삼각자(30°·60°) — I자 윗날에 얹혀 있습니다. 손으로 끌어 좌우로 밀고, 샤프로 세로 변·빗변을 따라 긋습니다"><svg class="real" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="it60a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset=".5" stop-color="#dfeaf2" stop-opacity=".55"/><stop offset="1" stop-color="#b9cddc" stop-opacity=".75"/></linearGradient></defs><path d="M7.5 17.5H17.5V1Z" fill="url(#it60a)" stroke="#5f7f99" stroke-width=".7" stroke-linejoin="round"/><path d="M7.5 17.5H17.5V1Z" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width=".35" transform="translate(.45 -.45) scale(.955)" transform-origin="17.5 17.5"/><path d="M17.5 16h-.9M17.5 13.5h-.6M17.5 11h-.9M17.5 8.5h-.6M17.5 6h-.9" stroke="#4a6378" stroke-width=".35"/></svg></button>
         <button type="button" id="cadTriFlip" class="cad-bar-btn" title="삼각자 좌우 뒤집기" hidden>⇆ 뒤집기</button>
         <button type="button" id="cadTriRot" class="cad-bar-btn" title="60° 삼각자 눕히기 — 빗변 60° ↔ 30°" hidden>빗변 30°</button>
-        <button type="button" id="cadTplBtn" class="cad-bar-btn" aria-label="템플릿" title="원형 템플릿 — 몸통을 끌어 옮기고, 샤프로 구멍 안을 따라 돌리면 원(돌린 만큼 호)이 그려집니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="4.5" width="17" height="11" rx="1.5" fill="#f2c230" stroke="#b08a10" stroke-width="1"/><circle cx="5.5" cy="10" r="2.6" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="11" cy="10" r="1.9" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="15.3" cy="10" r="1.2" fill="#fff" stroke="#b08a10" stroke-width=".7"/></svg></button>
-        <select id="cadTplKind" class="cad-txt" title="템플릿 종류"><option value="circle">원형</option><option value="geo">도형</option></select>
+        <button type="button" id="cadTplBtn" class="cad-bar-btn" aria-label="원형 템플릿" title="원형 템플릿 — 몸통을 끌어 옮기고, 샤프로 구멍 안을 따라 돌리면 원(돌린 만큼 호)이 그려집니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="4.5" width="17" height="11" rx="1.5" fill="#f2c230" stroke="#b08a10" stroke-width="1"/><circle cx="5.5" cy="10" r="2.6" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="11" cy="10" r="1.9" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="15.3" cy="10" r="1.2" fill="#fff" stroke="#b08a10" stroke-width=".7"/></svg></button>
+        <button type="button" id="cadTplGeo" class="cad-bar-btn" aria-label="도형 템플릿" title="도형 템플릿(원·삼각형·사각형·육각형) — 몸통을 끌어 옮기고, 샤프로 구멍 안을 따라 돌리면 그 도형이 그려집니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="4.5" width="17" height="11" rx="1.5" fill="#f2c230" stroke="#b08a10" stroke-width="1"/><path d="M5 7.4L7.4 12.4H2.6Z" fill="#fff" stroke="#b08a10" stroke-width=".7" stroke-linejoin="round"/><rect x="8.4" y="7.8" width="4" height="4" fill="#fff" stroke="#b08a10" stroke-width=".7"/><path d="M15.3 7.6l1.85 1.1v2.2l-1.85 1.1-1.85-1.1v-2.2Z" fill="#fff" stroke="#b08a10" stroke-width=".7" stroke-linejoin="round"/></svg></button>
+        <select id="cadTplKind" hidden class="cad-txt" title="템플릿 종류"><option value="circle">원형</option><option value="geo">도형</option></select>
         <button type="button" id="cadCalcBtn" class="cad-bar-btn" aria-label="계산기" title="템플릿 계산기 — 축척과 실제 지름으로 몇 번 구멍을 쓸지, 구멍 번호로 실제 지름을 계산"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="2" width="12" height="16" rx="1.6"/><rect x="6" y="4.2" width="8" height="3.2" rx=".5"/><path d="M7 10.3h.01M10 10.3h.01M13 10.3h.01M7 13h.01M10 13h.01M13 13h.01M7 15.6h.01M10 15.6h.01M13 15.6h.01" stroke-width="2.1"/></svg></button>
-        <button type="button" id="cadSrBtn" class="cad-bar-btn" aria-label="스케일자" title="스케일자 — 축척을 고르고 놓습니다. 몸통을 끌어 옮기고, 위 손잡이로 돌리며, 눈금 변에 샤프를 대고 긋습니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="6" width="17" height="8" rx="1" fill="#fbfbf8" stroke="#8a8f94" stroke-width=".9"/><path d="M1.5 11.2h17" stroke="#d93025" stroke-width="1.4"/><path d="M3 6v2M5 6v1.2M7 6v2M9 6v1.2M11 6v2M13 6v1.2M15 6v2M17 6v1.2" stroke="#333" stroke-width=".6"/></svg></button>
-        <select id="cadSrScale" class="cad-txt" title="스케일자 축척"></select>
         <span class="cad-sep"></span>
         <button type="button" id="cadAuxBtn" class="cad-bar-btn on" aria-label="보조선" title="보조선 레이어 보이기·감추기 — 색은 설정(⚙)에서"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6h16M2 10h16M2 14h16" stroke-dasharray="2 1.6"/></svg></button>
         <span class="cad-sep"></span>
@@ -745,7 +746,8 @@ function onTpl(p) { return inTplBox(p) && !tplHoleAt(p); }     // 템플릿 판 
 function holeLabel(h) { return `${SHAPE_MARK[h.s]}${h.d}mm`; }
 function drawTpl() {
     const g = $('cadTpl');
-    $('cadTplBtn').classList.toggle('on', !!tpl);
+    $('cadTplBtn').classList.toggle('on', !!tpl && (tpl.kind || 'circle') === 'circle');
+    $('cadTplGeo').classList.toggle('on', !!tpl && tpl.kind === 'geo');
     if (tpl) $('cadTplKind').value = tpl.kind || 'circle';
     if (!tpl || !sheet) { g.innerHTML = ''; return; }
     const D = tplDef(), k = tplK(), f = v => fmt(v), H = tplHoles(), deg = (tpl.rot || 0);
@@ -2886,7 +2888,12 @@ $('cadPtList').addEventListener('change', e => {
 });
 $('cadRenum').addEventListener('click', renumberAll);
 $('cadTri45').addEventListener('click', () => toggleTri('45'));
-$('cadTplBtn').addEventListener('click', toggleTpl);
+[['cadTplBtn', 'circle'], ['cadTplGeo', 'geo']].forEach(([id, kind]) => $(id).addEventListener('click', () => {
+    // 그림 단추 둘 — 같은 종류를 다시 누르면 치우고, 다른 종류를 누르면 그 자리에서 바꾼다
+    $('cadTplKind').value = kind;
+    if (tpl && (tpl.kind || 'circle') !== kind) setTplKind(kind); else toggleTpl();
+    drawTpl();
+}));
 // 축척 목록 — 기본 9가지 + 사용자 지정(고르면 1:N 의 N 을 묻는다). 넣은 값은 목록에 남는다(localStorage cadSrCustom)
 let srCustom = []; try { srCustom = JSON.parse(localStorage.getItem('cadSrCustom') || '[]'); } catch (e) {}
 function srFillScales(sel) {
