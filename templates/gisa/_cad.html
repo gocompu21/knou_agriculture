@@ -1061,7 +1061,7 @@ function opSvg(op) {
     if (op.t === 'fill') {
         const fo = op.op != null ? op.op : 0.6;
         if (op.kind && op.kind !== 'solid' && op.bb && op.gap > 0) {   // 해칭 — 면 모양(clipPath)으로 오린 선·점
-            const [x0, y0, x1, y1] = op.bb, k = op.kind, g = k === 'gl' ? op.gap * 1.5 : k === 'gs' ? op.gap * 0.5 : op.gap, id = `cadFc${op.id}`; let dd = '';   // 큰 격자 1.5배 · 작은 격자 절반 간격
+            const [x0, y0, x1, y1] = op.bb, k = op.kind, g = k === 'gl' ? op.gap * 1.5 : k === 'gs' ? op.gap * 0.75 : op.gap, id = `cadFc${op.id}`; let dd = '';   // 큰 격자 1.5배 · 작은 격자 0.75배 간격
             const po = Math.min(0.6, Math.max(0.35, fo));   // 연한 펜 — 해칭 선·점은 진하기를 0.35~0.6 으로 눌러 연필로 옅게 그은 듯이
             const clip = `<clipPath id="${id}"><path d="${op.d}" clip-rule="evenodd"/></clipPath><path d="${op.d}" fill="none" stroke="none" fill-rule="evenodd"/>`;
             if (k === 'dot') {                               // 점 — 한 줄씩 반 칸 엇갈려 찍는다
@@ -1217,7 +1217,7 @@ function lsTxt(op) {
 function desc(op) {
     switch (op.t) {
         case 'free': return `프리드로잉 · 점 ${op.pts ? op.pts.length : 0}개 · ${lsTxt(op)}`;
-        case 'fill': return `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자'})[op.kind] ? `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자'})[op.kind]} 채우기(간격 ${fmt(+(op.gap * (op.kind === 'gl' ? 1.5 : op.kind === 'gs' ? 0.5 : 1)).toFixed(3))}m)` : '채우기'} · 면적 약 ${fmt(+(op.area || 0).toFixed(1))}㎡ · 색 ${op.color}`;
+        case 'fill': return `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자'})[op.kind] ? `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자'})[op.kind]} 채우기(간격 ${fmt(+(op.gap * (op.kind === 'gl' ? 1.5 : op.kind === 'gs' ? 0.75 : 1)).toFixed(3))}m)` : '채우기'} · 면적 약 ${fmt(+(op.area || 0).toFixed(1))}㎡ · 색 ${op.color}`;
         case 'line': return `선 ${ptxt(op.a)} → ${ptxt(op.b)} · ${lsTxt(op)}`;
         case 'rect': { const a = P(op.a), b = P(op.b);
             const sz = a && b ? ` (${fmt(Math.abs(b.x - a.x))}×${fmt(Math.abs(b.y - a.y))}m)` : '';
