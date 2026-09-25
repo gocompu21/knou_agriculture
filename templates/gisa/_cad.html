@@ -946,6 +946,14 @@ function srGrad(S) {
     const perM = 1000 / S, mn = niceStep(1 / perM), lb = niceStep(12 / perM);
     return [mn, lb / 2, 0, lb];
 }
+// 눈금 길이(mm) — 삼각 스케일은 300mm(30·60·90… 로 딱 떨어진다). 사용자 지정 1:N 은 300mm 가 129m 처럼 끝수가 남아
+// 반대쪽 눈금의 0 이 어긋난다(위 20 ↔ 아래 110 이 비껴 선다 — 사용자). 숫자 간격의 배수로 끊어(1:430 → 120m, 약 279mm)
+// 한쪽의 0·10·20 … 과 다른 쪽의 120·110·100 … 이 같은 줄에 서게 한다
+function srRun(S) {
+    if (SRG[S]) return SR_RUN;
+    const perM = 1000 / S, lab = srGrad(S)[3];
+    return Math.floor(SR_RUN / perM / lab + 1e-9) * lab * perM;
+}
 const SR_MARK = 3;                                     // 마킹 길이(종이 위 mm) — 실제 연필 표시처럼 짧게
 let sr = null;                                         // {x, y, rot, roll} 돌리기 전 왼쪽 위(도면 m) · 회전(°) · 바닥 면(0~2)
 try { sr = JSON.parse(localStorage.getItem('cadSr') || 'null'); } catch (e) {}
@@ -973,7 +981,7 @@ function srEdges() {                                   // 종이에 닿는 두 �
     if (!sr || !sheet) return [];
     const V = srView();
     // 윗 모서리 축척은 0 이 왼쪽(u=SR_Z)에서 오른쪽으로, 아랫 모서리 축척은 0 이 오른쪽에서 왼쪽으로 는다. out = 자 바깥(종이) 쪽 v 방향
-    return [[0, V.top, SR_Z, 1, -1], [SR_W, V.bot, SR_Z + SR_RUN, -1, 1]].map(([v, s2, u0, du, out]) => {
+    return [[0, V.top, SR_Z, 1, -1], [SR_W, V.bot, SR_Z + srRun(V.bot), -1, 1]].map(([v, s2, u0, du, out]) => {
         const a = srMap(0, v), b = srMap(SR_L, v), n = Math.hypot(b.x - a.x, b.y - a.y);
         return {ax: a.x, ay: a.y, dx: (b.x - a.x) / n, dy: (b.y - a.y) / n, lo: 0, hi: n, sr: true, name: `스케일자(1/${fmt(s2)})`,
                 srv: v, srS: s2, srU0: u0, srDu: du, srOut: out};
@@ -990,7 +998,7 @@ function srEdge(w) {                                   // 누른 곳에 가까�
 // 표시는 점 번호를 쓰지 않는 두 좌표 획(free)이라 점이 늘지 않는다. op.mark 가 붙은 획은 '마킹' 레이어(보이기·모두 지우기)
 let lastMark = null;                                   // 앞 마킹 — 같은 자리·같은 모서리면 간격을 알려 준다
 function srMark(edge, w) {
-    const l = srLocal(w), perM = 1000 / edge.srS, minor = srGrad(edge.srS)[0], tot = SR_RUN / perM;
+    const l = srLocal(w), perM = 1000 / edge.srS, minor = srGrad(edge.srS)[0], tot = srRun(edge.srS) / perM;
     const r = +Math.max(0, Math.min(tot, Math.round(((l.u - edge.srU0) * edge.srDu / perM) / minor) * minor)).toFixed(4);
     const u = edge.srU0 + edge.srDu * r * perM, p = srMap(u, edge.srv), q = srMap(u, edge.srv + edge.srOut * SR_MARK);
     snapHist();
@@ -1086,7 +1094,7 @@ function drawSr() {
     // 한 축척 — 면 위 좌표로 그린다. first: 면의 앞 모서리(w=0, 0 이 왼쪽). 아니면 뒤 모서리(w=25, 180° 돌려 새겨 0 이 오른쪽)
     const scale = (Sx, h, first) => {
         const perM = 1000 / Sx, [minor, mid, mid2, lab] = srGrad(Sx);
-        const tot = SR_RUN / perM, U0 = first ? SR_Z : SR_Z + SR_RUN, sg = first ? 1 : -1;
+        const tot = srRun(Sx) / perM, U0 = first ? SR_Z : SR_Z + srRun(Sx), sg = first ? 1 : -1;
         // 자리·눌림은 면 좌표 그대로(입체감 유지). 글자만 굵고 진하게 — 얇은 획을 같은 색 테두리로 한 번 더 덮어 눌린 글자도
         // 뭉개지지 않게 한다(사용자: "숫자가 잘 안 보임, 오래된 인쇄 느낌" → "입체감은 이전처럼, 숫자만 선명하고 진하게")
         const paper = (h.id === 'A') === first;
