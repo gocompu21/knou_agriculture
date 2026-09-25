@@ -967,7 +967,7 @@ function drawBarOnly() {
     const bl = W * 0.2, by = y + bl, bh = W * 0.6, y2 = y + W, cw = BG.rw + 1.6 * U, f = v => fmt(v);
     let o = `<defs><linearGradient id="cadAl" x1="0" y1="0" x2="0" y2="1">`
         + `<stop offset="0" stop-color="#f4f6f7"/><stop offset=".3" stop-color="#e2e6e9"/><stop offset=".7" stop-color="#d2d7db"/><stop offset="1" stop-color="#b8bfc5"/></linearGradient>`
-        + `<linearGradient id="cadBlk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a6067"/><stop offset="1" stop-color="#2c3136"/></linearGradient>`
+        + `<linearGradient id="cadBlk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a8087"/><stop offset="1" stop-color="#454b51"/></linearGradient>`
         + `<radialGradient id="cadKnob" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#8a9097"/><stop offset=".55" stop-color="#3e444a"/><stop offset="1" stop-color="#1c2024"/></radialGradient></defs>`;
     // 투명 날 둘 — 따라 끌면 선이 그어진다(윗날은 윗변, 아랫날은 아랫변)
     const blade = (ty, ey) => `<g class="bar-blade"><rect x="${f(x0 + cw)}" y="${f(ty)}" width="${f(x1 - x0 - 2 * cw)}" height="${f(bl)}" fill="rgba(200,232,244,.38)" stroke="rgba(90,140,175,.55)" stroke-width="${f(0.05 * U)}"/>`
@@ -997,7 +997,10 @@ function drawBarOnly() {
             + `<circle cx="${f(cx - r * 0.2)}" cy="${f(cy - r * 0.22)}" r="${f(r * 0.18)}" fill="rgba(255,255,255,.4)"/>`; };
     [[x0, -1], [x1 - cw, 1]].forEach(([bx, side]) => {   // 죔쇠 — 레일 위 짙은 블록 + 둥근 손잡이, 바깥쪽으로 레일 모서리를 거는 갈고리
         const ox = side < 0 ? bx : bx + cw, hx = ox + side * 0.9 * U, hy0 = by + bh * 0.25, hy1 = y2 + 1.8 * U;
+        const ly = by + bh * 0.7, lx1 = ox + side * 1.9 * U;   // 옆으로 튀어나온 레버(끝이 둥근 손잡이)
         o += `<g class="bar-body"><path d="M${f(ox)} ${f(hy0)}H${f(hx)}V${f(hy1)}h${f(-side * 0.7 * U)}" fill="none" stroke="#2f3439" stroke-width="${f(0.55 * U)}" stroke-linejoin="round" stroke-linecap="round"/>`
+           + `<path d="M${f(ox)} ${f(ly)}L${f(lx1)} ${f(ly + 0.25 * U)}" stroke="#454b51" stroke-width="${f(0.5 * U)}" stroke-linecap="round"/>`
+           + `<circle cx="${f(lx1)}" cy="${f(ly + 0.25 * U)}" r="${f(0.42 * U)}" fill="#353a3f" stroke="#15181b" stroke-width="${f(0.05 * U)}"/>`
            + `<rect x="${f(bx)}" y="${f(by - 0.3 * U)}" width="${f(cw)}" height="${f(bh + 0.6 * U)}" rx="${f(0.45 * U)}" fill="url(#cadBlk)" stroke="#1d2125" stroke-width="${f(0.06 * U)}"/>`
            + dial(bx + cw * 0.55, by + bh * 0.5, Math.min(bh * 0.46, 1.25 * U))
            + '</g>';
@@ -1355,7 +1358,7 @@ let vb = {x: 0, y: 0, w: 100, h: 70}, fitW = 100, fitted = false;
 function setVB() { svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); status(); }
 function aspect() { const r = svg.clientWidth / svg.clientHeight; return r > 0 && isFinite(r) ? r : 1.4; }
 function fit() {
-    const B = boardGeom(), m = 1.2 * U;            // 제도판 전체가 들어오게
+    const B = boardGeom(), m = 3.4 * U;            // 제도판 전체 + I자 죔쇠의 레버·갈고리까지 들어오게
     let x = B.bx0 - m, y = B.by0 - m, w = (B.bx1 - B.bx0) + 2 * m, h = (B.by1 - B.by0) + 2 * m;
     const r = aspect();
     if (w / h < r) { const nw = h * r; x -= (nw - w) / 2; w = nw; } else { const nh = w / r; y -= (nh - h) / 2; h = nh; }
