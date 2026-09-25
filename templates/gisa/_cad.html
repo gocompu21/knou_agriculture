@@ -825,9 +825,9 @@ function tanLines() {
         if (op.t !== 'line' || auxHidden(op)) return;
         const a = P(op.a), b = P(op.b); if (!a || !b) return;
         const n = Math.hypot(b.x - a.x, b.y - a.y); if (n < 1e-6) return;
-        L.push({a, d: {x: (b.x - a.x) / n, y: (b.y - a.y) / n}});
+        L.push({a, d: {x: (b.x - a.x) / n, y: (b.y - a.y) / n}, lo: 0, hi: n});
     });
-    guideEdges().forEach(e => L.push({a: {x: e.ax, y: e.ay}, d: {x: e.dx, y: e.dy}}));
+    guideEdges().forEach(e => L.push({a: {x: e.ax, y: e.ay}, d: {x: e.dx, y: e.dy}, lo: e.lo, hi: e.hi}));
     return L;
 }
 const sdist = (l, p) => (p.x - l.a.x) * -l.d.y + (p.y - l.a.y) * l.d.x;   // 왼쪽 법선 방향의 부호 있는 거리
@@ -836,7 +836,9 @@ function tangentCenter(raw, snapped, r) {
     const tol = 12 / pxPer(), hit = [];
     tanLines().forEach(l => {
         const sd = sdist(l, raw), g = Math.abs(sd) - r;
-        if (Math.abs(g) < tol) hit.push({l, s: Math.sign(sd) || 1, g: Math.abs(g)});
+        // 접점이 그 선(선분·자의 변) 위에 있을 때만 — 무한 직선으로 보면 멀리 있는 삼각자 빗변 연장선에도 붙어 눈금에서 벗어났다
+        const t = (raw.x - l.a.x) * l.d.x + (raw.y - l.a.y) * l.d.y;
+        if (Math.abs(g) < tol && t >= l.lo - r && t <= l.hi + r) hit.push({l, s: Math.sign(sd) || 1, g: Math.abs(g)});
     });
     if (!hit.length) return null;
     hit.sort((a, b) => a.g - b.g);
