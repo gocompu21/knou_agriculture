@@ -1007,6 +1007,13 @@ function clearMarks() {                                // 마킹을 모두 지�
     [...selOps].forEach(id => { if (!doc.ops.some(o => o.id === id)) selOps.delete(id); });
     lastMark = null; changed(); flash(`마킹 ${ms.length}개를 지웠습니다`);
 }
+// 마킹으로 받는 모서리 곁 — 화면 8px, 그리고 자 두께(화면 px)의 22% 를 넘지 않는다. 12px 로 두었더니 자가 작게 보일 때
+// 몸통 거의 전부가 마킹 범위가 되어 샤프로 끌어도 옮겨지지 않았다(사용자)
+function srMarkEdge(w) {
+    if (!sr || !sheet) return null;
+    const px = Math.min(8, SR_W * srK() * pxPer() * 0.22);
+    return nearestEdge(w, px, x => x.sr);
+}
 function rollSr(back) {                                // 자를 굴린다 — 바닥 면이 바뀌어 종이에 닿는 축척 둘이 바뀐다
     if (!sr) return;
     sr.roll = (sr.roll + (back ? 2 : 1)) % 3; saveSr(); drawSr();
@@ -1524,6 +1531,7 @@ function drawPre() {
         return;
     }
     const onTriNow = h && h.w && onTriBody(h.w);
+    if (h && h.w && onSr(h.w, true) && !srMarkEdge(h.w)) { gPre.innerHTML = ''; return; }   // 스케일자 몸통 — 옮기는 곳이라 십자 커서 없음(마킹 모서리 곁만 보인다)
     if ((onTriNow || (h && h.w && (onTpl(h.w) || onSr(h.w, true)))) && !tool.startsWith('pen')) { gPre.innerHTML = ''; return; }   // 삼각자 위 — 도구 미리보기 없음(손 커서)
     if (h && tool !== 'select') {
         const hp = h.pt ? P(h.pt) : null, x = hp ? hp.x : h.x, y = hp ? hp.y : h.y, k = 0.8 * U;
@@ -2658,7 +2666,7 @@ svg.addEventListener('pointerdown', e => {
         if (c('#cadTpl .tpl-body')) { if (e.button === 0) startTplDrag(e, w); else drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return; }
         if (c('#cadSr .sr-body')) {                       // 스케일자 — 왼쪽은 옮기기, 오른쪽은 눈금 변을 따라 긋기
             // 스케일자는 긋는 자가 아니다(사용자) — 눈금 모서리 곁을 누르면 마킹(끌어도 선은 안 생긴다), 그 밖의 몸통은 왼쪽으로 끌어 옮긴다
-            if (nearestEdge(w, 12, x => x.sr)) drag = {kind: 'srmark', edge: srEdge(w), w0: w, sx: e.clientX, sy: e.clientY, moved: false};
+            if (srMarkEdge(w)) drag = {kind: 'srmark', edge: srEdge(w), w0: w, sx: e.clientX, sy: e.clientY, moved: false};
             else if (e.button === 0) startSrDrag(e, w); else drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true};
             return;
         }
@@ -3070,6 +3078,7 @@ $('cadTri45').addEventListener('click', () => toggleTri('45'));
     if (tpl && (tpl.kind || 'circle') !== kind) setTplKind(kind); else toggleTpl();
     drawTpl();
 }));
+$('cadSrBtn').addEventListener('click', toggleSr);
 $('cadTplKind').addEventListener('change', () => setTplKind($('cadTplKind').value));
 // ── 템플릿 계산기 — 종이 위 지름(mm) = 실제 지름(mm) ÷ 축척
 // 계산기는 지금 템플릿(없으면 고른 종류)의 그 모양 구멍들로 셈한다
