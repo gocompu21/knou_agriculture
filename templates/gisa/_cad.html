@@ -1232,9 +1232,23 @@ function nearestEdge(w, px, only) {
     });
     return best;
 }
+// 긋는 자의 변이 기존 선·사각형 변과 만나는 자리 — 누른 곳에서 화면 10px 안이면 그 교차점(선이 기존 요소와 딱 이어진다, 사용자)
+function edgeCross(e, w) {
+    const px = 10 / pxPer(); let best = null, bd = px;
+    allSegs().forEach(g => {
+        const ex = g.b.x - g.a.x, ey = g.b.y - g.a.y, den = e.dx * ey - e.dy * ex;
+        if (Math.abs(den) < 1e-12) return;
+        const wx = g.a.x - e.ax, wy = g.a.y - e.ay, t = (wx * ey - wy * ex) / den, v = (wx * e.dy - wy * e.dx) / den;
+        if (v < -1e-6 || v > 1 + 1e-6 || t < e.lo - 1e-9 || t > e.hi + 1e-9) return;
+        const x = e.ax + e.dx * t, y = e.ay + e.dy * t, d = Math.hypot(x - w.x, y - w.y);
+        if (d < bd) { bd = d; best = {x: +x.toFixed(3), y: +y.toFixed(3), cross: true}; }
+    });
+    return best;
+}
 function onEdge(e, w) {           // 변 위의 자리 — 가파른 변은 y 를, 누운 변은 x 를 눈금에 맞춘다
     const hp = hitPoint(w);
     if (hp && Math.abs((hp.x - e.ax) * e.dy - (hp.y - e.ay) * e.dx) < 1e-3) return {x: hp.x, y: hp.y};
+    const X = edgeCross(e, w); if (X) return X;             // 기존 선과 만나는 자리가 가까우면 거기에 붙는다
     let t = clampT((w.x - e.ax) * e.dx + (w.y - e.ay) * e.dy, e);
     const g = $('cadSnap').checked ? +$('cadSnapStep').value : PREC;
     if (Math.abs(e.dy) >= Math.abs(e.dx)) { const y = Math.round((e.ay + e.dy * t) / g) * g; t = (y - e.ay) / e.dy; }
@@ -1737,15 +1751,21 @@ function compactPts() {
 }
 // 교차선까지 연장 — 고른 점에 이어진 선을 그 방향(반대 끝 → 고른 점)으로 늘려 처음 만나는 다른 선(사각형 변 포함)까지.
 // 고른 점을 다른 것도 쓰면 그것이 틀어지지 않게, 교차점에 새 점을 두고 이 선의 끝만 옮긴다. 아무도 안 쓰게 된 점은 지운다
-function extCands(n) {
-    const S = P(n); if (!S) return [];
-    const segs = [];                                      // 부딪칠 선분들
+function allSegs() {                                  // 부딪칠 선분들 — 선과 사각형의 네 변(보이는 것만)
+    const segs = [];
     doc.ops.forEach(op => {
+        if (auxHidden(op)) return;
         if (op.t === 'line') { const a = P(op.a), b = P(op.b); if (a && b) segs.push({op, a, b, name: `선 P${op.a}–P${op.b}`}); }
         else if (op.t === 'rect') { const a = P(op.a), b = P(op.b); if (!a || !b) return;
             const c = [a, {x: b.x, y: a.y}, b, {x: a.x, y: b.y}];
             c.forEach((q, i) => segs.push({op, a: q, b: c[(i + 1) % 4], name: `사각형 P${op.a}–P${op.b} 변`})); }
     });
+    return segs;
+}
+// back=false: 고른 점 너머로 늘려 만나는 선(연장) / back=true: 고른 점에서 반대 끝 쪽으로 이미 지나온 선(줄이기 — 삐져나온 끝을 자른다)
+function extCands(n, back) {
+    const S = P(n); if (!S) return [];
+    const segs = allSegs();
     const out = [];
     doc.ops.forEach(op => {
         if (op.t !== 'line') return;
@@ -1760,9 +1780,10 @@ function extCands(n) {
             if (Math.abs(den) < 1e-12) return;              // 나란하면 만나지 않는다
             const wx = g.a.x - S.x, wy = g.a.y - S.y;
             const t = (wx * ey - wy * ex) / den, v = (wx * uy - wy * ux) / den;
-            if (t <= 1e-6 || v < -1e-6 || v > 1 + 1e-6) return;   // 고른 점 너머, 그 선분 안에서만
-            const h = hits.get(g.name);
-            if (!h || t < h.dist) hits.set(g.name, {line: op, end, x: S.x + ux * t, y: S.y + uy * t, dist: t, name: g.name});
+            if (v < -1e-6 || v > 1 + 1e-6) return;                   // 그 선분 안에서 만나는 것만
+            if (back ? !(t < -1e-6 && t > -L + 1e-6) : t <= 1e-6) return;   // 연장: 고른 점 너머 / 줄이기: 이 선 안(양 끝 제외)
+            const dist = Math.abs(t), h = hits.get(g.name);
+            if (!h || dist < h.dist) hits.set(g.name, {line: op, end, x: S.x + ux * t, y: S.y + uy * t, dist, name: g.name, back});
         });
         out.push(...hits.values());
     });
@@ -1785,18 +1806,21 @@ function extendTo(n, c) {
     c.line[c.end] = q;
     if (!usedBy(+n) && +n !== q) doc.pts = doc.pts.filter(p => p.n !== +n);
     const nq = compactPts()[q]; selPt = nq;
-    changed(); flash(`${c.name} 까지 ${fmt(c.dist)}m 연장했습니다 — 끝점은 P${nq}`);
+    changed(); flash(`${c.name} 까지 ${fmt(c.dist)}m ${c.back ? '줄였습니다' : '연장했습니다'} — 끝점은 P${nq}`);
 }
 function ctxMenu(e, n) {
     let m = $('cadCtx');
     if (!m) { m = document.createElement('div'); m.id = 'cadCtx'; m.className = 'cad-ctx'; m.hidden = true; root.appendChild(m); }
-    const C = mergeCands(n), X = extCands(n);
+    const C = mergeCands(n), X = extCands(n), Tm = extCands(n, true), XT = [...X, ...Tm];
     m.innerHTML = `<div class="ch">P${n} 합치기</div>` + (C.length
         ? C.map(c => `<button type="button" data-to="${c.n}">P${c.n} 와(과) 합치기<small>${c.why} · ${fmt(c.dist)}m</small></button>`).join('')
         : '<div class="none">이어진 선의 연장선 위에 점이 없습니다</div>')
         + `<div class="ch" style="border-top:1px solid #eef0f2;margin-top:2px">P${n} 교차선까지 연장</div>` + (X.length
         ? X.map((c, i) => `<button type="button" data-ext="${i}">${c.name} 까지 연장<small>${fmt(c.dist)}m</small></button>`).join('')
         : '<div class="none">연장해서 만나는 선이 없습니다</div>')
+        + `<div class="ch" style="border-top:1px solid #eef0f2;margin-top:2px">P${n} 지난 교차선까지 줄이기</div>` + (Tm.length
+        ? Tm.map((c, i) => `<button type="button" data-ext="${X.length + i}">${c.name} 까지 줄이기<small>−${fmt(c.dist)}m</small></button>`).join('')
+        : '<div class="none">이 선이 지나온 교차선이 없습니다</div>')
         + (() => { const k = doc.ops.filter(op => op.t !== 'step' && ptsOf(op).map(Number).includes(+n)).length;
             return `<div class="ch" style="border-top:1px solid #eef0f2;margin-top:2px">삭제</div><button type="button" data-del="1" style="color:#c62828">P${n} 삭제${k ? `<small>이어진 ${k}개도 함께</small>` : ''}</button>`; })();
     m.hidden = false;
@@ -1805,7 +1829,7 @@ function ctxMenu(e, n) {
     m.onclick = ev => {
         const b = ev.target.closest('button[data-to], button[data-ext], button[data-del]'); if (!b) return;
         m.hidden = true;
-        if (b.dataset.to) mergePts(n, +b.dataset.to); else if (b.dataset.del) delPoint(n); else extendTo(n, X[+b.dataset.ext]);
+        if (b.dataset.to) mergePts(n, +b.dataset.to); else if (b.dataset.del) delPoint(n); else extendTo(n, XT[+b.dataset.ext]);
     };
 }
 document.addEventListener('pointerdown', e => { const m = $('cadCtx'); if (m && !m.hidden && !e.target.closest('#cadCtx')) m.hidden = true; }, true);
@@ -2915,7 +2939,8 @@ svg.addEventListener('pointermove', e => {
                 if (a.x >= drag.bl[1] - 1e-6 && q.x < drag.bl[1]) q.x = drag.bl[1];
             }
             drag.p1 = q;
-            gPre.innerHTML = `<path d="M${fmt(a.x)} ${fmt(a.y)}L${fmt(q.x)} ${fmt(q.y)}" ${stAttr(st.ls, st.w)}/>`
+            gPre.innerHTML = (q.cross || a.cross ? [a, q].filter(z => z.cross).map(z => `<circle cx="${fmt(z.x)}" cy="${fmt(z.y)}" r="${fmt(0.7 * U)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.15 * U)}"/>`).join('') : '')
+                + `<path d="M${fmt(a.x)} ${fmt(a.y)}L${fmt(q.x)} ${fmt(q.y)}" ${stAttr(st.ls, st.w)}/>`
                 + `<text x="${fmt(q.x + 0.8 * U)}" y="${fmt(q.y - 1.0 * U)}" font-size="${fmt(1.1 * U)}" fill="${RED}" font-weight="700">${fmt(Math.hypot(q.x - a.x, q.y - a.y))}m</text>`;
             hover = {x: q.x, y: q.y, pt: null}; status();
         }
