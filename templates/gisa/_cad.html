@@ -99,7 +99,7 @@
     <div class="cad-body">
         <div class="cad-stage">
             <svg id="cadSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-                <g id="cadGrid"></g><g id="cadOps"></g><g id="cadPts"></g><g id="cadBar"></g><g id="cadTri"></g><g id="cadTpl"></g><g id="cadPre"></g>
+                <g id="cadBoard" pointer-events="none"></g><g id="cadGrid"></g><g id="cadOps"></g><g id="cadPts"></g><g id="cadBar"></g><g id="cadTri"></g><g id="cadTpl"></g><g id="cadPre"></g>
             </svg>
             <div class="cad-zoom">
                 <button type="button" id="cadZfit" title="종이에 맞추기">맞춤</button>
@@ -963,7 +963,7 @@ function drawBarOnly() {
     if (!barOn || !sheet) { g.innerHTML = ''; return; }
     const W = barW();
     if (barY == null || barY < sheet.y0 - W || barY > sheet.y1) barY = Math.round((sheet.y0 + sheet.y1) / 2);
-    const s = sheet, y = barY, x0 = s.x0 - 4 * U, x1 = s.x1 + 4 * U;
+    const s = sheet, y = barY, BG = boardGeom(), x0 = BG.bx0 - 0.4 * U, x1 = BG.bx1 + 0.4 * U;   // 양 끝 블록이 제도판 좌우 레일에 걸린다
     const bl = W * 0.2, by = y + bl, bh = W * 0.6, y2 = y + W, cw = 2.8 * U, f = v => fmt(v);
     let o = `<defs><linearGradient id="cadAl" x1="0" y1="0" x2="0" y2="1">`
         + `<stop offset="0" stop-color="#eef1f3"/><stop offset=".18" stop-color="#d5dade"/><stop offset=".55" stop-color="#c3c9ce"/>`
@@ -1138,6 +1138,48 @@ function dotSvg(p, ring) {
         + `<text x="${fmt(p.x + 0.6 * U)}" y="${fmt(p.y - 0.5 * U)}" font-size="${fmt(1.25 * U)}" fill="${BLUE}" font-weight="700">${p.n}</text>`
         + (ring ? `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r * 2.6)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : '');
 }
+// ── 제도판 ── 사용자가 보여 준 탁상 제도판(평면)을 종이 둘레에 그린다: 흰 판, 좌우 알루미늄 레일(왼쪽에 눈금),
+// 위쪽 얇은 틀, 아래 펜 받침(알루미늄 홈), 네 모서리 검은 마개, 종이 네 귀의 마스킹 테이프. I자 양 끝 블록이 좌우 레일에 걸린다
+function boardGeom(s) {
+    s = s || sheet;
+    return {bx0: s.x0 - 7 * U, bx1: s.x1 + 7 * U, by0: s.y0 - 6.5 * U, by1: s.y1 + 11 * U, rw: 2.6 * U};
+}
+function boardSvg(s) {
+    const B = boardGeom(s), f = v => fmt(v), {bx0, bx1, by0, by1, rw} = B, W = bx1 - bx0, H = by1 - by0;
+    const ty0 = by1 - 5.6 * U, ty1 = by1 - 0.5 * U;              // 펜 받침
+    let o = `<defs><linearGradient id="bdSurf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfb"/><stop offset="1" stop-color="#e9ece8"/></linearGradient>`
+        + `<linearGradient id="bdRailV" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#aeb6bc"/><stop offset=".25" stop-color="#eef1f3"/><stop offset=".55" stop-color="#d3d8dc"/><stop offset="1" stop-color="#9ea6ad"/></linearGradient>`
+        + `<linearGradient id="bdRailH" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1f3"/><stop offset=".35" stop-color="#cfd5da"/><stop offset=".7" stop-color="#b9c0c6"/><stop offset="1" stop-color="#8f979e"/></linearGradient>`
+        + `<filter id="bdSh" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="${f(0.5 * U)}"/></filter></defs>`;
+    // 판 그림자 · 판
+    o += `<rect x="${f(bx0 + 0.5 * U)}" y="${f(by0 + 0.8 * U)}" width="${f(W)}" height="${f(H)}" rx="${f(0.9 * U)}" fill="rgba(40,50,60,.28)" filter="url(#bdSh)"/>`
+       + `<rect x="${f(bx0)}" y="${f(by0)}" width="${f(W)}" height="${f(H)}" rx="${f(0.9 * U)}" fill="url(#bdSurf)" stroke="#9aa3a9" stroke-width="${f(0.12 * U)}"/>`;
+    // 위쪽 얇은 틀
+    o += `<rect x="${f(bx0)}" y="${f(by0)}" width="${f(W)}" height="${f(1.1 * U)}" rx="${f(0.5 * U)}" fill="url(#bdRailH)"/>`;
+    // 좌우 레일 — 왼쪽은 눈금
+    [bx0, bx1 - rw].forEach((x, i) => {
+        o += `<rect x="${f(x)}" y="${f(by0)}" width="${f(rw)}" height="${f(H)}" rx="${f(0.6 * U)}" fill="url(#bdRailV)" stroke="#8b949b" stroke-width="${f(0.08 * U)}"/>`
+           + `<path d="M${f(x + rw * 0.5)} ${f(by0 + 1.5 * U)}V${f(by1 - 1.5 * U)}" stroke="rgba(90,100,110,.45)" stroke-width="${f(0.1 * U)}"/>`;
+        if (i === 0) {
+            const mi = s.step / 5; let tk = '';
+            for (let y = s.y0, n = 0; y <= s.y1 + 1e-9; y += mi, n++) {
+                const l = n % 5 === 0 ? 1.1 : 0.55;
+                tk += `M${f(x + rw - 0.15 * U)} ${f(y)}h${f(-l * U)}`;
+            }
+            o += `<path d="${tk}" stroke="#3d464d" stroke-width="${f(0.07 * U)}"/>`;
+        }
+    });
+    // 아래 펜 받침(알루미늄 홈)
+    o += `<rect x="${f(bx0 + rw)}" y="${f(ty0)}" width="${f(W - 2 * rw)}" height="${f(ty1 - ty0)}" rx="${f(0.4 * U)}" fill="url(#bdRailH)" stroke="#8b949b" stroke-width="${f(0.08 * U)}"/>`
+       + `<rect x="${f(bx0 + rw + 1.2 * U)}" y="${f(ty0 + 1.4 * U)}" width="${f(W - 2 * rw - 2.4 * U)}" height="${f(1.6 * U)}" rx="${f(0.8 * U)}" fill="rgba(80,90,100,.22)"/>`;
+    // 네 모서리 검은 마개
+    [[bx0, by0], [bx1 - rw - 0.3 * U, by0], [bx0, by1 - 1.8 * U], [bx1 - rw - 0.3 * U, by1 - 1.8 * U]].forEach(([x, y]) => {
+        o += `<rect x="${f(x)}" y="${f(y)}" width="${f(rw + 0.3 * U)}" height="${f(1.8 * U)}" rx="${f(0.4 * U)}" fill="#23272b"/>`;
+    });
+    // 종이 그림자(테이프는 종이 위라 gridSvg 가 얹는다)
+    o += `<rect x="${f(s.x0 + 0.25 * U)}" y="${f(s.y0 + 0.35 * U)}" width="${f(s.x1 - s.x0)}" height="${f(s.y1 - s.y0)}" fill="rgba(40,50,60,.18)" filter="url(#bdSh)"/>`;
+    return o;
+}
 function gridSvg(s, id) {
     const {x0, x1, y0, y1, step} = s, mi = step / 5, W = x1 - x0, H = y1 - y0, fs = 1.15 * U;
     let o = `<defs><pattern id="${id}a" width="${mi}" height="${mi}" patternUnits="userSpaceOnUse"><path d="M${mi} 0H0V${mi}" fill="none" stroke="#c9d4ec" stroke-width="${fmt(0.1 * U)}"/></pattern>`
@@ -1151,6 +1193,9 @@ function gridSvg(s, id) {
     for (let v = y0; v <= y1 + 1e-9; v += step) o += t(x0 - 0.7 * U, v, v, 'end') + t(x1 + 0.7 * U, v, v, 'start');
     o += `<text x="${fmt((x0 + x1) / 2)}" y="${fmt(y0 - 2.8 * U)}" font-size="${fmt(1.7 * U)}" fill="${BLUE}" text-anchor="middle" font-weight="500">${esc(s.title)}</text>`;
     if (s.scale) o += `<text x="${fmt(x1)}" y="${fmt(y1 + 2.6 * U)}" font-size="${fmt(1.2 * U)}" fill="${BLUE}" text-anchor="end" font-weight="600">SCALE ${esc(s.scale)}</text>`;
+    if (id === 'cg') [[x0, y0, -45], [x1, y0, 45], [x0, y1, 45], [x1, y1, -45]].forEach(([x, y, a]) => {   // 제도판에 붙인 마스킹 테이프
+        o += `<rect x="${fmt(x - 2 * U)}" y="${fmt(y - 0.7 * U)}" width="${fmt(4 * U)}" height="${fmt(1.4 * U)}" fill="rgba(236,222,170,.72)" stroke="rgba(190,170,110,.45)" stroke-width="${fmt(0.05 * U)}" transform="rotate(${a} ${fmt(x)} ${fmt(y)})" pointer-events="none"/>`;
+    });
     return o;
 }
 
@@ -1161,6 +1206,7 @@ function setSheet(key) {
     U = Math.max(sheet.x1 - sheet.x0, sheet.y1 - sheet.y0) / 100;
     const mi = sheet.step / 5;
     PREC = +(mi / 10).toPrecision(3);
+    $('cadBoard').innerHTML = boardSvg(sheet);
     gGrid.innerHTML = gridSvg(sheet, 'cg');
     const sel = $('cadSnapStep'), keep = sel.value || String(SET.step || '');
     // 0.1m·0.2m 는 늘 둔다 — 시설 치수(평의자 0.45m 등)를 잡을 때 쓴다
@@ -1300,8 +1346,8 @@ let vb = {x: 0, y: 0, w: 100, h: 70}, fitW = 100, fitted = false;
 function setVB() { svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); status(); }
 function aspect() { const r = svg.clientWidth / svg.clientHeight; return r > 0 && isFinite(r) ? r : 1.4; }
 function fit() {
-    const s = sheet, m = 3.4 * U;
-    let x = s.x0 - m, y = s.y0 - m - 1.6 * U, w = (s.x1 - s.x0) + 2 * m, h = (s.y1 - s.y0) + 2 * m + 1.6 * U;
+    const B = boardGeom(), m = 1.2 * U;            // 제도판 전체가 들어오게
+    let x = B.bx0 - m, y = B.by0 - m, w = (B.bx1 - B.bx0) + 2 * m, h = (B.by1 - B.by0) + 2 * m;
     const r = aspect();
     if (w / h < r) { const nw = h * r; x -= (nw - w) / 2; w = nw; } else { const nh = w / r; y -= (nh - h) / 2; h = nh; }
     vb = {x, y, w, h}; fitW = w; fitted = svg.clientWidth > 0; setVB();
