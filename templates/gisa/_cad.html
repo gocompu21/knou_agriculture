@@ -32,7 +32,7 @@
         <button type="button" data-tool="rect" hidden title="사각형 (R)" aria-label="사각형"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="5" width="14" height="10" rx="0.5"/></svg></button>
         <button type="button" data-tool="circle" hidden title="원 (C)" aria-label="원"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="1.2" class="f"/></svg></button>
         <button type="button" data-tool="arc" hidden title="호 (A)" aria-label="호"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 15A6.5 6.5 0 0 1 16.5 15"/><circle cx="3.5" cy="15" r="1.7" class="f"/><circle cx="16.5" cy="15" r="1.7" class="f"/></svg></button>
-        <button type="button" data-tool="sym" hidden title="라이브러리 기호 넣기 (B)" aria-label="기호"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="13" height="13"/><path d="M3.5 3.5l13 13M16.5 3.5l-13 13"/></svg></button>
+        <button type="button" data-tool="sym" title="라이브러리 기호 넣기 (B)" aria-label="기호"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="13" height="13"/><path d="M3.5 3.5l13 13M16.5 3.5l-13 13"/></svg></button>
         <button type="button" data-tool="free" title="프리드로잉 (D) — 누른 채 끌면 손 가는 대로 선이 그어집니다(자 위로는 그어지지 않습니다)" aria-label="프리드로잉"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 15.5c2-3.5 3.6-4.6 5-3.4 1.3 1.1-.4 3.2 1 3.9 1.6.8 3.2-3.6 5-6.2 1.2-1.7 2.4-2.4 4-2.2"/><path d="m14.2 3.2 2.6 2.6-1.6 1.6-2.6-2.6Z" class="f"/></svg></button>
         <button type="button" data-tool="fill" title="도형 채우기 (F) — 선으로 둘러싸인 면의 안쪽을 누르면 설정의 색으로 칠합니다" aria-label="채우기"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.2 9.6 9.6 4.2l6 6-5.4 5.4a1.4 1.4 0 0 1-2 0l-4-4a1.4 1.4 0 0 1 0-2Z"/><path d="M4.4 10.8h11" /><path d="M16.8 12.6c.9 1.3 1.4 2.2 1.4 2.8a1.4 1.4 0 0 1-2.8 0c0-.6.5-1.5 1.4-2.8Z" class="f"/></svg></button>
         <div class="cad-fp" id="cadFp"><button type="button" id="cadFpBtn" class="cad-fp-btn" title="채우기 모양 고르기" aria-label="채우기 모양"></button><div class="cad-fp-menu" id="cadFpMenu" hidden></div><select id="cadFillType" hidden class="cad-set-ls"><option value="solid">전체 채우기</option><option value="h">수평선 채우기</option><option value="v">수직선 채우기</option><option value="d">사선 채우기</option><option value="x">X자 채우기</option><option value="dot">점 채우기</option><option value="gl">큰 가로세로 격자</option><option value="gs">작은 가로세로 격자</option><option value="grass">잔디</option></select></div>
@@ -228,7 +228,7 @@
             <div class="cad-tabs">
                 <button type="button" class="on" data-ptab="ops">작도 순서 <em id="cadOpsN"></em></button>
                 <button type="button" data-ptab="pts">점 <em id="cadPtsN"></em></button>
-                <button type="button" data-ptab="lib" hidden>라이브러리</button>
+                <button type="button" data-ptab="lib">라이브러리</button>
             </div>
             <div class="cad-pane on" data-ppane="ops">
                 <div class="cad-row"><input id="cadStepTitle" placeholder="단계 이름 — 예) 경계선 및 그리드 작성">
@@ -2905,7 +2905,7 @@ document.addEventListener('keydown', e => {
     if (barOn && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         e.preventDefault(); setBarY(barY + (e.key === 'ArrowUp' ? -1 : 1) * barStep() * (e.shiftKey ? 5 : 1)); saveBar(); return;
     }
-    const map = {v: 'select', t: 'text', f: 'fill', d: 'free', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
+    const map = {v: 'select', t: 'text', f: 'fill', d: 'free', b: 'sym', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
     if (map[k]) setTool(map[k]);
     if (k === '+' || k === '=') zoomCenter(1.4);
     if (k === '-') zoomCenter(1 / 1.4);
