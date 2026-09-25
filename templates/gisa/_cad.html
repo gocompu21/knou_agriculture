@@ -921,6 +921,9 @@ const SR_W = 14.5, SR_H = SR_W / 2;                    // 위에서 본 폭 = �
 // 능선 쪽 눈금(1/200·1/300)은 좁게 눌려 보인다(사용자 지시). 사진에서 잰 반쪽(7.25mm)의 수평 투영:
 // [종이 쪽 눈금 · 홈 · 능선 쪽 눈금] = 4.6 · 0.8 · 1.85mm. 면 좌표를 구간마다 이 비율로 줄인다
 const SR_SEG = [4.6, 0.8, SR_H - 4.6 - 0.8];
+// 두 면이 만나는 모서리는 칼날이 아니라 눈금 없는 흰 평면(랜드)이다 — 눈금은 그 앞에서 끝나고, 종이 쪽 랜드에 연필을 대고 긋는다.
+// 위에서도 흰 띠로 보인다(사용자 사진). 위에서 본 폭: 종이 쪽 SR_LAND, 능선 SR_RIDGE(가운데 걸쳐 반씩)
+const SR_LAND = 0.45, SR_RIDGE = 0.4;
 const SR_RED0 = 10.8, SR_RED1 = 14.8;                  // 면 위 둥근 홈 입구(w, mm)
 const SR_BANDS = {
     red:  [[0, '#7c0f0c'], [0.16, '#c81a21'], [0.5, '#ee2a32'], [0.84, '#c81a21'], [1, '#7c0f0c']],
@@ -985,7 +988,8 @@ function drawSr() {
     // 면 위 좌표 w → 화면 v. 종이 모서리에서의 거리 d 를 [종이 쪽 눈금 · 홈 · 능선 쪽 눈금] 세 구간으로 줄인다.
     // A(윗쪽)는 w=0 이 종이 모서리(v=0), B(아랫쪽)는 w=25 가 종이 모서리(v=SR_W). 둘 다 w 가 늘면 v 도 는다
     const seg = (d0, d1) => {                              // d0~d1 = 그 반쪽에서 홈의 거리 구간
-        const P = [[0, 0], [d0, SR_SEG[0]], [d1, SR_SEG[0] + SR_SEG[1]], [SR_F, SR_H]];
+        const q = (SR_H - SR_LAND - SR_RIDGE / 2) / SR_H;   // 랜드를 뺀 나머지에 세 구간을 줄여 담는다
+        const P = [[0, SR_LAND], [d0, SR_LAND + SR_SEG[0] * q], [d1, SR_LAND + (SR_SEG[0] + SR_SEG[1]) * q], [SR_F, SR_H - SR_RIDGE / 2]];
         return d => { for (let i = 1; i < P.length; i++) if (d <= P[i][0] || i === P.length - 1) {
             const [a, av] = P[i - 1], [b, bv] = P[i], sy = (bv - av) / (b - a); return {v: av + (d - a) * sy, sy}; } };
     };
@@ -1010,11 +1014,10 @@ function drawSr() {
            + `<path d="M${M(0, a)}L${M(SR_L, a)}" stroke="rgba(255,255,255,.9)" stroke-width="${f(0.18 * k)}"/>`
            + `<path d="M${M(0, b)}L${M(SR_L, b)}" stroke="rgba(60,60,60,.45)" stroke-width="${f(0.18 * k)}"/>`;
     });
-    o += `<path d="${R4(0, SR_H - 0.12, SR_L, SR_H + 0.12)}" fill="#fdfdfb"/>`                                                        // 잘린 능선 꼭짓점
-       + `<path d="M${M(0, SR_H + 0.12)}L${M(SR_L, SR_H + 0.12)}" stroke="rgba(70,72,74,.55)" stroke-width="${f(0.16 * k)}"/>`       // 능선 너머로 꺾이는 선
-       + `<path d="M${M(0, SR_H - 0.12)}L${M(SR_L, SR_H - 0.12)}" stroke="rgba(150,152,150,.5)" stroke-width="${f(0.12 * k)}"/>`
-       + `<path d="M${M(0, 0.15)}L${M(SR_L, 0.15)}" stroke="rgba(120,122,120,.45)" stroke-width="${f(0.3 * k)}"/>`                  // 종이에 닿는 모서리
-       + `<path d="M${M(0, SR_W - 0.15)}L${M(SR_L, SR_W - 0.15)}" stroke="rgba(90,92,90,.5)" stroke-width="${f(0.3 * k)}"/>`;
+    // 흰 랜드 셋 — 능선(가운데)과 종이에 닿는 두 모서리. 면과 만나는 꺾임선을 가늘게 긋는다
+    const land = (v0, v1, c) => `<path d="${R4(0, v0, SR_L, v1)}" fill="${c}"/>`
+        + `<path d="M${M(0, v0)}L${M(SR_L, v0)}M${M(0, v1)}L${M(SR_L, v1)}" stroke="rgba(110,112,112,.55)" stroke-width="${f(0.08 * k)}"/>`;
+    o += land(SR_H - SR_RIDGE / 2, SR_H + SR_RIDGE / 2, '#ffffff') + land(0, SR_LAND, '#fdfdfc') + land(SR_W - SR_LAND, SR_W, '#f7f7f5');
     // 눈금 — 실물 사진을 따른다: 축척마다 [작은 눈금, 중간 눈금, 긴 중간 눈금(없으면 0), 숫자] 간격(실제 m).
     // 1/100 은 0.1·0.5·1m, 1/200 은 0.1·0.5·1·5m, 1/300~1/600 은 0.5·1·5·10m
     const SRG = {100: [0.1, 0.5, 0, 1], 200: [0.1, 0.5, 1, 5], 300: [0.5, 1, 5, 10], 400: [0.5, 1, 5, 10], 500: [0.5, 1, 5, 10], 600: [0.5, 1, 5, 10]};
