@@ -312,6 +312,8 @@
 .cad-tools select { border: 1px solid #d5ddd9; border-radius: 5px; padding: 2px 4px; font-size: 0.74rem; }
 .cad-tools .cad-bar-btn { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; height: 26px; }
 .cad-bar-btn svg:not(.real) { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+/* 글자 도구 커서 — 찍히는 점(붉은 점)이 첫 글자의 왼쪽 아래 모서리다. 세로선=글자 높이 쪽, 가로선=써 나갈 쪽 */
+.cad-tool-text #cadSvg { cursor: url("data:image/svg+xml,<svg%20xmlns='http://www.w3.org/2000/svg'%20width='28'%20height='28'%20viewBox='0%200%2028%2028'><path%20d='M3%2025V5M3%2025h9'%20stroke='white'%20stroke-width='3.4'%20stroke-linecap='round'%20fill='none'/><path%20d='M3%2025V5M3%2025h9'%20stroke='%23c62828'%20stroke-width='1.6'%20stroke-linecap='round'%20fill='none'/><circle%20cx='3'%20cy='25'%20r='2.2'%20fill='%23c62828'%20stroke='white'%20stroke-width='1'/><text%20x='7'%20y='20'%20font-size='13'%20font-family='sans-serif'%20font-weight='700'%20fill='%23333'%20stroke='white'%20stroke-width='2.4'%20paint-order='stroke'>가</text></svg>") 3 25, text; }
 #cadPre { pointer-events: none; }
 #cadTpl .tpl-rot { cursor: grab; }
 .cad.bar-drag #cadTpl .tpl-rot { cursor: grabbing; }
