@@ -1052,13 +1052,14 @@ function opSvg(op) {
         const fo = op.op != null ? op.op : 0.6;
         if (op.kind && op.kind !== 'solid' && op.bb && op.gap > 0) {   // 해칭 — 면 모양(clipPath)으로 오린 선·점
             const [x0, y0, x1, y1] = op.bb, k = op.kind, g = k === 'gl' ? op.gap * 1.5 : k === 'gs' ? op.gap * 0.5 : op.gap, id = `cadFc${op.id}`; let dd = '';   // 큰 격자 1.5배 · 작은 격자 절반 간격
+            const po = Math.min(0.6, Math.max(0.35, fo));   // 연한 펜 — 해칭 선·점은 진하기를 0.35~0.6 으로 눌러 연필로 옅게 그은 듯이
             const clip = `<clipPath id="${id}"><path d="${op.d}" clip-rule="evenodd"/></clipPath><path d="${op.d}" fill="none" stroke="none" fill-rule="evenodd"/>`;
             if (k === 'dot') {                               // 점 — 한 줄씩 반 칸 엇갈려 찍는다
                 const r = Math.min(0.28 * U, g * 0.13);
                 for (let y = y0 + g / 2, row = 0; y < y1; y += g, row++)
                     for (let x = x0 + g / 2 + (row % 2 ? g / 2 : 0); x < x1; x += g)
                         dd += `M${fmt(x - r)} ${fmt(y)}a${fmt(r)} ${fmt(r)} 0 1 0 ${fmt(2 * r)} 0a${fmt(r)} ${fmt(r)} 0 1 0 ${fmt(-2 * r)} 0Z`;
-                return clip + `<path d="${dd}" clip-path="url(#${id})" fill="${op.color}" fill-opacity="${Math.max(fo, 0.85)}" stroke="none"/>`;
+                return clip + `<path d="${dd}" clip-path="url(#${id})" fill="${op.color}" fill-opacity="${po}" stroke="none"/>`;
             }
             if (k === 'h' || k === 'gl' || k === 'gs') for (let y = y0 + g / 2; y < y1; y += g) dd += `M${fmt(x0)} ${fmt(y)}H${fmt(x1)}`;
             if (k === 'v' || k === 'gl' || k === 'gs') for (let x = x0 + g / 2; x < x1; x += g) dd += `M${fmt(x)} ${fmt(y0)}V${fmt(y1)}`;
@@ -1071,7 +1072,7 @@ function opSvg(op) {
                 for (let c = y0 - x1 + st / 2; c < y1 - x0; c += st) dd += `M${fmt(x0)} ${fmt(x0 + c)}L${fmt(x1)} ${fmt(x1 + c)}`;
             }
             return clip
-                + `<path d="${dd}" clip-path="url(#${id})" stroke="${op.color}" stroke-opacity="${Math.max(fo, 0.85)}" stroke-width="${fmt(k === 'x' || k === 'gs' ? Math.min(0.07 * U, g * 0.1) : Math.min(0.14 * U, g * 0.2))}" fill="none"/>`;   // X자·작은 격자는 가는 선   // 좁은 면은 간격이 좁아 선을 가늘게(간격의 1/5 이하) — 면처럼 뭉치지 않게
+                + `<path d="${dd}" clip-path="url(#${id})" stroke="${op.color}" stroke-opacity="${po}" stroke-width="${fmt(k === 'x' ? Math.min(0.07 * U, g * 0.1) : k === 'gs' ? Math.min(0.11 * U, g * 0.16) : Math.min(0.14 * U, g * 0.2))}" fill="none"/>`;   // X자는 가는 선, 작은 격자는 조금 가늘게   // 좁은 면은 간격이 좁아 선을 가늘게(간격의 1/5 이하) — 면처럼 뭉치지 않게
         }
         return `<path d="${op.d}" fill="${op.color}" fill-opacity="${fo}" fill-rule="evenodd" stroke="none"/>`;
     }
