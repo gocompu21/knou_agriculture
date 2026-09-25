@@ -353,6 +353,13 @@
 /* 보조선 레이어 — 끄면 화면에서 감추고, 지우개·영역 선택도 건드리지 않는다 */
 .cad.aux-off #cadOps g.aux { display: none; }
 .cad.mark-off #cadOps g.mark { display: none; }
+.cad-ctx { position: fixed; z-index: 60; min-width: 170px; background: #fff; border: 1px solid #c9ced3; border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,.18); padding: 4px 0; font-size: 13px; }
+.cad-ctx[hidden] { display: none; }
+.cad-ctx .ch { padding: 4px 12px 5px; color: #6b7076; font-size: 12px; border-bottom: 1px solid #eef0f2; margin-bottom: 2px; }
+.cad-ctx button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 6px 12px; cursor: pointer; font: inherit; color: #1f2328; }
+.cad-ctx button:hover { background: #eaf3ec; }
+.cad-ctx button small { color: #6b7076; margin-left: 6px; }
+.cad-ctx .none { padding: 6px 12px; color: #8a8f94; }
 .cad-calc { right: 44px; width: 290px; }
 .cad-calc-sec { color: #1b4332; font-size: 0.8rem; padding-top: 8px; }
 .cad-calc-out { font-size: 0.8rem; color: #333; background: #f6faf7; border: 1px solid #e3ece6; border-radius: 6px; padding: 6px 8px; margin: 2px 0 4px; line-height: 1.6; }
@@ -1680,6 +1687,51 @@ function snapXY(w) {
     const ed = nearestEdge(w, tool.startsWith('pen') ? 40 : 16, x => !x.sr); if (ed) return onEdge(ed, w);   // I자 날·삼각자 변에 붙는다(스케일자는 긋는 자가 아니다)
     return r;
 }
+// ── 점 합치기 ── 샤프로 점을 고른 뒤 그 점에서 오른쪽 버튼 → 그 점에 이어진 선의 연장선 위에 있는 점들을 가까운 차례로
+// 보여 주고, 고르면 고른 점을 그 점으로 합친다(그 점을 쓰던 선·원·호·글자가 모두 새 점을 가리키고, 원래 점은 지운다).
+// 선이 두 점을 거의 붙게 그려 끝이 어긋났을 때 잇는 용도다(사용자)
+function mergeCands(n) {
+    const S = P(n); if (!S) return [];
+    const tol = 6 / pxPer(), out = new Map();
+    doc.ops.forEach(op => {
+        if (op.t !== 'line') return;
+        const o = +op.a === +n ? P(op.b) : +op.b === +n ? P(op.a) : null;
+        if (!o) return;
+        const dx = S.x - o.x, dy = S.y - o.y, L = Math.hypot(dx, dy); if (L < 1e-9) return;
+        const ux = dx / L, uy = dy / L;
+        doc.pts.forEach(q => {
+            if (q.n === S.n || q.n === o.n) return;
+            const t = (q.x - o.x) * ux + (q.y - o.y) * uy, d = Math.abs((q.x - o.x) * uy - (q.y - o.y) * ux);
+            if (d > tol || t <= 0) return;                 // 선 위 · 그 연장선(o 에서 S 쪽) 위만
+            const dist = Math.hypot(q.x - S.x, q.y - S.y);
+            if (!out.has(q.n) || out.get(q.n).dist > dist) out.set(q.n, {n: q.n, dist, why: t > L ? '연장선' : '선 위'});
+        });
+    });
+    return [...out.values()].sort((a, b) => a.dist - b.dist).slice(0, 8);
+}
+function mergePts(from, to) {
+    if (+from === +to || !P(from) || !P(to)) return;
+    snapHist();
+    doc.ops.forEach(op => { if (op.t !== 'step') REF_KEYS.forEach(k => { if (op[k] != null && +op[k] === +from) op[k] = +to; }); });
+    doc.ops = doc.ops.filter(op => !((op.t === 'line' || op.t === 'rect' || op.t === 'arc') && +op.a === +op.b));   // 길이 0 이 된 것은 버린다
+    doc.pts = doc.pts.filter(p => p.n !== +from);
+    selPts.delete(+from); selPt = +to;
+    changed(); flash(`P${from} 을(를) P${to} 에 합쳤습니다 — 이어진 선이 P${to} 까지 이어집니다`);
+}
+function ctxMenu(e, n) {
+    let m = $('cadCtx');
+    if (!m) { m = document.createElement('div'); m.id = 'cadCtx'; m.className = 'cad-ctx'; m.hidden = true; root.appendChild(m); }
+    const C = mergeCands(n);
+    m.innerHTML = `<div class="ch">P${n} 합치기</div>` + (C.length
+        ? C.map(c => `<button type="button" data-to="${c.n}">P${c.n} 와(과) 합치기<small>${c.why} · ${fmt(c.dist)}m</small></button>`).join('')
+        : '<div class="none">이어진 선의 연장선 위에 점이 없습니다</div>');
+    m.hidden = false;
+    const W = m.offsetWidth, H = m.offsetHeight;
+    m.style.left = Math.min(e.clientX + 4, innerWidth - W - 6) + 'px'; m.style.top = Math.min(e.clientY + 4, innerHeight - H - 6) + 'px';
+    m.onclick = ev => { const b = ev.target.closest('button[data-to]'); if (!b) return; m.hidden = true; mergePts(n, +b.dataset.to); };
+}
+document.addEventListener('pointerdown', e => { const m = $('cadCtx'); if (m && !m.hidden && !e.target.closest('#cadCtx')) m.hidden = true; }, true);
+document.addEventListener('keydown', e => { const m = $('cadCtx'); if (e.key === 'Escape' && m && !m.hidden) m.hidden = true; });
 function hitPoint(w) {
     let best = null, bd = 11 / pxPer();
     doc.pts.forEach(p => { const d = Math.hypot(p.x - w.x, p.y - w.y); if (d < bd) { bd = d; best = p; } });
@@ -2681,6 +2733,10 @@ svg.addEventListener('pointerdown', e => {
     }
     if (tool.startsWith('pen') && (e.button === 0 || e.button === 2)) {
         const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
+        if (e.button === 2 && selPt) {                     // 고른 점에서 오른쪽 버튼 — 합치기 메뉴
+            const hp = hitPoint(w);
+            if (hp && hp.n === selPt) { ctxMenu(e, selPt); drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return; }
+        }
         // 템플릿 — 구멍 안에서 누르면 구멍 가장자리를 따라 돌린다(어느 버튼이든), 판을 왼쪽으로 누르면 옮긴다
         const hole = tplHoleAt(w);
         if (hole) {
