@@ -980,7 +980,7 @@ function drawSr() {
     const FN = `font-family="'Arial Narrow','Roboto Condensed','Helvetica Neue',Arial,sans-serif"`;
     // 글자 — 빗면에 새겨져 있어 위에서 보면 세로가 절반으로 눌린다(scale(1, .5)). flip 은 면 위에서 180° 돌려 새긴 축척
     const tx = (u, v, t, sz, a, flip, sy, fill, wt) => { const q = srMap(u, v);
-        return `<text x="0" y="0" font-size="${f(sz * k)}" ${FN} fill="${fill || '#1c1c1c'}" stroke="${fill || '#1c1c1c'}" stroke-width="${f(0.05 * k)}" paint-order="stroke" stroke-linejoin="round" font-weight="${wt || 400}" text-rendering="geometricPrecision" text-anchor="${a || 'middle'}" dominant-baseline="central" transform="translate(${f(q.x)} ${f(q.y)}) rotate(${f(deg)}) scale(1 ${f(sy)})${flip ? ' rotate(180)' : ''}">${t}</text>`; };
+        return `<text x="0" y="0" font-size="${f(sz * k)}" ${FN} fill="${fill || '#1c1c1c'}" stroke="${fill || '#1c1c1c'}" stroke-width="${f(0.02 * k)}" paint-order="stroke" stroke-linejoin="round" font-weight="${wt || 400}" text-rendering="geometricPrecision" text-anchor="${a || 'middle'}" dominant-baseline="central" transform="translate(${f(q.x)} ${f(q.y)}) rotate(${f(deg)}) scale(1 ${f(sy)})${flip ? ' rotate(180)' : ''}">${t}</text>`; };
     const G = (id, v0, v1, stops) => { const a = srMap(0, v0), b = srMap(0, v1);
         return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${f(a.x)}" y1="${f(a.y)}" x2="${f(b.x)}" y2="${f(b.y)}">${stops.map(([o2, c]) => `<stop offset="${o2}" stop-color="${c}"/>`).join('')}</linearGradient>`; };
     const R4 = (u0, v0, u1, v1) => `M${M(u0, v0)}L${M(u1, v0)}L${M(u1, v1)}L${M(u0, v1)}Z`;
@@ -1031,7 +1031,7 @@ function drawSr() {
         // 뭉개지지 않게 한다(사용자: "숫자가 잘 안 보임, 오래된 인쇄 느낌" → "입체감은 이전처럼, 숫자만 선명하고 진하게")
         const paper = (h.id === 'A') === first;
         const at = d => h.at(first ? d : SR_F - d), Vw = d => at(d).v, Sy = d => at(d).sy;
-        const col = paper ? '#000' : '#1a1a1a', wt = paper ? 700 : 600;
+        const col = paper ? '#000' : '#1a1a1a', wt = paper ? 500 : 500;   // 700 은 너무 굵었다(사용자)
         const D = {tl: 4.5, tm2: 3.0, tm: 2.2, tn: 1.25, sm: 3.65, smf: 1.9, mn: 6.45, mnf: 3.0, lb: 5.6, lbf: 2.7, mu: 2.7, muf: 1.6};
         let tkp = '';
         for (let i = 0, r = 0; r <= tot + 1e-9; i++, r = +(i * minor).toFixed(6)) {
