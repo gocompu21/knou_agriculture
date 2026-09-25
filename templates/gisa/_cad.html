@@ -931,6 +931,8 @@ const SR_BANDS = {
     black: [[0, '#050506'], [0.16, '#18191b'], [0.5, '#35393c'], [0.84, '#18191b'], [1, '#050506']]};
 // 면 차례는 단면을 한 방향으로 돈 차례다. a = 앞 모서리 축척, b = 뒤 모서리 축척(다음 면의 a 와 한 꼭짓점에서 만난다)
 const SR_FACES = [{a: 100, b: 200, band: 'red'}, {a: 300, b: 400, band: 'teal'}, {a: 500, b: 600, band: 'black'}];
+const SRG = {100: [0.1, 0.5, 0, 1], 200: [0.1, 0.5, 1, 5], 300: [0.5, 1, 5, 10], 400: [0.5, 1, 5, 10], 500: [0.5, 1, 5, 10], 600: [0.5, 1, 5, 10]};
+const SR_MARK = 6;                                     // 눈금 표시 보조선 길이(종이 위 mm)
 let sr = null;                                         // {x, y, rot, roll} 돌리기 전 왼쪽 위(도면 m) · 회전(°) · 바닥 면(0~2)
 try { sr = JSON.parse(localStorage.getItem('cadSr') || 'null'); } catch (e) {}
 if (sr && !(sr.roll >= 0 && sr.roll <= 2)) { sr.roll = 2; delete sr.s; }   // 예전 저장(축척을 고르던 때) → 검정 면 바닥
@@ -954,9 +956,11 @@ function onSr(p, strict) { if (!sr || !sheet) return false; const l = srLocal(p)
 function srEdges() {                                   // 종이에 닿는 두 모서리 — 샤프를 대고 긋고 치수를 재는 자의 변. 능선은 떠 있어 못 쓴다
     if (!sr || !sheet) return [];
     const V = srView();
-    return [[0, V.top], [SR_W, V.bot]].map(([v, s2]) => {
+    // 윗 모서리 축척은 0 이 왼쪽(u=SR_Z)에서 오른쪽으로, 아랫 모서리 축척은 0 이 오른쪽에서 왼쪽으로 는다. out = 자 바깥(종이) 쪽 v 방향
+    return [[0, V.top, SR_Z, 1, -1], [SR_W, V.bot, SR_Z + SR_RUN, -1, 1]].map(([v, s2, u0, du, out]) => {
         const a = srMap(0, v), b = srMap(SR_L, v), n = Math.hypot(b.x - a.x, b.y - a.y);
-        return {ax: a.x, ay: a.y, dx: (b.x - a.x) / n, dy: (b.y - a.y) / n, lo: 0, hi: n, sr: true, name: `스케일자(1/${fmt(s2)})`};
+        return {ax: a.x, ay: a.y, dx: (b.x - a.x) / n, dy: (b.y - a.y) / n, lo: 0, hi: n, sr: true, name: `스케일자(1/${fmt(s2)})`,
+                srv: v, srS: s2, srU0: u0, srDu: du, srOut: out};
     });
 }
 function srEdge(w) {                                   // 누른 곳에 가까운 눈금 변
@@ -964,6 +968,17 @@ function srEdge(w) {                                   // 누른 곳에 가까�
     if (!w) return E[0];
     const d = e => Math.abs((w.x - e.ax) * e.dy - (w.y - e.ay) * e.dx);
     return d(E[0]) <= d(E[1]) ? E[0] : E[1];
+}
+// 스케일자 눈금 모서리를 샤프로 찍으면 — 가장 가까운 작은 눈금 자리에서 눈금과 나란히, 자 바깥(종이) 쪽으로 짧은 보조선을 긋는다
+function srMark(edge, w) {
+    const l = srLocal(w), perM = 1000 / edge.srS, minor = SRG[edge.srS][0], tot = SR_RUN / perM;
+    const r = Math.max(0, Math.min(tot, Math.round(((l.u - edge.srU0) * edge.srDu / perM) / minor) * minor));
+    const u = edge.srU0 + edge.srDu * r * perM, p = srMap(u, edge.srv), q = srMap(u, edge.srv + edge.srOut * SR_MARK);
+    snapHist();
+    const a = addPt(+p.x.toFixed(4), +p.y.toFixed(4)), b = addPt(+q.x.toFixed(4), +q.y.toFixed(4));
+    doc.ops.push({id: doc.seq++, t: 'line', a, b, ls: 'aux', w: strokeStyle().w});
+    if (!SET.auxOn) setAux(true);
+    changed(); flash(`1/${edge.srS} 눈금 ${fmt(+r.toFixed(4))}m 자리에 보조선을 그었습니다 (P${a})`);
 }
 function rollSr(back) {                                // 자를 굴린다 — 바닥 면이 바뀌어 종이에 닿는 축척 둘이 바뀐다
     if (!sr) return;
@@ -1020,7 +1035,6 @@ function drawSr() {
     o += land(SR_H - SR_RIDGE / 2, SR_H + SR_RIDGE / 2, '#ffffff') + land(0, SR_LAND, '#fdfdfc') + land(SR_W - SR_LAND, SR_W, '#f7f7f5');
     // 눈금 — 실물 사진을 따른다: 축척마다 [작은 눈금, 중간 눈금, 긴 중간 눈금(없으면 0), 숫자] 간격(실제 m).
     // 1/100 은 0.1·0.5·1m, 1/200 은 0.1·0.5·1·5m, 1/300~1/600 은 0.5·1·5·10m
-    const SRG = {100: [0.1, 0.5, 0, 1], 200: [0.1, 0.5, 1, 5], 300: [0.5, 1, 5, 10], 400: [0.5, 1, 5, 10], 500: [0.5, 1, 5, 10], 600: [0.5, 1, 5, 10]};
     const on = (r, st) => Math.abs(r / st - Math.round(r / st)) < 1e-6;
     let tk = '';
     // 한 축척 — 면 위 좌표로 그린다. first: 면의 앞 모서리(w=0, 0 이 왼쪽). 아니면 뒤 모서리(w=25, 180° 돌려 새겨 0 이 오른쪽)
@@ -2864,7 +2878,10 @@ function endPtr(e) {
     if (d.kind === 'bar') { root.classList.remove('bar-drag'); if (d.moved) { saveBar(); drawBar(); } return; }   // 몸통은 불투명 — 눌러도 점이 찍히지 않는다
     if (d.kind === 'pencil') {
         gPre.innerHTML = '';
-        if (!d.moved) { if (d.btn === 0) penDot(d.p0); return; }   // 끌지 않고 왼쪽으로 누르면 그 변 위에 점
+        if (!d.moved) {                                   // 끌지 않고 누르면 — 스케일자 눈금 모서리면 눈금 표시 보조선, 아니면 그 변 위에 점
+            if (d.edge && d.edge.sr) srMark(d.edge, d.w0); else if (d.btn === 0) penDot(d.p0);
+            return;
+        }
         if (d.blocked) return;
         const q = d.p1, a0 = d.p0;
         if (!q || Math.hypot(q.x - a0.x, q.y - a0.y) < 1e-6) return;
