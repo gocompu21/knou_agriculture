@@ -901,12 +901,14 @@ function polyTrace(h, a0, sw) {                        // 돌린 구간의 꺾�
     pts.push(polyAt(h.v, h.c, a0 + sw));
     return pts;
 }
-// ── 스케일자(삼각 스케일) ── 사용자가 준 실물 사진 두 장을 재어 옮겼다: 판 길이 321mm·폭 25mm, 눈금 300mm.
+// ── 스케일자(삼각 스케일) ── 사용자가 준 실물 사진을 재어 옮겼다: 판 길이 325mm·폭 25mm, 눈금 300mm.
 // 한 번에 한 면(두 축척)이 보인다 — 윗면(눈금이 윗변, 0 이 왼쪽), 가운데 색 띠, 아랫면(눈금이 아랫변, 글자가 거꾸로 서고
 // 0 이 오른쪽). 면은 1/100·1/200(빨강) · 1/300·1/400(청록) · 1/500·1/600(검정).
 // 숫자 위 작은 숫자는 반대쪽에서 읽는 값(전체 − 그 눈금)이다. 두 변 모두 샤프를 대고 긋는 자의 변이다.
 // 눈금 1m(실제) = 종이 위 1000/S mm = 도면 denom/S m. 예) 1:430 종이에 1:500 자를 대면 1m 눈금이 도면 0.86m 다
-const SR_L = 321, SR_W = 25, SR_Z = 12.8, SR_RUN = 300;   // 판 길이·폭(mm), 윗면 0 눈금 자리, 눈금 길이
+// 실물 치수(사용자 실측): 판 325mm, 눈금 앞 왼쪽 여백 12mm, 눈금 뒤 오른쪽 여백 13mm, 눈금 300mm.
+// 아랫면은 윗면을 180° 돌린 것이라 그 0 은 윗면 눈금의 끝(30)과 같은 자리, 끝(60)은 윗면 0 과 같은 자리다
+const SR_L = 325, SR_Z = 12, SR_RUN = 300, SR_W = 25;  // 판 길이 · 왼쪽 여백 · 눈금 길이 · 판 폭
 const SR_RED0 = 10.8, SR_RED1 = 14.8;                  // 가운데 색 띠(mm) = 둥근 홈의 입구
 // 단면(사용자 사진)은 한 변 25mm 정삼각형이다. 세 변 가운데에 입구보다 큰 원으로 홈을 파 두었고(입구 약 4mm), 그 안쪽을 면마다
 // 다른 색으로 칠했다. 위에서 보면 입구 너머로 원통 안쪽이 보인다 — 가운데가 빛을 받아 밝고, 입구 턱 밑 양쪽은 그늘이다.
@@ -991,7 +993,7 @@ function drawSr() {
     // 한 면 — top: 윗면(0 이 왼쪽, 눈금이 윗변에서 아래로). 아랫면은 판을 180° 돌린 모양이라 자리·글자를 모두 뒤집는다
     const face = (Sx, top) => {
         const perM = 1000 / Sx, [minor, mid, mid2, lab] = SRG[Sx] || (() => { const mn = niceStep(1 / perM), lb = niceStep(12 / perM); return [mn, lb / 2, 0, lb]; })();
-        const tot = SR_RUN / perM, U0 = top ? SR_Z : SR_L - SR_Z, sg = top ? 1 : -1;
+        const tot = SR_RUN / perM, U0 = top ? SR_Z : SR_Z + SR_RUN, sg = top ? 1 : -1;
         const V = d => top ? d : SR_W - d;                                  // 눈금 변에서 안쪽으로 d(mm)
         for (let i = 0, r = 0; r <= tot + 1e-9; i++, r = +(i * minor).toFixed(6)) {
             const u = U0 + sg * r * perM, isL = on(r, lab), isM2 = !isL && mid2 && on(r, mid2), isM = !isL && !isM2 && on(r, mid);
