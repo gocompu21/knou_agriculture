@@ -1384,12 +1384,17 @@ function dotSvg(p, ring) {
 }
 // ── 제도판 ── 사용자가 보여 준 탁상 제도판(평면)을 종이 둘레에 그린다: 흰 판, 좌우 알루미늄 레일(왼쪽에 눈금),
 // 위쪽 얇은 틀, 아래 펜 받침(알루미늄 홈), 네 모서리 검은 마개, 종이 네 귀의 마스킹 테이프. I자 양 끝 블록이 좌우 레일에 걸린다
+// 제도판은 실물 A1 제도판(900×600mm) 고정이다(사용자) — 종이를 무엇으로 고르든 판 크기는 같고, 종이는 판 가운데에 실제 비율로 붙는다.
+// 종이 위 mm → 도면 m 는 축척(1:430 이면 1mm = 0.43m). 레일·펜 받침 같은 장식 치수는 판에 붙은 것이라 mm 로 정하고 u(= 6mm)로 센다
+const BOARD_W = 900, BOARD_H = 600;
 function boardGeom(s) {
     s = s || sheet;
-    return {bx0: s.x0 - 7 * U, bx1: s.x1 + 7 * U, by0: s.y0 - 6.5 * U, by1: s.y1 + 8.5 * U, rw: 2.6 * U};
+    const m = /1\s*:\s*(\d+(?:\.\d+)?)/.exec(s.scale || ''), mm = (m ? +m[1] : 430 * (s.x1 - s.x0) / 100) / 1000;   // 종이 1mm → 도면 m
+    const cx = (s.x0 + s.x1) / 2, cy = (s.y0 + s.y1) / 2, u = 6 * mm;   // 레일 폭 2.6u ≈ 1.6cm, 펜 받침 ≈ 2.5cm
+    return {bx0: cx - BOARD_W / 2 * mm, bx1: cx + BOARD_W / 2 * mm, by0: cy - BOARD_H / 2 * mm, by1: cy + BOARD_H / 2 * mm, rw: 2.6 * u, u};
 }
 function boardSvg(s) {
-    const B = boardGeom(s), f = v => fmt(v), {bx0, bx1, by0, by1, rw} = B, W = bx1 - bx0, H = by1 - by0;
+    const B = boardGeom(s), f = v => fmt(v), {bx0, bx1, by0, by1, rw} = B, W = bx1 - bx0, H = by1 - by0, U = B.u;   // 판 장식은 판 단위로
     const ty0 = by1 - 4.6 * U, ty1 = by1 - 0.4 * U;              // 펜 받침 — 제도판의 아래 끝(사용자가 보여 준 부분)
     let o = `<defs><linearGradient id="bdSurf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfb"/><stop offset="1" stop-color="#e9ece8"/></linearGradient>`
         + `<linearGradient id="bdRailV" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#aeb6bc"/><stop offset=".25" stop-color="#eef1f3"/><stop offset=".55" stop-color="#d3d8dc"/><stop offset="1" stop-color="#9ea6ad"/></linearGradient>`
@@ -1612,8 +1617,10 @@ let vb = {x: 0, y: 0, w: 100, h: 70}, fitW = 100, fitted = false;
 function setVB() { svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); status(); }
 function aspect() { const r = svg.clientWidth / svg.clientHeight; return r > 0 && isFinite(r) ? r : 1.4; }
 function fit() {
-    const B = boardGeom(), m = 3.4 * U;            // 제도판 전체 + I자 죔쇠의 레버·갈고리까지 들어오게
-    let x = B.bx0 - m, y = B.by0 - m, w = (B.bx1 - B.bx0) + 2 * m, h = (B.by1 - B.by0) + 2 * m;
+    // 제도판이 실물 900×600mm 라 판 전체를 잡으면 종이가 작아진다 — 종이와 곁의 여백(테이프·자를 놓을 자리)만 잡는다.
+    // 판은 축소하면 다 보인다
+    const s = sheet, m = 12 * U;
+    let x = s.x0 - m, y = s.y0 - m, w = (s.x1 - s.x0) + 2 * m, h = (s.y1 - s.y0) + 2 * m;
     const r = aspect();
     if (w / h < r) { const nw = h * r; x -= (nw - w) / 2; w = nw; } else { const nh = w / r; y -= (nh - h) / 2; h = nh; }
     vb = {x, y, w, h}; fitW = w; fitted = svg.clientWidth > 0; setVB();
