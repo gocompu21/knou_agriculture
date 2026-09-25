@@ -1109,24 +1109,24 @@ function drawSr() {
         const at = d => h.at(first ? d : SR_F - d), Vw = d => at(d).v, Sy = d => at(d).sy;
         const col = '#000', wt = paper ? 600 : 500;   // 700 은 너무 굵었다 · 500 은 옅었다(사용자) — 숫자는 눈금에서 조금 더 내려 둔다
         // 눈금은 길고 굵게, 숫자는 크게(사용자: "더 크고 잘 보이게")
-        // 숫자는 눈금에 닿지 않게(사용자) — 작은 숫자(반대쪽에서 읽는 값)는 숫자 자리 긴 눈금의 **옆**에, 큰 숫자는 눈금 끝보다 **아래**에 띄운다.
+        // 숫자는 눈금에 닿지 않게(사용자) — 작은 숫자(반대쪽에서 읽는 값)는 제자리(긴 눈금과 같은 줄, 큰 숫자 위)에 두고,
+        // 긴 눈금을 그 앞에서 끝낸다(한때 옆으로 비켜 뒀더니 "위치는 그대로 두라"). 큰 숫자는 작은 숫자 아래에 띄운다.
         // 종이 쪽은 화면 mm 로 정해 면 좌표로 바꾼다(그 구간의 눌림 s0 로 나눔). 글자는 세로 0.72 로 덜 눌러 또렷하게(흐리다는 지적)
         let D, Ts;
         if (paper) {
             const s0 = Sy(1), F = mm => mm / s0;               // 화면 mm → 면 좌표
-            D = {tl: F(2.1), tm2: F(1.7), tm: F(1.35), tn: F(0.9), sm: F(1.6), smf: 1.35, mn: F(3.3), mnf: 2.5, lb: F(3.0), lbf: 2.0, mu: F(1.0), muf: 1.1, gap: 0.45};
+            D = {tl: F(1.45), tm2: F(1.2), tm: F(1.0), tn: F(0.7), sm: F(2.1), smf: 1.35, mn: F(3.55), mnf: 2.5, lb: F(3.0), lbf: 2.0, mu: F(1.0), muf: 1.1};
             Ts = () => 0.72;
         } else {
-            D = {tl: 4.4, tm2: 3.5, tm: 2.8, tn: 1.9, sm: 3.1, smf: 2.0, mn: 7.6, mnf: 3.4, lb: 6.2, lbf: 3.0, mu: 2.4, muf: 1.6, gap: 0.5};
+            D = {tl: 4.2, tm2: 3.4, tm: 2.7, tn: 1.8, sm: 5.5, smf: 2.0, mn: 8.9, mnf: 3.4, lb: 6.2, lbf: 3.0, mu: 2.4, muf: 1.6};
             Ts = Sy;
         }
-        const rd = first ? 1 : -1;                              // 글자를 읽는 방향(u) — 뒤 모서리 축척은 거꾸로 새겨 반대
         let tkp = '';
         for (let i = 0, r = 0; r <= tot + 1e-9; i++, r = +(i * minor).toFixed(6)) {
             const u = U0 + sg * r * perM, isL = on(r, lab), isM2 = !isL && mid2 && on(r, mid2), isM = !isL && !isM2 && on(r, mid);
             tkp += `M${M(u, Vw(0))}L${M(u, Vw(isL ? D.tl : isM2 ? D.tm2 : isM ? D.tm : D.tn))}`;
             if (isL) {
-                o += tx(u + rd * D.gap, Vw(D.sm), fmt(+(tot - r).toFixed(4)), D.smf, 'start', !first, Ts(D.sm), col, wt);   // 반대쪽에서 읽는 작은 숫자 — 눈금 옆
+                o += tx(u, Vw(D.sm), fmt(+(tot - r).toFixed(4)), D.smf, 'middle', !first, Ts(D.sm), col, wt);   // 반대쪽에서 읽는 작은 숫자 — 긴 눈금 끝 아래 제자리
                 o += tx(u, Vw(D.mn), fmt(r), D.mnf, 'middle', !first, Ts(D.mn), col, wt);                                     // 큰 숫자 — 눈금 끝 아래
             }
         }
