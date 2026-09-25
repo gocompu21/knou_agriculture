@@ -80,6 +80,8 @@
         </div>
         <div class="cad-set" id="cadSet" hidden>
             <h4>설정</h4>
+            <div class="cad-set-row"><span class="cad-set-lb">점 크기</span><select id="cadPtSize" class="cad-set-ls" title="도면의 점(검은 동그라미) 크기"><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.25">125%</option><option value="1.5">150%</option><option value="2">200%</option><option value="2.5">250%</option><option value="3">300%</option></select></div>
+            <div class="cad-set-row"><span class="cad-set-lb">번호 크기</span><select id="cadPtNum" class="cad-set-ls" title="점 번호 글자 크기"><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.25">125%</option><option value="1.5">150%</option><option value="2">200%</option><option value="2.5">250%</option><option value="3">300%</option></select></div>
             <div class="cad-set-row"><label class="cad-chk"><input type="checkbox" id="cadRulerNums"> 자 위치 숫자 보이기 <small class="cad-set-note">(I자 Y · 삼각자 X)</small></label></div>
             <div class="cad-set-row"><label class="cad-chk" title="I자(평행자) — 몸통을 끌어 위아래로(↑↓ 키로 한 칸씩). 투명 날을 따라 끌면 수평선이 그어집니다"><input type="checkbox" id="cadBarOn"> I자(평행자) 펴기</label></div>
             <div class="cad-set-row"><span class="cad-set-lb">45° 삼각자</span>
@@ -574,7 +576,7 @@ let hover = null;
 let SET = {snap: true, step: '', pts: true, triSize: 12, tri60Size: 45, p9: 0.7, p5: 0.4, auxOn: true, auxColor: '#a3a9b3', rulerNums: false, fillColor: '#9ccc65', fillOp: 0.6, fillType: 'solid', ls9: 'solid', ls5: 'aux'};   // 샤프마다 선 종류   // 샤프 굵기는 종이 위 mm
 try { Object.assign(SET, JSON.parse(localStorage.getItem('cadSet') || '{}')); } catch (e) {}
 function saveSet() {
-    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.triSize = +$('cadTriSize').value; SET.tri60Size = +$('cadTri60Size').value || 45; SET.font = $('ftFont').value; SET.ls9 = $('cadLs9').value || SET.ls9; SET.ls5 = $('cadLs5').value || SET.ls5; SET.fillType = $('cadFillType').value || SET.fillType; SET.fillColor = $('cadFillColor').value || SET.fillColor; SET.fillOp = +$('cadFillOp').value || SET.fillOp; SET.rulerNums = $('cadRulerNums').checked; SET.auxOn = $('cadAuxOn').checked; SET.auxColor = $('cadAuxColor').value || SET.auxColor; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
+    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.ptSize = +$('cadPtSize').value || 1; SET.ptNum = +$('cadPtNum').value || 1; SET.triSize = +$('cadTriSize').value; SET.tri60Size = +$('cadTri60Size').value || 45; SET.font = $('ftFont').value; SET.ls9 = $('cadLs9').value || SET.ls9; SET.ls5 = $('cadLs5').value || SET.ls5; SET.fillType = $('cadFillType').value || SET.fillType; SET.fillColor = $('cadFillColor').value || SET.fillColor; SET.fillOp = +$('cadFillOp').value || SET.fillOp; SET.rulerNums = $('cadRulerNums').checked; SET.auxOn = $('cadAuxOn').checked; SET.auxColor = $('cadAuxColor').value || SET.auxColor; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
     try { localStorage.setItem('cadSet', JSON.stringify(SET)); } catch (e) {}
 }
 let barOn = false, barY = null;
@@ -1439,10 +1441,10 @@ function opSvg(op) {
 // 글자는 점을 쓰지 않고 좌표(x, y)를 직접 가진다 — 누른 자리가 글의 시작(가로는 왼쪽, 세로는 위). 옛 글자(p)는 가운데 맞춤
 const textPos = op => op.p != null ? P(op.p) : {x: op.x, y: op.y};
 const ptsOf = op => op.t === 'circle' ? [op.c] : op.t === 'sym' || (op.t === 'text' && op.p != null) ? [op.p] : op.t === 'text' ? [] : (op.a != null ? [op.a, op.b] : []);
-function dotSvg(p, ring) {
-    const r = 0.32 * U;
+function dotSvg(p, ring) {           // 점·번호 크기는 설정(SET.ptSize·ptNum, 배율)
+    const r = 0.32 * U * (SET.ptSize || 1), fn = 1.25 * U * (SET.ptNum || 1);
     return `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r)}" fill="${INK}"/>`
-        + `<text x="${fmt(p.x + 0.6 * U)}" y="${fmt(p.y - 0.5 * U)}" font-size="${fmt(1.25 * U)}" fill="${BLUE}" font-weight="700">${p.n}</text>`
+        + `<text x="${fmt(p.x + r + fn * 0.22)}" y="${fmt(p.y - r - fn * 0.12)}" font-size="${fmt(fn)}" fill="${BLUE}" font-weight="700">${p.n}</text>`
         + (ring ? `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r * 2.6)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : '');
 }
 // ── 제도판 ── 사용자가 보여 준 탁상 제도판(평면)을 종이 둘레에 그린다: 흰 판, 좌우 알루미늄 레일(왼쪽에 눈금),
@@ -3366,6 +3368,8 @@ $('cadP9').value = SET.p9; $('cadP5').value = SET.p5;
 ['cadLs9', 'cadLs5'].forEach(id => { $(id).innerHTML = Object.entries(LS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join(''); $(id).value = SET[id === 'cadLs9' ? 'ls9' : 'ls5']; $(id).addEventListener('change', () => { saveSet(); syncPenLs(); }); });
 function syncPenLs() { if (tool.startsWith('pen')) $('fnLs').value = SET[tool === 'pen9' ? 'ls9' : 'ls5']; }
 $('fnLs').addEventListener('change', () => { if (!tool.startsWith('pen')) return; const k = tool === 'pen9' ? 'Ls9' : 'Ls5'; $('cad' + k).value = $('fnLs').value; saveSet(); });
+$('cadPtSize').value = String(SET.ptSize || 1); $('cadPtNum').value = String(SET.ptNum || 1);
+['cadPtSize', 'cadPtNum'].forEach(id => $(id).addEventListener('change', () => { SET.ptSize = +$('cadPtSize').value || 1; SET.ptNum = +$('cadPtNum').value || 1; saveSet(); drawPts(); }));
 $('cadRulerNums').checked = !!SET.rulerNums; root.classList.toggle('ruler-nums', !!SET.rulerNums);
 $('cadRulerNums').addEventListener('change', () => { root.classList.toggle('ruler-nums', $('cadRulerNums').checked); saveSet(); });
 $('cadAuxColor').value = SET.auxColor; $('cadFillColor').value = SET.fillColor; $('cadFillType').value = SET.fillType || 'solid';
