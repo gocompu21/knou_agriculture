@@ -963,22 +963,21 @@ function drawBarOnly() {
     if (!barOn || !sheet) { g.innerHTML = ''; return; }
     const W = barW();
     if (barY == null || barY < sheet.y0 - W || barY > sheet.y1) barY = Math.round((sheet.y0 + sheet.y1) / 2);
-    const s = sheet, y = barY, BG = boardGeom(), x0 = BG.bx0 - 0.4 * U, x1 = BG.bx1 + 0.4 * U;   // 양 끝 블록이 제도판 좌우 레일에 걸린다
-    const bl = W * 0.2, by = y + bl, bh = W * 0.6, y2 = y + W, cw = 2.8 * U, f = v => fmt(v);
+    const s = sheet, y = barY, BG = boardGeom(), x0 = BG.bx0 - 0.2 * U, x1 = BG.bx1 + 0.2 * U;   // 양 끝 죔쇠가 제도판 좌우 레일 위에 앉는다
+    const bl = W * 0.2, by = y + bl, bh = W * 0.6, y2 = y + W, cw = BG.rw + 1.6 * U, f = v => fmt(v);
     let o = `<defs><linearGradient id="cadAl" x1="0" y1="0" x2="0" y2="1">`
-        + `<stop offset="0" stop-color="#eef1f3"/><stop offset=".18" stop-color="#d5dade"/><stop offset=".55" stop-color="#c3c9ce"/>`
-        + `<stop offset=".82" stop-color="#b1b8be"/><stop offset="1" stop-color="#9aa2a9"/></linearGradient>`
-        + `<linearGradient id="cadBlk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#454a52"/><stop offset="1" stop-color="#1f2328"/></linearGradient></defs>`;
+        + `<stop offset="0" stop-color="#f4f6f7"/><stop offset=".3" stop-color="#e2e6e9"/><stop offset=".7" stop-color="#d2d7db"/><stop offset="1" stop-color="#b8bfc5"/></linearGradient>`
+        + `<linearGradient id="cadBlk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a6067"/><stop offset="1" stop-color="#2c3136"/></linearGradient>`
+        + `<radialGradient id="cadKnob" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#8a9097"/><stop offset=".55" stop-color="#3e444a"/><stop offset="1" stop-color="#1c2024"/></radialGradient></defs>`;
     // 투명 날 둘 — 따라 끌면 선이 그어진다(윗날은 윗변, 아랫날은 아랫변)
     const blade = (ty, ey) => `<g class="bar-blade"><rect x="${f(x0 + cw)}" y="${f(ty)}" width="${f(x1 - x0 - 2 * cw)}" height="${f(bl)}" fill="rgba(200,232,244,.38)" stroke="rgba(90,140,175,.55)" stroke-width="${f(0.05 * U)}"/>`
         + `<path d="M${f(x0 + cw)} ${f(ey)}H${f(x1 - cw)}" stroke="#4d86b5" stroke-width="${f(0.07 * U)}"/></g>`;
     o += blade(y, y) + blade(by + bh, y2);
     // 알루미늄 몸통 + 홈
-    o += `<g class="bar-body"><rect x="${f(x0)}" y="${f(by)}" width="${f(x1 - x0)}" height="${f(bh)}" rx="${f(0.2 * U)}" fill="url(#cadAl)" stroke="#88919a" stroke-width="${f(0.06 * U)}"/>`;
-    [0.22, 0.4, 0.6, 0.78].forEach(k => {
-        o += `<path d="M${f(x0 + cw)} ${f(by + bh * k)}H${f(x1 - cw)}" stroke="rgba(255,255,255,.75)" stroke-width="${f(0.05 * U)}"/>`
-           + `<path d="M${f(x0 + cw)} ${f(by + bh * k + 0.07 * U)}H${f(x1 - cw)}" stroke="rgba(90,100,110,.35)" stroke-width="${f(0.05 * U)}"/>`;
-    });
+    o += `<g class="bar-body"><rect x="${f(x0)}" y="${f(by)}" width="${f(x1 - x0)}" height="${f(bh)}" rx="${f(0.15 * U)}" fill="url(#cadAl)" stroke="#9aa2a9" stroke-width="${f(0.06 * U)}"/>`
+       + `<rect x="${f(x0 + cw)}" y="${f(by)}" width="${f(x1 - x0 - 2 * cw)}" height="${f(bh * 0.14)}" fill="#4d545b"/>`   // 윗변의 가는 짙은 띠
+       + `<path d="M${f(x0 + cw)} ${f(by + bh * 0.3)}H${f(x1 - cw)}" stroke="rgba(110,118,126,.55)" stroke-width="${f(0.06 * U)}"/>`
+       + `<path d="M${f(x0 + cw)} ${f(by + bh * 0.3 + 0.08 * U)}H${f(x1 - cw)}" stroke="rgba(255,255,255,.8)" stroke-width="${f(0.05 * U)}"/>`;
     // 이름표·조임 나사
     const lx = x1 - cw - 6.5 * U;   // 상표는 오른쪽 끝 블록 곁
     o += `<rect x="${f(lx)}" y="${f(by + bh * 0.3)}" width="${f(5 * U)}" height="${f(bh * 0.4)}" rx="${f(0.1 * U)}" fill="#16181b"/>`
@@ -990,9 +989,17 @@ function drawBarOnly() {
     // 지금 높이 — 윗날 · 아랫날
     o += `<text x="${f(kx + 1.4 * U)}" y="${f(ky)}" font-size="${f(1.05 * U)}" fill="#26303a" font-weight="700" dominant-baseline="central" class="bar-ytext">Y ${fmt1(y)} · ${fmt1(y2)}</text></g>`;
     // 양 끝 고정 블록
-    [x0, x1 - cw].forEach(bx => {
-        o += `<g class="bar-body"><rect x="${f(bx)}" y="${f(y - 0.35 * U)}" width="${f(cw)}" height="${f(W + 0.7 * U)}" rx="${f(0.35 * U)}" fill="url(#cadBlk)"/>`
-           + [0.28, 0.72].map(k => `<circle cx="${f(bx + cw / 2)}" cy="${f(y + W * k)}" r="${f(0.28 * U)}" fill="#7a8088" stroke="#15181b" stroke-width="${f(0.06 * U)}"/>`).join('')
+    // 조임 다이얼 — 톱니 테두리(널링) + 가운데 둥근 머리, 윗왼쪽에서 빛을 받는다
+    const dial = (cx, cy, r) => { let t = ''; for (let i = 0; i < 20; i++) { const a = i * Math.PI / 10; t += `M${f(cx + Math.cos(a) * r * 0.78)} ${f(cy + Math.sin(a) * r * 0.78)}L${f(cx + Math.cos(a) * r)} ${f(cy + Math.sin(a) * r)}`; }
+        return `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r)}" fill="#2a2f34" stroke="#111" stroke-width="${f(0.05 * U)}"/>`
+            + `<path d="${t}" stroke="#6b727a" stroke-width="${f(r * 0.09)}"/>`
+            + `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r * 0.62)}" fill="url(#cadKnob)" stroke="#15181b" stroke-width="${f(0.05 * U)}"/>`
+            + `<circle cx="${f(cx - r * 0.2)}" cy="${f(cy - r * 0.22)}" r="${f(r * 0.18)}" fill="rgba(255,255,255,.4)"/>`; };
+    [[x0, -1], [x1 - cw, 1]].forEach(([bx, side]) => {   // 죔쇠 — 레일 위 짙은 블록 + 둥근 손잡이, 바깥쪽으로 레일 모서리를 거는 갈고리
+        const ox = side < 0 ? bx : bx + cw, hx = ox + side * 0.9 * U, hy0 = by + bh * 0.25, hy1 = y2 + 1.8 * U;
+        o += `<g class="bar-body"><path d="M${f(ox)} ${f(hy0)}H${f(hx)}V${f(hy1)}h${f(-side * 0.7 * U)}" fill="none" stroke="#2f3439" stroke-width="${f(0.55 * U)}" stroke-linejoin="round" stroke-linecap="round"/>`
+           + `<rect x="${f(bx)}" y="${f(by - 0.3 * U)}" width="${f(cw)}" height="${f(bh + 0.6 * U)}" rx="${f(0.45 * U)}" fill="url(#cadBlk)" stroke="#1d2125" stroke-width="${f(0.06 * U)}"/>`
+           + dial(bx + cw * 0.55, by + bh * 0.5, Math.min(bh * 0.46, 1.25 * U))
            + '</g>';
     });
     // 윗날(상단 수평자)의 Y — 왼쪽 끝 블록 바로 오른쪽, 날 위에. 끄는 동안에는 크게·붉은 바탕으로 실시간 표시
@@ -1146,7 +1153,7 @@ function boardGeom(s) {
 }
 function boardSvg(s) {
     const B = boardGeom(s), f = v => fmt(v), {bx0, bx1, by0, by1, rw} = B, W = bx1 - bx0, H = by1 - by0;
-    const ty0 = by1 - 5.6 * U, ty1 = by1 - 0.5 * U;              // 펜 받침
+    const ty0 = by1 - 5.8 * U, ty1 = by1 - 2.4 * U;              // 펜 받침(그 아래는 밝은 틀)
     let o = `<defs><linearGradient id="bdSurf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfb"/><stop offset="1" stop-color="#e9ece8"/></linearGradient>`
         + `<linearGradient id="bdRailV" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#aeb6bc"/><stop offset=".25" stop-color="#eef1f3"/><stop offset=".55" stop-color="#d3d8dc"/><stop offset="1" stop-color="#9ea6ad"/></linearGradient>`
         + `<linearGradient id="bdRailH" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1f3"/><stop offset=".35" stop-color="#cfd5da"/><stop offset=".7" stop-color="#b9c0c6"/><stop offset="1" stop-color="#8f979e"/></linearGradient>`
@@ -1160,18 +1167,20 @@ function boardSvg(s) {
     [bx0, bx1 - rw].forEach((x, i) => {
         o += `<rect x="${f(x)}" y="${f(by0)}" width="${f(rw)}" height="${f(H)}" rx="${f(0.6 * U)}" fill="url(#bdRailV)" stroke="#8b949b" stroke-width="${f(0.08 * U)}"/>`
            + `<path d="M${f(x + rw * 0.5)} ${f(by0 + 1.5 * U)}V${f(by1 - 1.5 * U)}" stroke="rgba(90,100,110,.45)" stroke-width="${f(0.1 * U)}"/>`;
-        if (i === 0) {
+        if (i === 0) {                                   // 왼쪽 레일 안쪽의 짙은 눈금 띠
             const mi = s.step / 5; let tk = '';
-            for (let y = s.y0, n = 0; y <= s.y1 + 1e-9; y += mi, n++) {
-                const l = n % 5 === 0 ? 1.1 : 0.55;
-                tk += `M${f(x + rw - 0.15 * U)} ${f(y)}h${f(-l * U)}`;
-            }
-            o += `<path d="${tk}" stroke="#3d464d" stroke-width="${f(0.07 * U)}"/>`;
+            o += `<rect x="${f(x + rw - 0.75 * U)}" y="${f(by0 + 2 * U)}" width="${f(0.55 * U)}" height="${f(H - 4 * U)}" fill="#3a4046"/>`;
+            for (let y = s.y0, n = 0; y <= s.y1 + 1e-9; y += mi, n++) tk += `M${f(x + rw - 0.2 * U)} ${f(y)}h${f(-(n % 5 === 0 ? 0.55 : 0.3) * U)}`;
+            o += `<path d="${tk}" stroke="#e8ecef" stroke-width="${f(0.06 * U)}"/>`;
         }
+        o += `<circle cx="${f(x + rw / 2)}" cy="${f(by1 - 8 * U)}" r="${f(0.55 * U)}" fill="#23272b"/>`;   // 레일 아래쪽 멈추개
     });
     // 아래 펜 받침(알루미늄 홈)
     o += `<rect x="${f(bx0 + rw)}" y="${f(ty0)}" width="${f(W - 2 * rw)}" height="${f(ty1 - ty0)}" rx="${f(0.4 * U)}" fill="url(#bdRailH)" stroke="#8b949b" stroke-width="${f(0.08 * U)}"/>`
-       + `<rect x="${f(bx0 + rw + 1.2 * U)}" y="${f(ty0 + 1.4 * U)}" width="${f(W - 2 * rw - 2.4 * U)}" height="${f(1.6 * U)}" rx="${f(0.8 * U)}" fill="rgba(80,90,100,.22)"/>`;
+       + `<rect x="${f(bx0 + rw + 0.6 * U)}" y="${f(ty0 + 0.5 * U)}" width="${f(W - 2 * rw - 1.2 * U)}" height="${f(ty1 - ty0 - 1 * U)}" rx="${f(0.4 * U)}" fill="#9aa2a9"/>`
+       + `<path d="M${f(bx0 + rw + 0.6 * U)} ${f(ty0 + 0.8 * U)}H${f(bx1 - rw - 0.6 * U)}" stroke="rgba(60,68,76,.5)" stroke-width="${f(0.12 * U)}"/>`
+       + [bx0 + rw + 1.6 * U, bx1 - rw - 1.6 * U].map(x => `<circle cx="${f(x)}" cy="${f((ty0 + ty1) / 2 + 0.3 * U)}" r="${f(0.35 * U)}" fill="#dfe3e6" stroke="#5a6168" stroke-width="${f(0.07 * U)}"/>`).join('')
+       + `<rect x="${f(bx0 + rw)}" y="${f(by1 - 2 * U)}" width="${f(W - 2 * rw)}" height="${f(2 * U)}" fill="url(#bdRailH)"/>`;   // 아래 밝은 틀
     // 네 모서리 검은 마개
     [[bx0, by0], [bx1 - rw - 0.3 * U, by0], [bx0, by1 - 1.8 * U], [bx1 - rw - 0.3 * U, by1 - 1.8 * U]].forEach(([x, y]) => {
         o += `<rect x="${f(x)}" y="${f(y)}" width="${f(rw + 0.3 * U)}" height="${f(1.8 * U)}" rx="${f(0.4 * U)}" fill="#23272b"/>`;
