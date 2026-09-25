@@ -1758,6 +1758,17 @@ function extCands(n) {
     });
     return out.sort((a, b) => a.dist - b.dist).slice(0, 6);   // 가까운 교차선부터 — 더 먼 선까지도 고를 수 있다
 }
+// 점 삭제 — 그 점과, 그 점을 쓰는 선·원·호·글자까지 함께 지운다(점만 지우면 선이 사라진 끝을 가리킨다). 뒤에 번호를 메운다
+function delPoint(n) {
+    const uses = doc.ops.filter(op => op.t !== 'step' && ptsOf(op).map(Number).includes(+n));
+    snapHist();
+    doc.ops = doc.ops.filter(op => !uses.includes(op));
+    uses.forEach(op => selOps.delete(op.id));
+    doc.pts = doc.pts.filter(p => p.n !== +n);
+    selPts.delete(+n); selPt = null;
+    compactPts();
+    changed(); flash(`P${n} 을(를) 지웠습니다` + (uses.length ? ` — 그 점을 쓰던 ${uses.length}개도 함께` : '') + ' · 번호를 다시 매겼습니다');
+}
 function extendTo(n, c) {
     snapHist();
     const q = addPt(c.x, c.y);
@@ -1775,14 +1786,16 @@ function ctxMenu(e, n) {
         : '<div class="none">이어진 선의 연장선 위에 점이 없습니다</div>')
         + `<div class="ch" style="border-top:1px solid #eef0f2;margin-top:2px">P${n} 교차선까지 연장</div>` + (X.length
         ? X.map((c, i) => `<button type="button" data-ext="${i}">${c.name} 까지 연장<small>${fmt(c.dist)}m</small></button>`).join('')
-        : '<div class="none">연장해서 만나는 선이 없습니다</div>');
+        : '<div class="none">연장해서 만나는 선이 없습니다</div>')
+        + (() => { const k = doc.ops.filter(op => op.t !== 'step' && ptsOf(op).map(Number).includes(+n)).length;
+            return `<div class="ch" style="border-top:1px solid #eef0f2;margin-top:2px">삭제</div><button type="button" data-del="1" style="color:#c62828">P${n} 삭제${k ? `<small>이어진 ${k}개도 함께</small>` : ''}</button>`; })();
     m.hidden = false;
     const W = m.offsetWidth, H = m.offsetHeight;
     m.style.left = Math.min(e.clientX + 4, innerWidth - W - 6) + 'px'; m.style.top = Math.min(e.clientY + 4, innerHeight - H - 6) + 'px';
     m.onclick = ev => {
-        const b = ev.target.closest('button[data-to], button[data-ext]'); if (!b) return;
+        const b = ev.target.closest('button[data-to], button[data-ext], button[data-del]'); if (!b) return;
         m.hidden = true;
-        if (b.dataset.to) mergePts(n, +b.dataset.to); else extendTo(n, X[+b.dataset.ext]);
+        if (b.dataset.to) mergePts(n, +b.dataset.to); else if (b.dataset.del) delPoint(n); else extendTo(n, X[+b.dataset.ext]);
     };
 }
 document.addEventListener('pointerdown', e => { const m = $('cadCtx'); if (m && !m.hidden && !e.target.closest('#cadCtx')) m.hidden = true; }, true);
