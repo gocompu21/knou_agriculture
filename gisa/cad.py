@@ -42,14 +42,21 @@ SHEETS = [
     ('365', '어린이주차공원 365', -5, 55, -5, 65, 5, '1:430'),
     ('371', '사적지주변 371', -5, 105, -5, 85, 5, '1:600'),
 ]
-SHEET_KEYS = {s[0] for s in SHEETS} | {'blank'}
+# A2 트레이싱지(594×420mm, 가로) — 눈금이 없는 빈 종이라 축척만 고른다. 종이 1cm 가
+# 눈금 한 칸(step)이 되게 잡아 스냅 간격이 모눈종이와 같은 결로 나온다(1:500 → 5m·1m)
+TRACE_SCALES = [100, 200, 250, 300, 400, 500, 600, 800]
+TRACES = [(f'a2-{n}', f'A2 트레이싱지 1:{n}', 0, round(0.594 * n, 3), 0, round(0.42 * n, 3), n / 100, f'1:{n}')
+          for n in TRACE_SCALES]
+SHEET_KEYS = {s[0] for s in SHEETS} | {t[0] for t in TRACES} | {'blank'}
 
 MAX_DATA = 600_000          # 도면 JSON 한도(자) — 점 수천 개도 여유 있게 들어간다
 
 
 def sheets_json():
     return [{'key': k, 'title': t, 'x0': x0, 'x1': x1, 'y0': y0, 'y1': y1,
-             'step': st, 'scale': sc} for k, t, x0, x1, y0, y1, st, sc in SHEETS]
+             'step': st, 'scale': sc} for k, t, x0, x1, y0, y1, st, sc in SHEETS] + [
+        {'key': k, 'title': t, 'x0': x0, 'x1': x1, 'y0': y0, 'y1': y1,
+         'step': st, 'scale': sc, 'paper': 'trace'} for k, t, x0, x1, y0, y1, st, sc in TRACES]
 
 
 def _when(d):

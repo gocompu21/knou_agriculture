@@ -13,7 +13,7 @@
 <div class="cad" id="cad" data-cert="{{ cert.pk }}" data-staff="{% if request.user.is_staff %}1{% endif %}"
      data-api="{% url 'gisa:cad_drawing_list' cert.pk %}" data-symapi="{% url 'gisa:cad_symbol_list' %}">
     <div class="cad-top">
-        <select id="cadSheet" title="모눈종이"></select>
+        <select id="cadSheet" title="종이 — 모눈종이 또는 A2 트레이싱지"></select>
         <input id="cadTitle" class="cad-title" placeholder="도면 이름" maxlength="100">
         <span class="cad-saved" id="cadSaved"></span>
         <span class="cad-sp"></span>
@@ -1282,7 +1282,17 @@ function boardSvg(s) {
     o += `<rect x="${f(s.x0 + 0.25 * U)}" y="${f(s.y0 + 0.35 * U)}" width="${f(s.x1 - s.x0)}" height="${f(s.y1 - s.y0)}" fill="rgba(40,50,60,.18)" filter="url(#bdSh)"/>`;
     return o;
 }
+function traceSvg(s, id) {      // A2 트레이싱지 — 눈금 없는 반투명 종이. 밑의 제도판이 비치고 네 귀를 테이프로 붙였다
+    const {x0, x1, y0, y1} = s, W = x1 - x0, H = y1 - y0;
+    let o = `<defs><linearGradient id="${id}tr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fdfdfb" stop-opacity=".9"/><stop offset="1" stop-color="#eef1f0" stop-opacity=".86"/></linearGradient></defs>`
+        + `<rect x="${x0}" y="${y0}" width="${W}" height="${H}" fill="url(#${id}tr)" stroke="rgba(120,130,135,.45)" stroke-width="${fmt(0.12 * U)}"/>`;
+    if (id === 'cg') [[x0, y0, -45], [x1, y0, 45], [x0, y1, 45], [x1, y1, -45]].forEach(([x, y, a]) => {
+        o += `<rect x="${fmt(x - 2 * U)}" y="${fmt(y - 0.7 * U)}" width="${fmt(4 * U)}" height="${fmt(1.4 * U)}" fill="rgba(236,222,170,.72)" stroke="rgba(190,170,110,.45)" stroke-width="${fmt(0.05 * U)}" transform="rotate(${a} ${fmt(x)} ${fmt(y)})" pointer-events="none"/>`;
+    });
+    return o;
+}
 function gridSvg(s, id) {
+    if (s.paper === 'trace') return traceSvg(s, id);
     const {x0, x1, y0, y1, step} = s, mi = step / 5, W = x1 - x0, H = y1 - y0, fs = 1.15 * U;
     let o = `<defs><pattern id="${id}a" width="${mi}" height="${mi}" patternUnits="userSpaceOnUse"><path d="M${mi} 0H0V${mi}" fill="none" stroke="#c9d4ec" stroke-width="${fmt(0.1 * U)}"/></pattern>`
         + `<pattern id="${id}b" width="${step}" height="${step}" patternUnits="userSpaceOnUse"><path d="M${step} 0H0V${step}" fill="none" stroke="#9fb0d6" stroke-width="${fmt(0.18 * U)}"/></pattern></defs>`
@@ -3104,7 +3114,11 @@ window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); 
 new ResizeObserver(() => { if (!svg.clientWidth) return; if (!fitted) fit(); else reAspect(); }).observe(svg);
 
 // ── 시작 ────────────────────────────────────────────────────────────────
-$('cadSheet').innerHTML = SHEETS.map(s => `<option value="${s.key}">${esc(s.title)}${s.scale ? ' · ' + s.scale : ''}</option>`).join('');
+{   // 모눈종이와 A2 트레이싱지를 묶음으로 나눈다
+    const opt = s => `<option value="${s.key}">${esc(s.title)}${s.scale && s.paper !== 'trace' ? ' · ' + s.scale : ''}</option>`;
+    $('cadSheet').innerHTML = `<optgroup label="모눈종이">${SHEETS.filter(s => s.paper !== 'trace').map(opt).join('')}</optgroup>`
+        + `<optgroup label="A2 트레이싱지 (594×420mm)">${SHEETS.filter(s => s.paper === 'trace').map(opt).join('')}</optgroup>`;
+}
 const selOpts = (sel, obj) => sel.innerHTML = Object.entries(obj).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join('');
 document.querySelectorAll('#cadForm select.ls').forEach(s => selOpts(s, LS));
 $('ffLs').value = 'solid';
