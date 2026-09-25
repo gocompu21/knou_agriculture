@@ -654,14 +654,15 @@ function drawTri() {
            + bands([R, T, B], grow([R, T, B], (rin - bw) / rin), true);            // 바깥 둘레 — 바깥쪽으로 깎였다
     }
     o += `<path d="M${f(R.x)} ${f(R.y)}L${f(T.x)} ${f(T.y)}L${f(B.x)} ${f(B.y)}" fill="none" stroke="#9a7318" stroke-width="${f(0.1 * U)}"/>`;
-    const lx = B.x + (R.x - B.x) * 0.28, ly = B.y - 1.2 * U;
-    o += `<text x="${f(lx)}" y="${f(ly)}" font-size="${f(1.1 * U)}" fill="#9a7318" font-weight="700" text-anchor="middle" dominant-baseline="central">${G.ang}°</text></g>`;
+    // 각도 글자 — 크게·진하게, 흰 테두리로 모눈 위에서도 읽힌다(사용자: "삼각자 글씨 잘 보이게"). 크기는 자 크기를 따르되 너무 작지 않게
+    const afs = Math.max(2.2 * U, Math.min(G.base, G.h) * 0.07), lx = B.x + (R.x - B.x) * 0.3, ly = B.y - afs * 0.95;
+    o += `<text x="${f(lx)}" y="${f(ly)}" font-size="${f(afs)}" fill="#4a3300" stroke="rgba(255,255,255,.85)" stroke-width="${f(afs * 0.12)}" paint-order="stroke" stroke-linejoin="round" font-weight="700" text-anchor="middle" dominant-baseline="central">${G.ang}°</text></g>`;
     // 수직변의 X — 삼각자 바깥쪽, 직각 모서리 곁(꼭대기는 종이 밖으로 나가기 쉽다). 끄는 동안에는 크게·붉은 바탕으로 실시간 표시
-    const out = B.x > R.x ? -1 : 1, moving = drag && drag.kind === 'tri' && drag.moved, fs = (moving ? 1.5 : 1.05) * U;
+    const out = B.x > R.x ? -1 : 1, moving = drag && drag.kind === 'tri' && drag.moved, fs = (moving ? 1.9 : 1.5) * U;
     const xl = `X ${fmt1(R.x)}`, tw = xl.length * fs * 0.62 + 0.8 * U, tx = R.x + out * (0.5 * U + tw / 2), ty = R.y - fs * 0.75 - 0.4 * U;   // 직각 모서리 바로 위, I자 날 곁
     o += `<g class="tri-x" pointer-events="none"><rect x="${f(tx - tw / 2)}" y="${f(ty - fs * 0.75)}" width="${f(tw)}" height="${f(fs * 1.5)}" rx="${f(0.3 * U)}" `
        + `fill="${moving ? '#c62828' : 'rgba(255,255,255,.85)'}" stroke="${moving ? 'none' : '#c9a24a'}" stroke-width="${f(0.05 * U)}"/>`
-       + `<text x="${f(tx)}" y="${f(ty)}" font-size="${f(fs)}" fill="${moving ? '#fff' : '#7a5a10'}" font-weight="700" text-anchor="middle" dominant-baseline="central">${xl}</text></g>`;
+       + `<text x="${f(tx)}" y="${f(ty)}" font-size="${f(fs)}" fill="${moving ? '#fff' : '#3d2a00'}" font-weight="700" text-anchor="middle" dominant-baseline="central">${xl}</text></g>`;
     if (moving) o += `<path d="M${f(R.x)} ${f(sheet.y0)}V${f(sheet.y1)}" stroke="#c62828" stroke-width="${f(0.06 * U)}" stroke-dasharray="${f(0.5 * U)} ${f(0.35 * U)}" pointer-events="none"/>`;
     g.innerHTML = o;
 }
@@ -1101,7 +1102,7 @@ function drawSr() {
         const at = d => h.at(first ? d : SR_F - d), Vw = d => at(d).v, Sy = d => at(d).sy;
         const col = paper ? '#000' : '#1a1a1a', wt = paper ? 500 : 500;   // 700 은 너무 굵었다(사용자)
         // 눈금은 길고 굵게, 숫자는 크게(사용자: "더 크고 잘 보이게")
-        const D = {tl: 5.2, tm2: 3.9, tm: 2.9, tn: 1.8, sm: 4.0, smf: 2.2, mn: 7.3, mnf: 3.7, lb: 6.2, lbf: 3.0, mu: 2.9, muf: 1.8};
+        const D = {tl: 5.6, tm2: 4.6, tm: 3.6, tn: 2.4, sm: 4.0, smf: 2.2, mn: 7.6, mnf: 3.7, lb: 6.2, lbf: 3.0, mu: 2.9, muf: 1.8};   // 눈금 더 길게(사용자)
         let tkp = '';
         for (let i = 0, r = 0; r <= tot + 1e-9; i++, r = +(i * minor).toFixed(6)) {
             const u = U0 + sg * r * perM, isL = on(r, lab), isM2 = !isL && mid2 && on(r, mid2), isM = !isL && !isM2 && on(r, mid);
