@@ -1108,7 +1108,7 @@ function drawSr() {
             o += `<g pointer-events="none"><rect x="${f(q.x + 3.4 * k)}" y="${f(q.y - fs * 0.75)}" width="${f(tw)}" height="${f(fs * 1.5)}" rx="${f(0.3 * U)}" fill="#c62828"/>`
                + `<text x="${f(q.x + 3.4 * k + tw / 2)}" y="${f(q.y)}" font-size="${f(fs)}" fill="#fff" font-weight="700" text-anchor="middle" dominant-baseline="central">${lb}</text></g>`;
         }
-        o += `<g class="sr-rot" transform="translate(${f(q.x)} ${f(q.y)}) rotate(${f(deg)})"><title>누르면 45° 씩 · 끌면 자유 회전 (Shift: 15° 씩)</title>`
+        o += `<g class="sr-rot" transform="translate(${f(q.x)} ${f(q.y)}) rotate(${f(deg)})"><title>누르면 180° ↔ 0° · 끌면 자유 회전 (Shift: 15° 씩)</title>`
             + `<circle r="${f(2.8 * k)}" fill="rgba(255,255,255,.75)" stroke="#6b7076" stroke-width="${f(0.12 * k)}"/>`
             + `<path d="M0 ${f(-rr)}A${f(rr)} ${f(rr)} 0 1 1 ${f(-rr)} 0" fill="none" stroke="#454a50" stroke-width="${f(0.35 * k)}" stroke-linecap="round"/>`
             + `<path d="M${f(-rr - 0.7 * k)} ${f(0.05 * k)}L${f(-rr + 0.7 * k)} ${f(0.05 * k)}L${f(-rr)} ${f(-0.9 * k)}Z" fill="#454a50"/></g>`;
@@ -2883,8 +2883,8 @@ function endPtr(e) {
         if (ls === 'aux' && !SET.auxOn) setAux(true);
         changed(); return;
     }
-    if (d.kind === 'srrotd') {   // 끌면 자유 회전, 누르기만 하면 다음 45° 자리로
-        if (!d.moved) { sr.rot = (Math.floor(((sr.rot || 0) + 1e-6) / 45) * 45 + 45) % 360; flash(`스케일자 ${sr.rot}° (끌면 자유 회전)`); }
+    if (d.kind === 'srrotd') {   // 끌면 자유 회전, 누르기만 하면 180° ↔ 0°(자를 앞뒤로 돌려 반대쪽 눈금을 쓴다 — 사용자)
+        if (!d.moved) { sr.rot = Math.round(sr.rot || 0) % 360 === 180 ? 0 : 180; flash(`스케일자 ${sr.rot}° (끌면 자유 회전)`); }
         saveSr(); drawSr(); return;
     }
     if (d.kind === 'sr') { root.classList.remove('bar-drag'); if (d.moved) saveSr(); drawSr(); return; }
