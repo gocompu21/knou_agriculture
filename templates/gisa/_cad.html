@@ -209,7 +209,7 @@
                 <div data-form="fill">
                     <h4>도형 채우기</h4>
                     <p class="cad-help">선·원·호로 <b>둘러싸인 면의 안쪽</b>을 누르면 채우기 아이콘 옆 그림 단추에서 고른 모양(전체·수평선·수직선·사선·X자·점·큰 격자·작은 격자·잔디)과 설정(⚙)의 색으로 칠합니다. 선 간격은 면 크기에 맞춰 정해집니다.<br>
-                       면이 막혀 있지 않으면(틈이 있어 종이 끝까지 새면) 칠하지 않고 알려 줍니다. 칠한 면은 작도 순서에서 ✎ 로 지금 색으로 다시 칠하고 ✕ 로 지웁니다.</p>
+                       면이 막혀 있지 않으면(틈이 있어 종이 끝까지 새면) 칠하지 않고 알려 줍니다. 칠한 면은 지우개로 문지른 자리만 지워지고, 작도 순서에서 ✎ 로 지금 색으로 다시 칠하고 ✕ 로 통째로 지웁니다.</p>
                 </div>
                 <div data-form="text">
                     <h4>글자</h4>
@@ -1065,6 +1065,13 @@ const freeD = pts => {                              // 점 사이를 중점 2차
 };
 function opSvg(op) {
     if (op.t === 'free') return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${stAttr(op.ls, op.w)}/>` : '';
+    if (op.t === 'fill' && !op._raw && op.cuts && op.cuts.length) {   // 지우개로 지운 자리 — 원판들을 검게 뚫은 mask 로 가린다
+        const id = `cadFm${op.id}`, [x0, y0, x1, y1] = op.bb || [sheet.x0, sheet.y0, sheet.x1, sheet.y1], m = 2 * U;
+        return `<mask id="${id}" maskUnits="userSpaceOnUse" x="${fmt(x0 - m)}" y="${fmt(y0 - m)}" width="${fmt(x1 - x0 + 2 * m)}" height="${fmt(y1 - y0 + 2 * m)}">`
+            + `<rect x="${fmt(x0 - m)}" y="${fmt(y0 - m)}" width="${fmt(x1 - x0 + 2 * m)}" height="${fmt(y1 - y0 + 2 * m)}" fill="#fff"/>`
+            + op.cuts.map(([x, y, r]) => `<circle cx="${fmt(x)}" cy="${fmt(y)}" r="${fmt(r)}" fill="#000"/>`).join('') + '</mask>'
+            + `<g mask="url(#${id})">${opSvg({...op, _raw: true})}</g>`;
+    }
     if (op.t === 'fill') {
         const fo = op.op != null ? op.op : 0.6;
         if (op.kind && op.kind !== 'solid' && op.bb && op.gap > 0) {   // 해칭 — 면 모양(clipPath)으로 오린 선·점
@@ -1810,6 +1817,17 @@ function keptOf(runs, total) {     // 지운 구간들의 여집합
     if (from < total) kept.push([from, total]);
     return kept;
 }
+let _fillCtx = null;
+function fillTouch(op, C, r) {                        // 원판이 칠한 면에 닿는가 — 가운데와 둘레 여덟 점을 면 경로로 짚어 본다
+    if (op.bb && (C.x + r < op.bb[0] || C.x - r > op.bb[2] || C.y + r < op.bb[1] || C.y - r > op.bb[3])) return false;
+    _fillCtx = _fillCtx || document.createElement('canvas').getContext('2d');
+    const P2 = new Path2D(op.d);
+    for (let i = -1; i < 16; i++) {
+        const a = i * Math.PI / 4, rr = i < 0 ? 0 : i < 8 ? r * 0.5 : r * 0.95;
+        if (_fillCtx.isPointInPath(P2, C.x + rr * Math.cos(a), C.y + rr * Math.sin(a), 'evenodd')) return true;
+    }
+    return false;
+}
 function cutFree(op, C, r) {
     const P0 = op.pts || []; if (P0.length < 2) return null;
     if (!P0.some((q, i) => i && segDist(C, {x: P0[i - 1][0], y: P0[i - 1][1]}, {x: q[0], y: q[1]}) < r)) return null;
@@ -1895,6 +1913,14 @@ function eraseAt(C, r) {
     doc.ops.forEach(op => {
         let pcs = null;
         if (auxHidden(op)) { out.push(op); return; }
+        if (op.t === 'fill') {                                   // 칠한 면 — 문지른 원판을 op.cuts 에 쌓아 그 자리만 뚫는다(자가 덮은 곳은 빼고)
+            if (!covered(C) && fillTouch(op, C, r)) {
+                const cs = op.cuts || (op.cuts = []), l = cs[cs.length - 1];
+                if (!l || Math.hypot(l[0] - C.x, l[1] - C.y) > r * 0.3 || Math.abs(l[2] - r) > 1e-6) cs.push([+C.x.toFixed(3), +C.y.toFixed(3), +r.toFixed(3)]);
+                hit = true;
+            }
+            out.push(op); return;
+        }
         if (op.t === 'free') pcs = cutFree(op, C, r);
         else if (op.t === 'line') pcs = cutLine(op, C, r);
         else if (op.t === 'circle' || op.t === 'arc') pcs = cutArc(op, C, r);
