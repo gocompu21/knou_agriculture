@@ -1687,7 +1687,7 @@ function snapXY(w) {
     const ed = nearestEdge(w, tool.startsWith('pen') ? 40 : 16, x => !x.sr); if (ed) return onEdge(ed, w);   // I자 날·삼각자 변에 붙는다(스케일자는 긋는 자가 아니다)
     return r;
 }
-// ── 점 합치기 ── 샤프로 점을 고른 뒤 그 점에서 오른쪽 버튼 → 그 점에 이어진 선의 연장선 위에 있는 점들을 가까운 차례로
+// ── 점 합치기 · 교차선까지 연장 ── 샤프로 점을 고른 뒤 그 점에서 오른쪽 버튼 → 그 점에 이어진 선의 연장선 위에 있는 점들을 가까운 차례로
 // 보여 주고, 고르면 고른 점을 그 점으로 합친다(그 점을 쓰던 선·원·호·글자가 모두 새 점을 가리키고, 원래 점은 지운다).
 // 선이 두 점을 거의 붙게 그려 끝이 어긋났을 때 잇는 용도다(사용자)
 function mergeCands(n) {
@@ -1716,24 +1716,74 @@ function mergePts(from, to) {
     doc.ops = doc.ops.filter(op => !((op.t === 'line' || op.t === 'rect' || op.t === 'arc') && +op.a === +op.b));   // 길이 0 이 된 것은 버린다
     doc.pts = doc.pts.filter(p => p.n !== +from);
     selPts.delete(+from);
-    // 합친 뒤 번호를 다시 매긴다(사용자) — 지금 차례는 그대로 두고 빈 번호만 메운다(P2 를 합치면 P3 → P2, P4 → P3 …)
-    const map = {}; doc.pts.slice().sort((a, b) => a.n - b.n).forEach((p, i) => { map[p.n] = i + 1; });
-    const nt = map[+to];
-    if (Object.keys(map).some(k => +k !== map[k])) remapPts(map);   // 고른 점 목록도 remapPts 가 따라 옮긴다
-    selPt = nt;
+    const nt = compactPts()[+to]; selPt = nt;
     changed(); flash(`P${from} 을(를) P${to} 에 합치고 번호를 다시 매겼습니다 — 합친 점은 이제 P${nt} 입니다`);
+}
+// 합치기·연장 뒤 번호를 다시 매긴다(사용자) — 지금 차례는 그대로 두고 빈 번호만 메운다(P2 가 없어지면 P3 → P2 …). {옛: 새}
+function compactPts() {
+    const map = {}; doc.pts.slice().sort((a, b) => a.n - b.n).forEach((p, i) => { map[p.n] = i + 1; });
+    if (Object.keys(map).some(k => +k !== map[k])) remapPts(map);   // 고른 점 목록도 remapPts 가 따라 옮긴다
+    return map;
+}
+// 교차선까지 연장 — 고른 점에 이어진 선을 그 방향(반대 끝 → 고른 점)으로 늘려 처음 만나는 다른 선(사각형 변 포함)까지.
+// 고른 점을 다른 것도 쓰면 그것이 틀어지지 않게, 교차점에 새 점을 두고 이 선의 끝만 옮긴다. 아무도 안 쓰게 된 점은 지운다
+function extCands(n) {
+    const S = P(n); if (!S) return [];
+    const segs = [];                                      // 부딪칠 선분들
+    doc.ops.forEach(op => {
+        if (op.t === 'line') { const a = P(op.a), b = P(op.b); if (a && b) segs.push({op, a, b, name: `선 P${op.a}–P${op.b}`}); }
+        else if (op.t === 'rect') { const a = P(op.a), b = P(op.b); if (!a || !b) return;
+            const c = [a, {x: b.x, y: a.y}, b, {x: a.x, y: b.y}];
+            c.forEach((q, i) => segs.push({op, a: q, b: c[(i + 1) % 4], name: `사각형 P${op.a}–P${op.b} 변`})); }
+    });
+    const out = [];
+    doc.ops.forEach(op => {
+        if (op.t !== 'line') return;
+        const end = +op.a === +n ? 'a' : +op.b === +n ? 'b' : null; if (!end) return;
+        const o = P(end === 'a' ? op.b : op.a); if (!o) return;
+        const dx = S.x - o.x, dy = S.y - o.y, L = Math.hypot(dx, dy); if (L < 1e-9) return;
+        const ux = dx / L, uy = dy / L;
+        const hits = new Map();                           // 부딪친 것마다 가장 가까운 교차점 하나
+        segs.forEach(g => {
+            if (g.op === op) return;
+            const ex = g.b.x - g.a.x, ey = g.b.y - g.a.y, den = ux * ey - uy * ex;
+            if (Math.abs(den) < 1e-12) return;              // 나란하면 만나지 않는다
+            const wx = g.a.x - S.x, wy = g.a.y - S.y;
+            const t = (wx * ey - wy * ex) / den, v = (wx * uy - wy * ux) / den;
+            if (t <= 1e-6 || v < -1e-6 || v > 1 + 1e-6) return;   // 고른 점 너머, 그 선분 안에서만
+            const h = hits.get(g.name);
+            if (!h || t < h.dist) hits.set(g.name, {line: op, end, x: S.x + ux * t, y: S.y + uy * t, dist: t, name: g.name});
+        });
+        out.push(...hits.values());
+    });
+    return out.sort((a, b) => a.dist - b.dist).slice(0, 6);   // 가까운 교차선부터 — 더 먼 선까지도 고를 수 있다
+}
+function extendTo(n, c) {
+    snapHist();
+    const q = addPt(c.x, c.y);
+    c.line[c.end] = q;
+    if (!usedBy(+n) && +n !== q) doc.pts = doc.pts.filter(p => p.n !== +n);
+    const nq = compactPts()[q]; selPt = nq;
+    changed(); flash(`${c.name} 까지 ${fmt(c.dist)}m 연장했습니다 — 끝점은 P${nq}`);
 }
 function ctxMenu(e, n) {
     let m = $('cadCtx');
     if (!m) { m = document.createElement('div'); m.id = 'cadCtx'; m.className = 'cad-ctx'; m.hidden = true; root.appendChild(m); }
-    const C = mergeCands(n);
+    const C = mergeCands(n), X = extCands(n);
     m.innerHTML = `<div class="ch">P${n} 합치기</div>` + (C.length
         ? C.map(c => `<button type="button" data-to="${c.n}">P${c.n} 와(과) 합치기<small>${c.why} · ${fmt(c.dist)}m</small></button>`).join('')
-        : '<div class="none">이어진 선의 연장선 위에 점이 없습니다</div>');
+        : '<div class="none">이어진 선의 연장선 위에 점이 없습니다</div>')
+        + `<div class="ch" style="border-top:1px solid #eef0f2;margin-top:2px">P${n} 교차선까지 연장</div>` + (X.length
+        ? X.map((c, i) => `<button type="button" data-ext="${i}">${c.name} 까지 연장<small>${fmt(c.dist)}m</small></button>`).join('')
+        : '<div class="none">연장해서 만나는 선이 없습니다</div>');
     m.hidden = false;
     const W = m.offsetWidth, H = m.offsetHeight;
     m.style.left = Math.min(e.clientX + 4, innerWidth - W - 6) + 'px'; m.style.top = Math.min(e.clientY + 4, innerHeight - H - 6) + 'px';
-    m.onclick = ev => { const b = ev.target.closest('button[data-to]'); if (!b) return; m.hidden = true; mergePts(n, +b.dataset.to); };
+    m.onclick = ev => {
+        const b = ev.target.closest('button[data-to], button[data-ext]'); if (!b) return;
+        m.hidden = true;
+        if (b.dataset.to) mergePts(n, +b.dataset.to); else extendTo(n, X[+b.dataset.ext]);
+    };
 }
 document.addEventListener('pointerdown', e => { const m = $('cadCtx'); if (m && !m.hidden && !e.target.closest('#cadCtx')) m.hidden = true; }, true);
 document.addEventListener('keydown', e => { const m = $('cadCtx'); if (e.key === 'Escape' && m && !m.hidden) m.hidden = true; });
