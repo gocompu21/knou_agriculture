@@ -901,12 +901,27 @@ function polyTrace(h, a0, sw) {                        // 돌린 구간의 꺾�
     pts.push(polyAt(h.v, h.c, a0 + sw));
     return pts;
 }
-// ── 스케일자(삼각 스케일의 한 면) ── 길이 30cm(종이 위), 폭 24mm. 윗변에 고른 축척의 눈금, 가운데 붉은 띠.
+// ── 스케일자(삼각 스케일) ── 사용자가 준 실물 사진 두 장을 재어 옮겼다: 판 길이 321mm·폭 25mm, 눈금 300mm.
+// 한 번에 한 면(두 축척)이 보인다 — 윗면(눈금이 윗변, 0 이 왼쪽), 가운데 색 띠, 아랫면(눈금이 아랫변, 글자가 거꾸로 서고
+// 0 이 오른쪽). 면은 1/100·1/200(빨강) · 1/300·1/400(청록) · 1/500·1/600(검정).
+// 숫자 위 작은 숫자는 반대쪽에서 읽는 값(전체 − 그 눈금)이다. 두 변 모두 샤프를 대고 긋는 자의 변이다.
 // 눈금 1m(실제) = 종이 위 1000/S mm = 도면 denom/S m. 예) 1:430 종이에 1:500 자를 대면 1m 눈금이 도면 0.86m 다
-const SR_L = 310, SR_W = 24, SR_Z = 5;                // 판 길이·폭(mm), 0 눈금 자리
-const SR_SCALES = [100, 200, 250, 300, 400, 500, 600, 800, 1000];
+const SR_L = 321, SR_W = 25, SR_Z = 12.8, SR_RUN = 300;   // 판 길이·폭(mm), 윗면 0 눈금 자리, 눈금 길이
+const SR_RED0 = 10.8, SR_RED1 = 14.8;                  // 가운데 색 띠(mm)
+const SR_BANDS = {
+    red:  [[0, '#9c1512'], [0.12, '#d81c24'], [0.5, '#ec2830'], [0.86, '#e0212a'], [1, '#b5181d']],
+    teal: [[0, '#1d4f4c'], [0.14, '#2f7a74'], [0.5, '#3f948c'], [0.86, '#358780'], [1, '#26625d']],
+    black: [[0, '#0a0b0c'], [0.14, '#1d2022'], [0.5, '#2e3134'], [0.86, '#25282a'], [1, '#141617']]};
+const SR_FACES = [{top: 100, bot: 200, band: 'red'}, {top: 300, bot: 400, band: 'teal'}, {top: 500, bot: 600, band: 'black'}];
+const SR_SCALES = SR_FACES.map(x => x.top);
+// sr.s 는 면의 윗면 축척. 아랫면 축척으로 들어와도 그 면으로 잡는다. 목록에 없는 축척(사용자 지정)은 N · 2N, 빨간 띠
+function srFace(s) {
+    const F = SR_FACES.find(x => x.top === s || x.bot === s);
+    return F ? {...F, band: SR_BANDS[F.band]} : {top: s, bot: s * 2, band: SR_BANDS.red};
+}
 let sr = null;                                         // {x, y, rot, s} 돌리기 전 왼쪽 위(도면 m) · 회전(°) · 축척
 try { sr = JSON.parse(localStorage.getItem('cadSr') || 'null'); } catch (e) {}
+if (sr) sr.s = srFace(sr.s).top;                    // 예전에 고른 1:200 등은 그 면(1/100·1/200)으로
 function saveSr() { try { localStorage.setItem('cadSr', JSON.stringify(sr)); } catch (e) {} }
 const srK = () => scaleDenom() / 1000;                // 종이 1mm → 도면 m
 function srCenter() { const k = srK(); return {x: sr.x + SR_L * k / 2, y: sr.y + SR_W * k / 2}; }
@@ -919,10 +934,19 @@ function srLocal(p) {
     return {u: (dx * Math.cos(a) + dy * Math.sin(a)) / k + SR_L / 2, v: (-dx * Math.sin(a) + dy * Math.cos(a)) / k + SR_W / 2};
 }
 function onSr(p, strict) { if (!sr || !sheet) return false; const l = srLocal(p), e = strict ? 0.05 : 0; return l.u >= e && l.u <= SR_L - e && l.v >= e && l.v <= SR_W - e; }
-function srEdge() {                                    // 눈금 변(윗변) — 샤프를 대고 긋는 자의 변
-    if (!sr || !sheet) return null;
-    const a = srMap(0, 0), b = srMap(SR_L, 0), n = Math.hypot(b.x - a.x, b.y - a.y);
-    return {ax: a.x, ay: a.y, dx: (b.x - a.x) / n, dy: (b.y - a.y) / n, lo: 0, hi: n, sr: true, name: `스케일자(1:${sr.s})`};
+function srEdges() {                                   // 눈금 변 둘(윗변 · 아랫변) — 샤프를 대고 긋는 자의 변
+    if (!sr || !sheet) return [];
+    const F = srFace(sr.s);
+    return [[0, F.top], [SR_W, F.bot]].map(([v, s2]) => {
+        const a = srMap(0, v), b = srMap(SR_L, v), n = Math.hypot(b.x - a.x, b.y - a.y);
+        return {ax: a.x, ay: a.y, dx: (b.x - a.x) / n, dy: (b.y - a.y) / n, lo: 0, hi: n, sr: true, name: `스케일자(1/${fmt(s2)})`};
+    });
+}
+function srEdge(w) {                                   // 누른 곳에 가까운 눈금 변
+    const E = srEdges(); if (!E.length) return null;
+    if (!w) return E[0];
+    const d = e => Math.abs((w.x - e.ax) * e.dy - (w.y - e.ay) * e.dx);
+    return d(E[0]) <= d(E[1]) ? E[0] : E[1];
 }
 function niceStep(v) { const e = Math.pow(10, Math.floor(Math.log10(v))), m = v / e; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * e; }
 function drawSr() {
@@ -931,35 +955,52 @@ function drawSr() {
     if (sr) $('cadSrScale').value = String(sr.s);
     if (!sr || !sheet) { g.innerHTML = ''; return; }
     const k = srK(), f = v => fmt(v), deg = sr.rot || 0, S = sr.s, M = (u, v) => { const q = srMap(u, v); return `${f(q.x)} ${f(q.y)}`; };
-    const tx = (u, v, t, sz, a, w) => { const q = srMap(u, v); return `<text x="${f(q.x)}" y="${f(q.y)}" font-size="${f(sz * k)}" fill="#222" text-anchor="${a || 'middle'}" dominant-baseline="central" font-weight="${w || 500}"${deg ? ` transform="rotate(${deg} ${f(q.x)} ${f(q.y)})"` : ''}>${t}</text>`; };
-    // 입체 — 불투명 흰 몸통(위는 밝고 아래로 갈수록 등을 돌려 어두워짐), 가운데 붉은 띠는 V 홈처럼 파여 있다(위쪽 그늘·아래쪽 빛 받는 턱).
+    const FC = srFace(S);                                // 이 면: 윗면 축척 · 아랫면 축척 · 가운데 띠 색
+    const FN = `font-family="'Arial Narrow','Roboto Condensed','Helvetica Neue',Arial,sans-serif"`;
+    const tx = (u, v, t, sz, a, w, flip) => { const q = srMap(u, v), r = deg + (flip ? 180 : 0);
+        return `<text x="${f(q.x)}" y="${f(q.y)}" font-size="${f(sz * k)}" ${FN} fill="#1c1c1c" text-anchor="${a || 'middle'}" dominant-baseline="central" font-weight="${w || 400}"${r ? ` transform="rotate(${r} ${f(q.x)} ${f(q.y)})"` : ''}>${t}</text>`; };
+    // 몸통 — 불투명 흰 플라스틱. 위아래 두 면이 가운데 붉은 띠에서 만난다(사진: 윗면이 조금 더 밝고 아랫면은 살짝 회색)
     // 그라데이션은 자의 폭 방향(v)을 따라가도록 userSpaceOnUse 로 srMap 두 점에 건다 — 돌려도 음영이 자를 따라 돈다
     const G = (id, v0, v1, stops) => { const a = srMap(0, v0), b = srMap(0, v1);
         return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${f(a.x)}" y1="${f(a.y)}" x2="${f(b.x)}" y2="${f(b.y)}">${stops.map(([o2, c]) => `<stop offset="${o2}" stop-color="${c}"/>`).join('')}</linearGradient>`; };
-    const sh = srMap(0, 0), sh2 = srMap(0.9, 1.4), dx = sh2.x - sh.x, dy = sh2.y - sh.y;
-    let o = `<defs>${G('srBodyG', 0, SR_W, [[0, '#ffffff'], [0.45, '#f7f6f1'], [0.62, '#ecebe4'], [1, '#cfcdc4']])}`
-        + `${G('srGrvG', 14.2, 19.4, [[0, '#6e120d'], [0.22, '#a81f18'], [0.55, '#d8352a'], [0.85, '#ef6a5f'], [1, '#f6a39b']])}`
+    const sh = srMap(0, 0), sh2 = srMap(0.9, 1.4), dx = sh2.x - sh.x, dy = sh2.y - sh.y, R4 = (u0, v0, u1, v1) => `M${M(u0, v0)}L${M(u1, v0)}L${M(u1, v1)}L${M(u0, v1)}Z`;
+    let o = `<defs>${G('srTopG', 0, SR_RED0, [[0, '#ffffff'], [0.7, '#f6f6f3'], [1, '#e9e8e3']])}`
+        + `${G('srBotG', SR_RED1, SR_W, [[0, '#f0efeb'], [0.5, '#f7f7f4'], [1, '#e2e1dc']])}`
+        + `${G('srGrvG', SR_RED0, SR_RED1, FC.band)}`
         + `<filter id="srSh" x="-5%" y="-30%" width="110%" height="160%"><feGaussianBlur stdDeviation="${f(0.9 * k)}"/></filter></defs>`
-        + `<path d="M${M(0, 0)}L${M(SR_L, 0)}L${M(SR_L, SR_W)}L${M(0, SR_W)}Z" transform="translate(${f(dx)} ${f(dy)})" fill="rgba(30,35,40,.35)" filter="url(#srSh)" pointer-events="none"/>`
-        + `<g class="sr-body"><path d="M${M(0, 0)}L${M(SR_L, 0)}L${M(SR_L, SR_W)}L${M(0, SR_W)}Z" fill="url(#srBodyG)" stroke="#8a8f94" stroke-width="${f(0.22 * k)}"/>`
-        + `<path d="M${M(0.3, 0.35)}L${M(SR_L - 0.3, 0.35)}" stroke="rgba(255,255,255,.95)" stroke-width="${f(0.4 * k)}"/>`          // 윗변 모서리 빛
-        + `<path d="M${M(0, 14.2)}L${M(SR_L, 14.2)}L${M(SR_L, 19.4)}L${M(0, 19.4)}Z" fill="url(#srGrvG)"/>`                                 // 붉은 V 홈
-        + `<path d="M${M(0, 14.25)}L${M(SR_L, 14.25)}" stroke="rgba(60,10,8,.55)" stroke-width="${f(0.3 * k)}"/>`                         // 홈 윗단 그늘
-        + `<path d="M${M(0, 19.45)}L${M(SR_L, 19.45)}" stroke="rgba(255,255,255,.9)" stroke-width="${f(0.35 * k)}"/>`                     // 홈 아랫단 빛 받는 턱
-        + `<path d="M${M(0, SR_W - 0.3)}L${M(SR_L, SR_W - 0.3)}" stroke="rgba(90,88,80,.35)" stroke-width="${f(0.4 * k)}"/>`;              // 아래 모서리 그늘
-    // 눈금 — 실제 삼각 스케일을 따른다: 축척마다 [작은 눈금, 중간 눈금, 숫자] 간격(실제 m). 1:500 은 1m 마다 작은 눈금, 5m 중간, 10m 숫자.
-    // 첫 숫자에는 단위를 붙인다(1m · 5m · 10m 처럼). 표에 없는 축척(사용자 지정)은 종이 위 1mm·5mm·10~20mm 안팎으로 고른다
-    const SRG = {100: [0.1, 0.5, 1], 200: [0.2, 1, 2], 250: [0.5, 2.5, 5], 300: [0.5, 2.5, 5], 400: [0.5, 2.5, 5], 500: [1, 5, 10], 600: [1, 5, 10], 800: [1, 5, 10], 1000: [1, 5, 10]};
-    const perM = 1000 / S, [minor, mid, lab] = SRG[S] || (() => { const mn = niceStep(1 / perM), lb = niceStep(12 / perM); return [mn, lb / 2, lb]; })();
-    const maxR = (SR_L - 2 * SR_Z) / perM, on = (r, st) => Math.abs(r / st - Math.round(r / st)) < 1e-6;
-    let tk = '', first = true;
-    for (let i = 0, r = 0; r <= maxR + 1e-9; i++, r = +(i * minor).toFixed(6)) {
-        const u = SR_Z + r * perM, isL = on(r, lab), isM = !isL && on(r, mid);
-        tk += `M${M(u, 0)}L${M(u, isL ? 4.6 : isM ? 3.2 : 2)}`;
-        if (isL) { o += tx(u, 6.8, r > 0 && first ? `${fmt(r)}m` : fmt(r), 2.4); if (r > 0) first = false; }
-    }
-    o += `<path d="${tk}" stroke="#222" stroke-width="${f(0.13 * k)}"/>`
-       + tx(2.2, 11.3, `1:${fmt(S)}`, 2.6, 'start', 700) + tx(SR_L - 3, 11.3, 'm', 2.4, 'end', 700) + '</g>';
+        + `<path d="${R4(0, 0, SR_L, SR_W)}" transform="translate(${f(dx)} ${f(dy)})" fill="rgba(30,35,40,.35)" filter="url(#srSh)" pointer-events="none"/>`
+        + `<g class="sr-body"><path d="${R4(0, 0, SR_L, SR_W)}" fill="#f4f4f1" stroke="#9a9ea2" stroke-width="${f(0.22 * k)}"/>`
+        + `<path d="${R4(0, 0, SR_L, SR_RED0)}" fill="url(#srTopG)"/><path d="${R4(0, SR_RED1, SR_L, SR_W)}" fill="url(#srBotG)"/>`
+        + `<path d="M${M(0.3, 0.3)}L${M(SR_L - 0.3, 0.3)}" stroke="rgba(255,255,255,.95)" stroke-width="${f(0.35 * k)}"/>`          // 윗변 모서리 빛
+        + `<path d="${R4(0, SR_RED0, SR_L, SR_RED1)}" fill="url(#srGrvG)"/>`                                                          // 가운데 붉은 띠
+        + `<path d="M${M(0, SR_RED0 + 0.05)}L${M(SR_L, SR_RED0 + 0.05)}" stroke="rgba(70,8,6,.6)" stroke-width="${f(0.25 * k)}"/>`     // 띠 윗단 그늘
+        + `<path d="M${M(0, SR_RED0 + 2.75)}L${M(SR_L, SR_RED0 + 2.75)}" stroke="rgba(255,255,255,.35)" stroke-width="${f(0.35 * k)}"/>` // 띠 아래쪽 반사광
+        + `<path d="M${M(0, SR_RED1 + 0.12)}L${M(SR_L, SR_RED1 + 0.12)}" stroke="rgba(255,255,255,.95)" stroke-width="${f(0.3 * k)}"/>` // 띠 아랫단 빛
+        + `<path d="M${M(0, SR_W - 0.3)}L${M(SR_L, SR_W - 0.3)}" stroke="rgba(90,88,80,.3)" stroke-width="${f(0.35 * k)}"/>`;          // 아래 모서리 그늘
+    // 눈금 — 실물 사진을 따른다: 축척마다 [작은 눈금, 중간 눈금, 긴 중간 눈금(없으면 0), 숫자] 간격(실제 m).
+    // 1/100 은 0.1·0.5·1m, 1/200 은 0.1·0.5·1·5m, 1/300~1/600 은 0.5·1·5·10m. 표에 없는 축척(사용자 지정)은 종이 위 1mm·10~20mm 안팎
+    const SRG = {100: [0.1, 0.5, 0, 1], 200: [0.1, 0.5, 1, 5], 300: [0.5, 1, 5, 10], 400: [0.5, 1, 5, 10], 500: [0.5, 1, 5, 10], 600: [0.5, 1, 5, 10]};
+    const on = (r, st) => Math.abs(r / st - Math.round(r / st)) < 1e-6;
+    let tk = '';
+    // 한 면 — top: 윗면(0 이 왼쪽, 눈금이 윗변에서 아래로). 아랫면은 판을 180° 돌린 모양이라 자리·글자를 모두 뒤집는다
+    const face = (Sx, top) => {
+        const perM = 1000 / Sx, [minor, mid, mid2, lab] = SRG[Sx] || (() => { const mn = niceStep(1 / perM), lb = niceStep(12 / perM); return [mn, lb / 2, 0, lb]; })();
+        const tot = SR_RUN / perM, U0 = top ? SR_Z : SR_L - SR_Z, sg = top ? 1 : -1;
+        const V = d => top ? d : SR_W - d;                                  // 눈금 변에서 안쪽으로 d(mm)
+        for (let i = 0, r = 0; r <= tot + 1e-9; i++, r = +(i * minor).toFixed(6)) {
+            const u = U0 + sg * r * perM, isL = on(r, lab), isM2 = !isL && mid2 && on(r, mid2), isM = !isL && !isM2 && on(r, mid);
+            // 숫자 자리의 긴 눈금은 작은 숫자 한가운데를 지나 내려온다(사진: '2|9' 처럼 두 자리 사이로)
+            tk += `M${M(u, V(0))}L${M(u, V(isL ? 4.5 : isM2 ? 3.0 : isM ? 2.2 : 1.25))}`;
+            if (isL) {
+                o += tx(u, V(3.65), fmt(+(tot - r).toFixed(4)), 1.9, 'middle', 400, !top);   // 반대쪽에서 읽는 작은 숫자
+                o += tx(u, V(6.45), fmt(r), 3.0, 'middle', 400, !top);
+            }
+        }
+        // 축척 표기 — 윗면은 왼쪽 여백, 아랫면은 오른쪽 여백(거꾸로). 단위 'm' 은 0 곁 위에 작게
+        o += tx(top ? 2.2 : SR_L - 2.2, V(5.6), `1/${fmt(Sx)}`, 2.7, 'start', 400, !top) + tx(U0 - sg * 2.4, V(2.7), 'm', 1.6, 'middle', 400, !top);
+    };
+    face(FC.top, true); face(FC.bot, false);
+    o += `<path d="${tk}" stroke="#1c1c1c" stroke-width="${f(0.11 * k)}"/></g>`;
     {   // 회전 핸들 — 윗변 가운데 바깥
         const q = srMap(SR_L / 2, -9), q0 = srMap(SR_L / 2, 0), rr = 1.6 * k, turning = drag && drag.kind === 'srrotd' && drag.moved;
         o += `<path d="M${f(q0.x)} ${f(q0.y)}L${f(q.x)} ${f(q.y)}" stroke="#8a8f94" stroke-width="${f(0.2 * k)}" stroke-dasharray="${f(0.8 * k)} ${f(0.5 * k)}" pointer-events="none"/>`;
@@ -979,10 +1020,10 @@ function toggleSr() {
     if (sr) sr = null;
     else {                                              // 화면 가운데, 0 눈금이 눈금 교차점에 오게
         const k = srK(), g = barStep(), zx = Math.round((vb.x + vb.w / 2 - SR_L * k / 2 + SR_Z * k) / g) * g, zy = Math.round((vb.y + vb.h / 2) / g) * g;
-        sr = {x: +(zx - SR_Z * k).toFixed(4), y: +zy.toFixed(4), rot: 0, s: +$('cadSrScale').value || 500};
+        sr = {x: +(zx - SR_Z * k).toFixed(4), y: +zy.toFixed(4), rot: 0, s: +$('cadSrScale').value || 100};
     }
     saveSr(); drawSr();
-    flash(sr ? `스케일자 1:${sr.s} 를 놓았습니다 — 몸통을 끌어 옮기고(0 눈금이 눈금에 붙는다), 위 손잡이로 돌리며, 눈금 변에 샤프를 대고 긋습니다` : '스케일자를 치웠습니다');
+    flash(sr ? `스케일자 1/${fmt(srFace(sr.s).top)} · 1/${fmt(srFace(sr.s).bot)} 면을 놓았습니다 — 몸통을 끌어 옮기고(0 눈금이 눈금에 붙는다), 위 손잡이로 돌리며, 눈금 변에 샤프를 대고 긋습니다` : '스케일자를 치웠습니다');
 }
 function startSrDrag(e, w) {                           // 0 눈금(윗변)을 눈금에 붙여 옮긴다
     const z = srMap(SR_Z, 0);
@@ -1029,7 +1070,7 @@ function guideEdges() {
     const E = [];
     if (barOn && barY != null && sheet) barEdges().forEach(ey => E.push({ax: 0, ay: ey, dx: 1, dy: 0, lo: -Infinity, hi: Infinity, bar: true, name: 'I자'}));
     const G = triGeom(); if (G) E.push(...G.edges);
-    const se = srEdge(); if (se) E.push(se);
+    E.push(...srEdges());
     return E;
 }
 const clampT = (t, e) => Math.max(e.lo, Math.min(e.hi, t));
@@ -2506,7 +2547,7 @@ svg.addEventListener('pointerdown', e => {
         }
         if (c('#cadTpl .tpl-body')) { if (e.button === 0) startTplDrag(e, w); else drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return; }
         if (c('#cadSr .sr-body')) {                       // 스케일자 — 왼쪽은 옮기기, 오른쪽은 눈금 변을 따라 긋기
-            if (e.button === 0 && !nearestEdge(w, 12, x => x.sr)) startSrDrag(e, w); else startPencil(e, w, srEdge(), true);
+            if (e.button === 0 && !nearestEdge(w, 12, x => x.sr)) startSrDrag(e, w); else startPencil(e, w, srEdge(w), true);
             return;
         }
         const onBody = c('#cadBar .bar-body'), onTri = c('#cadTri .tri-body');
@@ -2912,8 +2953,8 @@ $('cadTri45').addEventListener('click', () => toggleTri('45'));
 let srCustom = []; try { srCustom = JSON.parse(localStorage.getItem('cadSrCustom') || '[]'); } catch (e) {}
 function srFillScales(sel) {
     const all = [...new Set([...SR_SCALES, ...srCustom, ...(sr && sr.s ? [sr.s] : [])])].sort((a, b) => a - b);
-    $('cadSrScale').innerHTML = all.map(v => `<option value="${v}">1:${fmt(v)}</option>`).join('') + '<option value="custom">사용자 지정…</option>';
-    $('cadSrScale').value = String(sel || (sr && sr.s) || 500);
+    $('cadSrScale').innerHTML = all.map(v => `<option value="${v}">1/${fmt(srFace(v).top)} · 1/${fmt(srFace(v).bot)}</option>`).join('') + '<option value="custom">사용자 지정…</option>';
+    $('cadSrScale').value = String(sel || (sr && sr.s) || 100);
 }
 srFillScales();
 $('cadSrScale').dataset.prev = $('cadSrScale').value;
@@ -2921,14 +2962,14 @@ $('cadSrBtn').addEventListener('click', toggleSr);
 $('cadSrScale').addEventListener('change', () => {
     let v = $('cadSrScale').value;
     if (v === 'custom') {
-        const t = prompt('스케일자 축척 1 : N — N 을 넣으세요 (예: 430)', sr ? sr.s : '');
+        const t = prompt('스케일자 축척 1 : N — N 을 넣으세요 (예: 430). 아랫면은 1 : 2N 입니다', sr ? sr.s : '');
         const n = parseFloat(String(t || '').replace(/[^\d.]/g, ''));
         if (!(n >= 1 && n <= 100000)) { $('cadSrScale').value = $('cadSrScale').dataset.prev; return; }
         if (!srCustom.includes(n)) { srCustom.push(n); try { localStorage.setItem('cadSrCustom', JSON.stringify(srCustom)); } catch (e) {} }
         srFillScales(n); v = String(n);
     }
     $('cadSrScale').dataset.prev = v;
-    if (sr) { sr.s = +v; saveSr(); drawSr(); flash(`스케일자를 1:${fmt(sr.s)} 면으로 바꿨습니다`); }
+    if (sr) { sr.s = +v; saveSr(); drawSr(); flash(`스케일자를 1/${fmt(srFace(sr.s).top)} · 1/${fmt(srFace(sr.s).bot)} 면으로 바꿨습니다`); }
 });
 $('cadTplKind').addEventListener('change', () => setTplKind($('cadTplKind').value));
 // ── 템플릿 계산기 — 종이 위 지름(mm) = 실제 지름(mm) ÷ 축척
