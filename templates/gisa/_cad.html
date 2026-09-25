@@ -47,7 +47,8 @@
         <label class="cad-chk" title="스냅 켜기·끄기 (F9)"><input type="checkbox" id="cadSnap" checked> 스냅</label>
         <select id="cadSnapStep" class="cad-txt" title="스냅 간격"></select>
         <span class="cad-sep"></span>
-        <button type="button" id="cadSrBtn" class="cad-bar-btn" aria-label="스케일자" title="스케일자(삼각 스케일) — 놓고, 오른쪽 끝 손잡이로 굴려 1/100~1/600 가운데 종이에 닿는 눈금을 바꿉니다. 몸통을 끌어 옮기고, 위 손잡이로 돌리며, 종이에 닿는 모서리에 샤프를 대고 긋습니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="6" width="17" height="8" rx="1" fill="#fbfbf8" stroke="#8a8f94" stroke-width=".9"/><path d="M1.5 11.2h17" stroke="#d93025" stroke-width="1.4"/><path d="M3 6v2M5 6v1.2M7 6v2M9 6v1.2M11 6v2M13 6v1.2M15 6v2M17 6v1.2" stroke="#333" stroke-width=".6"/></svg></button>
+        <button type="button" id="cadSrBtn" class="cad-bar-btn" aria-label="스케일자" title="스케일자 — 놓고, 오른쪽 끝 손잡이로 굴려 1/100~1/600 가운데 종이에 닿는 눈금을 바꿉니다. 몸통을 끌어 옮기고, 위 손잡이로 돌리며, 종이에 닿는 모서리를 샤프로 찍어 마킹합니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="6" width="17" height="8" rx="1" fill="#fbfbf8" stroke="#8a8f94" stroke-width=".9"/><path d="M1.5 11.2h17" stroke="#d93025" stroke-width="1.4"/><path d="M3 6v2M5 6v1.2M7 6v2M9 6v1.2M11 6v2M13 6v1.2M15 6v2M17 6v1.2" stroke="#333" stroke-width=".6"/></svg></button>
+        <select id="cadSrKind" class="cad-txt" title="스케일자 종류 — 삼각 스케일(1/100~1/600, 굴려 쓴다) 또는 1:N 사용자 지정"></select>
         <button type="button" id="cadTri45" class="cad-bar-btn" aria-label="45°" title="45° 삼각자 — I자 윗날에 얹혀 있습니다. 손으로 끌어 좌우로 밀고, 샤프로 세로 변·빗변을 따라 긋습니다"><svg class="real" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="it45a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset=".5" stop-color="#dfeaf2" stop-opacity=".55"/><stop offset="1" stop-color="#b9cddc" stop-opacity=".75"/></linearGradient></defs><path d="M2.5 17.5H17.5V2.5Z" fill="url(#it45a)" stroke="#5f7f99" stroke-width=".7" stroke-linejoin="round"/><path d="M2.5 17.5H17.5V2.5Z" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width=".35" transform="translate(.45 -.45) scale(.955)" transform-origin="17.5 17.5"/><path d="M17.5 16h-.9M17.5 13.5h-.6M17.5 11h-.9M17.5 8.5h-.6M17.5 6h-.9" stroke="#4a6378" stroke-width=".35"/></svg></button>
         <button type="button" id="cadTri60" class="cad-bar-btn" aria-label="60°" title="60° 삼각자(30°·60°) — I자 윗날에 얹혀 있습니다. 손으로 끌어 좌우로 밀고, 샤프로 세로 변·빗변을 따라 긋습니다"><svg class="real" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="it60a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset=".5" stop-color="#dfeaf2" stop-opacity=".55"/><stop offset="1" stop-color="#b9cddc" stop-opacity=".75"/></linearGradient></defs><path d="M7.5 17.5H17.5V1Z" fill="url(#it60a)" stroke="#5f7f99" stroke-width=".7" stroke-linejoin="round"/><path d="M7.5 17.5H17.5V1Z" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width=".35" transform="translate(.45 -.45) scale(.955)" transform-origin="17.5 17.5"/><path d="M17.5 16h-.9M17.5 13.5h-.6M17.5 11h-.9M17.5 8.5h-.6M17.5 6h-.9" stroke="#4a6378" stroke-width=".35"/></svg></button>
         <button type="button" id="cadTriFlip" class="cad-bar-btn" title="삼각자 좌우 뒤집기" hidden>⇆ 뒤집기</button>
@@ -579,7 +580,9 @@ function strokeStyle() {
 function barStep() { return $('cadSnap').checked ? +$('cadSnapStep').value : PREC; }
 function setBarY(y) {
     const g = barStep();
-    barY = +(Math.round(Math.max(sheet.y0 - barW(), Math.min(sheet.y1, y)) / g) * g).toFixed(3);
+    // 제도판 위 틀 밑 ~ 아래 펜 받침 위까지 오르내린다(종이 범위로 막았더니 900×600 판에서 종이 아래로 못 내려갔다 — 사용자)
+    const B = boardGeom(), lo = B.by0 + 1.1 * B.u, hi = B.by1 - 4.6 * B.u - barW();
+    barY = +(Math.max(lo, Math.min(hi, Math.round(y / g) * g))).toFixed(3);
     drawBar();
 }
 // 자의 폭 — 윗날에서 아랫날까지. 눈금의 배수로 잡아, 윗날이 눈금 위면 아랫날도 눈금 위에 온다
@@ -932,17 +935,26 @@ const SR_RED0 = 10.8, SR_RED1 = 14.8;                  // 면 위 둥근 홈 입
 const SR_BANDS = {
     red:  [[0, '#7c0f0c'], [0.16, '#c81a21'], [0.5, '#ee2a32'], [0.84, '#c81a21'], [1, '#7c0f0c']],
     teal: [[0, '#163f3c'], [0.16, '#2c7069'], [0.5, '#46a097'], [0.84, '#2c7069'], [1, '#163f3c']],
-    black: [[0, '#050506'], [0.16, '#18191b'], [0.5, '#35393c'], [0.84, '#18191b'], [1, '#050506']]};
+    black: [[0, '#050506'], [0.16, '#18191b'], [0.5, '#35393c'], [0.84, '#18191b'], [1, '#050506']],
+    blue: [[0, '#10306a'], [0.16, '#1d4c9c'], [0.5, '#3169c4'], [0.84, '#1d4c9c'], [1, '#10306a']]};
 // 면 차례는 단면을 한 방향으로 돈 차례다. a = 앞 모서리 축척, b = 뒤 모서리 축척(다음 면의 a 와 한 꼭짓점에서 만난다)
 const SR_FACES = [{a: 100, b: 200, band: 'red'}, {a: 300, b: 400, band: 'teal'}, {a: 500, b: 600, band: 'black'}];
 const SRG = {100: [0.1, 0.5, 0, 1], 200: [0.1, 0.5, 1, 5], 300: [0.5, 1, 5, 10], 400: [0.5, 1, 5, 10], 500: [0.5, 1, 5, 10], 600: [0.5, 1, 5, 10]};
+// 축척마다 [작은, 중간, 긴 중간, 숫자] 눈금 간격(m). 표에 없는 축척(사용자 지정)은 종이 위 1mm 안팎 · 12mm 안팎으로 고른다
+function srGrad(S) {
+    if (SRG[S]) return SRG[S];
+    const perM = 1000 / S, mn = niceStep(1 / perM), lb = niceStep(12 / perM);
+    return [mn, lb / 2, 0, lb];
+}
 const SR_MARK = 3;                                     // 마킹 길이(종이 위 mm) — 실제 연필 표시처럼 짧게
 let sr = null;                                         // {x, y, rot, roll} 돌리기 전 왼쪽 위(도면 m) · 회전(°) · 바닥 면(0~2)
 try { sr = JSON.parse(localStorage.getItem('cadSr') || 'null'); } catch (e) {}
 if (sr && !(sr.roll >= 0 && sr.roll <= 2)) { sr.roll = 2; delete sr.s; }   // 예전 저장(축척을 고르던 때) → 검정 면 바닥
 function saveSr() { try { localStorage.setItem('cadSr', JSON.stringify(sr)); } catch (e) {} }
 // 지금 보이는 두 빗면 — 윗쪽(A)은 a 축척이 종이에 닿고, 아랫쪽(B)은 b 축척이 종이에 닿는다. 능선에는 A.b 와 B.a
+// 사용자 지정 스케일자(sr.custom = N) — 1:430 처럼 삼각 스케일에 없는 축척. 네 눈금이 모두 1:N 이고 굴리지 않는다(파란 홈)
 function srView() {
+    if (sr && sr.custom) { const C = {a: sr.custom, b: sr.custom, band: 'blue'}; return {A: C, B: C, top: C.a, bot: C.b, ridge: [C.a, C.a], under: C, custom: true}; }
     const r = sr ? sr.roll : 2, A = SR_FACES[(r + 1) % 3], B = SR_FACES[(r + 2) % 3];
     return {A, B, top: A.a, bot: B.b, ridge: [A.b, B.a], under: SR_FACES[r]};
 }
@@ -978,7 +990,7 @@ function srEdge(w) {                                   // 누른 곳에 가까�
 // 표시는 점 번호를 쓰지 않는 두 좌표 획(free)이라 점이 늘지 않는다. op.mark 가 붙은 획은 '마킹' 레이어(보이기·모두 지우기)
 let lastMark = null;                                   // 앞 마킹 — 같은 자리·같은 모서리면 간격을 알려 준다
 function srMark(edge, w) {
-    const l = srLocal(w), perM = 1000 / edge.srS, minor = SRG[edge.srS][0], tot = SR_RUN / perM;
+    const l = srLocal(w), perM = 1000 / edge.srS, minor = srGrad(edge.srS)[0], tot = SR_RUN / perM;
     const r = +Math.max(0, Math.min(tot, Math.round(((l.u - edge.srU0) * edge.srDu / perM) / minor) * minor)).toFixed(4);
     const u = edge.srU0 + edge.srDu * r * perM, p = srMap(u, edge.srv), q = srMap(u, edge.srv + edge.srOut * SR_MARK);
     snapHist();
@@ -1015,7 +1027,7 @@ function srMarkEdge(w) {
     return nearestEdge(w, px, x => x.sr);
 }
 function rollSr(back) {                                // 자를 굴린다 — 바닥 면이 바뀌어 종이에 닿는 축척 둘이 바뀐다
-    if (!sr) return;
+    if (!sr || sr.custom) return;
     sr.roll = (sr.roll + (back ? 2 : 1)) % 3; saveSr(); drawSr();
     const V = srView();
     flash(`스케일자를 굴렸습니다 — 종이에 닿는 눈금: 1/${V.top} · 1/${V.bot} (능선 1/${V.ridge[0]} · 1/${V.ridge[1]})`);
@@ -1073,7 +1085,7 @@ function drawSr() {
     let tk = '';
     // 한 축척 — 면 위 좌표로 그린다. first: 면의 앞 모서리(w=0, 0 이 왼쪽). 아니면 뒤 모서리(w=25, 180° 돌려 새겨 0 이 오른쪽)
     const scale = (Sx, h, first) => {
-        const perM = 1000 / Sx, [minor, mid, mid2, lab] = SRG[Sx];
+        const perM = 1000 / Sx, [minor, mid, mid2, lab] = srGrad(Sx);
         const tot = SR_RUN / perM, U0 = first ? SR_Z : SR_Z + SR_RUN, sg = first ? 1 : -1;
         // 자리·눌림은 면 좌표 그대로(입체감 유지). 글자만 굵고 진하게 — 얇은 획을 같은 색 테두리로 한 번 더 덮어 눌린 글자도
         // 뭉개지지 않게 한다(사용자: "숫자가 잘 안 보임, 오래된 인쇄 느낌" → "입체감은 이전처럼, 숫자만 선명하고 진하게")
@@ -1097,7 +1109,7 @@ function drawSr() {
     };
     halves.forEach(h => { scale(h.F.a, h, true); scale(h.F.b, h, false); });
     o += '</g>';
-    {   // 굴림 손잡이 — 오른쪽 끝 바깥. 누르면 자를 굴려 바닥 면을 바꾼다(Shift 는 반대로)
+    if (!V.custom) {   // 굴림 손잡이 — 오른쪽 끝 바깥. 누르면 자를 굴려 바닥 면을 바꾼다(Shift 는 반대로). 사용자 지정 자에는 없다
         const q = srMap(SR_L + 6, SR_H), q0 = srMap(SR_L, SR_H), rr = 2.9 * k;
         const tri = [0, 1, 2].map(i => { const a = (-90 + i * 120) * Math.PI / 180; return `${f(Math.cos(a) * 1.5 * k)} ${f(Math.sin(a) * 1.5 * k)}`; });
         o += `<path d="M${f(q0.x)} ${f(q0.y)}L${f(q.x)} ${f(q.y)}" stroke="#8a8f94" stroke-width="${f(0.2 * k)}" stroke-dasharray="${f(0.8 * k)} ${f(0.5 * k)}" pointer-events="none"/>`
@@ -1128,6 +1140,8 @@ function toggleSr() {
         const k = srK(), g = barStep(), zx = Math.round((vb.x + vb.w / 2 - SR_L * k / 2 + SR_Z * k) / g) * g, zy = Math.round((vb.y + vb.h / 2) / g) * g;
         sr = {x: +(zx - SR_Z * k).toFixed(4), y: +zy.toFixed(4), rot: 0, roll: 2};
     }
+    saveSr(); drawSr();
+    if (sr && $('cadSrKind').value !== 'tri' && +$('cadSrKind').value > 0) sr.custom = +$('cadSrKind').value;   // 고른 종류로 놓는다
     saveSr(); drawSr();
     flash(sr ? `스케일자를 놓았습니다 — 종이에 닿는 눈금 1/${srView().top} · 1/${srView().bot}. 오른쪽 끝 손잡이로 굴리면 다른 축척이 닿고, 위 손잡이로 돌리며, 몸통을 끌어 옮깁니다` : '스케일자를 치웠습니다');
 }
@@ -1210,7 +1224,7 @@ function drawBarOnly() {
     $('cadBarOn').checked = barOn;
     if (!barOn || !sheet) { g.innerHTML = ''; return; }
     const W = barW();
-    if (barY == null || barY < sheet.y0 - W || barY > sheet.y1) barY = Math.round((sheet.y0 + sheet.y1) / 2);
+    { const B = boardGeom(); if (barY == null || barY < B.by0 || barY > B.by1 - W) barY = Math.round((sheet.y0 + sheet.y1) / 2); }
     const s = sheet, y = barY, BG = boardGeom(), x0 = BG.bx0 - 0.4 * U, x1 = BG.bx1 + 0.4 * U;   // 양 끝 블록이 제도판 좌우 레일에 걸린다
     const bl = W * 0.2, by = y + bl, bh = W * 0.6, y2 = y + W, cw = 2.8 * U, f = v => fmt(v);
     let o = `<defs><linearGradient id="cadAl" x1="0" y1="0" x2="0" y2="1">`
@@ -3079,6 +3093,32 @@ $('cadTri45').addEventListener('click', () => toggleTri('45'));
     drawTpl();
 }));
 $('cadSrBtn').addEventListener('click', toggleSr);
+// 스케일자 종류 — 삼각 스케일 또는 1:N 사용자 지정. 넣은 N 은 목록에 남는다(localStorage cadSrCustom)
+let srCustom = []; try { srCustom = JSON.parse(localStorage.getItem('cadSrCustom') || '[]').filter(n => n > 0); } catch (e) {}
+function srKindFill() {
+    const cur = sr && sr.custom ? String(sr.custom) : 'tri';
+    $('cadSrKind').innerHTML = '<option value="tri">삼각 1/100~600</option>'
+        + srCustom.slice().sort((a, b) => a - b).map(n => `<option value="${n}">1:${fmt(n)}</option>`).join('') + '<option value="custom">1:N 사용자 지정…</option>';
+    $('cadSrKind').value = cur;
+}
+function setSrKind(v) {
+    if (!sr) toggleSr();
+    sr.custom = v === 'tri' ? null : +v; saveSr(); drawSr(); srKindFill();
+    const V = srView();
+    flash(sr.custom ? `사용자 지정 스케일자 1:${fmt(sr.custom)} — 종이에 닿는 두 모서리 모두 1:${fmt(sr.custom)} 입니다` : `삼각 스케일 — 종이에 닿는 눈금 1/${V.top} · 1/${V.bot}`);
+}
+srKindFill();
+$('cadSrKind').addEventListener('change', () => {
+    let v = $('cadSrKind').value;
+    if (v === 'custom') {
+        const t = prompt('스케일자 축척 1 : N — N 을 넣으세요 (예: 430)', sr && sr.custom ? sr.custom : '');
+        const n = parseFloat(String(t || '').replace(/[^\d.]/g, ''));
+        if (!(n >= 10 && n <= 100000)) { srKindFill(); return; }
+        if (!srCustom.includes(n)) { srCustom.push(n); try { localStorage.setItem('cadSrCustom', JSON.stringify(srCustom)); } catch (e) {} }
+        v = String(n);
+    }
+    setSrKind(v);
+});
 $('cadTplKind').addEventListener('change', () => setTplKind($('cadTplKind').value));
 // ── 템플릿 계산기 — 종이 위 지름(mm) = 실제 지름(mm) ÷ 축척
 // 계산기는 지금 템플릿(없으면 고른 종류)의 그 모양 구멍들로 셈한다
