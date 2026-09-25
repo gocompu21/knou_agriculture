@@ -1637,7 +1637,7 @@ function snapXY(w) {
     let r;
     if ($('cadSnap').checked) { const g = +$('cadSnapStep').value; r = {x: rnd(Math.round(w.x / g) * g), y: rnd(Math.round(w.y / g) * g)}; }
     else r = {x: rnd(w.x), y: rnd(w.y)};
-    const ed = nearestEdge(w, tool.startsWith('pen') ? 40 : 16); if (ed) return onEdge(ed, w);   // I자 날·삼각자 변에 붙는다
+    const ed = nearestEdge(w, tool.startsWith('pen') ? 40 : 16, x => !x.sr); if (ed) return onEdge(ed, w);   // I자 날·삼각자 변에 붙는다(스케일자는 긋는 자가 아니다)
     return r;
 }
 function hitPoint(w) {
@@ -2579,7 +2579,7 @@ function pencilOn(edge, w) {                         // 그 변으로 긋기 시
 function startPencil(e, w, edge, right) {
     // 모서리(I자 날과 삼각자 세로 변이 만나는 곳 등)에서는 가까운 변이 둘 이상이다. 누른 곳만으로 고르면 엉뚱한 변이 잡혀
     // 옆으로 끌어도 길이가 0m 에 머물렀다 — 곁의 변들을 후보로 두고, 처음 끄는 방향과 가장 나란한 변으로 정한다
-    const k = pxPer(), cands = guideEdges().filter(g => {
+    const k = pxPer(), cands = guideEdges().filter(g => !g.sr).filter(g => {
         const t = clampT((w.x - g.ax) * g.dx + (w.y - g.ay) * g.dy, g);
         return Math.hypot(g.ax + g.dx * t - w.x, g.ay + g.dy * t - w.y) * k < 40;
     });
@@ -2650,15 +2650,18 @@ svg.addEventListener('pointerdown', e => {
         }
         if (c('#cadTpl .tpl-body')) { if (e.button === 0) startTplDrag(e, w); else drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return; }
         if (c('#cadSr .sr-body')) {                       // 스케일자 — 왼쪽은 옮기기, 오른쪽은 눈금 변을 따라 긋기
-            if (e.button === 0 && !nearestEdge(w, 12, x => x.sr)) startSrDrag(e, w); else startPencil(e, w, srEdge(w), true);
+            // 스케일자는 긋는 자가 아니다(사용자) — 눈금 모서리 곁을 누르면 마킹(끌어도 선은 안 생긴다), 그 밖의 몸통은 왼쪽으로 끌어 옮긴다
+            if (nearestEdge(w, 12, x => x.sr)) drag = {kind: 'srmark', edge: srEdge(w), w0: w, sx: e.clientX, sy: e.clientY, moved: false};
+            else if (e.button === 0) startSrDrag(e, w); else drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true};
             return;
         }
         const onBody = c('#cadBar .bar-body'), onTri = c('#cadTri .tri-body');
-        const nearTri = nearestEdge(w, 12, ed => !ed.bar);
+        const nearTri = nearestEdge(w, 12, ed => !ed.bar && !ed.sr);
         if (e.button === 0 && onTri && !nearTri) { startTriDrag(e, w); return; }          // 삼각자 몸통 — 좌우로 민다
         if (e.button === 0 && onBody) { drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return; }
         // 오른쪽 버튼(또는 변 근처 왼쪽)은 가까운 변을 따라 긋는다. 몸통 위면 그 자의 변 가운데 가까운 것
-        const ed = onBody ? nearestEdge(w, 1e9, x => x.bar) : onTri ? nearestEdge(w, 1e9) : nearestEdge(w, 40);   // 삼각자 위면 I자 날까지 넣어 가장 가까운 변
+        const ed = onBody ? nearestEdge(w, 1e9, x => x.bar) : onTri ? nearestEdge(w, 1e9, x => !x.sr) : nearestEdge(w, 40);   // 삼각자 위면 I자 날까지 넣어 가장 가까운 변
+        if (ed && ed.sr) { drag = {kind: 'srmark', edge: srEdge(w), w0: w, sx: e.clientX, sy: e.clientY, moved: false}; return; }   // 스케일자 곁 — 마킹만
         if (ed) { startPencil(e, w, ed, true); return; }
         drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: false, btn: e.button};
         return;
@@ -2704,6 +2707,10 @@ svg.addEventListener('pointermove', e => {
         drag.last = {x: w.x, y: w.y};
         if (hit) { drag.hit = true; drawOps(); drawPts(); }
         hover = {x: w.x, y: w.y, pt: null, w: {x: w.x, y: w.y}}; drawPre();
+        return;
+    }
+    if (drag && drag.kind === 'srmark') {            // 스케일자 모서리 — 끌어도 긋지 않는다
+        if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 4) drag.moved = true;
         return;
     }
     if (drag && drag.kind === 'nop') {
@@ -2904,12 +2911,13 @@ function endPtr(e) {
     if (d.kind === 'erase') { if (d.hit) changed(); else hist.pop(); return; }   // 아무것도 안 지웠으면 되돌리기 칸을 도로 뺀다
     if (d.kind === 'nop') { if (!d.warned && d.btn === 0) penDot(toWorld(e), true); return; }   // 자 밖을 누르면 점
     if (d.kind === 'bar') { root.classList.remove('bar-drag'); if (d.moved) { saveBar(); drawBar(); } return; }   // 몸통은 불투명 — 눌러도 점이 찍히지 않는다
+    if (d.kind === 'srmark') {                        // 스케일자는 찍어서 마킹만 — 선은 I자·삼각자로 긋는다
+        if (!d.moved) srMark(d.edge, d.w0); else flash('스케일자로는 선을 긋지 않습니다 — 모서리를 찍어 마킹하고, 선은 I자·삼각자로 그으세요');
+        return;
+    }
     if (d.kind === 'pencil') {
         gPre.innerHTML = '';
-        if (!d.moved) {                                   // 끌지 않고 누르면 — 스케일자 눈금 모서리면 눈금 표시 보조선, 아니면 그 변 위에 점
-            if (d.edge && d.edge.sr) srMark(d.edge, d.w0); else if (d.btn === 0) penDot(d.p0);
-            return;
-        }
+        if (!d.moved) { if (d.btn === 0) penDot(d.p0); return; }   // 끌지 않고 왼쪽으로 누르면 그 변 위에 점
         if (d.blocked) return;
         const q = d.p1, a0 = d.p0;
         if (!q || Math.hypot(q.x - a0.x, q.y - a0.y) < 1e-6) return;
