@@ -980,7 +980,7 @@ function drawSr() {
     const FN = `font-family="'Arial Narrow','Roboto Condensed','Helvetica Neue',Arial,sans-serif"`;
     // 글자 — 빗면에 새겨져 있어 위에서 보면 세로가 절반으로 눌린다(scale(1, .5)). flip 은 면 위에서 180° 돌려 새긴 축척
     const tx = (u, v, t, sz, a, flip, sy, fill, wt) => { const q = srMap(u, v);
-        return `<text x="0" y="0" font-size="${f(sz * k)}" ${FN} fill="${fill || '#1c1c1c'}" font-weight="${wt || 400}" text-rendering="geometricPrecision" text-anchor="${a || 'middle'}" dominant-baseline="central" transform="translate(${f(q.x)} ${f(q.y)}) rotate(${f(deg)}) scale(1 ${f(sy)})${flip ? ' rotate(180)' : ''}">${t}</text>`; };
+        return `<text x="0" y="0" font-size="${f(sz * k)}" ${FN} fill="${fill || '#1c1c1c'}" stroke="${fill || '#1c1c1c'}" stroke-width="${f(0.05 * k)}" paint-order="stroke" stroke-linejoin="round" font-weight="${wt || 400}" text-rendering="geometricPrecision" text-anchor="${a || 'middle'}" dominant-baseline="central" transform="translate(${f(q.x)} ${f(q.y)}) rotate(${f(deg)}) scale(1 ${f(sy)})${flip ? ' rotate(180)' : ''}">${t}</text>`; };
     const G = (id, v0, v1, stops) => { const a = srMap(0, v0), b = srMap(0, v1);
         return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${f(a.x)}" y1="${f(a.y)}" x2="${f(b.x)}" y2="${f(b.y)}">${stops.map(([o2, c]) => `<stop offset="${o2}" stop-color="${c}"/>`).join('')}</linearGradient>`; };
     const R4 = (u0, v0, u1, v1) => `M${M(u0, v0)}L${M(u1, v0)}L${M(u1, v1)}L${M(u0, v1)}Z`;
@@ -1004,7 +1004,7 @@ function drawSr() {
         + `<path d="${R4(0, 0, SR_L, SR_W)}" transform="translate(${f(dx)} ${f(dy)})" fill="rgba(30,35,40,.42)" filter="url(#srSh)" pointer-events="none"/>`
         + `<g class="sr-body"><path d="${R4(0, 0, SR_L, SR_W)}" fill="#f0f0ec" stroke="#8d9296" stroke-width="${f(0.22 * k)}"/>`
         // 꺾인 네 조각의 밝기 — 빛은 위(윗쪽 A)에서 온다. 완만한 종이 쪽이 밝고, 가파른 능선 쪽은 A 는 조금 어둡게, B 는 더 어둡게
-        + [[0, 0, SR_RED0, '#ffffff'], [0, SR_RED1, SR_F, '#e9e9e5'], [1, 0, SR_RED0, '#d9d9d4'], [1, SR_RED1, SR_F, '#f8f8f6']]
+        + [[0, 0, SR_RED0, '#fbfbf8'], [0, SR_RED1, SR_F, '#e8e8e3'], [1, 0, SR_RED0, '#d6d6d0'], [1, SR_RED1, SR_F, '#ecece8']]
             .map(([hi, w0, w1, c]) => { const h = halves[hi]; return `<path d="${R4(0, h.at(w0).v, SR_L, h.at(w1).v)}" fill="${c}"/>`; }).join('');
     halves.forEach(h => {                                  // 둥근 홈 — 입구 너머 원통 안쪽(가운데 밝고 턱 밑은 그늘)
         const a = h.at(SR_RED0).v, b = h.at(SR_RED1).v, gw = b - a;
@@ -1027,18 +1027,12 @@ function drawSr() {
     const scale = (Sx, h, first) => {
         const perM = 1000 / Sx, [minor, mid, mid2, lab] = SRG[Sx];
         const tot = SR_RUN / perM, U0 = first ? SR_Z : SR_Z + SR_RUN, sg = first ? 1 : -1;
-        // 종이에 닿는 쪽 축척(치수를 재는 쪽)은 거의 마주 보여 또렷하다 — 화면 mm 로 직접 놓고 글자도 거의 누르지 않는다(사용자:
-        // "숫자가 잘 안 보임, 오래된 인쇄 느낌"). 능선 쪽 축척은 면 좌표를 줄여 놓아 눌리고 옅다
+        // 자리·눌림은 면 좌표 그대로(입체감 유지). 글자만 굵고 진하게 — 얇은 획을 같은 색 테두리로 한 번 더 덮어 눌린 글자도
+        // 뭉개지지 않게 한다(사용자: "숫자가 잘 안 보임, 오래된 인쇄 느낌" → "입체감은 이전처럼, 숫자만 선명하고 진하게")
         const paper = (h.id === 'A') === first;
-        let Vw, Sy, D, col, wt, tkL;
-        if (paper) {
-            const e = h.id === 'A' ? SR_LAND : SR_W - SR_LAND, sn = h.id === 'A' ? 1 : -1;
-            Vw = d => e + sn * d; Sy = () => 0.9; col = '#0d0d0d'; wt = 500;
-            D = {tl: 2.0, tm2: 1.45, tm: 1.1, tn: 0.7, sm: 1.55, smf: 1.2, mn: 3.25, mnf: 1.95, lb: 2.7, lbf: 1.6, mu: 1.05, muf: 0.95};
-        } else {
-            const at = d => h.at(first ? d : SR_F - d); Vw = d => at(d).v; Sy = d => at(d).sy; col = '#3a3a3a'; wt = 400;
-            D = {tl: 4.5, tm2: 3.0, tm: 2.2, tn: 1.25, sm: 3.65, smf: 1.9, mn: 6.45, mnf: 3.0, lb: 5.6, lbf: 2.7, mu: 2.7, muf: 1.6};
-        }
+        const at = d => h.at(first ? d : SR_F - d), Vw = d => at(d).v, Sy = d => at(d).sy;
+        const col = paper ? '#000' : '#1a1a1a', wt = paper ? 700 : 600;
+        const D = {tl: 4.5, tm2: 3.0, tm: 2.2, tn: 1.25, sm: 3.65, smf: 1.9, mn: 6.45, mnf: 3.0, lb: 5.6, lbf: 2.7, mu: 2.7, muf: 1.6};
         let tkp = '';
         for (let i = 0, r = 0; r <= tot + 1e-9; i++, r = +(i * minor).toFixed(6)) {
             const u = U0 + sg * r * perM, isL = on(r, lab), isM2 = !isL && mid2 && on(r, mid2), isM = !isL && !isM2 && on(r, mid);
@@ -1049,13 +1043,12 @@ function drawSr() {
                 o += tx(u, Vw(D.mn), fmt(r), D.mnf, 'middle', !first, Sy(D.mn), col, wt);
             }
         }
-        tk += paper ? '' : tkp;
-        if (paper) o += `<path d="${tkp}" stroke="#0d0d0d" stroke-width="${f(0.1 * k)}"/>`;
+        o += `<path d="${tkp}" stroke="#000" stroke-width="${f((paper ? 0.13 : 0.1) * k)}"/>`;
         // 축척 표기 — 앞 모서리 축척은 왼쪽 여백, 뒤 모서리 축척은 오른쪽 여백(거꾸로). 단위 'm' 은 0 곁 위에 작게
         o += tx(first ? 1.8 : SR_L - 1.8, Vw(D.lb), `1/${fmt(Sx)}`, D.lbf, 'start', !first, Sy(D.lb), col, wt) + tx(U0 - sg * 2.4, Vw(D.mu), 'm', D.muf, 'middle', !first, Sy(D.mu), col, wt);
     };
     halves.forEach(h => { scale(h.F.a, h, true); scale(h.F.b, h, false); });
-    o += `<path d="${tk}" stroke="#3a3a3a" stroke-width="${f(0.09 * k)}"/></g>`;
+    o += '</g>';
     {   // 굴림 손잡이 — 오른쪽 끝 바깥. 누르면 자를 굴려 바닥 면을 바꾼다(Shift 는 반대로)
         const q = srMap(SR_L + 6, SR_H), q0 = srMap(SR_L, SR_H), rr = 2.9 * k;
         const tri = [0, 1, 2].map(i => { const a = (-90 + i * 120) * Math.PI / 180; return `${f(Math.cos(a) * 1.5 * k)} ${f(Math.sin(a) * 1.5 * k)}`; });
