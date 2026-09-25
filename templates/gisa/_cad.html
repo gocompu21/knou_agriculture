@@ -930,13 +930,16 @@ function drawSr() {
     let o = `<g class="sr-body"><path d="M${M(0, 0)}L${M(SR_L, 0)}L${M(SR_L, SR_W)}L${M(0, SR_W)}Z" fill="rgba(252,252,248,.96)" stroke="#8a8f94" stroke-width="${f(0.25 * k)}"/>`
         + `<path d="M${M(0, 15)}L${M(SR_L, 15)}L${M(SR_L, 18.5)}L${M(0, 18.5)}Z" fill="#d93025"/>`
         + `<path d="M${M(0, 15.3)}L${M(SR_L, 15.3)}" stroke="rgba(255,255,255,.55)" stroke-width="${f(0.35 * k)}"/>`;
-    // 눈금 — 종이 위 1mm 안팎마다 작은 눈금, 8mm 안팎마다 숫자(실제 m)
-    const perM = 1000 / S, minor = niceStep(1 / perM), lab = niceStep(8 / perM), maxR = (SR_L - 2 * SR_Z) / perM;
-    let tk = '';
+    // 눈금 — 실제 삼각 스케일을 따른다: 축척마다 [작은 눈금, 중간 눈금, 숫자] 간격(실제 m). 1:500 은 1m 마다 작은 눈금, 5m 중간, 10m 숫자.
+    // 첫 숫자에는 단위를 붙인다(1m · 5m · 10m 처럼). 표에 없는 축척(사용자 지정)은 종이 위 1mm·5mm·10~20mm 안팎으로 고른다
+    const SRG = {100: [0.1, 0.5, 1], 200: [0.2, 1, 2], 250: [0.5, 2.5, 5], 300: [0.5, 2.5, 5], 400: [0.5, 2.5, 5], 500: [1, 5, 10], 600: [1, 5, 10], 800: [1, 5, 10], 1000: [1, 5, 10]};
+    const perM = 1000 / S, [minor, mid, lab] = SRG[S] || (() => { const mn = niceStep(1 / perM), lb = niceStep(12 / perM); return [mn, lb / 2, lb]; })();
+    const maxR = (SR_L - 2 * SR_Z) / perM, on = (r, st) => Math.abs(r / st - Math.round(r / st)) < 1e-6;
+    let tk = '', first = true;
     for (let i = 0, r = 0; r <= maxR + 1e-9; i++, r = +(i * minor).toFixed(6)) {
-        const u = SR_Z + r * perM, isL = Math.abs(r / lab - Math.round(r / lab)) < 1e-6, isH = !isL && Math.abs(r / (lab / 2) - Math.round(r / (lab / 2))) < 1e-6;
-        tk += `M${M(u, 0)}L${M(u, isL ? 4.2 : isH ? 3 : 1.9)}`;
-        if (isL) o += tx(u, 6.4, fmt(r), 2.4);
+        const u = SR_Z + r * perM, isL = on(r, lab), isM = !isL && on(r, mid);
+        tk += `M${M(u, 0)}L${M(u, isL ? 4.6 : isM ? 3.2 : 2)}`;
+        if (isL) { o += tx(u, 6.8, r > 0 && first ? `${fmt(r)}m` : fmt(r), 2.4); if (r > 0) first = false; }
     }
     o += `<path d="${tk}" stroke="#222" stroke-width="${f(0.13 * k)}"/>`
        + tx(2.2, 11.3, `1:${fmt(S)}`, 2.6, 'start', 700) + tx(SR_L - 3, 11.3, 'm', 2.4, 'end', 700) + '</g>';
