@@ -927,9 +927,21 @@ function drawSr() {
     if (!sr || !sheet) { g.innerHTML = ''; return; }
     const k = srK(), f = v => fmt(v), deg = sr.rot || 0, S = sr.s, M = (u, v) => { const q = srMap(u, v); return `${f(q.x)} ${f(q.y)}`; };
     const tx = (u, v, t, sz, a, w) => { const q = srMap(u, v); return `<text x="${f(q.x)}" y="${f(q.y)}" font-size="${f(sz * k)}" fill="#222" text-anchor="${a || 'middle'}" dominant-baseline="central" font-weight="${w || 500}"${deg ? ` transform="rotate(${deg} ${f(q.x)} ${f(q.y)})"` : ''}>${t}</text>`; };
-    let o = `<g class="sr-body"><path d="M${M(0, 0)}L${M(SR_L, 0)}L${M(SR_L, SR_W)}L${M(0, SR_W)}Z" fill="rgba(252,252,248,.96)" stroke="#8a8f94" stroke-width="${f(0.25 * k)}"/>`
-        + `<path d="M${M(0, 15)}L${M(SR_L, 15)}L${M(SR_L, 18.5)}L${M(0, 18.5)}Z" fill="#d93025"/>`
-        + `<path d="M${M(0, 15.3)}L${M(SR_L, 15.3)}" stroke="rgba(255,255,255,.55)" stroke-width="${f(0.35 * k)}"/>`;
+    // 입체 — 불투명 흰 몸통(위는 밝고 아래로 갈수록 등을 돌려 어두워짐), 가운데 붉은 띠는 V 홈처럼 파여 있다(위쪽 그늘·아래쪽 빛 받는 턱).
+    // 그라데이션은 자의 폭 방향(v)을 따라가도록 userSpaceOnUse 로 srMap 두 점에 건다 — 돌려도 음영이 자를 따라 돈다
+    const G = (id, v0, v1, stops) => { const a = srMap(0, v0), b = srMap(0, v1);
+        return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${f(a.x)}" y1="${f(a.y)}" x2="${f(b.x)}" y2="${f(b.y)}">${stops.map(([o2, c]) => `<stop offset="${o2}" stop-color="${c}"/>`).join('')}</linearGradient>`; };
+    const sh = srMap(0, 0), sh2 = srMap(0.9, 1.4), dx = sh2.x - sh.x, dy = sh2.y - sh.y;
+    let o = `<defs>${G('srBodyG', 0, SR_W, [[0, '#ffffff'], [0.45, '#f7f6f1'], [0.62, '#ecebe4'], [1, '#cfcdc4']])}`
+        + `${G('srGrvG', 14.2, 19.4, [[0, '#6e120d'], [0.22, '#a81f18'], [0.55, '#d8352a'], [0.85, '#ef6a5f'], [1, '#f6a39b']])}`
+        + `<filter id="srSh" x="-5%" y="-30%" width="110%" height="160%"><feGaussianBlur stdDeviation="${f(0.9 * k)}"/></filter></defs>`
+        + `<path d="M${M(0, 0)}L${M(SR_L, 0)}L${M(SR_L, SR_W)}L${M(0, SR_W)}Z" transform="translate(${f(dx)} ${f(dy)})" fill="rgba(30,35,40,.35)" filter="url(#srSh)" pointer-events="none"/>`
+        + `<g class="sr-body"><path d="M${M(0, 0)}L${M(SR_L, 0)}L${M(SR_L, SR_W)}L${M(0, SR_W)}Z" fill="url(#srBodyG)" stroke="#8a8f94" stroke-width="${f(0.22 * k)}"/>`
+        + `<path d="M${M(0.3, 0.35)}L${M(SR_L - 0.3, 0.35)}" stroke="rgba(255,255,255,.95)" stroke-width="${f(0.4 * k)}"/>`          // 윗변 모서리 빛
+        + `<path d="M${M(0, 14.2)}L${M(SR_L, 14.2)}L${M(SR_L, 19.4)}L${M(0, 19.4)}Z" fill="url(#srGrvG)"/>`                                 // 붉은 V 홈
+        + `<path d="M${M(0, 14.25)}L${M(SR_L, 14.25)}" stroke="rgba(60,10,8,.55)" stroke-width="${f(0.3 * k)}"/>`                         // 홈 윗단 그늘
+        + `<path d="M${M(0, 19.45)}L${M(SR_L, 19.45)}" stroke="rgba(255,255,255,.9)" stroke-width="${f(0.35 * k)}"/>`                     // 홈 아랫단 빛 받는 턱
+        + `<path d="M${M(0, SR_W - 0.3)}L${M(SR_L, SR_W - 0.3)}" stroke="rgba(90,88,80,.35)" stroke-width="${f(0.4 * k)}"/>`;              // 아래 모서리 그늘
     // 눈금 — 실제 삼각 스케일을 따른다: 축척마다 [작은 눈금, 중간 눈금, 숫자] 간격(실제 m). 1:500 은 1m 마다 작은 눈금, 5m 중간, 10m 숫자.
     // 첫 숫자에는 단위를 붙인다(1m · 5m · 10m 처럼). 표에 없는 축척(사용자 지정)은 종이 위 1mm·5mm·10~20mm 안팎으로 고른다
     const SRG = {100: [0.1, 0.5, 1], 200: [0.2, 1, 2], 250: [0.5, 2.5, 5], 300: [0.5, 2.5, 5], 400: [0.5, 2.5, 5], 500: [1, 5, 10], 600: [1, 5, 10], 800: [1, 5, 10], 1000: [1, 5, 10]};
