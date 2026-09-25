@@ -1715,8 +1715,13 @@ function mergePts(from, to) {
     doc.ops.forEach(op => { if (op.t !== 'step') REF_KEYS.forEach(k => { if (op[k] != null && +op[k] === +from) op[k] = +to; }); });
     doc.ops = doc.ops.filter(op => !((op.t === 'line' || op.t === 'rect' || op.t === 'arc') && +op.a === +op.b));   // 길이 0 이 된 것은 버린다
     doc.pts = doc.pts.filter(p => p.n !== +from);
-    selPts.delete(+from); selPt = +to;
-    changed(); flash(`P${from} 을(를) P${to} 에 합쳤습니다 — 이어진 선이 P${to} 까지 이어집니다`);
+    selPts.delete(+from);
+    // 합친 뒤 번호를 다시 매긴다(사용자) — 지금 차례는 그대로 두고 빈 번호만 메운다(P2 를 합치면 P3 → P2, P4 → P3 …)
+    const map = {}; doc.pts.slice().sort((a, b) => a.n - b.n).forEach((p, i) => { map[p.n] = i + 1; });
+    const nt = map[+to];
+    if (Object.keys(map).some(k => +k !== map[k])) remapPts(map);   // 고른 점 목록도 remapPts 가 따라 옮긴다
+    selPt = nt;
+    changed(); flash(`P${from} 을(를) P${to} 에 합치고 번호를 다시 매겼습니다 — 합친 점은 이제 P${nt} 입니다`);
 }
 function ctxMenu(e, n) {
     let m = $('cadCtx');
