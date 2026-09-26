@@ -255,7 +255,7 @@
                 <button type="button" data-ptab="lib">라이브러리</button>
             </div>
             <div class="cad-pane on" data-ppane="ops">
-                <div class="cad-row"><input id="cadStepTitle" placeholder="단계 이름 — 고른 줄 위에 들어갑니다">
+                <div class="cad-row cad-steprow"><input id="cadStepTitle" placeholder="단계 이름 — 고른 줄 위에">
                     <button type="button" class="cad-b" id="cadStepAdd">+ 단계</button>
                     <button type="button" class="cad-b" id="cadRpBtn" title="작도 순서를 한 칸씩 되짚어 봅니다 — 그때의 I자·삼각자·템플릿·스케일자 자리도 함께">▶ 재생</button></div>
                 <div id="cadOpList" class="cad-list"></div>
@@ -422,6 +422,9 @@
 .cad-form > div[data-form].on { display: block; }
 .cad-form h4 { margin: 0 0 8px; font-size: 0.9rem; color: #1b4332; }
 .cad-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 7px; flex-wrap: wrap; }
+.cad-steprow { flex-wrap: nowrap; align-items: center; gap: 5px; }       /* 단계 이름 · + 단계 · ▶ 재생 한 줄(사용자) */
+.cad-steprow input { flex: 1; min-width: 0; }
+.cad-steprow .cad-b { flex-shrink: 0; white-space: nowrap; padding-left: 8px; padding-right: 8px; }
 .cad-row > label { display: flex; flex-direction: column; font-size: 0.74rem; color: #66736d; gap: 2px; flex: 1; min-width: 62px; }
 .cad-row > label.wide { flex: 2.4; }
 .cad-row > label.cad-chk { flex-direction: row; font-size: 0.8rem; flex: 0 1 auto; }
