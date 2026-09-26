@@ -1248,6 +1248,11 @@ function edgeCross(e, w) {
         const x = e.ax + e.dx * t, y = e.ay + e.dy * t, d = Math.hypot(x - w.x, y - w.y);
         if (d < bd) { bd = d; best = {x: +x.toFixed(3), y: +y.toFixed(3), cross: true}; }
     });
+    allCircles().forEach(c => lineCircleTs(e.ax, e.ay, e.dx, e.dy, c).forEach(t => {    // 원·호 둘레와 만나는 자리
+        if (t < e.lo - 1e-9 || t > e.hi + 1e-9) return;
+        const x = e.ax + e.dx * t, y = e.ay + e.dy * t, d = Math.hypot(x - w.x, y - w.y);
+        if (d < bd) { bd = d; best = {x: +x.toFixed(3), y: +y.toFixed(3), cross: true}; }
+    }));
     return best;
 }
 function onEdge(e, w) {           // 변 위의 자리 — 가파른 변은 y 를, 누운 변은 x 를 눈금에 맞춘다
@@ -1779,6 +1784,25 @@ function allSegs() {                                  // 부딪칠 선분들 —
     });
     return segs;
 }
+// 부딪칠 원·호(보이는 것만) — 선이 원 둘레를 지나치거나 모자랄 때 그 둘레까지 연장·줄이기·붙기(사용자)
+function allCircles() {
+    const out = [];
+    doc.ops.forEach(op => {
+        if (auxHidden(op)) return;
+        if (op.t === 'circle') { const c = P(op.c), r = radiusOf(op); if (c && r > 0) out.push({op, cx: c.x, cy: c.y, R: r, on: () => true, name: `원 P${op.c}`}); }
+        else if (op.t === 'arc') { const a = P(op.a), b = P(op.b); if (!a || !b) return;
+            const g = arcGeom(a, b, op.r, op.dir === 'cw', op.big); if (!g) return;
+            out.push({op, cx: g.cx, cy: g.cy, R: g.R, on: th => modT(g.sgn * (th - g.th0)) <= g.span + 1e-6, name: `호 P${op.a}–P${op.b}`}); }
+    });
+    return out;
+}
+// 직선(점 O, 단위 방향 u)이 원과 만나는 매개변수 t 들 — 호면 호 위의 것만
+function lineCircleTs(ox, oy, ux, uy, c) {
+    const fx = ox - c.cx, fy = oy - c.cy, bq = fx * ux + fy * uy, cq = fx * fx + fy * fy - c.R * c.R, D = bq * bq - cq;
+    if (D < 0) return [];
+    const sq = Math.sqrt(D);
+    return [-bq - sq, -bq + sq].filter(t => c.on(Math.atan2(oy + uy * t - c.cy, ox + ux * t - c.cx)));
+}
 // back=false: 고른 점 너머로 늘려 만나는 선(연장) / back=true: 고른 점에서 반대 끝 쪽으로 이미 지나온 선(줄이기 — 삐져나온 끝을 자른다)
 function extCands(n, back) {
     const S = P(n); if (!S) return [];
@@ -1802,6 +1826,11 @@ function extCands(n, back) {
             const dist = Math.abs(t), h = hits.get(g.name);
             if (!h || dist < h.dist) hits.set(g.name, {line: op, end, x: S.x + ux * t, y: S.y + uy * t, dist, name: g.name, back});
         });
+        allCircles().forEach(c => lineCircleTs(S.x, S.y, ux, uy, c).forEach(t => {    // 원·호 둘레
+            if (back ? !(t < -1e-6 && t > -L + 1e-6) : t <= 1e-6) return;
+            const dist = Math.abs(t), h = hits.get(c.name);
+            if (!h || dist < h.dist) hits.set(c.name, {line: op, end, x: S.x + ux * t, y: S.y + uy * t, dist, name: c.name, back});
+        }));
         out.push(...hits.values());
     });
     return out.sort((a, b) => a.dist - b.dist).slice(0, 6);   // 가까운 교차선부터 — 더 먼 선까지도 고를 수 있다
