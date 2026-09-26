@@ -111,7 +111,7 @@
     <div class="cad-body">
         <div class="cad-stage">
             <svg id="cadSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-                <g id="cadBoard" pointer-events="none"></g><g id="cadGrid"></g><g id="cadOps"></g><g id="cadPts"></g><g id="cadBar"></g><g id="cadTri"></g><g id="cadTpl"></g><g id="cadSr"></g><g id="cadPre"></g>
+                <g id="cadBoard" pointer-events="none"></g><g id="cadGrid"></g><g id="cadOps"></g><g id="cadPts"></g><g id="cadBar"></g><g id="cadTri"></g><g id="cadTpl"></g><g id="cadSr"></g><g id="cadPtsTop" pointer-events="none"></g><g id="cadPre"></g>
             </svg>
             <div class="cad-zoom">
                 <button type="button" id="cadZfit" title="종이에 맞추기">맞춤</button>
@@ -1055,7 +1055,7 @@ function srMark(edge, w) {
     const u = edge.srU0 + edge.srDu * r * perM, p = srMap(u, edge.srv), q = srMap(u, edge.srv + edge.srOut * SR_MARK);
     snapHist();
     const a = addPt(p.x, p.y);
-    doc.ops.push({id: doc.seq++, t: 'free', pts: [[+p.x.toFixed(4), +p.y.toFixed(4)], [+q.x.toFixed(4), +q.y.toFixed(4)]], ls: 'solid', w: strokeStyle().w, mark: {s: edge.srS, r}});
+    doc.ops.push({id: doc.seq++, t: 'free', pts: [[+p.x.toFixed(4), +p.y.toFixed(4)], [+q.x.toFixed(4), +q.y.toFixed(4)]], ls: 'solid', w: strokeStyle().w, mark: {s: edge.srS, r}, p: a});
     if (SET.markOn === false) setMark(true);
     // 간격은 자를 옮기지 않고 같은 모서리에서 이어 찍을 때만 뜻이 있다
     const key = [edge.srS, sr.x, sr.y, sr.rot, sr.roll, !!sr.swap].join('|'), gap = lastMark && lastMark.key === key ? +(r - lastMark.r).toFixed(4) : null;
@@ -1530,7 +1530,7 @@ function opSvg(op) {
 }
 // 글자는 점을 쓰지 않고 좌표(x, y)를 직접 가진다 — 누른 자리가 글의 시작(가로는 왼쪽, 세로는 위). 옛 글자(p)는 가운데 맞춤
 const textPos = op => op.p != null ? P(op.p) : {x: op.x, y: op.y};
-const ptsOf = op => op.t === 'circle' ? [op.c] : op.t === 'sym' || (op.t === 'text' && op.p != null) ? [op.p] : op.t === 'text' ? [] : (op.a != null ? [op.a, op.b] : []);
+const ptsOf = op => op.t === 'circle' ? [op.c] : op.t === 'sym' || (op.t === 'text' && op.p != null) || (op.mark && op.p != null) ? [op.p] : op.t === 'text' ? [] : (op.a != null ? [op.a, op.b] : []);   // 마킹은 그 점(op.p)을 쓴다 — 작도 순서대로 번호가 매겨지게
 // 점 번호 자리 — 여덟 곳(0 오른위 · 1 왼위 · 2 오른아래 · 3 왼아래 · 4 오른 · 5 왼 · 6 위 · 7 아래). p.lp 에 적어 두고(번호 다시 매기기가 고른다),
 // 없으면 예전 자리(오른위)다. 상자는 숫자 폭 0.6em · 높이 0.8em 으로 어림한다
 const lblSize = () => ({r: 0.32 * U * (SET.ptSize || 1), fn: 1.25 * U * (SET.ptNum || 1)});
@@ -1668,14 +1668,19 @@ function activePts() {
     f.forEach(id => { const v = +$(id).value; if (v) on.add(v); });
     return on;
 }
+function markPtSet(k) { const s = new Set(); (k == null ? doc.ops : doc.ops.slice(0, k)).forEach(o => { if (o.mark && o.p != null && !auxHidden(o)) s.add(+o.p); }); return s; }
 function drawPts() {
-    if (!$('cadShowPts').checked) { gPts.innerHTML = ''; return; }
+    if (!$('cadShowPts').checked) { gPts.innerHTML = ''; $('cadPtsTop').innerHTML = ''; return; }
     if (RP) {                                          // 재생 중 — 지금까지 그린 것이 쓰는 점만
         const used = new Set(); doc.ops.slice(0, RP.k).forEach(o => ptsOf(o).forEach(n => used.add(+n)));
-        gPts.innerHTML = doc.pts.filter(p => used.has(+p.n)).map(p => dotSvg(p, false)).join(''); return;
+        const sh = doc.pts.filter(p => used.has(+p.n)), mk = markPtSet(RP.k);
+        gPts.innerHTML = sh.filter(p => !mk.has(+p.n)).map(p => dotSvg(p, false)).join('');
+        $('cadPtsTop').innerHTML = sh.filter(p => mk.has(+p.n)).map(p => dotSvg(p, false)).join(''); return;
     }
-    const on = activePts();
-    gPts.innerHTML = doc.pts.map(p => dotSvg(p, on.has(p.n))).join('');
+    // 마킹 점은 스케일자 모서리 위에 있어 자 밑에 가려진다 — 도구보다 위 층(#cadPtsTop)에 그린다(사용자: "마킹점도 점으로, 번호가 보여야")
+    const on = activePts(), mk = markPtSet();
+    gPts.innerHTML = doc.pts.filter(p => !mk.has(+p.n)).map(p => dotSvg(p, on.has(p.n))).join('');
+    $('cadPtsTop').innerHTML = doc.pts.filter(p => mk.has(+p.n)).map(p => dotSvg(p, on.has(p.n))).join('');
 }
 function drawPre() {
     if (RP) { gPre.innerHTML = ''; return; }
@@ -1726,7 +1731,7 @@ function lsTxt(op) {
 }
 function desc(op) {
     switch (op.t) {
-        case 'free': return op.mark ? `마킹 · 1/${op.mark.s} ${fmt(op.mark.r)}m` : `프리드로잉 · 점 ${op.pts ? op.pts.length : 0}개 · ${lsTxt(op)}`;
+        case 'free': return op.mark ? `마킹${op.p != null ? ' ' + ptxt(op.p) : ''} · 1/${op.mark.s} ${fmt(op.mark.r)}m` : `프리드로잉 · 점 ${op.pts ? op.pts.length : 0}개 · ${lsTxt(op)}`;
         case 'fill': return `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자', grass: '잔디'})[op.kind] ? `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자', grass: '잔디'})[op.kind]} 채우기(간격 ${fmt(+(op.gap * (op.kind === 'gl' ? 1.5 : op.kind === 'gs' ? 1 : 1)).toFixed(3))}m)` : '채우기'} · 면적 약 ${fmt(+(op.area || 0).toFixed(1))}㎡ · 색 ${op.color}`;
         case 'line': return `선 ${ptxt(op.a)} → ${ptxt(op.b)} · ${lsTxt(op)}`;
         case 'rect': { const a = P(op.a), b = P(op.b);
@@ -3095,7 +3100,12 @@ function newDrawing() {
 }
 function afterLoad(refit) {
     if (RP) rpEnd();
-    doc.ops.forEach(o => { if (o.t !== 'step' && !('tl' in o)) o.tl = 0; });   // 기록 전에 그린 것 — 도구 자리를 모른다(0)
+    doc.ops.forEach(o => { if (o.t !== 'step' && !('tl' in o)) o.tl = 0; });
+    doc.ops.forEach(o => {                              // 예전 마킹 — 점을 가리키지 않았다. 그 자리의 점을 찾아 잇는다
+        if (!o.mark || o.p != null || !o.pts) return;
+        const [x, y] = o.pts[0], q = doc.pts.find(p => Math.abs(p.x - x) < 2e-3 && Math.abs(p.y - y) < 2e-3);
+        if (q) o.p = q.n;
+    });   // 기록 전에 그린 것 — 도구 자리를 모른다(0)
     selOps.clear(); selPts.clear(); selPt = null; endEdit();
     Object.keys(doc.syms || {}).forEach(ensureSymOption);
     setSheet(doc.sheet); renderAll(); regInfo();
