@@ -1961,7 +1961,7 @@ function rpGo(k, anim, cb) {
     const show = () => {
         if (!RP) return;
         drawOps(); drawPts(); rpInfo();
-        if (fwd && op && op.t !== 'step') { rpReveal(op, spd * 0.75); if (cb) RP.timer = setTimeout(cb, spd * 0.9); }
+        if (fwd && op && op.t !== 'step') { const rv = op.mark ? 0.22 : 0.75; rpReveal(op, spd * rv); if (cb) RP.timer = setTimeout(cb, spd * (rv + 0.15)); }   // 마킹은 짧게 빨리(사용자)
         else if (cb) RP.timer = setTimeout(cb, op && op.t === 'step' ? spd * 0.8 : spd * 0.2);
     };
     if (fwd) rpTween(target, spd * 0.35, show); else { RP.anim = null; rpApply(target); drawBar(); show(); }
