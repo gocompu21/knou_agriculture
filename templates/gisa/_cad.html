@@ -118,6 +118,18 @@
                 <button type="button" id="cadZin" title="확대">+</button>
                 <button type="button" id="cadZout" title="축소">−</button>
             </div>
+            <div class="cad-rp" id="cadRp" hidden>
+                <div class="cad-rp-row">
+                    <button type="button" data-rp="first" title="처음으로(Home)">⏮</button><button type="button" data-rp="prev" title="이전(←)">◀</button>
+                    <button type="button" data-rp="play" class="pl" title="재생·멈춤(Space)">▶ 재생</button>
+                    <button type="button" data-rp="next" title="다음(→)">▶</button><button type="button" data-rp="last" title="끝으로(End)">⏭</button>
+                    <select id="cadRpSpd" title="재생 빠르기"><option value="2000">느리게</option><option value="1100" selected>보통</option><option value="500">빠르게</option></select>
+                    <span class="no" id="cadRpNo"></span>
+                    <button type="button" data-rp="end" class="x" title="재생 끝내기(Esc)">✕ 닫기</button>
+                </div>
+                <input type="range" id="cadRpBar" min="0" value="0" step="1">
+                <div class="cad-rp-tx" id="cadRpTx"></div>
+            </div>
             <div class="cad-status"><span id="cadXY">X — · Y —</span><span id="cadHint"></span></div>
         </div>
         <div class="cad-panel">
@@ -244,7 +256,8 @@
             </div>
             <div class="cad-pane on" data-ppane="ops">
                 <div class="cad-row"><input id="cadStepTitle" placeholder="단계 이름 — 예) 경계선 및 그리드 작성">
-                    <button type="button" class="cad-b" id="cadStepAdd">+ 단계</button></div>
+                    <button type="button" class="cad-b" id="cadStepAdd">+ 단계</button>
+                    <button type="button" class="cad-b" id="cadRpBtn" title="작도 순서를 한 칸씩 되짚어 봅니다 — 그때의 I자·삼각자·템플릿·스케일자 자리도 함께">▶ 재생</button></div>
                 <div id="cadOpList" class="cad-list"></div>
             </div>
             <div class="cad-pane" data-ppane="pts">
@@ -438,6 +451,25 @@
 .cad-op { display: flex; align-items: flex-start; gap: 6px; padding: 5px 4px; border-radius: 5px; cursor: pointer; line-height: 1.45; }
 .cad-op:hover { background: #f4f7f5; }
 .cad-op.on { background: #fdecea; }
+.cad-op.rp { background: #fff3c4; box-shadow: inset 3px 0 0 #e0a800; }
+.cad-op .tl { display: block; color: #8a9690; font-size: 0.72rem; }
+/* 작도 재생 — 판 아래쪽에 뜨는 조작 막대 */
+.cad-rp { position: absolute; left: 50%; transform: translateX(-50%); top: 8px; width: min(620px, calc(100% - 24px)); background: rgba(27,67,50,.94);
+    color: #fff; border-radius: 10px; padding: 8px 10px 7px; box-shadow: 0 4px 16px rgba(0,0,0,.25); z-index: 5; font-size: 0.82rem; }
+.cad-rp[hidden] { display: none; }
+.cad-rp-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.cad-rp button { border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.1); color: #fff; border-radius: 6px; height: 28px; min-width: 32px; cursor: pointer; font-size: 0.8rem; }
+.cad-rp button:hover { background: rgba(255,255,255,.22); }
+.cad-rp button.pl { min-width: 74px; font-weight: 700; background: #f4c542; color: #1b4332; border-color: #f4c542; }
+.cad-rp button.x { margin-left: auto; }
+.cad-rp select { height: 28px; border-radius: 6px; border: 0; font-size: 0.78rem; }
+.cad-rp .no { font-variant-numeric: tabular-nums; margin-left: 4px; opacity: .9; }
+.cad-rp input[type=range] { width: 100%; margin: 6px 0 2px; accent-color: #f4c542; }
+.cad-rp-tx { min-height: 1.3em; line-height: 1.45; word-break: keep-all; }
+.cad-rp-tx .tl { color: #b7e4c7; font-size: 0.76rem; }
+.cad.replaying #cadSvg, .cad.replaying #cadSvg * { cursor: default !important; }
+#cadOps g.rp-cur [stroke] { stroke: #d32f2f; }
+#cadOps g.rp-cur text { fill: #d32f2f; }
 .cad-op.step { font-weight: 700; color: #1b4332; margin-top: 6px; border-top: 1px dashed #dfe6e2; padding-top: 7px; }
 .cad-op .no { flex-shrink: 0; min-width: 22px; color: #2b4a9b; font-weight: 700; }
 .cad-op .tx { flex: 1; min-width: 0; word-break: keep-all; }
@@ -1382,7 +1414,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;',
 const clone = o => JSON.parse(JSON.stringify(o));
 
 function snapHist() { hist.push(JSON.stringify(doc)); if (hist.length > 200) hist.shift(); redoS = []; }
-function changed() { dirty = true; renderAll(); saveDraft(); }
+function changed() { dirty = true; if (!RP) stampTools(); renderAll(); saveDraft(); }
 function undo() { if (!hist.length) return; redoS.push(JSON.stringify(doc)); doc = JSON.parse(hist.pop()); afterLoad(false); dirty = true; saveDraft(); }
 function redo() { if (!redoS.length) return; hist.push(JSON.stringify(doc)); doc = JSON.parse(redoS.pop()); afterLoad(false); dirty = true; saveDraft(); }
 
@@ -1625,10 +1657,10 @@ function setAux(on) {
 }
 function drawOps() {
     // 보조선은 따로 된 레이어 — 맨 아래에 먼저 그리고(class aux) 설정·도구 줄에서 켜고 끈다
-    const ops = doc.ops.filter(o => o.t !== 'step'), fills = ops.filter(o => o.t === 'fill'), aux = ops.filter(isAux), marks = ops.filter(o => o.mark && !isAux(o)),
+    const ops = (RP ? doc.ops.slice(0, RP.k) : doc.ops).filter(o => o.t !== 'step'), fills = ops.filter(o => o.t === 'fill'), aux = ops.filter(isAux), marks = ops.filter(o => o.mark && !isAux(o)),
           rest = ops.filter(o => !isAux(o) && !o.mark && o.t !== 'fill');
     gOps.innerHTML = [...fills, ...aux, ...marks, ...rest].map(op => {   // 칠한 면이 맨 아래
-        const s = opSvg(op), cl = [isAux(op) ? 'aux' : '', op.mark ? 'mark' : '', selOps.has(op.id) ? 'on' : ''].filter(Boolean).join(' ');
+        const s = opSvg(op), cl = [isAux(op) ? 'aux' : '', op.mark ? 'mark' : '', !RP && selOps.has(op.id) ? 'on' : '', RP && RP.cur === op.id ? 'rp-cur' : ''].filter(Boolean).join(' ');
         return s ? `<g data-op="${op.id}"${cl ? ` class="${cl}"` : ''}>${s}<g class="cad-hit">${s}</g></g>` : '';
     }).join('');
 }
@@ -1640,10 +1672,15 @@ function activePts() {
 }
 function drawPts() {
     if (!$('cadShowPts').checked) { gPts.innerHTML = ''; return; }
+    if (RP) {                                          // 재생 중 — 지금까지 그린 것이 쓰는 점만
+        const used = new Set(); doc.ops.slice(0, RP.k).forEach(o => ptsOf(o).forEach(n => used.add(+n)));
+        gPts.innerHTML = doc.pts.filter(p => used.has(+p.n)).map(p => dotSvg(p, false)).join(''); return;
+    }
     const on = activePts();
     gPts.innerHTML = doc.pts.map(p => dotSvg(p, on.has(p.n))).join('');
 }
 function drawPre() {
+    if (RP) { gPre.innerHTML = ''; return; }
     let o = '';
     const h = hover;
     if (h && h.w && tool.startsWith('erase')) {
@@ -1714,7 +1751,8 @@ function listOps() {
         if (op.t === 'step') { k++; i = 0;
             return `<div class="cad-op step" data-id="${op.id}"><span class="no">(${k})</span><span class="tx">${esc(op.title)}</span>${bt}</div>`; }
         i++;
-        return `<div class="cad-op${selOps.has(op.id) ? ' on' : ''}" data-id="${op.id}"><span class="no">${circ(i)}</span><span class="tx">${esc(desc(op))}</span>${bt}</div>`;
+        const tl = tlText(op.tl);
+        return `<div class="cad-op${selOps.has(op.id) ? ' on' : ''}${RP && RP.cur === op.id ? ' rp' : ''}" data-id="${op.id}"><span class="no">${circ(i)}</span><span class="tx">${esc(desc(op))}${tl ? `<span class="tl">${esc(tl)}</span>` : ''}</span>${bt}</div>`;
     });
     $('cadOpList').innerHTML = rows.join('') || '<p class="cad-empty">아직 그린 것이 없습니다. 위에서 도구를 고르고 도면을 눌러 보세요.<br>단계 이름을 먼저 넣어 두면 작도 순서가 (1)(2)… 로 묶입니다.</p>';
     $('cadOpsN').textContent = doc.ops.filter(o => o.t !== 'step').length || '';
@@ -1737,9 +1775,132 @@ function describeAll() {
     let k = 0, i = 0;
     doc.ops.forEach(op => {
         if (op.t === 'step') { k++; i = 0; lines.push(`(${k}) ${op.title}`); }
-        else { i++; lines.push(`  ${circ(i)} ${desc(op)}`); }
+        else { i++; const tl = tlText(op.tl); lines.push(`  ${circ(i)} ${desc(op)}${tl ? `  [${tl}]` : ''}`); }
     });
     return lines.join('\n');
+}
+
+// ── 작도 기록·재생 ────────────────────────────────────────────────────────
+// 선·원·글자를 넣을 때마다 그 순간의 I자·삼각자·템플릿·스케일자 자리를 op.tl 에 적어 둔다(changed → stampTools).
+// 재생은 작도 순서를 한 칸씩 되짚으며 도구를 그 자리로 옮겨 놓고(사이를 이어 움직여 보인다) 그 선을 긋듯이 보인다.
+// 기록 전에 그린 것은 tl = 0 — 도구 자리를 모르므로 재생 때 도구를 건드리지 않는다
+const rnd3 = v => +(+v).toFixed(3);
+function toolState() {
+    const c = o => o ? JSON.parse(JSON.stringify(o)) : null;
+    const s = {bar: barOn && barY != null ? rnd3(barY) : null, tri: c(tri), tpl: c(tpl), sr: c(sr)};
+    if (s.tri && s.tri.x != null) s.tri.x = rnd3(s.tri.x);
+    ['tpl', 'sr'].forEach(k => { if (s[k]) { s[k].x = rnd3(s[k].x); s[k].y = rnd3(s[k].y); } });
+    return s;
+}
+function stampTools() {
+    let s = null;
+    doc.ops.forEach(o => { if (o.t !== 'step' && !('tl' in o)) o.tl = s || (s = toolState()); });
+}
+function srLabel(s) {
+    if (s.custom) return `1:${s.custom}`;
+    const keep = sr; sr = s; const v = srView(); sr = keep;
+    return `1/${v.top}`;
+}
+function tlText(s) {
+    if (!s) return '';
+    const a = [];
+    if (s.bar != null) a.push(`I자 Y${fmt(s.bar)}`);
+    if (s.tri) a.push(`${s.tri.kind}° 삼각자 X${fmt(s.tri.x)}`);
+    if (s.tpl) a.push(`${s.tpl.kind === 'geo' ? '도형' : '원형'} 템플릿`);
+    if (s.sr) { try { a.push(`스케일자 ${srLabel(s.sr)}`); } catch (e) { a.push('스케일자'); } }
+    return a.join(' · ');
+}
+var RP = null;                                         // {k: 보인 op 수, cur: 지금 op id, live: 재생 전 도구 자리, timer, playing}
+function rpApply(s) {
+    if (!s) return;
+    barOn = s.bar != null; if (barOn) barY = s.bar;
+    const c = o => o ? JSON.parse(JSON.stringify(o)) : null;
+    tri = c(s.tri); tpl = c(s.tpl); sr = c(s.sr);
+}
+function rpStateAt(k) {                                // k 번째까지 그린 뒤의 도구 자리 — 가장 가까운 앞 기록, 없으면 첫 기록
+    for (let i = k - 1; i >= 0; i--) { const o = doc.ops[i]; if (o.t !== 'step' && o.tl) return o.tl; }
+    const f = doc.ops.find(o => o.t !== 'step' && o.tl);
+    return f ? f.tl : RP.live;
+}
+function rpTween(to, dur, done) {                      // 도구를 지금 자리에서 to 로 옮겨 보인다 — 같은 도구의 숫자만 잇고 나머지는 곧장 바꾼다
+    const from = toolState(), lerp = (a, b, t) => a + (b - a) * t;
+    const ang = (a, b, t) => { const d = ((b - a) % 360 + 540) % 360 - 180; return a + d * t; };
+    if (!to || dur < 30) { rpApply(to); drawBar(); done(); return; }
+    const t0 = performance.now(), id = RP.anim = {};
+    const frame = now => {
+        if (!RP || RP.anim !== id) return;
+        const t = Math.min(1, (now - t0) / dur), e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        const s = JSON.parse(JSON.stringify(to));
+        if (from.bar != null && to.bar != null) s.bar = lerp(from.bar, to.bar, e);
+        if (from.tri && to.tri && from.tri.kind === to.tri.kind) s.tri.x = lerp(from.tri.x, to.tri.x, e);
+        ['tpl', 'sr'].forEach(k => {
+            if (from[k] && to[k]) { s[k].x = lerp(from[k].x, to[k].x, e); s[k].y = lerp(from[k].y, to[k].y, e); s[k].rot = ang(from[k].rot || 0, to[k].rot || 0, e); }
+        });
+        rpApply(t < 1 ? s : to); drawBar();
+        if (t < 1) requestAnimationFrame(frame); else done();
+    };
+    requestAnimationFrame(frame);
+}
+function rpReveal(op, dur) {                           // 방금 그은 것을 선 긋듯이 보인다
+    const g = gOps.querySelector(`[data-op="${op.id}"]`); if (!g) return;
+    [...g.querySelectorAll('line,path,circle,rect,polyline,polygon,ellipse')].filter(el => !el.closest('.cad-hit')).forEach(el => {
+        let L = 0; try { L = el.getTotalLength(); } catch (e) {}
+        const st = el.getAttribute('stroke');
+        if (!(L > 0) || !st || st === 'none') { el.animate([{opacity: 0}, {opacity: 1}], {duration: dur}); return; }
+        el.animate([{strokeDasharray: `${L} ${L}`, strokeDashoffset: L}, {strokeDasharray: `${L} ${L}`, strokeDashoffset: 0}], {duration: dur, easing: 'ease-in-out'});
+    });
+    [...g.querySelectorAll('text,image,use')].filter(el => !el.closest('.cad-hit')).forEach(el => el.animate([{opacity: 0}, {opacity: 1}], {duration: dur}));
+}
+function rpInfo() {
+    const n = doc.ops.length, op = doc.ops[RP.k - 1];
+    $('cadRpBar').max = n; $('cadRpBar').value = RP.k;
+    let step = '', no = 0, i = 0;
+    for (let j = 0; j < RP.k; j++) { const o = doc.ops[j]; if (o.t === 'step') { step = o.title; no++; i = 0; } else i++; }
+    $('cadRpNo').textContent = `${RP.k} / ${n}`;
+    $('cadRpTx').innerHTML = !op ? '처음 — ▶ 재생을 누르면 작도 순서대로 그려 보입니다'
+        : (step ? `<b>(${no}) ${esc(step)}</b>` : '') + (op.t === 'step' ? '' : `${step ? ' — ' : ''}${circ(i)} ${esc(desc(op))}`)
+          + (op.t !== 'step' && op.tl ? `<br><span class="tl">${esc(tlText(op.tl))}</span>` : '');
+    document.querySelectorAll('#cadOpList .cad-op').forEach(r => r.classList.toggle('rp', !!op && +r.dataset.id === op.id));
+    const cur = op && document.querySelector(`#cadOpList .cad-op[data-id="${op.id}"]`);
+    if (cur) cur.scrollIntoView({block: 'nearest'});
+    $('cadRp').querySelector('.pl').textContent = RP.playing ? '⏸ 멈춤' : '▶ 재생';
+}
+function rpGo(k, anim, cb) {
+    if (!RP) return;
+    const n = doc.ops.length; k = Math.max(0, Math.min(n, k));
+    const fwd = anim && k === RP.k + 1, op = doc.ops[k - 1], spd = +$('cadRpSpd').value || 1100;
+    RP.k = k; RP.cur = op && op.t !== 'step' ? op.id : null;
+    const target = rpStateAt(k);
+    const show = () => {
+        if (!RP) return;
+        drawOps(); drawPts(); rpInfo();
+        if (fwd && op && op.t !== 'step') { rpReveal(op, spd * 0.45); if (cb) RP.timer = setTimeout(cb, spd * 0.6); }
+        else if (cb) RP.timer = setTimeout(cb, op && op.t === 'step' ? spd * 0.8 : spd * 0.2);
+    };
+    if (fwd) rpTween(target, spd * 0.35, show); else { RP.anim = null; rpApply(target); drawBar(); show(); }
+}
+function rpStop() { if (!RP) return; RP.playing = false; clearTimeout(RP.timer); rpInfo(); }
+function rpPlay() {
+    if (!RP) return;
+    if (RP.playing) { rpStop(); return; }
+    if (RP.k >= doc.ops.length) rpGo(0, false);
+    RP.playing = true; rpInfo();
+    const tick = () => { if (!RP || !RP.playing) return; if (RP.k >= doc.ops.length) { rpStop(); return; } rpGo(RP.k + 1, true, tick); };
+    tick();
+}
+function rpStart() {
+    if (!doc.ops.some(o => o.t !== 'step')) { flash('재생할 작도가 없습니다'); return; }
+    endEdit();
+    RP = {k: 0, cur: null, live: toolState(), timer: null, playing: false, anim: null};
+    root.classList.add('replaying'); $('cadRp').hidden = false; $('cadRpBtn').classList.add('on');
+    if (!doc.ops.some(o => o.t !== 'step' && o.tl)) flash('도구 자리를 기록하기 전에 그린 도면입니다 — 선만 차례로 보입니다');
+    rpGo(0, false);
+}
+function rpEnd() {
+    if (!RP) return;
+    clearTimeout(RP.timer); const live = RP.live; RP = null;
+    rpApply(live); root.classList.remove('replaying'); $('cadRp').hidden = true; $('cadRpBtn').classList.remove('on');
+    renderAll();
 }
 
 // ── 화면 이동·확대 ───────────────────────────────────────────────────────
@@ -2832,6 +2993,8 @@ function newDrawing() {
     hist = []; redoS = []; dirty = false; afterLoad(true); saveDraft();
 }
 function afterLoad(refit) {
+    if (RP) rpEnd();
+    doc.ops.forEach(o => { if (o.t !== 'step' && !('tl' in o)) o.tl = 0; });   // 기록 전에 그린 것 — 도구 자리를 모른다(0)
     selOps.clear(); selPts.clear(); selPt = null; endEdit();
     Object.keys(doc.syms || {}).forEach(ensureSymOption);
     setSheet(doc.sheet); renderAll(); regInfo();
@@ -3399,8 +3562,35 @@ $('cadStepAdd').addEventListener('click', () => {
     snapHist(); doc.ops.push({id: doc.seq++, t: 'step', title: t}); $('cadStepTitle').value = ''; changed();
 });
 $('cadStepTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); $('cadStepAdd').click(); } });
+$('cadRpBtn').addEventListener('click', () => RP ? rpEnd() : rpStart());
+$('cadRp').addEventListener('click', e => {
+    const b = e.target.closest('[data-rp]'); if (!b || !RP) return;
+    const a = b.dataset.rp;
+    if (a === 'play') { rpPlay(); return; }
+    rpStop();
+    if (a === 'end') rpEnd();
+    else if (a === 'first') rpGo(0, false);
+    else if (a === 'last') rpGo(doc.ops.length, false);
+    else if (a === 'prev') rpGo(RP.k - 1, false);
+    else if (a === 'next') rpGo(RP.k + 1, true);
+});
+$('cadRpBar').addEventListener('input', e => { if (RP) { rpStop(); rpGo(+e.target.value, false); } });
+// 재생 중에는 도면을 건드리지 않는다(휠 확대·휠 버튼 이동만)
+svg.addEventListener('pointerdown', e => { if (RP && e.button !== 1) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+document.addEventListener('keydown', e => {
+    if (!RP || (e.target.closest && e.target.closest('input,select,textarea'))) return;
+    const k = e.key, go = f => { e.preventDefault(); e.stopImmediatePropagation(); f(); };
+    if (k === 'Escape') go(rpEnd);
+    else if (k === ' ') go(rpPlay);
+    else if (k === 'ArrowRight') go(() => { rpStop(); rpGo(RP.k + 1, true); });
+    else if (k === 'ArrowLeft') go(() => { rpStop(); rpGo(RP.k - 1, false); });
+    else if (k === 'Home') go(() => { rpStop(); rpGo(0, false); });
+    else if (k === 'End') go(() => { rpStop(); rpGo(doc.ops.length, false); });
+    else if (!e.ctrlKey && !e.metaKey) e.stopImmediatePropagation();   // 재생 중 단축키(도구 바꾸기·I자 옮기기)는 막는다
+}, true);
 $('cadOpList').addEventListener('click', e => {
     const row = e.target.closest('.cad-op'); if (!row) return;
+    if (RP) { rpStop(); const i = doc.ops.findIndex(o => o.id === +row.dataset.id); if (i >= 0) rpGo(i + 1, false); return; }
     const id = +row.dataset.id, act = e.target.closest('[data-act]');
     if (act) {
         const a = act.dataset.act;
