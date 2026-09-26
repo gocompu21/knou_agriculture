@@ -32,7 +32,7 @@
         <button type="button" data-tool="rect" hidden title="사각형 (R)" aria-label="사각형"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="5" width="14" height="10" rx="0.5"/></svg></button>
         <button type="button" data-tool="circle" hidden title="원 (C)" aria-label="원"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="1.2" class="f"/></svg></button>
         <button type="button" data-tool="arc" hidden title="호 (A)" aria-label="호"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 15A6.5 6.5 0 0 1 16.5 15"/><circle cx="3.5" cy="15" r="1.7" class="f"/><circle cx="16.5" cy="15" r="1.7" class="f"/></svg></button>
-        <button type="button" data-tool="sym" title="라이브러리 기호 넣기 (B)" aria-label="기호"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="13" height="13"/><path d="M3.5 3.5l13 13M16.5 3.5l-13 13"/></svg></button>
+        <button type="button" data-tool="sym" title="시설 및 수목 넣기 (B)" aria-label="기호"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="13" height="13"/><path d="M3.5 3.5l13 13M16.5 3.5l-13 13"/></svg></button>
         <button type="button" data-tool="free" title="프리드로잉 (D) — 누른 채 끌면 손 가는 대로 선이 그어집니다(자 위로는 그어지지 않습니다)" aria-label="프리드로잉"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 15.5c2-3.5 3.6-4.6 5-3.4 1.3 1.1-.4 3.2 1 3.9 1.6.8 3.2-3.6 5-6.2 1.2-1.7 2.4-2.4 4-2.2"/><path d="m14.2 3.2 2.6 2.6-1.6 1.6-2.6-2.6Z" class="f"/></svg></button>
         <button type="button" data-tool="fill" title="도형 채우기 (F) — 선으로 둘러싸인 면의 안쪽을 누르면 설정의 색으로 칠합니다" aria-label="채우기"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.2 9.6 9.6 4.2l6 6-5.4 5.4a1.4 1.4 0 0 1-2 0l-4-4a1.4 1.4 0 0 1 0-2Z"/><path d="M4.4 10.8h11" /><path d="M16.8 12.6c.9 1.3 1.4 2.2 1.4 2.8a1.4 1.4 0 0 1-2.8 0c0-.6.5-1.5 1.4-2.8Z" class="f"/></svg></button>
         <div class="cad-fp" id="cadFp"><button type="button" id="cadFpBtn" class="cad-fp-btn" title="채우기 모양 고르기" aria-label="채우기 모양"></button><div class="cad-fp-menu" id="cadFpMenu" hidden></div><select id="cadFillType" hidden class="cad-set-ls"><option value="solid">전체 채우기</option><option value="h">수평선 채우기</option><option value="v">수직선 채우기</option><option value="d">사선 채우기</option><option value="x">X자 채우기</option><option value="dot">점 채우기</option><option value="gl">큰 가로세로 격자</option><option value="gs">작은 가로세로 격자</option><option value="grass">잔디</option></select></div>
@@ -194,7 +194,7 @@
                     <div class="cad-row"><span></span><button type="button" class="cad-go" id="faGo">그리기</button></div>
                 </div>
                 <div data-form="sym">
-                    <h4>라이브러리 기호 넣기</h4>
+                    <h4>시설 및 수목 넣기</h4>
                     <div class="cad-row"><label>기준점<input type="number" class="pk" id="fsP" min="1"></label>
                         <label class="wide">기호<select id="fsSym"></select></label></div>
                     <div class="cad-row"><label class="wide">회전 <b id="fsRotV">0°</b><input type="range" id="fsRotR" min="0" max="360" step="5" value="0"></label>
@@ -257,7 +257,7 @@
             <div class="cad-tabs">
                 <button type="button" class="on" data-ptab="ops">작도 순서 <em id="cadOpsN"></em></button>
                 <button type="button" data-ptab="pts">점 <em id="cadPtsN"></em></button>
-                <button type="button" data-ptab="lib">라이브러리</button>
+                <button type="button" data-ptab="lib">시설 및 수목</button>
             </div>
             <div class="cad-pane on" data-ppane="ops">
                 <div class="cad-row cad-steprow"><input id="cadStepTitle" placeholder="단계 이름 — 고른 줄 위에">
@@ -275,6 +275,8 @@
                     <b>선택한 객체를 기호로 등록</b>
                     <div class="cad-row"><label class="wide">이름<input id="lbName" maxlength="60" placeholder="예) 평의자 1.8×0.45"></label>
                         <label>기준점<input type="number" class="pk" id="lbBase" min="1"></label></div>
+                    <div class="cad-row"><label class="wide">분류<input id="lbCat" maxlength="30" list="lbCatList" placeholder="예) 휴게시설 · 교목 — 비우면 기타"></label>
+                        <datalist id="lbCatList"></datalist></div>
                     <div class="cad-row"><span class="cad-help" id="lbInfo">작도 순서나 도면에서 객체를 고르세요(Shift 로 여럿)</span>
                         <button type="button" class="cad-go" id="lbGo">등록</button></div>
                 </div>
@@ -532,6 +534,7 @@
 .cad-sym .x:hover { color: #d93025; }
 .cad-sym .sh { left: 2px; color: #7a8a82; }
 .cad-sym .sh.on { color: #2d6a4f; font-weight: 700; }
+.cad-sym .ct { position: absolute; bottom: 2px; right: 2px; border: 0; background: rgba(255,255,255,.9); cursor: pointer; font-size: 0.66rem; border-radius: 4px; padding: 0 3px; color: #7a8a82; }
 /* 선택·잡기 영역 — CSS 가 표현 속성(stroke=…)을 이긴다 */
 /* 고른 것은 빨갛게 — 원래 테두리가 있는 요소에만 stroke 를 입힌다. 글자·칠한 면처럼 테두리가 없는 것에 입히면 굵기가 기본 1(= 도면 1m)이라
    글자를 덮는 빨간 덩어리가 됐다(사용자). 글자는 글자색만 바꾼다 */
@@ -3469,19 +3472,23 @@ function symThumb(s) {
 }
 function fillSymSelect() {
     const keep = $('fsSym').value, grp = (label, arr) => arr.length ? `<optgroup label="${label}">${arr.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('')}</optgroup>` : '';
-    $('fsSym').innerHTML = grp('기본', BUILTIN) + grp('시설물 수량표', FAC) + grp('내 기호', userSyms.filter(s => s.mine || s.local)) + grp('공유 기호', userSyms.filter(s => !s.mine && !s.local));
+    const catOf = s => (s.pk ? s.cat : '') || '기타', groups = {};
+    BUILTIN.concat(FAC, userSyms).forEach(s => (groups[catOf(s)] = groups[catOf(s)] || []).push(s));
+    $('fsSym').innerHTML = Object.keys(groups).sort((x, y) => (x === '기타') - (y === '기타') || x.localeCompare(y, 'ko')).map(k => grp(esc(k), groups[k])).join('');
     if ([...$('fsSym').options].some(o => o.value === keep)) $('fsSym').value = keep;
 }
 function renderLib() {
     const cur = $('fsSym').value, card = s => `<div class="cad-sym${s.id === cur ? ' on' : ''}" data-id="${esc(s.id)}">${symThumb(s)}<span>${esc(s.name)}</span>`
         + (s.pk && (s.mine || STAFF) ? `<button type="button" class="x" data-del="${s.pk}" title="지우기">✕</button>` : '')
         + (s.pk && STAFF ? `<button type="button" class="sh${s.shared ? ' on' : ''}" data-share="${s.pk}" title="모두에게 공유">${s.shared ? '공유됨' : '공유'}</button>` : '')
+        + (s.pk && (s.mine || STAFF) ? `<button type="button" class="ct" data-cat="${s.pk}" title="분류 바꾸기">분류</button>` : '')
         + '</div>';
-    const mine = userSyms.filter(s => s.mine || s.local), shared = userSyms.filter(s => !s.mine && !s.local);
-    $('cadLib').innerHTML = '<h5>기본 기호</h5>' + BUILTIN.map(card).join('')
-        + '<h5>시설물 수량표 기호 <small>(작업형 도면 자료)</small></h5>' + FAC.map(card).join('')
-        + (mine.length ? '<h5>내 기호</h5>' + mine.map(card).join('') : '')
-        + (shared.length ? '<h5>공유 기호</h5>' + shared.map(card).join('') : '');
+    // 분류별로 묶는다(사용자) — 등록한 기호는 제 분류, 기본·수량표 기호와 분류 없이 등록한 것은 '기타'. 가나다순, '기타'는 맨 끝
+    const catOf = s => (s.pk ? s.cat : '') || '기타', all = BUILTIN.concat(FAC, userSyms), groups = {};
+    all.forEach(s => (groups[catOf(s)] = groups[catOf(s)] || []).push(s));
+    const cats = Object.keys(groups).sort((x, y) => (x === '기타') - (y === '기타') || x.localeCompare(y, 'ko'));
+    $('cadLib').innerHTML = cats.map(k => `<h5>${esc(k)} <small>(${groups[k].length})</small></h5>` + groups[k].map(card).join('')).join('');
+    $('lbCatList').innerHTML = cats.map(k => `<option value="${esc(k)}">`).join('');
 }
 function loadSyms() {
     fetch(SYMAPI, {credentials: 'same-origin'}).then(r => r.json()).then(j => {
@@ -3515,7 +3522,8 @@ function registerSym() {
     if (!name) { flash('기호 이름을 적어 주세요'); $('lbName').focus(); return; }
     if (!base) { flash('기준점 번호를 넣어 주세요 — 넣을 때 이 점이 누른 자리에 옵니다'); $('lbBase').focus(); return; }
     const bp = P(base), items = ops.map(o => opToItem(o, bp.x, bp.y)).filter(Boolean);
-    post(SYMAPI + 'save/', {name, items}).then(j => {
+    const cat = $('lbCat').value.trim() || '기타';
+    post(SYMAPI + 'save/', {name, items, cat}).then(j => {
         if (!j.ok) { flash(j.error || '등록하지 못했습니다'); return; }
         userSyms.push(j.item); fillSymSelect(); $('fsSym').value = j.item.id; renderLib();
         $('lbName').value = ''; flash(`'${name}' 을(를) 라이브러리에 등록했습니다`);
@@ -4475,7 +4483,11 @@ $('cadPtList').addEventListener('click', e => {
     if (selPt !== n) { selPt = n; drawPts(); row.parentNode.querySelectorAll('.cad-pt').forEach(r => r.classList.toggle('on', r === row)); }
 });
 $('cadLib').addEventListener('click', e => {
-    const del = e.target.closest('[data-del]'), sh = e.target.closest('[data-share]');
+    const del = e.target.closest('[data-del]'), sh = e.target.closest('[data-share]'), ct = e.target.closest('[data-cat]');
+    if (ct) { const s = userSyms.find(x => x.pk === +ct.dataset.cat); if (!s) return;
+        const v = prompt(`'${s.name}' 의 분류`, s.cat || '기타'); if (v == null || !v.trim()) return;
+        post(SYMAPI + 'save/', {pk: s.pk, cat: v.trim()}).then(j => { if (j.ok) { Object.assign(s, j.item); renderLib(); } else flash(j.error || '바꾸지 못했습니다'); });
+        return; }
     if (del) { if (!confirm('이 기호를 라이브러리에서 지울까요? (이미 넣은 도면에는 남습니다)')) return;
         post(`${SYMAPI}${del.dataset.del}/delete/`).then(j => { if (j.ok) { userSyms = userSyms.filter(s => s.pk !== +del.dataset.del); fillSymSelect(); renderLib(); } });
         return; }

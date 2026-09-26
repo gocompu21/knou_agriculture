@@ -127,6 +127,7 @@ def drawing_delete(request, cert_id, pk):
 
 def _sym_row(s, user):
     return {'id': f'u{s.pk}', 'pk': s.pk, 'name': s.name, 'items': (s.data or {}).get('items', []),
+            'cat': (s.data or {}).get('cat') or '기타',       # 분류 — 없던 때 등록한 것은 '기타'
             'shared': s.shared, 'mine': s.owner_id == user.pk}
 
 
@@ -146,6 +147,7 @@ def symbol_save(request):
     if not isinstance(body, dict):
         return _err('본문을 읽지 못했습니다.')
     name = str(body.get('name') or '').strip()[:60]
+    cat = str(body.get('cat') or '').strip()[:30]
     if body.get('pk'):
         s = get_object_or_404(CadSymbol, pk=body['pk'])
         if s.owner_id != request.user.pk and not request.user.is_staff:
@@ -154,6 +156,8 @@ def symbol_save(request):
             s.name = name
         if 'shared' in body and request.user.is_staff:
             s.shared = bool(body['shared'])
+        if cat:
+            s.data = {**(s.data or {}), 'cat': cat}
         s.save()
         return JsonResponse({'ok': True, 'item': _sym_row(s, request.user)})
     items = body.get('items')
@@ -163,7 +167,7 @@ def symbol_save(request):
         return _err('기호에 담을 객체가 없습니다.')
     if len(json.dumps(items, ensure_ascii=False)) > 100_000:
         return _err('기호가 너무 큽니다.')
-    s = CadSymbol.objects.create(owner=request.user, name=name, data={'items': items},
+    s = CadSymbol.objects.create(owner=request.user, name=name, data={'items': items, 'cat': cat or '기타'},
                                  shared=bool(body.get('shared')) and request.user.is_staff)
     return JsonResponse({'ok': True, 'item': _sym_row(s, request.user)})
 
