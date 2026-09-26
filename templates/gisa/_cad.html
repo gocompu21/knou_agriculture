@@ -2675,6 +2675,17 @@ function placeLabels() {
     return moved;
 }
 // 독립 점 제거(설정) — 선으로 이어지지 않은 점. 스케일자 마킹 점은 일부러 남긴 기준점이라 남긴다. 지운 뒤 번호를 메운다
+// 작도 순서에서 지우기 — 그 선만 지우면 점(번호)이 도면에 남는다. 그 선이 쓰던 점 가운데 이제 아무도 안 쓰는 점과
+// 마킹의 점까지 함께 지우고 번호를 메운다(사용자: "작도 순서에서 삭제하면 도면에도 반영")
+function delOpClean(id) {
+    const op = doc.ops.find(o => o.id === id); if (!op) return;
+    const cand = new Set(ptsOf(op).map(Number));
+    if (op.mark && op.pts) { const [x, y] = op.pts[0]; doc.pts.forEach(p => { if (Math.abs(p.x - x) < 2e-3 && Math.abs(p.y - y) < 2e-3) cand.add(+p.n); }); }
+    doc.ops = doc.ops.filter(o => o.id !== id);
+    const markAt = doc.ops.filter(o => o.mark && o.pts).map(o => o.pts[0]);
+    const gone = new Set([...cand].filter(n => { const p = P(n); return p && !usedBy(n) && !markAt.some(([x, y]) => Math.abs(p.x - x) < 2e-3 && Math.abs(p.y - y) < 2e-3); }));
+    if (gone.size) { doc.pts = doc.pts.filter(p => !gone.has(+p.n)); gone.forEach(n => selPts.delete(n)); if (gone.has(+selPt)) selPt = null; compactPts(); }
+}
 function dropLonePoints() {
     const markAt = doc.ops.filter(o => o.mark && o.pts).map(o => o.pts[0]);
     const lone = doc.pts.filter(p => !usedBy(p.n) && !markAt.some(([x, y]) => Math.abs(p.x - x) < 2e-3 && Math.abs(p.y - y) < 2e-3));
@@ -3684,7 +3695,7 @@ $('cadOpList').addEventListener('click', e => {
     const id = +row.dataset.id, act = e.target.closest('[data-act]');
     if (act) {
         const a = act.dataset.act;
-        if (a === 'del') { snapHist(); doc.ops = doc.ops.filter(o => o.id !== id); selOps.delete(id); pruneSyms(); changed(); }
+        if (a === 'del') { snapHist(); delOpClean(id); selOps.delete(id); pruneSyms(); changed(); }
         if (a === 'up') moveOp(id, -1);
         if (a === 'down') moveOp(id, 1);
         if (a === 'edit') editOp(id);
