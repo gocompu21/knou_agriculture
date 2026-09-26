@@ -474,6 +474,9 @@
 #cadOps g.rp-cur text { fill: #d32f2f; }
 .cad-op.step { font-weight: 700; color: #1b4332; margin-top: 6px; border-top: 1px dashed #dfe6e2; padding-top: 7px; }
 .cad-op .no { flex-shrink: 0; min-width: 22px; color: #2b4a9b; font-weight: 700; }
+/* 번호 동그라미 — 글꼴의 원문자는 ⑳ 넘어 모양이 달라져 CSS 로 그린다(몇 번이든 같은 모양) */
+.cad-op .no i { display: inline-flex; align-items: center; justify-content: center; font-style: normal; min-width: 17px; height: 17px; padding: 0 3px;
+    box-sizing: border-box; border: 1.3px solid currentColor; border-radius: 9px; font-size: 0.66rem; font-weight: 700; line-height: 1; margin-top: 1px; }
 .cad-op .tx { flex: 1; min-width: 0; word-break: keep-all; }
 .cad-op .bt { flex-shrink: 0; display: flex; gap: 1px; opacity: .45; }
 .cad-op:hover .bt, .cad-op.on .bt { opacity: 1; }
@@ -541,7 +544,8 @@ const STAFF = root.dataset.staff === '1';
 const svg = $('cadSvg'), gGrid = $('cadGrid'), gOps = $('cadOps'), gPts = $('cadPts'), gPre = $('cadPre');
 const INK = '#111', BLUE = '#2b4a9b', RED = '#d93025';
 const CIRC = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
-const circ = i => i <= 20 ? CIRC[i - 1] : `(${i})`;
+// ①~⑳ 다음에도 원문자로 — ㉑~㉟(U+3251) · ㊱~㊿(U+32B1). 그 뒤만 (51) 꼴(사용자: 21번부터 괄호로 바뀌었다)
+const circ = i => i <= 20 ? CIRC[i - 1] : i <= 35 ? String.fromCharCode(0x3251 + i - 21) : i <= 50 ? String.fromCharCode(0x32B1 + i - 36) : `(${i})`;
 
 // 선 종류 — 굵기·간격은 종이 폭 100m 를 기준으로 한 m 값이고, 종이 크기에 비례해 늘고 준다(U)
 const LS = {
@@ -1761,7 +1765,8 @@ function desc(op) {
     switch (op.t) {
         case 'free': return op.mark ? `마킹${op.p != null ? ' ' + ptxt(op.p) : ''} · 1/${op.mark.s} ${fmt(op.mark.r)}m` : `프리드로잉 · 점 ${op.pts ? op.pts.length : 0}개 · ${lsTxt(op)}`;
         case 'fill': return `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자', grass: '잔디'})[op.kind] ? `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자', grass: '잔디'})[op.kind]} 채우기(간격 ${fmt(+(op.gap * (op.kind === 'gl' ? 1.5 : op.kind === 'gs' ? 1 : 1)).toFixed(3))}m)` : '채우기'} · 면적 약 ${fmt(+(op.area || 0).toFixed(1))}㎡ · 색 ${op.color}`;
-        case 'line': return `선 ${ptxt(op.a)} → ${ptxt(op.b)} · ${lsTxt(op)}`;
+        case 'line': { const a = P(op.a), b = P(op.b), len = a && b && !isAux(op) ? ` · ${fmt(Math.hypot(b.x - a.x, b.y - a.y))}m` : '';   // 길이(m) — 보조선은 빼고(사용자)
+            return `선 ${ptxt(op.a)} → ${ptxt(op.b)}${len} · ${lsTxt(op)}`; }
         case 'rect': { const a = P(op.a), b = P(op.b);
             const sz = a && b ? ` (${fmt(Math.abs(b.x - a.x))}×${fmt(Math.abs(b.y - a.y))}m)` : '';
             return `사각형 ${ptxt(op.a)} ~ ${ptxt(op.b)}${sz} · ${lsTxt(op)}`; }
@@ -1784,7 +1789,7 @@ function listOps() {
         i++;
         const tl = tlText(op.tl);
         const kind = op.mark ? ' mk' : isAux(op) ? ' ax' : '';   // 마킹은 녹색, 보조선은 빨강으로 구별(사용자)
-        return `<div class="cad-op${kind}${selOps.has(op.id) ? ' on' : ''}${RP && RP.cur === op.id ? ' rp' : ''}" data-id="${op.id}"><span class="no">${circ(i)}</span><span class="tx">${esc(desc(op))}${tl ? `<span class="tl">${esc(tl)}</span>` : ''}</span>${bt}</div>`;
+        return `<div class="cad-op${kind}${selOps.has(op.id) ? ' on' : ''}${RP && RP.cur === op.id ? ' rp' : ''}" data-id="${op.id}"><span class="no"><i>${i}</i></span><span class="tx">${esc(desc(op))}${tl ? `<span class="tl">${esc(tl)}</span>` : ''}</span>${bt}</div>`;
     });
     $('cadOpList').innerHTML = rows.join('') || '<p class="cad-empty">아직 그린 것이 없습니다. 위에서 도구를 고르고 도면을 눌러 보세요.<br>단계 이름을 먼저 넣어 두면 작도 순서가 (1)(2)… 로 묶입니다.</p>';
     $('cadOpsN').textContent = doc.ops.filter(o => o.t !== 'step').length || '';
