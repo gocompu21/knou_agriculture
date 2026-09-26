@@ -1183,18 +1183,17 @@ function drawSr() {
     };
     halves.forEach(h => { scale(h.F.a, h, true); scale(h.F.b, h, false); });
     o += `</g><path d="${RR}" fill="none" stroke="#8d9296" stroke-width="${f(0.22 * k)}" pointer-events="none"/>`;   // 둥근 윤곽선
-    if (!V.custom) {   // 굴림 손잡이 — 오른쪽 끝 바깥. 누르면 자를 굴려 바닥 면을 바꾼다(Shift 는 반대로). 사용자 지정 자에는 없다
-        const eu = SW ? -6 : SR_L + 6, q = srMap(eu, HA), q0 = srMap(SW ? 0 : SR_L, HA), rr = 2.9 * k;   // 돌린 상태에서도 화면 오른쪽 끝
+    if (!V.custom) {   // 축척 전환(굴림) 단추 — 자 오른쪽 여백 안, 크게 보이는 면의 가운데(사용자). 돌린 상태면 그 자리가 반대쪽 끝이다
+        const q = SW ? srMap(SR_Z / 2, SR_W - 3.6) : srMap(SR_L - SR_Z / 2, 3.6), rr = 2.9 * k;
         const tri = [0, 1, 2].map(i => { const a = (-90 + i * 120) * Math.PI / 180; return `${f(Math.cos(a) * 1.5 * k)} ${f(Math.sin(a) * 1.5 * k)}`; });
-        o += `<path d="M${f(q0.x)} ${f(q0.y)}L${f(q.x)} ${f(q.y)}" stroke="#8a8f94" stroke-width="${f(0.2 * k)}" stroke-dasharray="${f(0.8 * k)} ${f(0.5 * k)}" pointer-events="none"/>`
-           + `<g class="sr-roll" transform="translate(${f(q.x)} ${f(q.y)}) rotate(${f(deg)})"><title>자 굴리기 — 종이에 닿는 눈금이 바뀝니다 (Shift: 반대로)</title>`
+        o += `<g class="sr-roll" transform="translate(${f(q.x)} ${f(q.y)}) rotate(${f(sr.rot || 0)}) scale(.8)"><title>축척 전환 — 1/100 → 1/200 → … → 1/600 (Shift: 반대로)</title>`
            + `<circle r="${f(rr)}" fill="rgba(255,255,255,.85)" stroke="#6b7076" stroke-width="${f(0.12 * k)}"/>`
            + `<path d="M${tri.join('L')}Z" fill="${SR_BANDS[V.under.band][2][1]}" stroke="#454a50" stroke-width="${f(0.12 * k)}"/>`
            + `<path d="M${f(-2.1 * k)} ${f(0.9 * k)}A${f(2.25 * k)} ${f(2.25 * k)} 0 0 0 ${f(2.1 * k)} ${f(0.9 * k)}" fill="none" stroke="#454a50" stroke-width="${f(0.28 * k)}" stroke-linecap="round"/>`
            + `<path d="M${f(2.6 * k)} ${f(0.1 * k)}L${f(2.35 * k)} ${f(1.35 * k)}L${f(1.35 * k)} ${f(0.7 * k)}Z" fill="#454a50"/></g>`;
     }
     // 회전 핸들 — 윗변 바깥 셋(가운데 + 양 끝 가까이, 사용자). 자가 길어 가운데 하나만으로는 끝에서 작업할 때 멀다. 어느 것이든 같다
-    [SR_L / 2, 28, SR_L - 28].forEach((hu, hi) => {
+    [SR_L / 2].forEach((hu, hi) => {   // 회전 손잡이는 가운데 하나(사용자)
         const q = srMap(hu, SW ? SR_W + 9 : -9), q0 = srMap(hu, SW ? SR_W : 0), rr = 1.6 * k, turning = hi === 0 && drag && drag.kind === 'srrotd' && drag.moved;
         o += `<path d="M${f(q0.x)} ${f(q0.y)}L${f(q.x)} ${f(q.y)}" stroke="#8a8f94" stroke-width="${f(0.2 * k)}" stroke-dasharray="${f(0.8 * k)} ${f(0.5 * k)}" pointer-events="none"/>`;
         if (turning) {
