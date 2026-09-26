@@ -1137,12 +1137,12 @@ function drawSr() {
             const u = U0 + sg * r * perM, isL = on(r, lab), isM2 = !isL && mid2 && on(r, mid2), isM = !isL && !isM2 && on(r, mid);
             tkp += `M${M(u, Vw(0))}L${M(u, Vw(isL ? D.tl : isM2 ? D.tm2 : isM ? D.tm : D.tn))}`;
             if (isL) {
-                const sm = fmt(+(tot - r).toFixed(4)), sf = fsz(D.smh, D.sm);   // 반대쪽에서 읽는 작은 숫자 — 눈금 양옆으로 갈라
+                const sm = fmt(+(tot - r).toFixed(4)), sf = fsz(D.smh, D.sm);   // 반대쪽에서 읽는 작은 숫자 — 눈금 양옆으로 갈라, 굵게 하지 않는다(사용자)
                 if (sm.length > 1) {
                     const cut = Math.ceil(sm.length / 2);
-                    o += tx(u - rd * gap, Vw(D.sm), sm.slice(0, cut), sf, 'end', !first, Ts(D.sm), col, wt)
-                       + tx(u + rd * gap, Vw(D.sm), sm.slice(cut), sf, 'start', !first, Ts(D.sm), col, wt);
-                } else o += tx(u + rd * gap, Vw(D.sm), sm, sf, 'start', !first, Ts(D.sm), col, wt);
+                    o += tx(u - rd * gap, Vw(D.sm), sm.slice(0, cut), sf, 'end', !first, Ts(D.sm), col, 400)
+                       + tx(u + rd * gap, Vw(D.sm), sm.slice(cut), sf, 'start', !first, Ts(D.sm), col, 400);
+                } else o += tx(u + rd * gap, Vw(D.sm), sm, sf, 'start', !first, Ts(D.sm), col, 400);
                 o += tx(u, Vw(D.mn), fmt(r), fsz(D.mnh, D.mn), 'middle', !first, Ts(D.mn), col, wt);   // 큰 숫자 — 눈금 끝에서 띄워 아래
             }
         }
