@@ -1756,12 +1756,14 @@ function drawPre() {
 }
 
 // ── 작도 순서 설명 ───────────────────────────────────────────────────────
-const ptxt = n => { const p = P(n); return p ? `P${p.n}(${fmt(p.x)}, ${fmt(p.y)})` : `P${n}(없음)`; };
+const ptxtFull = n => { const p = P(n); return p ? `P${p.n}(${fmt(p.x)}, ${fmt(p.y)})` : `P${n}(없음)`; };
 function lsTxt(op) {
     const L = LS[op.ls] || LS.solid;
     return op.ls === 'aux' || !op.w || op.w === 'mid' ? L.name : `${L.name}(${WD[op.w].name})`;
 }
-function desc(op) {
+// 목록·재생 글은 점 번호만(좌표는 속에만 둔다, 사용자). 좌표까지 쓰는 것은 '작도 순서 복사'(full)뿐
+function desc(op, full) {
+    const ptxt = full ? ptxtFull : (n => `P${n}`);
     switch (op.t) {
         case 'free': return op.mark ? `마킹${op.p != null ? ' ' + ptxt(op.p) : ''} · 1/${op.mark.s} ${fmt(op.mark.r)}m` : `프리드로잉 · 점 ${op.pts ? op.pts.length : 0}개 · ${lsTxt(op)}`;
         case 'fill': return `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자', grass: '잔디'})[op.kind] ? `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자', grass: '잔디'})[op.kind]} 채우기(간격 ${fmt(+(op.gap * (op.kind === 'gl' ? 1.5 : op.kind === 'gs' ? 1 : 1)).toFixed(3))}m)` : '채우기'} · 면적 약 ${fmt(+(op.area || 0).toFixed(1))}㎡ · 색 ${op.color}`;
@@ -1775,7 +1777,7 @@ function desc(op) {
             return `호 ${ptxt(op.a)} → ${ptxt(op.b)} · ${op.dir === 'cw' ? '시계' : '반시계'} · ${+op.r ? '반지름 ' + fmt(op.r) + 'm' : '반원'}${op.big ? ' · 큰 호' : ''} · ${lsTxt(op)}`;
         case 'sym': { const d = doc.syms[op.sym];
             return `${d ? d.name : '(없는 기호)'} · 기준점 ${ptxt(op.p)}${+op.rot ? ' · 회전 ' + fmt(op.rot) + '°' : ''}`; }
-        case 'text': { const q = textPos(op) || {}; return `글자 "${op.s}"${op.dir === 'v' ? ' (세로)' : ''} · (${fmt(q.x)}, ${fmt(q.y)})`; }
+        case 'text': { const q = textPos(op) || {}; return `글자 "${op.s}"${op.dir === 'v' ? ' (세로)' : ''}${full ? ` · (${fmt(q.x)}, ${fmt(q.y)})` : ''}`; }
     }
     return '';
 }
@@ -1787,9 +1789,8 @@ function listOps() {
         if (op.t === 'step') { k++; i = 0;
             return `<div class="cad-op step" data-id="${op.id}"><span class="no">(${k})</span><span class="tx">${esc(op.title)}</span>${bt}</div>`; }
         i++;
-        const tl = tlText(op.tl);
         const kind = op.mark ? ' mk' : isAux(op) ? ' ax' : '';   // 마킹은 녹색, 보조선은 빨강으로 구별(사용자)
-        return `<div class="cad-op${kind}${selOps.has(op.id) ? ' on' : ''}${RP && RP.cur === op.id ? ' rp' : ''}" data-id="${op.id}"><span class="no"><i>${i}</i></span><span class="tx">${esc(desc(op))}${tl ? `<span class="tl">${esc(tl)}</span>` : ''}</span>${bt}</div>`;
+        return `<div class="cad-op${kind}${selOps.has(op.id) ? ' on' : ''}${RP && RP.cur === op.id ? ' rp' : ''}" data-id="${op.id}"><span class="no"><i>${i}</i></span><span class="tx">${esc(desc(op))}</span>${bt}</div>`;
     });
     $('cadOpList').innerHTML = rows.join('') || '<p class="cad-empty">아직 그린 것이 없습니다. 위에서 도구를 고르고 도면을 눌러 보세요.<br>단계 이름을 먼저 넣어 두면 작도 순서가 (1)(2)… 로 묶입니다.</p>';
     $('cadOpsN').textContent = doc.ops.filter(o => o.t !== 'step').length || '';
@@ -1812,7 +1813,7 @@ function describeAll() {
     let k = 0, i = 0;
     doc.ops.forEach(op => {
         if (op.t === 'step') { k++; i = 0; lines.push(`(${k}) ${op.title}`); }
-        else { i++; const tl = tlText(op.tl); lines.push(`  ${circ(i)} ${desc(op)}${tl ? `  [${tl}]` : ''}`); }
+        else { i++; const tl = tlText(op.tl); lines.push(`  ${circ(i)} ${desc(op, true)}${tl ? `  [${tl}]` : ''}`); }
     });
     return lines.join('\n');
 }
@@ -1949,8 +1950,7 @@ function rpInfo() {
     for (let j = 0; j < RP.k; j++) { const o = doc.ops[j]; if (o.t === 'step') { step = o.title; no++; i = 0; } else i++; }
     $('cadRpNo').textContent = `${RP.k} / ${n}`;
     $('cadRpTx').innerHTML = !op ? '처음 — ▶ 재생을 누르면 작도 순서대로 그려 보입니다'
-        : (step ? `<b>(${no}) ${esc(step)}</b>` : '') + (op.t === 'step' ? '' : `${step ? ' — ' : ''}${circ(i)} ${esc(desc(op))}`)
-          + (op.t !== 'step' && op.tl ? `<br><span class="tl">${esc(tlText(op.tl))}</span>` : '');
+        : (step ? `<b>(${no}) ${esc(step)}</b>` : '') + (op.t === 'step' ? '' : `${step ? ' — ' : ''}${circ(i)} ${esc(desc(op))}`);   // 도구 자리는 속에만 둔다(사용자)
     document.querySelectorAll('#cadOpList .cad-op').forEach(r => r.classList.toggle('rp', !!op && +r.dataset.id === op.id));
     const cur = op && document.querySelector(`#cadOpList .cad-op[data-id="${op.id}"]`);
     if (cur) cur.scrollIntoView({block: 'nearest'});
