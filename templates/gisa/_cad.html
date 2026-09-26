@@ -482,6 +482,8 @@
 /* 재생에서 지금 긋는 선은 제 색 그대로 — 빨강으로 긋고 다음 칸에서 검정으로 덧칠되던 것을 뺐다(사용자). 어디인지는 동그라미·샤프가 알린다 */
 .cad-op.step { font-weight: 700; color: #1b4332; margin-top: 8px; background: #e6f0ea; padding: 6px 6px; }   /* 단계 줄 — 연녹 바탕(사용자) */
 .cad-op.step:hover { background: #d9e8df; }
+#cadSvg .sym-svg * { vector-effect: none; }
+#cadSvg .sym-svg [stroke-width] { stroke-width: var(--sw); }   /* 수량표 기호 선 = 얇은 샤프(자식은 부모 g 의 굵기를 물려받는다) */
 /* 두 줄(경계석) — 열린 선이면 쪽을 고르는 작은 창 */
 .cad-dbl-wrap { position: relative; display: inline-flex; }
 .cad-dbl-pick { position: absolute; top: 100%; left: 0; margin-top: 4px; z-index: 30; display: flex; gap: 4px; padding: 6px; background: #fff;
@@ -1504,8 +1506,11 @@ function textSvg(x, y, s, size, rot, anchor, font, dir) {
     }
     return `<text xml:space="preserve" x="${fmt(tx)}" y="${fmt(ty)}" font-size="${fmt(fs)}" fill="${INK}" text-anchor="${anchor || 'middle'}" dominant-baseline="${bl}"${v ? ' style="writing-mode:vertical-rl;text-orientation:upright"' : ''}${font && FONTS[font] ? ` font-family="${FONTS[font]}"` : ''} font-weight="${font === 'hand' ? 400 : 600}"${tr}>${esc(s)}</text>`;
 }
+// 기호의 선 굵기는 **넣는 도면의 샤프 굵기**를 따른다(사용자) — 기본 기호의 '보통·굵게'는 굵은 샤프, '가늘게'는 얇은 샤프로 옮겨 그린다.
+// 예전에는 기본 기호는 종이 폭 비례 굵기, 수량표 기호는 화면 1.1px, 등록 기호는 샤프 굵기라 한 도면 안에서 제각각이었다
+const symW = w => w === 'p5' || w === 'p9' ? w : w === 'thin' ? 'p5' : 'p9';
 function itemSvg(it) {
-    const st = () => stAttr(it.ls, it.w, it.fill);
+    const st = () => stAttr(it.ls, it.ls === 'aux' ? it.w : symW(it.w), it.fill);
     switch (it.t) {
         case 'line': return `<path d="M${fmt(it.x1)} ${fmt(it.y1)}L${fmt(it.x2)} ${fmt(it.y2)}" ${st()}/>`;
         case 'rect': return `<rect x="${fmt(it.x)}" y="${fmt(it.y)}" width="${fmt(it.rw)}" height="${fmt(it.rh)}" ${st()}/>`;
@@ -1514,7 +1519,9 @@ function itemSvg(it) {
         case 'path': return `<path d="${esc(it.d)}" fill="${it.fill || 'none'}" stroke="none"/>`;
         case 'text': return textSvg(it.x, it.y, it.s, it.size || 1.4, it.rot, it.anchor, it.font, it.dir);
         case 'svg': { const [bx, by, bw, bh] = it.bb;   // 수량표 기호 — 원래 그림(px)을 규격 크기(m)에 맞춰 늘리고 기준점을 가운데로
-            return `<g transform="translate(${fmt(-it.w / 2)} ${fmt(-it.h / 2)}) scale(${+(it.w / bw).toFixed(5)} ${+(it.h / bh).toFixed(5)}) translate(${-bx} ${-by})">${it.svg}</g>`; }
+            // 선 굵기는 얇은 샤프 — 늘린 배율로 나눠 도면 m 굵기가 되게 한다(원래 그림의 화면 1.1px 고정 굵기를 CSS 로 덮는다)
+            const sx = it.w / bw, sy = it.h / bh, sw = SET.p5 / 1000 * scaleDenom() / Math.sqrt(Math.abs(sx * sy) || 1);
+            return `<g class="sym-svg" style="--sw:${+sw.toFixed(5)}" transform="translate(${fmt(-it.w / 2)} ${fmt(-it.h / 2)}) scale(${+sx.toFixed(5)} ${+sy.toFixed(5)}) translate(${-bx} ${-by})">${it.svg}</g>`; }
         case 'g': return `<g transform="translate(${fmt(it.x)} ${fmt(it.y)}) rotate(${fmt(it.rot || 0)})">${(it.items || []).map(itemSvg).join('')}</g>`;
     }
     return '';
