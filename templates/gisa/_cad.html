@@ -1524,7 +1524,9 @@ function dotSvg(p, ring) {           // 점·번호 크기는 설정(SET.ptSize�
 // I자는 판의 좌우 레일에 걸리므로 판을 따라 맞춰진다. 장식 치수는 종이 폭 기준 U 로 센다
 function boardGeom(s) {
     s = s || sheet;
-    return {bx0: s.x0 - 7 * U, bx1: s.x1 + 7 * U, by0: s.y0 - 6.5 * U, by1: s.y1 + 8.5 * U, rw: 2.6 * U, u: U};
+    // 아래 여백은 I자 몸통이 종이 아래로 다 빠져나갈 만큼 — 윗날이 종이 맨 아래 선까지 내려가야 한다(사용자: "끝까지 내릴 수 있게")
+    const mi = s.step / 5, bw = Math.max(4 * mi, Math.round(8 * U / mi) * mi);
+    return {bx0: s.x0 - 7 * U, bx1: s.x1 + 7 * U, by0: s.y0 - 6.5 * U, by1: s.y1 + Math.max(8.5 * U, bw + 6 * U), rw: 2.6 * U, u: U};
 }
 function boardSvg(s) {
     const B = boardGeom(s), f = v => fmt(v), {bx0, bx1, by0, by1, rw} = B, W = bx1 - bx0, H = by1 - by0, U = B.u;   // 판 장식은 판 단위로
