@@ -2001,7 +2001,7 @@ function rpMark(op, dur) {
         vb.x = w.x - vb.w / 2; vb.y = w.y - vb.h / 2; setVB();
     }
     let g = $('cadRpMark');
-    if (!g) { g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.id = 'cadRpMark'; g.setAttribute('pointer-events', 'none'); svg.appendChild(g); }
+    if (!g) { g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.id = 'cadRpMark'; g.setAttribute('pointer-events', 'none'); g.style.mixBlendMode = 'multiply'; svg.appendChild(g); }   // 형광펜 노랑 — 형광펜 띠와 같은 색, 밑이 비친다
     const t0 = performance.now(), id = rpMark.tok = {};   // 재생 밖(작도 순서 줄 누르기)에서도 쓴다
     const frame = now => {
         if (rpMark.tok !== id) { g.innerHTML = ''; return; }
@@ -2011,7 +2011,7 @@ function rpMark(op, dur) {
         if (t < 0.45) { const e = 1 - Math.pow(1 - t / 0.45, 3); r = 60 - 46 * e; a = e; }
         else if (t < 0.7) { const e = (t - 0.45) / 0.25; r = 14 + 4 * Math.sin(e * Math.PI); a = 1; }
         else { r = 14; a = 1 - (t - 0.7) / 0.3; }
-        g.innerHTML = `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(r / k)}" fill="rgba(255,214,0,${(0.38 * a).toFixed(3)})" stroke="rgba(0,0,0,${(0.6 * a).toFixed(3)})" stroke-width="${fmt(1.5 / k)}"/>`   // 테두리는 가늘고 옅게(1.5px · 60%) — 삼각자(노랑) 위에서도 보이되 무겁지 않게
+        g.innerHTML = `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(r / k)}" fill="rgba(255,245,0,${(0.5 * a).toFixed(3)})" stroke="rgba(0,0,0,${(0.6 * a).toFixed(3)})" stroke-width="${fmt(1.5 / k)}"/>`   // 테두리는 가늘고 옅게(1.5px · 60%) — 삼각자(노랑) 위에서도 보이되 무겁지 않게
             + `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(2.2 / k)}" fill="rgba(0,0,0,${(0.9 * a).toFixed(3)})"/>`;
         if (t < 1) requestAnimationFrame(frame); else g.innerHTML = '';
     };
