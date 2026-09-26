@@ -1095,7 +1095,7 @@ function drawSr() {
             const [a, av] = P[i - 1], [b, bv] = P[i], sy = (bv - av) / (b - a); return {v: av + (d - a) * sy, sy}; } };
     };
     // 크게 보이는 윗면(화면 위) 모서리에는 흰 랜드를 두지 않는다 — 눈금이 모서리에서 바로 시작한다(사용자)
-    const mA = seg(SR_RED0, SR_RED1, HA, SW ? SR_LAND : 0), mB = seg(SR_F - SR_RED1, SR_F - SR_RED0, SR_W - HA, SW ? 0 : SR_LAND);
+    const mA = seg(SR_RED0, SR_RED1, HA, 0), mB = seg(SR_F - SR_RED1, SR_F - SR_RED0, SR_W - HA, 0);   // 아래쪽도 같다(사용자)
     const halves = [{F: V.A, id: 'A', at: w => mA(w), v0: 0},
                     {F: V.B, id: 'B', at: w => { const r = mB(SR_F - w); return {v: SR_W - r.v, sy: r.sy}; }, v0: HA}];
     // 그림자 — 높이 21.7mm 의 세모 기둥이라 판보다 짙고 넓게 오른쪽 아래로 진다
@@ -1126,7 +1126,7 @@ function drawSr() {
     const land = (v0, v1, c) => `<path d="${R4(0, v0, SR_L, v1)}" fill="${c}"/>`
         + `<path d="M${M(0, v0)}L${M(SR_L, v0)}M${M(0, v1)}L${M(SR_L, v1)}" stroke="rgba(110,112,112,.55)" stroke-width="${f(0.08 * k)}"/>`;
     const sv = SW ? HA - SR_RIDGE / 2 - 0.25 : HA + SR_RIDGE / 2 + 0.25;   // 능선 너머 그늘은 좁은(어두운) 면 쪽
-    o += land(HA - SR_RIDGE / 2, HA + SR_RIDGE / 2, '#ffffff') + (SW ? land(0, SR_LAND, '#d4d4ce') : '') + (SW ? '' : land(SR_W - SR_LAND, SR_W, '#d4d4ce'))
+    o += land(HA - SR_RIDGE / 2, HA + SR_RIDGE / 2, '#ffffff') + ''
        + `<path d="M${M(0, sv)}L${M(SR_L, sv)}" stroke="rgba(0,0,0,.18)" stroke-width="${f(0.45 * k)}"/>`;   // 능선 너머로 꺾여 내려가는 그늘
     // 눈금 — 실물 사진을 따른다: 축척마다 [작은 눈금, 중간 눈금, 긴 중간 눈금(없으면 0), 숫자] 간격(실제 m).
     // 1/100 은 0.1·0.5·1m, 1/200 은 0.1·0.5·1·5m, 1/300~1/600 은 0.5·1·5·10m
@@ -1183,7 +1183,10 @@ function drawSr() {
            + tx(lbU + sg * 2.3, Vw(D.mu), 'm', fsz(D.muh, D.mu), 'middle', !first, Ts(D.mu), col, 400);
     };
     halves.forEach(h => { scale(h.F.a, h, true); scale(h.F.b, h, false); });
-    o += `</g><path d="${RR}" fill="none" stroke="#8d9296" stroke-width="${f(0.22 * k)}" pointer-events="none"/>`;   // 둥근 윤곽선
+    // 테두리선은 양 끝(둥근 모서리)에만 — 긴 변에 두면 눈금 위에 회색 줄이 한 줄 더 생긴다(사용자)
+    const endL = `M${M(RC, 0)}${`A${rw} ${rw} 0 0 0 ${M(0, RC)}`}L${M(0, SR_W - RC)}${`A${rw} ${rw} 0 0 0 ${M(RC, SR_W)}`}`,
+          endR = `M${M(SR_L - RC, 0)}${arc(SR_L, RC)}L${M(SR_L, SR_W - RC)}${arc(SR_L - RC, SR_W)}`;
+    o += `</g><path d="${endL}${endR}" fill="none" stroke="#8d9296" stroke-width="${f(0.22 * k)}" pointer-events="none"/>`;   // 둥근 윤곽선
     if (!V.custom) {   // 축척 전환(굴림) 단추 — 자 오른쪽 여백 안, 크게 보이는 면의 가운데(사용자). 돌린 상태면 그 자리가 반대쪽 끝이다
         const q = SW ? srMap(SR_Z / 2, SR_W - 3.6) : srMap(SR_L - SR_Z / 2, 3.6), rr = 2.9 * k;
         const tri = [0, 1, 2].map(i => { const a = (-90 + i * 120) * Math.PI / 180; return `${f(Math.cos(a) * 1.5 * k)} ${f(Math.sin(a) * 1.5 * k)}`; });
