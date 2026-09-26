@@ -1694,7 +1694,7 @@ function drawOps() {
     const ops = (RP ? doc.ops.slice(0, RP.k) : doc.ops).filter(o => o.t !== 'step'), fills = ops.filter(o => o.t === 'fill'), aux = ops.filter(isAux), marks = ops.filter(o => o.mark && !isAux(o)),
           rest = ops.filter(o => !isAux(o) && !o.mark && o.t !== 'fill');
     gOps.innerHTML = [...fills, ...aux, ...marks, ...rest].map(op => {   // 칠한 면이 맨 아래
-        const s = opSvg(op), cl = [isAux(op) ? 'aux' : '', op.mark ? 'mark' : '', !RP && selOps.has(op.id) ? 'on' : '', RP && RP.cur === op.id ? 'rp-cur' : ''].filter(Boolean).join(' ');
+        const s = opSvg(op), cl = [isAux(op) ? 'aux' : '', op.mark ? 'mark' : '', !RP && !listSel && selOps.has(op.id) ? 'on' : '', RP && RP.cur === op.id ? 'rp-cur' : ''].filter(Boolean).join(' ');
         return s ? `<g data-op="${op.id}"${cl ? ` class="${cl}"` : ''}>${s}<g class="cad-hit">${s}</g></g>` : '';
     }).join('');
 }
@@ -3792,6 +3792,8 @@ document.addEventListener('keydown', e => {
     else if (k === 'End') go(() => { rpStop(); rpGo(doc.ops.length, false); });
     else if (!e.ctrlKey && !e.metaKey) e.stopImmediatePropagation();   // 재생 중 단축키(도구 바꾸기·I자 옮기기)는 막는다
 }, true);
+var listSel = false;                                   // 작도 순서 줄을 눌러 고른 것 — 도면에서는 빨갛게 칠하지 않는다(사용자). 형광펜·동그라미가 대신 알린다
+svg.addEventListener('pointerdown', () => { if (listSel) { listSel = false; drawOps(); } }, true);   // 도면을 만지면 평소 선택 표시로
 let opPick = null;                                     // 작도 순서에서 마지막으로 누른 줄 — '+ 단계' 가 그 위에 넣는다
 $('cadOpList').addEventListener('click', e => {
     const row = e.target.closest('.cad-op'); if (!row) return;
@@ -3810,6 +3812,7 @@ $('cadOpList').addEventListener('click', e => {
     // 누른 줄이 도면의 어디인지 — 재생 때처럼 시작점에 동그라미를 조여 들게 한다(단계 줄이면 그 단계의 첫 작도)
     { const i = doc.ops.findIndex(o => o.id === id), op = doc.ops.slice(i).find(o => o.t !== 'step'); if (op && (!row.classList.contains('step') || op !== doc.ops[i])) { rpMark(op, 900); rpHilite(op, 250); } }
     if (row.classList.contains('step')) return;
+    listSel = true;
     selectOp(id, e.shiftKey || e.ctrlKey || e.metaKey);
 });
 $('cadPtList').addEventListener('change', e => {
