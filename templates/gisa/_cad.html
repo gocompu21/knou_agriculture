@@ -3577,7 +3577,7 @@ $('cadRp').addEventListener('click', e => {
     else if (a === 'prev') rpGo(RP.k - 1, false);
     else if (a === 'next') rpGo(RP.k + 1, true);
 });
-$('cadRpBar').addEventListener('input', e => { if (RP) { rpStop(); rpGo(+e.target.value, false); } });
+$('cadRpBar').addEventListener('input', e => { if (RP) { const v = +e.target.value; rpStop(); rpGo(v, false); } });   // 값을 먼저 읽는다 — rpStop 의 rpInfo 가 막대를 지금 칸으로 되돌린다
 // 재생 중에는 도면을 건드리지 않는다(휠 확대·휠 버튼 이동만)
 svg.addEventListener('pointerdown', e => { if (RP && e.button !== 1) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
 document.addEventListener('keydown', e => {
