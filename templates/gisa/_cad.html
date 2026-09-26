@@ -1757,18 +1757,18 @@ function drawPre() {
 
 // ── 작도 순서 설명 ───────────────────────────────────────────────────────
 const ptxtFull = n => { const p = P(n); return p ? `P${p.n}(${fmt(p.x)}, ${fmt(p.y)})` : `P${n}(없음)`; };
-function lsTxt(op) {
+function lsTxtFull(op) {
     const L = LS[op.ls] || LS.solid;
     return op.ls === 'aux' || !op.w || op.w === 'mid' ? L.name : `${L.name}(${WD[op.w].name})`;
 }
 // 목록·재생 글은 점 번호만(좌표는 속에만 둔다, 사용자). 좌표까지 쓰는 것은 '작도 순서 복사'(full)뿐
 function desc(op, full) {
-    const ptxt = full ? ptxtFull : (n => `P${n}`);
+    const ptxt = full ? ptxtFull : (n => `P${n}`), lsTxt = full ? lsTxtFull : (o => (LS[o.ls] || LS.solid).name);   // 목록에는 굵기(샤프 0.9 등)를 안 보인다(사용자)
     switch (op.t) {
         case 'free': return op.mark ? `마킹${op.p != null ? ' ' + ptxt(op.p) : ''} · 1/${op.mark.s} ${fmt(op.mark.r)}m` : `프리드로잉 · 점 ${op.pts ? op.pts.length : 0}개 · ${lsTxt(op)}`;
         case 'fill': return `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자', grass: '잔디'})[op.kind] ? `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자', grass: '잔디'})[op.kind]} 채우기(간격 ${fmt(+(op.gap * (op.kind === 'gl' ? 1.5 : op.kind === 'gs' ? 1 : 1)).toFixed(3))}m)` : '채우기'} · 면적 약 ${fmt(+(op.area || 0).toFixed(1))}㎡ · 색 ${op.color}`;
         case 'line': { const a = P(op.a), b = P(op.b), len = a && b && !isAux(op) ? ` · ${fmt(Math.hypot(b.x - a.x, b.y - a.y))}m` : '';   // 길이(m) — 보조선은 빼고(사용자)
-            return `선 ${ptxt(op.a)} → ${ptxt(op.b)}${len} · ${lsTxt(op)}`; }
+            return full ? `선 ${ptxt(op.a)} → ${ptxt(op.b)}${len} · ${lsTxt(op)}` : `${lsTxt(op)} ${ptxt(op.a)} → ${ptxt(op.b)}${len}`; }   // 목록: '실선 P1 → P2 · 40m'(사용자)
         case 'rect': { const a = P(op.a), b = P(op.b);
             const sz = a && b ? ` (${fmt(Math.abs(b.x - a.x))}×${fmt(Math.abs(b.y - a.y))}m)` : '';
             return `사각형 ${ptxt(op.a)} ~ ${ptxt(op.b)}${sz} · ${lsTxt(op)}`; }
