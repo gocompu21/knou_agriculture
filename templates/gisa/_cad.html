@@ -1116,26 +1116,26 @@ function drawSr() {
         const paper = (h.id === 'A') === first;
         const at = d => h.at(first ? d : SR_F - d), Vw = d => at(d).v, Sy = d => at(d).sy;
         const col = '#000', wt = paper ? 600 : 500;   // 700 은 너무 굵었다 · 500 은 옅었다(사용자) — 숫자는 눈금에서 조금 더 내려 둔다
-        // 눈금은 길고 굵게, 숫자는 크게(사용자: "더 크고 잘 보이게")
-        // 숫자는 눈금에 닿지 않게(사용자) — 작은 숫자(반대쪽에서 읽는 값)는 제자리(긴 눈금과 같은 줄, 큰 숫자 위)에 두고,
-        // 긴 눈금을 그 앞에서 끝낸다(한때 옆으로 비켜 뒀더니 "위치는 그대로 두라"). 큰 숫자는 작은 숫자 아래에 띄운다.
-        // 종이 쪽은 화면 mm 로 정해 면 좌표로 바꾼다(그 구간의 눌림 s0 로 나눔). 글자는 세로 0.72 로 덜 눌러 또렷하게(흐리다는 지적)
-        let D, Ts;
-        if (paper) {
-            const s0 = Sy(1), F = mm => mm / s0;               // 화면 mm → 면 좌표
-            D = {tl: F(1.45), tm2: F(1.2), tm: F(1.0), tn: F(0.7), sm: F(2.1), smf: 1.35, mn: F(3.55), mnf: 2.5, lb: F(3.0), lbf: 2.0, mu: F(1.0), muf: 1.1};
-            Ts = () => 0.72;
-        } else {
-            D = {tl: 4.2, tm2: 3.4, tm: 2.7, tn: 1.8, sm: 5.5, smf: 2.0, mn: 8.9, mnf: 3.4, lb: 6.2, lbf: 3.0, mu: 2.4, muf: 1.6};
-            Ts = Sy;
-        }
+        // 눈금·숫자의 꼴은 실물 사진(1/100 면 정면)을 잰 비율 그대로다(사용자: "형태를 참조하라") — 면 폭 10.8mm(모서리 → 색 띠) 기준
+        //   작은 눈금 1.2 · 0.5 눈금 2.5 · 1m 사이 긴 중간 3.2 · 숫자 눈금 3.9 · 작은 숫자 가운데 3.7(글자 높이 1.4) · 큰 숫자 가운데 6.1(높이 2.2)
+        // 숫자 눈금은 작은 숫자 두 자리 **사이**를 지난다(2│9) — 글자를 눈금 양옆으로 갈라 놓아 닿지 않게 한다. 한 자리면 눈금 오른쪽(읽는 방향)
+        // 글자는 세로를 0.72 로 덜 눌러 또렷하게 하고(흐리다는 지적), 그만큼 크기를 줄여 사진의 글자 높이 비율에 맞춘다
+        const D = {tl: 3.9, tm2: 3.2, tm: 2.5, tn: 1.2, sm: 3.7, smh: 1.4, mn: 6.1, mnh: 2.2, lb: 5.4, lbh: 1.9, mu: 2.4, muh: 1.0};
+        const Ts = paper ? () => 0.72 : Sy;
+        const fsz = (hMM, d) => hMM / 0.72 * (paper ? Sy(d) / 0.72 : 1);   // 글자 높이(면 mm) → font-size
+        const rd = first ? 1 : -1, gap = 0.3;                       // 읽는 방향(u), 눈금과 글자 사이
         let tkp = '';
         for (let i = 0, r = 0; r <= tot + 1e-9; i++, r = +(i * minor).toFixed(6)) {
             const u = U0 + sg * r * perM, isL = on(r, lab), isM2 = !isL && mid2 && on(r, mid2), isM = !isL && !isM2 && on(r, mid);
             tkp += `M${M(u, Vw(0))}L${M(u, Vw(isL ? D.tl : isM2 ? D.tm2 : isM ? D.tm : D.tn))}`;
             if (isL) {
-                o += tx(u, Vw(D.sm), fmt(+(tot - r).toFixed(4)), D.smf, 'middle', !first, Ts(D.sm), col, wt);   // 반대쪽에서 읽는 작은 숫자 — 긴 눈금 끝 아래 제자리
-                o += tx(u, Vw(D.mn), fmt(r), D.mnf, 'middle', !first, Ts(D.mn), col, wt);                                     // 큰 숫자 — 눈금 끝 아래
+                const sm = fmt(+(tot - r).toFixed(4)), sf = fsz(D.smh, D.sm);   // 반대쪽에서 읽는 작은 숫자 — 눈금 양옆으로 갈라
+                if (sm.length > 1) {
+                    const cut = Math.ceil(sm.length / 2);
+                    o += tx(u - rd * gap, Vw(D.sm), sm.slice(0, cut), sf, 'end', !first, Ts(D.sm), col, wt)
+                       + tx(u + rd * gap, Vw(D.sm), sm.slice(cut), sf, 'start', !first, Ts(D.sm), col, wt);
+                } else o += tx(u + rd * gap, Vw(D.sm), sm, sf, 'start', !first, Ts(D.sm), col, wt);
+                o += tx(u, Vw(D.mn), fmt(r), fsz(D.mnh, D.mn), 'middle', !first, Ts(D.mn), col, wt);   // 큰 숫자 — 눈금 끝에서 띄워 아래
             }
         }
         o += `<path d="${tkp}" stroke="#000" stroke-width="${f((paper ? 0.19 : 0.14) * k)}"/>`;
@@ -1150,7 +1150,7 @@ function drawSr() {
             if (tf) o += `<path d="${tf}" stroke="#000" stroke-width="${f((paper ? 0.11 : 0.08) * k)}"/>`;
         }
         // 축척 표기 — 앞 모서리 축척은 왼쪽 여백, 뒤 모서리 축척은 오른쪽 여백(거꾸로). 단위 'm' 은 0 곁 위에 작게
-        o += tx(first ? 1.8 : SR_L - 1.8, Vw(D.lb), `1/${fmt(Sx)}`, D.lbf, 'start', !first, Ts(D.lb), col, wt) + tx(U0 - sg * 2.4, Vw(D.mu), 'm', D.muf, 'middle', !first, Ts(D.mu), col, wt);
+        o += tx(first ? 1.8 : SR_L - 1.8, Vw(D.lb), `1/${fmt(Sx)}`, fsz(D.lbh, D.lb), 'start', !first, Ts(D.lb), col, wt) + tx(U0 - sg * 2.4, Vw(D.mu), 'm', fsz(D.muh, D.mu), 'middle', !first, Ts(D.mu), col, wt);
     };
     halves.forEach(h => { scale(h.F.a, h, true); scale(h.F.b, h, false); });
     o += '</g>';
