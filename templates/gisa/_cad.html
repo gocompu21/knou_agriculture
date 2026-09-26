@@ -111,7 +111,7 @@
     <div class="cad-body">
         <div class="cad-stage">
             <svg id="cadSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-                <g id="cadBoard" pointer-events="none"></g><g id="cadGrid"></g><g id="cadHl" pointer-events="none"></g><g id="cadOps"></g><g id="cadPts"></g><g id="cadBar"></g><g id="cadTri"></g><g id="cadTpl"></g><g id="cadSr"></g><g id="cadPtsTop" pointer-events="none"></g><g id="cadPre"></g>
+                <g id="cadBoard" pointer-events="none"></g><g id="cadGrid"></g><g id="cadHl" pointer-events="none" style="mix-blend-mode:multiply"></g><g id="cadOps"></g><g id="cadPts"></g><g id="cadBar"></g><g id="cadTri"></g><g id="cadTpl"></g><g id="cadSr"></g><g id="cadPtsTop" pointer-events="none"></g><g id="cadPre"></g>
             </svg>
             <div class="cad-zoom">
                 <button type="button" id="cadZfit" title="종이에 맞추기">맞춤</button>
@@ -1950,7 +1950,7 @@ function rpHilite(op, delay) {
     const id = rpHilite.tok = {};
     lay.innerHTML = '';
     const s = opSvg({...op, _raw: true}); if (!s) return;
-    const k = pxPer(), bw = 14 / k, NS = 'http://www.w3.org/2000/svg';
+    const k = pxPer(), bw = 9 / k, NS = 'http://www.w3.org/2000/svg';
     const tmp = document.createElementNS(NS, 'g'); tmp.innerHTML = s; lay.appendChild(tmp);
     const geo = [...tmp.querySelectorAll('line,path,circle,rect,polyline,polygon,ellipse')].filter(el => el.closest('clipPath,mask') == null);
     const strokes = [], boxes = [];
@@ -1966,7 +1966,7 @@ function rpHilite(op, delay) {
     } else {
         geo.forEach(el => { if (!strokes.includes(el)) el.remove(); });
         tmp.querySelectorAll('text,image,use').forEach(el => el.remove());
-        strokes.forEach(el => { el.setAttribute('fill', 'none'); el.setAttribute('stroke', 'rgba(255,214,0,.6)'); el.setAttribute('stroke-width', fmt(bw));
+        strokes.forEach(el => { el.setAttribute('fill', 'none'); el.setAttribute('stroke', 'rgba(255,245,0,.5)'); el.setAttribute('stroke-width', fmt(bw));   // 형광펜 노랑·폭 9px(사용자) — 층에 multiply 를 걸어 모눈이 비친다
             el.setAttribute('stroke-linecap', 'round'); el.setAttribute('stroke-linejoin', 'round'); el.removeAttribute('stroke-dasharray'); el.removeAttribute('clip-path'); el.removeAttribute('mask'); });
     }
     const els = strokes.length && boxes.length === 0 ? strokes.map(el => { let L = 0; try { L = el.getTotalLength(); } catch (e) {} return {el, L}; }).filter(e => e.L > 0) : [];
