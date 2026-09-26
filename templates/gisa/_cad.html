@@ -1736,14 +1736,15 @@ function mergeCands(n) {
     return [...out.values()].sort((a, b) => a.dist - b.dist).slice(0, 8);
 }
 function mergePts(from, to) {
-    if (+from === +to || !P(from) || !P(to)) return;
+    const froms = (Array.isArray(from) ? from : [from]).map(Number).filter(f => f !== +to && P(f));
+    if (!froms.length || !P(to)) return;
     snapHist();
-    doc.ops.forEach(op => { if (op.t !== 'step') REF_KEYS.forEach(k => { if (op[k] != null && +op[k] === +from) op[k] = +to; }); });
+    doc.ops.forEach(op => { if (op.t !== 'step') REF_KEYS.forEach(k => { if (op[k] != null && froms.includes(+op[k])) op[k] = +to; }); });
     doc.ops = doc.ops.filter(op => !((op.t === 'line' || op.t === 'rect' || op.t === 'arc') && +op.a === +op.b));   // 길이 0 이 된 것은 버린다
-    doc.pts = doc.pts.filter(p => p.n !== +from);
-    selPts.delete(+from);
+    doc.pts = doc.pts.filter(p => !froms.includes(p.n));
+    froms.forEach(f => selPts.delete(f));
     const nt = compactPts()[+to]; selPt = nt;
-    changed(); flash(`P${from} 을(를) P${to} 에 합치고 번호를 다시 매겼습니다 — 합친 점은 이제 P${nt} 입니다`);
+    changed(); flash(`${froms.map(f => 'P' + f).join('·')} 을(를) P${to} 에 합치고 번호를 다시 매겼습니다 — 합친 점은 이제 P${nt} 입니다`);
 }
 // 합치기·연장 뒤 번호를 다시 매긴다(사용자) — 지금 차례는 그대로 두고 빈 번호만 메운다(P2 가 없어지면 P3 → P2 …). {옛: 새}
 function compactPts() {
@@ -1810,28 +1811,50 @@ function extendTo(n, c) {
     const nq = compactPts()[q]; selPt = nq;
     changed(); flash(`${c.name} 까지 ${fmt(c.dist)}m ${c.back ? '줄였습니다' : '연장했습니다'} — 끝점은 P${nq}`);
 }
+// 누른 자리에 점이 겹쳐 있으면(찍다 보니 몇 mm 차이로 여러 개) 선과 이어지지 않은 점이 골라져 후보가 비었다(사용자).
+// 화면 8px 안에 겹친 점을 모두 함께 보고, 그 점들에 이어진 선으로 합치기·연장·줄이기 후보를 모은다. 겹친 점을 한 점으로 합치는 항목도 둔다
 function ctxMenu(e, n) {
     let m = $('cadCtx');
     if (!m) { m = document.createElement('div'); m.id = 'cadCtx'; m.className = 'cad-ctx'; m.hidden = true; root.appendChild(m); }
-    const C = mergeCands(n), X = extCands(n), Tm = extCands(n, true), XT = [...X, ...Tm];
-    m.innerHTML = `<div class="ch">P${n} 합치기</div>` + (C.length
-        ? C.map(c => `<button type="button" data-to="${c.n}">P${c.n} 와(과) 합치기<small>${c.why} · ${fmt(c.dist)}m</small></button>`).join('')
+    const S = P(n), px = 8 / pxPer();
+    const stack = [+n, ...doc.pts.filter(q => q.n !== +n && Math.hypot(q.x - S.x, q.y - S.y) <= px)
+        .sort((a, b) => Math.hypot(a.x - S.x, a.y - S.y) - Math.hypot(b.x - S.x, b.y - S.y)).map(q => q.n)];
+    const tag = f => stack.length > 1 ? `P${f}: ` : '';
+    const C = [], X = [], Tm = [];
+    stack.forEach(f => {
+        mergeCands(f).forEach(c => { if (!stack.includes(c.n) && !C.some(d => d.n === c.n)) C.push({...c, from: f}); });
+        extCands(f).forEach(c => { if (!X.some(d => d.name === c.name && d.from === f)) X.push({...c, from: f}); });
+        extCands(f, true).forEach(c => { if (!Tm.some(d => d.name === c.name && d.from === f)) Tm.push({...c, from: f}); });
+    });
+    [C, X, Tm].forEach(L => L.sort((a, b) => a.dist - b.dist));
+    const XT = [...X, ...Tm];
+    // 겹친 점은 선이 가장 많이 걸린 점으로 모은다(선 끝이 그대로 남는다)
+    const uses = f => doc.ops.filter(op => op.t !== 'step' && ptsOf(op).map(Number).includes(f)).length;
+    const keep = stack.slice().sort((a, b) => uses(b) - uses(a))[0], others = stack.filter(f => f !== keep);
+    const H = t => `<div class="ch" style="border-top:1px solid #eef0f2;margin-top:2px">${t}</div>`;
+    m.innerHTML = (others.length
+            ? `<div class="ch">겹친 점 ${stack.map(f => 'P' + f).join('·')}</div><button type="button" data-stack="1">${others.map(f => 'P' + f).join('·')} 을(를) P${keep} 로 합치기<small>겹친 점 정리</small></button>` + H(`P${n} 합치기`)
+            : `<div class="ch">P${n} 합치기</div>`)
+        + (C.length
+        ? C.map((c, i) => `<button type="button" data-to="${i}">${tag(c.from)}P${c.n} 와(과) 합치기<small>${c.why} · ${fmt(c.dist)}m</small></button>`).join('')
         : '<div class="none">이어진 선의 연장선 위에 점이 없습니다</div>')
-        + `<div class="ch" style="border-top:1px solid #eef0f2;margin-top:2px">P${n} 교차선까지 연장</div>` + (X.length
-        ? X.map((c, i) => `<button type="button" data-ext="${i}">${c.name} 까지 연장<small>${fmt(c.dist)}m</small></button>`).join('')
+        + H(`교차선까지 연장`) + (X.length
+        ? X.map((c, i) => `<button type="button" data-ext="${i}">${tag(c.from)}${c.name} 까지 연장<small>${fmt(c.dist)}m</small></button>`).join('')
         : '<div class="none">연장해서 만나는 선이 없습니다</div>')
-        + `<div class="ch" style="border-top:1px solid #eef0f2;margin-top:2px">P${n} 지난 교차선까지 줄이기</div>` + (Tm.length
-        ? Tm.map((c, i) => `<button type="button" data-ext="${X.length + i}">${c.name} 까지 줄이기<small>−${fmt(c.dist)}m</small></button>`).join('')
+        + H(`지난 교차선까지 줄이기`) + (Tm.length
+        ? Tm.map((c, i) => `<button type="button" data-ext="${X.length + i}">${tag(c.from)}${c.name} 까지 줄이기<small>−${fmt(c.dist)}m</small></button>`).join('')
         : '<div class="none">이 선이 지나온 교차선이 없습니다</div>')
-        + (() => { const k = doc.ops.filter(op => op.t !== 'step' && ptsOf(op).map(Number).includes(+n)).length;
-            return `<div class="ch" style="border-top:1px solid #eef0f2;margin-top:2px">삭제</div><button type="button" data-del="1" style="color:#c62828">P${n} 삭제${k ? `<small>이어진 ${k}개도 함께</small>` : ''}</button>`; })();
+        + H('삭제') + `<button type="button" data-del="1" style="color:#c62828">P${n} 삭제${uses(+n) ? `<small>이어진 ${uses(+n)}개도 함께</small>` : ''}</button>`;
     m.hidden = false;
-    const W = m.offsetWidth, H = m.offsetHeight;
-    m.style.left = Math.min(e.clientX + 4, innerWidth - W - 6) + 'px'; m.style.top = Math.min(e.clientY + 4, innerHeight - H - 6) + 'px';
+    const W = m.offsetWidth, Hh = m.offsetHeight;
+    m.style.left = Math.min(e.clientX + 4, innerWidth - W - 6) + 'px'; m.style.top = Math.max(6, Math.min(e.clientY + 4, innerHeight - Hh - 6)) + 'px';
     m.onclick = ev => {
-        const b = ev.target.closest('button[data-to], button[data-ext], button[data-del]'); if (!b) return;
+        const b = ev.target.closest('button[data-to], button[data-ext], button[data-del], button[data-stack]'); if (!b) return;
         m.hidden = true;
-        if (b.dataset.to) mergePts(n, +b.dataset.to); else if (b.dataset.del) delPoint(n); else extendTo(n, XT[+b.dataset.ext]);
+        if (b.dataset.stack) mergePts(others, keep);
+        else if (b.dataset.to) { const c = C[+b.dataset.to]; mergePts(c.from, c.n); }
+        else if (b.dataset.del) delPoint(n);
+        else { const c = XT[+b.dataset.ext]; extendTo(c.from, c); }
     };
 }
 document.addEventListener('pointerdown', e => { const m = $('cadCtx'); if (m && !m.hidden && !e.target.closest('#cadCtx')) m.hidden = true; }, true);
@@ -2839,7 +2862,8 @@ svg.addEventListener('pointerdown', e => {
         const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
         if (e.button === 2 && selPt) {                     // 고른 점에서 오른쪽 버튼 — 합치기 메뉴
             const hp = hitPoint(w);
-            if (hp && hp.n === selPt) { ctxMenu(e, selPt); drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return; }
+            const sp = P(selPt), near = sp && Math.hypot(sp.x - w.x, sp.y - w.y) * pxPer() <= 11;   // 겹친 점이면 hitPoint 가 다른 점을 줄 수 있다
+            if ((hp && hp.n === selPt) || near) { ctxMenu(e, selPt); drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return; }
         }
         // 템플릿 — 구멍 안에서 누르면 구멍 가장자리를 따라 돌린다(어느 버튼이든), 판을 왼쪽으로 누르면 옮긴다
         const hole = tplHoleAt(w);
