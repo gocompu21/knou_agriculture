@@ -1886,7 +1886,8 @@ function rpReveal(op, dur) {                           // 방금 그은 것을 �
     const frame = now => {
         if (!RP || RP.reveal !== id) { clear(); return; }
         // 선마다 시작·끝은 천천히, 가운데는 빠르게(사용자) — 시간을 길이에 비례해 나눠 주고 한 선 안에서 easeInOutCubic
-        const t = Math.min(1, (now - t0) / dur), s = tot * t, ez = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+        const t = Math.min(1, (now - t0) / dur), s = tot * t,
+              ez = op.mark ? (u => u) : (u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);   // 스케일자 마킹은 짧은 표시라 처음부터 고른 속도로(사용자)
         let acc = 0, tip = null;
         els.forEach(e => {
             const d = e.L * ez(Math.max(0, Math.min(1, (s - acc) / e.L)));
