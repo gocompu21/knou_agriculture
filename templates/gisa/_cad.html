@@ -1871,28 +1871,44 @@ function offsetChain(Q, closed, g, side) {             // Q: 꼭짓점들, side:
 const areaOf = Q => Q.reduce((s, a, i) => { const b = Q[(i + 1) % Q.length]; return s + a.x * b.y - b.x * a.y; }, 0);
 // 고른 것 → 두 줄 대상. 선들이 끝과 끝으로 이어졌으면 한 꺾은선으로 모은다
 function dblTargets() {
+    // 선과 호를 끝과 끝으로 이어 사슬(고리)로 모은다 — 둥근 모서리(호)가 낀 윤곽도 한 고리로 보아 안쪽을 한 번에 정한다(사용자: 안과 밖이 섞였다).
+    // 끝점은 번호가 달라도 같은 자리(0.002m)면 이어진 것으로 본다
     const sel = doc.ops.filter(o => selOps.has(o.id) && o.t !== 'step' && !o.mark);
-    const out = [], lines = sel.filter(o => o.t === 'line');
-    sel.filter(o => o.t !== 'line').forEach(o => out.push({kind: o.t, op: o}));
-    const left = new Set(lines);
-    while (left.size) {                                // 이어진 선 사슬
+    const out = [], segs = sel.filter(o => o.t === 'line' || o.t === 'arc');
+    sel.filter(o => o.t !== 'line' && o.t !== 'arc').forEach(o => out.push({kind: o.t, op: o}));
+    const key = n => { const q = P(n); return q ? `${Math.round(q.x * 500)},${Math.round(q.y * 500)}` : 'x' + n; };
+    const left = new Set(segs);
+    while (left.size) {
         const first = [...left][0]; left.delete(first);
-        let chain = [first.a, first.b], grew = true, st = {ls: first.ls, w: first.w};
+        let ch = [{op: first, rev: false}], grew = true;
+        const s0 = e => key(e.rev ? e.op.b : e.op.a), s1 = e => key(e.rev ? e.op.a : e.op.b);
         while (grew) {
             grew = false;
             for (const o of left) {
-                const h = chain[0], t = chain[chain.length - 1];
-                if (o.a === t) chain.push(o.b); else if (o.b === t) chain.push(o.a); else if (o.b === h) chain.unshift(o.a); else if (o.a === h) chain.unshift(o.b); else continue;
+                const head = s0(ch[0]), tail = s1(ch[ch.length - 1]), ka = key(o.a), kb = key(o.b);
+                if (ka === tail) ch.push({op: o, rev: false}); else if (kb === tail) ch.push({op: o, rev: true});
+                else if (kb === head) ch.unshift({op: o, rev: false}); else if (ka === head) ch.unshift({op: o, rev: true}); else continue;
                 left.delete(o); grew = true; break;
             }
         }
-        const Q = chain.map(n => P(n)).filter(Boolean), closed = chain.length > 3 && chain[0] === chain[chain.length - 1];
-        out.push({kind: 'chain', Q: closed ? Q.slice(0, -1) : Q, closed, st});
+        const closed = ch.length > 1 && s0(ch[0]) === s1(ch[ch.length - 1]);
+        out.push({kind: 'path', ch, closed, st: {ls: first.ls, w: first.w}});
     }
     return out;
 }
+// 사슬의 한 토막 — 진행 방향의 두 끝점과 호의 기하
+function segGeo(e) {
+    const o = e.op, p = P(e.rev ? o.b : o.a), q = P(e.rev ? o.a : o.b);
+    if (o.t === 'line') return {line: true, p, q};
+    const cw = (o.dir === 'cw') !== e.rev, G = arcGeom(p, q, o.r, cw, o.big);
+    return {line: false, p, q, cw, big: o.big, G};
+}
+function arcPts(s, n) {                                // 호를 따라 n 개 점(진행 방향)
+    const out = []; for (let i = 0; i <= n; i++) { const t = s.G.th0 + s.G.sgn * s.G.span * i / n; out.push({x: s.G.cx + s.G.R * Math.cos(t), y: s.G.cy + s.G.R * Math.sin(t)}); }
+    return out;
+}
 function dblNeedSide(T) {                              // 열린 것이 있으면 쪽을 물어야 한다
-    return T.some(t => (t.kind === 'chain' && !t.closed) || t.kind === 'arc' || (t.kind === 'free' && !freeClosed(t.op)));
+    return T.some(t => (t.kind === 'path' && !t.closed) || (t.kind === 'free' && !freeClosed(t.op)));
 }
 const freeClosed = op => { const a = op.pts[0], b = op.pts[op.pts.length - 1]; return op.pts.length > 3 && Math.hypot(a[0] - b[0], a[1] - b[1]) < 0.5; };
 // 열린 선의 쪽 — 첫 변이 가로에 가까우면 위/아래, 세로에 가까우면 왼쪽/오른쪽. dir: 'up'|'down'|'left'|'right'(원·호는 'in'|'out')
@@ -1914,10 +1930,46 @@ function makeDouble(dir) {
         doc.ops.push(...list); made += list.length ? 1 : 0;
     };
     T.forEach(t => {
-        if (t.kind === 'chain') {
-            if (t.Q.length < 2) return;
-            const side = t.closed ? (areaOf(t.Q) > 0 ? 1 : -1) : sideFor(t.Q[0], t.Q[1], dir);
-            pushChain(offsetChain(t.Q, t.closed, g, side), t.closed, t.st, '경계석 안쪽선');
+        if (t.kind === 'path') {
+            const S = t.ch.map(segGeo).filter(s => s.p && s.q && (s.line || s.G));
+            if (!S.length) return;
+            // 안쪽 = 고리의 면적 부호로(호는 점을 뿌려 넣는다). 열린 사슬은 고른 쪽 — 첫 토막 방향 기준으로 사슬 전체에 같은 쪽
+            const poly = S.flatMap(s => s.line ? [s.p] : arcPts(s, 8).slice(0, -1));
+            let side;
+            if (t.closed) side = areaOf(poly) > 0 ? 1 : -1;
+            else {
+                const s0 = S[0], a0 = s0.p, b0 = s0.line ? s0.q : arcPts(s0, 8)[1];
+                if (dir === 'in' || dir === 'out') {         // 호 하나뿐 — 안쪽/바깥쪽
+                    const m = arcPts(s0, 2)[1], n = {x: -(b0.y - a0.y), y: b0.x - a0.x}, toC = (s0.G.cx - a0.x) * n.x + (s0.G.cy - a0.y) * n.y;
+                    side = (toC > 0) === (dir === 'in') ? 1 : -1;
+                } else side = sideFor(a0, b0, dir);
+            }
+            // 토막마다 평행이동 — 선은 법선으로, 호는 반지름을 늘이거나 줄인다(법선이 중심을 향하면 줄인다)
+            const off = S.map(s => {
+                if (s.line) { const L = Math.hypot(s.q.x - s.p.x, s.q.y - s.p.y) || 1, nx = -(s.q.y - s.p.y) / L * g * side, ny = (s.q.x - s.p.x) / L * g * side;
+                    return {line: true, p: {x: s.p.x + nx, y: s.p.y + ny}, q: {x: s.q.x + nx, y: s.q.y + ny}}; }
+                const m = arcPts(s, 20), m1 = m[9], m2 = m[11], nx = -(m2.y - m1.y) * side, ny = (m2.x - m1.x) * side, mid = m[10];
+                const inward = nx * (s.G.cx - mid.x) + ny * (s.G.cy - mid.y) > 0, R2 = s.G.R + (inward ? -g : g);
+                if (R2 <= 0) return null;
+                const k = R2 / s.G.R, sc = q => ({x: s.G.cx + (q.x - s.G.cx) * k, y: s.G.cy + (q.y - s.G.cy) * k});
+                return {line: false, p: sc(s.p), q: sc(s.q), R: R2, cw: s.cw, big: s.big};
+            });
+            if (off.some(x => !x)) return;
+            // 이음매 — 선과 선은 두 직선의 교점, 호가 끼면 호의 끝점을 따른다(둥근 모서리는 접선이라 거의 같은 자리다)
+            const n = off.length, J = [];
+            for (let i = 0; i < n; i++) {
+                const A = off[i], B = off[(i + 1) % n];
+                if (!t.closed && i === n - 1) break;
+                J[i] = A.line && B.line ? (lineX(A.p, A.q, B.p, B.q) || B.p) : !A.line ? A.q : B.p;
+            }
+            off.forEach((o, i) => {
+                const st = i === 0 && !t.closed ? o.p : J[(i - 1 + n) % n], en = i === n - 1 && !t.closed ? o.q : J[i];
+                const sa = o.line ? st : o.p, sb = o.line ? en : o.q;
+                const a = addPt(sa.x, sa.y), b = addPt(sb.x, sb.y); if (a === b) return;
+                if (o.line) doc.ops.push({id: doc.seq++, t: 'line', a, b, ls: t.st.ls, w: t.st.w, tl: toolsForLine(P(a), P(b))});
+                else doc.ops.push({id: doc.seq++, t: 'arc', a, b, dir: o.cw ? 'cw' : 'ccw', r: +o.R.toFixed(3), big: o.big, ls: t.st.ls, w: t.st.w});
+            });
+            made++;
         } else if (t.kind === 'rect') {
             const a = P(t.op.a), b = P(t.op.b); if (!a || !b) return;
             const x0 = Math.min(a.x, b.x) + g, x1 = Math.max(a.x, b.x) - g, y0 = Math.min(a.y, b.y) + g, y1 = Math.max(a.y, b.y) - g;
@@ -1926,11 +1978,6 @@ function makeDouble(dir) {
         } else if (t.kind === 'circle') {
             const r = radiusOf(t.op) - g; if (r <= 0) return;
             doc.ops.push({id: doc.seq++, t: 'circle', c: t.op.c, mode: t.op.mode, v: +(t.op.mode === 'd' ? 2 * r : r).toFixed(3), ls: t.op.ls, w: t.op.w}); made++;
-        } else if (t.kind === 'arc') {
-            const a = P(t.op.a), b = P(t.op.b), G = a && b && arcGeom(a, b, t.op.r, t.op.dir === 'cw', t.op.big); if (!G) return;
-            const r2 = dir === 'out' || dir === 'down' || dir === 'right' ? G.R + g : G.R - g; if (r2 <= 0) return;
-            const k = r2 / G.R, pa = {x: G.cx + (a.x - G.cx) * k, y: G.cy + (a.y - G.cy) * k}, pb = {x: G.cx + (b.x - G.cx) * k, y: G.cy + (b.y - G.cy) * k};
-            doc.ops.push({id: doc.seq++, t: 'arc', a: addPt(pa.x, pa.y), b: addPt(pb.x, pb.y), dir: t.op.dir, r: +r2.toFixed(3), big: t.op.big, ls: t.op.ls, w: t.op.w}); made++;
         } else if (t.kind === 'free') {
             const closed = freeClosed(t.op), Q = t.op.pts.map(([x, y]) => ({x, y})), Qc = closed ? Q.slice(0, -1) : Q;
             const side = closed ? (areaOf(Qc) > 0 ? 1 : -1) : sideFor(Qc[0], Qc[Math.min(3, Qc.length - 1)], dir);
@@ -1979,11 +2026,12 @@ function dblStart() {
         $('cadDblBtns').innerHTML = '<button type="button" data-d="in">안쪽에 긋기</button>';
         pick.hidden = false; $('cadDblGap').focus(); $('cadDblGap').select(); return;
     }
-    const t = T.find(x => (x.kind === 'chain' && !x.closed) || x.kind === 'arc' || x.kind === 'free');
+    const t = T.find(x => (x.kind === 'path' && !x.closed) || (x.kind === 'free' && !freeClosed(x.op)));
     let opts;
-    if (t.kind === 'arc') opts = [['in', '안쪽'], ['out', '바깥쪽']];
+    const s0 = t.kind === 'path' ? segGeo(t.ch[0]) : null;
+    if (s0 && !s0.line && t.ch.length === 1) opts = [['in', '안쪽'], ['out', '바깥쪽']];   // 호 하나 — 안쪽/바깥쪽
     else {
-        const a = t.kind === 'chain' ? t.Q[0] : {x: t.op.pts[0][0], y: t.op.pts[0][1]}, b = t.kind === 'chain' ? t.Q[1] : {x: t.op.pts[Math.min(3, t.op.pts.length - 1)][0], y: t.op.pts[Math.min(3, t.op.pts.length - 1)][1]};
+        const a = s0 ? s0.p : {x: t.op.pts[0][0], y: t.op.pts[0][1]}, b = s0 ? (s0.line ? s0.q : arcPts(s0, 8)[1]) : {x: t.op.pts[Math.min(3, t.op.pts.length - 1)][0], y: t.op.pts[Math.min(3, t.op.pts.length - 1)][1]};
         opts = Math.abs(b.x - a.x) >= Math.abs(b.y - a.y) ? [['up', '위'], ['down', '아래']] : [['left', '왼쪽'], ['right', '오른쪽']];
     }
     $('cadDblBtns').innerHTML = opts.map(([v, l]) => `<button type="button" data-d="${v}">${l}</button>`).join('');
