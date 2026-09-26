@@ -3179,6 +3179,7 @@ function afterLoad(refit) {
     if (RP) rpEnd();
     doc.ops.forEach(o => { if (o.t !== 'step' && !('tl' in o)) o.tl = 0; });
     opsSeen = doc.ops.length;
+    doc.seq = Math.max(doc.seq || 1, ...doc.ops.map(o => (o.id || 0) + 1));   // id 가 겹치면 한 줄을 지울 때 다른 줄도 지워진다
     doc.ops.forEach(o => {                              // 예전 마킹 — 점을 가리키지 않았다. 그 자리의 점을 찾아 잇는다
         if (!o.mark || o.p != null || !o.pts) return;
         const [x, y] = o.pts[0], q = doc.pts.find(p => Math.abs(p.x - x) < 2e-3 && Math.abs(p.y - y) < 2e-3);
@@ -3748,8 +3749,11 @@ document.querySelectorAll('.cad-tabs [data-ptab]').forEach(b => b.addEventListen
 $('cadStepAdd').addEventListener('click', () => {
     const t = $('cadStepTitle').value.trim();
     if (!t) { flash('단계 이름을 적어 주세요'); $('cadStepTitle').focus(); return; }
-    // 작도 순서에서 고른 줄이 있으면 그 줄 바로 위에 넣는다(여럿이면 가장 앞 줄). 없으면 맨 끝(사용자)
-    const idx = doc.ops.findIndex(o => o.t !== 'step' && selOps.has(o.id)), st = {id: doc.seq++, t: 'step', title: t};
+    // 작도 순서에서 고른 줄이 있으면 그 줄 바로 위에 넣는다. 없으면 맨 끝(사용자)
+    // 마지막으로 누른 줄(재생 중에 누른 것도) — 그 줄이 지금도 골라져 있거나 재생 막대가 그 줄에 있을 때. 없으면 고른 줄 가운데 가장 앞
+    let idx = opPick != null && (selOps.has(opPick) || (RP && RP.cur === opPick)) ? doc.ops.findIndex(o => o.id === opPick) : -1;
+    if (idx < 0) idx = doc.ops.findIndex(o => o.t !== 'step' && selOps.has(o.id));
+    const st = {id: doc.seq++, t: 'step', title: t};
     snapHist();
     if (idx >= 0) doc.ops.splice(idx, 0, st); else doc.ops.push(st);
     $('cadStepTitle').value = '';
@@ -3784,18 +3788,21 @@ document.addEventListener('keydown', e => {
     else if (k === 'End') go(() => { rpStop(); rpGo(doc.ops.length, false); });
     else if (!e.ctrlKey && !e.metaKey) e.stopImmediatePropagation();   // 재생 중 단축키(도구 바꾸기·I자 옮기기)는 막는다
 }, true);
+let opPick = null;                                     // 작도 순서에서 마지막으로 누른 줄 — '+ 단계' 가 그 위에 넣는다
 $('cadOpList').addEventListener('click', e => {
     const row = e.target.closest('.cad-op'); if (!row) return;
-    if (RP) { rpStop(); const i = doc.ops.findIndex(o => o.id === +row.dataset.id); if (i >= 0) { rpGo(i + 1, false); const op = doc.ops.slice(i).find(o => o.t !== 'step'); if (op) { rpMark(op, 900); rpHilite(op, 250); } } return; }
+    if (!e.target.closest('[data-act]')) opPick = +row.dataset.id;
     const id = +row.dataset.id, act = e.target.closest('[data-act]');
     if (act) {
         const a = act.dataset.act;
+        if (RP) rpEnd();                               // 재생 중이어도 ✕·✎·↑↓ 는 듣는다 — 재생을 끝내고 한다(재생 처리가 먼저 가로채 아무 일도 안 했다)
         if (a === 'del') { snapHist(); delOpClean(id); selOps.delete(id); pruneSyms(); changed(); }
         if (a === 'up') moveOp(id, -1);
         if (a === 'down') moveOp(id, 1);
         if (a === 'edit') editOp(id);
         return;
     }
+    if (RP) { rpStop(); const i = doc.ops.findIndex(o => o.id === +row.dataset.id); if (i >= 0) { rpGo(i + 1, false); const op = doc.ops.slice(i).find(o => o.t !== 'step'); if (op) { rpMark(op, 900); rpHilite(op, 250); } } return; }
     // 누른 줄이 도면의 어디인지 — 재생 때처럼 시작점에 동그라미를 조여 들게 한다(단계 줄이면 그 단계의 첫 작도)
     { const i = doc.ops.findIndex(o => o.id === id), op = doc.ops.slice(i).find(o => o.t !== 'step'); if (op && (!row.classList.contains('step') || op !== doc.ops[i])) { rpMark(op, 900); rpHilite(op, 250); } }
     if (row.classList.contains('step')) return;
