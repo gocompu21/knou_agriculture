@@ -1753,10 +1753,11 @@ let vb = {x: 0, y: 0, w: 100, h: 70}, fitW = 100, fitted = false;
 function setVB() { svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); status(); }
 function aspect() { const r = svg.clientWidth / svg.clientHeight; return r > 0 && isFinite(r) ? r : 1.4; }
 function fit() {
-    const B = boardGeom(), m = 3.4 * U;            // 제도판 전체 + I자 죔쇠의 레버·갈고리까지 들어오게
-    let x = B.bx0 - m, y = B.by0 - m, w = (B.bx1 - B.bx0) + 2 * m, h = (B.by1 - B.by0) + 2 * m;
+    const B = boardGeom(), m = 3.4 * U, mt = 1.2 * U;   // 제도판 전체 + I자 죔쇠까지. 위는 틀만 있어 조금만 띄운다
+    let x = B.bx0 - m, y = B.by0 - mt, w = (B.bx1 - B.bx0) + 2 * m, h = (B.by1 - B.by0) + m + mt;
     const r = aspect();
-    if (w / h < r) { const nw = h * r; x -= (nw - w) / 2; w = nw; } else { const nh = w / r; y -= (nh - h) / 2; h = nh; }
+    // 화면이 세로로 남으면 남는 자리를 아래로 몬다 — 가운데 맞추면 위 여백이 넓어 보였다(사용자)
+    if (w / h < r) { const nw = h * r; x -= (nw - w) / 2; w = nw; } else { h = w / r; }
     vb = {x, y, w, h}; fitW = w; fitted = svg.clientWidth > 0; setVB();
 }
 function reAspect() {          // 칸 크기가 바뀌면 가운데·배율을 지키며 비율만 맞춘다
