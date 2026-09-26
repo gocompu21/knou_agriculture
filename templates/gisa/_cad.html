@@ -468,8 +468,10 @@
 .cad-sym .sh { left: 2px; color: #7a8a82; }
 .cad-sym .sh.on { color: #2d6a4f; font-weight: 700; }
 /* 선택·잡기 영역 — CSS 가 표현 속성(stroke=…)을 이긴다 */
-#cadOps g.on > :not(.cad-hit), #cadOps g.on > :not(.cad-hit) * { stroke: #d93025; }
-#cadOps g.on text { fill: #d93025; }
+/* 고른 것은 빨갛게 — 원래 테두리가 있는 요소에만 stroke 를 입힌다. 글자·칠한 면처럼 테두리가 없는 것에 입히면 굵기가 기본 1(= 도면 1m)이라
+   글자를 덮는 빨간 덩어리가 됐다(사용자). 글자는 글자색만 바꾼다 */
+#cadOps g.on > :not(.cad-hit):not(text)[stroke]:not([stroke="none"]), #cadOps g.on > :not(.cad-hit) [stroke]:not([stroke="none"]):not(text) { stroke: #d93025; }
+#cadOps g.on > :not(.cad-hit) text, #cadOps g.on > text { fill: #d93025; stroke: none; }
 #cadOps .cad-hit, #cadOps .cad-hit * { stroke: transparent !important; fill: none !important; stroke-width: 12px !important;
     vector-effect: non-scaling-stroke; stroke-dasharray: none !important; pointer-events: stroke; }
 #cadOps .cad-hit text { pointer-events: all; }
