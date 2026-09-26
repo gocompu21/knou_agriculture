@@ -592,8 +592,8 @@ function strokeStyle() {
 function barStep() { return $('cadSnap').checked ? +$('cadSnapStep').value : PREC; }
 function setBarY(y) {
     const g = barStep();
-    // 제도판 위 틀 밑 ~ 아래 펜 받침 위까지 오르내린다(종이 범위로 막았더니 900×600 판에서 종이 아래로 못 내려갔다 — 사용자)
-    const B = boardGeom(), lo = B.by0 + 1.1 * B.u, hi = B.by1 - 4.6 * B.u - barW();
+    // 제도판 위 틀 밑 ~ 판 아래 끝까지 오르내린다(종이 범위로 막았더니 900×600 판에서 종이 아래로 못 내려갔다 — 사용자)
+    const B = boardGeom(), lo = B.by0 + 1.1 * B.u, hi = B.by1 - 0.4 * B.u - barW();
     barY = +(Math.max(lo, Math.min(hi, Math.round(y / g) * g))).toFixed(3);
     drawBar();
 }
@@ -1526,11 +1526,10 @@ function boardGeom(s) {
     s = s || sheet;
     // 아래 여백은 I자 몸통이 종이 아래로 다 빠져나갈 만큼 — 윗날이 종이 맨 아래 선까지 내려가야 한다(사용자: "끝까지 내릴 수 있게")
     const mi = s.step / 5, bw = Math.max(4 * mi, Math.round(8 * U / mi) * mi);
-    return {bx0: s.x0 - 7 * U, bx1: s.x1 + 7 * U, by0: s.y0 - 6.5 * U, by1: s.y1 + Math.max(8.5 * U, bw + 6 * U), rw: 2.6 * U, u: U};
+    return {bx0: s.x0 - 7 * U, bx1: s.x1 + 7 * U, by0: s.y0 - 6.5 * U, by1: s.y1 + Math.max(3 * U, bw + 1.8 * U), rw: 2.6 * U, u: U};
 }
 function boardSvg(s) {
     const B = boardGeom(s), f = v => fmt(v), {bx0, bx1, by0, by1, rw} = B, W = bx1 - bx0, H = by1 - by0, U = B.u;   // 판 장식은 판 단위로
-    const ty0 = by1 - 4.6 * U, ty1 = by1 - 0.4 * U;              // 펜 받침 — 제도판의 아래 끝(사용자가 보여 준 부분)
     let o = `<defs><linearGradient id="bdSurf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfb"/><stop offset="1" stop-color="#e9ece8"/></linearGradient>`
         + `<linearGradient id="bdRailV" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#aeb6bc"/><stop offset=".25" stop-color="#eef1f3"/><stop offset=".55" stop-color="#d3d8dc"/><stop offset="1" stop-color="#9ea6ad"/></linearGradient>`
         + `<linearGradient id="bdRailH" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1f3"/><stop offset=".35" stop-color="#cfd5da"/><stop offset=".7" stop-color="#b9c0c6"/><stop offset="1" stop-color="#8f979e"/></linearGradient>`
@@ -1550,14 +1549,9 @@ function boardSvg(s) {
             for (let y = s.y0, n = 0; y <= s.y1 + 1e-9; y += mi, n++) tk += `M${f(x + rw - 0.2 * U)} ${f(y)}h${f(-(n % 5 === 0 ? 0.55 : 0.3) * U)}`;
             o += `<path d="${tk}" stroke="#e8ecef" stroke-width="${f(0.06 * U)}"/>`;
         }
-        o += `<circle cx="${f(x + rw / 2)}" cy="${f(by1 - 8 * U)}" r="${f(0.55 * U)}" fill="#23272b"/>`.replace(`cy="${f(by1 - 8 * U)}"`, `cy="${f(by1 - 6.5 * U)}"`);   // 레일 아래쪽 멈추개
+        o += `<circle cx="${f(x + rw / 2)}" cy="${f(by1 - 8 * U)}" r="${f(0.55 * U)}" fill="#23272b"/>`.replace(`cy="${f(by1 - 8 * U)}"`, `cy="${f(by1 - 1.2 * U)}"`);   // 레일 아래쪽 멈추개
     });
-    // 아래 펜 받침(알루미늄 홈)
-    o += `<rect x="${f(bx0 + rw)}" y="${f(ty0)}" width="${f(W - 2 * rw)}" height="${f(ty1 - ty0)}" rx="${f(0.4 * U)}" fill="url(#bdRailH)" stroke="#8b949b" stroke-width="${f(0.08 * U)}"/>`
-       + `<rect x="${f(bx0 + rw + 0.6 * U)}" y="${f(ty0 + 0.5 * U)}" width="${f(W - 2 * rw - 1.2 * U)}" height="${f(ty1 - ty0 - 1 * U)}" rx="${f(0.4 * U)}" fill="#9aa2a9"/>`
-       + `<path d="M${f(bx0 + rw + 0.6 * U)} ${f(ty0 + 0.8 * U)}H${f(bx1 - rw - 0.6 * U)}" stroke="rgba(60,68,76,.5)" stroke-width="${f(0.12 * U)}"/>`
-       + [bx0 + rw + 1.6 * U, bx1 - rw - 1.6 * U].map(x => `<circle cx="${f(x)}" cy="${f((ty0 + ty1) / 2 + 0.3 * U)}" r="${f(0.35 * U)}" fill="#dfe3e6" stroke="#5a6168" stroke-width="${f(0.07 * U)}"/>`).join('')
-       ;
+    // 아래 펜 받침은 뺐다 — 보기는 좋지만 그리는 자리를 먹었다(사용자)
     // 네 모서리 검은 마개
     [[bx0, by0], [bx1 - rw - 0.3 * U, by0]].forEach(([x, y]) => {
         o += `<rect x="${f(x)}" y="${f(y)}" width="${f(rw + 0.3 * U)}" height="${f(1.8 * U)}" rx="${f(0.4 * U)}" fill="#23272b"/>`;
