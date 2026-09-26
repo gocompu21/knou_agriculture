@@ -1183,8 +1183,9 @@ function drawSr() {
         // 축척 표기 — 앞 모서리 축척은 왼쪽 여백, 뒤 모서리 축척은 오른쪽 여백(거꾸로). 단위 'm' 은 0 곁 위에 작게
         // 축척 표기 — 여백(자 끝 ~ 0 눈금) 가운데에 '1/300', 단위 'm' 은 그 끝 위에 작게. 눈금에 붙이면 답답하다(사용자)
         const lbU = U0 - sg * (SR_Z / 2 + 0.8);   // 여백 가운데에서 조금 바깥쪽(사용자)
-        o += tx(lbU, Vw(D.lb), `1/${fmt(Sx)}`, fsz(D.lbh, D.lb), 'middle', !first, Ts(D.lb), col, 400)
-           + tx(lbU + sg * 2.3, Vw(D.mu), 'm', fsz(D.muh, D.mu), 'middle', !first, Ts(D.mu), col, 400);
+        const lbT = `1/${fmt(Sx)}`, lbF = fsz(D.lbh, D.lb), lbHalf = lbT.length * 0.28 * lbF;   // 표기 반폭(숫자 폭 ≈ 0.56em) — 'm' 이 마지막 숫자에 겹치지 않게
+        o += tx(lbU, Vw(D.lb), lbT, lbF, 'middle', !first, Ts(D.lb), col, 400)
+           + tx(lbU + sg * (lbHalf + 0.45), Vw(D.mu), 'm', fsz(D.muh, D.mu), 'middle', !first, Ts(D.mu), col, 400);
     };
     halves.forEach(h => { scale(h.F.a, h, true); scale(h.F.b, h, false); });
     // 테두리선은 양 끝(둥근 모서리)에만 — 긴 변에 두면 눈금 위에 회색 줄이 한 줄 더 생긴다(사용자)
@@ -1192,9 +1193,10 @@ function drawSr() {
           endR = `M${M(SR_L - RC, 0)}${arc(SR_L, RC)}L${M(SR_L, SR_W - RC)}${arc(SR_L - RC, SR_W)}`;
     o += `</g><path d="${endL}${endR}" fill="none" stroke="#8d9296" stroke-width="${f(0.22 * k)}" pointer-events="none"/>`;   // 둥근 윤곽선
     if (!V.custom) {   // 축척 전환(굴림) 단추 — 자 오른쪽 여백 안, 크게 보이는 면의 가운데(사용자). 돌린 상태면 그 자리가 반대쪽 끝이다
-        const q = SW ? srMap(SR_Z / 2, SR_W - 3.6) : srMap(SR_L - SR_Z / 2, 3.6), rr = 2.9 * k;
+        // 앞쪽(화면 왼쪽) 여백의 축척 표기 아래(사용자). 돌린 상태면 그 여백이 반대쪽 끝이다
+        const bu = SR_Z / 2 - 0.8, q = SW ? srMap(SR_L - bu, SR_W - 5.4) : srMap(bu, 5.4), rr = 2.9 * k;
         const tri = [0, 1, 2].map(i => { const a = (-90 + i * 120) * Math.PI / 180; return `${f(Math.cos(a) * 1.5 * k)} ${f(Math.sin(a) * 1.5 * k)}`; });
-        o += `<g class="sr-roll" transform="translate(${f(q.x)} ${f(q.y)}) rotate(${f(sr.rot || 0)}) scale(.8)"><title>축척 전환 — 1/100 → 1/200 → … → 1/600 (Shift: 반대로)</title>`
+        o += `<g class="sr-roll" transform="translate(${f(q.x)} ${f(q.y)}) rotate(${f(sr.rot || 0)}) scale(.68)"><title>축척 전환 — 1/100 → 1/200 → … → 1/600 (Shift: 반대로)</title>`
            + `<circle r="${f(rr)}" fill="rgba(255,255,255,.85)" stroke="#6b7076" stroke-width="${f(0.12 * k)}"/>`
            + `<path d="M${tri.join('L')}Z" fill="${SR_BANDS[V.under.band][2][1]}" stroke="#454a50" stroke-width="${f(0.12 * k)}"/>`
            + `<path d="M${f(-2.1 * k)} ${f(0.9 * k)}A${f(2.25 * k)} ${f(2.25 * k)} 0 0 0 ${f(2.1 * k)} ${f(0.9 * k)}" fill="none" stroke="#454a50" stroke-width="${f(0.28 * k)}" stroke-linecap="round"/>`
