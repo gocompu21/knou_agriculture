@@ -1905,12 +1905,12 @@ function sideFor(a, b, dir) {
 }
 function makeDouble(dir) {
     const T = dblTargets(); if (!T.length) { flash('두 줄로 할 선을 먼저 고르세요 — 작도 순서나 도면에서(Shift 로 여럿)'); return; }
-    const g = dblGap(); SET.dblGap = g; saveSet(); snapHist(); let made = 0;
+    const g = dblGap(); SET.dblGap = g; saveSet(); snapHist(); let made = 0; const firstId = doc.seq;
     const pushChain = (R, closed, st, name) => {       // 새 꼭짓점들로 선 사슬을 긋는다(한 묶음)
         const ns = R.map(q => addPt(q.x, q.y)); if (closed) ns.push(ns[0]);
         const gid = doc.seq, list = [];
-        for (let i = 0; i + 1 < ns.length; i++) if (ns[i] !== ns[i + 1]) list.push({id: doc.seq++, t: 'line', a: ns[i], b: ns[i + 1], ls: st.ls, w: st.w});
-        if (list.length > 1) list.forEach(o => { o.grp = gid; o.gname = name; });
+        for (let i = 0; i + 1 < ns.length; i++) if (ns[i] !== ns[i + 1]) list.push({id: doc.seq++, t: 'line', a: ns[i], b: ns[i + 1], ls: st.ls, w: st.w, tl: toolsForLine(P(ns[i]), P(ns[i + 1]))});
+        // 묶지 않는다 — I자·삼각자로 긋는 선은 변마다 도구가 옮겨 가야 해서 재생에서 한 칸씩(템플릿 도형과 다르다)
         doc.ops.push(...list); made += list.length ? 1 : 0;
     };
     T.forEach(t => {
@@ -1922,7 +1922,7 @@ function makeDouble(dir) {
             const a = P(t.op.a), b = P(t.op.b); if (!a || !b) return;
             const x0 = Math.min(a.x, b.x) + g, x1 = Math.max(a.x, b.x) - g, y0 = Math.min(a.y, b.y) + g, y1 = Math.max(a.y, b.y) - g;
             if (x1 <= x0 || y1 <= y0) return;
-            doc.ops.push({id: doc.seq++, t: 'rect', a: addPt(x0, y0), b: addPt(x1, y1), ls: t.op.ls, w: t.op.w}); made++;
+            doc.ops.push({id: doc.seq++, t: 'rect', a: addPt(x0, y0), b: addPt(x1, y1), ls: t.op.ls, w: t.op.w, tl: toolsForLine({x: x0, y: y1}, {x: x1, y: y1})}); made++;
         } else if (t.kind === 'circle') {
             const r = radiusOf(t.op) - g; if (r <= 0) return;
             doc.ops.push({id: doc.seq++, t: 'circle', c: t.op.c, mode: t.op.mode, v: +(t.op.mode === 'd' ? 2 * r : r).toFixed(3), ls: t.op.ls, w: t.op.w}); made++;
@@ -1939,7 +1939,36 @@ function makeDouble(dir) {
         }
     });
     if (!made) { hist.pop(); flash('두 줄을 그을 수 없습니다 — 간격보다 작은 도형이거나 선이 아닙니다'); return; }
+    const from = doc.ops.findIndex(o => o.id >= firstId);
     changed(); flash(`두 줄 — ${made}개에 ${fmt(g)}m 간격으로 한 줄씩 더 그었습니다`);
+    // 그은 것을 그 자리에서 재생해 보인다 — I자·삼각자가 옮겨 가며 샤프가 긋는다. 끝나면 도구는 재생 전 자리로(사용자)
+    if (from >= 0) { rpStart(); if (RP) { rpGo(from, false); RP.autoEnd = true; rpPlay(); } }
+}
+// 자동으로 그은 선의 도구 자리 — 손으로 그었다면 쓸 I자·삼각자 자리를 계산해 op.tl 에 적는다(사용자: "그릴 때 I자와 삼각자가 움직여야").
+// 가로선 = I자 윗날을 그 높이에 · 세로선 = I자를 선 아래 끝에 두고 삼각자 세로 변을 그 x 에 · 45°·60°·30° 선 = 그 삼각자의 빗변을 선에 맞춘다.
+// 그 밖의 각도와 원·호는 지금 도구 자리 그대로. 재생이 이 자리로 도구를 옮겨 가며 긋는다
+function toolsForLine(a, b) {
+    const base = toolState(), dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy); if (!(L > 0)) return base;
+    const deg = Math.atan2(Math.abs(dy), Math.abs(dx)) * 180 / Math.PI, near = v => Math.abs(deg - v) < 0.5;
+    const yLow = Math.max(a.y, b.y), keep = {tri, barY, barOn};
+    let out = null;
+    try {
+        if (near(0)) out = {...base, bar: rnd3(a.y)};
+        else {
+            const kind = near(90) || near(45) ? (near(45) ? '45' : (tri ? tri.kind : '45')) : near(60) || near(30) ? '60' : null;
+            if (kind) {
+                barOn = true; barY = yLow;
+                const upRight = dx * dy < 0, t = {...(tri || {}), kind, x: 0, flip: near(90) ? !!(tri && tri.flip) : !upRight, alt: kind === '60' && near(30)};
+                tri = t; const G = triGeom();
+                if (G) {
+                    const xLow = a.y >= b.y ? a.x : b.x;           // 선의 아래 끝 — I자 윗날에 닿는 자리
+                    t.x = near(90) ? a.x : xLow - G.B.x;            // 세로선은 직각 모서리(R)를, 빗변은 빗변 아래 끝(B)을 맞춘다
+                    out = {...base, bar: rnd3(yLow), tri: {...t, x: rnd3(t.x)}};
+                }
+            }
+        }
+    } finally { tri = keep.tri; barY = keep.barY; barOn = keep.barOn; }
+    return out || base;
 }
 function dblStart() {
     const pick = $('cadDblPick'), T = dblTargets();
@@ -2257,7 +2286,7 @@ function rpPlay() {
     if (RP.playing) { rpStop(); return; }
     if (RP.k >= doc.ops.length) rpGo(0, false);
     RP.playing = true; rpInfo();
-    const tick = () => { if (!RP || !RP.playing) return; if (RP.k >= doc.ops.length) { rpStop(); return; } rpGo(RP.k + 1, true, tick); };
+    const tick = () => { if (!RP || !RP.playing) return; if (RP.k >= doc.ops.length) { if (RP.autoEnd) { RP.timer = setTimeout(rpEnd, 400); return; } rpStop(); return; } rpGo(RP.k + 1, true, tick); };
     tick();
 }
 function rpStart() {
