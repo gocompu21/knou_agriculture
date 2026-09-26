@@ -1176,7 +1176,7 @@ function drawSr() {
         // 축척 표기 — 앞 모서리 축척은 왼쪽 여백, 뒤 모서리 축척은 오른쪽 여백(거꾸로). 단위 'm' 은 0 곁 위에 작게
         // 축척 표기 — 여백(자 끝 ~ 0 눈금) 가운데에 '1/300', 단위 'm' 은 그 끝 위에 작게. 눈금에 붙이면 답답하다(사용자)
         const lbU = U0 - sg * (SR_Z / 2 + 0.8);   // 여백 가운데에서 조금 바깥쪽(사용자)
-        o += tx(lbU, Vw(D.lb), `1/${fmt(Sx)}`, fsz(D.lbh, D.lb), 'middle', !first, Ts(D.lb), col, wt)
+        o += tx(lbU, Vw(D.lb), `1/${fmt(Sx)}`, fsz(D.lbh, D.lb), 'middle', !first, Ts(D.lb), col, 400)
            + tx(lbU + sg * 2.3, Vw(D.mu), 'm', fsz(D.muh, D.mu), 'middle', !first, Ts(D.mu), col, 400);
     };
     halves.forEach(h => { scale(h.F.a, h, true); scale(h.F.b, h, false); });
