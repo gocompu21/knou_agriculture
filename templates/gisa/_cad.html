@@ -1443,10 +1443,21 @@ function opSvg(op) {
 // 글자는 점을 쓰지 않고 좌표(x, y)를 직접 가진다 — 누른 자리가 글의 시작(가로는 왼쪽, 세로는 위). 옛 글자(p)는 가운데 맞춤
 const textPos = op => op.p != null ? P(op.p) : {x: op.x, y: op.y};
 const ptsOf = op => op.t === 'circle' ? [op.c] : op.t === 'sym' || (op.t === 'text' && op.p != null) ? [op.p] : op.t === 'text' ? [] : (op.a != null ? [op.a, op.b] : []);
+// 점 번호 자리 — 여덟 곳(0 오른위 · 1 왼위 · 2 오른아래 · 3 왼아래 · 4 오른 · 5 왼 · 6 위 · 7 아래). p.lp 에 적어 두고(번호 다시 매기기가 고른다),
+// 없으면 예전 자리(오른위)다. 상자는 숫자 폭 0.6em · 높이 0.8em 으로 어림한다
+const lblSize = () => ({r: 0.32 * U * (SET.ptSize || 1), fn: 1.25 * U * (SET.ptNum || 1)});
+function lblBox(p, k, n) {
+    const {r, fn} = lblSize(), w = String(n != null ? n : p.n).length * 0.6 * fn, h = 0.8 * fn, g = r + 0.18 * fn, d = g * 0.75;
+    const B = [[p.x + d, p.y - d - h], [p.x - d - w, p.y - d - h], [p.x + d, p.y + d], [p.x - d - w, p.y + d],
+               [p.x + g, p.y - h / 2], [p.x - g - w, p.y - h / 2], [p.x - w / 2, p.y - g - h], [p.x - w / 2, p.y + g]][k] || [p.x + d, p.y - d - h];
+    return {x0: B[0], y0: B[1], x1: B[0] + w, y1: B[1] + h};
+}
 function dotSvg(p, ring) {           // 점·번호 크기는 설정(SET.ptSize·ptNum, 배율)
-    const r = 0.32 * U * (SET.ptSize || 1), fn = 1.25 * U * (SET.ptNum || 1);
+    const {r, fn} = lblSize();
+    const tx = p.lp != null ? (() => { const b = lblBox(p, p.lp); return `x="${fmt(b.x0)}" y="${fmt((b.y0 + b.y1) / 2)}" dominant-baseline="central"`; })()
+                            : `x="${fmt(p.x + r + fn * 0.22)}" y="${fmt(p.y - r - fn * 0.12)}"`;
     return `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r)}" fill="${INK}"/>`
-        + `<text x="${fmt(p.x + r + fn * 0.22)}" y="${fmt(p.y - r - fn * 0.12)}" font-size="${fmt(fn)}" fill="${BLUE}" font-weight="700">${p.n}</text>`
+        + `<text ${tx} font-size="${fmt(fn)}" fill="${BLUE}" font-weight="700">${p.n}</text>`
         + (ring ? `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r * 2.6)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : '');
 }
 // ── 제도판 ── 사용자가 보여 준 탁상 제도판(평면)을 종이 둘레에 그린다: 흰 판, 좌우 알루미늄 레일(왼쪽에 눈금),
@@ -2303,16 +2314,55 @@ function renumberPt(o, nw) {
     snapHist(); remapPts(map); changed();
     flash(map[nw] != null ? `P${o} ↔ P${nw} 번호를 바꿨습니다` : `P${o} → P${nw}`);
 }
+// 번호 자리 고르기 — 붐비는 점부터 차례로, 여덟 자리 가운데 이미 놓인 번호·점·선과 가장 덜 겹치는 곳(같으면 오른위 쪽 먼저).
+// 번호를 다시 매길 때 함께 돈다(사용자: "도면에서 번호가 겹치면 위치도 같이 조정")
+function placeLabels() {
+    const {r, fn} = lblSize(), pts = doc.pts.slice();
+    const ov = (a, b) => Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) * Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0));
+    const dots = pts.map(q => ({x0: q.x - r * 1.3, y0: q.y - r * 1.3, x1: q.x + r * 1.3, y1: q.y + r * 1.3}));
+    const segs = allSegs().map(g => [g.a, g.b]);
+    doc.ops.forEach(op => { if (op.t === 'free' && op.pts && !auxHidden(op)) for (let i = 1; i < op.pts.length; i++) segs.push([{x: op.pts[i - 1][0], y: op.pts[i - 1][1]}, {x: op.pts[i][0], y: op.pts[i][1]}]); });
+    const cross = (b, a, c) => {                        // 선분이 상자를 지나는가(양 끝이 상자 밖이어도)
+        if (Math.max(a.x, c.x) < b.x0 || Math.min(a.x, c.x) > b.x1 || Math.max(a.y, c.y) < b.y0 || Math.min(a.y, c.y) > b.y1) return false;
+        const side = (x, y) => Math.sign((c.x - a.x) * (y - a.y) - (c.y - a.y) * (x - a.x));
+        const s = [side(b.x0, b.y0), side(b.x1, b.y0), side(b.x0, b.y1), side(b.x1, b.y1)];
+        return !(s.every(v => v > 0) || s.every(v => v < 0));
+    };
+    const near = q => pts.filter(o => Math.hypot(o.x - q.x, o.y - q.y) < fn * 3).length;
+    const placed = [];
+    let moved = 0;
+    pts.sort((a, b) => near(b) - near(a)).forEach(q => {
+        let best = 0, bs = Infinity;
+        for (let k = 0; k < 8; k++) {
+            const b = lblBox(q, k), A = (b.x1 - b.x0) * (b.y1 - b.y0);
+            let sc = k * 0.02 * A;                          // 같으면 앞 자리(오른위)를 먼저
+            placed.forEach(o => { sc += ov(b, o) * 4; });
+            dots.forEach(o => { sc += ov(b, o) * 3; });
+            segs.forEach(([a, c]) => { if (cross(b, a, c)) sc += A * 0.35; });
+            // 번호가 제 점보다 다른 점에 더 가까우면 어느 점 번호인지 헷갈린다
+            const cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2, own = Math.hypot(cx - q.x, cy - q.y);
+            if (pts.some(o => o !== q && Math.hypot(cx - o.x, cy - o.y) < own * 0.95)) sc += A * 0.8;
+            if (sc < bs) { bs = sc; best = k; }
+        }
+        if ((q.lp || 0) !== best) moved++;
+        q.lp = best; placed.push(lblBox(q, best));
+    });
+    return moved;
+}
 function renumberAll() {          // 작도 순서에 처음 나오는 차례로 1, 2, 3 … 쓰지 않는 점은 그 뒤에
     const order = [];
     doc.ops.forEach(op => { if (op.t !== 'step') REF_KEYS.forEach(k => { if (op[k] != null && P(op[k]) && !order.includes(+op[k])) order.push(+op[k]); }); });
     doc.pts.slice().sort((a, b) => a.n - b.n).forEach(p => { if (!order.includes(p.n)) order.push(p.n); });
     const map = {}; let moved = 0;
     order.forEach((n, i) => { map[n] = i + 1; if (n !== i + 1) moved++; });
-    if (!moved) { flash('이미 차례대로 매겨져 있습니다'); return; }
-    if (!confirm(`점 ${moved}개의 번호가 바뀝니다. 작도 순서에 처음 나오는 차례로 다시 매길까요?`)) return;
-    snapHist(); remapPts(map); changed(); fillPointForm();
-    flash(`번호를 1 ~ ${order.length} 로 다시 매겼습니다`);
+    if (!moved) {                                       // 번호는 그대로여도 겹친 번호 자리는 고른다
+        snapHist(); const lm = placeLabels(); changed();
+        flash(lm ? `번호는 이미 차례대로입니다 — 겹친 번호 ${lm}개의 자리를 옮겼습니다` : '이미 차례대로 매겨져 있습니다');
+        return;
+    }
+    if (!confirm(`점 ${moved}개의 번호가 바뀝니다. 작도 순서에 처음 나오는 차례로 다시 매길까요? (겹치는 번호는 자리도 옮깁니다)`)) return;
+    snapHist(); remapPts(map); const lm = placeLabels(); changed(); fillPointForm();
+    flash(`번호를 1 ~ ${order.length} 로 다시 매겼습니다` + (lm ? ` · 겹친 번호 ${lm}개의 자리를 옮겼습니다` : ''));
 }
 
 // ── 지우개 ──────────────────────────────────────────────────────────────
