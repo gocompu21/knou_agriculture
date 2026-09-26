@@ -1107,6 +1107,10 @@ function drawSr() {
         + G('srFaceA', 0, HA, SW ? [[0, '#c9c9c2'], [0.7, '#b8b8b1'], [1, '#a4a49d']] : [[0, '#f3f3ef'], [0.25, '#ffffff'], [0.8, '#f7f7f3'], [1, '#e6e6e0']])
         + G('srFaceB', HA, SR_W, SW ? [[0, '#e6e6e0'], [0.2, '#f7f7f3'], [0.75, '#ffffff'], [1, '#f3f3ef']] : [[0, '#a4a49d'], [0.3, '#b8b8b1'], [1, '#c9c9c2']])
         + `<clipPath id="srClip"><path d="${RR}"/></clipPath>`
+        // 윗모서리 옅은 그늘 — 흰 자가 흰 종이에 바로 닿아 축소하면 경계가 흐려진다. 테두리선 대신 종이 쪽으로 0.9mm 옅게 번진다
+        + (() => { const e0 = SW ? SR_W : 0, e1 = SW ? SR_W + 0.9 : -0.9;
+            return G('srTopSh', e0, e1, [[0, 'rgba(40,45,50,.22)'], [0.45, 'rgba(40,45,50,.08)'], [1, 'rgba(40,45,50,0)']])
+                 + `<path d="${R4(RC * 0.6, Math.min(e0, e1), SR_L - RC * 0.6, Math.max(e0, e1))}" fill="url(#srTopSh)" pointer-events="none"/>`; })()
         + `<path d="${RR}" transform="translate(${f(dx)} ${f(dy)})" fill="rgba(30,35,40,.5)" filter="url(#srSh)" pointer-events="none"/>`
         + `<g class="sr-body" clip-path="url(#srClip)"><path d="${RR}" fill="#f0f0ec"/>`
         // 꺾인 네 조각의 밝기 — 빛은 위(윗쪽 A)에서 온다. 완만한 종이 쪽이 밝고, 가파른 능선 쪽은 A 는 조금 어둡게, B 는 더 어둡게
