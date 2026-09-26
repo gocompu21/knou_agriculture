@@ -1967,7 +1967,8 @@ function makeDouble(dir) {
                 const sa = o.line ? st : o.p, sb = o.line ? en : o.q;
                 const a = addPt(sa.x, sa.y), b = addPt(sb.x, sb.y); if (a === b) return;
                 if (o.line) doc.ops.push({id: doc.seq++, t: 'line', a, b, ls: t.st.ls, w: t.st.w, tl: toolsForLine(P(a), P(b))});
-                else doc.ops.push({id: doc.seq++, t: 'arc', a, b, dir: o.cw ? 'cw' : 'ccw', r: +o.R.toFixed(3), big: o.big, ls: t.st.ls, w: t.st.w});
+                else { const G2 = arcGeom(P(a), P(b), o.R, o.cw, o.big);
+                    doc.ops.push({id: doc.seq++, t: 'arc', a, b, dir: o.cw ? 'cw' : 'ccw', r: +o.R.toFixed(3), big: o.big, ls: t.st.ls, w: t.st.w, tl: G2 ? toolsForCircle(G2.cx, G2.cy, G2.R) : undefined}); }
             });
             made++;
         } else if (t.kind === 'rect') {
@@ -1977,7 +1978,8 @@ function makeDouble(dir) {
             doc.ops.push({id: doc.seq++, t: 'rect', a: addPt(x0, y0), b: addPt(x1, y1), ls: t.op.ls, w: t.op.w, tl: toolsForLine({x: x0, y: y1}, {x: x1, y: y1})}); made++;
         } else if (t.kind === 'circle') {
             const r = radiusOf(t.op) - g; if (r <= 0) return;
-            doc.ops.push({id: doc.seq++, t: 'circle', c: t.op.c, mode: t.op.mode, v: +(t.op.mode === 'd' ? 2 * r : r).toFixed(3), ls: t.op.ls, w: t.op.w}); made++;
+            const cc = P(t.op.c);
+            doc.ops.push({id: doc.seq++, t: 'circle', c: t.op.c, mode: t.op.mode, v: +(t.op.mode === 'd' ? 2 * r : r).toFixed(3), ls: t.op.ls, w: t.op.w, tl: cc ? toolsForCircle(cc.x, cc.y, r) : undefined}); made++;
         } else if (t.kind === 'free') {
             const closed = freeClosed(t.op), Q = t.op.pts.map(([x, y]) => ({x, y})), Qc = closed ? Q.slice(0, -1) : Q;
             const side = closed ? (areaOf(Qc) > 0 ? 1 : -1) : sideFor(Qc[0], Qc[Math.min(3, Qc.length - 1)], dir);
@@ -2016,6 +2018,21 @@ function toolsForLine(a, b) {
         }
     } finally { tri = keep.tri; barY = keep.barY; barOn = keep.barOn; }
     return out || base;
+}
+// 호·원의 도구 자리 — 지름이 가장 가까운 원 구멍을 골라, 그 구멍 중심이 호의 중심에 오게 템플릿을 놓는다(사용자: 재생 때 호는 템플릿으로).
+// 지금 템플릿 종류(원형·도형)에서 먼저 찾고 없으면 원형. 구멍 지름이 1mm(종이 위) 넘게 어긋나면 도구를 옮기지 않는다
+function toolsForCircle(cx, cy, R) {
+    const base = toolState(), keep = tpl, kinds = [...new Set([(tpl && tpl.kind) || 'circle', 'circle', 'geo'])];
+    let best = null;
+    try {
+        for (const kind of kinds) {
+            tpl = {...(keep || {}), kind, x: 0, y: 0, rot: 0};
+            const k = tplK(), dmm = 2 * R / k;
+            tplDef().holes.filter(h => h.s === 'c').forEach(h => { const e = Math.abs(h.d - dmm); if (!best || e < best.e) best = {e, kind, h, k}; });
+        }
+    } finally { tpl = keep; }
+    if (!best || best.e > 1) return base;
+    return {...base, tpl: {...(keep || {}), kind: best.kind, rot: 0, x: rnd3(cx - best.h.x * best.k), y: rnd3(cy - best.h.y * best.k)}};
 }
 function dblStart() {
     const pick = $('cadDblPick'), T = dblTargets();
