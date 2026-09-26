@@ -1876,22 +1876,23 @@ function dblTargets() {
     const sel = doc.ops.filter(o => selOps.has(o.id) && o.t !== 'step' && !o.mark);
     const out = [], segs = sel.filter(o => o.t === 'line' || o.t === 'arc');
     sel.filter(o => o.t !== 'line' && o.t !== 'arc').forEach(o => out.push({kind: o.t, op: o}));
-    const key = n => { const q = P(n); return q ? `${Math.round(q.x * 500)},${Math.round(q.y * 500)}` : 'x' + n; };
+    // 끝점이 0.05m 안이면 이어진 것으로 본다 — 손으로 그은 윤곽은 끝이 조금씩 어긋난다(0.002m 로는 닫힌 윤곽이 열린 것으로 잡혀 왼쪽/오른쪽을 물었다, 사용자)
+    const TOL = 0.05, same = (m, n) => { const a = P(m), b = P(n); return a && b && Math.hypot(a.x - b.x, a.y - b.y) <= TOL; };
     const left = new Set(segs);
     while (left.size) {
         const first = [...left][0]; left.delete(first);
         let ch = [{op: first, rev: false}], grew = true;
-        const s0 = e => key(e.rev ? e.op.b : e.op.a), s1 = e => key(e.rev ? e.op.a : e.op.b);
+        const s0 = e => e.rev ? e.op.b : e.op.a, s1 = e => e.rev ? e.op.a : e.op.b;
         while (grew) {
             grew = false;
             for (const o of left) {
-                const head = s0(ch[0]), tail = s1(ch[ch.length - 1]), ka = key(o.a), kb = key(o.b);
-                if (ka === tail) ch.push({op: o, rev: false}); else if (kb === tail) ch.push({op: o, rev: true});
-                else if (kb === head) ch.unshift({op: o, rev: false}); else if (ka === head) ch.unshift({op: o, rev: true}); else continue;
+                const head = s0(ch[0]), tail = s1(ch[ch.length - 1]);
+                if (same(o.a, tail)) ch.push({op: o, rev: false}); else if (same(o.b, tail)) ch.push({op: o, rev: true});
+                else if (same(o.b, head)) ch.unshift({op: o, rev: false}); else if (same(o.a, head)) ch.unshift({op: o, rev: true}); else continue;
                 left.delete(o); grew = true; break;
             }
         }
-        const closed = ch.length > 1 && s0(ch[0]) === s1(ch[ch.length - 1]);
+        const closed = ch.length > 1 && same(s0(ch[0]), s1(ch[ch.length - 1]));
         out.push({kind: 'path', ch, closed, st: {ls: first.ls, w: first.w}});
     }
     return out;
@@ -1939,9 +1940,9 @@ function makeDouble(dir) {
             if (t.closed) side = areaOf(poly) > 0 ? 1 : -1;
             else {
                 const s0 = S[0], a0 = s0.p, b0 = s0.line ? s0.q : arcPts(s0, 8)[1];
-                if (dir === 'in' || dir === 'out') {         // 호 하나뿐 — 안쪽/바깥쪽
-                    const m = arcPts(s0, 2)[1], n = {x: -(b0.y - a0.y), y: b0.x - a0.x}, toC = (s0.G.cx - a0.x) * n.x + (s0.G.cy - a0.y) * n.y;
-                    side = (toC > 0) === (dir === 'in') ? 1 : -1;
+                if (dir === 'in' || dir === 'out') {         // 안쪽/바깥쪽 — 양 끝을 이은 현으로 닫은 모양의 안쪽
+                    const last = S[S.length - 1], open = [...poly, last.q], inward = areaOf(open) > 0 ? 1 : -1;
+                    side = dir === 'in' ? inward : -inward;
                 } else side = sideFor(a0, b0, dir);
             }
             // 토막마다 평행이동 — 선은 법선으로, 호는 반지름을 늘이거나 줄인다(법선이 중심을 향하면 줄인다)
@@ -2046,7 +2047,7 @@ function dblStart() {
     const t = T.find(x => (x.kind === 'path' && !x.closed) || (x.kind === 'free' && !freeClosed(x.op)));
     let opts;
     const s0 = t.kind === 'path' ? segGeo(t.ch[0]) : null;
-    if (s0 && !s0.line && t.ch.length === 1) opts = [['in', '안쪽'], ['out', '바깥쪽']];   // 호 하나 — 안쪽/바깥쪽
+    if (s0 && (!s0.line || t.ch.length > 1)) opts = [['in', '안쪽'], ['out', '바깥쪽']];   // 꺾이거나 휜 사슬 — 안쪽/바깥쪽. 곧은 선 하나만 위아래·좌우
     else {
         const a = s0 ? s0.p : {x: t.op.pts[0][0], y: t.op.pts[0][1]}, b = s0 ? (s0.line ? s0.q : arcPts(s0, 8)[1]) : {x: t.op.pts[Math.min(3, t.op.pts.length - 1)][0], y: t.op.pts[Math.min(3, t.op.pts.length - 1)][1]};
         opts = Math.abs(b.x - a.x) >= Math.abs(b.y - a.y) ? [['up', '위'], ['down', '아래']] : [['left', '왼쪽'], ['right', '오른쪽']];
