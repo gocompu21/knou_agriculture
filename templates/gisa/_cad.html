@@ -477,6 +477,11 @@
 /* 재생에서 지금 긋는 선은 제 색 그대로 — 빨강으로 긋고 다음 칸에서 검정으로 덧칠되던 것을 뺐다(사용자). 어디인지는 동그라미·샤프가 알린다 */
 .cad-op.step { font-weight: 700; color: #1b4332; margin-top: 8px; background: #e6f0ea; padding: 6px 6px; }   /* 단계 줄 — 연녹 바탕(사용자) */
 .cad-op.step:hover { background: #d9e8df; }
+/* 끌어 옮기기 — 놓일 자리에 녹색 줄(사용자) */
+.cad-op[draggable="true"] { cursor: grab; }
+.cad-op.dragging { opacity: .4; }
+.cad-op.drop-before { box-shadow: inset 0 3px 0 #2d6a4f; }
+.cad-op.drop-after { box-shadow: inset 0 -3px 0 #2d6a4f; }
 .cad-op .no { flex-shrink: 0; min-width: 22px; color: #2b4a9b; font-weight: 700; }
 /* 번호 동그라미 — 글꼴의 원문자는 ⑳ 넘어 모양이 달라져 CSS 로 그린다(몇 번이든 같은 모양) */
 .cad-op .no i { display: inline-flex; align-items: center; justify-content: center; font-style: normal; min-width: 17px; height: 17px; padding: 0 3px;
@@ -1791,10 +1796,10 @@ function listOps() {
     const rows = doc.ops.map(op => {
         const bt = `<span class="bt">${btn('edit', '고치기', '✎')}${btn('up', '위로', '↑')}${btn('down', '아래로', '↓')}${btn('del', '지우기', '✕')}</span>`;
         if (op.t === 'step') { k++; i = 0;
-            return `<div class="cad-op step" data-id="${op.id}"><span class="no">(${k})</span><span class="tx">${esc(op.title)}</span>${bt}</div>`; }
+            return `<div class="cad-op step" draggable="true" data-id="${op.id}"><span class="no">(${k})</span><span class="tx">${esc(op.title)}</span>${bt}</div>`; }
         i++;
         const kind = op.mark ? ' mk' : isAux(op) ? ' ax' : '';   // 마킹은 녹색, 보조선은 빨강으로 구별(사용자)
-        return `<div class="cad-op${kind}${selOps.has(op.id) ? ' on' : ''}${RP && RP.cur === op.id ? ' rp' : ''}" data-id="${op.id}"><span class="no"><i>${i}</i></span><span class="tx">${esc(desc(op))}</span>${bt}</div>`;
+        return `<div class="cad-op${kind}${selOps.has(op.id) ? ' on' : ''}${RP && RP.cur === op.id ? ' rp' : ''}" draggable="true" data-id="${op.id}"><span class="no"><i>${i}</i></span><span class="tx">${esc(desc(op))}</span>${bt}</div>`;
     });
     $('cadOpList').innerHTML = rows.join('') || '<p class="cad-empty">아직 그린 것이 없습니다. 위에서 도구를 고르고 도면을 눌러 보세요.<br>단계 이름을 먼저 넣어 두면 작도 순서가 (1)(2)… 로 묶입니다.</p>';
     $('cadOpsN').textContent = doc.ops.filter(o => o.t !== 'step').length || '';
@@ -3792,6 +3797,39 @@ document.addEventListener('keydown', e => {
     else if (k === 'End') go(() => { rpStop(); rpGo(doc.ops.length, false); });
     else if (!e.ctrlKey && !e.metaKey) e.stopImmediatePropagation();   // 재생 중 단축키(도구 바꾸기·I자 옮기기)는 막는다
 }, true);
+// ── 작도 순서 끌어 옮기기 — 줄을 잡고 끌어 다른 줄 위·아래에 놓는다. 가장자리로 끌면 목록이 저절로 내려간다 ──
+let opDrag = null;
+function opDropClear() { document.querySelectorAll('#cadOpList .drop-before, #cadOpList .drop-after').forEach(r => r.classList.remove('drop-before', 'drop-after')); }
+$('cadOpList').addEventListener('dragstart', e => {
+    const row = e.target.closest('.cad-op'); if (!row || RP) { e.preventDefault(); return; }
+    opDrag = +row.dataset.id; row.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', String(opDrag)); } catch (x) {}
+});
+$('cadOpList').addEventListener('dragend', () => { opDrag = null; opDropClear(); document.querySelectorAll('#cadOpList .dragging').forEach(r => r.classList.remove('dragging')); });
+$('cadOpList').addEventListener('dragover', e => {
+    if (opDrag == null) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+    const pane = $('cadOpList').closest('.cad-pane'), pr = pane.getBoundingClientRect();
+    if (e.clientY < pr.top + 60) pane.scrollTop -= 12; else if (e.clientY > pr.bottom - 30) pane.scrollTop += 12;
+    const row = e.target.closest('.cad-op'); opDropClear();
+    if (!row || +row.dataset.id === opDrag) return;
+    const r = row.getBoundingClientRect();
+    row.classList.add(e.clientY < r.top + r.height / 2 ? 'drop-before' : 'drop-after');
+});
+$('cadOpList').addEventListener('drop', e => {
+    if (opDrag == null) return;
+    e.preventDefault();
+    const row = e.target.closest('.cad-op'), id = opDrag; opDropClear();
+    if (!row || +row.dataset.id === id) return;
+    const r = row.getBoundingClientRect(), after = e.clientY >= r.top + r.height / 2;
+    const i = doc.ops.findIndex(o => o.id === id); if (i < 0) return;
+    snapHist();
+    const [op] = doc.ops.splice(i, 1);
+    let j = doc.ops.findIndex(o => o.id === +row.dataset.id); if (after) j++;
+    doc.ops.splice(j, 0, op);
+    opsSeen = doc.ops.length;                          // 줄 수는 그대로 — 목록을 맨 아래로 내리지 않는다
+    changed();
+});
 var listSel = false;                                   // 작도 순서 줄을 눌러 고른 것 — 도면에서는 빨갛게 칠하지 않는다(사용자). 형광펜·동그라미가 대신 알린다
 svg.addEventListener('pointerdown', () => { if (listSel) { listSel = false; drawOps(); } }, true);   // 도면을 만지면 평소 선택 표시로
 let opPick = null;                                     // 작도 순서에서 마지막으로 누른 줄 — '+ 단계' 가 그 위에 넣는다
