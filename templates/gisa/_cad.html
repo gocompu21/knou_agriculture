@@ -1943,7 +1943,7 @@ function rpMark(op, dur) {
         if (t < 0.45) { const e = 1 - Math.pow(1 - t / 0.45, 3); r = 60 - 46 * e; a = e; }
         else if (t < 0.7) { const e = (t - 0.45) / 0.25; r = 14 + 4 * Math.sin(e * Math.PI); a = 1; }
         else { r = 14; a = 1 - (t - 0.7) / 0.3; }
-        g.innerHTML = `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(r / k)}" fill="rgba(255,214,0,${(0.38 * a).toFixed(3)})" stroke="rgba(0,0,0,${(0.9 * a).toFixed(3)})" stroke-width="${fmt(2 / k)}"/>`
+        g.innerHTML = `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(r / k)}" fill="rgba(255,214,0,${(0.38 * a).toFixed(3)})" stroke="rgba(0,0,0,${(0.6 * a).toFixed(3)})" stroke-width="${fmt(1.5 / k)}"/>`   // 테두리는 가늘고 옅게(1.5px · 60%) — 삼각자(노랑) 위에서도 보이되 무겁지 않게
             + `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(2.2 / k)}" fill="rgba(0,0,0,${(0.9 * a).toFixed(3)})"/>`;
         if (t < 1) requestAnimationFrame(frame); else g.innerHTML = '';
     };
