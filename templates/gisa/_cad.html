@@ -1088,13 +1088,14 @@ function drawSr() {
     // 두 빗면의 자리 — A 는 v = w/2(종이 모서리 v=0 → 능선), B 는 v = 능선 + w/2(능선 → 종이 모서리 v=25)
     // 면 위 좌표 w → 화면 v. 종이 모서리에서의 거리 d 를 [종이 쪽 눈금 · 홈 · 능선 쪽 눈금] 세 구간으로 줄인다.
     // A(윗쪽)는 w=0 이 종이 모서리(v=0), B(아랫쪽)는 w=25 가 종이 모서리(v=SR_W). 둘 다 w 가 늘면 v 도 는다
-    const seg = (d0, d1, H) => {                           // d0~d1 = 그 반쪽에서 홈의 거리 구간, H = 그 면이 차지하는 화면 폭
-        const q = (H - SR_LAND - SR_RIDGE / 2) / SR_H;      // 랜드를 뺀 나머지에 세 구간을 같은 비율로 줄여 담는다
-        const P = [[0, SR_LAND], [d0, SR_LAND + SR_SEG[0] * q], [d1, SR_LAND + (SR_SEG[0] + SR_SEG[1]) * q], [SR_F, H - SR_RIDGE / 2]];
+    const seg = (d0, d1, H, LD) => {                       // d0~d1 = 그 반쪽에서 홈의 거리 구간, H = 그 면이 차지하는 화면 폭, LD = 종이 쪽 흰 랜드 폭
+        const q = (H - LD - SR_RIDGE / 2) / SR_H;           // 랜드를 뺀 나머지에 세 구간을 같은 비율로 줄여 담는다
+        const P = [[0, LD], [d0, LD + SR_SEG[0] * q], [d1, LD + (SR_SEG[0] + SR_SEG[1]) * q], [SR_F, H - SR_RIDGE / 2]];
         return d => { for (let i = 1; i < P.length; i++) if (d <= P[i][0] || i === P.length - 1) {
             const [a, av] = P[i - 1], [b, bv] = P[i], sy = (bv - av) / (b - a); return {v: av + (d - a) * sy, sy}; } };
     };
-    const mA = seg(SR_RED0, SR_RED1, HA), mB = seg(SR_F - SR_RED1, SR_F - SR_RED0, SR_W - HA);
+    // 크게 보이는 윗면(화면 위) 모서리에는 흰 랜드를 두지 않는다 — 눈금이 모서리에서 바로 시작한다(사용자)
+    const mA = seg(SR_RED0, SR_RED1, HA, SW ? SR_LAND : 0), mB = seg(SR_F - SR_RED1, SR_F - SR_RED0, SR_W - HA, SW ? 0 : SR_LAND);
     const halves = [{F: V.A, id: 'A', at: w => mA(w), v0: 0},
                     {F: V.B, id: 'B', at: w => { const r = mB(SR_F - w); return {v: SR_W - r.v, sy: r.sy}; }, v0: HA}];
     // 그림자 — 높이 21.7mm 의 세모 기둥이라 판보다 짙고 넓게 오른쪽 아래로 진다
@@ -1125,7 +1126,7 @@ function drawSr() {
     const land = (v0, v1, c) => `<path d="${R4(0, v0, SR_L, v1)}" fill="${c}"/>`
         + `<path d="M${M(0, v0)}L${M(SR_L, v0)}M${M(0, v1)}L${M(SR_L, v1)}" stroke="rgba(110,112,112,.55)" stroke-width="${f(0.08 * k)}"/>`;
     const sv = SW ? HA - SR_RIDGE / 2 - 0.25 : HA + SR_RIDGE / 2 + 0.25;   // 능선 너머 그늘은 좁은(어두운) 면 쪽
-    o += land(HA - SR_RIDGE / 2, HA + SR_RIDGE / 2, '#ffffff') + land(0, SR_LAND, SW ? '#d4d4ce' : '#fdfdfc') + land(SR_W - SR_LAND, SR_W, SW ? '#fdfdfc' : '#d4d4ce')
+    o += land(HA - SR_RIDGE / 2, HA + SR_RIDGE / 2, '#ffffff') + (SW ? land(0, SR_LAND, '#d4d4ce') : '') + (SW ? '' : land(SR_W - SR_LAND, SR_W, '#d4d4ce'))
        + `<path d="M${M(0, sv)}L${M(SR_L, sv)}" stroke="rgba(0,0,0,.18)" stroke-width="${f(0.45 * k)}"/>`;   // 능선 너머로 꺾여 내려가는 그늘
     // 눈금 — 실물 사진을 따른다: 축척마다 [작은 눈금, 중간 눈금, 긴 중간 눈금(없으면 0), 숫자] 간격(실제 m).
     // 1/100 은 0.1·0.5·1m, 1/200 은 0.1·0.5·1·5m, 1/300~1/600 은 0.5·1·5·10m
