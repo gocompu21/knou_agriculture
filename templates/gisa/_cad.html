@@ -452,6 +452,9 @@
 .cad-op:hover { background: #f4f7f5; }
 .cad-op.on { background: #fdecea; }
 .cad-op.rp { background: #fff3c4; box-shadow: inset 3px 0 0 #e0a800; }
+.cad-op.mk .tx, .cad-op.mk .no { color: #2e7d32; }          /* 마킹 — 녹색 */
+.cad-op.ax .tx, .cad-op.ax .no { color: #c62828; }          /* 보조선 — 빨강 */
+.cad-op.mk .tl, .cad-op.ax .tl { color: #8a9690; }
 .cad-op .tl { display: block; color: #8a9690; font-size: 0.72rem; }
 /* 작도 재생 조작 막대 */
 .cad-rp { background: #1b4332; color: #fff; border-radius: 8px; padding: 7px 8px 6px; margin: 0 0 8px; font-size: 0.8rem; }   /* 작도 순서 탭 위(사용자) */
@@ -1780,7 +1783,8 @@ function listOps() {
             return `<div class="cad-op step" data-id="${op.id}"><span class="no">(${k})</span><span class="tx">${esc(op.title)}</span>${bt}</div>`; }
         i++;
         const tl = tlText(op.tl);
-        return `<div class="cad-op${selOps.has(op.id) ? ' on' : ''}${RP && RP.cur === op.id ? ' rp' : ''}" data-id="${op.id}"><span class="no">${circ(i)}</span><span class="tx">${esc(desc(op))}${tl ? `<span class="tl">${esc(tl)}</span>` : ''}</span>${bt}</div>`;
+        const kind = op.mark ? ' mk' : isAux(op) ? ' ax' : '';   // 마킹은 녹색, 보조선은 빨강으로 구별(사용자)
+        return `<div class="cad-op${kind}${selOps.has(op.id) ? ' on' : ''}${RP && RP.cur === op.id ? ' rp' : ''}" data-id="${op.id}"><span class="no">${circ(i)}</span><span class="tx">${esc(desc(op))}${tl ? `<span class="tl">${esc(tl)}</span>` : ''}</span>${bt}</div>`;
     });
     $('cadOpList').innerHTML = rows.join('') || '<p class="cad-empty">아직 그린 것이 없습니다. 위에서 도구를 고르고 도면을 눌러 보세요.<br>단계 이름을 먼저 넣어 두면 작도 순서가 (1)(2)… 로 묶입니다.</p>';
     $('cadOpsN').textContent = doc.ops.filter(o => o.t !== 'step').length || '';
