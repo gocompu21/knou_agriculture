@@ -61,7 +61,7 @@
         <button type="button" id="cadTplGeo" class="cad-bar-btn" aria-label="도형 템플릿" title="도형 템플릿(원·삼각형·사각형·육각형) — 몸통을 끌어 옮기고, 샤프로 구멍 안을 따라 돌리면 그 도형이 그려집니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="4.5" width="17" height="11" rx="1.5" fill="#f2c230" stroke="#b08a10" stroke-width="1"/><path d="M5 7.4L7.4 12.4H2.6Z" fill="#fff" stroke="#b08a10" stroke-width=".7" stroke-linejoin="round"/><rect x="8.4" y="7.8" width="4" height="4" fill="#fff" stroke="#b08a10" stroke-width=".7"/><path d="M15.3 7.6l1.85 1.1v2.2l-1.85 1.1-1.85-1.1v-2.2Z" fill="#fff" stroke="#b08a10" stroke-width=".7" stroke-linejoin="round"/></svg></button>
         <select id="cadTplKind" hidden class="cad-txt" title="템플릿 종류"><option value="circle">원형</option><option value="geo">도형</option></select>
         <span class="cad-dbl-wrap"><button type="button" id="cadDbl" class="cad-bar-btn" aria-label="두 줄" title="두 줄(경계석) — 고른 선에 0.2m 간격으로 한 줄 더. 닫힌 도형(사각형·원·닫힌 꺾은선·닫힌 곡선)은 안쪽, 열린 선은 쪽을 고른다. 간격은 설정(⚙)"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 7h16M2 13h16"/></svg></button>
-            <span class="cad-dbl-pick" id="cadDblPick" hidden></span></span>
+            <span class="cad-dbl-pick" id="cadDblPick" hidden><label class="gap">간격 <input type="number" id="cadDblGap" min="0.01" step="0.05" value="0.2"> m</label><span id="cadDblBtns"></span></span></span>
         <button type="button" id="cadCalcBtn" class="cad-bar-btn" aria-label="계산기" title="템플릿 계산기 — 축척과 실제 지름으로 몇 번 구멍을 쓸지, 구멍 번호로 실제 지름을 계산"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="2" width="12" height="16" rx="1.6"/><rect x="6" y="4.2" width="8" height="3.2" rx=".5"/><path d="M7 10.3h.01M10 10.3h.01M13 10.3h.01M7 13h.01M10 13h.01M13 13h.01M7 15.6h.01M10 15.6h.01M13 15.6h.01" stroke-width="2.1"/></svg></button>
         <span class="cad-sep"></span>
         <button type="button" id="cadAuxBtn" class="cad-bar-btn on" hidden aria-label="보조선" title="보조선 레이어 보이기·감추기 — 색은 설정(⚙)에서"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6h16M2 10h16M2 14h16" stroke-dasharray="2 1.6"/></svg></button>
@@ -96,8 +96,6 @@
             <div class="cad-set-row"><span class="cad-set-lb">60° 삼각자</span>
                 <select id="cadTri60Size" title="60° 삼각자 크기 — 직각을 낀 긴 변의 길이를 종이 높이에 대한 비율로"><option value="40">40%</option><option value="50">50%</option><option value="60">60%</option><option value="70" selected>70%</option><option value="80">80%</option><option value="90">90%</option><option value="100">100%</option><option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option><option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option></select>
                 <span class="cad-set-note" id="cadTri60SizeNote"></span></div>
-            <div class="cad-set-row"><span class="cad-set-lb">두 줄 간격</span>
-                <input type="number" id="cadDblGap" min="0.01" step="0.05" value="0.2" style="width:70px"> m <span class="cad-set-note">경계석 — 도면 m</span></div>
             <div class="cad-set-row"><span class="cad-set-lb">샤프 선 종류 · 굵기</span><span class="cad-set-note" style="margin:0">(종이 위 mm)</span></div>
             <div class="cad-set-row cad-set-in"><span class="cad-set-sub cad-set-pen">샤프 0.9</span><select id="cadLs9" class="cad-set-ls"></select>
                 <input type="number" id="cadP9" class="cad-set-num" step="0.05" min="0.05" max="3"><span class="cad-set-sub">mm</span></div>
@@ -491,6 +489,10 @@
 .cad-dbl-pick[hidden] { display: none; }
 .cad-dbl-pick button { border: 1px solid #cfd8d3; background: #f6f9f7; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 0.8rem; }
 .cad-dbl-pick button:hover { background: #e6f0ea; }
+.cad-dbl-pick { align-items: center; }
+.cad-dbl-pick .gap { font-size: 0.8rem; color: #45524c; display: inline-flex; align-items: center; gap: 3px; margin-right: 4px; }
+.cad-dbl-pick .gap input { width: 64px; padding: 3px 4px; border: 1px solid #cfd8d3; border-radius: 5px; font-size: 0.82rem; }
+#cadDblBtns { display: inline-flex; gap: 4px; }
 /* 끌어 옮기기 — 놓일 자리에 녹색 줄(사용자) */
 .cad-op[draggable="true"] { cursor: grab; }
 .cad-op.dragging { opacity: .4; }
@@ -1903,7 +1905,7 @@ function sideFor(a, b, dir) {
 }
 function makeDouble(dir) {
     const T = dblTargets(); if (!T.length) { flash('두 줄로 할 선을 먼저 고르세요 — 작도 순서나 도면에서(Shift 로 여럿)'); return; }
-    const g = dblGap(); snapHist(); let made = 0;
+    const g = dblGap(); SET.dblGap = g; saveSet(); snapHist(); let made = 0;
     const pushChain = (R, closed, st, name) => {       // 새 꼭짓점들로 선 사슬을 긋는다(한 묶음)
         const ns = R.map(q => addPt(q.x, q.y)); if (closed) ns.push(ns[0]);
         const gid = doc.seq, list = [];
@@ -1943,7 +1945,11 @@ function dblStart() {
     const pick = $('cadDblPick'), T = dblTargets();
     if (!pick.hidden) { pick.hidden = true; return; }
     if (!T.length) { flash('두 줄로 할 선을 먼저 고르세요 — 작도 순서나 도면에서(Shift 로 여럿)'); return; }
-    if (!dblNeedSide(T)) { makeDouble(); return; }
+    // 간격은 쓸 때마다 사용자가 정한다(사용자) — 창에 간격 칸을 두고, 닫힌 것뿐이면 '긋기', 열린 것이 있으면 쪽 단추
+    if (!dblNeedSide(T)) {
+        $('cadDblBtns').innerHTML = '<button type="button" data-d="in">안쪽에 긋기</button>';
+        pick.hidden = false; $('cadDblGap').focus(); $('cadDblGap').select(); return;
+    }
     const t = T.find(x => (x.kind === 'chain' && !x.closed) || x.kind === 'arc' || x.kind === 'free');
     let opts;
     if (t.kind === 'arc') opts = [['in', '안쪽'], ['out', '바깥쪽']];
@@ -1951,8 +1957,8 @@ function dblStart() {
         const a = t.kind === 'chain' ? t.Q[0] : {x: t.op.pts[0][0], y: t.op.pts[0][1]}, b = t.kind === 'chain' ? t.Q[1] : {x: t.op.pts[Math.min(3, t.op.pts.length - 1)][0], y: t.op.pts[Math.min(3, t.op.pts.length - 1)][1]};
         opts = Math.abs(b.x - a.x) >= Math.abs(b.y - a.y) ? [['up', '위'], ['down', '아래']] : [['left', '왼쪽'], ['right', '오른쪽']];
     }
-    pick.innerHTML = opts.map(([v, l]) => `<button type="button" data-d="${v}">${l}</button>`).join('');
-    pick.hidden = false;
+    $('cadDblBtns').innerHTML = opts.map(([v, l]) => `<button type="button" data-d="${v}">${l}</button>`).join('');
+    pick.hidden = false; $('cadDblGap').focus(); $('cadDblGap').select();
 }
 function grpSpan(i) {                                  // i 번째 줄이 든 묶음 [시작, 끝). 묶음이 아니면 [i, i+1]
     const o = doc.ops[i]; if (!o || o.grp == null) return [i, i + 1];
@@ -4251,7 +4257,8 @@ $('cadDbl').addEventListener('click', dblStart);
 $('cadDblPick').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (!b) return; $('cadDblPick').hidden = true; makeDouble(b.dataset.d); });
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.cad-dbl-wrap')) $('cadDblPick').hidden = true; });
 $('cadDblGap').value = SET.dblGap || 0.2;
-$('cadDblGap').addEventListener('change', () => { SET.dblGap = dblGap(); saveSet(); });
+$('cadDblGap').addEventListener('change', () => { SET.dblGap = dblGap(); saveSet(); });   // 마지막에 쓴 간격을 다음에 먼저 보인다
+$('cadDblGap').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); const b = $('cadDblBtns').querySelector('button'); if (b) b.click(); } else if (e.key === 'Escape') $('cadDblPick').hidden = true; });
 $('cadAuxChk').addEventListener('change', () => setAux($('cadAuxChk').checked));   // 도구 줄 '보조선'·'마킹' 체크(사용자) — 설정 창의 보이기와 같은 것
 $('cadAuxChk').checked = SET.auxOn !== false;
 $('cadMarkChk').addEventListener('change', () => setMark($('cadMarkChk').checked));
