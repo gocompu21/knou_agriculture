@@ -60,6 +60,8 @@
         <button type="button" id="cadTplBtn" class="cad-bar-btn" aria-label="원형 템플릿" title="원형 템플릿 — 몸통을 끌어 옮기고, 샤프로 구멍 안을 따라 돌리면 원(돌린 만큼 호)이 그려집니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="4.5" width="17" height="11" rx="1.5" fill="#f2c230" stroke="#b08a10" stroke-width="1"/><circle cx="5.5" cy="10" r="2.6" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="11" cy="10" r="1.9" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="15.3" cy="10" r="1.2" fill="#fff" stroke="#b08a10" stroke-width=".7"/></svg></button>
         <button type="button" id="cadTplGeo" class="cad-bar-btn" aria-label="도형 템플릿" title="도형 템플릿(원·삼각형·사각형·육각형) — 몸통을 끌어 옮기고, 샤프로 구멍 안을 따라 돌리면 그 도형이 그려집니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="4.5" width="17" height="11" rx="1.5" fill="#f2c230" stroke="#b08a10" stroke-width="1"/><path d="M5 7.4L7.4 12.4H2.6Z" fill="#fff" stroke="#b08a10" stroke-width=".7" stroke-linejoin="round"/><rect x="8.4" y="7.8" width="4" height="4" fill="#fff" stroke="#b08a10" stroke-width=".7"/><path d="M15.3 7.6l1.85 1.1v2.2l-1.85 1.1-1.85-1.1v-2.2Z" fill="#fff" stroke="#b08a10" stroke-width=".7" stroke-linejoin="round"/></svg></button>
         <select id="cadTplKind" hidden class="cad-txt" title="템플릿 종류"><option value="circle">원형</option><option value="geo">도형</option></select>
+        <span class="cad-dbl-wrap"><button type="button" id="cadDbl" class="cad-bar-btn" aria-label="두 줄" title="두 줄(경계석) — 고른 선에 0.2m 간격으로 한 줄 더. 닫힌 도형(사각형·원·닫힌 꺾은선·닫힌 곡선)은 안쪽, 열린 선은 쪽을 고른다. 간격은 설정(⚙)"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 7h16M2 13h16"/></svg></button>
+            <span class="cad-dbl-pick" id="cadDblPick" hidden></span></span>
         <button type="button" id="cadCalcBtn" class="cad-bar-btn" aria-label="계산기" title="템플릿 계산기 — 축척과 실제 지름으로 몇 번 구멍을 쓸지, 구멍 번호로 실제 지름을 계산"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="2" width="12" height="16" rx="1.6"/><rect x="6" y="4.2" width="8" height="3.2" rx=".5"/><path d="M7 10.3h.01M10 10.3h.01M13 10.3h.01M7 13h.01M10 13h.01M13 13h.01M7 15.6h.01M10 15.6h.01M13 15.6h.01" stroke-width="2.1"/></svg></button>
         <span class="cad-sep"></span>
         <button type="button" id="cadAuxBtn" class="cad-bar-btn on" hidden aria-label="보조선" title="보조선 레이어 보이기·감추기 — 색은 설정(⚙)에서"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6h16M2 10h16M2 14h16" stroke-dasharray="2 1.6"/></svg></button>
@@ -94,6 +96,8 @@
             <div class="cad-set-row"><span class="cad-set-lb">60° 삼각자</span>
                 <select id="cadTri60Size" title="60° 삼각자 크기 — 직각을 낀 긴 변의 길이를 종이 높이에 대한 비율로"><option value="40">40%</option><option value="50">50%</option><option value="60">60%</option><option value="70" selected>70%</option><option value="80">80%</option><option value="90">90%</option><option value="100">100%</option><option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option><option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option></select>
                 <span class="cad-set-note" id="cadTri60SizeNote"></span></div>
+            <div class="cad-set-row"><span class="cad-set-lb">두 줄 간격</span>
+                <input type="number" id="cadDblGap" min="0.01" step="0.05" value="0.2" style="width:70px"> m <span class="cad-set-note">경계석 — 도면 m</span></div>
             <div class="cad-set-row"><span class="cad-set-lb">샤프 선 종류 · 굵기</span><span class="cad-set-note" style="margin:0">(종이 위 mm)</span></div>
             <div class="cad-set-row cad-set-in"><span class="cad-set-sub cad-set-pen">샤프 0.9</span><select id="cadLs9" class="cad-set-ls"></select>
                 <input type="number" id="cadP9" class="cad-set-num" step="0.05" min="0.05" max="3"><span class="cad-set-sub">mm</span></div>
@@ -480,6 +484,13 @@
 /* 재생에서 지금 긋는 선은 제 색 그대로 — 빨강으로 긋고 다음 칸에서 검정으로 덧칠되던 것을 뺐다(사용자). 어디인지는 동그라미·샤프가 알린다 */
 .cad-op.step { font-weight: 700; color: #1b4332; margin-top: 8px; background: #e6f0ea; padding: 6px 6px; }   /* 단계 줄 — 연녹 바탕(사용자) */
 .cad-op.step:hover { background: #d9e8df; }
+/* 두 줄(경계석) — 열린 선이면 쪽을 고르는 작은 창 */
+.cad-dbl-wrap { position: relative; display: inline-flex; }
+.cad-dbl-pick { position: absolute; top: 100%; left: 0; margin-top: 4px; z-index: 30; display: flex; gap: 4px; padding: 6px; background: #fff;
+    border: 1px solid #cfd8d3; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.15); white-space: nowrap; }
+.cad-dbl-pick[hidden] { display: none; }
+.cad-dbl-pick button { border: 1px solid #cfd8d3; background: #f6f9f7; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 0.8rem; }
+.cad-dbl-pick button:hover { background: #e6f0ea; }
 /* 끌어 옮기기 — 놓일 자리에 녹색 줄(사용자) */
 .cad-op[draggable="true"] { cursor: grab; }
 .cad-op.dragging { opacity: .4; }
@@ -1828,6 +1839,120 @@ function groupTplOps() {
         i = j + 1;
     }
     return n;
+}
+
+// ── 두 줄(경계석) — 고른 선에 간격(기본 0.2m)을 두고 한 줄 더 긋는다(사용자). 시설배치도의 경계석 표시 ──
+// 닫힌 것(사각형·원·닫힌 꺾은선/묶음·닫힌 프리드로잉)은 **안쪽**으로, 열린 것(선·꺾은선·호·프리드로잉)은 고른 쪽으로.
+// 꺾은선은 변마다 평행이동한 뒤 이웃 변끼리 만나는 자리를 새 꼭짓점으로 삼는다(모서리가 맞물린다)
+function dblGap() { const g = +$('cadDblGap').value; return g > 0 ? g : 0.2; }
+function lineX(a1, a2, b1, b2) {                       // 두 직선(a1-a2, b1-b2)의 교점, 나란하면 null
+    const dx1 = a2.x - a1.x, dy1 = a2.y - a1.y, dx2 = b2.x - b1.x, dy2 = b2.y - b1.y, den = dx1 * dy2 - dy1 * dx2;
+    if (Math.abs(den) < 1e-9) return null;
+    const t = ((b1.x - a1.x) * dy2 - (b1.y - a1.y) * dx2) / den;
+    return {x: a1.x + dx1 * t, y: a1.y + dy1 * t};
+}
+function offsetChain(Q, closed, g, side) {             // Q: 꼭짓점들, side: +1 이면 진행 방향의 (-dy, dx) 쪽
+    const m = closed ? Q.length : Q.length - 1, seg = [];
+    for (let i = 0; i < m; i++) {
+        const a = Q[i], b = Q[(i + 1) % Q.length], L = Math.hypot(b.x - a.x, b.y - a.y) || 1, nx = -(b.y - a.y) / L * g * side, ny = (b.x - a.x) / L * g * side;
+        seg.push([{x: a.x + nx, y: a.y + ny}, {x: b.x + nx, y: b.y + ny}]);
+    }
+    const out = [];
+    for (let i = 0; i < Q.length; i++) {
+        if (!closed && i === 0) { out.push(seg[0][0]); continue; }
+        if (!closed && i === Q.length - 1) { out.push(seg[m - 1][1]); continue; }
+        const s1 = seg[(i - 1 + m) % m], s2 = seg[i % m];
+        out.push(lineX(s1[0], s1[1], s2[0], s2[1]) || s2[0]);
+    }
+    return out;
+}
+const areaOf = Q => Q.reduce((s, a, i) => { const b = Q[(i + 1) % Q.length]; return s + a.x * b.y - b.x * a.y; }, 0);
+// 고른 것 → 두 줄 대상. 선들이 끝과 끝으로 이어졌으면 한 꺾은선으로 모은다
+function dblTargets() {
+    const sel = doc.ops.filter(o => selOps.has(o.id) && o.t !== 'step' && !o.mark);
+    const out = [], lines = sel.filter(o => o.t === 'line');
+    sel.filter(o => o.t !== 'line').forEach(o => out.push({kind: o.t, op: o}));
+    const left = new Set(lines);
+    while (left.size) {                                // 이어진 선 사슬
+        const first = [...left][0]; left.delete(first);
+        let chain = [first.a, first.b], grew = true, st = {ls: first.ls, w: first.w};
+        while (grew) {
+            grew = false;
+            for (const o of left) {
+                const h = chain[0], t = chain[chain.length - 1];
+                if (o.a === t) chain.push(o.b); else if (o.b === t) chain.push(o.a); else if (o.b === h) chain.unshift(o.a); else if (o.a === h) chain.unshift(o.b); else continue;
+                left.delete(o); grew = true; break;
+            }
+        }
+        const Q = chain.map(n => P(n)).filter(Boolean), closed = chain.length > 3 && chain[0] === chain[chain.length - 1];
+        out.push({kind: 'chain', Q: closed ? Q.slice(0, -1) : Q, closed, st});
+    }
+    return out;
+}
+function dblNeedSide(T) {                              // 열린 것이 있으면 쪽을 물어야 한다
+    return T.some(t => (t.kind === 'chain' && !t.closed) || t.kind === 'arc' || (t.kind === 'free' && !freeClosed(t.op)));
+}
+const freeClosed = op => { const a = op.pts[0], b = op.pts[op.pts.length - 1]; return op.pts.length > 3 && Math.hypot(a[0] - b[0], a[1] - b[1]) < 0.5; };
+// 열린 선의 쪽 — 첫 변이 가로에 가까우면 위/아래, 세로에 가까우면 왼쪽/오른쪽. dir: 'up'|'down'|'left'|'right'(원·호는 'in'|'out')
+function sideFor(a, b, dir) {
+    const nx = -(b.y - a.y), ny = b.x - a.x;
+    if (dir === 'up') return ny < 0 ? 1 : -1;
+    if (dir === 'down') return ny > 0 ? 1 : -1;
+    if (dir === 'left') return nx < 0 ? 1 : -1;
+    return nx > 0 ? 1 : -1;
+}
+function makeDouble(dir) {
+    const T = dblTargets(); if (!T.length) { flash('두 줄로 할 선을 먼저 고르세요 — 작도 순서나 도면에서(Shift 로 여럿)'); return; }
+    const g = dblGap(); snapHist(); let made = 0;
+    const pushChain = (R, closed, st, name) => {       // 새 꼭짓점들로 선 사슬을 긋는다(한 묶음)
+        const ns = R.map(q => addPt(q.x, q.y)); if (closed) ns.push(ns[0]);
+        const gid = doc.seq, list = [];
+        for (let i = 0; i + 1 < ns.length; i++) if (ns[i] !== ns[i + 1]) list.push({id: doc.seq++, t: 'line', a: ns[i], b: ns[i + 1], ls: st.ls, w: st.w});
+        if (list.length > 1) list.forEach(o => { o.grp = gid; o.gname = name; });
+        doc.ops.push(...list); made += list.length ? 1 : 0;
+    };
+    T.forEach(t => {
+        if (t.kind === 'chain') {
+            if (t.Q.length < 2) return;
+            const side = t.closed ? (areaOf(t.Q) > 0 ? 1 : -1) : sideFor(t.Q[0], t.Q[1], dir);
+            pushChain(offsetChain(t.Q, t.closed, g, side), t.closed, t.st, '경계석 안쪽선');
+        } else if (t.kind === 'rect') {
+            const a = P(t.op.a), b = P(t.op.b); if (!a || !b) return;
+            const x0 = Math.min(a.x, b.x) + g, x1 = Math.max(a.x, b.x) - g, y0 = Math.min(a.y, b.y) + g, y1 = Math.max(a.y, b.y) - g;
+            if (x1 <= x0 || y1 <= y0) return;
+            doc.ops.push({id: doc.seq++, t: 'rect', a: addPt(x0, y0), b: addPt(x1, y1), ls: t.op.ls, w: t.op.w}); made++;
+        } else if (t.kind === 'circle') {
+            const r = radiusOf(t.op) - g; if (r <= 0) return;
+            doc.ops.push({id: doc.seq++, t: 'circle', c: t.op.c, mode: t.op.mode, v: +(t.op.mode === 'd' ? 2 * r : r).toFixed(3), ls: t.op.ls, w: t.op.w}); made++;
+        } else if (t.kind === 'arc') {
+            const a = P(t.op.a), b = P(t.op.b), G = a && b && arcGeom(a, b, t.op.r, t.op.dir === 'cw', t.op.big); if (!G) return;
+            const r2 = dir === 'out' || dir === 'down' || dir === 'right' ? G.R + g : G.R - g; if (r2 <= 0) return;
+            const k = r2 / G.R, pa = {x: G.cx + (a.x - G.cx) * k, y: G.cy + (a.y - G.cy) * k}, pb = {x: G.cx + (b.x - G.cx) * k, y: G.cy + (b.y - G.cy) * k};
+            doc.ops.push({id: doc.seq++, t: 'arc', a: addPt(pa.x, pa.y), b: addPt(pb.x, pb.y), dir: t.op.dir, r: +r2.toFixed(3), big: t.op.big, ls: t.op.ls, w: t.op.w}); made++;
+        } else if (t.kind === 'free') {
+            const closed = freeClosed(t.op), Q = t.op.pts.map(([x, y]) => ({x, y})), Qc = closed ? Q.slice(0, -1) : Q;
+            const side = closed ? (areaOf(Qc) > 0 ? 1 : -1) : sideFor(Qc[0], Qc[Math.min(3, Qc.length - 1)], dir);
+            const R = offsetChain(Qc, closed, g, side).map(q => [+q.x.toFixed(4), +q.y.toFixed(4)]); if (closed) R.push(R[0]);
+            doc.ops.push({id: doc.seq++, t: 'free', pts: R, ls: t.op.ls, w: t.op.w}); made++;
+        }
+    });
+    if (!made) { hist.pop(); flash('두 줄을 그을 수 없습니다 — 간격보다 작은 도형이거나 선이 아닙니다'); return; }
+    changed(); flash(`두 줄 — ${made}개에 ${fmt(g)}m 간격으로 한 줄씩 더 그었습니다`);
+}
+function dblStart() {
+    const pick = $('cadDblPick'), T = dblTargets();
+    if (!pick.hidden) { pick.hidden = true; return; }
+    if (!T.length) { flash('두 줄로 할 선을 먼저 고르세요 — 작도 순서나 도면에서(Shift 로 여럿)'); return; }
+    if (!dblNeedSide(T)) { makeDouble(); return; }
+    const t = T.find(x => (x.kind === 'chain' && !x.closed) || x.kind === 'arc' || x.kind === 'free');
+    let opts;
+    if (t.kind === 'arc') opts = [['in', '안쪽'], ['out', '바깥쪽']];
+    else {
+        const a = t.kind === 'chain' ? t.Q[0] : {x: t.op.pts[0][0], y: t.op.pts[0][1]}, b = t.kind === 'chain' ? t.Q[1] : {x: t.op.pts[Math.min(3, t.op.pts.length - 1)][0], y: t.op.pts[Math.min(3, t.op.pts.length - 1)][1]};
+        opts = Math.abs(b.x - a.x) >= Math.abs(b.y - a.y) ? [['up', '위'], ['down', '아래']] : [['left', '왼쪽'], ['right', '오른쪽']];
+    }
+    pick.innerHTML = opts.map(([v, l]) => `<button type="button" data-d="${v}">${l}</button>`).join('');
+    pick.hidden = false;
 }
 function grpSpan(i) {                                  // i 번째 줄이 든 묶음 [시작, 끝). 묶음이 아니면 [i, i+1]
     const o = doc.ops[i]; if (!o || o.grp == null) return [i, i + 1];
@@ -4122,6 +4247,11 @@ fillPickDraw(); $('cadFillOp').value = SET.fillOp;
 $('cadAuxBtn').classList.toggle('on', SET.auxOn !== false); root.classList.toggle('aux-off', SET.auxOn === false);
 $('cadAuxBtn').addEventListener('click', () => { setAux(!SET.auxOn); flash(SET.auxOn ? '보조선을 보입니다' : '보조선을 감췄습니다 — 지우개·선택도 건드리지 않습니다'); });
 $('cadAuxOn').addEventListener('change', () => setAux($('cadAuxOn').checked));
+$('cadDbl').addEventListener('click', dblStart);
+$('cadDblPick').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (!b) return; $('cadDblPick').hidden = true; makeDouble(b.dataset.d); });
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.cad-dbl-wrap')) $('cadDblPick').hidden = true; });
+$('cadDblGap').value = SET.dblGap || 0.2;
+$('cadDblGap').addEventListener('change', () => { SET.dblGap = dblGap(); saveSet(); });
 $('cadAuxChk').addEventListener('change', () => setAux($('cadAuxChk').checked));   // 도구 줄 '보조선'·'마킹' 체크(사용자) — 설정 창의 보이기와 같은 것
 $('cadAuxChk').checked = SET.auxOn !== false;
 $('cadMarkChk').addEventListener('change', () => setMark($('cadMarkChk').checked));
