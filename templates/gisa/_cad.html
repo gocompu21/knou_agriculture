@@ -2705,9 +2705,10 @@ function filletGeom(C, r) {       // C = 모서리 자리 {x, y}
     return {ok: true, C, segs, t1, t2, r, cw};
 }
 function addPt(x, y) {            // 그 자리에 점이 있으면 그 점, 없으면 새 점 (계산한 자리라 0.001m 까지 둔다)
-    const same = doc.pts.find(p => Math.abs(p.x - x) < 1e-6 && Math.abs(p.y - y) < 1e-6);
+    // 저장하는 값(0.001m 로 반올림)끼리 견준다 — 날값으로 견주면 템플릿 다각형의 끝점(= 시작점)이 반올림 차이로 다른 점이 되었다
+    const rx = +x.toFixed(3), ry = +y.toFixed(3), same = doc.pts.find(p => Math.abs(p.x - rx) < 1e-9 && Math.abs(p.y - ry) < 1e-9);
     if (same) return same.n;
-    const n = nextN(); doc.pts.push({n, x: +x.toFixed(3), y: +y.toFixed(3)}); return n;
+    const n = nextN(); doc.pts.push({n, x: rx, y: ry}); return n;
 }
 function explodeRect(op) {        // 사각형은 한 변만 잘라 낼 수 없어 네 선으로 풀어 둔다
     const a = P(op.a), b = P(op.b), i = doc.ops.indexOf(op);
