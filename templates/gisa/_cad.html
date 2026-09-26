@@ -1022,7 +1022,7 @@ function srRun(S) {
     const perM = 1000 / S, lab = srGrad(S)[3];
     return Math.floor(SR_RUN / perM / lab + 1e-9) * lab * perM;
 }
-const SR_MARK = 3;                                     // 마킹 길이(종이 위 mm) — 실제 연필 표시처럼 짧게
+const SR_MARK = 1.5;                                   // 마킹 길이(종이 위 mm) — 실제 연필 표시처럼 짧게(3 → 1.5, 사용자)
 let sr = null;                                         // {x, y, rot, roll} 돌리기 전 왼쪽 위(도면 m) · 회전(°) · 바닥 면(0~2)
 try { sr = JSON.parse(localStorage.getItem('cadSr') || 'null'); } catch (e) {}
 if (sr && !(sr.roll >= 0 && sr.roll <= 2)) { sr.roll = 2; delete sr.s; }   // 예전 저장(축척을 고르던 때) → 검정 면 바닥
@@ -1507,6 +1507,10 @@ const freeD = pts => {                              // 점 사이를 중점 2차
     const l = pts[pts.length - 1]; return d + `L${fmt(l[0])} ${fmt(l[1])}`;
 };
 function opSvg(op) {
+    if (op.mark && op.pts && op.pts.length > 1) {      // 마킹 — 길이(SR_MARK)와 가는 굵기로 늘 같게 그린다. 예전(3mm)에 찍은 것도 새 길이로
+        const [x0, y0] = op.pts[0], [x1, y1] = op.pts[1], d = Math.hypot(x1 - x0, y1 - y0) || 1, L = SR_MARK * scaleDenom() / 1000;
+        return `<path d="M${fmt(x0)} ${fmt(y0)}L${fmt(x0 + (x1 - x0) / d * L)} ${fmt(y0 + (y1 - y0) / d * L)}" ${stAttr('solid', 'thin')}/>`;
+    }
     if (op.t === 'free') return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${stAttr(op.ls, op.w)}/>` : '';
     if (op.t === 'fill' && !op._raw && op.cuts && op.cuts.length) {   // 지우개로 지운 자리 — 원판들을 검게 뚫은 mask 로 가린다
         const id = `cadFm${op.id}`, [x0, y0, x1, y1] = op.bb || [sheet.x0, sheet.y0, sheet.x1, sheet.y1], m = 2 * U;
