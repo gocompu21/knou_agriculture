@@ -935,7 +935,10 @@ function polyTrace(h, a0, sw) {                        // 돌린 구간의 꺾�
 // 숫자 위 작은 숫자는 반대쪽에서 읽는 값(전체 − 그 눈금)이다. 눈금 1m(실제) = 종이 위 1000/S mm = 도면 denom/S m
 const SR_L = 325, SR_Z = 12, SR_RUN = 300;            // 판 길이 · 왼쪽 여백 · 눈금 길이
 const SR_F = 25;                                       // 면 위 폭(w, mm) — 눈금·글자·홈을 그리는 면 좌표
-const SR_W = 14.5, SR_H = SR_W / 2;                    // 위에서 본 폭 = 종이에 닿는 밑면 폭(사용자 실측 14.5mm) · 능선 자리
+const SR_W = 14.5, SR_H = SR_W / 2;                    // 위에서 본 폭 = 종이에 닿는 밑면 폭(사용자 실측 14.5mm) · SR_SEG 의 기준 반폭
+// 능선 자리 — 눈이 자 앞쪽 위에 있어, 측정 기준인 윗면(A, 종이 쪽 눈금)이 폭의 2/3, 아랫면(B)이 1/3 로 보인다(사용자).
+// 반반으로 나누면 평면에 가깝게 보였다
+const SR_HA = SR_W * 2 / 3;
 // 단면(사용자 사진)은 세 면이 평평하지 않다 — 면마다 가운데 둥근 홈에서 안으로 꺾인다(세 갈래 별 모양). 종이에 닿는 꼭짓점 쪽
 // 부분은 완만하고(약 45°) 능선 쪽 부분은 가파르다(약 67°). 그래서 위에서 보면 종이 쪽 눈금(1/100·1/400)은 넓게 잘 보이고
 // 능선 쪽 눈금(1/200·1/300)은 좁게 눌려 보인다(사용자 지시). 사진에서 잰 반쪽(7.25mm)의 수평 투영:
@@ -1072,24 +1075,28 @@ function drawSr() {
     // 두 빗면의 자리 — A 는 v = w/2(종이 모서리 v=0 → 능선), B 는 v = 능선 + w/2(능선 → 종이 모서리 v=25)
     // 면 위 좌표 w → 화면 v. 종이 모서리에서의 거리 d 를 [종이 쪽 눈금 · 홈 · 능선 쪽 눈금] 세 구간으로 줄인다.
     // A(윗쪽)는 w=0 이 종이 모서리(v=0), B(아랫쪽)는 w=25 가 종이 모서리(v=SR_W). 둘 다 w 가 늘면 v 도 는다
-    const seg = (d0, d1) => {                              // d0~d1 = 그 반쪽에서 홈의 거리 구간
-        const q = (SR_H - SR_LAND - SR_RIDGE / 2) / SR_H;   // 랜드를 뺀 나머지에 세 구간을 줄여 담는다
-        const P = [[0, SR_LAND], [d0, SR_LAND + SR_SEG[0] * q], [d1, SR_LAND + (SR_SEG[0] + SR_SEG[1]) * q], [SR_F, SR_H - SR_RIDGE / 2]];
+    const seg = (d0, d1, H) => {                           // d0~d1 = 그 반쪽에서 홈의 거리 구간, H = 그 면이 차지하는 화면 폭
+        const q = (H - SR_LAND - SR_RIDGE / 2) / SR_H;      // 랜드를 뺀 나머지에 세 구간을 같은 비율로 줄여 담는다
+        const P = [[0, SR_LAND], [d0, SR_LAND + SR_SEG[0] * q], [d1, SR_LAND + (SR_SEG[0] + SR_SEG[1]) * q], [SR_F, H - SR_RIDGE / 2]];
         return d => { for (let i = 1; i < P.length; i++) if (d <= P[i][0] || i === P.length - 1) {
             const [a, av] = P[i - 1], [b, bv] = P[i], sy = (bv - av) / (b - a); return {v: av + (d - a) * sy, sy}; } };
     };
-    const mA = seg(SR_RED0, SR_RED1), mB = seg(SR_F - SR_RED1, SR_F - SR_RED0);
+    const mA = seg(SR_RED0, SR_RED1, SR_HA), mB = seg(SR_F - SR_RED1, SR_F - SR_RED0, SR_W - SR_HA);
     const halves = [{F: V.A, id: 'A', at: w => mA(w), v0: 0},
-                    {F: V.B, id: 'B', at: w => { const r = mB(SR_F - w); return {v: SR_W - r.v, sy: r.sy}; }, v0: SR_H}];
+                    {F: V.B, id: 'B', at: w => { const r = mB(SR_F - w); return {v: SR_W - r.v, sy: r.sy}; }, v0: SR_HA}];
     // 그림자 — 높이 21.7mm 의 세모 기둥이라 판보다 짙고 넓게 오른쪽 아래로 진다
-    const s0 = srMap(0, 0), s1 = srMap(1.2, 2.2), dx = s1.x - s0.x, dy = s1.y - s0.y;
+    const s0 = srMap(0, 0), s1 = srMap(1.2, 3.0), dx = s1.x - s0.x, dy = s1.y - s0.y;
     let o = `<defs>`
         + halves.map(h => G(`srGrv${h.id}`, h.at(SR_RED0).v, h.at(SR_RED1).v, SR_BANDS[h.F.band])).join('')
         + `<filter id="srSh" x="-5%" y="-40%" width="110%" height="180%"><feGaussianBlur stdDeviation="${f(1.3 * k)}"/></filter></defs>`
-        + `<path d="${R4(0, 0, SR_L, SR_W)}" transform="translate(${f(dx)} ${f(dy)})" fill="rgba(30,35,40,.42)" filter="url(#srSh)" pointer-events="none"/>`
+        + G('srFaceA', 0, SR_HA, [[0, '#f3f3ef'], [0.25, '#ffffff'], [0.8, '#f7f7f3'], [1, '#e6e6e0']])     // 윗면 — 빛을 마주 봐 밝다
+        + G('srFaceB', SR_HA, SR_W, [[0, '#a4a49d'], [0.3, '#b8b8b1'], [1, '#c9c9c2']])                   // 아랫면 — 눈·빛에서 비껴 어둡다
+        + `<path d="${R4(0, 0, SR_L, SR_W)}" transform="translate(${f(dx)} ${f(dy)})" fill="rgba(30,35,40,.5)" filter="url(#srSh)" pointer-events="none"/>`
         + `<g class="sr-body"><path d="${R4(0, 0, SR_L, SR_W)}" fill="#f0f0ec" stroke="#8d9296" stroke-width="${f(0.22 * k)}"/>`
         // 꺾인 네 조각의 밝기 — 빛은 위(윗쪽 A)에서 온다. 완만한 종이 쪽이 밝고, 가파른 능선 쪽은 A 는 조금 어둡게, B 는 더 어둡게
-        + [[0, 0, SR_RED0, '#fbfbf8'], [0, SR_RED1, SR_F, '#e8e8e3'], [1, 0, SR_RED0, '#d6d6d0'], [1, SR_RED1, SR_F, '#ecece8']]
+        // 두 면 — 윗면은 밝게, 아랫면은 어둡게(입체). 한 면 안에서도 능선 쪽 가파른 부분을 조금 더 어둡게 덧칠한다
+        + `<path d="${R4(0, 0, SR_L, SR_HA)}" fill="url(#srFaceA)"/><path d="${R4(0, SR_HA, SR_L, SR_W)}" fill="url(#srFaceB)"/>`
+        + [[0, SR_RED1, SR_F, 'rgba(0,0,0,.06)'], [1, 0, SR_RED0, 'rgba(0,0,0,.08)']]
             .map(([hi, w0, w1, c]) => { const h = halves[hi]; return `<path d="${R4(0, h.at(w0).v, SR_L, h.at(w1).v)}" fill="${c}"/>`; }).join('');
     halves.forEach(h => {                                  // 둥근 홈 — 입구 너머 원통 안쪽(가운데 밝고 턱 밑은 그늘)
         const a = h.at(SR_RED0).v, b = h.at(SR_RED1).v, gw = b - a;
@@ -1102,7 +1109,8 @@ function drawSr() {
     // 흰 랜드 셋 — 능선(가운데)과 종이에 닿는 두 모서리. 면과 만나는 꺾임선을 가늘게 긋는다
     const land = (v0, v1, c) => `<path d="${R4(0, v0, SR_L, v1)}" fill="${c}"/>`
         + `<path d="M${M(0, v0)}L${M(SR_L, v0)}M${M(0, v1)}L${M(SR_L, v1)}" stroke="rgba(110,112,112,.55)" stroke-width="${f(0.08 * k)}"/>`;
-    o += land(SR_H - SR_RIDGE / 2, SR_H + SR_RIDGE / 2, '#ffffff') + land(0, SR_LAND, '#fdfdfc') + land(SR_W - SR_LAND, SR_W, '#f7f7f5');
+    o += land(SR_HA - SR_RIDGE / 2, SR_HA + SR_RIDGE / 2, '#ffffff') + land(0, SR_LAND, '#fdfdfc') + land(SR_W - SR_LAND, SR_W, '#d4d4ce')
+       + `<path d="M${M(0, SR_HA + SR_RIDGE / 2 + 0.25)}L${M(SR_L, SR_HA + SR_RIDGE / 2 + 0.25)}" stroke="rgba(0,0,0,.18)" stroke-width="${f(0.45 * k)}"/>`;   // 능선 너머로 꺾여 내려가는 그늘
     // 눈금 — 실물 사진을 따른다: 축척마다 [작은 눈금, 중간 눈금, 긴 중간 눈금(없으면 0), 숫자] 간격(실제 m).
     // 1/100 은 0.1·0.5·1m, 1/200 은 0.1·0.5·1·5m, 1/300~1/600 은 0.5·1·5·10m
     const on = (r, st) => Math.abs(r / st - Math.round(r / st)) < 1e-6;
@@ -1123,7 +1131,7 @@ function drawSr() {
         const D = {tl: 4.6, tm2: 3.8, tm: 3.0, tn: 1.45, sm: 4.3, smh: 1.75, mn: 7.1, mnh: 2.7,   // 사진 비율에서 눈금 약 18%·글자 약 23% 키움(사용자)
                    lb: 5.4, lbh: 1.9, mu: 2.4, muh: 1.0};
         const Ts = paper ? () => 0.72 : Sy;
-        const fsz = (hMM, d) => hMM / 0.72 * (paper ? Sy(d) / 0.72 : 1);   // 글자 높이(면 mm) → font-size
+        const fsz = (hMM, d) => hMM / 0.72 * (paper ? Math.max(Sy(d), 0.36) / 0.72 : 1);   // 글자 높이(면 mm) → font-size. 종이 쪽 눈금은 아랫면(1/3)에서도 읽히게 하한
         const rd = first ? 1 : -1, gap = 0.3;                       // 읽는 방향(u), 눈금과 글자 사이
         let tkp = '';
         for (let i = 0, r = 0; r <= tot + 1e-9; i++, r = +(i * minor).toFixed(6)) {
@@ -1156,7 +1164,7 @@ function drawSr() {
     halves.forEach(h => { scale(h.F.a, h, true); scale(h.F.b, h, false); });
     o += '</g>';
     if (!V.custom) {   // 굴림 손잡이 — 오른쪽 끝 바깥. 누르면 자를 굴려 바닥 면을 바꾼다(Shift 는 반대로). 사용자 지정 자에는 없다
-        const q = srMap(SR_L + 6, SR_H), q0 = srMap(SR_L, SR_H), rr = 2.9 * k;
+        const q = srMap(SR_L + 6, SR_HA), q0 = srMap(SR_L, SR_HA), rr = 2.9 * k;
         const tri = [0, 1, 2].map(i => { const a = (-90 + i * 120) * Math.PI / 180; return `${f(Math.cos(a) * 1.5 * k)} ${f(Math.sin(a) * 1.5 * k)}`; });
         o += `<path d="M${f(q0.x)} ${f(q0.y)}L${f(q.x)} ${f(q.y)}" stroke="#8a8f94" stroke-width="${f(0.2 * k)}" stroke-dasharray="${f(0.8 * k)} ${f(0.5 * k)}" pointer-events="none"/>`
            + `<g class="sr-roll" transform="translate(${f(q.x)} ${f(q.y)}) rotate(${f(deg)})"><title>자 굴리기 — 종이에 닿는 눈금이 바뀝니다 (Shift: 반대로)</title>`
