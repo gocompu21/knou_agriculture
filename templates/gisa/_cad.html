@@ -1144,7 +1144,10 @@ function drawSr() {
     const halves = [{F: V.A, id: 'A', at: w => mA(w), v0: 0},
                     {F: V.B, id: 'B', at: w => { const r = mB(SR_F - w); return {v: SR_W - r.v, sy: r.sy}; }, v0: HA}];
     // 그림자 — 높이 21.7mm 의 세모 기둥이라 판보다 짙고 넓게 오른쪽 아래로 진다
-    const dx = 0.8 * k, dy = 2.6 * k;   // 그림자는 자를 돌려도 늘 오른쪽 아래로
+    // 그림자는 재는 모서리의 **반대편**으로 진다 — 재는 모서리(연필을 대는 쪽)에는 옅은 가장자리 그늘만(사용자).
+    // 예전에는 화면 기준 늘 오른쪽 아래라, 자를 90° 돌리면 짙은 그림자가 재는 모서리 쪽에 깔렸다
+    const shO = (() => { const a = srMap(0, 0), b = srMap(0.8, SW ? -2.6 : 2.6); return {x: b.x - a.x, y: b.y - a.y}; })();
+    const dx = shO.x, dy = shO.y;
     // 빛은 늘 **재는 쪽(크게 보이는 면)**이 받는다 — 자를 어느 쪽으로 돌려도 눈금을 읽는 면이 밝다(사용자). 돌린 상태(SW)면 크게 보이는 면이 B
     const darkA = SW;
     let o = `<defs>`
