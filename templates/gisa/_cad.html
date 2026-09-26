@@ -1804,6 +1804,31 @@ function desc(op, full) {
     return '';
 }
 // ── 묶음(템플릿으로 한 번에 그린 다각형) — 작도 순서·재생·형광펜에서 한 줄로 다룬다 ──
+// 묶기 전에 그린 템플릿 다각형을 불러올 때 묶는다 — 한 번 돌려 그린 변은 도구 자리 도장(tl)이 같고 끝과 끝이 이어진다.
+// 닫힌 도형인데 끝점이 시작점과 다른 번호면(예전 addPt 반올림 버그) 시작점으로 합친다. 정다각형이면 이름을 붙인다
+function groupTplOps() {
+    const ops = doc.ops, NAME = {3: '정삼각형', 4: '정사각형', 6: '정육각형'}, key = o => JSON.stringify(o.tl || {});
+    const len = o => { const a = P(o.a), b = P(o.b); return a && b ? Math.hypot(b.x - a.x, b.y - a.y) : 0; };
+    let i = 0, n = 0;
+    while (i < ops.length) {
+        const o = ops[i];
+        if (o.t !== 'line' || !o.tl || !o.tl.tpl || o.grp != null) { i++; continue; }
+        let j = i; const k = key(o);
+        while (j + 1 < ops.length && ops[j + 1].t === 'line' && ops[j + 1].a === ops[j].b && ops[j + 1].grp == null && key(ops[j + 1]) === k && ops[j + 1].ls === o.ls) j++;
+        if (j > i) {
+            const blk = ops.slice(i, j + 1), fa = P(blk[0].a), lb = P(blk[blk.length - 1].b);
+            const closed = fa && lb && Math.abs(fa.x - lb.x) < 2e-3 && Math.abs(fa.y - lb.y) < 2e-3, ls = blk.map(len);
+            if (closed && blk[blk.length - 1].b !== blk[0].a) {
+                const old = blk[blk.length - 1].b; blk[blk.length - 1].b = blk[0].a;
+                if (!usedBy(old)) doc.pts = doc.pts.filter(p => p.n !== old);
+            }
+            const name = closed && NAME[blk.length] && Math.max(...ls) - Math.min(...ls) < 0.01 ? NAME[blk.length] : '꺾은선';
+            blk.forEach(x => { x.grp = blk[0].id; x.gname = name; }); n++;
+        }
+        i = j + 1;
+    }
+    return n;
+}
 function grpSpan(i) {                                  // i 번째 줄이 든 묶음 [시작, 끝). 묶음이 아니면 [i, i+1]
     const o = doc.ops[i]; if (!o || o.grp == null) return [i, i + 1];
     let s = i, e = i + 1;
@@ -3246,6 +3271,7 @@ function afterLoad(refit) {
     if (RP) rpEnd();
     doc.ops.forEach(o => { if (o.t !== 'step' && !('tl' in o)) o.tl = 0; });
     opsSeen = doc.ops.length;
+    groupTplOps();
     doc.seq = Math.max(doc.seq || 1, ...doc.ops.map(o => (o.id || 0) + 1));   // id 가 겹치면 한 줄을 지울 때 다른 줄도 지워진다
     doc.ops.forEach(o => {                              // 예전 마킹 — 점을 가리키지 않았다. 그 자리의 점을 찾아 잇는다
         if (!o.mark || o.p != null || !o.pts) return;
