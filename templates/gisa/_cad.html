@@ -1915,6 +1915,39 @@ function rpInfo() {
     if (cur) cur.scrollIntoView({block: 'nearest'});
     $('cadRp').querySelector('.pl').textContent = RP.playing ? '⏸ 멈춤' : '▶ 재생';
 }
+// 다음에 그을 자리 — 노랑 투명 바탕 + 검은 테두리 동그라미가 크게 나타나 그 자리로 **조여 들며** 반짝이고 사라진다(사용자 제안 +
+// 모여드는 움직임: 퍼지는 원은 눈이 바깥으로 따라가지만 조여 드는 원은 한가운데로 모인다). 화면 밖이면 그 자리로 화면을 옮긴다
+function rpStartPt(op) {
+    const n = ptsOf(op)[0];
+    if (n != null && P(n)) return P(n);
+    if (op.pts && op.pts.length) return {x: op.pts[0][0], y: op.pts[0][1]};
+    if (op.x != null && op.y != null) return {x: op.x, y: op.y};
+    if (op.bb) return {x: (op.bb[0] + op.bb[2]) / 2, y: (op.bb[1] + op.bb[3]) / 2};
+    return null;
+}
+function rpMark(op, dur) {
+    const w = rpStartPt(op); if (!w) return;
+    const m = 0.06;                                    // 화면 가장자리 6% 안쪽까지는 그대로 둔다
+    if (w.x < vb.x + vb.w * m || w.x > vb.x + vb.w * (1 - m) || w.y < vb.y + vb.h * m || w.y > vb.y + vb.h * (1 - m)) {
+        vb.x = w.x - vb.w / 2; vb.y = w.y - vb.h / 2; setVB();
+    }
+    let g = $('cadRpMark');
+    if (!g) { g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.id = 'cadRpMark'; g.setAttribute('pointer-events', 'none'); svg.appendChild(g); }
+    const t0 = performance.now(), id = RP.mark = {};
+    const frame = now => {
+        if (!RP || RP.mark !== id) { g.innerHTML = ''; return; }
+        const t = Math.min(1, (now - t0) / dur), k = pxPer();
+        // 0~45% 조여 듦(반지름 60px → 14px, 흐림 → 또렷) · 45~70% 한 번 반짝 · 70~100% 사라짐
+        let r, a;
+        if (t < 0.45) { const e = 1 - Math.pow(1 - t / 0.45, 3); r = 60 - 46 * e; a = e; }
+        else if (t < 0.7) { const e = (t - 0.45) / 0.25; r = 14 + 4 * Math.sin(e * Math.PI); a = 1; }
+        else { r = 14; a = 1 - (t - 0.7) / 0.3; }
+        g.innerHTML = `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(r / k)}" fill="rgba(255,214,0,${(0.38 * a).toFixed(3)})" stroke="rgba(0,0,0,${(0.9 * a).toFixed(3)})" stroke-width="${fmt(2 / k)}"/>`
+            + `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(2.2 / k)}" fill="rgba(0,0,0,${(0.9 * a).toFixed(3)})"/>`;
+        if (t < 1) requestAnimationFrame(frame); else g.innerHTML = '';
+    };
+    requestAnimationFrame(frame);
+}
 function rpGo(k, anim, cb) {
     if (!RP) return;
     RP.reveal = null;                                  // 긋던 중이면 멈춘다(다음 프레임에 샤프도 치운다)
@@ -1922,6 +1955,7 @@ function rpGo(k, anim, cb) {
     const fwd = anim && k === RP.k + 1, op = doc.ops[k - 1], spd = +$('cadRpSpd').value || 1100;
     RP.k = k; RP.cur = op && op.t !== 'step' ? op.id : null;
     const target = rpStateAt(k);
+    if (fwd && op && op.t !== 'step') rpMark(op, Math.max(700, spd * 0.75));
     const show = () => {
         if (!RP) return;
         drawOps(); drawPts(); rpInfo();
@@ -1950,7 +1984,7 @@ function rpStart() {
 }
 function rpEnd() {
     if (!RP) return;
-    clearTimeout(RP.timer); const live = RP.live; RP = null; if ($('cadRpPen')) $('cadRpPen').innerHTML = '';
+    clearTimeout(RP.timer); const live = RP.live; RP = null; if ($('cadRpPen')) $('cadRpPen').innerHTML = ''; if ($('cadRpMark')) $('cadRpMark').innerHTML = '';
     rpApply(live); root.classList.remove('replaying'); $('cadRp').hidden = true; $('cadRpBtn').classList.remove('on');
     renderAll();
 }
