@@ -1794,7 +1794,8 @@ function listOps() {
     let k = 0, i = 0;
     const btn = (a, t, l) => `<button type="button" data-act="${a}" title="${t}">${l}</button>`;
     const rows = doc.ops.map(op => {
-        const bt = `<span class="bt">${btn('edit', '고치기', '✎')}${btn('up', '위로', '↑')}${btn('down', '아래로', '↓')}${btn('del', '지우기', '✕')}</span>`;
+        const canRev = op.t === 'line' || op.t === 'arc' || (op.t === 'free' && !op.mark);   // 긋는 방향 바꾸기(사용자) — 선·호·프리드로잉
+        const bt = `<span class="bt">${canRev ? btn('rev', '긋는 방향 바꾸기', '⇄') : ''}${btn('edit', '고치기', '✎')}${btn('up', '위로', '↑')}${btn('down', '아래로', '↓')}${btn('del', '지우기', '✕')}</span>`;
         if (op.t === 'step') { k++; i = 0;
             return `<div class="cad-op step" draggable="true" data-id="${op.id}"><span class="no">(${k})</span><span class="tx">${esc(op.title)}</span>${bt}</div>`; }
         i++;
@@ -3057,6 +3058,14 @@ function endEdit() {
     editing = null; $('cadEditing').hidden = true;
     document.querySelectorAll('#cadForm .cad-go').forEach(b => { if (b.dataset.l) b.textContent = b.dataset.l; });
 }
+// 긋는 방향 바꾸기 — 선은 두 점을 맞바꾸고, 호는 두 점과 함께 도는 방향도 뒤집어 같은 호로 남긴다, 프리드로잉은 점 차례를 뒤집는다
+function revOp(id) {
+    const op = doc.ops.find(o => o.id === id); if (!op) return;
+    snapHist();
+    if (op.t === 'line' || op.t === 'arc') { [op.a, op.b] = [op.b, op.a]; if (op.t === 'arc') op.dir = op.dir === 'cw' ? 'ccw' : 'cw'; }
+    else if (op.t === 'free' && op.pts) op.pts.reverse();
+    changed(); rpMark(op, 900); rpHilite(op, 250);        // 바뀐 방향을 형광펜으로 보인다
+}
 function moveOp(id, d) {
     const i = doc.ops.findIndex(o => o.id === id), j = i + d;
     if (i < 0 || j < 0 || j >= doc.ops.length) return;
@@ -3861,6 +3870,7 @@ $('cadOpList').addEventListener('click', e => {
         const a = act.dataset.act;
         if (RP) rpEnd();                               // 재생 중이어도 ✕·✎·↑↓ 는 듣는다 — 재생을 끝내고 한다(재생 처리가 먼저 가로채 아무 일도 안 했다)
         if (a === 'del') { snapHist(); delOpClean(id); selOps.delete(id); pruneSyms(); changed(); }
+        if (a === 'rev') revOp(id);
         if (a === 'up') moveOp(id, -1);
         if (a === 'down') moveOp(id, 1);
         if (a === 'edit') editOp(id);
