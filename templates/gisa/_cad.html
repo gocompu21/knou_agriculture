@@ -1885,10 +1885,11 @@ function rpReveal(op, dur) {                           // 방금 그은 것을 �
         const pt = svg.createSVGPoint(); pt.x = q.x; pt.y = q.y; return pt.matrixTransform(m).matrixTransform(s.inverse()); };
     const frame = now => {
         if (!RP || RP.reveal !== id) { clear(); return; }
-        const t = Math.min(1, (now - t0) / dur), s = tot * (t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+        // 선마다 시작·끝은 천천히, 가운데는 빠르게(사용자) — 시간을 길이에 비례해 나눠 주고 한 선 안에서 easeInOutCubic
+        const t = Math.min(1, (now - t0) / dur), s = tot * t, ez = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
         let acc = 0, tip = null;
         els.forEach(e => {
-            const d = Math.max(0, Math.min(e.L, s - acc));
+            const d = e.L * ez(Math.max(0, Math.min(1, (s - acc) / e.L)));
             setDash(e, d);
             if (!tip && (s - acc <= e.L || e === els[els.length - 1])) { try { tip = toW(e.el, e.el.getPointAtLength(d)); } catch (x) {} }
             acc += e.L;
@@ -1959,7 +1960,7 @@ function rpGo(k, anim, cb) {
     const show = () => {
         if (!RP) return;
         drawOps(); drawPts(); rpInfo();
-        if (fwd && op && op.t !== 'step') { rpReveal(op, spd * 0.6); if (cb) RP.timer = setTimeout(cb, spd * 0.75); }
+        if (fwd && op && op.t !== 'step') { rpReveal(op, spd * 0.75); if (cb) RP.timer = setTimeout(cb, spd * 0.9); }
         else if (cb) RP.timer = setTimeout(cb, op && op.t === 'step' ? spd * 0.8 : spd * 0.2);
     };
     if (fwd) rpTween(target, spd * 0.35, show); else { RP.anim = null; rpApply(target); drawBar(); show(); }
