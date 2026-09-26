@@ -897,11 +897,12 @@ function startTplDrag(e, w) {
 // ── 접선 맞춤 ── 도면의 선(보이는 것)과 자의 변을 무한 직선으로 모은다: 점 a 와 단위 방향 d
 function tanLines() {
     const L = [];
-    doc.ops.forEach(op => {
-        if (op.t !== 'line' || auxHidden(op)) return;
+    const add = (a, b) => { const n = Math.hypot(b.x - a.x, b.y - a.y); if (n > 1e-6) L.push({a, d: {x: (b.x - a.x) / n, y: (b.y - a.y) / n}, lo: 0, hi: n}); };
+    doc.ops.forEach(op => {                            // 선 — 보조선도(보조선 레이어가 보일 때). 사각형은 네 변(사각형 도구로 그린 것도 모서리 라운드가 되게)
+        if (auxHidden(op)) return;
         const a = P(op.a), b = P(op.b); if (!a || !b) return;
-        const n = Math.hypot(b.x - a.x, b.y - a.y); if (n < 1e-6) return;
-        L.push({a, d: {x: (b.x - a.x) / n, y: (b.y - a.y) / n}, lo: 0, hi: n});
+        if (op.t === 'line') add(a, b);
+        else if (op.t === 'rect') { const q = [a, {x: b.x, y: a.y}, b, {x: a.x, y: b.y}]; q.forEach((p, i) => add(p, q[(i + 1) % 4])); }
     });
     guideEdges().forEach(e => L.push({a: {x: e.ax, y: e.ay}, d: {x: e.dx, y: e.dy}, lo: e.lo, hi: e.hi}));
     return L;
