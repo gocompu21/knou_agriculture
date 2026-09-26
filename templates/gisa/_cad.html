@@ -1154,7 +1154,9 @@ function drawSr() {
             tkp += `M${M(u, Vw(0))}L${M(u, Vw(isL ? D.tl : isM2 ? D.tm2 : isM ? D.tm : D.tn))}`;
             if (isL) {
                 const sm = fmt(+(tot - r).toFixed(4)), sf = fsz(D.smh, D.sm);   // 반대쪽에서 읽는 작은 숫자 — 눈금 양옆으로 갈라, 굵게 하지 않는다(사용자)
-                if (sm.length > 1) {
+                if (sm.length === 3) {                      // 세 자리면 가운데 숫자가 눈금 한가운데에 온다(사용자) — 숫자 폭이 같아 가운데 맞춤이면 된다
+                    o += tx(u, Vw(D.sm), sm, sf, 'middle', !first, Ts(D.sm), col, 400);
+                } else if (sm.length > 1) {
                     const cut = Math.ceil(sm.length / 2);
                     o += tx(u - rd * gap, Vw(D.sm), sm.slice(0, cut), sf, 'end', !first, Ts(D.sm), col, 400)
                        + tx(u + rd * gap, Vw(D.sm), sm.slice(cut), sf, 'start', !first, Ts(D.sm), col, 400);
