@@ -543,8 +543,8 @@ const circ = i => i <= 20 ? CIRC[i - 1] : `(${i})`;
 // 선 종류 — 굵기·간격은 종이 폭 100m 를 기준으로 한 m 값이고, 종이 크기에 비례해 늘고 준다(U)
 const LS = {
     solid:  {name: '실선'},
-    chain:  {name: '일점쇄선', dash: [3, 0.9, 0.25, 0.9], fit: true},            // 점 앞뒤 간격을 넓혔다(사용자)
-    chain2: {name: '이점쇄선', dash: [3, 0.8, 0.25, 0.8, 0.25, 0.8], fit: true},
+    chain:  {name: '일점쇄선', dash: [12, 1.6, 0.3, 1.6], fit: true},             // 긴 마디를 길게, 점은 드물게(사용자) — 401 부지 경계 원본(마디 12~15m · 틈+점+틈 3.7m)과 같은 비
+    chain2: {name: '이점쇄선', dash: [12, 1.4, 0.3, 1.4, 0.3, 1.4], fit: true},
     aux:    {name: '보조선', color: '#a3a9b3', w: 0.06},
     dot:    {name: '점선', dash: [0.35, 0.4]},
 };
@@ -1422,8 +1422,8 @@ function redo() { if (!redoS.length) return; hist.push(JSON.stringify(doc)); doc
 function fitDash(dash, len, closed) {
     const P = dash.reduce((s, d) => s + d, 0), D = dash[0];
     if (!(len > 0)) return dash;
-    const n = Math.round(closed ? len / P : (len - D) / P);
-    if (n < 1) return null;
+    let n = Math.round(closed ? len / P : (len - D) / P);
+    if (n < 1) { if (len < 0.35 * (P + (closed ? 0 : D))) return null; n = 1; }   // 짧은 선도 점 하나는 들어가게 무늬를 줄인다. 아주 짧으면 실선
     const s = len / (n * P + (closed ? 0 : D));
     return dash.map(d => d * s);
 }
