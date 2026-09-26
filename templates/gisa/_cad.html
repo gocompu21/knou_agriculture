@@ -422,7 +422,8 @@
 .cad-form > div[data-form].on { display: block; }
 .cad-form h4 { margin: 0 0 8px; font-size: 0.9rem; color: #1b4332; }
 .cad-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 7px; flex-wrap: wrap; }
-.cad-steprow { flex-wrap: nowrap; align-items: center; gap: 5px; }       /* 단계 이름 · + 단계 · ▶ 재생 한 줄(사용자) */
+.cad-steprow { flex-wrap: nowrap; align-items: center; gap: 5px;       /* 단계 이름 · + 단계 · ▶ 재생 한 줄(사용자) */
+    position: sticky; top: -8px; z-index: 2; background: #fff; margin: -8px -10px 7px; padding: 8px 10px 6px; border-bottom: 1px solid #eef1ef; }   /* 목록을 내려도 위에 붙어 있다(사용자) — 칸 안쪽 여백만큼 끌어올려 빈틈 없이 */
 .cad-steprow input { flex: 1; min-width: 0; }
 .cad-steprow .cad-b { flex-shrink: 0; white-space: nowrap; padding-left: 8px; padding-right: 8px; }
 .cad-row > label { display: flex; flex-direction: column; font-size: 0.74rem; color: #66736d; gap: 2px; flex: 1; min-width: 62px; }
