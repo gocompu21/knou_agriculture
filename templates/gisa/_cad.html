@@ -255,7 +255,7 @@
                 <button type="button" data-ptab="lib">라이브러리</button>
             </div>
             <div class="cad-pane on" data-ppane="ops">
-                <div class="cad-row"><input id="cadStepTitle" placeholder="단계 이름 — 예) 경계선 및 그리드 작성">
+                <div class="cad-row"><input id="cadStepTitle" placeholder="단계 이름 — 고른 줄 위에 들어갑니다">
                     <button type="button" class="cad-b" id="cadStepAdd">+ 단계</button>
                     <button type="button" class="cad-b" id="cadRpBtn" title="작도 순서를 한 칸씩 되짚어 봅니다 — 그때의 I자·삼각자·템플릿·스케일자 자리도 함께">▶ 재생</button></div>
                 <div id="cadOpList" class="cad-list"></div>
@@ -3748,7 +3748,14 @@ document.querySelectorAll('.cad-tabs [data-ptab]').forEach(b => b.addEventListen
 $('cadStepAdd').addEventListener('click', () => {
     const t = $('cadStepTitle').value.trim();
     if (!t) { flash('단계 이름을 적어 주세요'); $('cadStepTitle').focus(); return; }
-    snapHist(); doc.ops.push({id: doc.seq++, t: 'step', title: t}); $('cadStepTitle').value = ''; changed();
+    // 작도 순서에서 고른 줄이 있으면 그 줄 바로 위에 넣는다(여럿이면 가장 앞 줄). 없으면 맨 끝(사용자)
+    const idx = doc.ops.findIndex(o => o.t !== 'step' && selOps.has(o.id)), st = {id: doc.seq++, t: 'step', title: t};
+    snapHist();
+    if (idx >= 0) doc.ops.splice(idx, 0, st); else doc.ops.push(st);
+    $('cadStepTitle').value = '';
+    if (idx >= 0) opsSeen = doc.ops.length;            // 가운데에 넣었으니 목록을 맨 아래로 내리지 않고 그 줄을 보인다
+    changed();
+    if (idx >= 0) { const r = document.querySelector(`#cadOpList .cad-op[data-id="${st.id}"]`); if (r) r.scrollIntoView({block: 'nearest'}); }
 });
 $('cadStepTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); $('cadStepAdd').click(); } });
 $('cadRpBtn').addEventListener('click', () => RP ? rpEnd() : rpStart());
