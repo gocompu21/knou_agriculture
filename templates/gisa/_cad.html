@@ -3798,35 +3798,55 @@ document.addEventListener('keydown', e => {
     else if (!e.ctrlKey && !e.metaKey) e.stopImmediatePropagation();   // 재생 중 단축키(도구 바꾸기·I자 옮기기)는 막는다
 }, true);
 // ── 작도 순서 끌어 옮기기 — 줄을 잡고 끌어 다른 줄 위·아래에 놓는다. 가장자리로 끌면 목록이 저절로 내려간다 ──
-let opDrag = null;
+// 단계 줄을 끌면 그 단계에 딸린 줄(다음 단계 전까지)이 **묶음으로** 함께 옮겨지고, 다른 단계 묶음의 앞이나 뒤에만 놓인다
+// (묶음 가운데에 놓으면 그 단계가 쪼개진다). Alt 를 누른 채 끌면 제목 줄 하나만 옮긴다 — 단계 경계를 한두 줄 옮길 때(사용자)
+let opDrag = null;                                     // {id, group: 묶음 이동인가}
 function opDropClear() { document.querySelectorAll('#cadOpList .drop-before, #cadOpList .drop-after').forEach(r => r.classList.remove('drop-before', 'drop-after')); }
+function opGroupOf(i) {                                // i 번째 줄이 든 묶음 [시작, 끝) — 첫 단계 앞의 줄들도 한 묶음
+    let s = i; while (s > 0 && doc.ops[s].t !== 'step') s--;
+    if (doc.ops[s].t !== 'step') s = 0;
+    let e = i + 1; while (e < doc.ops.length && doc.ops[e].t !== 'step') e++;
+    return [s, e];
+}
+function opDropAt(e) {                                 // 놓일 자리 {at: 넣을 인덱스(옮기기 전 기준), row, cls}
+    const row = e.target.closest('.cad-op'); if (!row) return null;
+    const k = doc.ops.findIndex(o => o.id === +row.dataset.id); if (k < 0) return null;
+    const r = row.getBoundingClientRect(), upper = e.clientY < r.top + r.height / 2;
+    if (!opDrag.group) return {at: upper ? k : k + 1, row, cls: upper ? 'drop-before' : 'drop-after'};
+    const [s, t] = opGroupOf(k), [ms, mt] = opGroupOf(doc.ops.findIndex(o => o.id === opDrag.id));
+    if (s === ms) return null;                         // 제 묶음 안
+    const before = doc.ops[k].t === 'step' ? upper : k - s < (t - s) / 2;   // 묶음 윗쪽이면 앞, 아랫쪽이면 뒤
+    const at = before ? s : t;
+    const mark = before ? document.querySelector(`#cadOpList .cad-op[data-id="${doc.ops[s].id}"]`) : document.querySelector(`#cadOpList .cad-op[data-id="${doc.ops[t - 1].id}"]`);
+    return {at, row: mark, cls: before ? 'drop-before' : 'drop-after', span: [ms, mt]};
+}
 $('cadOpList').addEventListener('dragstart', e => {
     const row = e.target.closest('.cad-op'); if (!row || RP) { e.preventDefault(); return; }
-    opDrag = +row.dataset.id; row.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', String(opDrag)); } catch (x) {}
+    opDrag = {id: +row.dataset.id, group: row.classList.contains('step') && !e.altKey};
+    row.classList.add('dragging');
+    if (opDrag.group) { const i = doc.ops.findIndex(o => o.id === opDrag.id), [s, t] = opGroupOf(i);
+        doc.ops.slice(s, t).forEach(o => { const r = document.querySelector(`#cadOpList .cad-op[data-id="${o.id}"]`); if (r) r.classList.add('dragging'); }); }
+    e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', String(opDrag.id)); } catch (x) {}
 });
 $('cadOpList').addEventListener('dragend', () => { opDrag = null; opDropClear(); document.querySelectorAll('#cadOpList .dragging').forEach(r => r.classList.remove('dragging')); });
 $('cadOpList').addEventListener('dragover', e => {
-    if (opDrag == null) return;
+    if (!opDrag) return;
     e.preventDefault(); e.dataTransfer.dropEffect = 'move';
     const pane = $('cadOpList').closest('.cad-pane'), pr = pane.getBoundingClientRect();
     if (e.clientY < pr.top + 60) pane.scrollTop -= 12; else if (e.clientY > pr.bottom - 30) pane.scrollTop += 12;
-    const row = e.target.closest('.cad-op'); opDropClear();
-    if (!row || +row.dataset.id === opDrag) return;
-    const r = row.getBoundingClientRect();
-    row.classList.add(e.clientY < r.top + r.height / 2 ? 'drop-before' : 'drop-after');
+    opDropClear();
+    const d = opDropAt(e); if (d && d.row && +d.row.dataset.id !== opDrag.id) d.row.classList.add(d.cls);
 });
 $('cadOpList').addEventListener('drop', e => {
-    if (opDrag == null) return;
+    if (!opDrag) return;
     e.preventDefault();
-    const row = e.target.closest('.cad-op'), id = opDrag; opDropClear();
-    if (!row || +row.dataset.id === id) return;
-    const r = row.getBoundingClientRect(), after = e.clientY >= r.top + r.height / 2;
-    const i = doc.ops.findIndex(o => o.id === id); if (i < 0) return;
+    const d = opDropAt(e); opDropClear(); if (!d) return;
+    const i = doc.ops.findIndex(o => o.id === opDrag.id); if (i < 0) return;
+    const [s, t] = opDrag.group ? opGroupOf(i) : [i, i + 1];
+    if (d.at >= s && d.at <= t) return;                // 제자리
     snapHist();
-    const [op] = doc.ops.splice(i, 1);
-    let j = doc.ops.findIndex(o => o.id === +row.dataset.id); if (after) j++;
-    doc.ops.splice(j, 0, op);
+    const moved = doc.ops.splice(s, t - s), at = d.at > s ? d.at - (t - s) : d.at;
+    doc.ops.splice(at, 0, ...moved);
     opsSeen = doc.ops.length;                          // 줄 수는 그대로 — 목록을 맨 아래로 내리지 않는다
     changed();
 });
