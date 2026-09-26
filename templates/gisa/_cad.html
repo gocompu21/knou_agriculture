@@ -952,7 +952,10 @@ const SR_BANDS = {
     blue: [[0, '#10306a'], [0.16, '#1d4c9c'], [0.5, '#3169c4'], [0.84, '#1d4c9c'], [1, '#10306a']]};
 // 면 차례는 단면을 한 방향으로 돈 차례다. a = 앞 모서리 축척, b = 뒤 모서리 축척(다음 면의 a 와 한 꼭짓점에서 만난다)
 const SR_FACES = [{a: 100, b: 200, band: 'red'}, {a: 300, b: 400, band: 'teal'}, {a: 500, b: 600, band: 'black'}];
-const SRG = {100: [0.1, 0.5, 0, 1], 200: [0.1, 0.5, 1, 5], 300: [0.5, 1, 5, 10], 400: [0.5, 1, 5, 10], 500: [0.5, 1, 5, 10], 600: [0.5, 1, 5, 10]};
+// 사용자 실물 사진을 세어 정했다 — 1/300·1/500 작은 눈금 0.2m(1m 사이 다섯 칸), 1/600 0.5m. 1/400 은 사진이 흐려 0.5m 로 둔다(확인 필요)
+const SRG = {100: [0.1, 0.5, 0, 1], 200: [0.1, 0.5, 1, 5], 300: [0.2, 1, 5, 10], 400: [0.5, 1, 5, 10], 500: [0.2, 1, 5, 10], 600: [0.5, 1, 5, 10]};
+// 자 오른쪽 끝 10mm 는 눈금이 아주 촘촘하다(0.1m — 사진에서 회색 띠로 보인다). 1/300~1/600 에만 있다
+const SR_FINE_MM = 10, SR_FINE = {300: 0.1, 400: 0.1, 500: 0.1, 600: 0.1};
 // 축척마다 [작은, 중간, 긴 중간, 숫자] 눈금 간격(m). 표에 없는 축척(사용자 지정)은 종이 위 1mm 안팎 · 12mm 안팎으로 고른다
 function srGrad(S) {
     if (SRG[S]) return SRG[S];
@@ -1136,6 +1139,16 @@ function drawSr() {
             }
         }
         o += `<path d="${tkp}" stroke="#000" stroke-width="${f((paper ? 0.19 : 0.14) * k)}"/>`;
+        if (SR_FINE[Sx]) {                                   // 오른쪽 끝 10mm 촘촘한 구간 — 사이사이에 가는 눈금을 더한다
+            const fs = SR_FINE[Sx], zoneM = SR_FINE_MM / perM, from = first ? tot - zoneM : 0, to = first ? tot : zoneM;
+            let tf = '';
+            for (let i = Math.ceil(from / fs - 1e-9), r = +(i * fs).toFixed(6); r <= to + 1e-9; i++, r = +(i * fs).toFixed(6)) {
+                if (on(r, minor)) continue;                  // 이미 그린 눈금은 건너뛴다
+                const u = U0 + sg * r * perM;
+                tf += `M${M(u, Vw(0))}L${M(u, Vw(D.tn * 0.85))}`;
+            }
+            if (tf) o += `<path d="${tf}" stroke="#000" stroke-width="${f((paper ? 0.11 : 0.08) * k)}"/>`;
+        }
         // 축척 표기 — 앞 모서리 축척은 왼쪽 여백, 뒤 모서리 축척은 오른쪽 여백(거꾸로). 단위 'm' 은 0 곁 위에 작게
         o += tx(first ? 1.8 : SR_L - 1.8, Vw(D.lb), `1/${fmt(Sx)}`, D.lbf, 'start', !first, Ts(D.lb), col, wt) + tx(U0 - sg * 2.4, Vw(D.mu), 'm', D.muf, 'middle', !first, Ts(D.mu), col, wt);
     };
