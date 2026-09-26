@@ -1877,7 +1877,9 @@ function dblTargets() {
     const out = [], segs = sel.filter(o => o.t === 'line' || o.t === 'arc');
     sel.filter(o => o.t !== 'line' && o.t !== 'arc').forEach(o => out.push({kind: o.t, op: o}));
     // 끝점이 0.05m 안이면 이어진 것으로 본다 — 손으로 그은 윤곽은 끝이 조금씩 어긋난다(0.002m 로는 닫힌 윤곽이 열린 것으로 잡혀 왼쪽/오른쪽을 물었다, 사용자)
-    const TOL = 0.05, same = (m, n) => { const a = P(m), b = P(n); return a && b && Math.hypot(a.x - b.x, a.y - b.y) <= TOL; };
+    // 끝과 끝을 **가장 가까운 것끼리** 잇는다 — 0.6m 안. 손으로 그린 둥근 모서리는 호가 직선 끝에서 0.2~0.4m 겹치거나 떨어져 있다(사용자 도면).
+    // 어긋난 자리는 아래에서 안쪽 선끼리 만나는 점으로 맞춘다
+    const TOL = 0.6, dist = (m, n) => { const a = P(m), b = P(n); return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : Infinity; }, same = (m, n) => dist(m, n) <= TOL;
     const left = new Set(segs);
     while (left.size) {
         const first = [...left][0]; left.delete(first);
@@ -1885,12 +1887,12 @@ function dblTargets() {
         const s0 = e => e.rev ? e.op.b : e.op.a, s1 = e => e.rev ? e.op.a : e.op.b;
         while (grew) {
             grew = false;
-            for (const o of left) {
-                const head = s0(ch[0]), tail = s1(ch[ch.length - 1]);
-                if (same(o.a, tail)) ch.push({op: o, rev: false}); else if (same(o.b, tail)) ch.push({op: o, rev: true});
-                else if (same(o.b, head)) ch.unshift({op: o, rev: false}); else if (same(o.a, head)) ch.unshift({op: o, rev: true}); else continue;
-                left.delete(o); grew = true; break;
-            }
+            const head = s0(ch[0]), tail = s1(ch[ch.length - 1]);
+            let best = null;
+            for (const o of left) [[o.a, tail, 'push', false], [o.b, tail, 'push', true], [o.b, head, 'unshift', false], [o.a, head, 'unshift', true]].forEach(([e, end, how, rev]) => {
+                const d = dist(e, end); if (d <= TOL && (!best || d < best.d)) best = {d, o, how, rev};
+            });
+            if (best) { ch[best.how]({op: best.o, rev: best.rev}); left.delete(best.o); grew = true; }
         }
         const closed = ch.length > 1 && same(s0(ch[0]), s1(ch[ch.length - 1]));
         out.push({kind: 'path', ch, closed, st: {ls: first.ls, w: first.w}});
@@ -1953,19 +1955,33 @@ function makeDouble(dir) {
                 const inward = nx * (s.G.cx - mid.x) + ny * (s.G.cy - mid.y) > 0, R2 = s.G.R + (inward ? -g : g);
                 if (R2 <= 0) return null;
                 const k = R2 / s.G.R, sc = q => ({x: s.G.cx + (q.x - s.G.cx) * k, y: s.G.cy + (q.y - s.G.cy) * k});
-                return {line: false, p: sc(s.p), q: sc(s.q), R: R2, cw: s.cw, big: s.big};
+                return {line: false, p: sc(s.p), q: sc(s.q), R: R2, cw: s.cw, big: s.big, c: {x: s.G.cx, y: s.G.cy}};
             });
             if (off.some(x => !x)) return;
-            // 이음매 — 선과 선은 두 직선의 교점, 호가 끼면 호의 끝점을 따른다(둥근 모서리는 접선이라 거의 같은 자리다)
+            // 이음매 — 안쪽 선끼리 **만나는 점**으로 맞춘다. 선·선은 두 직선의 교점, 선·호는 직선과 원의 교점, 호·호는 두 원의 교점 가운데
+            // 원래 이음매에 가장 가까운 것. 겹치거나 떨어진 끝도 이렇게 잘리거나 늘어나 맞물린다. 교점이 없으면(스치지 않으면) 두 끝의 가운데
             const n = off.length, J = [];
+            const lc = (L, C) => {                           // 직선 L 과 원 C 의 교점들
+                const dx = L.q.x - L.p.x, dy = L.q.y - L.p.y, fx = L.p.x - C.c.x, fy = L.p.y - C.c.y, A = dx * dx + dy * dy, B = 2 * (fx * dx + fy * dy), Cc = fx * fx + fy * fy - C.R * C.R, D = B * B - 4 * A * Cc;
+                if (D < 0 || !A) return []; const s = Math.sqrt(D); return [(-B - s) / (2 * A), (-B + s) / (2 * A)].map(u => ({x: L.p.x + dx * u, y: L.p.y + dy * u}));
+            };
+            const cc = (C1, C2) => {                         // 두 원의 교점들
+                const dx = C2.c.x - C1.c.x, dy = C2.c.y - C1.c.y, d = Math.hypot(dx, dy); if (!d || d > C1.R + C2.R || d < Math.abs(C1.R - C2.R)) return [];
+                const a = (C1.R * C1.R - C2.R * C2.R + d * d) / (2 * d), h = Math.sqrt(Math.max(0, C1.R * C1.R - a * a)), mx = C1.c.x + dx * a / d, my = C1.c.y + dy * a / d;
+                return [{x: mx + h * dy / d, y: my - h * dx / d}, {x: mx - h * dy / d, y: my + h * dx / d}];
+            };
             for (let i = 0; i < n; i++) {
                 const A = off[i], B = off[(i + 1) % n];
                 if (!t.closed && i === n - 1) break;
-                J[i] = A.line && B.line ? (lineX(A.p, A.q, B.p, B.q) || B.p) : !A.line ? A.q : B.p;
+                const mid = {x: (A.q.x + B.p.x) / 2, y: (A.q.y + B.p.y) / 2};
+                let cand = A.line && B.line ? [lineX(A.p, A.q, B.p, B.q)].filter(Boolean) : A.line ? lc(A, B) : B.line ? lc(B, A) : cc(A, B);
+                cand = cand.filter(q => Math.hypot(q.x - mid.x, q.y - mid.y) < 3);   // 멀리 떨어진 교점(반대편)은 버린다
+                cand.sort((u, v) => Math.hypot(u.x - mid.x, u.y - mid.y) - Math.hypot(v.x - mid.x, v.y - mid.y));
+                J[i] = cand[0] || mid;
             }
             off.forEach((o, i) => {
                 const st = i === 0 && !t.closed ? o.p : J[(i - 1 + n) % n], en = i === n - 1 && !t.closed ? o.q : J[i];
-                const sa = o.line ? st : o.p, sb = o.line ? en : o.q;
+                const sa = st, sb = en;                  // 선·호 모두 이음매 점까지 — 호도 교점에서 시작·끝난다
                 const a = addPt(sa.x, sa.y), b = addPt(sb.x, sb.y); if (a === b) return;
                 if (o.line) doc.ops.push({id: doc.seq++, t: 'line', a, b, ls: t.st.ls, w: t.st.w, tl: toolsForLine(P(a), P(b))});
                 else { const G2 = arcGeom(P(a), P(b), o.R, o.cw, o.big);
