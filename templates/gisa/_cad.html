@@ -1839,15 +1839,67 @@ function rpTween(to, dur, done) {                      // 도구를 지금 자�
     };
     requestAnimationFrame(frame);
 }
-function rpReveal(op, dur) {                           // 방금 그은 것을 선 긋듯이 보인다
+// 재생 때 선을 긋는 샤프 — 커서로 쓰는 실사 샤프 그림(.cad.cad-tool-pen9/5 #cadSvg 의 cursor)을 스타일시트에서 읽어 쓴다.
+// 그림 크기는 화면 px 그대로(커서와 같게), 샤프심 끝(hotspot)이 긋는 자리에 온다
+const RP_PEN = {};
+function rpPenImg(w) {
+    const k = w === 'p5' ? 'p5' : 'p9';
+    if (RP_PEN[k] !== undefined) return RP_PEN[k];
+    RP_PEN[k] = null;
+    try {
+        const sel = `.cad.cad-tool-pen${k === 'p5' ? 5 : 9} #cadSvg`;
+        for (const sh of document.styleSheets) {
+            let rules; try { rules = sh.cssRules; } catch (e) { continue; }
+            for (const r of rules) {
+                if (r.selectorText !== sel) continue;
+                const m = /url\("?(data:image\/png;base64,[^")]+)"?\)\s*(\d+)\s+(\d+)/.exec(r.style.cursor || r.cssText);
+                if (!m) continue;
+                const im = new Image(); im.src = m[1];
+                RP_PEN[k] = {src: m[1], hx: +m[2], hy: +m[3], img: im};
+            }
+        }
+    } catch (e) {}
+    return RP_PEN[k];
+}
+function rpPenLayer() {
+    let g = $('cadRpPen');
+    if (!g) { g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.id = 'cadRpPen'; g.setAttribute('pointer-events', 'none'); svg.appendChild(g); }
+    return g;
+}
+function rpReveal(op, dur) {                           // 방금 그은 것을 샤프가 긋듯이 — 선 끝을 샤프심이 따라간다
     const g = gOps.querySelector(`[data-op="${op.id}"]`); if (!g) return;
+    const els = [], fades = [];
     [...g.querySelectorAll('line,path,circle,rect,polyline,polygon,ellipse')].filter(el => !el.closest('.cad-hit')).forEach(el => {
         let L = 0; try { L = el.getTotalLength(); } catch (e) {}
         const st = el.getAttribute('stroke');
-        if (!(L > 0) || !st || st === 'none') { el.animate([{opacity: 0}, {opacity: 1}], {duration: dur}); return; }
-        el.animate([{strokeDasharray: `${L} ${L}`, strokeDashoffset: L}, {strokeDasharray: `${L} ${L}`, strokeDashoffset: 0}], {duration: dur, easing: 'ease-in-out'});
+        if (!(L > 0) || !st || st === 'none') fades.push(el); else els.push({el, L});
     });
-    [...g.querySelectorAll('text,image,use')].filter(el => !el.closest('.cad-hit')).forEach(el => el.animate([{opacity: 0}, {opacity: 1}], {duration: dur}));
+    [...g.querySelectorAll('text,image,use')].filter(el => !el.closest('.cad-hit')).forEach(el => fades.push(el));
+    fades.forEach(el => el.animate([{opacity: 0}, {opacity: 1}], {duration: dur}));
+    if (!els.length) return;
+    const tot = els.reduce((s, e) => s + e.L, 0), pen = op.t === 'fill' ? null : rpPenImg(op.w), lay = rpPenLayer(), t0 = performance.now(), id = RP.reveal = {};
+    const setDash = (e, d) => { e.el.style.strokeDasharray = `${e.L} ${e.L}`; e.el.style.strokeDashoffset = e.L - d; };
+    const clear = () => { els.forEach(e => { e.el.style.strokeDasharray = ''; e.el.style.strokeDashoffset = ''; }); lay.innerHTML = ''; };
+    els.forEach(e => setDash(e, 0));
+    const toW = (el, q) => { const m = el.getScreenCTM(), s = svg.getScreenCTM(); if (!m || !s) return null;
+        const pt = svg.createSVGPoint(); pt.x = q.x; pt.y = q.y; return pt.matrixTransform(m).matrixTransform(s.inverse()); };
+    const frame = now => {
+        if (!RP || RP.reveal !== id) { clear(); return; }
+        const t = Math.min(1, (now - t0) / dur), s = tot * (t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+        let acc = 0, tip = null;
+        els.forEach(e => {
+            const d = Math.max(0, Math.min(e.L, s - acc));
+            setDash(e, d);
+            if (!tip && (s - acc <= e.L || e === els[els.length - 1])) { try { tip = toW(e.el, e.el.getPointAtLength(d)); } catch (x) {} }
+            acc += e.L;
+        });
+        if (pen && tip && t < 1) {
+            const k = pxPer(), w = (pen.img.naturalWidth || 56) / k, h = (pen.img.naturalHeight || 56) / k;
+            lay.innerHTML = `<image href="${pen.src}" x="${fmt(tip.x - pen.hx / k)}" y="${fmt(tip.y - pen.hy / k)}" width="${fmt(w)}" height="${fmt(h)}"/>`;
+        }
+        if (t < 1) requestAnimationFrame(frame); else clear();
+    };
+    requestAnimationFrame(frame);
 }
 function rpInfo() {
     const n = doc.ops.length, op = doc.ops[RP.k - 1];
@@ -1865,6 +1917,7 @@ function rpInfo() {
 }
 function rpGo(k, anim, cb) {
     if (!RP) return;
+    RP.reveal = null;                                  // 긋던 중이면 멈춘다(다음 프레임에 샤프도 치운다)
     const n = doc.ops.length; k = Math.max(0, Math.min(n, k));
     const fwd = anim && k === RP.k + 1, op = doc.ops[k - 1], spd = +$('cadRpSpd').value || 1100;
     RP.k = k; RP.cur = op && op.t !== 'step' ? op.id : null;
@@ -1872,7 +1925,7 @@ function rpGo(k, anim, cb) {
     const show = () => {
         if (!RP) return;
         drawOps(); drawPts(); rpInfo();
-        if (fwd && op && op.t !== 'step') { rpReveal(op, spd * 0.45); if (cb) RP.timer = setTimeout(cb, spd * 0.6); }
+        if (fwd && op && op.t !== 'step') { rpReveal(op, spd * 0.6); if (cb) RP.timer = setTimeout(cb, spd * 0.75); }
         else if (cb) RP.timer = setTimeout(cb, op && op.t === 'step' ? spd * 0.8 : spd * 0.2);
     };
     if (fwd) rpTween(target, spd * 0.35, show); else { RP.anim = null; rpApply(target); drawBar(); show(); }
@@ -1897,7 +1950,7 @@ function rpStart() {
 }
 function rpEnd() {
     if (!RP) return;
-    clearTimeout(RP.timer); const live = RP.live; RP = null;
+    clearTimeout(RP.timer); const live = RP.live; RP = null; if ($('cadRpPen')) $('cadRpPen').innerHTML = '';
     rpApply(live); root.classList.remove('replaying'); $('cadRp').hidden = true; $('cadRpBtn').classList.remove('on');
     renderAll();
 }
