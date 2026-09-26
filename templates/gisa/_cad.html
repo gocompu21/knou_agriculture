@@ -1935,9 +1935,9 @@ function rpMark(op, dur) {
     }
     let g = $('cadRpMark');
     if (!g) { g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.id = 'cadRpMark'; g.setAttribute('pointer-events', 'none'); svg.appendChild(g); }
-    const t0 = performance.now(), id = RP.mark = {};
+    const t0 = performance.now(), id = rpMark.tok = {};   // 재생 밖(작도 순서 줄 누르기)에서도 쓴다
     const frame = now => {
-        if (!RP || RP.mark !== id) { g.innerHTML = ''; return; }
+        if (rpMark.tok !== id) { g.innerHTML = ''; return; }
         const t = Math.min(1, (now - t0) / dur), k = pxPer();
         // 0~45% 조여 듦(반지름 60px → 14px, 흐림 → 또렷) · 45~70% 한 번 반짝 · 70~100% 사라짐
         let r, a;
@@ -3691,7 +3691,7 @@ document.addEventListener('keydown', e => {
 }, true);
 $('cadOpList').addEventListener('click', e => {
     const row = e.target.closest('.cad-op'); if (!row) return;
-    if (RP) { rpStop(); const i = doc.ops.findIndex(o => o.id === +row.dataset.id); if (i >= 0) rpGo(i + 1, false); return; }
+    if (RP) { rpStop(); const i = doc.ops.findIndex(o => o.id === +row.dataset.id); if (i >= 0) { rpGo(i + 1, false); const op = doc.ops.slice(i).find(o => o.t !== 'step'); if (op) rpMark(op, 900); } return; }
     const id = +row.dataset.id, act = e.target.closest('[data-act]');
     if (act) {
         const a = act.dataset.act;
@@ -3701,6 +3701,8 @@ $('cadOpList').addEventListener('click', e => {
         if (a === 'edit') editOp(id);
         return;
     }
+    // 누른 줄이 도면의 어디인지 — 재생 때처럼 시작점에 동그라미를 조여 들게 한다(단계 줄이면 그 단계의 첫 작도)
+    { const i = doc.ops.findIndex(o => o.id === id), op = doc.ops.slice(i).find(o => o.t !== 'step'); if (op && (!row.classList.contains('step') || op !== doc.ops[i])) rpMark(op, 900); }
     if (row.classList.contains('step')) return;
     selectOp(id, e.shiftKey || e.ctrlKey || e.metaKey);
 });
