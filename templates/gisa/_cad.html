@@ -2256,6 +2256,55 @@ function rpReveal(op, dur) {                           // 방금 그은 것을 �
     };
     requestAnimationFrame(frame);
 }
+// 라이브러리 기호 재생 — 기호 안의 곧은 선은 I자·삼각자(`toolsForLine`), 원은 템플릿(`toolsForCircle`)을 그 자리로 옮긴 뒤
+// 샤프로 하나씩 긋는다(사용자). 굽은 선은 도구를 옮기지 않고 긋고, 글자는 마지막에 서서히 나타난다
+function rpSymPlay(op, spd, done) {
+    const g = gOps.querySelector(`[data-op="${op.id}"]`); if (!g) { done(); return; }
+    const toW = (el, q) => { const m = el.getScreenCTM(), s = svg.getScreenCTM(); if (!m || !s) return null;
+        const pt = svg.createSVGPoint(); pt.x = q.x; pt.y = q.y; return pt.matrixTransform(m).matrixTransform(s.inverse()); };
+    const els = [...g.querySelectorAll('line,path,circle,rect,polyline,polygon,ellipse')].filter(el => !el.closest('.cad-hit') && !el.closest('defs,clipPath,mask'));
+    const texts = [...g.querySelectorAll('text')].filter(el => !el.closest('.cad-hit'));
+    els.concat(texts).forEach(el => { el.style.opacity = '0'; });
+    const pen = rpPenImg(op.w), lay = rpPenLayer(), id = RP.reveal = {}, per = spd * 0.45;
+    const steps = els.map(el => {
+        let L = 0; try { L = el.getTotalLength(); } catch (e) {}
+        let tl = null;
+        if (el.tagName === 'circle' || (el.tagName === 'ellipse' && Math.abs(+el.getAttribute('rx') - +el.getAttribute('ry')) < 1e-6)) {
+            const cx = +el.getAttribute('cx') || 0, cy = +el.getAttribute('cy') || 0, r = +(el.getAttribute('r') || el.getAttribute('rx')) || 0;
+            const c0 = toW(el, {x: cx, y: cy}), c1 = toW(el, {x: cx + r, y: cy});
+            if (c0 && c1) tl = toolsForCircle(c0.x, c0.y, Math.hypot(c1.x - c0.x, c1.y - c0.y));
+        } else if (L > 0) {
+            const a = el.getPointAtLength(0), b = el.getPointAtLength(L), A = toW(el, a), B = toW(el, b);
+            if (A && B && Math.abs(Math.hypot(b.x - a.x, b.y - a.y) - L) < L * 0.01) tl = toolsForLine(A, B);   // 곧은 선 하나일 때만
+        }
+        return {el, L, tl};
+    });
+    let i = 0;
+    const next = () => {
+        if (!RP || RP.reveal !== id) return;
+        if (i >= steps.length) { lay.innerHTML = ''; texts.forEach(el => { el.style.opacity = ''; el.animate([{opacity: 0}, {opacity: 1}], {duration: per}); }); setTimeout(done, per); return; }
+        const s = steps[i++];
+        const draw = () => {
+            if (!RP || RP.reveal !== id) return;
+            const el = s.el, st = el.getAttribute('stroke'); el.style.opacity = '';
+            if (!(s.L > 0) || !st || st === 'none') { el.animate([{opacity: 0}, {opacity: 1}], {duration: per * 0.6}); setTimeout(next, per * 0.6); return; }
+            const t0 = performance.now(), ez = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+            el.style.strokeDasharray = `${s.L} ${s.L}`; el.style.strokeDashoffset = s.L;
+            const frame = now => {
+                if (!RP || RP.reveal !== id) { el.style.strokeDasharray = ''; el.style.strokeDashoffset = ''; lay.innerHTML = ''; return; }
+                const u = Math.min(1, (now - t0) / per), d = s.L * ez(u);
+                el.style.strokeDashoffset = s.L - d;
+                const tip = toW(el, el.getPointAtLength(d));
+                if (pen && tip && u < 1) { const k = pxPer(), w = (pen.img.naturalWidth || 56) / k, h = (pen.img.naturalHeight || 56) / k;
+                    lay.innerHTML = `<image href="${pen.src}" x="${fmt(tip.x - pen.hx / k)}" y="${fmt(tip.y - pen.hy / k)}" width="${fmt(w)}" height="${fmt(h)}"/>`; }
+                if (u < 1) requestAnimationFrame(frame); else { el.style.strokeDasharray = ''; el.style.strokeDashoffset = ''; next(); }
+            };
+            requestAnimationFrame(frame);
+        };
+        if (s.tl) rpTween(s.tl, spd * 0.3, draw); else draw();
+    };
+    next();
+}
 function rpInfo() {
     const n = doc.ops.length, op = doc.ops[RP.k - 1];
     $('cadRpBar').max = n; $('cadRpBar').value = RP.k;
@@ -2360,6 +2409,7 @@ function rpGo(k, anim, cb) {
     const show = () => {
         if (!RP) return;
         drawOps(); drawPts(); rpInfo();
+        if (fwd && op && op.t === 'sym') { rpSymPlay(op, spd, () => { if (cb && RP) RP.timer = setTimeout(cb, spd * 0.15); }); return; }   // 기호 — 선·원마다 도구를 옮겨 가며
         if (fwd && op && op.t !== 'step') { const rv = op.mark ? 0.22 : 0.75, rest = op.mark ? 0.5 : 0.15; rpReveal(blk.length > 1 ? blk : op, spd * rv * (blk.length > 1 ? 1.4 : 1)); if (cb) RP.timer = setTimeout(cb, spd * (rv * (blk.length > 1 ? 1.4 : 1) + rest)); }   // 마킹은 빨리 긋되 다음으로는 넉넉히 쉬었다 넘어간다(사용자)
         else if (cb) RP.timer = setTimeout(cb, op && op.t === 'step' ? spd * 0.8 : spd * 0.2);
     };
