@@ -543,8 +543,8 @@ const circ = i => i <= 20 ? CIRC[i - 1] : `(${i})`;
 // 선 종류 — 굵기·간격은 종이 폭 100m 를 기준으로 한 m 값이고, 종이 크기에 비례해 늘고 준다(U)
 const LS = {
     solid:  {name: '실선'},
-    chain:  {name: '일점쇄선', dash: [1.6, 0.45, 0.25, 0.45]},
-    chain2: {name: '이점쇄선', dash: [1.6, 0.45, 0.25, 0.45, 0.25, 0.45]},
+    chain:  {name: '일점쇄선', dash: [3, 0.9, 0.25, 0.9], fit: true},            // 점 앞뒤 간격을 넓혔다(사용자)
+    chain2: {name: '이점쇄선', dash: [3, 0.8, 0.25, 0.8, 0.25, 0.8], fit: true},
     aux:    {name: '보조선', color: '#a3a9b3', w: 0.06},
     dot:    {name: '점선', dash: [0.35, 0.4]},
 };
@@ -1417,12 +1417,25 @@ function undo() { if (!hist.length) return; redoS.push(JSON.stringify(doc)); doc
 function redo() { if (!redoS.length) return; hist.push(JSON.stringify(doc)); doc = JSON.parse(redoS.pop()); afterLoad(false); dirty = true; saveDraft(); }
 
 // ── SVG 조각 ────────────────────────────────────────────────────────────
-function stAttr(ls, w, fill) {
+// 쇄선 맞추기 — 선 길이에 맞춰 무늬를 조금 늘이거나 줄여 **시작과 끝이 긴 선분**이 되게 한다(끝 근처에 점이 오지 않게, 사용자).
+// 열린 선: 길이 = n 주기 + 긴 선분 하나. 닫힌 선(원): n 주기. 너무 짧아 한 주기도 안 들어가면 실선으로 긋는다
+function fitDash(dash, len, closed) {
+    const P = dash.reduce((s, d) => s + d, 0), D = dash[0];
+    if (!(len > 0)) return dash;
+    const n = Math.round(closed ? len / P : (len - D) / P);
+    if (n < 1) return null;
+    const s = len / (n * P + (closed ? 0 : D));
+    return dash.map(d => d * s);
+}
+function stAttr(ls, w, fill, len, closed) {
     const L = LS[ls] || LS.solid;
     // 샤프 선은 설정의 종이 위 mm 를 도면 축척으로 m 로 바꾼다(1:430 에서 0.7mm = 0.3m)
     const sw = (w === 'p9' || w === 'p5') ? SET[w] / 1000 * scaleDenom() : L.w != null ? L.w * U : (WD[w] || WD.mid).w * U;
     let a = `fill="${fill || 'none'}" stroke="${ls === 'aux' ? SET.auxColor : L.color || INK}" stroke-width="${fmt(sw)}" stroke-linecap="round" stroke-linejoin="round"`;
-    if (L.dash) a += ` stroke-dasharray="${L.dash.map(d => fmt(d * U)).join(' ')}"`;
+    if (L.dash) {
+        const ds = L.fit && len > 0 ? fitDash(L.dash.map(d => d * U), len, closed) : L.dash.map(d => d * U);
+        if (ds) a += ` stroke-dasharray="${ds.map(d => fmt(d)).join(' ')}"`;
+    }
     return a;
 }
 function arcD(x1, y1, x2, y2, r, cw, big) {
@@ -1513,15 +1526,21 @@ function opSvg(op) {
         }
         return `<path d="${op.d}" fill="${op.color}" fill-opacity="${fo}" fill-rule="evenodd" stroke="none"/>`;
     }
-    const st = () => stAttr(op.ls, op.w);
+    const st = (len, closed) => stAttr(op.ls, op.w, null, len, closed);   // 길이를 주면 쇄선이 끝에 맞춰진다
     if (op.t === 'line') { const a = P(op.a), b = P(op.b); if (!a || !b) return '';
-        return `<path d="M${fmt(a.x)} ${fmt(a.y)}L${fmt(b.x)} ${fmt(b.y)}" ${st()}/>`; }
+        return `<path d="M${fmt(a.x)} ${fmt(a.y)}L${fmt(b.x)} ${fmt(b.y)}" ${st(Math.hypot(b.x - a.x, b.y - a.y))}/>`; }
     if (op.t === 'rect') { const a = P(op.a), b = P(op.b); if (!a || !b) return '';
+        if ((LS[op.ls] || {}).fit) {                   // 쇄선 사각형은 변마다 따로 — 모서리마다 긴 선분으로 꺾인다
+            const q = [[a.x, a.y], [b.x, a.y], [b.x, b.y], [a.x, b.y], [a.x, a.y]];
+            return q.slice(0, 4).map(([x0, y0], i) => { const [x1, y1] = q[i + 1];
+                return `<path d="M${fmt(x0)} ${fmt(y0)}L${fmt(x1)} ${fmt(y1)}" ${st(Math.hypot(x1 - x0, y1 - y0))}/>`; }).join('');
+        }
         return `<path d="M${fmt(a.x)} ${fmt(a.y)}H${fmt(b.x)}V${fmt(b.y)}H${fmt(a.x)}Z" ${st()}/>`; }
     if (op.t === 'circle') { const c = P(op.c), r = radiusOf(op); if (!c || !(r > 0)) return '';
-        return `<circle cx="${fmt(c.x)}" cy="${fmt(c.y)}" r="${fmt(r)}" ${st()}/>`; }
+        return `<circle cx="${fmt(c.x)}" cy="${fmt(c.y)}" r="${fmt(r)}" ${st(2 * Math.PI * r, true)}/>`; }
     if (op.t === 'arc') { const a = P(op.a), b = P(op.b); if (!a || !b) return '';
-        return `<path d="${arcD(a.x, a.y, b.x, b.y, op.r, op.dir === 'cw', op.big)}" ${st()}/>`; }
+        const ch = Math.hypot(b.x - a.x, b.y - a.y), rr = Math.max(+op.r || 0, ch / 2), th = 2 * Math.asin(Math.min(1, ch / (2 * rr)));
+        return `<path d="${arcD(a.x, a.y, b.x, b.y, op.r, op.dir === 'cw', op.big)}" ${st(rr * (op.big ? 2 * Math.PI - th : th))}/>`; }
     if (op.t === 'sym') { const p = P(op.p), d = doc.syms[op.sym]; if (!p || !d) return '';
         return `<g transform="translate(${fmt(p.x)} ${fmt(p.y)}) rotate(${fmt(op.rot || 0)})">${d.items.map(itemSvg).join('')}</g>`; }
     if (op.t === 'text') { const p = textPos(op); if (!p) return '';
