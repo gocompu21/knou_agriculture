@@ -118,18 +118,6 @@
                 <button type="button" id="cadZin" title="확대">+</button>
                 <button type="button" id="cadZout" title="축소">−</button>
             </div>
-            <div class="cad-rp" id="cadRp" hidden>
-                <div class="cad-rp-row">
-                    <button type="button" data-rp="first" title="처음으로(Home)">⏮</button><button type="button" data-rp="prev" title="이전(←)">◀</button>
-                    <button type="button" data-rp="play" class="pl" title="재생·멈춤(Space)">▶ 재생</button>
-                    <button type="button" data-rp="next" title="다음(→)">▶</button><button type="button" data-rp="last" title="끝으로(End)">⏭</button>
-                    <select id="cadRpSpd" title="재생 빠르기"><option value="2000">느리게</option><option value="1100" selected>보통</option><option value="500">빠르게</option></select>
-                    <span class="no" id="cadRpNo"></span>
-                    <button type="button" data-rp="end" class="x" title="재생 끝내기(Esc)">✕ 닫기</button>
-                </div>
-                <input type="range" id="cadRpBar" min="0" value="0" step="1">
-                <div class="cad-rp-tx" id="cadRpTx"></div>
-            </div>
             <div class="cad-status"><span id="cadXY">X — · Y —</span><span id="cadHint"></span></div>
         </div>
         <div class="cad-panel">
@@ -248,6 +236,18 @@
                     <span>고치는 중: <b id="cadEditName"></b></span>
                     <button type="button" class="cad-b" id="cadEditCancel">그만두기</button>
                 </div>
+            </div>
+            <div class="cad-rp" id="cadRp" hidden>
+                <div class="cad-rp-row">
+                    <button type="button" data-rp="first" title="처음으로(Home)">⏮</button><button type="button" data-rp="prev" title="이전(←)">◀</button>
+                    <button type="button" data-rp="play" class="pl" title="재생·멈춤(Space)">▶ 재생</button>
+                    <button type="button" data-rp="next" title="다음(→)">▶</button><button type="button" data-rp="last" title="끝으로(End)">⏭</button>
+                    <select id="cadRpSpd" title="재생 빠르기"><option value="2000">느리게</option><option value="1100" selected>보통</option><option value="500">빠르게</option></select>
+                    <span class="no" id="cadRpNo"></span>
+                    <button type="button" data-rp="end" class="x" title="재생 끝내기(Esc)">✕</button>
+                </div>
+                <input type="range" id="cadRpBar" min="0" value="0" step="1">
+                <div class="cad-rp-tx" id="cadRpTx"></div>
             </div>
             <div class="cad-tabs">
                 <button type="button" class="on" data-ptab="ops">작도 순서 <em id="cadOpsN"></em></button>
@@ -453,14 +453,13 @@
 .cad-op.on { background: #fdecea; }
 .cad-op.rp { background: #fff3c4; box-shadow: inset 3px 0 0 #e0a800; }
 .cad-op .tl { display: block; color: #8a9690; font-size: 0.72rem; }
-/* 작도 재생 — 판 아래쪽에 뜨는 조작 막대 */
-.cad-rp { position: absolute; left: 50%; transform: translateX(-50%); top: 8px; width: min(620px, calc(100% - 24px)); background: rgba(27,67,50,.94);
-    color: #fff; border-radius: 10px; padding: 8px 10px 7px; box-shadow: 0 4px 16px rgba(0,0,0,.25); z-index: 5; font-size: 0.82rem; }
+/* 작도 재생 조작 막대 */
+.cad-rp { background: #1b4332; color: #fff; border-radius: 8px; padding: 7px 8px 6px; margin: 0 0 8px; font-size: 0.8rem; }   /* 작도 순서 탭 위(사용자) */
 .cad-rp[hidden] { display: none; }
 .cad-rp-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-.cad-rp button { border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.1); color: #fff; border-radius: 6px; height: 28px; min-width: 32px; cursor: pointer; font-size: 0.8rem; }
+.cad-rp button { border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.1); color: #fff; border-radius: 6px; height: 26px; min-width: 28px; padding: 0 5px; cursor: pointer; font-size: 0.8rem; }
 .cad-rp button:hover { background: rgba(255,255,255,.22); }
-.cad-rp button.pl { min-width: 74px; font-weight: 700; background: #f4c542; color: #1b4332; border-color: #f4c542; }
+.cad-rp button.pl { min-width: 64px; font-weight: 700; background: #f4c542; color: #1b4332; border-color: #f4c542; }
 .cad-rp button.x { margin-left: auto; }
 .cad-rp select { height: 28px; border-radius: 6px; border: 0; font-size: 0.78rem; }
 .cad-rp .no { font-variant-numeric: tabular-nums; margin-left: 4px; opacity: .9; }
@@ -1894,6 +1893,7 @@ function rpStart() {
     endEdit();
     RP = {k: 0, cur: null, live: toolState(), timer: null, playing: false, anim: null};
     root.classList.add('replaying'); $('cadRp').hidden = false; $('cadRpBtn').classList.add('on');
+    const ot = document.querySelector('.cad-tabs [data-ptab="ops"]'); if (ot && !ot.classList.contains('on')) ot.click();   // 목록에서 지금 줄이 보이게
     if (!doc.ops.some(o => o.t !== 'step' && o.tl)) flash('도구 자리를 기록하기 전에 그린 도면입니다 — 선만 차례로 보입니다');
     rpGo(0, false);
 }
