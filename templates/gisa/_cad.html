@@ -697,9 +697,7 @@ function drawTri() {
            + bands([R, T, B], grow([R, T, B], (rin - bw) / rin), true);            // 바깥 둘레 — 바깥쪽으로 깎였다
     }
     o += `<path d="M${f(R.x)} ${f(R.y)}L${f(T.x)} ${f(T.y)}L${f(B.x)} ${f(B.y)}" fill="none" stroke="#9a7318" stroke-width="${f(0.1 * U)}"/>`;
-    // 각도 글자 — 크게·진하게, 흰 테두리로 모눈 위에서도 읽힌다(사용자: "삼각자 글씨 잘 보이게"). 크기는 자 크기를 따르되 너무 작지 않게
-    const afs = Math.max(2.2 * U, Math.min(G.base, G.h) * 0.07), lx = B.x + (R.x - B.x) * 0.3, ly = B.y - afs * 0.95;
-    o += `<text x="${f(lx)}" y="${f(ly)}" font-size="${f(afs)}" fill="#4a3300" stroke="rgba(255,255,255,.85)" stroke-width="${f(afs * 0.12)}" paint-order="stroke" stroke-linejoin="round" font-weight="700" text-anchor="middle" dominant-baseline="central">${G.ang}°</text></g>`;
+    o += `</g>`;                                        // 각도 글자(45°·60°)는 뺐다(사용자)
     // 수직변의 X — 삼각자 바깥쪽, 직각 모서리 곁(꼭대기는 종이 밖으로 나가기 쉽다). 끄는 동안에는 크게·붉은 바탕으로 실시간 표시
     const out = B.x > R.x ? -1 : 1, moving = drag && drag.kind === 'tri' && drag.moved, fs = (moving ? 1.9 : 1.5) * U;
     const xl = `X ${fmt1(R.x)}`, tw = xl.length * fs * 0.62 + 0.8 * U, tx = R.x + out * (0.5 * U + tw / 2), ty = R.y - fs * 0.75 - 0.4 * U;   // 직각 모서리 바로 위, I자 날 곁
