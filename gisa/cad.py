@@ -128,6 +128,7 @@ def drawing_delete(request, cert_id, pk):
 def _sym_row(s, user):
     return {'id': f'u{s.pk}', 'pk': s.pk, 'name': s.name, 'items': (s.data or {}).get('items', []),
             'cat': (s.data or {}).get('cat') or '기타',       # 분류 — 없던 때 등록한 것은 '기타'
+            'tile': (s.data or {}).get('tile'),               # 포장 패턴이면 한 칸 정보 {fw, fh(틀 m), w(종이 mm), stag}
             'shared': s.shared, 'mine': s.owner_id == user.pk}
 
 
@@ -167,7 +168,17 @@ def symbol_save(request):
         return _err('기호에 담을 객체가 없습니다.')
     if len(json.dumps(items, ensure_ascii=False)) > 100_000:
         return _err('기호가 너무 큽니다.')
-    s = CadSymbol.objects.create(owner=request.user, name=name, data={'items': items, 'cat': cat or '기타'},
+    data = {'items': items, 'cat': cat or '기타'}
+    tile = body.get('tile')
+    if tile is not None:                                   # 포장 패턴 — 틀 크기(m)와 종이 위 한 칸 폭(mm)
+        try:
+            tile = {'fw': float(tile['fw']), 'fh': float(tile['fh']), 'w': float(tile['w']), 'stag': bool(tile.get('stag'))}
+        except (KeyError, TypeError, ValueError):
+            return _err('포장 한 칸 정보를 읽지 못했습니다.')
+        if not (tile['fw'] > 0 and tile['fh'] > 0 and 0.5 <= tile['w'] <= 60):
+            return _err('포장 한 칸 크기가 맞지 않습니다(0.5~60mm).')
+        data.update(tile=tile, cat='포장')
+    s = CadSymbol.objects.create(owner=request.user, name=name, data=data,
                                  shared=bool(body.get('shared')) and request.user.is_staff)
     return JsonResponse({'ok': True, 'item': _sym_row(s, request.user)})
 

@@ -281,6 +281,11 @@
                         <datalist id="lbCatList"></datalist></div>
                     <div class="cad-row"><span class="cad-help" id="lbInfo">작도 순서나 도면에서 객체를 고르세요(Shift 로 여럿)</span>
                         <button type="button" class="cad-go" id="lbGo">등록</button></div>
+                    <div class="cad-row cad-pvreg"><b>포장 패턴으로 등록</b>
+                        <span class="cad-help">네모 틀 하나와 그 안의 무늬를 함께 고르면 틀이 반복되는 한 칸이 됩니다. 틀을 보조선으로 그리면 틀은 무늬에 들어가지 않습니다(실선이면 줄눈으로 들어갑니다). 이름은 위 칸에 적습니다.</span></div>
+                    <div class="cad-row"><label>한 칸<input type="number" id="lbTile" class="pk" value="5" min="0.5" max="60" step="0.5" title="종이 위에서 한 칸의 폭 — 어느 축척에서든 이 크기로 반복됩니다"> mm</label>
+                        <label class="cad-chk"><input type="checkbox" id="lbStag"> 줄마다 반 칸 엇갈림</label>
+                        <button type="button" class="cad-go" id="lbPave">포장 등록</button></div>
                 </div>
                 <div id="cadLib" class="cad-lib"></div>
             </div>
@@ -401,9 +406,12 @@
 .cad-fp-menu { position: absolute; top: calc(100% + 4px); left: 0; z-index: 30; display: grid; grid-template-columns: repeat(4, 34px); gap: 4px;
     background: #fff; border: 1px solid #d5ddd9; border-radius: 8px; box-shadow: 0 6px 22px rgba(0,0,0,.14); padding: 6px; }
 .cad-fp-menu[hidden] { display: none; }
+.cad-pvreg { border-top: 1px dashed #d5ddd9; margin-top: 6px; padding-top: 6px; flex-wrap: wrap; }
+.pvt :is(path, line, circle, rect, polyline, polygon, ellipse)[stroke]:not([stroke="none"]) { stroke-width: var(--pvw) !important; }
 .cad-fp-sec { grid-column: 1 / -1; font-size: 0.72rem; font-weight: 700; color: #555; border-top: 1px solid #e3e8e5; padding-top: 5px; margin-top: 2px; }
 .cad-tools .cad-fp-menu button.pv { grid-column: 1 / -1; width: auto; height: 28px; justify-content: flex-start; gap: 7px; padding: 0 6px; font-size: 0.74rem; white-space: nowrap; }
 .cad-fp-menu button.pv svg { width: 20px; height: 20px; }
+.cad-tools .cad-fp-menu button.pv.on { color: #1b4332; font-weight: 700; }
 .cad-fp-opt { grid-column: 1 / -1; font-size: 0.72rem; color: #444; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
 .cad-tools .cad-fp-menu button { width: 34px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
 .cad-tools .cad-fp-menu button.on { background: #e8f3ec; border-color: #1b4332; }
@@ -1577,8 +1585,8 @@ const freeD = pts => {                              // 점 사이를 중점 2차
 // 포장 패턴(사용자) — 시험 답안 도면처럼 종이 위 mm 로 정한 기호다(실물 크기로는 1:300 에서 블록 한 장이 0.7mm 라 못 그린다). k = 축척/1000 (mm → m)
 const PAVE = [['pv-granite', '화강석판석포장'], ['pv-tile', '석재타일포장'], ['pv-ilp', '소형고압블럭포장'], ['pv-natural', '자연석판석포장'],
     ['pv-perv', '투수콘포장'], ['pv-masa', '마사토포장'], ['pv-deck', '목재데크포장'], ['pv-asphalt', '아스팔트포장']];
-const paveName = k => (PAVE.find(q => q[0] === k) || [])[1] || '';
-const isPave = k => typeof k === 'string' && k.indexOf('pv-') === 0;
+const paveName = k => (PAVE.find(q => q[0] === k) || [])[1] || ((userSyms.find(s => 'pu:' + s.id === k) || {}).name) || '포장';
+const isPave = k => typeof k === 'string' && (k.indexOf('pv-') === 0 || k.indexOf('pu:') === 0);   // pu: = 직접 등록한 포장
 function paveRnd(n) { return ((Math.sin(n * 12.9898 + 78.233) * 43758.5453) % 1 + 1) % 1; }
 function paveBlob(q, seed) {                             // 부분 표현 — 누른 자리 둘레를 물결 진 고리로 오린다(답안 도면의 풀어진 가장자리)
     const a1 = paveRnd(seed) * 6.28, a2 = paveRnd(seed + 1) * 6.28; let d = '';
@@ -1622,13 +1630,28 @@ function paveBody(kind, x0, y0, x1, y1, k, seed) {      // 상자를 덮는 패�
     }
     return {d, dots};
 }
+// 직접 등록한 포장 — 틀(fw×fh m) 안의 기호 항목을 종이 위 w mm 폭 칸으로 반복하는 SVG pattern. 선 굵기는 sw(바깥 단위)로 고정
+function tilePattern(id, t, W, sw) {
+    const H = W * t.fh / t.fw, s = W / t.fw, g = `<g transform="scale(${fmt(s)})" class="pvt" style="--pvw:${fmt(sw / s)}">${(t.items || []).map(itemSvg).join('')}</g>`;
+    if (!t.stag) return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="${fmt(W)}" height="${fmt(H)}">${g}</pattern>`;
+    return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="${fmt(W)}" height="${fmt(2 * H)}">${g}`   // 엇갈림 — 두 줄을 한 칸으로, 아랫줄은 반 칸 밀고 넘친 쪽을 되돌려 채운다
+        + `<g transform="translate(${fmt(W / 2)} ${fmt(H)})">${g}</g><g transform="translate(${fmt(-W / 2)} ${fmt(H)})">${g}</g></pattern>`;
+}
+const userPaves = () => userSyms.filter(s => s.tile).map(s => ['pu:' + s.id, s.name]);
+function paveTileOf(k) { const s = userSyms.find(x => 'pu:' + x.id === k && x.tile); return s ? {name: s.name, items: clone(s.items), ...s.tile} : null; }
 function paveSvg(op) {
     const k = (op.den || scaleDenom()) / 1000, [x0, y0, x1, y1] = op.bb, id = `cadFc${op.id}`, q = op.part;
     const b = q ? [Math.max(x0, q.x - q.r * 1.3), Math.max(y0, q.y - q.r * 1.3), Math.min(x1, q.x + q.r * 1.3), Math.min(y1, q.y + q.r * 1.3)] : [x0, y0, x1, y1];
-    const body = paveBody(op.kind, b[0], b[1], b[2], b[3], k, op.seed || 7), col = op.color || '#333';
-    const inner = (body.d ? `<path d="${body.d}" stroke="${col}" stroke-opacity="0.8" stroke-width="${fmt(0.1 * k)}" fill="none"/>` : '')
-        + (body.dots ? `<path d="${body.dots}" fill="${col}" fill-opacity="0.8" stroke="none"/>` : '');
-    return `<clipPath id="${id}"><path d="${op.d}" clip-rule="evenodd"/></clipPath>` + (q ? `<clipPath id="${id}p"><path d="${paveBlob(q, op.seed || 7)}"/></clipPath>` : '')
+    let inner, defs = '';
+    if (op.tile) {                                       // 직접 등록한 포장 — 칸을 반복하는 pattern 으로 상자를 칠한다
+        defs = tilePattern(`${id}t`, op.tile, op.tile.w * k, 0.1 * k);
+        inner = `<rect x="${fmt(b[0])}" y="${fmt(b[1])}" width="${fmt(Math.max(0, b[2] - b[0]))}" height="${fmt(Math.max(0, b[3] - b[1]))}" fill="url(#${id}t)" opacity="0.85"/>`;
+    } else {
+        const body = paveBody(op.kind, b[0], b[1], b[2], b[3], k, op.seed || 7), col = op.color || '#333';
+        inner = (body.d ? `<path d="${body.d}" stroke="${col}" stroke-opacity="0.8" stroke-width="${fmt(0.1 * k)}" fill="none"/>` : '')
+            + (body.dots ? `<path d="${body.dots}" fill="${col}" fill-opacity="0.8" stroke="none"/>` : '');
+    }
+    return defs + `<clipPath id="${id}"><path d="${op.d}" clip-rule="evenodd"/></clipPath>` + (q ? `<clipPath id="${id}p"><path d="${paveBlob(q, op.seed || 7)}"/></clipPath>` : '')
         + `<path d="${op.d}" fill="none" stroke="none" fill-rule="evenodd"/><g clip-path="url(#${id})">` + (q ? `<g clip-path="url(#${id}p)">${inner}</g>` : inner) + '</g>';
 }
 function opSvg(op) {
@@ -1911,7 +1934,7 @@ function desc(op, full) {
     const ptxt = full ? ptxtFull : (n => `P${n}`), lsTxt = full ? lsTxtFull : (o => (LS[o.ls] || LS.solid).name);   // 목록에는 굵기(굵은 샤프 등)를 안 보인다(사용자)
     switch (op.t) {
         case 'free': return op.mark ? `마킹${op.p != null ? ' ' + ptxt(op.p) : ''} · ${full ? `1/${op.mark.s} ` : ''}${fmt(op.mark.r)}m` : `프리드로잉 · 점 ${op.pts ? op.pts.length : 0}개 · ${lsTxt(op)}`;
-        case 'fill': if (isPave(op.kind)) return `${paveName(op.kind)}${op.part ? '(부분 표현)' : ''} · 면적 약 ${fmt(+(op.area || 0).toFixed(1))}㎡`;
+        case 'fill': if (isPave(op.kind)) return `${op.tile ? op.tile.name : paveName(op.kind)}${op.part ? '(부분 표현)' : ''} · 면적 약 ${fmt(+(op.area || 0).toFixed(1))}㎡`;
             return `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자', grass: '잔디'})[op.kind] ? `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자', grass: '잔디'})[op.kind]} 채우기(간격 ${fmt(+(op.gap * (op.kind === 'gl' ? 1.5 : op.kind === 'gs' ? 1 : 1)).toFixed(3))}m)` : '채우기'} · 면적 약 ${fmt(+(op.area || 0).toFixed(1))}㎡ · 색 ${op.color}`;
         case 'line': { const a = P(op.a), b = P(op.b), len = a && b && !isAux(op) ? ` · ${fmt(Math.hypot(b.x - a.x, b.y - a.y))}m` : '';   // 길이(m) — 보조선은 빼고(사용자)
             return full ? `선 ${ptxt(op.a)} → ${ptxt(op.b)}${len} · ${lsTxt(op)}` : `${lsTxt(op)} ${ptxt(op.a)} → ${ptxt(op.b)}${len}`; }   // 목록: '실선 P1 → P2 · 40m'(사용자)
@@ -3105,6 +3128,7 @@ function fillAt(w) {
     const nice = v => { const e = Math.pow(10, Math.floor(Math.log10(v))), m = v / e; return (m < 1.5 ? 1 : m < 2.25 ? 2 : m < 3.5 ? 2.5 : m < 7.5 ? 5 : 10) * e; };
     const side = Math.min(bb[2] - bb[0], bb[3] - bb[1]), gap = +nice(Math.max(side / 8, 2 * res)).toFixed(3);
     const kind = SET.fillType || 'solid', area = +(n * res * res).toFixed(2);
+    if (kind.indexOf('pu:') === 0 && !paveTileOf(kind)) { flash('그 포장 패턴을 라이브러리에서 찾지 못했습니다'); return; }
     snapHist();
     if (isPave(kind)) {                                  // 포장 — 시험 답안처럼 누른 자리 둘레만(부분 표현)
         const k = scaleDenom() / 1000, sh = Math.min(bb[2] - bb[0], bb[3] - bb[1]), lg = Math.max(bb[2] - bb[0], bb[3] - bb[1]);
@@ -3121,7 +3145,8 @@ function fillAt(w) {
             }
         }
         const id = doc.seq++;
-        doc.ops.push({id, t: 'fill', d, kind, bb, gap, color: '#333', op: 0.8, den: scaleDenom(), seed: id, part, area});   // 이름 글자는 넣지 않는다(사용자) — 필요하면 글자 도구로
+        const tile = kind.indexOf('pu:') === 0 ? paveTileOf(kind) : null;   // 직접 등록한 포장은 무늬를 도면에 복사해 둔다 — 라이브러리에서 지워도 남는다
+        doc.ops.push({id, t: 'fill', d, kind, bb, gap, color: '#333', op: 0.8, den: scaleDenom(), seed: id, part, area, ...(tile ? {tile} : {})});   // 이름 글자는 넣지 않는다(사용자) — 필요하면 글자 도구로
         changed(); flash(`${paveName(kind)} — 약 ${fmt(+area.toFixed(1))}㎡${part ? ' (부분 표현)' : ''}`); return;
     }
     doc.ops.push({id: doc.seq++, t: 'fill', d, kind, bb, gap, color: SET.fillColor, op: SET.fillOp, area});
@@ -3590,8 +3615,9 @@ function editOp(id) {
         return;
     }
     if (op.t === 'fill' && isPave(op.kind)) {         // 포장 — 지금 고른 포장으로 바꾼다
-        const k2 = SET.fillType; if (!isPave(k2) || k2 === 'pv-asphalt') { flash('채우기 모양에서 다른 포장을 고른 뒤 ✎ 를 누르세요'); return; }
-        snapHist(); op.kind = k2; changed(); flash(`${paveName(k2)}(으)로 바꿨습니다`); return;
+        const k2 = SET.fillType; if (!isPave(k2)) { flash('채우기 모양에서 다른 포장을 고른 뒤 ✎ 를 누르세요'); return; }
+        const t2 = k2.indexOf('pu:') === 0 ? paveTileOf(k2) : null; if (k2.indexOf('pu:') === 0 && !t2) { flash('그 포장 패턴을 찾지 못했습니다'); return; }
+        snapHist(); op.kind = k2; if (t2) op.tile = t2; else delete op.tile; changed(); flash(`${paveName(k2)}(으)로 바꿨습니다`); return;
     }
     if (op.t === 'fill') {                           // 채운 면 — 지금 설정의 색·진하기로 다시 칠한다
         snapHist(); op.color = SET.fillColor; op.op = SET.fillOp; if (op.bb) op.kind = SET.fillType || 'solid'; changed(); flash('설정의 채우기 색으로 다시 칠했습니다'); return;
@@ -3661,7 +3687,7 @@ function symThumb(s) {
 function fillSymSelect() {
     const keep = $('fsSym').value, grp = (label, arr) => arr.length ? `<optgroup label="${label}">${arr.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('')}</optgroup>` : '';
     const catOf = s => s.cat || '기타', groups = {};
-    BUILTIN.concat(FAC, userSyms).forEach(s => (groups[catOf(s)] = groups[catOf(s)] || []).push(s));
+    BUILTIN.concat(FAC, userSyms.filter(s => !s.tile)).forEach(s => (groups[catOf(s)] = groups[catOf(s)] || []).push(s));
     $('fsSym').innerHTML = Object.keys(groups).sort((x, y) => catRank(x) - catRank(y) || x.localeCompare(y, 'ko')).map(k => grp(esc(k), groups[k])).join('');
     if ([...$('fsSym').options].some(o => o.value === keep)) $('fsSym').value = keep;
 }
@@ -3683,7 +3709,7 @@ function loadSyms() {
         if (!j.ok) return;
         userSyms = j.items.map(s => ({...s}));
         Object.keys(doc.syms || {}).forEach(ensureSymOption);   // 라이브러리에서 지운 기호도 도면에는 남는다
-        fillSymSelect(); renderLib();
+        fillSymSelect(); renderLib(); fillPickDraw();
     }).catch(() => {});
 }
 function opToItem(op, bx, by) {
@@ -3698,7 +3724,7 @@ function opToItem(op, bx, by) {
         case 'sym': { const p = P(op.p), d = doc.syms[op.sym]; return {t: 'g', x: p.x - bx, y: p.y - by, rot: op.rot || 0, items: clone(d.items)}; }
         // 칠하기(음영)·프리드로잉도 담는다(사용자) — 좌표를 기준점만큼 옮겨 둔다. 마킹은 담지 않는다
         case 'fill': { const sh = s => String(s || '').replace(/(-?\d*\.?\d+)\s+(-?\d*\.?\d+)/g, (m, x, y) => `${fmt(+x - bx)} ${fmt(+y - by)}`);
-            return {t: 'fill', op: {d: sh(op.d), kind: op.kind, gap: op.gap, color: op.color, op: op.op, den: op.den, seed: op.seed, part: op.part && {x: op.part.x - bx, y: op.part.y - by, r: op.part.r},
+            return {t: 'fill', op: {d: sh(op.d), kind: op.kind, gap: op.gap, color: op.color, op: op.op, den: op.den, seed: op.seed, tile: op.tile, part: op.part && {x: op.part.x - bx, y: op.part.y - by, r: op.part.r},
                 bb: op.bb && [op.bb[0] - bx, op.bb[1] - by, op.bb[2] - bx, op.bb[3] - by], cuts: (op.cuts || []).map(([x, y, r]) => [x - bx, y - by, r])}}; }
         case 'free': {
             if (!op.pts) return null;
@@ -3730,6 +3756,25 @@ function registerSym() {
         if (!j.ok) { flash(j.error || '등록하지 못했습니다'); return; }
         userSyms.push(j.item); fillSymSelect(); $('fsSym').value = j.item.id; renderLib();
         $('lbName').value = ''; flash(`'${name}' 을(를) 라이브러리에 등록했습니다`);
+    });
+}
+// 포장 패턴 등록 — 고른 것 가운데 가장 큰 사각형이 틀(한 칸). 틀이 보조선이면 무늬에서 빼고, 실선이면 줄눈으로 넣는다
+function registerPave() {
+    const ops = doc.ops.filter(o => selOps.has(o.id) && o.t !== 'step');
+    const name = $('lbName').value.trim(), w = +$('lbTile').value;
+    const area = o => { const a = P(o.a), b = P(o.b); return a && b ? Math.abs((b.x - a.x) * (b.y - a.y)) : 0; };
+    const frame = ops.filter(o => o.t === 'rect' && area(o) > 0).sort((x, y) => area(y) - area(x))[0];
+    if (!frame) { flash('틀이 될 네모(사각형)를 무늬와 함께 고르세요'); return; }
+    if (!name) { flash('포장 이름을 위 이름 칸에 적어 주세요 — 예) 탄성고무포장'); $('lbName').focus(); return; }
+    if (!(w >= 0.5 && w <= 60)) { flash('한 칸 크기는 0.5~60mm 로 적어 주세요'); $('lbTile').focus(); return; }
+    const a = P(frame.a), b = P(frame.b), x0 = Math.min(a.x, b.x), y0 = Math.min(a.y, b.y), fw = Math.abs(b.x - a.x), fh = Math.abs(b.y - a.y);
+    const items = ops.filter(o => !(o === frame && isAux(o))).map(o => opToItem(o, x0, y0)).filter(Boolean).sort((p, q) => (q.t === 'fill') - (p.t === 'fill'));
+    if (!items.length) { flash('틀 안에 무늬를 그려 함께 고르세요'); return; }
+    post(SYMAPI + 'save/', {name, items, cat: '포장', tile: {fw: +fw.toFixed(4), fh: +fh.toFixed(4), w, stag: $('lbStag').checked}}).then(j => {
+        if (!j.ok) { flash(j.error || '등록하지 못했습니다'); return; }
+        userSyms.push(j.item); renderLib(); fillPickDraw();   // 고르개에 새 포장 칸을 먼저 만든 뒤 고른다
+        $('cadFillType').value = 'pu:' + j.item.id; saveSet(); fillPickDraw(); setTool('fill');
+        $('lbName').value = ''; flash(`'${name}' 포장을 등록했습니다 — 닫힌 면을 누르면 칠합니다`);
     });
 }
 
@@ -4704,6 +4749,8 @@ const FILL_KINDS = [['solid', '전체 채우기'], ['h', '수평선'], ['v', '�
 function fillSwatch(k) {
     const c = '#2f5d45', box = `<rect x="2.5" y="2.5" width="15" height="15" rx="1.5" fill="none" stroke="${c}" stroke-width="1.2"/>`;
     let d = '';
+    if (k.indexOf('pu:') === 0) { const t = paveTileOf(k); if (!t) return '<svg viewBox="0 0 20 20"></svg>';
+        return `<svg viewBox="0 0 20 20"><defs>${tilePattern('fpt' + k.replace(/\W/g, ''), t, 6, 0.45)}</defs><rect x="2.5" y="2.5" width="15" height="15" fill="url(#fpt${k.replace(/\W/g, '')})"/>${box}</svg>`; }
     if (isPave(k)) { const b = paveBody(k, 2.5, 2.5, 17.5, 17.5, k === 'pv-perv' || k === 'pv-masa' || k === 'pv-asphalt' ? 2.8 : 1.7, 3);
         return `<svg viewBox="0 0 20 20"><clipPath id="fpc${k}"><rect x="2.5" y="2.5" width="15" height="15"/></clipPath><g clip-path="url(#fpc${k})">`
             + `<path d="${b.d}" stroke="#333" stroke-width=".45" fill="none"/><path d="${b.dots}" fill="#333"/></g>${box}</svg>`; }
@@ -4719,11 +4766,15 @@ function fillSwatch(k) {
         + `<path d="${d}" stroke="#6a9a3a" stroke-width="${k === 'x' || k === 'gs' ? .6 : .9}" stroke-linecap="round" fill="none" clip-path="url(#fpc${k})"/>${dots}${box}</svg>`;
 }
 function fillPickDraw() {
-    const k = $('cadFillType').value || 'solid', nm = ([...FILL_KINDS, ...PAVE].find(x => x[0] === k) || FILL_KINDS[0])[1];
+    const sel = $('cadFillType'), ups = userPaves();                 // 직접 등록한 포장을 고르개 목록에 맞춘다(라이브러리를 늦게 받아 온다)
+    [...sel.options].filter(o => o.value.indexOf('pu:') === 0).forEach(o => o.remove());
+    ups.forEach(([v, n]) => sel.insertAdjacentHTML('beforeend', `<option value="${esc(v)}">${esc(n)}</option>`));
+    if (SET.fillType && sel.value !== SET.fillType && [...sel.options].some(o => o.value === SET.fillType)) sel.value = SET.fillType;
+    const k = sel.value || 'solid', nm = ([...FILL_KINDS, ...PAVE, ...ups].find(x => x[0] === k) || FILL_KINDS[0])[1];
     $('cadFpBtn').innerHTML = fillSwatch(k).replace(/fpc/g, 'fpb'); $('cadFpBtn').title = `채우기 모양: ${nm} (눌러서 바꾸기)`;
     $('cadFpMenu').innerHTML = FILL_KINDS.map(([v, n]) => `<button type="button" data-k="${v}" title="${n}"${v === k ? ' class="on"' : ''}>${fillSwatch(v)}</button>`).join('')
         + '<div class="cad-fp-sec">포장</div>'
-        + PAVE.map(([v, n]) => `<button type="button" class="pv${v === k ? ' on' : ''}" data-k="${v}" title="${n}">${fillSwatch(v)}<span>${n}</span></button>`).join('')
+        + PAVE.concat(ups).map(([v, n]) => `<button type="button" class="pv${v === k ? ' on' : ''}" data-k="${esc(v)}" title="${esc(n)}">${fillSwatch(v)}<span>${esc(n)}</span></button>`).join('')
         + `<label class="cad-fp-opt"><input type="checkbox" data-o="pvPart"${SET.pvPart !== false ? ' checked' : ''} title="시험 답안처럼 면의 일부만 무늬를 넣습니다"> 부분 표현</label>`
         + '';
 }
@@ -4798,15 +4849,20 @@ $('cadLib').addEventListener('click', e => {
         post(SYMAPI + 'save/', {pk: s.pk, cat: v.trim()}).then(j => { if (j.ok) { Object.assign(s, j.item); renderLib(); } else flash(j.error || '바꾸지 못했습니다'); });
         return; }
     if (del) { if (!confirm('이 기호를 라이브러리에서 지울까요? (이미 넣은 도면에는 남습니다)')) return;
-        post(`${SYMAPI}${del.dataset.del}/delete/`).then(j => { if (j.ok) { userSyms = userSyms.filter(s => s.pk !== +del.dataset.del); fillSymSelect(); renderLib(); } });
+        post(`${SYMAPI}${del.dataset.del}/delete/`).then(j => { if (j.ok) { userSyms = userSyms.filter(s => s.pk !== +del.dataset.del); fillSymSelect(); renderLib(); fillPickDraw(); } });
         return; }
     if (sh) { const s = userSyms.find(x => x.pk === +sh.dataset.share);
         post(SYMAPI + 'save/', {pk: s.pk, shared: !s.shared}).then(j => { if (j.ok) { Object.assign(s, j.item); renderLib(); } });
         return; }
     const c = e.target.closest('.cad-sym'); if (!c) return;
+    const us = userSyms.find(s => s.id === c.dataset.id);
+    if (us && us.tile) {                                 // 포장 패턴 — 채우기 도구로 그 포장을 든다
+        $('cadFillType').value = 'pu:' + us.id; saveSet(); fillPickDraw(); setTool('fill'); flash(`${us.name} — 닫힌 면을 누르세요`); return;
+    }
     $('fsSym').value = c.dataset.id; setTool('sym'); renderLib();
 });
 $('lbGo').addEventListener('click', registerSym);
+$('lbPave').addEventListener('click', registerPave);
 
 document.addEventListener('keydown', e => {
     if (!root.offsetParent && !root.classList.contains('full')) return;     // CAD 탭이 보일 때만
