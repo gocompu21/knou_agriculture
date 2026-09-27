@@ -39,7 +39,6 @@
         <button type="button" data-tool="text" title="글자 (T)" aria-label="글자"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4.5h12M10 4.5v12M7.5 16.5h5"/></svg></button>
         <select id="ftDir" class="cad-txt" title="글자 방향"><option value="h">가로</option><option value="v">세로</option></select>
         <select id="ftAng" class="cad-txt" title="글자 각도 — + 는 시계 방향, − 는 반시계 방향"><option value="0">0°</option><option value="45">+45°</option><option value="-45">−45°</option></select>
-        <span class="ft-chars" id="ftChars" title="한글 자판으로 치기 어려운 기호 — 누르면 쓰고 있는 글자에 들어갑니다"><button type="button" data-ch="Ø">Ø</button><button type="button" data-ch="°">°</button><button type="button" data-ch="×">×</button><button type="button" data-ch="±">±</button><button type="button" data-ch="㎡">㎡</button></span>
         <select id="ftMm" class="cad-txt" title="글자 크기 — 종이 위 글자 높이(레터링 템플릿처럼 mm)"><option value="2">2mm</option><option value="2.5">2.5mm</option><option value="3">3mm</option><option value="3.5">3.5mm</option><option value="4">4mm</option><option value="5">5mm</option><option value="6">6mm</option><option value="7">7mm</option><option value="10">10mm</option></select><input type="hidden" id="ftSize">
         <button type="button" data-tool="pen9" class="pen" title="굵은 샤프 — I자 위에서 오른쪽 버튼을 누른 채 끌면 굵은 선 (9)" aria-label="굵은 샤프"><svg class="real" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="ip9b" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(45 .5 .5)"><stop offset="0" stop-color="#ffd36b"/><stop offset=".45" stop-color="#e8a317"/><stop offset="1" stop-color="#a86f00"/></linearGradient><linearGradient id="ip9m" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(45 .5 .5)"><stop offset="0" stop-color="#f4f6f8"/><stop offset=".5" stop-color="#a9b1b9"/><stop offset="1" stop-color="#5e666e"/></linearGradient><linearGradient id="ip9g" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(45 .5 .5)"><stop offset="0" stop-color="#f2bf4a"/><stop offset=".5" stop-color="#d9951a"/><stop offset="1" stop-color="#9a6300"/></linearGradient></defs><g transform="rotate(45 10 10)"><rect x="8.3" y="-1.2" width="3.4" height="12.2" rx="1" fill="url(#ip9b)"/><rect x="8.3" y="-1.2" width="3.4" height="2.2" rx=".8" fill="url(#ip9m)"/><rect x="11.2" y="0.2" width=".9" height="6.4" rx=".4" fill="url(#ip9m)"/><rect x="8.3" y="10.6" width="3.4" height="4.6" fill="url(#ip9g)"/><path d="M8.5 11.6h3M8.5 12.5h3M8.5 13.4h3M8.5 14.3h3" stroke="#8a5a00" stroke-width=".28"/><path d="M8.3 15.2h3.4l-1.1 2.6h-1.2Z" fill="url(#ip9m)"/><rect x="9.6" y="17.8" width=".8" height="1.3" fill="#b9c0c7"/><rect x="9.78" y="19" width=".44" height="1.6" fill="#1b1b1b"/><path d="M8.9 -0.4V9.8" stroke="#fff" stroke-opacity=".55" stroke-width=".5" stroke-linecap="round"/></g></svg></button>
         <button type="button" data-tool="pen5" class="pen thin" title="얇은 샤프 — I자 위에서 오른쪽 버튼을 누른 채 끌면 가는 선 (5)" aria-label="얇은 샤프"><svg class="real" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="ip5b" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(45 .5 .5)"><stop offset="0" stop-color="#6a6f76"/><stop offset=".45" stop-color="#2a2d31"/><stop offset="1" stop-color="#0b0c0d"/></linearGradient><linearGradient id="ip5m" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(45 .5 .5)"><stop offset="0" stop-color="#f4f6f8"/><stop offset=".5" stop-color="#a9b1b9"/><stop offset="1" stop-color="#5e666e"/></linearGradient><linearGradient id="ip5g" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(45 .5 .5)"><stop offset="0" stop-color="#5a5f66"/><stop offset=".5" stop-color="#2a2d31"/><stop offset="1" stop-color="#131517"/></linearGradient></defs><g transform="rotate(45 10 10)"><rect x="8.3" y="-1.2" width="3.4" height="12.2" rx="1" fill="url(#ip5b)"/><rect x="8.3" y="-1.2" width="3.4" height="2.2" rx=".8" fill="url(#ip5m)"/><rect x="11.2" y="0.2" width=".9" height="6.4" rx=".4" fill="url(#ip5m)"/><rect x="8.3" y="10.6" width="3.4" height="4.6" fill="url(#ip5g)"/><path d="M8.5 11.6h3M8.5 12.5h3M8.5 13.4h3M8.5 14.3h3" stroke="#6b7078" stroke-width=".28"/><path d="M8.3 15.2h3.4l-1.1 2.6h-1.2Z" fill="url(#ip5m)"/><rect x="9.6" y="17.8" width=".8" height="1.3" fill="#b9c0c7"/><rect x="9.78" y="19" width=".44" height="1.6" fill="#1b1b1b"/><path d="M8.9 -0.4V9.8" stroke="#fff" stroke-opacity=".55" stroke-width=".5" stroke-linecap="round"/></g></svg></button>
@@ -485,9 +484,6 @@
 /* 재생에서 지금 긋는 선은 제 색 그대로 — 빨강으로 긋고 다음 칸에서 검정으로 덧칠되던 것을 뺐다(사용자). 어디인지는 동그라미·샤프가 알린다 */
 .cad-op.step { font-weight: 700; color: #1b4332; margin-top: 8px; background: #e6f0ea; padding: 6px 6px; }   /* 단계 줄 — 연녹 바탕(사용자) */
 .cad-op.step:hover { background: #d9e8df; }
-.ft-chars { display: inline-flex; gap: 1px; }
-.ft-chars button { border: 1px solid #cfd8d3; background: #fff; border-radius: 4px; min-width: 22px; height: 26px; padding: 0 3px; cursor: pointer; font-size: 0.82rem; }
-.ft-chars button:hover { background: #e6f0ea; }
 #cadSvg .sym-svg * { vector-effect: none; }
 #cadSvg .sym-svg [stroke-width] { stroke-width: var(--sw); }   /* 수량표 기호 선 = 얇은 샤프(자식은 부모 g 의 굵기를 물려받는다) */
 /* 두 줄(경계석) — 열린 선이면 쪽을 고르는 작은 창 */
@@ -4399,14 +4395,6 @@ function triSizeNote() {                // 종이 위 길이 — 도면 축척�
 if (SET.font) $('ftFont').value = SET.font;
 ['ftFont', 'ftDir', 'ftMm'].forEach(id => $(id).addEventListener('input', () => { if (txtBox) { drawTextPre(); } }));
 // 글자 각도 — 도구 줄에서 0 · +45(시계) · −45(반시계)를 고르면 글자 칸의 '회전'에 넣는다(사용자). SVG 는 +각이 시계 방향이다
-// 기호 넣기(Ø ° × ± ㎡) — 쓰는 중인 글자 칸의 커서 자리에 넣는다. 누르는 순간 글자 칸의 포커스를 빼앗지 않게 mousedown 을 막는다(사용자: 파이 기호)
-$('ftChars').addEventListener('mousedown', e => { if (e.target.closest('[data-ch]')) e.preventDefault(); });
-$('ftChars').addEventListener('click', e => {
-    const b = e.target.closest('[data-ch]'); if (!b) return;
-    const el = txtBox ? txtBox.el : $('ftS'), ch = b.dataset.ch, s = el.selectionStart ?? el.value.length, t = el.selectionEnd ?? s;
-    el.value = el.value.slice(0, s) + ch + el.value.slice(t); el.setSelectionRange(s + ch.length, s + ch.length); el.focus();
-    if (txtBox) drawTextPre();
-});
 $('ftAng').addEventListener('change', () => { $('ftRot').value = $('ftAng').value; SET.ang = +$('ftAng').value; saveSet(); if (txtBox) drawTextPre(); });
 if (SET.ang != null) { $('ftAng').value = String(SET.ang); $('ftRot').value = String(SET.ang); }
 $('cadP9').value = SET.p9; $('cadP5').value = SET.p5;
