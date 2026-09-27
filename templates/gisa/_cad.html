@@ -3090,8 +3090,8 @@ function fillAt(w) {
     cx.lineWidth = 2.2 * res; cx.lineCap = 'round'; cx.lineJoin = 'round'; cx.strokeStyle = '#000';
     let walls = 0;
     doc.ops.forEach(op => {
-        if (op.t === 'step' || op.t === 'fill' || op.t === 'text' || op.t === 'sym' || isAux(op) || op.mark) return;   // 면의 경계는 실선과 프리드로잉만(사용자) — 보조선·쇄선·마킹은 넘어 번진다
-        if (op.t !== 'free' && op.ls && op.ls !== 'solid') return;
+        if (op.t === 'step' || op.t === 'fill' || op.t === 'text' || op.t === 'sym' || op.mark || auxHidden(op)) return;
+        if (SET.fillNoAux !== false && (isAux(op) || (op.t !== 'free' && op.ls && op.ls !== 'solid'))) return;   // '보조선 무시'(기본 켬, 사용자) — 면의 경계는 실선과 프리드로잉만, 보조선·쇄선은 넘어 번진다
         let d = '';
         if (op.t === 'line') { const a = P(op.a), b = P(op.b); if (a && b) d = `M${a.x} ${a.y}L${b.x} ${b.y}`; }
         else if (op.t === 'rect') { const a = P(op.a), b = P(op.b); if (a && b) d = `M${a.x} ${a.y}H${b.x}V${b.y}H${a.x}Z`; }
@@ -4805,6 +4805,7 @@ function fillPickDraw() {
     $('cadFpMenu').innerHTML = FILL_KINDS.map(([v, n]) => `<button type="button" data-k="${v}" title="${n}"${v === k ? ' class="on"' : ''}>${fillSwatch(v)}</button>`).join('')
         + '<div class="cad-fp-sec">포장</div>'
         + PAVE.concat(ups).map(([v, n]) => `<button type="button" class="pv${v === k ? ' on' : ''}" data-k="${esc(v)}" title="${esc(n)}">${fillSwatch(v)}<span>${esc(n)}</span></button>`).join('')
+        + `<label class="cad-fp-opt" title="끄면 보이는 보조선·쇄선도 면의 경계로 봅니다"><input type="checkbox" data-o="fillNoAux"${SET.fillNoAux !== false ? ' checked' : ''}> 보조선 무시</label>`
         + `<label class="cad-fp-opt"><input type="checkbox" data-o="pvPart"${SET.pvPart !== false ? ' checked' : ''} title="시험 답안처럼 면의 일부만 무늬를 넣습니다"> 부분 표현</label>`
         + '';
 }
