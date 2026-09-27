@@ -701,8 +701,9 @@ function barStep() { return $('cadSnap').checked ? +$('cadSnapStep').value : PRE
 function setBarY(y) {
     const g = barStep();
     // 제도판 위 틀 밑 ~ 판 아래 끝까지 오르내린다(종이 범위로 막았더니 900×600 판에서 종이 아래로 못 내려갔다 — 사용자)
-    const B = boardGeom(), lo = B.by0 + 1.1 * B.u, hi = B.by1 - 0.4 * B.u - barW();
+    const B = boardGeom(), lo = B.by0 + 1.1 * B.u, hi = B.by1 - 0.4 * B.u - barW(), old = barY, att = sr && srOnBar(sr, old, 0.02);
     barY = +(Math.max(lo, Math.min(hi, Math.round(y / g) * g))).toFixed(3);
+    if (att && old != null) { sr.y = +(sr.y + barY - old).toFixed(4); if (typeof saveSr === 'function') saveSr(); }   // 날에 붙은 스케일자는 I자와 함께 오르내린다
     drawBar();
 }
 // 자의 폭 — 윗날에서 아랫날까지. 눈금의 배수로 잡아, 윗날이 눈금 위면 아랫날도 눈금 위에 온다
@@ -1118,6 +1119,10 @@ function srEdges() {                                   // 종이에 닿는 두 �
                 srv: v, srS: s2, srU0: u0, srDu: du, srOut: out};
     });
 }
+// 스케일자가 I자 윗날에 붙어 있나 — 가로(0°·180°)로 놓였고 아랫 모서리가 I자 높이와 같을 때(사용자: 가로로 잴 때는 I자 날에 붙여 잰다)
+function srLowY(s) { const keep = sr; sr = s; let E = []; try { E = srEdges(); } finally { sr = keep; } return E.length ? Math.max(E[0].ay, E[1].ay) : null; }
+function srFlat(s) { const r = ((+(s && s.rot) || 0) % 180 + 180) % 180; return r < 0.5 || r > 179.5; }
+function srOnBar(s, bar, tol) { if (!s || bar == null || !srFlat(s)) return false; const y = srLowY(s); return y != null && Math.abs(y - bar) <= (tol == null ? 0.05 : tol); }
 function srEdge(w) {                                   // 누른 곳에 가까운 눈금 변
     const E = srEdges(); if (!E.length) return null;
     if (!w) return E[0];
@@ -2407,6 +2412,8 @@ function rpClearTri(tl, a, b) {
     if (dy > tolY || dx < dy * 10 || Math.min(Math.abs(tl.bar - a.y), Math.abs(tl.bar - b.y)) > tolY) return tl;
     return {...tl, tri: null};
 }
+// 스케일자로 마킹할 때 — 삼각자는 치우고, I자는 스케일자가 그 날에 붙어 있을 때만 남긴다(사용자)
+function rpMarkTools(s) { return {...s, tri: null, bar: srOnBar(s.sr, s.bar) ? s.bar : null}; }
 function rpStateAt(k) {                                // k 번째까지 그린 뒤의 도구 자리 — 가장 가까운 앞 기록, 없으면 첫 기록
     for (let i = k - 1; i >= 0; i--) { const o = doc.ops[i]; if (o.t !== 'step' && o.tl) return o.tl; }
     const f = doc.ops.find(o => o.t !== 'step' && o.tl);
@@ -2538,7 +2545,7 @@ function rpSymPlay(op, spd, done) {
         } else if (el.closest('.sym-mark')) {           // 마킹 — 등록 때의 스케일자 자리를 기호 자리만큼 옮겨 놓는다(돌린 기호는 도구를 옮기지 않는다)
             let mk = null; try { mk = JSON.parse(el.closest('.sym-mark').dataset.mk); } catch (e) {}
             const bp = P(op.p);
-            if (mk && mk.sr && bp && !(+op.rot)) tl = {...toolState(), sr: {...mk.sr, x: rnd3(mk.sr.x + bp.x), y: rnd3(mk.sr.y + bp.y)}};
+            if (mk && mk.sr && bp && !(+op.rot)) tl = rpMarkTools({...toolState(), sr: {...mk.sr, x: rnd3(mk.sr.x + bp.x), y: rnd3(mk.sr.y + bp.y)}});
         } else if (L > 0) {
             const a = el.getPointAtLength(0), b = el.getPointAtLength(L), A = toW(el, a), B = toW(el, b);
             if (A && B && Math.abs(Math.hypot(b.x - a.x, b.y - a.y) - L) < L * 0.01) tl = rpClearTri(toolsForLine(A, B), A, B);   // 곧은 선 하나일 때만
@@ -2720,6 +2727,7 @@ function rpGo(k, anim, cb) {
     RP.k = k; RP.cur = op && op.t !== 'step' ? blk[0].id : null;
     let target = rpStateAt(k);
     if (op && op.t === 'line') target = rpClearTri(target, P(op.a), P(op.b));
+    if (op && op.mark && target) target = rpMarkTools(target);
     if (fwd && op && op.t !== 'step') rpMark(blk[0], Math.max(700, spd * 0.75));
     const show = () => {
         if (!RP) return;
@@ -4455,6 +4463,9 @@ svg.addEventListener('pointermove', e => {
         if (drag.moved) {
             const g = barStep(), zx = Math.round((w.x - drag.gx) / g) * g, zy = Math.round((w.y - drag.gy) / g) * g;
             sr.x = +(zx - drag.ox).toFixed(4); sr.y = +(zy - drag.oy).toFixed(4);
+            if (barOn && barY != null && srFlat(sr)) {        // 가로로 놓인 스케일자를 I자 윗날 가까이(화면 14px) 끌면 날에 딱 붙는다
+                const ly = srLowY(sr); if (ly != null && Math.abs(ly - barY) <= 14 / pxPer()) sr.y = +(sr.y + barY - ly).toFixed(4);
+            }
             drawSr(); hover = null; drawPre();
             $('cadXY').textContent = `스케일자 0 눈금 X ${fmt1(+zx.toFixed(3))} · Y ${fmt1(+zy.toFixed(3))}`;
         }
