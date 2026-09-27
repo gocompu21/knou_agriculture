@@ -1610,6 +1610,11 @@ function paveBody(kind, x0, y0, x1, y1, k, seed) {      // 상자를 덮는 패�
         const g = fit((kind === 'pv-masa' ? 1.4 : 1.0) * k); let n = seed * 997;
         for (let y = y0; y < y1; y += g) for (let x = x0; x < x1; x += g, n++)
             dot(x + paveRnd(n) * g, y + paveRnd(n + 0.7) * g, (kind === 'pv-masa' && paveRnd(n + 0.3) > 0.7 ? 0.22 : 0.1) * k);
+    } else if (kind === 'pv-asphalt') {                  // 아스팔트 — 성긴 잔점과 짧은 획(글자 없이도 알아보게)
+        const g = fit(2.2 * k); let n = seed * 997;
+        for (let y = y0; y < y1; y += g) for (let x = x0; x < x1; x += g, n++) {
+            const px = x + paveRnd(n) * g, py = y + paveRnd(n + 0.7) * g;
+            if (paveRnd(n + 0.2) > 0.5) dot(px, py, 0.12 * k); else d += `M${fmt(px)} ${fmt(py)}l${fmt(0.5 * k)} ${fmt(-0.2 * k)}`; }
     } else if (kind === 'pv-deck') {                     // 목재데크 — 널 가로줄 + 줄마다 엇갈린 이음매
         const g = fit(1.1 * k), L = 7 * k; let row = 0;
         for (let y = y0; y < y1; y += g, row++) { d += `M${fmt(x0)} ${fmt(y)}H${fmt(x1)}`;
@@ -1625,25 +1630,6 @@ function paveSvg(op) {
         + (body.dots ? `<path d="${body.dots}" fill="${col}" fill-opacity="0.8" stroke="none"/>` : '');
     return `<clipPath id="${id}"><path d="${op.d}" clip-rule="evenodd"/></clipPath>` + (q ? `<clipPath id="${id}p"><path d="${paveBlob(q, op.seed || 7)}"/></clipPath>` : '')
         + `<path d="${op.d}" fill="none" stroke="none" fill-rule="evenodd"/><g clip-path="url(#${id})">` + (q ? `<g clip-path="url(#${id}p)">${inner}</g>` : inner) + '</g>';
-}
-function paveLabel(kind, w, bb, q) {                     // '~화강석판석포장~' — 패치 옆에(자리가 없으면 반대쪽, 그래도 없으면 누른 자리 가운데)
-    const k = scaleDenom() / 1000, size = +((+$('ftMm').value || 3) * k).toFixed(4), s = `~${paveName(kind)}~`, wd = s.length * size * 0.92;
-    const tall = (bb[3] - bb[1]) > (bb[2] - bb[0]) * 1.8, gap = 1.5 * k, R = q ? q.r : 0;
-    let x, y, dir = 'h';
-    if (!q) {                                            // 패치와 따로 — 누른 자리 한가운데
-        if (tall) return {t: 'text', x: rnd(w.x - size / 2), y: rnd(w.y - wd / 2 + size), s, size, rot: 0, font: $('ftFont').value, dir: 'v'};
-        return {t: 'text', x: rnd(w.x - wd / 2), y: rnd(w.y + size / 2), s, size, rot: 0, font: $('ftFont').value, dir};
-    }
-    if (tall) {                                          // 세로로 긴 길 — 세로 글자로 패치 아래에
-        dir = 'v'; x = w.x - size / 2; y = w.y + R + gap + size;
-        if (y - size + wd > bb[3]) y = w.y - R - gap - wd + size;
-        if (y - size < bb[1]) y = w.y - wd / 2 + size;
-    } else {
-        y = w.y + size / 2; x = w.x + R + gap;
-        if (x + wd > bb[2]) x = w.x - R - gap - wd;
-        if (x < bb[0]) x = w.x - wd / 2;
-    }
-    return {t: 'text', x: rnd(x), y: rnd(y), s, size, rot: 0, font: $('ftFont').value, dir};
 }
 function opSvg(op) {
     if (op.mark && op.pts && op.pts.length > 1) {      // 마킹 — 길이(SR_MARK)와 가는 굵기로 늘 같게 그린다. 예전(3mm)에 찍은 것도 새 길이로
@@ -3120,25 +3106,22 @@ function fillAt(w) {
     const side = Math.min(bb[2] - bb[0], bb[3] - bb[1]), gap = +nice(Math.max(side / 8, 2 * res)).toFixed(3);
     const kind = SET.fillType || 'solid', area = +(n * res * res).toFixed(2);
     snapHist();
-    if (isPave(kind)) {                                  // 포장 — 시험 답안처럼 누른 자리 둘레만(부분 표현) + 이름 글자
+    if (isPave(kind)) {                                  // 포장 — 시험 답안처럼 누른 자리 둘레만(부분 표현)
         const k = scaleDenom() / 1000, sh = Math.min(bb[2] - bb[0], bb[3] - bb[1]), lg = Math.max(bb[2] - bb[0], bb[3] - bb[1]);
-        let part = null, lw = w;
-        if (SET.pvPart !== false && kind !== 'pv-asphalt') {
-            if (lg / Math.max(sh, 1e-6) >= 2.2) part = {x: rnd(w.x), y: rnd(w.y), r: +Math.max(sh * 0.45, lg * 0.15, 8 * k).toFixed(3)};   // 길 — 누른 자리 둘레, 이름은 그 옆
-            else {                                       // 광장처럼 뭉툭한 면 — 누른 곳에서 가까운 모서리에 패치, 이름은 누른 자리(답안 도면처럼)
+        let part = null;
+        if (SET.pvPart !== false) {
+            if (lg / Math.max(sh, 1e-6) >= 2.2) part = {x: rnd(w.x), y: rnd(w.y), r: +Math.max(sh * 0.45, lg * 0.15, 8 * k).toFixed(3)};   // 길 — 누른 자리 둘레
+            else {                                       // 광장처럼 뭉툭한 면 — 누른 곳에서 가까운 모서리에 패치(답안 도면처럼)
                 const inside = (x, y) => { const i = Math.floor((x - ox) / res), j = Math.floor((y - oy) / res); return i > 0 && j > 0 && i < W && j < H && m[j * W + i] === 1; };
                 const mx = (bb[0] + bb[2]) / 2, my = (bb[1] + bb[3]) / 2;
                 const cs = [[bb[0], bb[1]], [bb[2], bb[1]], [bb[0], bb[3]], [bb[2], bb[3]]].map(([x, y]) => [x + (mx - x) * 0.15, y + (my - y) * 0.15]).filter(([x, y]) => inside(x, y))
                     .sort((a, b) => Math.hypot(a[0] - w.x, a[1] - w.y) - Math.hypot(b[0] - w.x, b[1] - w.y));
                 const cc = cs[0] || [w.x, w.y], r = +Math.max(sh * 0.4, 8 * k).toFixed(3);
                 part = {x: rnd(cc[0]), y: rnd(cc[1]), r};
-                if (Math.hypot(w.x - cc[0], w.y - cc[1]) < r * 1.15) lw = {x: mx, y: my};
-                if (!cs[0]) lw = w;
             }
         }
         const id = doc.seq++;
-        if (kind !== 'pv-asphalt') doc.ops.push({id, t: 'fill', d, kind, bb, gap, color: '#333', op: 0.8, den: scaleDenom(), seed: id, part, area});
-        if (SET.pvLabel !== false || kind === 'pv-asphalt') { const t = paveLabel(kind, lw, bb, part && part.x === rnd(w.x) && part.y === rnd(w.y) ? part : null); t.id = doc.seq++; doc.ops.push(t); }
+        doc.ops.push({id, t: 'fill', d, kind, bb, gap, color: '#333', op: 0.8, den: scaleDenom(), seed: id, part, area});   // 이름 글자는 넣지 않는다(사용자) — 필요하면 글자 도구로
         changed(); flash(`${paveName(kind)} — 약 ${fmt(+area.toFixed(1))}㎡${part ? ' (부분 표현)' : ''}`); return;
     }
     doc.ops.push({id: doc.seq++, t: 'fill', d, kind, bb, gap, color: SET.fillColor, op: SET.fillOp, area});
@@ -4721,8 +4704,7 @@ const FILL_KINDS = [['solid', '전체 채우기'], ['h', '수평선'], ['v', '�
 function fillSwatch(k) {
     const c = '#2f5d45', box = `<rect x="2.5" y="2.5" width="15" height="15" rx="1.5" fill="none" stroke="${c}" stroke-width="1.2"/>`;
     let d = '';
-    if (k === 'pv-asphalt') return `<svg viewBox="0 0 20 20"><rect x="2.5" y="2.5" width="15" height="15" rx="1.5" fill="#f4f4f4" stroke="${c}" stroke-width="1.2"/><text x="10" y="13.2" text-anchor="middle" font-size="7.5" font-weight="700" fill="#555">As</text></svg>`;
-    if (isPave(k)) { const b = paveBody(k, 2.5, 2.5, 17.5, 17.5, k === 'pv-perv' || k === 'pv-masa' ? 2.8 : 1.7, 3);
+    if (isPave(k)) { const b = paveBody(k, 2.5, 2.5, 17.5, 17.5, k === 'pv-perv' || k === 'pv-masa' || k === 'pv-asphalt' ? 2.8 : 1.7, 3);
         return `<svg viewBox="0 0 20 20"><clipPath id="fpc${k}"><rect x="2.5" y="2.5" width="15" height="15"/></clipPath><g clip-path="url(#fpc${k})">`
             + `<path d="${b.d}" stroke="#333" stroke-width=".45" fill="none"/><path d="${b.dots}" fill="#333"/></g>${box}</svg>`; }
     if (k === 'solid') return `<svg viewBox="0 0 20 20"><rect x="2.5" y="2.5" width="15" height="15" rx="1.5" fill="#9ccc65" stroke="${c}" stroke-width="1.2"/></svg>`;
@@ -4743,7 +4725,7 @@ function fillPickDraw() {
         + '<div class="cad-fp-sec">포장</div>'
         + PAVE.map(([v, n]) => `<button type="button" class="pv${v === k ? ' on' : ''}" data-k="${v}" title="${n}">${fillSwatch(v)}<span>${n}</span></button>`).join('')
         + `<label class="cad-fp-opt"><input type="checkbox" data-o="pvPart"${SET.pvPart !== false ? ' checked' : ''} title="시험 답안처럼 면의 일부만 무늬를 넣습니다"> 부분 표현</label>`
-        + `<label class="cad-fp-opt"><input type="checkbox" data-o="pvLabel"${SET.pvLabel !== false ? ' checked' : ''}> 이름 글자</label>`;
+        + '';
 }
 $('cadFpBtn').addEventListener('click', e => { e.stopPropagation(); $('cadFpMenu').hidden = !$('cadFpMenu').hidden; });
 $('cadFpMenu').addEventListener('click', e => {
