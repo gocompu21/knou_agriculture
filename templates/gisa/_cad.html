@@ -1646,10 +1646,10 @@ function paveBody(kind, x0, y0, x1, y1, k, seed) {      // 상자를 덮는 패�
         for (let y = y0; y < y1; y += g) for (let x = x0; x < x1; x += g, n++)
             dot(x + paveRnd(n) * g, y + paveRnd(n + 0.7) * g, (kind === 'pv-masa' && paveRnd(n + 0.3) > 0.7 ? 0.22 : 0.1) * k);
     } else if (kind === 'pv-asphalt') {                  // 아스팔트 — 성긴 잔점과 짧은 획(글자 없이도 알아보게)
-        const g = fit(2.2 * k); let n = seed * 997;
+        const g = fit(0.6 * k); let n = seed * 997;        // 촘촘하게(사용자: 2.2mm 는 너무 넓어 안 보였다)
         for (let y = y0; y < y1; y += g) for (let x = x0; x < x1; x += g, n++) {
             const px = x + paveRnd(n) * g, py = y + paveRnd(n + 0.7) * g;
-            if (paveRnd(n + 0.2) > 0.5) dot(px, py, 0.12 * k); else d += `M${fmt(px)} ${fmt(py)}l${fmt(0.5 * k)} ${fmt(-0.2 * k)}`; }
+            if (paveRnd(n + 0.2) > 0.5) dot(px, py, 0.08 * k); else d += `M${fmt(px)} ${fmt(py)}l${fmt(0.25 * k)} ${fmt(-0.1 * k)}`; }
     } else if (kind === 'pv-deck') {                     // 목재데크 — 널 가로줄 + 줄마다 엇갈린 이음매
         const g = fit(1.1 * k), L = 7 * k; let row = 0;
         for (let y = y0; y < y1; y += g, row++) { d += `M${fmt(x0)} ${fmt(y)}H${fmt(x1)}`;
