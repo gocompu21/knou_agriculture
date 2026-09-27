@@ -2587,6 +2587,21 @@ function compactPts() {
 }
 // 교차선까지 연장 — 고른 점에 이어진 선을 그 방향(반대 끝 → 고른 점)으로 늘려 처음 만나는 다른 선(사각형 변 포함)까지.
 // 고른 점을 다른 것도 쓰면 그것이 틀어지지 않게, 교차점에 새 점을 두고 이 선의 끝만 옮긴다. 아무도 안 쓰게 된 점은 지운다
+// 기호(시설 및 수목) 안의 선·사각형·원 — 도면 좌표로 펴서 연장·줄이기·붙기의 상대로 쓴다(사용자: 원문자 원까지 연장)
+function symGeom(op) {
+    const d = doc.syms && doc.syms[op.sym], p = P(op.p); if (!d || !p) return {segs: [], circles: []};
+    const segs = [], circles = [];
+    const walk = (items, tf) => (items || []).forEach(it => {
+        if (it.t === 'line') segs.push([tf(it.x1, it.y1), tf(it.x2, it.y2)]);
+        else if (it.t === 'rect') { const q = [tf(it.x, it.y), tf(it.x + it.rw, it.y), tf(it.x + it.rw, it.y + it.rh), tf(it.x, it.y + it.rh)]; q.forEach((u, i) => segs.push([u, q[(i + 1) % 4]])); }
+        else if (it.t === 'circle') { const c0 = tf(it.cx, it.cy), c1 = tf(it.cx + it.r, it.cy); circles.push({cx: c0.x, cy: c0.y, R: Math.hypot(c1.x - c0.x, c1.y - c0.y)}); }
+        else if (it.t === 'g') { const a = (+it.rot || 0) * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a);
+            walk(it.items, (x, y) => tf(it.x + x * ca - y * sa, it.y + x * sa + y * ca)); }
+    });
+    const a = (+op.rot || 0) * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a);
+    walk(d.items, (x, y) => ({x: p.x + x * ca - y * sa, y: p.y + x * sa + y * ca}));
+    return {segs, circles};
+}
 function allSegs() {                                  // 부딪칠 선분들 — 선과 사각형의 네 변(보이는 것만)
     const segs = [];
     doc.ops.forEach(op => {
@@ -2595,6 +2610,7 @@ function allSegs() {                                  // 부딪칠 선분들 —
         else if (op.t === 'rect') { const a = P(op.a), b = P(op.b); if (!a || !b) return;
             const c = [a, {x: b.x, y: a.y}, b, {x: a.x, y: b.y}];
             c.forEach((q, i) => segs.push({op, a: q, b: c[(i + 1) % 4], name: `사각형 P${op.a}–P${op.b} 변`})); }
+        else if (op.t === 'sym') { const nm = (doc.syms[op.sym] || {}).name || '기호'; symGeom(op).segs.forEach(([a, b]) => segs.push({op, a, b, name: `${nm} 선`})); }
     });
     return segs;
 }
@@ -2607,6 +2623,7 @@ function allCircles() {
         else if (op.t === 'arc') { const a = P(op.a), b = P(op.b); if (!a || !b) return;
             const g = arcGeom(a, b, op.r, op.dir === 'cw', op.big); if (!g) return;
             out.push({op, cx: g.cx, cy: g.cy, R: g.R, on: th => modT(g.sgn * (th - g.th0)) <= g.span + 1e-6, name: `호 P${op.a}–P${op.b}`}); }
+        else if (op.t === 'sym') { const nm = (doc.syms[op.sym] || {}).name || '기호'; symGeom(op).circles.forEach(q => q.R > 0 && out.push({op, ...q, on: () => true, name: `${nm} 원`})); }
     });
     return out;
 }
