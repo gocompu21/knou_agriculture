@@ -2156,6 +2156,9 @@ function toolsForLine(a, b) {
                     t.x = near(90) ? a.x : xLow - G.B.x;            // 세로선은 직각 모서리(R)를, 빗변은 빗변 아래 끝(B)을 맞춘다
                     out = {...base, bar: rnd3(yLow), tri: {...t, x: rnd3(t.x)}};
                 }
+            } else {                                     // 다른 각도 — 회전 삼각자의 한 변(직각 모서리 → 오른쪽 변)을 선에 맞춘다(사용자: 재생 때 회전 삼각자가 안 보였다)
+                const rot = Math.atan2(dy, dx) * 180 / Math.PI;
+                out = {...base, ftri: {...(ftri || {}), x: rnd3(a.x), y: rnd3(a.y), rot: +rot.toFixed(2)}};
             }
         }
     } finally { tri = keep.tri; barY = keep.barY; barOn = keep.barOn; }
@@ -2467,7 +2470,7 @@ function rpSymPlay(op, spd, done) {
             };
             requestAnimationFrame(frame);
         };
-        if (s.tl) rpTween(s.tl, spd * 0.3, draw); else draw();
+        if (s.tl) rpTween(s.tl.ftri || !ftri ? s.tl : {...s.tl, ftri: JSON.parse(JSON.stringify(ftri))}, spd * 0.3, draw); else draw();   // 앞 선에서 꺼낸 회전 삼각자는 다음 선에서도 그 자리에 둔다
     };
     next();
 }
