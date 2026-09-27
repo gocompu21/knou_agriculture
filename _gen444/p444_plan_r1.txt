@@ -1,0 +1,14 @@
+The attached image is an exact 3D model render of a parking park in a Korean city seen STRAIGHT DOWN from directly above (a true top-down orthographic plan, north is up). Every position, size and count in it was measured from the design drawing and is correct. Re-render it as a photorealistic top-down satellite / orthophoto image with EXACTLY the same framing and layout, so that it can be laid over the drawing.
+
+KEEP EXACTLY:
+- straight-down view: no tilt, no perspective, no building walls leaning; only roofs and tree crowns are seen from above
+- the site outline with the 45-degree cut lower-right corner, every edge in the same place
+- the four parking blocks (two long rows in the upper half, two shorter rows in the lower half), each with a narrow planted median holding a single line of shade trees and rounded planted islands at both ends; the single parking column along the red footpath on the left
+- every stall line, the 8 blue accessible bays at the lower right, every parked car exactly where it is (cars only in stalls; do not add or remove cars)
+- the upper-left plaza with its grid of 10 trees in square grates and the pergola, the toilet building, the two parking attendant booths (upper-right and lower-left)
+- the lower-right plaza with the triangular planting bed and benches, the planted strip with trees along the accessible bays, the subway entrance canopy on the corner sidewalk
+- the buffer belts, the houses at the top, the commercial buildings on the left, the roads and the few cars on them
+
+CHANGE ONLY MATERIALS AND REALISM: real asphalt with crisp white paint, concrete interlocking blocks on the top walkway, light gray granite slabs on the plazas, reddish permeable concrete on the left footpath, concrete sidewalk tiles, real lawn, real tree crowns seen from above with leaves (conifers dark, broadleaf varied greens), shrub beds with some pink azalea flowers, real car roofs, real roof tiles, soft sun shadows toward the upper right.
+
+No text, no labels, no writing, no watermark. Photorealistic, sharp, high detail.

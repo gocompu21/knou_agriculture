@@ -1,0 +1,26 @@
+The attached image is an exact 3D model render of a parking park in a Korean city, seen from the sky south-east of the site, looking north-west. Every position, size and count in it was measured from the design drawing and is correct. Re-render it as a real aerial DRONE PHOTOGRAPH on a clear summer day around 11 a.m.
+
+KEEP EXACTLY (do not move, add, remove or resize anything):
+- the same camera, perspective, horizon and framing — the camera is NOT higher and NOT closer than in the attached image: the whole site and the roads around it are visible, the commercial buildings sit at the upper-left edge, the subway canopy is at the bottom centre, and the road runs across the lower-left corner
+- the site outline, including the 45-degree cut south-east corner
+- the four parking blocks: two long rows in the north half and two shorter rows in the south half. Each block is two rows of cars facing a narrow planted median with a single line of shade trees, and each block ends in rounded planted islands at both ends
+- the single parking column along the red footpath on the west side
+- every parking stall line, the 8 blue accessible parking bays in the south-east, and every parked car exactly where it is (cars only inside stalls; do not add cars, do not remove cars)
+- the north-west plaza with its grid of 10 trees in square tree grates and the wooden pergola
+- the small toilet building beside the north walkway, and the two small parking attendant booths (one at the north-east corner, one at the south-west corner)
+- the south-east plaza with the triangular planting bed, the benches around it, and the planted strip with a line of trees along the accessible bays
+- the green buffer belts: tall evergreen conifers along the north and west edges, a line of trees along the south edge and the east edge
+- the subway entrance canopy on the wide corner sidewalk, the roads with their lane markings and the few cars driving on them
+- the row of detached houses to the north and the large commercial buildings to the west
+
+CHANGE ONLY MATERIALS AND REALISM:
+- real dark asphalt with slight wear and crisp white stall lines
+- real concrete interlocking-block paving on the north walkway, light gray granite slab paving on the two plazas, reddish permeable concrete on the west footpath, concrete sidewalk tiles along the roads, granite curbs
+- real mown lawn, real trees with individual leaves and natural irregular crowns (conifers dark blue-green, broadleaf trees in varied fresh greens), shrub beds with some pink and magenta azalea flowers
+- real cars with painted bodies, glass and reflections
+- the houses with real roof tiles, windows and doors; the commercial buildings with rows of windows, glass storefronts and rooftop equipment
+- soft natural sun shadows
+
+Do not add anything that is not in the attached image: no extra street trees along the roads, no extra benches, no extra buildings.
+
+No text, no labels, no signs with writing, no watermark. Photorealistic, sharp, high detail.

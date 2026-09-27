@@ -37,7 +37,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--prompt-file", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--ref", default="", help="참고 그림 — 주면 이것을 고쳐 그린다")
+    ap.add_argument("--ref", default="", help="참고 그림 — 주면 이것을 고쳐 그린다. 여러 장은 쉼표로")
     ap.add_argument("--mask", default="",
                     help="--ref 와 같은 크기의 PNG. 투명한 곳만 고치고 나머지는 두게 한다")
     ap.add_argument("--size", default=DEFAULT_SIZE)
@@ -72,11 +72,16 @@ def main():
         if args.mask:
             print("마스크:", args.mask)
             kw["mask"] = open(args.mask, "rb")
-        with open(args.ref, "rb") as f:
+        # 여러 장이면 쉼표로 — 첫 장이 고칠 그림, 나머지는 참고(도면 등)
+        files = [open(pth.strip(), "rb") for pth in args.ref.split(",") if pth.strip()]
+        try:
             resp = client.images.edit(
-                model=model, image=f, prompt=prompt,
+                model=model, image=files if len(files) > 1 else files[0], prompt=prompt,
                 size=args.size, quality=args.quality, **kw,
             )
+        finally:
+            for f in files:
+                f.close()
     else:
         resp = client.images.generate(
             model=model, prompt=prompt,

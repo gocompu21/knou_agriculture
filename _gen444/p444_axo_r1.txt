@@ -1,0 +1,23 @@
+The attached image is an exact 3D model render of a parking park in a Korean city, drawn as a PARALLEL (axonometric) projection: the camera looks north from the south at 45 degrees and there is NO perspective. Every position, size and count in it was measured from the design drawing and is correct. Re-render it as a photorealistic aerial image with EXACTLY the same projection, framing and layout.
+
+PROJECTION — keep it measurable:
+- NO perspective. Things far away are exactly the same size as things near the viewer: all houses at the top are the same size, all parked cars are the same size, the stall lines are evenly spaced from the left end of a row to the right end
+- the site is a rectangle with a 45-degree cut lower-right corner; its left and right edges stay straight and vertical, its top and bottom edges stay straight and horizontal
+- the road at the bottom and the road on the right keep the same width from end to end
+- keep the same framing: nothing cropped more than in the attached image
+
+KEEP EXACTLY (do not move, add, remove or resize anything):
+- the four parking blocks (two long rows in the upper half, two shorter rows in the lower half), each with a narrow planted median holding a single line of shade trees and rounded planted islands at both ends
+- the single parking column along the red footpath on the left side
+- every stall line, the 8 blue accessible parking bays at the lower right, and every parked car exactly where it is (cars only inside stalls; do not add or remove cars)
+- the upper-left plaza with its grid of 10 trees in square grates and the wooden pergola, the small toilet building next to it, the two small parking attendant booths (upper-right corner and lower-left corner)
+- the lower-right plaza with the triangular planting bed and benches, the planted strip with trees along the accessible bays, the subway entrance canopy on the wide corner sidewalk
+- the buffer belts (tall conifers along the top and left edges, a line of trees along the bottom and right edges), the houses at the top and the commercial buildings on the left, the roads with lane markings and the few cars on them
+
+CHANGE ONLY MATERIALS AND REALISM:
+- real dark asphalt with crisp white paint, concrete interlocking blocks on the top walkway, light gray granite slabs on the plazas, reddish permeable concrete on the left footpath, concrete sidewalk tiles along the roads, granite curbs
+- real lawn, real trees with leaves and natural irregular crowns (conifers dark blue-green, broadleaf trees in varied greens), shrub beds with some pink and magenta azalea flowers
+- real cars with glass and reflections, houses with roof tiles and windows, commercial buildings with rows of windows and rooftop equipment
+- soft natural sun shadows
+
+No text, no labels, no writing, no watermark. Photorealistic, sharp, high detail.
