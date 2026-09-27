@@ -3090,7 +3090,8 @@ function fillAt(w) {
     cx.lineWidth = 2.2 * res; cx.lineCap = 'round'; cx.lineJoin = 'round'; cx.strokeStyle = '#000';
     let walls = 0;
     doc.ops.forEach(op => {
-        if (op.t === 'step' || op.t === 'fill' || op.t === 'text' || op.t === 'sym' || auxHidden(op)) return;
+        if (op.t === 'step' || op.t === 'fill' || op.t === 'text' || op.t === 'sym' || isAux(op) || op.mark) return;   // 면의 경계는 실선과 프리드로잉만(사용자) — 보조선·쇄선·마킹은 넘어 번진다
+        if (op.t !== 'free' && op.ls && op.ls !== 'solid') return;
         let d = '';
         if (op.t === 'line') { const a = P(op.a), b = P(op.b); if (a && b) d = `M${a.x} ${a.y}L${b.x} ${b.y}`; }
         else if (op.t === 'rect') { const a = P(op.a), b = P(op.b); if (a && b) d = `M${a.x} ${a.y}H${b.x}V${b.y}H${a.x}Z`; }
