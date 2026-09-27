@@ -2447,10 +2447,12 @@ function rpSymPlay(op, spd, done) {
     const fills = [...g.querySelectorAll('.sym-fill')].filter(el => !el.closest('.cad-hit'));   // 음영은 선을 다 그은 뒤 맨 나중에 칠한다(사용자)
     els.concat(texts, fills).forEach(el => { el.style.opacity = '0'; });
     const pen = rpPenImg(op.w), lay = rpPenLayer(), id = RP.reveal = {}, per = spd * 0.45;
+    const isDot = ((typeof symOf === 'function' && symOf(op.sym)) || {}).cat === '점';   // '점' 분류는 템플릿 없이 샤프로 찍는다(사용자)
     const steps = els.map(el => {
         let L = 0; try { L = el.getTotalLength(); } catch (e) {}
         let tl = null;
-        if (el.tagName === 'circle' || (el.tagName === 'ellipse' && Math.abs(+el.getAttribute('rx') - +el.getAttribute('ry')) < 1e-6)) {
+        if (isDot) { /* 도구를 옮기지 않는다 */ }
+        else if (el.tagName === 'circle' || (el.tagName === 'ellipse' && Math.abs(+el.getAttribute('rx') - +el.getAttribute('ry')) < 1e-6)) {
             const cx = +el.getAttribute('cx') || 0, cy = +el.getAttribute('cy') || 0, r = +(el.getAttribute('r') || el.getAttribute('rx')) || 0;
             const c0 = toW(el, {x: cx, y: cy}), c1 = toW(el, {x: cx + r, y: cy});
             if (c0 && c1) tl = toolsForCircle(c0.x, c0.y, Math.hypot(c1.x - c0.x, c1.y - c0.y));
