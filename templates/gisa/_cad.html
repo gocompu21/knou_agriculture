@@ -33,6 +33,7 @@
         <button type="button" data-tool="circle" hidden title="원 (C)" aria-label="원"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="1.2" class="f"/></svg></button>
         <button type="button" data-tool="arc" hidden title="호 (A)" aria-label="호"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 15A6.5 6.5 0 0 1 16.5 15"/><circle cx="3.5" cy="15" r="1.7" class="f"/><circle cx="16.5" cy="15" r="1.7" class="f"/></svg></button>
         <button type="button" data-tool="sym" title="시설 및 수목 넣기 (B)" aria-label="기호"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="13" height="13"/><path d="M3.5 3.5l13 13M16.5 3.5l-13 13"/></svg></button>
+        <button type="button" data-tool="box" title="박스 (X) — 왼쪽 위 모서리에서 오른쪽 아래 모서리까지 끌면 네모가 그려집니다. 재생 때는 I자·삼각자로 변마다 긋습니다" aria-label="박스"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="5" width="13" height="10"/><circle cx="3.5" cy="5" r="1.6" class="f"/><circle cx="16.5" cy="15" r="1.6" class="f"/></svg></button>
         <button type="button" data-tool="free" title="프리드로잉 (D) — 누른 채 끌면 손 가는 대로 선이 그어집니다(자 위로는 그어지지 않습니다)" aria-label="프리드로잉"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 15.5c2-3.5 3.6-4.6 5-3.4 1.3 1.1-.4 3.2 1 3.9 1.6.8 3.2-3.6 5-6.2 1.2-1.7 2.4-2.4 4-2.2"/><path d="m14.2 3.2 2.6 2.6-1.6 1.6-2.6-2.6Z" class="f"/></svg></button>
         <select id="cadFfSm" class="cad-txt" style="width:46px" title="프리드로잉 다듬기 세기 — 셀수록 손떨림을 펴서 크게 흐르는 곡선이 됩니다"><option value="0">약</option><option value="1">중</option><option value="2">강</option></select><button type="button" id="cadFfTidy" class="cad-b" style="padding:2px 7px;font-size:0.76rem" title="고른 프리드로잉을 한 단계 더 매끈하게 (누를 때마다, Ctrl+Z 로 되돌리기)">다듬기</button>
         <select id="cadFfW" class="cad-txt" style="width:62px" title="프리드로잉 선 두께"><option value="p5">얇은</option><option value="p9">굵은</option><option value="thin">가늘게</option><option value="mid">보통</option><option value="thick">굵게</option></select>
@@ -219,6 +220,13 @@
                     <p class="cad-help">실제 제도처럼 <b>I자·삼각자에 대고</b> 긋습니다. 자의 변 근처에서 <b>마우스 오른쪽 버튼을 누른 채</b>
                        끌면 그 변을 따라 선이 그어집니다 — I자 날은 수평선, 삼각자 세로 변은 수직선, 빗변은 45°·60°·30° 선. 끄는 동안 길이가 보이고, 시작·끝은 눈금과 기존 점에 붙습니다.<br>
                        I자는 몸통을 왼쪽 버튼으로 끌어 위아래로 옮깁니다.</p>
+                </div>
+                <div data-form="box">
+                    <h4>박스</h4>
+                    <p class="cad-help">왼쪽 위 모서리를 누른 채 오른쪽 아래 모서리까지 끌면 네모가 그려집니다. 모서리는 눈금·기존 점·자의 변에 붙습니다.<br>
+                       네 변은 한 묶음(작도 순서 한 줄)이고, 재생 때는 가로변은 I자로, 세로변은 I자에 얹은 삼각자로 아래에서 위로 긋습니다.</p>
+                    <div class="cad-row"><label>샤프<select id="fbW"><option value="p9">굵은 샤프</option><option value="p5">얇은 샤프</option></select></label>
+                        <span class="cad-help">선 종류는 설정의 그 샤프 선 종류</span></div>
                 </div>
                 <div data-form="free">
                     <h4>프리드로잉</h4>
@@ -2248,6 +2256,11 @@ function grpSpan(i) {                                  // i 번째 줄이 든 �
 const grpOps = id => { const i = doc.ops.findIndex(o => o.id === id); if (i < 0) return []; const [s, e] = grpSpan(i); return doc.ops.slice(s, e); };
 function grpDesc(ops, full) {                          // '정삼각형 P1 → P2 → P3 → P1 · 한 변 12m'
     const o = ops[0], ptxt = full ? ptxtFull : (n => `P${n}`), ns = [o.a, ...ops.map(x => x.b)];
+    if (o.box) {                                         // 박스 — '박스 P1 ~ P3 · 12×8m'
+        const q = ops.flatMap(x => [P(x.a), P(x.b)]).filter(Boolean), xs = q.map(v => v.x), ys = q.map(v => v.y);
+        const top = ops[1] || o;
+        return `박스 ${ptxt(top.a)} ~ ${ptxt(o.b)} · ${fmt(Math.max(...xs) - Math.min(...xs))}×${fmt(Math.max(...ys) - Math.min(...ys))}m · ${(LS[o.ls] || LS.solid).name}`;
+    }
     const a = P(o.a), b = P(o.b), side = a && b ? ` · 한 변 ${fmt(Math.hypot(b.x - a.x, b.y - a.y))}m` : '';
     return `${o.gname || '도형'} ${ns.map(ptxt).join(' → ')}${side} · ${(LS[o.ls] || LS.solid).name}`;
 }
@@ -2257,7 +2270,7 @@ function listOps() {
     const rows = doc.ops.map((op, j) => {
         if (op.grp != null && j > 0 && doc.ops[j - 1].grp === op.grp) return '';   // 묶음의 둘째 줄부터는 첫 줄에 합친다
         const grp = op.grp != null ? grpOps(op.id) : null;
-        const canRev = op.t === 'line' || op.t === 'arc' || (op.t === 'free' && !op.mark);   // 긋는 방향 바꾸기(사용자) — 선·호·프리드로잉
+        const canRev = (op.t === 'line' && !op.box) || op.t === 'arc' || (op.t === 'free' && !op.mark);   // 긋는 방향 바꾸기(사용자) — 선·호·프리드로잉
         const bt = `<span class="bt">${canRev ? btn('rev', '긋는 방향 바꾸기', '⇄') : ''}${btn('edit', '고치기', '✎')}${btn('up', '위로', '↑')}${btn('down', '아래로', '↓')}${btn('del', '지우기', '✕')}</span>`;
         if (op.t === 'step') { k++; i = 0;
             return `<div class="cad-op step" draggable="true" data-id="${op.id}"><span class="no">(${k})</span><span class="tx">${esc(op.title)}</span>${bt}</div>`; }
@@ -2620,6 +2633,16 @@ function rpGo(k, anim, cb) {
         if (!RP) return;
         drawOps(); drawPts(); rpInfo();
         if (fwd && op && op.t === 'sym') { rpSymPlay(op, spd, () => { if (cb && RP) RP.timer = setTimeout(cb, spd * 0.15); }); return; }   // 기호 — 선·원마다 도구를 옮겨 가며
+        if (fwd && blk.length > 1 && blk[0].box) {        // 박스 — 변마다 I자·삼각자를 옮겨 놓고 긋는다(사용자)
+            let i = 0;
+            const one = () => {
+                if (!RP) return;
+                if (i >= blk.length) { if (cb) RP.timer = setTimeout(cb, spd * 0.15); return; }
+                const o = blk[i++];
+                rpTween(o.tl || null, spd * 0.3, () => { if (!RP) return; rpReveal(o, spd * 0.55); RP.timer = setTimeout(one, spd * 0.6); });
+            };
+            one(); return;
+        }
         if (fwd && op && op.t !== 'step') { const rv = op.mark ? 0.22 : 0.75, rest = op.mark ? 0.5 : 0.15; rpReveal(blk.length > 1 ? blk : op, spd * rv * (blk.length > 1 ? 1.4 : 1)); if (cb) RP.timer = setTimeout(cb, spd * (rv * (blk.length > 1 ? 1.4 : 1) + rest)); }   // 마킹은 빨리 긋되 다음으로는 넉넉히 쉬었다 넘어간다(사용자)
         else if (cb) RP.timer = setTimeout(cb, op && op.t === 'step' ? spd * 0.8 : spd * 0.2);
     };
@@ -2876,6 +2899,19 @@ function ctxMenu(e, n) {
 }
 document.addEventListener('pointerdown', e => { const m = $('cadCtx'); if (m && !m.hidden && !e.target.closest('#cadCtx')) m.hidden = true; }, true);
 document.addEventListener('keydown', e => { const m = $('cadCtx'); if (e.key === 'Escape' && m && !m.hidden) m.hidden = true; });
+// ── 박스(사용자) — 끌어서 네모. 네 변은 선 넷의 묶음(box)이고, 변마다 손으로 그었다면 쓸 도구 자리를 적어 둔다
+function boxStyle() { const w = ($('fbW') && $('fbW').value) || 'p9'; return {w, ls: SET[w === 'p9' ? 'ls9' : 'ls5'] || 'solid'}; }
+function boxSnap(w) { const h = hitPoint(w); return h ? {x: h.x, y: h.y} : snapXY(w); }
+function makeBox(A, B) {
+    const x0 = Math.min(A.x, B.x), x1 = Math.max(A.x, B.x), y0 = Math.min(A.y, B.y), y1 = Math.max(A.y, B.y);
+    if (x1 - x0 < 1e-6 || y1 - y0 < 1e-6) { flash('끌어서 네모의 맞은편 모서리까지 가세요'); return; }
+    snapHist();
+    const tl = addPt(x0, y0), tr = addPt(x1, y0), br = addPt(x1, y1), bl = addPt(x0, y1), st = boxStyle(), gid = doc.seq;
+    // 차례 — 가로변(아래 → 위)은 I자, 세로변(왼 → 오른)은 I자에 얹은 삼각자로 아래에서 위로. 가로는 왼쪽에서 오른쪽으로 긋는다
+    [[bl, br], [tl, tr], [bl, tl], [br, tr]].forEach(([a, b]) =>
+        doc.ops.push({id: doc.seq++, t: 'line', a, b, ...st, grp: gid, gname: '박스', box: true, tl: toolsForLine(P(a), P(b))}));
+    changed(); flash(`박스 ${fmt(x1 - x0)} × ${fmt(y1 - y0)}m`);
+}
 function hitPoint(w) {
     let best = null, bd = 11 / pxPer();
     doc.pts.forEach(p => { const d = Math.hypot(p.x - w.x, p.y - w.y); if (d < bd) { bd = d; best = p; } });
@@ -4060,6 +4096,16 @@ svg.addEventListener('pointerdown', e => {
     }
     // 샤프를 든 동안에는 끌어도 화면이 움직이지 않는다 — 날이 얇아 조금만 빗나가도 화면이 밀렸다.
     // 몸통을 왼쪽으로 끌면 자를 옮기고, 날 근처(위아래 40px)에서 끌면 어느 버튼이든 날을 따라 긋는다
+    if (tool === 'box' && e.button === 0) {           // 박스 — 누른 곳이 한 모서리, 뗀 곳이 맞은편 모서리
+        const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
+        if (c('#cadTri .tri-body')) { startTriDrag(e, w); return; }
+        if (c('#cadFtri .tri-body')) { startFtriDrag(e, w); return; }
+        if (c('#cadTpl .tpl-body')) { startTplDrag(e, w); return; }
+        if (c('#cadSr .sr-body')) { startSrDrag(e, w); return; }
+        if (c('#cadBar .bar-body')) { drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return; }
+        drag = {kind: 'box', a: boxSnap(w), b: null};
+        return;
+    }
     if (tool === 'free' && e.button === 0) {
         const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
         if (c('#cadTri .tri-body')) { startTriDrag(e, w); return; }
@@ -4203,6 +4249,12 @@ svg.addEventListener('pointermove', e => {
         }
         return;
     }
+    if (drag && drag.kind === 'box') {
+        const A = drag.a, B = drag.b = boxSnap(w), st = boxStyle();
+        gPre.innerHTML = `<path d="M${fmt(A.x)} ${fmt(A.y)}H${fmt(B.x)}V${fmt(B.y)}H${fmt(A.x)}Z" ${stAttr(st.ls, st.w)}/>`
+            + `<text x="${fmt(B.x + 0.6 * U)}" y="${fmt(B.y + 1.6 * U)}" font-size="${fmt(1.4 * U)}" fill="${RED}">${fmt(Math.abs(B.x - A.x))} × ${fmt(Math.abs(B.y - A.y))}m</text>`;
+        return;
+    }
     if (drag && drag.kind === 'free') {             // 2px 넘게 움직일 때마다 한 점
         const l = drag.pts[drag.pts.length - 1];
         if (Math.hypot(w.x - l[0], w.y - l[1]) * pxPer() >= 2) drag.pts.push([w.x, w.y]);
@@ -4336,6 +4388,7 @@ function endPtr(e) {
     if (d.kind === 'erase') gPre.innerHTML = '';     // 떼면 빨간 원이 사라진다
     if (e.type === 'pointercancel') return;
     if (d.kind === 'trirot') { rotateTri(); return; }
+    if (d.kind === 'box') { gPre.innerHTML = ''; if (d.b) makeBox(d.a, d.b); return; }
     if (d.kind === 'free') {                          // 자가 덮은 곳에서 끊어 조각마다 한 획, 떨림은 0.6px 로 거른다
         gPre.innerHTML = '';
         const runs = []; let cur = [];
@@ -4915,7 +4968,7 @@ document.addEventListener('keydown', e => {
     if (barOn && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         e.preventDefault(); setBarY(barY + (e.key === 'ArrowUp' ? -1 : 1) * barStep() * (e.shiftKey ? 5 : 1)); saveBar(); return;
     }
-    const map = {v: 'select', t: 'text', f: 'fill', d: 'free', b: 'sym', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
+    const map = {v: 'select', t: 'text', f: 'fill', d: 'free', x: 'box', b: 'sym', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
     if (map[k]) setTool(map[k]);
     if (k === '+' || k === '=') zoomCenter(1.4);
     if (k === '-') zoomCenter(1 / 1.4);
