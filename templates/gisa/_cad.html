@@ -1560,6 +1560,14 @@ function itemSvg(it) {
     return '';
 }
 const radiusOf = op => op.mode === 'd' ? op.v / 2 : +op.v;
+const freePoly = pts => {                           // freeD 가 그리는 곡선을 따라 찍은 점들 — 교차 계산용
+    const Q = (a, b, cc, t) => ({x: (1 - t) * (1 - t) * a[0] + 2 * (1 - t) * t * b[0] + t * t * cc[0], y: (1 - t) * (1 - t) * a[1] + 2 * (1 - t) * t * b[1] + t * t * cc[1]});
+    if (pts.length < 3) return pts.map(q => ({x: q[0], y: q[1]}));
+    const out = [{x: pts[0][0], y: pts[0][1]}]; let s = pts[0];
+    for (let i = 1; i < pts.length - 1; i++) { const m = [(pts[i][0] + pts[i + 1][0]) / 2, (pts[i][1] + pts[i + 1][1]) / 2];
+        for (let j = 1; j <= 4; j++) out.push(Q(s, pts[i], m, j / 4)); s = m; }
+    const l = pts[pts.length - 1]; out.push({x: l[0], y: l[1]}); return out;
+};
 const freeD = pts => {                              // 점 사이를 중점 2차 곡선으로 이어 매끄럽게
     if (pts.length < 3) return 'M' + pts.map(q => `${fmt(q[0])} ${fmt(q[1])}`).join('L');
     let d = `M${fmt(pts[0][0])} ${fmt(pts[0][1])}`;
@@ -2699,6 +2707,9 @@ function allSegs() {                                  // 부딪칠 선분들 —
             const c = [a, {x: b.x, y: a.y}, b, {x: a.x, y: b.y}];
             c.forEach((q, i) => segs.push({op, a: q, b: c[(i + 1) % 4], name: `사각형 P${op.a}–P${op.b} 변`})); }
         else if (op.t === 'sym') { const nm = (doc.syms[op.sym] || {}).name || '기호'; symGeom(op).segs.forEach(([a, b]) => segs.push({op, a, b, name: `${nm} 선`})); }
+        else if (op.t === 'free' && !op.mark && op.pts && op.pts.length > 1) {   // 프리드로잉 — 그린 곡선을 잘게 나눈 선분으로(사용자: 프리드로잉까지 연장·줄이기)
+            const q = freePoly(op.pts); for (let i = 0; i + 1 < q.length; i++) segs.push({op, a: q[i], b: q[i + 1], name: '프리드로잉', key: 'f' + op.id});
+        }
     });
     return segs;
 }
@@ -2742,8 +2753,8 @@ function extCands(n, back) {
             const t = (wx * ey - wy * ex) / den, v = (wx * uy - wy * ux) / den;
             if (v < -1e-6 || v > 1 + 1e-6) return;                   // 그 선분 안에서 만나는 것만
             if (back ? !(t < -1e-6 && t > -L + 1e-6) : t <= 1e-6) return;   // 연장: 고른 점 너머 / 줄이기: 이 선 안(양 끝 제외)
-            const dist = Math.abs(t), h = hits.get(g.name);
-            if (!h || dist < h.dist) hits.set(g.name, {line: op, end, x: S.x + ux * t, y: S.y + uy * t, dist, name: g.name, back});
+            const dist = Math.abs(t), h = hits.get(g.key || g.name);
+            if (!h || dist < h.dist) hits.set(g.key || g.name, {line: op, end, x: S.x + ux * t, y: S.y + uy * t, dist, name: g.name, back});
         });
         allCircles().forEach(c => lineCircleTs(S.x, S.y, ux, uy, c).forEach(t => {    // 원·호 둘레
             if (back ? !(t < -1e-6 && t > -L + 1e-6) : t <= 1e-6) return;
@@ -3292,7 +3303,7 @@ function placeLabels() {
     const {r, fn} = lblSize(), pts = doc.pts.slice();
     const ov = (a, b) => Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) * Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0));
     const dots = pts.map(q => ({x0: q.x - r * 1.3, y0: q.y - r * 1.3, x1: q.x + r * 1.3, y1: q.y + r * 1.3}));
-    const segs = allSegs().map(g => [g.a, g.b]);
+    const segs = allSegs().filter(g => !g.key).map(g => [g.a, g.b]);   // 프리드로잉은 아래에서 따로 넣는다
     doc.ops.forEach(op => { if (op.t === 'free' && op.pts && !auxHidden(op)) for (let i = 1; i < op.pts.length; i++) segs.push([{x: op.pts[i - 1][0], y: op.pts[i - 1][1]}, {x: op.pts[i][0], y: op.pts[i][1]}]); });
     const cross = (b, a, c) => {                        // 선분이 상자를 지나는가(양 끝이 상자 밖이어도)
         if (Math.max(a.x, c.x) < b.x0 || Math.min(a.x, c.x) > b.x1 || Math.max(a.y, c.y) < b.y0 || Math.min(a.y, c.y) > b.y1) return false;
