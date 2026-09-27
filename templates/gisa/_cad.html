@@ -1677,8 +1677,9 @@ function paveSvg(op) {
         inner = `<rect x="${fmt(b[0])}" y="${fmt(b[1])}" width="${fmt(Math.max(0, b[2] - b[0]))}" height="${fmt(Math.max(0, b[3] - b[1]))}" fill="url(#${id}t)" opacity="0.5"/>`;
     } else {
         const body = paveBody(op.kind, b[0], b[1], b[2], b[3], k, op.seed || 7), col = op.color || '#333';
-        inner = (body.d ? `<path d="${body.d}" stroke="${col}" stroke-opacity="0.45" stroke-width="${fmt(0.1 * k)}" fill="none"/>` : '')
-            + (body.dots ? `<path d="${body.dots}" fill="${col}" fill-opacity="0.45" stroke="none"/>` : '');   // 연하게(사용자) — 0.8 → 0.45
+        const po = op.kind === 'pv-asphalt' || op.kind === 'pv-perv' ? 0.65 : 0.45;   // 잔점 무늬는 옅으면 안 보여 조금 진하게(사용자)
+        inner = (body.d ? `<path d="${body.d}" stroke="${col}" stroke-opacity="${po}" stroke-width="${fmt(0.1 * k)}" fill="none"/>` : '')
+            + (body.dots ? `<path d="${body.dots}" fill="${col}" fill-opacity="${po}" stroke="none"/>` : '');   // 연하게(사용자) — 0.8 → 0.45
     }
     return defs + `<clipPath id="${id}"><path d="${op.d}" clip-rule="evenodd"/></clipPath>` + (q ? `<clipPath id="${id}p"><path d="${paveBlob(q, op.seed || 7)}"/></clipPath>` : '')
         + `<path d="${op.d}" fill="none" stroke="none" fill-rule="evenodd"/><g clip-path="url(#${id})">` + (q ? `<g clip-path="url(#${id}p)">${inner}</g>` : inner) + '</g>';
