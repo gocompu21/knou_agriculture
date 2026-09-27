@@ -264,6 +264,7 @@
                     <button type="button" data-rp="end" class="x" title="재생 끝내기(Esc)">✕</button>
                 </div>
                 <input type="range" id="cadRpBar" min="0" value="0" step="1">
+                <div class="cad-rp-time"><span id="cadRpCur">0:00</span><span id="cadRpDur">0:00</span></div>
                 <div class="cad-rp-tx" id="cadRpTx"></div>
             </div>
             <div class="cad-tabs">
@@ -510,6 +511,7 @@
 .cad-rp button.x { margin-left: auto; }
 .cad-rp select { height: 28px; border-radius: 6px; border: 0; font-size: 0.78rem; }
 .cad-rp .no { font-variant-numeric: tabular-nums; margin-left: 4px; opacity: .9; }
+.cad-rp-time { display: flex; justify-content: space-between; font-size: 0.74rem; font-variant-numeric: tabular-nums; opacity: .85; margin: -2px 2px 2px; }
 .cad-rp input[type=range] { width: 100%; margin: 6px 0 2px; accent-color: #f4c542; }
 .cad-rp-tx { min-height: 1.3em; line-height: 1.45; word-break: keep-all; }
 .cad-rp-tx .tl { color: #b7e4c7; font-size: 0.76rem; }
@@ -2528,12 +2530,40 @@ function rpSymPlay(op, spd, done) {
     };
     next();
 }
+// 재생 시간(사용자: 다른 플레이어처럼 현재 / 전체) — 칸마다 rpGo 가 쓰는 시간을 빠르기로 셈해 누적한다(어림)
+function rpTimes() {
+    const spd = +$('cadRpSpd').value || 1100, n = doc.ops.length, T = new Array(n + 1).fill(0);
+    let j = 0;
+    while (j < n) {
+        const [s, e] = grpSpan(j), o = doc.ops[s], blk = doc.ops.slice(s, e);
+        let d;
+        if (o.t === 'step') d = 0.8;
+        else if (o.t === 'sym') { const it = ((doc.syms[o.sym] || {}).items || []).length || 1; d = 0.35 + 0.75 * 0.75 + 0.75 * it * 0.75 + 0.15; }
+        else if (blk.length > 1 && o.box) d = 0.35 + blk.length * 0.9 + 0.15;
+        else if (blk.length > 1) d = 0.35 + 1.05 + 0.15;
+        else d = 0.35 + (o.mark ? 0.72 : 0.9);
+        for (let k = s + 1; k <= e; k++) T[k] = T[s] + (k === e ? d * spd : 0);
+        j = e;
+    }
+    return T;
+}
+const mmss = ms => { const s = Math.max(0, Math.round(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+function rpClock() {
+    if (!RP || !$('cadRpCur')) return;
+    const T = RP.T || (RP.T = rpTimes()), k = RP.k;
+    let cur = T[k] || 0;                                 // 멈춰 있으면 이 칸을 다 그은 때
+    if (RP.playing && RP.tk != null && k > 0) cur = Math.min(T[k], T[grpSpan(k - 1)[0]] + performance.now() - RP.tk);   // 긋는 중이면 이 칸의 처음부터 흘러간다
+    $('cadRpCur').textContent = mmss(cur); $('cadRpDur').textContent = mmss(T[T.length - 1]);
+}
+setInterval(() => { if (RP && RP.playing) rpClock(); }, 250);
+$('cadRpSpd').addEventListener('change', () => { if (RP) { RP.T = null; rpClock(); } });   // 빠르기를 바꾸면 전체 시간도 다시 센다
 function rpInfo() {
     const n = doc.ops.length, op = doc.ops[RP.k - 1];
     $('cadRpBar').max = n; $('cadRpBar').value = RP.k;
     let step = '', no = 0, i = 0;
     for (let j = 0; j < RP.k; j++) { const o = doc.ops[j]; if (o.t === 'step') { step = o.title; no++; i = 0; } else if (!(o.grp != null && j > 0 && doc.ops[j - 1].grp === o.grp)) i++; }
     $('cadRpNo').textContent = `${RP.k} / ${n}`;
+    RP.tk = performance.now(); rpClock();
     $('cadRpTx').innerHTML = !op ? '처음 — ▶ 재생을 누르면 작도 순서대로 그려 보입니다'
         : (step ? `<b>(${no}) ${esc(step)}</b>` : '') + (op.t === 'step' ? '' : `${step ? ' — ' : ''}${circ(i)} ${esc(op.grp != null ? grpDesc(grpOps(op.id)) : desc(op))}`);   // 도구 자리는 속에만 둔다(사용자)
     const hid = op ? (op.grp != null ? grpOps(op.id)[0].id : op.id) : null;
