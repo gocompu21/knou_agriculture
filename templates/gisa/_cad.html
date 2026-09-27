@@ -1527,7 +1527,7 @@ function itemSvg(it) {
             const sx = it.w / bw, sy = it.h / bh, sw = SET.p5 / 1000 * scaleDenom() / Math.sqrt(Math.abs(sx * sy) || 1);
             return `<g class="sym-svg" style="--sw:${+sw.toFixed(5)}" transform="translate(${fmt(-it.w / 2)} ${fmt(-it.h / 2)}) scale(${+sx.toFixed(5)} ${+sy.toFixed(5)}) translate(${-bx} ${-by})">${it.svg}</g>`; }
         case 'g': return `<g transform="translate(${fmt(it.x)} ${fmt(it.y)}) rotate(${fmt(it.rot || 0)})">${(it.items || []).map(itemSvg).join('')}</g>`;
-        case 'fill': return opSvg({...it.op, t: 'fill', id: 's' + (++symSeq)});   // 해칭 clipPath·mask 이름이 겹치지 않게 넣을 때마다 새 번호
+        case 'fill': return `<g class="sym-fill">${opSvg({...it.op, t: 'fill', id: 's' + (++symSeq)})}</g>`;   // 재생 때 음영을 가려내려고 감싼다   // 해칭 clipPath·mask 이름이 겹치지 않게 넣을 때마다 새 번호
         case 'free': return it.pts && it.pts.length > 1 ? `<path d="${freeD(it.pts)}" ${st()}/>` : '';
     }
     return '';
@@ -2276,9 +2276,10 @@ function rpSymPlay(op, spd, done) {
     const g = gOps.querySelector(`[data-op="${op.id}"]`); if (!g) { done(); return; }
     const toW = (el, q) => { const m = el.getScreenCTM(), s = svg.getScreenCTM(); if (!m || !s) return null;
         const pt = svg.createSVGPoint(); pt.x = q.x; pt.y = q.y; return pt.matrixTransform(m).matrixTransform(s.inverse()); };
-    const els = [...g.querySelectorAll('line,path,circle,rect,polyline,polygon,ellipse')].filter(el => !el.closest('.cad-hit') && !el.closest('defs,clipPath,mask'));
+    const els = [...g.querySelectorAll('line,path,circle,rect,polyline,polygon,ellipse')].filter(el => !el.closest('.cad-hit') && !el.closest('defs,clipPath,mask') && !el.closest('.sym-fill'));
     const texts = [...g.querySelectorAll('text')].filter(el => !el.closest('.cad-hit'));
-    els.concat(texts).forEach(el => { el.style.opacity = '0'; });
+    const fills = [...g.querySelectorAll('.sym-fill')].filter(el => !el.closest('.cad-hit'));   // 음영은 선을 다 그은 뒤 맨 나중에 칠한다(사용자)
+    els.concat(texts, fills).forEach(el => { el.style.opacity = '0'; });
     const pen = rpPenImg(op.w), lay = rpPenLayer(), id = RP.reveal = {}, per = spd * 0.45;
     const steps = els.map(el => {
         let L = 0; try { L = el.getTotalLength(); } catch (e) {}
@@ -2296,7 +2297,8 @@ function rpSymPlay(op, spd, done) {
     let i = 0;
     const next = () => {
         if (!RP || RP.reveal !== id) return;
-        if (i >= steps.length) { lay.innerHTML = ''; texts.forEach(el => { el.style.opacity = ''; el.animate([{opacity: 0}, {opacity: 1}], {duration: per}); }); setTimeout(done, per); return; }
+        if (i >= steps.length) { lay.innerHTML = '';
+            fills.concat(texts).forEach(el => { el.style.opacity = ''; el.animate([{opacity: 0}, {opacity: 1}], {duration: per}); }); setTimeout(done, per); return; }
         const s = steps[i++];
         const draw = () => {
             if (!RP || RP.reveal !== id) return;
