@@ -1527,6 +1527,8 @@ function textSvg(x, y, s, size, rot, anchor, font, dir) {
 // 기호의 선 굵기는 **넣는 도면의 샤프 굵기**를 따른다(사용자) — 기본 기호의 '보통·굵게'는 굵은 샤프, '가늘게'는 얇은 샤프로 옮겨 그린다.
 // 예전에는 기본 기호는 종이 폭 비례 굵기, 수량표 기호는 화면 1.1px, 등록 기호는 샤프 굵기라 한 도면 안에서 제각각이었다
 let symSeq = 0;
+// 분류 차례 — 가나다순, 그 뒤 '원문자', 맨 끝 '기타'(사용자)
+const catRank = k => k === '기타' ? 2 : k === '원문자' ? 1 : 0;
 const symW = w => w === 'p5' || w === 'p9' ? w : w === 'thin' ? 'p5' : 'p9';
 function itemSvg(it) {
     const st = () => stAttr(it.ls, it.ls === 'aux' ? it.w : symW(it.w), it.fill);
@@ -3557,7 +3559,7 @@ function fillSymSelect() {
     const keep = $('fsSym').value, grp = (label, arr) => arr.length ? `<optgroup label="${label}">${arr.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('')}</optgroup>` : '';
     const catOf = s => (s.pk ? s.cat : '') || '기타', groups = {};
     BUILTIN.concat(FAC, userSyms).forEach(s => (groups[catOf(s)] = groups[catOf(s)] || []).push(s));
-    $('fsSym').innerHTML = Object.keys(groups).sort((x, y) => (x === '기타') - (y === '기타') || x.localeCompare(y, 'ko')).map(k => grp(esc(k), groups[k])).join('');
+    $('fsSym').innerHTML = Object.keys(groups).sort((x, y) => catRank(x) - catRank(y) || x.localeCompare(y, 'ko')).map(k => grp(esc(k), groups[k])).join('');
     if ([...$('fsSym').options].some(o => o.value === keep)) $('fsSym').value = keep;
 }
 function renderLib() {
@@ -3569,7 +3571,7 @@ function renderLib() {
     // 분류별로 묶는다(사용자) — 등록한 기호는 제 분류, 기본·수량표 기호와 분류 없이 등록한 것은 '기타'. 가나다순, '기타'는 맨 끝
     const catOf = s => (s.pk ? s.cat : '') || '기타', all = BUILTIN.concat(FAC, userSyms), groups = {};
     all.forEach(s => (groups[catOf(s)] = groups[catOf(s)] || []).push(s));
-    const cats = Object.keys(groups).sort((x, y) => (x === '기타') - (y === '기타') || x.localeCompare(y, 'ko'));
+    const cats = Object.keys(groups).sort((x, y) => catRank(x) - catRank(y) || x.localeCompare(y, 'ko'));
     $('cadLib').innerHTML = cats.map(k => `<h5>${esc(k)} <small>(${groups[k].length})</small></h5>` + groups[k].map(card).join('')).join('');
     $('lbCatList').innerHTML = cats.map(k => `<option value="${esc(k)}">`).join('');
 }
