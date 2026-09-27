@@ -2245,6 +2245,24 @@ function rpPenLayer() {
 function rpReveal(op, dur) {                           // 방금 그은 것을 샤프가 긋듯이 — 선 끝을 샤프심이 따라간다. 묶음이면 변을 차례로
     const list = Array.isArray(op) ? op : [op]; op = list[0];
     const gs = list.map(o => gOps.querySelector(`[data-op="${o.id}"]`)).filter(Boolean); if (!gs.length) return;
+    if (list.length === 1 && op.t === 'text') {        // 글자 — 왼쪽부터 쓰듯이 드러내고 샤프가 글자 아래를 따라간다(기호 속 글자와 같게, 사용자)
+        const el = gs[0].querySelector('text'); let bb = null; try { bb = el.getBBox(); } catch (e) {}
+        if (el && bb && bb.width) {
+            const pen = rpPenImg('p5'), lay = rpPenLayer(), id = RP.reveal = {}, t0 = performance.now();
+            const toW = q => { const m = el.getScreenCTM(), s = svg.getScreenCTM(); if (!m || !s) return null; const pt = svg.createSVGPoint(); pt.x = q.x; pt.y = q.y; return pt.matrixTransform(m).matrixTransform(s.inverse()); };
+            el.style.clipPath = 'inset(0 100% 0 0)';
+            const frame = now => {
+                if (!RP || RP.reveal !== id) { el.style.clipPath = ''; lay.innerHTML = ''; return; }
+                const u = Math.min(1, (now - t0) / dur);
+                el.style.clipPath = `inset(0 ${((1 - u) * 100).toFixed(1)}% 0 0)`;
+                const tip = toW({x: bb.x + bb.width * u, y: bb.y + bb.height * 0.85});
+                if (pen && tip && u < 1) { const k = pxPer(), w = (pen.img.naturalWidth || 56) / k, h = (pen.img.naturalHeight || 56) / k;
+                    lay.innerHTML = `<image href="${pen.src}" x="${fmt(tip.x - pen.hx / k)}" y="${fmt(tip.y - pen.hy / k)}" width="${fmt(w)}" height="${fmt(h)}"/>`; }
+                if (u < 1) requestAnimationFrame(frame); else { el.style.clipPath = ''; lay.innerHTML = ''; }
+            };
+            requestAnimationFrame(frame); return;
+        }
+    }
     const g = gs[0];
     const els = [], fades = [];
     gs.flatMap(x => [...x.querySelectorAll('line,path,circle,rect,polyline,polygon,ellipse')]).filter(el => !el.closest('.cad-hit')).forEach(el => {
