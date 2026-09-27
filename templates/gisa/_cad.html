@@ -274,7 +274,7 @@
                 <div class="cad-reg">
                     <b>선택한 객체를 기호로 등록</b>
                     <div class="cad-row"><label class="wide">이름<input id="lbName" maxlength="60" placeholder="예) 평의자 1.8×0.45"></label>
-                        <label>기준점<input type="number" class="pk" id="lbBase" min="1"></label></div>
+                        <label>기준점<input type="number" class="pk" id="lbBase" min="1" placeholder="자동" title="넣을 때 이 점이 누른 자리에 옵니다. 비우면 고른 것의 첫 점(글자만이면 첫 글자 왼쪽 아래)"></label></div>
                     <div class="cad-row"><label class="wide">분류<input id="lbCat" maxlength="30" list="lbCatList" placeholder="예) 휴게시설 · 교목 — 비우면 기타"></label>
                         <datalist id="lbCatList"></datalist></div>
                     <div class="cad-row"><span class="cad-help" id="lbInfo">작도 순서나 도면에서 객체를 고르세요(Shift 로 여럿)</span>
@@ -3529,8 +3529,13 @@ function registerSym() {
     const name = $('lbName').value.trim(), base = num('lbBase');
     if (!ops.length) { flash('기호로 담을 객체를 먼저 고르세요'); return; }
     if (!name) { flash('기호 이름을 적어 주세요'); $('lbName').focus(); return; }
-    if (!base) { flash('기준점 번호를 넣어 주세요 — 넣을 때 이 점이 누른 자리에 옵니다'); $('lbBase').focus(); return; }
-    const bp = P(base), items = ops.map(o => opToItem(o, bp.x, bp.y)).filter(Boolean).sort((a, b) => (b.t === 'fill') - (a.t === 'fill'));   // 칠한 면이 맨 아래
+    // 기준점 — 번호를 넣으면 그 점. 비우면 고른 것에서 스스로 잡는다: 처음 나오는 점, 점이 없으면(요즘 글자는 점 없이 자리만 갖는다)
+    // 첫 글자의 왼쪽 아래 자리(사용자: 글자에는 기준점이 없다)
+    let bp = base ? P(base) : null;
+    if (base && !bp) { flash(`P${base} 가 없습니다`); $('lbBase').focus(); return; }
+    if (!bp) { const o = ops.find(x => ptsOf(x).some(n => P(n))); bp = o ? P(ptsOf(o).find(n => P(n))) : (() => { const t = ops.find(x => x.t === 'text'); return t ? textPos(t) : null; })(); }
+    if (!bp) { flash('기준점을 잡지 못했습니다 — 기준점 번호를 넣어 주세요'); $('lbBase').focus(); return; }
+    const items = ops.map(o => opToItem(o, bp.x, bp.y)).filter(Boolean).sort((a, b) => (b.t === 'fill') - (a.t === 'fill'));   // 칠한 면이 맨 아래
     const cat = $('lbCat').value.trim() || '기타';
     post(SYMAPI + 'save/', {name, items, cat}).then(j => {
         if (!j.ok) { flash(j.error || '등록하지 못했습니다'); return; }
