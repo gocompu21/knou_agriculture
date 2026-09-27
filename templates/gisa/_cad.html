@@ -22,7 +22,7 @@
         <button type="button" class="cad-b pri" id="cadSave" title="Ctrl+S">저장</button>
         <button type="button" class="cad-b" id="cadExport">SVG 내려받기</button>
         <button type="button" class="cad-b" id="cadCopy">작도 순서 복사</button>
-        <button type="button" class="cad-b" id="cadFull" title="전체 화면">⛶</button>
+        <button type="button" class="cad-b" id="cadFull" title="전체 화면"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 7V2h5M18 7V2h-5M2 13v5h5M18 13v5h-5"/></svg></button>
         <div class="cad-open" id="cadOpen" hidden></div>
     </div>
     <div class="cad-tools" id="cadTools">
@@ -4103,13 +4103,18 @@ $('cadSave').addEventListener('click', save);
 $('cadExport').addEventListener('click', download);
 $('cadCopy').addEventListener('click', copyDesc);
 $('cadOpenBtn').addEventListener('click', openList);
+// 전체 화면 단추 — 켜져 있으면 '이전 크기로' 그림(안쪽으로 모이는 네 모서리), 꺼져 있으면 '전체 화면'(바깥으로 벌어지는 네 모서리)(사용자)
+const FULL_ICON = {on: '<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 2v5H2M13 2v5h5M7 18v-5H2M13 18v-5h5"/></svg>',
+                   off: '<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 7V2h5M18 7V2h-5M2 13v5h5M18 13v5h-5"/></svg>'};
 function setFull(on) {
     root.classList.toggle('full', on);
+    $('cadFull').innerHTML = on ? FULL_ICON.on : FULL_ICON.off;
+    $('cadFull').title = on ? '이전 크기로' : '전체 화면';
     document.body.style.overflow = on ? 'hidden' : '';
     requestAnimationFrame(fit);
 }
 $('cadFull').addEventListener('click', () => setFull(!root.classList.contains('full')));
-// CAD 탭을 누르면 바로 전체 화면 — 제도판처럼 도면만 크게 두고 쓴다(⛶·Esc 로 빠져나온다)
+// CAD 탭을 누르면 바로 전체 화면 — 제도판처럼 도면만 크게 두고 쓴다(위 '이전 크기로' 단추로 빠져나온다)
 document.querySelectorAll('.tab-btn[data-tab="cad"]').forEach(b => b.addEventListener('click', () => setFull(true)));
 $('cadOpen').addEventListener('click', e => {
     const del = e.target.closest('[data-del]');
@@ -4513,8 +4518,10 @@ document.addEventListener('keydown', e => {
     const tag = (e.target.tagName || '').toLowerCase(), typing = tag === 'input' || tag === 'textarea' || tag === 'select';
     const k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
     if (mod && k === 's') { e.preventDefault(); save(); return; }
-    if (e.key === 'Escape') { if (root.classList.contains('full') && !editing && !pickIdx) { $('cadFull').click(); return; }
-        endEdit(); resetPick(); selOps.clear(); selPts.clear(); renderAll(); regInfo(); return; }
+    // Esc 는 전체 화면을 빠져나가지 않고 고른 것을 푼다(사용자) — 전체 화면은 위의 '이전 크기로' 단추로 나간다
+    if (e.key === 'Escape') { endEdit(); resetPick(); selOps.clear(); selPts.clear(); selPt = null; listSel = false;
+        ['cadDblPick', 'cadFpMenu'].forEach(id => { const m = $(id); if (m) m.hidden = true; });
+        renderAll(); regInfo(); selInfo(); return; }
     if (e.key === 'F9') { e.preventDefault(); $('cadSnap').checked = !$('cadSnap').checked; saveSet(); status(); return; }
     if (typing) return;
     if (mod && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
