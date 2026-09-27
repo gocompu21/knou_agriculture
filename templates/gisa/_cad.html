@@ -450,11 +450,19 @@
 .cad-help { font-size: 0.74rem; color: #7a8a82; line-height: 1.5; margin: 0; }
 .cad-editing { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #fff4e5;
     border: 1px solid #f3c98b; border-radius: 6px; padding: 6px 8px; font-size: 0.8rem; margin-top: 4px; }
-.cad-tabs { display: flex; border-bottom: 1px solid #eef1ef; flex-shrink: 0; }
-.cad-tabs button { flex: 1; border: 0; background: none; padding: 8px 4px; font-size: 0.82rem; font-weight: 700; color: #8a9690;
-    border-bottom: 2px solid transparent; cursor: pointer; }
-.cad-tabs button.on { color: #1b4332; border-bottom-color: #2d6a4f; }
-.cad-tabs em { font-style: normal; font-weight: 600; color: #9aa5a0; font-size: 0.74rem; }
+.cad-tabs { display: flex; gap: 4px; flex-shrink: 0; margin: 8px 10px 2px; padding: 4px; background: #eef3f0; border-radius: 11px; }   /* 알약 모양 탭 — 탭마다 제 색(사용자) */
+.cad-tabs button { --tc: #2d6a4f; --tb: #e2efe6; flex: 1; border: 0; background: none; padding: 7px 4px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; color: #6f7c75;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: background .15s, color .15s, box-shadow .15s; }
+.cad-tabs button[data-ptab="ops"] { --tc: #2d6a4f; --tb: #dcefe2; }
+.cad-tabs button[data-ptab="pts"] { --tc: #2b4a9b; --tb: #e0e7f7; }
+.cad-tabs button[data-ptab="lib"] { --tc: #b0671a; --tb: #f8ead6; }
+.cad-tabs button::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--tc); opacity: .55; }
+.cad-tabs button:hover { background: var(--tb); color: var(--tc); }
+.cad-tabs button.on { background: var(--tc); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.14); }
+.cad-tabs button.on::before { background: #fff; opacity: .9; }
+.cad-tabs em { font-style: normal; font-weight: 700; font-size: 0.68rem; line-height: 1; padding: 2px 6px; border-radius: 9px; background: var(--tb); color: var(--tc); }
+.cad-tabs em:empty { display: none; }
+.cad-tabs button.on em { background: rgba(255,255,255,.25); color: #fff; }
 .cad-pane { display: none; padding: 8px 10px; overflow: auto; flex: 1; min-height: 0; }
 .cad-pane.on { display: block; }
 .cad-list { font-size: 0.82rem; }
