@@ -2968,14 +2968,17 @@ function ctxMenu(e, n) {
         + H(`지난 교차선까지 줄이기`) + (Tm.length
         ? Tm.map((c, i) => `<button type="button" data-ext="${X.length + i}">${tag(c.from)}${c.name} 까지 줄이기<small>−${fmt(c.dist)}m</small></button>`).join('')
         : '<div class="none">이 선이 지나온 교차선이 없습니다</div>')
+        + (doc.ops.some(o => o.t === 'arc' && [o.a, o.b].some(q => { const Q = P(q); return Q && Math.hypot(Q.x - S.x, Q.y - S.y) <= Math.max(12 / pxPer(), 0.3); }))
+            ? H('호 끝 맞추기') + `<button type="button" data-arcj="1">호 끝에 맞추기<small>선을 제 방향 그대로 늘이거나 줄여 호와 만나게</small></button>` : '')
         + H('삭제') + `<button type="button" data-del="1" style="color:#c62828">P${n} 삭제${uses(+n) ? `<small>이어진 ${uses(+n)}개도 함께</small>` : ''}</button>`;
     m.hidden = false;
     const W = m.offsetWidth, Hh = m.offsetHeight;
     m.style.left = Math.min(e.clientX + 4, innerWidth - W - 6) + 'px'; m.style.top = Math.max(6, Math.min(e.clientY + 4, innerHeight - Hh - 6)) + 'px';
     m.onclick = ev => {
-        const b = ev.target.closest('button[data-to], button[data-ext], button[data-del], button[data-stack]'); if (!b) return;
+        const b = ev.target.closest('button[data-to], button[data-ext], button[data-del], button[data-stack], button[data-arcj]'); if (!b) return;
         m.hidden = true;
-        if (b.dataset.stack) mergePts(others, keep);
+        if (b.dataset.arcj) arcJoinAt(n);
+        else if (b.dataset.stack) mergePts(others, keep);
         else if (b.dataset.to) { const c = C[+b.dataset.to]; mergePts(c.from, c.n); }
         else if (b.dataset.del) delPoint(n);
         else { const c = XT[+b.dataset.ext]; extendTo(c.from, c); }
@@ -2983,6 +2986,58 @@ function ctxMenu(e, n) {
 }
 document.addEventListener('pointerdown', e => { const m = $('cadCtx'); if (m && !m.hidden && !e.target.closest('#cadCtx')) m.hidden = true; }, true);
 document.addEventListener('keydown', e => { const m = $('cadCtx'); if (e.key === 'Escape' && m && !m.hidden) m.hidden = true; });
+// ── 호 끝 맞추기(사용자: 템플릿으로 그은 호의 끝과 선 끝이 조금씩 어긋난다) — 호(원)는 그대로 두고, 끝 가까이(tol) 있는 선을 **제 방향 그대로**
+// 늘이거나 줄여 원과 만나는 점에서 끝나게 한다. 그 점을 호의 끝으로 삼아 둘이 같은 점 하나가 된다. focus 를 주면 그 자리에 가까운 끝만
+function arcJoin(arc, tol, focus) {
+    const A0 = P(arc.a), B0 = P(arc.b); if (!A0 || !B0) return 0;
+    const G = arcGeom(A0, B0, arc.r, arc.dir === 'cw', arc.big); if (!G) return 0;
+    const circ = {cx: G.cx, cy: G.cy, R: G.R, on: () => true};
+    let made = 0; const drop = [];
+    ['a', 'b'].forEach(key => {
+        const E = P(arc[key]); if (!E) return;
+        if (focus && Math.hypot(E.x - focus.x, E.y - focus.y) > tol) return;
+        let best = null;
+        doc.ops.forEach(op => {
+            if (op.t !== 'line' || auxHidden(op)) return;
+            ['a', 'b'].forEach(k => {
+                if (+op[k] === +arc[key]) return;
+                const N = P(op[k]), O = P(op[k === 'a' ? 'b' : 'a']); if (!N || !O) return;
+                const dNE = Math.hypot(N.x - E.x, N.y - E.y); if (dNE > tol) return;
+                const L = Math.hypot(N.x - O.x, N.y - O.y); if (L < 1e-9) return;
+                const ux = (N.x - O.x) / L, uy = (N.y - O.y) / L;
+                // 거의 접하는 선(둥근 모서리 — 선과 원의 거리 차가 반지름의 12% 또는 tol 안)은 **접점**, 곧 원 중심에서 선에 내린 수선의 발에서 끝낸다.
+                // 교점으로 자르면 호가 접점을 지나쳐 갈고리처럼 휜다. 선은 방향 그대로이고, 남은 아주 작은 차이는 호가 받는다(호는 두 끝과 반지름으로 다시 그려진다)
+                const tf = (G.cx - O.x) * ux + (G.cy - O.y) * uy, F = {x: O.x + ux * tf, y: O.y + uy * tf}, dF = Math.hypot(F.x - G.cx, F.y - G.cy);
+                if (tf > 1e-6 && Math.abs(dF - G.R) <= Math.max(tol, 0.12 * G.R)) {
+                    const dx = Math.hypot(F.x - E.x, F.y - E.y);
+                    if (dx <= 2 * tol && (!best || dx < best.dx)) best = {op, k, X: F, dx, old: +op[k]};
+                    return;
+                }
+                lineCircleTs(O.x, O.y, ux, uy, circ).forEach(t => {
+                    if (t <= 1e-6) return;                       // 선의 뒤쪽(반대 끝 너머)은 아니다
+                    const X = {x: O.x + ux * t, y: O.y + uy * t}, dx = Math.hypot(X.x - E.x, X.y - E.y);
+                    if (dx <= 2 * tol && (!best || dx < best.dx)) best = {op, k, X, dx, old: +op[k]};
+                });
+            });
+        });
+        if (!best) return;
+        let pn = +arc[key];
+        if (usedBy(pn) > 1) pn = addPt(best.X.x, best.X.y);   // 호 끝 점을 다른 것도 쓰면 새 점
+        else { const q = doc.pts.find(p => p.n === pn); q.x = +best.X.x.toFixed(3); q.y = +best.X.y.toFixed(3); }
+        arc[key] = pn; best.op[best.k] = pn; drop.push(best.old); made++;
+    });
+    if (made) { const gone = drop.filter(n => !usedBy(n)); if (gone.length) { doc.pts = doc.pts.filter(p => !gone.includes(p.n)); compactPts(); } }
+    return made;
+}
+function arcJoinAt(n) {                               // 점 메뉴 — 이 점 가까이 끝이 있는 호마다
+    const S = P(n); if (!S) return;
+    const tol = Math.max(12 / pxPer(), 0.3);
+    snapHist();
+    let made = 0;
+    doc.ops.filter(o => o.t === 'arc').forEach(o => { made += arcJoin(o, tol, S); });
+    if (!made) { hist.pop(); flash('가까이 맞출 호 끝과 선 끝이 없습니다'); return; }
+    changed(); flash(`호 끝에 선 ${made}개를 맞췄습니다 — 선은 방향 그대로 늘이거나 줄였습니다`);
+}
 // ── 박스(사용자) — 끌어서 네모. 네 변은 선 넷의 묶음(box)이고, 변마다 손으로 그었다면 쓸 도구 자리를 적어 둔다
 function boxStyle() { const w = ($('fbW') && $('fbW').value) || 'p9'; return {w, ls: SET[w === 'p9' ? 'ls9' : 'ls5'] || 'solid'}; }
 function boxSnap(w) { const h = hitPoint(w); return h ? {x: h.x, y: h.y} : snapXY(w); }
@@ -4543,8 +4598,10 @@ function endPtr(e) {
         } else {
             const a0 = d.a0, a1 = a0 + sw;
             const a = addPt(h.c.x + r * Math.cos(a0), h.c.y + r * Math.sin(a0)), b = addPt(h.c.x + r * Math.cos(a1), h.c.y + r * Math.sin(a1));
-            doc.ops.push({id: doc.seq++, t: 'arc', a, b, dir: sw > 0 ? 'cw' : 'ccw', r: +r.toFixed(3), big: Math.abs(sw) > Math.PI, ...strokeStyle()});
-            changed(); flash(`${lab} 로 호를 그렸습니다 — ${Math.round(Math.abs(sw) * 180 / Math.PI)}°, 반지름 ${fmt(r)}m`);
+            const arcOp = {id: doc.seq++, t: 'arc', a, b, dir: sw > 0 ? 'cw' : 'ccw', r: +r.toFixed(3), big: Math.abs(sw) > Math.PI, ...strokeStyle()};
+            doc.ops.push(arcOp);
+            const jn = arcJoin(arcOp, 12 / pxPer());               // 끝 가까이 있는 선을 호에 맞춘다(사용자)
+            changed(); flash(`${lab} 로 호를 그렸습니다 — ${Math.round(Math.abs(sw) * 180 / Math.PI)}°, 반지름 ${fmt(r)}m` + (jn ? ` · 선 ${jn}개 끝을 호에 맞췄습니다` : ''));
         }
         return;
     }
