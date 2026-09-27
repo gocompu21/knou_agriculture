@@ -2940,8 +2940,12 @@ function makeBox(A, B) {
     snapHist();
     const tl = addPt(x0, y0), tr = addPt(x1, y0), br = addPt(x1, y1), bl = addPt(x0, y1), st = boxStyle(), gid = doc.seq;
     // 차례 — 가로변(아래 → 위)은 I자, 세로변(왼 → 오른)은 I자에 얹은 삼각자로 아래에서 위로. 가로는 왼쪽에서 오른쪽으로 긋는다
-    [[bl, br], [tl, tr], [bl, tl], [br, tr]].forEach(([a, b]) =>
-        doc.ops.push({id: doc.seq++, t: 'line', a, b, ...st, grp: gid, gname: '박스', box: true, tl: toolsForLine(P(a), P(b))}));
+    // 삼각자는 처음부터 박스 왼쪽(세로 변이 왼쪽 변 자리)에 두고, 가로변을 긋는 동안은 I자만 움직인다(사용자) — 삼각자는 I자에 얹혀 따라 오르내릴 뿐
+    const VL = toolsForLine(P(bl), P(tl)), triL = VL.tri || null;
+    [[bl, br], [tl, tr], [bl, tl], [br, tr]].forEach(([a, b], i) => {
+        const t0 = toolsForLine(P(a), P(b)), tlv = i < 2 && triL ? {...t0, tri: clone(triL)} : t0;
+        doc.ops.push({id: doc.seq++, t: 'line', a, b, ...st, grp: gid, gname: '박스', box: true, tl: tlv});
+    });
     changed(); flash(`박스 ${fmt(x1 - x0)} × ${fmt(y1 - y0)}m`);
 }
 function hitPoint(w) {
