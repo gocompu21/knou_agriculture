@@ -2310,10 +2310,29 @@ function rpSymPlay(op, spd, done) {
         return {el, L, tl};
     });
     let i = 0;
+    // 글자 — 한꺼번에 뿌리지 않고 하나씩, 왼쪽부터 쓰듯이 드러낸다(샤프가 글자 아래를 따라간다, 사용자). 다 쓰면 음영을 맨 나중에 칠한다
+    const writeTexts = j => {
+        if (!RP || RP.reveal !== id) return;
+        if (j >= texts.length) { lay.innerHTML = ''; fills.forEach(el => { el.style.opacity = ''; el.animate([{opacity: 0}, {opacity: 1}], {duration: per}); }); setTimeout(done, fills.length ? per : 0); return; }
+        const el = texts[j]; let bb = null; try { bb = el.getBBox(); } catch (e) {}
+        el.style.opacity = '';
+        if (!bb || !bb.width) { writeTexts(j + 1); return; }
+        const dur = Math.min(per, 120 + 90 * (el.textContent || '').length), t0 = performance.now();
+        el.style.clipPath = 'inset(0 100% 0 0)';
+        const frame = now => {
+            if (!RP || RP.reveal !== id) { el.style.clipPath = ''; lay.innerHTML = ''; return; }
+            const u = Math.min(1, (now - t0) / dur);
+            el.style.clipPath = `inset(0 ${((1 - u) * 100).toFixed(1)}% 0 0)`;
+            const tip = toW(el, {x: bb.x + bb.width * u, y: bb.y + bb.height * 0.85});
+            if (pen && tip && u < 1) { const k = pxPer(), w = (pen.img.naturalWidth || 56) / k, h = (pen.img.naturalHeight || 56) / k;
+                lay.innerHTML = `<image href="${pen.src}" x="${fmt(tip.x - pen.hx / k)}" y="${fmt(tip.y - pen.hy / k)}" width="${fmt(w)}" height="${fmt(h)}"/>`; }
+            if (u < 1) requestAnimationFrame(frame); else { el.style.clipPath = ''; writeTexts(j + 1); }
+        };
+        requestAnimationFrame(frame);
+    };
     const next = () => {
         if (!RP || RP.reveal !== id) return;
-        if (i >= steps.length) { lay.innerHTML = '';
-            fills.concat(texts).forEach(el => { el.style.opacity = ''; el.animate([{opacity: 0}, {opacity: 1}], {duration: per}); }); setTimeout(done, per); return; }
+        if (i >= steps.length) { writeTexts(0); return; }
         const s = steps[i++];
         const draw = () => {
             if (!RP || RP.reveal !== id) return;
