@@ -511,6 +511,10 @@
 .cad-rp button.x { margin-left: auto; }
 .cad-rp select { height: 28px; border-radius: 6px; border: 0; font-size: 0.78rem; }
 .cad-rp .no { font-variant-numeric: tabular-nums; margin-left: 4px; opacity: .9; }
+.cad-rp-title { position: absolute; left: 50%; top: 14%; transform: translateX(-50%); z-index: 20; pointer-events: none; opacity: 0;
+    background: rgba(27,67,50,.88); color: #fff; font-weight: 800; font-size: 1.35rem; padding: 10px 22px; border-radius: 12px; box-shadow: 0 8px 28px rgba(0,0,0,.2); white-space: nowrap; }
+.cad-rp-title.show { animation: cadRpTitle 1.3s ease both; }
+@keyframes cadRpTitle { 0% { opacity: 0; transform: translate(-50%, 8px); } 15%, 75% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -6px); } }
 .cad-rp-time { display: flex; justify-content: space-between; font-size: 0.74rem; font-variant-numeric: tabular-nums; opacity: .85; margin: -2px 2px 2px; }
 .cad-rp input[type=range] { width: 100%; margin: 6px 0 2px; accent-color: #f4c542; }
 .cad-rp-tx { min-height: 1.3em; line-height: 1.45; word-break: keep-all; }
@@ -1917,7 +1921,7 @@ function markPtSet(k) { const s = new Set(); (k == null ? doc.ops : doc.ops.slic
 function drawPts() {
     if (!$('cadShowPts').checked) { gPts.innerHTML = ''; $('cadPtsTop').innerHTML = ''; return; }
     if (RP) {                                          // 재생 중 — 지금까지 그린 것이 쓰는 점만
-        const used = new Set(); doc.ops.slice(0, RP.k).forEach(o => ptsOf(o).forEach(n => used.add(+n)));
+        const used = new Set(); doc.ops.slice(RP.gs != null ? RP.gs : Math.max(0, RP.k - 1), RP.k).forEach(o => ptsOf(o).forEach(n => used.add(+n)));   // 지금 긋는 칸의 점만(사용자 — 번호가 선보다 먼저 눈에 들어왔다)
         const sh = doc.pts.filter(p => used.has(+p.n)), mk = markPtSet(RP.k);
         gPts.innerHTML = sh.filter(p => !mk.has(+p.n)).map(p => dotSvg(p, false)).join('');
         $('cadPtsTop').innerHTML = sh.filter(p => mk.has(+p.n)).map(p => dotSvg(p, false)).join(''); return;
@@ -2415,6 +2419,74 @@ function rpClearTri(tl, a, b) {
 // 스케일자로 마킹할 때 — 삼각자는 치우고, I자는 스케일자가 그 날에 붙어 있을 때만 남긴다(사용자)
 function rpMarkTools(s) { return {...s, tri: null, bar: srOnBar(s.sr, s.bar) ? s.bar : null}; }
 function rpNoSr(s) { return s && s.sr ? {...s, sr: null} : s; }
+// ── 재생을 깔끔하게(사용자) ──
+// ① 그 칸에 쓰는 도구만 — 가로선 I자 · 세로·45°·60°·30° I자+삼각자 · 그 밖의 각도 회전 삼각자 · 원·호·템플릿 도형 템플릿 · 마킹 스케일자 · 나머지는 없음
+function rpToolsFor(s, op) {
+    if (!s || !op || op.t === 'step') return s;
+    if (op.mark) return rpMarkTools(s);
+    if (op.box) return rpNoSr(s);                        // 박스는 변마다 제 기록대로(삼각자를 왼쪽에 둔다 — 사용자)
+    const none = {...s, bar: null, tri: null, tpl: null, sr: null, ftri: null};
+    if (op.grp != null && op.t === 'line') return {...none, tpl: s.tpl};   // 템플릿으로 돌려 그린 도형
+    if (op.t === 'line') {
+        const a = P(op.a), b = P(op.b); if (!a || !b) return none;
+        const dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y), tolY = Math.max(0.05, 0.3 * U);
+        if (dy <= tolY && dx >= dy * 10) return {...none, bar: s.bar};
+        const deg = Math.atan2(dy, dx) * 180 / Math.PI, near = v => Math.abs(deg - v) < 1.5;
+        if (near(90) || near(45) || near(60) || near(30)) return {...none, bar: s.bar, tri: s.tri};
+        return s.ftri ? {...none, ftri: s.ftri} : {...none, bar: s.bar, tri: s.tri};
+    }
+    if (op.t === 'arc' || op.t === 'circle') return {...none, tpl: s.tpl};
+    return none;                                         // 프리드로잉·글자·채우기·기호(기호는 rpSymPlay 가 선·원마다 도구를 놓는다)
+}
+// ⑤ 도구가 옮겨 가는 거리(화면 px) — 가장 많이 움직이는 도구 기준
+function rpMoveDist(a, b) {
+    if (!a || !b) return 999;
+    const k = pxPer(); let d = 0;
+    if ((a.bar == null) !== (b.bar == null)) d = Math.max(d, 1.5); else if (a.bar != null) d = Math.max(d, Math.abs(a.bar - b.bar) * k);
+    ['tri', 'tpl', 'sr', 'ftri'].forEach(t => {
+        const p = a[t], q = b[t];
+        if (!p !== !q) d = Math.max(d, 1.5);
+        else if (p && q) d = Math.max(d, Math.hypot((q.x || 0) - (p.x || 0), (q.y || 0) - (p.y || 0)) * k, Math.abs((q.rot || 0) - (p.rot || 0)) * 3);
+    });
+    return d;
+}
+// ③ 화면이 그리는 자리를 따라간다 — 그릴 것이 화면 가장자리(10%)를 벗어나면 부드럽게 옮긴다(배율은 그대로)
+function rpBBox(ops) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    const add = (x, y) => { if (!isFinite(x) || !isFinite(y)) return; x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); };
+    ops.forEach(o => {
+        ptsOf(o).forEach(n => { const q = P(n); if (q) add(q.x, q.y); });
+        (o.pts || []).forEach(q => add(q[0], q[1]));
+        if (o.x != null) add(o.x, o.y);
+        if (o.bb) { add(o.bb[0], o.bb[1]); add(o.bb[2], o.bb[3]); }
+        if (o.t === 'circle') { const q = P(o.c), r = radiusOf(o); if (q) { add(q.x - r, q.y - r); add(q.x + r, q.y + r); } }
+    });
+    return isFinite(x0) ? {x0, y0, x1, y1} : null;
+}
+function rpFollow(ops, spd) {
+    const b = rpBBox(ops); if (!b) return;
+    const m = 0.1, L = vb.x + vb.w * m, R = vb.x + vb.w * (1 - m), T = vb.y + vb.h * m, B = vb.y + vb.h * (1 - m);
+    if (b.x0 >= L && b.x1 <= R && b.y0 >= T && b.y1 <= B) return;
+    let tx = vb.x, ty = vb.y;
+    if (b.x1 - b.x0 > vb.w * (1 - 2 * m)) tx = b.x0 - vb.w * m; else if (b.x0 < L) tx = b.x0 - vb.w * m; else if (b.x1 > R) tx = b.x1 - vb.w * (1 - m);
+    if (b.y1 - b.y0 > vb.h * (1 - 2 * m)) ty = b.y0 - vb.h * m; else if (b.y0 < T) ty = b.y0 - vb.h * m; else if (b.y1 > B) ty = b.y1 - vb.h * (1 - m);
+    const fx = vb.x, fy = vb.y, t0 = performance.now(), dur = Math.min(600, Math.max(250, spd * 0.35)), id = rpFollow.tok = {};
+    const frame = now => {
+        if (rpFollow.tok !== id) return;
+        const t = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - t, 3);
+        vb.x = fx + (tx - fx) * e; vb.y = fy + (ty - fy) * e; setVB();
+        if (t < 1) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+}
+// ④ 단계에 들어서면 제목을 도면 위에 크게 띄웠다가 지운다
+function rpTitle(title, spd) {
+    const host = svg.parentNode; if (!host || !title) return;
+    let el = $('cadRpTitle');
+    if (!el) { el = document.createElement('div'); el.id = 'cadRpTitle'; el.className = 'cad-rp-title'; host.appendChild(el); }
+    el.textContent = title; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+    el.style.animationDuration = `${Math.max(900, spd * 1.2)}ms`;
+}
 function rpStateAt(k) {                                // k 번째까지 그린 뒤의 도구 자리 — 가장 가까운 앞 기록, 없으면 첫 기록
     for (let i = k - 1; i >= 0; i--) { const o = doc.ops[i]; if (o.t !== 'step' && o.tl) return o.tl; }
     const f = doc.ops.find(o => o.t !== 'step' && o.tl);
@@ -2695,10 +2767,10 @@ function rpStartPt(op) {
     if (op.bb) return {x: (op.bb[0] + op.bb[2]) / 2, y: (op.bb[1] + op.bb[3]) / 2};
     return null;
 }
-function rpMark(op, dur) {
+function rpMark(op, dur, noPan) {
     const w = rpStartPt(op); if (!w) return;
     const m = 0.06;                                    // 화면 가장자리 6% 안쪽까지는 그대로 둔다
-    if (w.x < vb.x + vb.w * m || w.x > vb.x + vb.w * (1 - m) || w.y < vb.y + vb.h * m || w.y > vb.y + vb.h * (1 - m)) {
+    if (!noPan && (w.x < vb.x + vb.w * m || w.x > vb.x + vb.w * (1 - m) || w.y < vb.y + vb.h * m || w.y > vb.y + vb.h * (1 - m))) {
         vb.x = w.x - vb.w / 2; vb.y = w.y - vb.h / 2; setVB();
     }
     let g = $('cadRpMark');
@@ -2725,15 +2797,12 @@ function rpGo(k, anim, cb) {
     { const [s, e] = grpSpan(k - 1); if (k > 0 && e - s > 1 && k < e) k = k > RP.k ? e : s; }   // 묶음 가운데에서 멈추지 않는다 — 한 칸에 묶음째
     const [gs] = grpSpan(k - 1), fwd = anim && k > RP.k && gs <= RP.k, op = doc.ops[k - 1], spd = +$('cadRpSpd').value || 1100;
     const blk = k > 0 ? doc.ops.slice(gs, k) : [];
-    RP.k = k; RP.cur = op && op.t !== 'step' ? blk[0].id : null;
-    let target = rpStateAt(k);
-    if (op && op.t === 'line') target = rpClearTri(target, P(op.a), P(op.b));
-    // 단계 줄에서는 **다음에 그을 것**의 규칙으로 도구를 보인다 — 그대로 두면 앞 칸의 I자·삼각자·스케일자가 모두 떠 있었다(사용자)
-    const nx = op && op.t === 'step' ? doc.ops.slice(k).find(o => o.t !== 'step') : op;
-    if (nx && nx.mark && target) target = rpMarkTools(target);
-    else if (nx && target) target = rpNoSr(target);   // 긋는 동안은 스케일자를 치운다 — 스케일자는 마킹할 때만(사용자)
-    if (op && op.t === 'step' && nx && nx.t === 'line' && target) target = rpClearTri(target, P(nx.a), P(nx.b));
-    if (fwd && op && op.t !== 'step') rpMark(blk[0], Math.max(700, spd * 0.75));
+    RP.k = k; RP.gs = gs; RP.cur = op && op.t !== 'step' ? blk[0].id : null;
+    // 그 칸에 쓰는 도구만 보인다(사용자). 단계 줄에서는 **다음에 그을 것**의 규칙으로 — 앞 칸의 도구가 모두 떠 있었다
+    const nx = op && op.t === 'step' ? doc.ops.slice(k).find(o => o.t !== 'step') : (blk[0] || op);
+    const target = rpToolsFor(rpStateAt(k), nx);
+    if (fwd && op && op.t !== 'step') { rpFollow(blk, spd); rpMark(blk[0], Math.max(700, spd * 0.75), true); }
+    if (fwd && op && op.t === 'step') rpTitle(op.title, spd);
     const show = () => {
         if (!RP) return;
         drawOps(); drawPts(); rpInfo();
@@ -2753,7 +2822,8 @@ function rpGo(k, anim, cb) {
         if (fwd && op && op.t !== 'step') { const rv = op.mark ? 0.22 : 0.75, rest = op.mark ? 0.5 : 0.15; rpReveal(blk.length > 1 ? blk : op, spd * rv * (blk.length > 1 ? 1.4 : 1)); if (cb) RP.timer = setTimeout(cb, spd * (rv * (blk.length > 1 ? 1.4 : 1) + rest)); }   // 마킹은 빨리 긋되 다음으로는 넉넉히 쉬었다 넘어간다(사용자)
         else if (cb) RP.timer = setTimeout(cb, op && op.t === 'step' ? spd * 0.8 : spd * 0.2);
     };
-    if (fwd) rpTween(target, spd * 0.35, show); else { RP.anim = null; rpApply(target); drawBar(); show(); }
+    if (fwd) { const d = rpMoveDist(toolState(), target); rpTween(target, d < 1 ? 0 : spd * (0.12 + 0.18 * Math.min(1, d / 400)), show); }   // 가까우면 짧게, 멀어도 0.3 칸 안(사용자)
+    else { RP.anim = null; rpApply(target); drawBar(); show(); }
 }
 function rpStop() { if (!RP) return; RP.playing = false; clearTimeout(RP.timer); rpInfo(); }
 function rpPlay() {
