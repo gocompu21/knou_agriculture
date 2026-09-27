@@ -2635,11 +2635,13 @@ function rpGo(k, anim, cb) {
         if (fwd && op && op.t === 'sym') { rpSymPlay(op, spd, () => { if (cb && RP) RP.timer = setTimeout(cb, spd * 0.15); }); return; }   // 기호 — 선·원마다 도구를 옮겨 가며
         if (fwd && blk.length > 1 && blk[0].box) {        // 박스 — 변마다 I자·삼각자를 옮겨 놓고 긋는다(사용자)
             let i = 0;
+            const gOf = o => gOps.querySelector(`[data-op="${o.id}"]`);
+            blk.forEach(o => { const g = gOf(o); if (g) g.style.visibility = 'hidden'; });   // 아직 긋지 않은 변은 감춘다 — 첫 변 뒤에 네모가 통째로 나왔다(사용자)
             const one = () => {
                 if (!RP) return;
                 if (i >= blk.length) { if (cb) RP.timer = setTimeout(cb, spd * 0.15); return; }
                 const o = blk[i++];
-                rpTween(o.tl || null, spd * 0.3, () => { if (!RP) return; rpReveal(o, spd * 0.55); RP.timer = setTimeout(one, spd * 0.6); });
+                rpTween(o.tl || null, spd * 0.3, () => { if (!RP) return; const g = gOf(o); if (g) g.style.visibility = ''; rpReveal(o, spd * 0.55); RP.timer = setTimeout(one, spd * 0.6); });
             };
             one(); return;
         }
