@@ -672,7 +672,7 @@ let tool = 'select', pickIdx = 0, editing = null, selOps = new Set(), selPt = nu
 let hover = null;
 // I자(평행자) — 제도판의 가로자. 켜 두면 윗변(barY) 근처를 누른 점이 그 높이에 붙는다
 // 설정(스냅·간격·점 번호·삼각자 크기) — 도면이 아니라 화면 습관이라 localStorage 에 둔다
-let SET = {snap: true, step: '', pts: true, triPct45: 50, triPct60: 70, p9: 0.7, p5: 0.4, auxOn: true, auxColor: '#a3a9b3', rulerNums: false, fillColor: '#9ccc65', fillOp: 0.6, fillType: 'solid', ls9: 'solid', ls5: 'aux'};   // 샤프마다 선 종류   // 샤프 굵기는 종이 위 mm
+let SET = {snap: true, step: '', pts: true, triPct45: 50, triPct60: 70, p9: 0.7, p5: 0.4, auxOn: true, auxColor: '#a3a9b3', rulerNums: false, fillColor: '#9ccc65', fillOp: 0.35, fillType: 'solid', ls9: 'solid', ls5: 'aux'};   // 샤프마다 선 종류   // 샤프 굵기는 종이 위 mm
 try { Object.assign(SET, JSON.parse(localStorage.getItem('cadSet') || '{}')); } catch (e) {}
 function saveSet() {
     SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.ptSize = +$('cadPtSize').value || 1; SET.ptNum = +$('cadPtNum').value || 1; SET.triPct45 = +$('cadTriSize').value || 50; SET.triPct60 = +$('cadTri60Size').value || 70; SET.font = $('ftFont').value; SET.ls9 = $('cadLs9').value || SET.ls9; SET.ls5 = $('cadLs5').value || SET.ls5; SET.fillType = $('cadFillType').value || SET.fillType; SET.fillColor = $('cadFillColor').value || SET.fillColor; SET.fillOp = +$('cadFillOp').value || SET.fillOp; SET.rulerNums = $('cadRulerNums').checked; SET.auxOn = $('cadAuxOn').checked; SET.auxColor = $('cadAuxColor').value || SET.auxColor; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
@@ -1664,11 +1664,11 @@ function paveSvg(op) {
     let inner, defs = '';
     if (op.tile) {                                       // 직접 등록한 포장 — 칸을 반복하는 pattern 으로 상자를 칠한다
         defs = tilePattern(`${id}t`, op.tile, op.tile.w * k, 0.1 * k);
-        inner = `<rect x="${fmt(b[0])}" y="${fmt(b[1])}" width="${fmt(Math.max(0, b[2] - b[0]))}" height="${fmt(Math.max(0, b[3] - b[1]))}" fill="url(#${id}t)" opacity="0.85"/>`;
+        inner = `<rect x="${fmt(b[0])}" y="${fmt(b[1])}" width="${fmt(Math.max(0, b[2] - b[0]))}" height="${fmt(Math.max(0, b[3] - b[1]))}" fill="url(#${id}t)" opacity="0.5"/>`;
     } else {
         const body = paveBody(op.kind, b[0], b[1], b[2], b[3], k, op.seed || 7), col = op.color || '#333';
-        inner = (body.d ? `<path d="${body.d}" stroke="${col}" stroke-opacity="0.8" stroke-width="${fmt(0.1 * k)}" fill="none"/>` : '')
-            + (body.dots ? `<path d="${body.dots}" fill="${col}" fill-opacity="0.8" stroke="none"/>` : '');
+        inner = (body.d ? `<path d="${body.d}" stroke="${col}" stroke-opacity="0.45" stroke-width="${fmt(0.1 * k)}" fill="none"/>` : '')
+            + (body.dots ? `<path d="${body.dots}" fill="${col}" fill-opacity="0.45" stroke="none"/>` : '');   // 연하게(사용자) — 0.8 → 0.45
     }
     return defs + `<clipPath id="${id}"><path d="${op.d}" clip-rule="evenodd"/></clipPath>` + (q ? `<clipPath id="${id}p"><path d="${paveBlob(q, op.seed || 7)}"/></clipPath>` : '')
         + `<path d="${op.d}" fill="none" stroke="none" fill-rule="evenodd"/><g clip-path="url(#${id})">` + (q ? `<g clip-path="url(#${id}p)">${inner}</g>` : inner) + '</g>';
@@ -1691,7 +1691,7 @@ function opSvg(op) {
         const fo = op.op != null ? op.op : 0.6;
         if (op.kind && op.kind !== 'solid' && op.bb && op.gap > 0) {   // 해칭 — 면 모양(clipPath)으로 오린 선·점
             const [x0, y0, x1, y1] = op.bb, k = op.kind, g = k === 'gl' ? op.gap * 1.5 : k === 'gs' ? op.gap * 1.0 : op.gap, id = `cadFc${op.id}`; let dd = '';   // 큰 격자 1.5배 · 작은 격자 1배 간격
-            const po = Math.min(0.6, Math.max(0.35, fo));   // 연한 펜 — 해칭 선·점은 진하기를 0.35~0.6 으로 눌러 연필로 옅게 그은 듯이
+            const po = Math.min(0.42, Math.max(0.25, fo * 0.7));   // 연하게(사용자) — 0.35~0.6 → 0.25~0.42   // 연한 펜 — 해칭 선·점은 진하기를 0.35~0.6 으로 눌러 연필로 옅게 그은 듯이
             const clip = `<clipPath id="${id}"><path d="${op.d}" clip-rule="evenodd"/></clipPath><path d="${op.d}" fill="none" stroke="none" fill-rule="evenodd"/>`;
             if (k === 'dot') {                               // 점 — 한 줄씩 반 칸 엇갈려 찍는다
                 const r = Math.min(0.28 * U, g * 0.13);
