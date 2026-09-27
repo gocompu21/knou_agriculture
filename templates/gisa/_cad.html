@@ -2054,7 +2054,30 @@ function dblTargets() {
     // 끝과 끝을 **가장 가까운 것끼리** 잇는다 — 0.6m 안. 손으로 그린 둥근 모서리는 호가 직선 끝에서 0.2~0.4m 겹치거나 떨어져 있다(사용자 도면).
     // 어긋난 자리는 아래에서 안쪽 선끼리 만나는 점으로 맞춘다
     const TOL = 0.6, dist = (m, n) => { const a = P(m), b = P(n); return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : Infinity; }, same = (m, n) => dist(m, n) <= TOL;
-    const left = new Set(segs);
+    // T자 — 다른 선의 끝이 이 선의 **가운데**에 닿아 있으면 그 자리에서 이 선을 둘로 나눠 본다(사용자: T 자도 안쪽으로 ㄱ 자). 나눈 토막은 도면에는 없는
+    // 임시 선이고(_part = 원래 선), 꺾이는 쪽을 따라가다 남은 토막(갈림길 너머 곧게 이어지는 쪽)은 긋지 않는다
+    for (let guard = 0; guard < 50; guard++) {
+        let hit = null;
+        for (const o of segs) {
+            if (o.t !== 'line') continue;
+            const A = P(o.a), B = P(o.b); if (!A || !B) continue;
+            const L = Math.hypot(B.x - A.x, B.y - A.y); if (L < 2 * TOL) continue;
+            for (const s of segs) {
+                if (s === o) continue;
+                for (const n of s.t === 'line' || s.t === 'arc' ? [s.a, s.b] : []) {
+                    const q = P(n); if (!q) continue;
+                    const t = ((q.x - A.x) * (B.x - A.x) + (q.y - A.y) * (B.y - A.y)) / (L * L), off = Math.abs((q.x - A.x) * (B.y - A.y) - (q.y - A.y) * (B.x - A.x)) / L;
+                    if (off <= TOL && t * L > TOL && (1 - t) * L > TOL) { hit = {o, n}; break; }
+                }
+                if (hit) break;
+            }
+            if (hit) break;
+        }
+        if (!hit) break;
+        const {o, n} = hit, base = o._part || o, i = segs.indexOf(o);
+        segs.splice(i, 1, {...o, id: undefined, b: n, _part: base}, {...o, id: undefined, a: n, _part: base});
+    }
+    const left = new Set([...segs.filter(o => !o._part), ...segs.filter(o => o._part)]);   // 사슬은 원래 선에서 먼저 시작한다(T자의 줄기에서 시작해 갈림길에서 꺾이게)
     while (left.size) {
         const first = [...left][0]; left.delete(first);
         let ch = [{op: first, rev: false}], grew = true;
@@ -2076,11 +2099,13 @@ function dblTargets() {
                 const dout = dirOf(near, far); if (!din || !dout) return 0;
                 return Math.acos(Math.max(-1, Math.min(1, din.x * dout.x + din.y * dout.y)));             // 0 = 곧게, π/2 = 직각으로 꺾임
             };
-            cands.sort((p1, p2) => Math.abs(p1.d - p2.d) > 0.05 ? p1.d - p2.d : turn(p2) - turn(p1));
+            const len = cd => dist(cd.o.a, cd.o.b);
+            cands.sort((p1, p2) => Math.abs(p1.d - p2.d) > 0.05 ? p1.d - p2.d : Math.abs(turn(p2) - turn(p1)) > 0.05 ? turn(p2) - turn(p1) : len(p2) - len(p1));   // 꺾인 각도 같으면(T자 양쪽) 긴 쪽
             const best = cands[0];
             if (best) { ch[best.how]({op: best.o, rev: best.rev}); left.delete(best.o); grew = true; }
         }
         const closed = ch.length > 1 && same(s0(ch[0]), s1(ch[ch.length - 1]));
+        if (ch.every(e => e.op._part) && out.some(t => t.kind === 'path' && t.ch.some(e => ch.some(f => e.op._part === f.op._part)))) continue;   // T자에서 남은 토막 — 긋지 않는다
         out.push({kind: 'path', ch, closed, st: {ls: first.ls, w: first.w}});
     }
     return out;
