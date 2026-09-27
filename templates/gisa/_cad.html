@@ -4538,7 +4538,7 @@ document.addEventListener('keydown', e => {
     const k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
     if (mod && k === 's') { e.preventDefault(); save(); return; }
     // Esc 는 전체 화면을 빠져나가지 않고 고른 것을 푼다(사용자) — 전체 화면은 위의 '이전 크기로' 단추로 나간다
-    if (e.key === 'Escape') { endEdit(); resetPick(); selOps.clear(); selPts.clear(); selPt = null; listSel = false;
+    if (e.key === 'Escape') { endEdit(); resetPick(); selOps.clear(); selPts.clear(); selPt = null; listSel = false; setTool('select');   // 선택 도구(화살표)로 돌아간다(사용자)
         ['cadDblPick', 'cadFpMenu'].forEach(id => { const m = $(id); if (m) m.hidden = true; });
         renderAll(); regInfo(); selInfo(); return; }
     if (e.key === 'F9') { e.preventDefault(); $('cadSnap').checked = !$('cadSnap').checked; saveSet(); status(); return; }
