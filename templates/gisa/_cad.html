@@ -620,8 +620,8 @@ const BUILTIN = [
         {t: 'rect', x: -0.9, y: 0.55, rw: 1.8, rh: 0.3, fill: '#fff', w: 'thin'}]},
     {id: 'b:grate', name: '수목보호대 2×2', items: [
         {t: 'rect', x: -1, y: -1, rw: 2, rh: 2, fill: '#fff'}, {t: 'rect', x: -0.65, y: -0.65, rw: 1.3, rh: 1.3}]},
-    {id: 'b:trash', name: '휴지통 ⌀0.6', items: [
-        {t: 'circle', cx: 0, cy: 0, r: 0.3, fill: '#fff', w: 'thin'}, {t: 'path', d: 'M0 -0.3A0.3 0.3 0 0 1 0 0.3Z', fill: INK}]},
+    {id: 'b:trash', name: '휴지통 ⌀1.0', cat: '기호', items: [   // 지름 0.6 → 1m, '기호' 분류(사용자)
+        {t: 'circle', cx: 0, cy: 0, r: 0.5, fill: '#fff', w: 'thin'}, {t: 'path', d: 'M0 -0.5A0.5 0.5 0 0 1 0 0.5Z', fill: INK}]},
     {id: 'b:sign', name: '안내판 1.9×0.6', items: [{t: 'rect', x: -0.95, y: -0.3, rw: 1.9, rh: 0.6, fill: '#fff'}]},
     {id: 'b:drink', name: '음수대 ⌀1.0', items: [
         {t: 'circle', cx: 0, cy: 0, r: 0.5, fill: '#fff'}, {t: 'circle', cx: 0, cy: 0, r: 0.18, w: 'thin'}]},
@@ -3557,7 +3557,7 @@ function symThumb(s) {
 }
 function fillSymSelect() {
     const keep = $('fsSym').value, grp = (label, arr) => arr.length ? `<optgroup label="${label}">${arr.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('')}</optgroup>` : '';
-    const catOf = s => (s.pk ? s.cat : '') || '기타', groups = {};
+    const catOf = s => s.cat || '기타', groups = {};
     BUILTIN.concat(FAC, userSyms).forEach(s => (groups[catOf(s)] = groups[catOf(s)] || []).push(s));
     $('fsSym').innerHTML = Object.keys(groups).sort((x, y) => catRank(x) - catRank(y) || x.localeCompare(y, 'ko')).map(k => grp(esc(k), groups[k])).join('');
     if ([...$('fsSym').options].some(o => o.value === keep)) $('fsSym').value = keep;
@@ -3569,7 +3569,7 @@ function renderLib() {
         + (s.pk && (s.mine || STAFF) ? `<button type="button" class="ct" data-cat="${s.pk}" title="분류 바꾸기">분류</button>` : '')
         + '</div>';
     // 분류별로 묶는다(사용자) — 등록한 기호는 제 분류, 기본·수량표 기호와 분류 없이 등록한 것은 '기타'. 가나다순, '기타'는 맨 끝
-    const catOf = s => (s.pk ? s.cat : '') || '기타', all = BUILTIN.concat(FAC, userSyms), groups = {};
+    const catOf = s => s.cat || '기타', all = BUILTIN.concat(FAC, userSyms), groups = {};
     all.forEach(s => (groups[catOf(s)] = groups[catOf(s)] || []).push(s));
     const cats = Object.keys(groups).sort((x, y) => catRank(x) - catRank(y) || x.localeCompare(y, 'ko'));
     $('cadLib').innerHTML = cats.map(k => `<h5>${esc(k)} <small>(${groups[k].length})</small></h5>` + groups[k].map(card).join('')).join('');
