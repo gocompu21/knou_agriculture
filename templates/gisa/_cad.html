@@ -2554,16 +2554,16 @@ function rpClock() {
     let cur = T[k] || 0;                                 // 멈춰 있으면 이 칸을 다 그은 때
     if (RP.playing && RP.tk != null && k > 0) cur = Math.min(T[k], T[grpSpan(k - 1)[0]] + performance.now() - RP.tk);   // 긋는 중이면 이 칸의 처음부터 흘러간다
     $('cadRpCur').textContent = mmss(cur); $('cadRpDur').textContent = mmss(T[T.length - 1]);
+    const bar = $('cadRpBar'); if (!RP.dragging) { bar.max = Math.max(1, Math.round(T[T.length - 1])); bar.value = Math.round(cur); }
 }
 setInterval(() => { if (RP && RP.playing) rpClock(); }, 250);
 $('cadRpSpd').addEventListener('change', () => { if (RP) { RP.T = null; rpClock(); } });   // 빠르기를 바꾸면 전체 시간도 다시 센다
 function rpInfo() {
     const n = doc.ops.length, op = doc.ops[RP.k - 1];
-    $('cadRpBar').max = n; $('cadRpBar').value = RP.k;
+    RP.tk = performance.now(); rpClock();                // 막대는 시간 기준(사용자) — rpClock 이 막대와 시간 글자를 함께 맞춘다
     let step = '', no = 0, i = 0;
     for (let j = 0; j < RP.k; j++) { const o = doc.ops[j]; if (o.t === 'step') { step = o.title; no++; i = 0; } else if (!(o.grp != null && j > 0 && doc.ops[j - 1].grp === o.grp)) i++; }
     $('cadRpNo').textContent = `${RP.k} / ${n}`;
-    RP.tk = performance.now(); rpClock();
     $('cadRpTx').innerHTML = !op ? '처음 — ▶ 재생을 누르면 작도 순서대로 그려 보입니다'
         : (step ? `<b>(${no}) ${esc(step)}</b>` : '') + (op.t === 'step' ? '' : `${step ? ' — ' : ''}${circ(i)} ${esc(op.grp != null ? grpDesc(grpOps(op.id)) : desc(op))}`);   // 도구 자리는 속에만 둔다(사용자)
     const hid = op ? (op.grp != null ? grpOps(op.id)[0].id : op.id) : null;
@@ -4622,7 +4622,14 @@ $('cadRp').addEventListener('click', e => {
     else if (a === 'prev') rpGo(RP.k - 1, false);
     else if (a === 'next') rpGo(RP.k + 1, true);
 });
-$('cadRpBar').addEventListener('input', e => { if (RP) { const v = +e.target.value; rpStop(); rpGo(v, false); } });   // 값을 먼저 읽는다 — rpStop 의 rpInfo 가 막대를 지금 칸으로 되돌린다
+// 막대를 끌면 그 시간에 그리고 있던 칸으로 간다 — 그 시간까지 끝난 칸들을 보이고, 걸친 칸은 끝난 모습으로
+$('cadRpBar').addEventListener('input', e => {
+    if (!RP) return;
+    const t = +e.target.value, T = RP.T || (RP.T = rpTimes());
+    let k = 0; while (k < T.length - 1 && T[k] < t) k++;
+    RP.dragging = true; rpStop(); rpGo(k, false); RP.dragging = false;
+    e.target.value = t; $('cadRpCur').textContent = mmss(t);
+});   // 값을 먼저 읽는다 — rpStop 의 rpInfo 가 막대를 지금 칸으로 되돌린다
 // 재생 중에는 도면을 건드리지 않는다(휠 확대·휠 버튼 이동만)
 svg.addEventListener('pointerdown', e => { if (RP && e.button !== 1) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
 document.addEventListener('keydown', e => {
