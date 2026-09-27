@@ -2062,10 +2062,22 @@ function dblTargets() {
         while (grew) {
             grew = false;
             const head = s0(ch[0]), tail = s1(ch[ch.length - 1]);
-            let best = null;
+            const cands = [];
             for (const o of left) [[o.a, tail, 'push', false], [o.b, tail, 'push', true], [o.b, head, 'unshift', false], [o.a, head, 'unshift', true]].forEach(([e, end, how, rev]) => {
-                const d = dist(e, end); if (d <= TOL && (!best || d < best.d)) best = {d, o, how, rev};
+                const d = dist(e, end); if (d <= TOL) cands.push({d, o, how, rev});
             });
+            // 갈림길(한 끝에 이을 선이 여럿)이면 **꺾이는 쪽**을 따라간다(사용자) — 곧게 이어지는 가지는 남겨 두어 제 사슬이 된다.
+            // 거리가 거의 같은 것(0.05m 안)끼리는 꺾인 각이 큰 것, 그 밖에는 가까운 것
+            const dirOf = (m, n) => { const a = P(m), b = P(n); if (!a || !b) return null; const L = Math.hypot(b.x - a.x, b.y - a.y) || 1; return {x: (b.x - a.x) / L, y: (b.y - a.y) / L}; };
+            const turn = cd => {
+                const e = cd.how === 'push' ? ch[ch.length - 1] : ch[0];
+                const din = cd.how === 'push' ? dirOf(s0(e), s1(e)) : dirOf(s1(e), s0(e));                 // 사슬 끝에서 바깥으로 나가던 방향
+                const o = cd.o, near = cd.how === 'push' ? (cd.rev ? o.b : o.a) : (cd.rev ? o.a : o.b), far = near === o.a ? o.b : o.a;
+                const dout = dirOf(near, far); if (!din || !dout) return 0;
+                return Math.acos(Math.max(-1, Math.min(1, din.x * dout.x + din.y * dout.y)));             // 0 = 곧게, π/2 = 직각으로 꺾임
+            };
+            cands.sort((p1, p2) => Math.abs(p1.d - p2.d) > 0.05 ? p1.d - p2.d : turn(p2) - turn(p1));
+            const best = cands[0];
             if (best) { ch[best.how]({op: best.o, rev: best.rev}); left.delete(best.o); grew = true; }
         }
         const closed = ch.length > 1 && same(s0(ch[0]), s1(ch[ch.length - 1]));
