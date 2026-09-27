@@ -2401,7 +2401,10 @@ function rpApply(s) {
 // I자 윗날로 가로선을 그을 때는 I자 위에 삼각자가 있으면 안 된다(사용자: 현실적으로 불가능) — 재생 때 그 선을 긋는 동안 삼각자를 치운다.
 // (박스는 사용자 요청대로 삼각자를 왼쪽에 둔 채 가로변을 긋는다 — 여기를 거치지 않는다)
 function rpClearTri(tl, a, b) {
-    if (!tl || !tl.tri || tl.bar == null || !a || !b || Math.abs(a.y - b.y) > 1e-6 || Math.abs(tl.bar - a.y) > 1e-3) return tl;
+    // 가로선 판정은 너그럽게 — 점을 손으로 찍어 끝이 0.01m 쯤 어긋난 선(93.99 ~ 94)도 I자로 그은 가로선이다(사용자)
+    if (!tl || !tl.tri || tl.bar == null || !a || !b) return tl;
+    const dy = Math.abs(a.y - b.y), dx = Math.abs(a.x - b.x), tolY = Math.max(0.05, 0.3 * U);
+    if (dy > tolY || dx < dy * 10 || Math.min(Math.abs(tl.bar - a.y), Math.abs(tl.bar - b.y)) > tolY) return tl;
     return {...tl, tri: null};
 }
 function rpStateAt(k) {                                // k 번째까지 그린 뒤의 도구 자리 — 가장 가까운 앞 기록, 없으면 첫 기록
