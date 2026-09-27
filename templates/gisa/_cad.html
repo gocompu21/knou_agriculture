@@ -375,7 +375,7 @@
 #cadAuxBtn:not(.on) { color: #9aa3a0; }
 /* 보조선 레이어 — 끄면 화면에서 감추고, 지우개·영역 선택도 건드리지 않는다 */
 .cad.aux-off #cadOps g.aux { display: none; }
-.cad.mark-off #cadOps g.mark { display: none; }
+.cad.mark-off #cadOps g.mark, .cad.mark-off #cadOps .sym-mark { display: none; }
 .cad-ctx { position: fixed; z-index: 60; min-width: 170px; background: #fff; border: 1px solid #c9ced3; border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,.18); padding: 4px 0; font-size: 13px; }
 .cad-ctx[hidden] { display: none; }
 .cad-ctx .ch { padding: 4px 12px 5px; color: #6b7076; font-size: 12px; border-bottom: 1px solid #eef0f2; margin-bottom: 2px; }
@@ -1529,6 +1529,9 @@ function itemSvg(it) {
         case 'g': return `<g transform="translate(${fmt(it.x)} ${fmt(it.y)}) rotate(${fmt(it.rot || 0)})">${(it.items || []).map(itemSvg).join('')}</g>`;
         case 'fill': return `<g class="sym-fill">${opSvg({...it.op, t: 'fill', id: 's' + (++symSeq)})}</g>`;   // 재생 때 음영을 가려내려고 감싼다   // 해칭 clipPath·mask 이름이 겹치지 않게 넣을 때마다 새 번호
         case 'free': return it.pts && it.pts.length > 1 ? `<path d="${freeD(it.pts)}" ${st()}/>` : '';
+        case 'mark': { if (!it.pts || it.pts.length < 2) return '';   // 마킹 — 도면의 마킹과 같은 길이·가는 굵기, 마킹 레이어를 따른다
+            const [x0, y0] = it.pts[0], [x1, y1] = it.pts[1], d = Math.hypot(x1 - x0, y1 - y0) || 1, Lm = SR_MARK * scaleDenom() / 1000;
+            return `<g class="sym-mark" data-mk='${JSON.stringify({sr: it.sr || null})}'><path d="M${fmt(x0)} ${fmt(y0)}L${fmt(x0 + (x1 - x0) / d * Lm)} ${fmt(y0 + (y1 - y0) / d * Lm)}" ${stAttr('solid', 'thin')}/></g>`; }
     }
     return '';
 }
@@ -2288,6 +2291,10 @@ function rpSymPlay(op, spd, done) {
             const cx = +el.getAttribute('cx') || 0, cy = +el.getAttribute('cy') || 0, r = +(el.getAttribute('r') || el.getAttribute('rx')) || 0;
             const c0 = toW(el, {x: cx, y: cy}), c1 = toW(el, {x: cx + r, y: cy});
             if (c0 && c1) tl = toolsForCircle(c0.x, c0.y, Math.hypot(c1.x - c0.x, c1.y - c0.y));
+        } else if (el.closest('.sym-mark')) {           // 마킹 — 등록 때의 스케일자 자리를 기호 자리만큼 옮겨 놓는다(돌린 기호는 도구를 옮기지 않는다)
+            let mk = null; try { mk = JSON.parse(el.closest('.sym-mark').dataset.mk); } catch (e) {}
+            const bp = P(op.p);
+            if (mk && mk.sr && bp && !(+op.rot)) tl = {...toolState(), sr: {...mk.sr, x: rnd3(mk.sr.x + bp.x), y: rnd3(mk.sr.y + bp.y)}};
         } else if (L > 0) {
             const a = el.getPointAtLength(0), b = el.getPointAtLength(L), A = toW(el, a), B = toW(el, b);
             if (A && B && Math.abs(Math.hypot(b.x - a.x, b.y - a.y) - L) < L * 0.01) tl = toolsForLine(A, B);   // 곧은 선 하나일 때만
@@ -3518,7 +3525,12 @@ function opToItem(op, bx, by) {
         case 'fill': { const sh = s => String(s || '').replace(/(-?\d*\.?\d+)\s+(-?\d*\.?\d+)/g, (m, x, y) => `${fmt(+x - bx)} ${fmt(+y - by)}`);
             return {t: 'fill', op: {d: sh(op.d), kind: op.kind, gap: op.gap, color: op.color, op: op.op,
                 bb: op.bb && [op.bb[0] - bx, op.bb[1] - by, op.bb[2] - bx, op.bb[3] - by], cuts: (op.cuts || []).map(([x, y, r]) => [x - bx, y - by, r])}}; }
-        case 'free': return op.mark || !op.pts ? null : {t: 'free', pts: op.pts.map(([x, y]) => [+(x - bx).toFixed(4), +(y - by).toFixed(4)]), ...L};
+        case 'free': {
+            if (!op.pts) return null;
+            const pts = op.pts.map(([x, y]) => [+(x - bx).toFixed(4), +(y - by).toFixed(4)]);
+            // 스케일자 마킹도 담는다(사용자) — 그때의 스케일자 자리를 기준점에 대해 옮겨 두어, 재생 때 스케일자가 그 자리로 와서 찍는다
+            if (op.mark) { const s = op.tl && op.tl.sr; return {t: 'mark', pts, s: op.mark.s, r: op.mark.r, sr: s ? {...s, x: +(s.x - bx).toFixed(4), y: +(s.y - by).toFixed(4)} : null}; }
+            return {t: 'free', pts, ...L}; }
     }
     return null;
 }
