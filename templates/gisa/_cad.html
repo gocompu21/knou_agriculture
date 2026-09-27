@@ -34,6 +34,7 @@
         <button type="button" data-tool="arc" hidden title="호 (A)" aria-label="호"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 15A6.5 6.5 0 0 1 16.5 15"/><circle cx="3.5" cy="15" r="1.7" class="f"/><circle cx="16.5" cy="15" r="1.7" class="f"/></svg></button>
         <button type="button" data-tool="sym" title="시설 및 수목 넣기 (B)" aria-label="기호"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="13" height="13"/><path d="M3.5 3.5l13 13M16.5 3.5l-13 13"/></svg></button>
         <button type="button" data-tool="free" title="프리드로잉 (D) — 누른 채 끌면 손 가는 대로 선이 그어집니다(자 위로는 그어지지 않습니다)" aria-label="프리드로잉"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 15.5c2-3.5 3.6-4.6 5-3.4 1.3 1.1-.4 3.2 1 3.9 1.6.8 3.2-3.6 5-6.2 1.2-1.7 2.4-2.4 4-2.2"/><path d="m14.2 3.2 2.6 2.6-1.6 1.6-2.6-2.6Z" class="f"/></svg></button>
+        <select id="cadFfSm" class="cad-txt" style="width:74px" title="프리드로잉 다듬기 세기 — 셀수록 손떨림을 펴서 크게 흐르는 곡선이 됩니다"><option value="0">다듬기 약</option><option value="1">다듬기 중</option><option value="2">다듬기 강</option></select><button type="button" id="cadFfTidy" class="cad-b" style="padding:2px 7px;font-size:0.76rem" title="고른 프리드로잉을 한 단계 더 매끈하게 (누를 때마다, Ctrl+Z 로 되돌리기)">곡선 다듬기</button>
         <select id="cadFfW" class="cad-txt" style="width:88px" title="프리드로잉 선 두께"><option value="p5">얇은 샤프</option><option value="p9">굵은 샤프</option><option value="thin">가늘게</option><option value="mid">보통</option><option value="thick">굵게</option></select>
         <button type="button" data-tool="fill" title="도형 채우기 (F) — 선으로 둘러싸인 면의 안쪽을 누르면 설정의 색으로 칠합니다" aria-label="채우기"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.2 9.6 9.6 4.2l6 6-5.4 5.4a1.4 1.4 0 0 1-2 0l-4-4a1.4 1.4 0 0 1 0-2Z"/><path d="M4.4 10.8h11" /><path d="M16.8 12.6c.9 1.3 1.4 2.2 1.4 2.8a1.4 1.4 0 0 1-2.8 0c0-.6.5-1.5 1.4-2.8Z" class="f"/></svg></button>
         <div class="cad-fp" id="cadFp"><button type="button" id="cadFpBtn" class="cad-fp-btn" title="채우기 모양 고르기" aria-label="채우기 모양"></button><div class="cad-fp-menu" id="cadFpMenu" hidden></div><select id="cadFillType" hidden class="cad-set-ls"><option value="solid">전체 채우기</option><option value="h">수평선 채우기</option><option value="v">수직선 채우기</option><option value="d">사선 채우기</option><option value="x">X자 채우기</option><option value="dot">점 채우기</option><option value="gl">큰 가로세로 격자</option><option value="gs">작은 가로세로 격자</option><option value="grass">잔디</option></select></div>
@@ -1569,6 +1570,19 @@ function itemSvg(it) {
     return '';
 }
 const radiusOf = op => op.mode === 'd' ? op.v / 2 : +op.v;
+// 다듬기 세기 — pass: [1,2,1] 평균을 몇 번(떨림을 편다), tol: 그 뒤 점을 줄이는 기준(화면 px)
+const FF_SMOOTH = [{pass: 0, tol: 0.6}, {pass: 3, tol: 1.5}, {pass: 8, tol: 3}];
+function smoothPts(pts, n) {                            // 양 끝은 그대로 두고 이웃과 평균 — 닫힌 획(끝=처음)도 끝점은 붙은 채로
+    let a = pts.map(q => [q[0], q[1]]);
+    for (let k = 0; k < n; k++) a = a.map((q, i) => i === 0 || i === a.length - 1 ? q : [(a[i - 1][0] + 2 * q[0] + a[i + 1][0]) / 4, (a[i - 1][1] + 2 * q[1] + a[i + 1][1]) / 4]);
+    return a;
+}
+function chaikin(pts) {                                 // 모서리 깎기 한 번 — 꺾인 데를 둥글린다(양 끝은 그대로)
+    const out = [pts[0]];
+    for (let i = 0; i + 1 < pts.length; i++) { const [x0, y0] = pts[i], [x1, y1] = pts[i + 1];
+        out.push([0.75 * x0 + 0.25 * x1, 0.75 * y0 + 0.25 * y1], [0.25 * x0 + 0.75 * x1, 0.25 * y0 + 0.75 * y1]); }
+    out.push(pts[pts.length - 1]); return out;
+}
 const freePoly = pts => {                           // freeD 가 그리는 곡선을 따라 찍은 점들 — 교차 계산용
     const Q = (a, b, cc, t) => ({x: (1 - t) * (1 - t) * a[0] + 2 * (1 - t) * t * b[0] + t * t * cc[0], y: (1 - t) * (1 - t) * a[1] + 2 * (1 - t) * t * b[1] + t * t * cc[1]});
     if (pts.length < 3) return pts.map(q => ({x: q[0], y: q[1]}));
@@ -4315,8 +4329,8 @@ function endPtr(e) {
         const runs = []; let cur = [];
         d.pts.forEach(q => { if (covered({x: q[0], y: q[1]})) { if (cur.length > 1) runs.push(cur); cur = []; } else cur.push(q); });
         if (cur.length > 1) runs.push(cur);
-        const tol = 0.6 / pxPer(), ls = $('ffLs').value, wv = $('ffW').value;
-        const ops = runs.map(pts => simpFree(pts, tol).map(q => [+q[0].toFixed(3), +q[1].toFixed(3)])).filter(pts => pts.length > 1 && Math.hypot(pts[pts.length - 1][0] - pts[0][0], pts[pts.length - 1][1] - pts[0][1]) + pts.length > 2);
+        const sm = FF_SMOOTH[+SET.ffsm || 0], tol = sm.tol / pxPer(), ls = $('ffLs').value, wv = $('ffW').value;   // 다듬기 세기(사용자) — 평균 내기 몇 번 + 떨림 거르기
+        const ops = runs.map(pts => simpFree(smoothPts(pts, sm.pass), tol).map(q => [+q[0].toFixed(3), +q[1].toFixed(3)])).filter(pts => pts.length > 1 && Math.hypot(pts[pts.length - 1][0] - pts[0][0], pts[pts.length - 1][1] - pts[0][1]) + pts.length > 2);
         if (!ops.length) { if (runs.length === 0 && d.pts.length > 1) flash('자 위로는 그어지지 않습니다'); return; }
         snapHist();
         ops.forEach(pts => doc.ops.push({id: doc.seq++, t: 'free', pts, ls, w: wv}));
@@ -4907,6 +4921,17 @@ const selOpts = (sel, obj) => sel.innerHTML = Object.entries(obj).map(([k, v]) =
 document.querySelectorAll('#cadForm select.ls').forEach(s => selOpts(s, LS));
 $('ffLs').value = 'solid';
 $('ffW').addEventListener('change', () => { $('cadFfW').value = $('ffW').value; SET.ffw = $('ffW').value; saveSet(); if (tool === 'free') setTool('free'); });
+// 프리드로잉 다듬기(사용자) — 그을 때의 세기(약·중·강)와, 그린 뒤 '곡선 다듬기'
+$('cadFfSm').value = String(+SET.ffsm || 0);
+$('cadFfSm').addEventListener('change', () => { SET.ffsm = +$('cadFfSm').value; saveSet(); if (tool !== 'free') setTool('free'); flash(`프리드로잉 다듬기: ${['약', '중', '강'][SET.ffsm]}`); });
+$('cadFfTidy').addEventListener('click', () => {
+    const fs = doc.ops.filter(o => selOps.has(o.id) && o.t === 'free' && !o.mark && o.pts && o.pts.length > 2);
+    if (!fs.length) { flash('다듬을 프리드로잉을 먼저 고르세요 (작도 순서나 도면에서)'); return; }
+    snapHist();
+    const tol = 1 / pxPer();                             // 평균 세 번으로 떨림을 펴고, 점을 줄인 뒤, 모서리를 한 번 깎아 둥글린다
+    fs.forEach(o => { o.pts = chaikin(simpFree(smoothPts(o.pts, 3), tol)).map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]); });
+    changed(); flash(`프리드로잉 ${fs.length}개를 한 단계 다듬었습니다 (Ctrl+Z 로 되돌리기)`);
+});
 // 프리드로잉 선 두께 — 도구 줄에서도 고른다(사용자). 오른쪽 칸의 ffW 와 같은 값
 $('cadFfW').addEventListener('change', () => { $('ffW').value = $('cadFfW').value; $('ffW').dispatchEvent(new Event('change')); if (tool !== 'free') setTool('free'); });
 if (SET.ffw) { $('ffW').value = SET.ffw; } $('cadFfW').value = $('ffW').value;
