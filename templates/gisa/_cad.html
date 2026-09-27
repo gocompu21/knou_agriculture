@@ -2181,9 +2181,24 @@ function makeDouble(dir) {
                 const a = (C1.R * C1.R - C2.R * C2.R + d * d) / (2 * d), h = Math.sqrt(Math.max(0, C1.R * C1.R - a * a)), mx = C1.c.x + dx * a / d, my = C1.c.y + dy * a / d;
                 return [{x: mx + h * dy / d, y: my - h * dx / d}, {x: mx - h * dy / d, y: my + h * dx / d}];
             };
+            // 선 — 호 — 선(손으로 그린 둥근 모서리)은 호를 **두 안쪽 선에 접하는 모깎기**로 다시 맞춘다(사용자: 교점으로 자르면 호가 갈고리처럼
+            // 휘거나 선이 기울었다). 반지름은 안쪽 호 그대로, 중심은 두 선을 그 반지름만큼 호 쪽으로 민 선의 교점. 원래 중심에서 멀면(1m↑) 하지 않는다
+            off.forEach((o, i) => {
+                if (o.line) return;
+                const pv = off[(i - 1 + n) % n], nx = off[(i + 1) % n];
+                if ((!t.closed && (i === 0 || i === n - 1)) || !pv || !nx || !pv.line || !nx.line) return;
+                const shift = Ln => { const dx = Ln.q.x - Ln.p.x, dy = Ln.q.y - Ln.p.y, L = Math.hypot(dx, dy) || 1, ux = -dy / L, uy = dx / L,
+                    s = ux * (o.c.x - Ln.p.x) + uy * (o.c.y - Ln.p.y) > 0 ? o.R : -o.R; return {p: {x: Ln.p.x + ux * s, y: Ln.p.y + uy * s}, q: {x: Ln.q.x + ux * s, y: Ln.q.y + uy * s}}; };
+                const s1 = shift(pv), s2 = shift(nx), C2 = lineX(s1.p, s1.q, s2.p, s2.q);
+                if (!C2 || Math.hypot(C2.x - o.c.x, C2.y - o.c.y) > 1) return;
+                const foot = Ln => { const dx = Ln.q.x - Ln.p.x, dy = Ln.q.y - Ln.p.y, u = ((C2.x - Ln.p.x) * dx + (C2.y - Ln.p.y) * dy) / (dx * dx + dy * dy || 1); return {x: Ln.p.x + dx * u, y: Ln.p.y + dy * u}; };
+                o.fil = {c: C2, t1: foot(pv), t2: foot(nx)};
+            });
             for (let i = 0; i < n; i++) {
                 const A = off[i], B = off[(i + 1) % n];
                 if (!t.closed && i === n - 1) break;
+                if (A.line && B.fil) { J[i] = B.fil.t1; continue; }   // 모깎기 호의 접점에서 잇는다
+                if (A.fil && B.line) { J[i] = A.fil.t2; continue; }
                 const mid = {x: (A.q.x + B.p.x) / 2, y: (A.q.y + B.p.y) / 2};
                 let cand = A.line && B.line ? [lineX(A.p, A.q, B.p, B.q)].filter(Boolean) : A.line ? lc(A, B) : B.line ? lc(B, A) : cc(A, B);
                 cand = cand.filter(q => Math.hypot(q.x - mid.x, q.y - mid.y) < 3);   // 멀리 떨어진 교점(반대편)은 버린다
