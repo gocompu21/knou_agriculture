@@ -2699,6 +2699,16 @@ function rpClock() {
 }
 setInterval(() => { if (RP && RP.playing) rpClock(); }, 250);
 $('cadRpSpd').addEventListener('change', () => { if (RP) { RP.T = null; rpClock(); } });   // 빠르기를 바꾸면 전체 시간도 다시 센다
+// 목록 줄이 보이게 — **목록 칸 안에서만** 내린다. scrollIntoView 는 페이지까지 굴려, 도면 아래에 목록이 오는
+// 휴대폰에서 재생하면 화면이 목록으로 올라가 도면이 안 보였다(사용자)
+function paneScroll(el) {
+    let p = el.parentElement;
+    while (p && !(p.scrollHeight > p.clientHeight + 2 && /(auto|scroll)/.test(getComputedStyle(p).overflowY))) p = p.parentElement;
+    if (!p || p === document.body || p === document.documentElement) return;
+    const r = el.getBoundingClientRect(), q = p.getBoundingClientRect();
+    if (r.top < q.top) p.scrollTop -= q.top - r.top + 4;
+    else if (r.bottom > q.bottom) p.scrollTop += r.bottom - q.bottom + 4;
+}
 function rpInfo() {
     const n = doc.ops.length, op = doc.ops[RP.k - 1];
     RP.tk = performance.now(); rpClock();                // 막대는 시간 기준(사용자) — rpClock 이 막대와 시간 글자를 함께 맞춘다
@@ -2710,7 +2720,7 @@ function rpInfo() {
     const hid = op ? (op.grp != null ? grpOps(op.id)[0].id : op.id) : null;
     document.querySelectorAll('#cadOpList .cad-op').forEach(r => r.classList.toggle('rp', +r.dataset.id === hid));
     const cur = hid != null && document.querySelector(`#cadOpList .cad-op[data-id="${hid}"]`);
-    if (cur) cur.scrollIntoView({block: 'nearest'});
+    if (cur) paneScroll(cur);
     $('cadRp').querySelector('.pl').textContent = RP.playing ? '⏸ 멈춤' : '▶ 재생';
 }
 // 다음에 그을 자리 — 노랑 투명 바탕 + 검은 테두리 동그라미가 크게 나타나 그 자리로 **조여 들며** 반짝이고 사라진다(사용자 제안 +
@@ -3847,7 +3857,7 @@ function selectOp(id, add) {
     else { selOps = new Set([id]); }
     renderAll(); regInfo();
     const row = $('cadOpList').querySelector(`[data-id="${id}"]`);
-    if (row) row.scrollIntoView({block: 'nearest'});
+    if (row) paneScroll(row);
 }
 function deleteSelected() {
     if (!selOps.size && !selPts.size) { flash('지울 것을 먼저 고르세요'); return; }
@@ -4841,7 +4851,7 @@ $('cadStepAdd').addEventListener('click', () => {
     $('cadStepTitle').value = '';
     if (idx >= 0) opsSeen = doc.ops.length;            // 가운데에 넣었으니 목록을 맨 아래로 내리지 않고 그 줄을 보인다
     changed();
-    if (idx >= 0) { const r = document.querySelector(`#cadOpList .cad-op[data-id="${st.id}"]`); if (r) r.scrollIntoView({block: 'nearest'}); }
+    if (idx >= 0) { const r = document.querySelector(`#cadOpList .cad-op[data-id="${st.id}"]`); if (r) paneScroll(r); }
 });
 $('cadStepTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); $('cadStepAdd').click(); } });
 $('cadRpBtn').addEventListener('click', () => RP ? rpEnd() : rpStart());
