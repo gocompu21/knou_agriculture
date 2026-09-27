@@ -452,7 +452,7 @@
     border: 1px solid #f3c98b; border-radius: 6px; padding: 6px 8px; font-size: 0.8rem; margin-top: 4px; }
 .cad-tabs { display: flex; gap: 4px; flex-shrink: 0; margin: 8px 10px 2px; padding: 4px; background: #eef3f0; border-radius: 11px; }   /* 알약 모양 탭 — 탭마다 제 색(사용자) */
 .cad-tabs button { --tc: #2d6a4f; --tb: #e2efe6; flex: 1; border: 0; background: none; padding: 7px 4px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; color: #6f7c75;
-    cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: background .15s, color .15s, box-shadow .15s; }
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; min-width: 0; transition: background .15s, color .15s, box-shadow .15s; }   /* 이름이 두 줄로 넘어가지 않게 */
 .cad-tabs button[data-ptab="ops"] { --tc: #2d6a4f; --tb: #dcefe2; }
 .cad-tabs button[data-ptab="pts"] { --tc: #2b4a9b; --tb: #e0e7f7; }
 .cad-tabs button[data-ptab="lib"] { --tc: #b0671a; --tb: #f8ead6; }
@@ -460,7 +460,8 @@
 .cad-tabs button:hover { background: var(--tb); color: var(--tc); }
 .cad-tabs button.on { background: var(--tc); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.14); }
 .cad-tabs button.on::before { background: #fff; opacity: .9; }
-.cad-tabs em { font-style: normal; font-weight: 700; font-size: 0.68rem; line-height: 1; padding: 2px 6px; border-radius: 9px; background: var(--tb); color: var(--tc); }
+.cad-tabs em { font-style: normal; font-weight: 700; font-size: 0.6rem; line-height: 1; padding: 1px 4px; border-radius: 7px; background: var(--tb); color: var(--tc);
+    align-self: flex-start; margin: -3px 0 0 -2px; }   /* 개수 배지는 윗첨자처럼 이름 오른쪽 위에(사용자) */
 .cad-tabs em:empty { display: none; }
 .cad-tabs button.on em { background: rgba(255,255,255,.25); color: #fff; }
 .cad-pane { display: none; padding: 8px 10px; overflow: auto; flex: 1; min-height: 0; }
