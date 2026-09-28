@@ -688,8 +688,10 @@ let tool = 'select', pickIdx = 0, editing = null, selOps = new Set(), selPt = nu
 let hover = null;
 // I자(평행자) — 제도판의 가로자. 켜 두면 윗변(barY) 근처를 누른 점이 그 높이에 붙는다
 // 설정(스냅·간격·점 번호·삼각자 크기) — 도면이 아니라 화면 습관이라 localStorage 에 둔다
-let SET = {snap: true, step: '', pts: true, triPct45: 50, triPct60: 70, p9: 0.7, p5: 0.4, auxOn: true, auxColor: '#a3a9b3', rulerNums: false, fillColor: '#9ccc65', fillOp: 0.35, fillType: 'solid', ls9: 'solid', ls5: 'aux'};   // 샤프마다 선 종류   // 샤프 굵기는 종이 위 mm
+let SET = {snap: true, step: '', pts: true, triPct45: 50, triPct60: 70, p9: 0.5, p5: 0.25, auxOn: true, auxColor: '#a3a9b3', rulerNums: false, fillColor: '#9ccc65', fillOp: 0.35, fillType: 'solid', ls9: 'solid', ls5: 'aux'};   // 샤프마다 선 종류   // 샤프 굵기는 종이 위 mm
 try { Object.assign(SET, JSON.parse(localStorage.getItem('cadSet') || '{}')); } catch (e) {}
+// 샤프 기본 굵기를 0.7·0.4 → 0.5·0.25mm 로 낮췄다(2026-09, 선이 뭉쳐 보였다). 설정은 통째로 저장되므로 옛 기본값 그대로인 사람만 한 번 옮긴다
+if (!SET.lw2) { if (SET.p9 === 0.7) SET.p9 = 0.5; if (SET.p5 === 0.4) SET.p5 = 0.25; SET.lw2 = 1; }
 function saveSet() {
     SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.ptSize = +$('cadPtSize').value || 1; SET.ptNum = +$('cadPtNum').value || 1; SET.triPct45 = +$('cadTriSize').value || 50; SET.triPct60 = +$('cadTri60Size').value || 70; SET.font = $('ftFont').value; SET.ls9 = $('cadLs9').value || SET.ls9; SET.ls5 = $('cadLs5').value || SET.ls5; SET.fillType = $('cadFillType').value || SET.fillType; SET.fillColor = $('cadFillColor').value || SET.fillColor; SET.fillOp = +$('cadFillOp').value || SET.fillOp; SET.rulerNums = $('cadRulerNums').checked; SET.auxOn = $('cadAuxOn').checked; SET.auxColor = $('cadAuxColor').value || SET.auxColor; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
     try { localStorage.setItem('cadSet', JSON.stringify(SET)); } catch (e) {}
