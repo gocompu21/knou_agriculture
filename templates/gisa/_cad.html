@@ -729,7 +729,8 @@ function triGeom() {
     // 한때 실물 cm(45° 12cm · 60° 45cm)를 축척으로 바꿔 그렸는데, 종이가 작으면 자가 종이를 넘었다. 스케일자·템플릿은 실물 그대로다
     // 도면 축척(1:430 이면 1cm = 4.3m)으로 m 로 바꾼다
     const is45 = tri.kind === '45', r3 = Math.sqrt(3);
-    let L = (is45 ? (SET.triPct45 || 50) : (SET.triPct60 || 70)) / 100 * (sheet.y1 - sheet.y0);
+    // 재생할 때는 그을 때 기록한 크기(tri.pct)를 쓴다 — 보는 사람의 설정을 따르면 자가 선보다 짧아진다
+    let L = (tri.pct || (is45 ? (SET.triPct45 || 50) : (SET.triPct60 || 70))) / 100 * (sheet.y1 - sheet.y0);
     // 45° 자는 직각을 낀 두 변을 굵은 눈금(step) 배수로 — 세 꼭짓점이 모두 눈금 교차점에 온다
     if (is45) L = Math.max(sheet.step, Math.round(L / sheet.step) * sheet.step);
     const base = is45 ? L : (tri.alt ? L : L / r3), h = is45 ? L : (tri.alt ? L / r3 : L);
@@ -2383,6 +2384,7 @@ function toolState() {
     const c = o => o ? JSON.parse(JSON.stringify(o)) : null;
     const s = {bar: barOn && barY != null ? rnd3(barY) : null, tri: c(tri), tpl: c(tpl), sr: c(sr), ftri: c(ftri)};
     if (s.tri && s.tri.x != null) s.tri.x = rnd3(s.tri.x);
+    if (s.tri && s.tri.pct == null) s.tri.pct = s.tri.kind === '45' ? (SET.triPct45 || 50) : (SET.triPct60 || 70);   // 자 크기도 기록한다
     ['tpl', 'sr'].forEach(k => { if (s[k]) { s[k].x = rnd3(s[k].x); s[k].y = rnd3(s[k].y); } });
     return s;
 }
@@ -2900,7 +2902,8 @@ function rpEnd() {
     if (!RP) return;
     if (RP.leave) { clearTimeout(RP.timer); playLeave(); return; }
     clearTimeout(RP.timer); const live = RP.live; RP = null; if ($('cadRpPen')) $('cadRpPen').innerHTML = ''; if ($('cadRpMark')) $('cadRpMark').innerHTML = '';
-    rpApply(live); root.classList.remove('replaying'); $('cadRp').hidden = true; $('cadRpBtn').classList.remove('on');
+    rpApply(live); if (tri) delete tri.pct;   // 재생이 끝나면 다시 내 설정 크기로
+    root.classList.remove('replaying'); $('cadRp').hidden = true; $('cadRpBtn').classList.remove('on');
     renderAll();
 }
 
