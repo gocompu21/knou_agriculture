@@ -2,6 +2,10 @@
 
 This file provides guidance when working with code in this repository.
 
+## 호칭
+
+사용자를 **대표님**이라고 부른다(사장님 아님).
+
 ## 프로젝트 개요
 
 한국방송통신대학교 농학과 학습동아리 **한울회 스터디 그룹**을 위한 웹 학습 시스템 프로젝트.
