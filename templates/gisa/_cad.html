@@ -2267,8 +2267,11 @@ function toolsForLine(a, b) {
                     out = {...base, bar: rnd3(yLow), tri: {...t, x: rnd3(t.x)}};
                 }
             } else {                                     // 다른 각도 — 회전 삼각자의 한 변(직각 모서리 → 오른쪽 변)을 선에 맞춘다(사용자: 재생 때 회전 삼각자가 안 보였다)
-                const rot = Math.atan2(dy, dx) * 180 / Math.PI;
-                out = {...base, ftri: {...(ftri || {}), x: rnd3(a.x), y: rnd3(a.y), rot: +rot.toFixed(2)}};
+                // 선의 가운데를 자 변의 가운데에 댄다 — 직각 모서리(끝)에 대고 짧은 빗금을 그으면 부자연스럽다(사용자).
+                // 변(12cm)보다 긴 선이면 모서리부터 댄다
+                const rot = Math.atan2(dy, dx) * 180 / Math.PI, Lg = 120 * scaleDenom() / 1000, ux = dx / L, uy = dy / L;
+                const back = L >= Lg ? 0 : (Lg - L) / 2;
+                out = {...base, bar: null, tri: null, tpl: null, sr: null, ftri: {...(ftri || {}), x: rnd3(a.x - ux * back), y: rnd3(a.y - uy * back), rot: +rot.toFixed(2)}};   // 회전 삼각자만 — I자·삼각자는 치운다
             }
         }
     } finally { tri = keep.tri; barY = keep.barY; barOn = keep.barOn; }
