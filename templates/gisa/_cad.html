@@ -733,6 +733,7 @@ function triGeom() {
     let L = (tri.pct || (is45 ? (SET.triPct45 || 50) : (SET.triPct60 || 70))) / 100 * (sheet.y1 - sheet.y0);
     // 45° 자는 직각을 낀 두 변을 굵은 눈금(step) 배수로 — 세 꼭짓점이 모두 눈금 교차점에 온다
     if (is45) L = Math.max(sheet.step, Math.round(L / sheet.step) * sheet.step);
+    if (tri.len) L = tri.len;   // 재생 — 그을 때의 실제 길이(m). 종이·축척이 바뀌어도 자가 선과 맞는다
     const base = is45 ? L : (tri.alt ? L : L / r3), h = is45 ? L : (tri.alt ? L / r3 : L);
     const sg = tri.flip ? 1 : -1, R = {x: tri.x, y: barY}, T = {x: tri.x, y: barY - h}, B = {x: tri.x + sg * base, y: barY};
     const hl = Math.hypot(base, h), ang = Math.round(Math.atan2(h, base) * 180 / Math.PI);
@@ -832,7 +833,7 @@ const SHAPE_NAME = {c: '원', s: '정사각형', t: '정삼각형', h: '정육�
 let tpl = null;                                        // {kind, x, y} 템플릿 왼쪽 위(도면 m)
 try { tpl = JSON.parse(localStorage.getItem('cadTpl') || 'null'); if (tpl && !TPL_KINDS[tpl.kind]) tpl.kind = 'circle'; } catch (e) {}
 function saveTpl() { try { localStorage.setItem('cadTpl', JSON.stringify(tpl)); } catch (e) {} }
-const tplK = () => scaleDenom() / 1000;               // 종이 위 1mm → 도면 m
+const tplK = () => ((tpl && tpl.den) || scaleDenom()) / 1000;   // 재생은 그을 때의 축척(tpl.den)               // 종이 위 1mm → 도면 m
 const tplDef = () => TPL_KINDS[(tpl && tpl.kind) || 'circle'];
 // 도형의 꼭짓점 — 중심 c, 크기 a(도면 m). 정삼각형은 위가 뾰족하고 c 는 외접 상자의 가운데, 정육각형은 위가 뾰족하다
 function shapeVerts(s, c, a) {
@@ -1105,7 +1106,7 @@ function srView() {
     const r = sr ? sr.roll : 2, A = SR_FACES[(r + 1) % 3], B = SR_FACES[(r + 2) % 3];
     return {A, B, top: A.a, bot: B.b, ridge: [A.b, B.a], under: SR_FACES[r]};
 }
-const srK = () => scaleDenom() / 1000;                // 종이 1mm → 도면 m
+const srK = () => ((sr && sr.den) || scaleDenom()) / 1000;   // 재생은 그을 때의 축척(sr.den)                // 종이 1mm → 도면 m
 function srCenter() { const k = srK(); return {x: sr.x + SR_L * k / 2, y: sr.y + SR_W * k / 2}; }
 function srMap(u, v) {
     const k = srK(), a = srRot() * Math.PI / 180, c = srCenter(), du = (u - SR_L / 2) * k, dv = (v - SR_W / 2) * k;
@@ -2385,6 +2386,9 @@ function toolState() {
     const s = {bar: barOn && barY != null ? rnd3(barY) : null, tri: c(tri), tpl: c(tpl), sr: c(sr), ftri: c(ftri)};
     if (s.tri && s.tri.x != null) s.tri.x = rnd3(s.tri.x);
     if (s.tri && s.tri.pct == null) s.tri.pct = s.tri.kind === '45' ? (SET.triPct45 || 50) : (SET.triPct60 || 70);   // 자 크기도 기록한다
+    // 자의 실제 크기(m·축척)도 적는다 — %·종이 mm 만 적으면 종이나 축척이 다른 도면으로 옮겼을 때 자가 선과 어긋난다
+    if (s.tri && s.tri.len == null && sheet) { const t0 = tri; tri = s.tri; const G = triGeom(); tri = t0; if (G) s.tri.len = rnd3(Math.max(G.base, G.h)); }
+    ['tpl', 'sr', 'ftri'].forEach(k => { if (s[k] && s[k].den == null) s[k].den = scaleDenom(); });
     ['tpl', 'sr'].forEach(k => { if (s[k]) { s[k].x = rnd3(s[k].x); s[k].y = rnd3(s[k].y); } });
     return s;
 }
@@ -2902,7 +2906,7 @@ function rpEnd() {
     if (!RP) return;
     if (RP.leave) { clearTimeout(RP.timer); playLeave(); return; }
     clearTimeout(RP.timer); const live = RP.live; RP = null; if ($('cadRpPen')) $('cadRpPen').innerHTML = ''; if ($('cadRpMark')) $('cadRpMark').innerHTML = '';
-    rpApply(live); if (tri) delete tri.pct;   // 재생이 끝나면 다시 내 설정 크기로
+    rpApply(live); if (tri) { delete tri.pct; delete tri.len; } [tpl, sr, ftri].forEach(o => { if (o) delete o.den; });   // 재생이 끝나면 다시 내 설정 크기로
     root.classList.remove('replaying'); $('cadRp').hidden = true; $('cadRpBtn').classList.remove('on');
     renderAll();
 }
@@ -4318,7 +4322,7 @@ try { ftri = JSON.parse(localStorage.getItem('cadFtri') || 'null'); } catch (e) 
 function saveFtri() { try { localStorage.setItem('cadFtri', JSON.stringify(ftri)); } catch (e) {} }
 function ftriGeom() {
     if (!ftri || !sheet) return null;
-    const L = 120 * scaleDenom() / 1000, a = (+ftri.rot || 0) * Math.PI / 180, ux = Math.cos(a), uy = Math.sin(a);
+    const L = 120 * (ftri.den || scaleDenom()) / 1000, a = (+ftri.rot || 0) * Math.PI / 180, ux = Math.cos(a), uy = Math.sin(a);
     const R = {x: ftri.x, y: ftri.y}, A = {x: R.x + L * ux, y: R.y + L * uy}, B = {x: R.x + L * uy, y: R.y - L * ux};   // A: 오른쪽 변, B: 위 변(돌리기 전)
     const s2 = Math.SQRT2, I = {x: (s2 * R.x + A.x + B.x) / (2 + s2), y: (s2 * R.y + A.y + B.y) / (2 + s2)};
     const hole = [R, A, B].map(q => ({x: I.x + (q.x - I.x) * 0.3, y: I.y + (q.y - I.y) * 0.3}));
@@ -4332,7 +4336,7 @@ function drawFtri() {
     const g = $('cadFtri'), G = ftriGeom();
     $('cadFtriBtn').classList.toggle('on', !!G);
     if (!G) { g.innerHTML = ''; return; }
-    const {R, A, B} = G, f = v => fmt(v), k = scaleDenom() / 1000;
+    const {R, A, B} = G, f = v => fmt(v), k = (ftri.den || scaleDenom()) / 1000;
     const [h0, h1, h2] = G.hole, hp = `M${f(h0.x)} ${f(h0.y)}L${f(h1.x)} ${f(h1.y)}L${f(h2.x)} ${f(h2.y)}Z`;
     let o = `<g class="tri-body"><path d="M${f(R.x)} ${f(R.y)}L${f(A.x)} ${f(A.y)}L${f(B.x)} ${f(B.y)}Z${hp}" fill-rule="evenodd" fill="rgba(255,196,60,.22)" stroke="#c9a24a" stroke-width="${f(0.07 * U)}" stroke-linejoin="round"/>`
         + `<path d="${hp}" fill="none" stroke="#9a7318" stroke-width="${f(0.08 * U)}" stroke-linejoin="round"/>`
