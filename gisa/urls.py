@@ -96,6 +96,7 @@ urlpatterns = [
     # 작업형 CAD 탭 — 도면(회원별)과 라이브러리 기호
     path("<int:cert_id>/cad/drawings/", cad.drawing_list, name="cad_drawing_list"),
     path("<int:cert_id>/cad/drawings/<int:pk>/", cad.drawing_get, name="cad_drawing_get"),
+    path("<int:cert_id>/cad/play/<int:pk>/", cad.drawing_play, name="cad_drawing_play"),
     path("<int:cert_id>/cad/drawings/save/", cad.drawing_save, name="cad_drawing_save"),
     path("<int:cert_id>/cad/drawings/<int:pk>/delete/", cad.drawing_delete, name="cad_drawing_delete"),
     path("cad/symbols/", cad.symbol_list, name="cad_symbol_list"),

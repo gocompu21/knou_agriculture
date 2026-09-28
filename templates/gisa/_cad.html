@@ -2896,6 +2896,7 @@ function rpStart() {
 }
 function rpEnd() {
     if (!RP) return;
+    if (RP.leave) { clearTimeout(RP.timer); playLeave(); return; }
     clearTimeout(RP.timer); const live = RP.live; RP = null; if ($('cadRpPen')) $('cadRpPen').innerHTML = ''; if ($('cadRpMark')) $('cadRpMark').innerHTML = '';
     rpApply(live); root.classList.remove('replaying'); $('cadRp').hidden = true; $('cadRpBtn').classList.remove('on');
     renderAll();
@@ -4140,7 +4141,10 @@ function post(url, body) {
         .then(r => r.json()).catch(() => ({ok: false, error: '서버에 닿지 못했습니다'}));
 }
 const DRAFT = 'cadDraft:' + CERT;
+// ?play=<도면 id> — 기출분석 도면 자료의 '작도 재생' 단추로 들어온 재생 전용. 남의 도면을 불러오므로 내 초안에 남기지 않는다
+const PLAY = +(new URLSearchParams(location.search).get('play') || 0);
 function saveDraft() {
+    if (PLAY) return;
     try { localStorage.setItem(DRAFT, JSON.stringify({id: cur.id, title: $('cadTitle').value, doc, dirty})); } catch (e) {}
 }
 function savedLabel() {
@@ -4896,6 +4900,12 @@ $('cadStepAdd').addEventListener('click', () => {
 });
 $('cadStepTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); $('cadStepAdd').click(); } });
 $('cadRpBtn').addEventListener('click', () => RP ? rpEnd() : rpStart());
+// 재생 전용으로 들어왔으면 닫을 때 왔던 곳(기출분석)으로 돌아간다
+function playLeave() {
+    RP = null; dirty = false;
+    const back = document.referrer && document.referrer.indexOf(location.origin) === 0 && history.length > 1;
+    if (back) history.back(); else location.href = location.pathname + '?tab=tasks';
+}
 $('cadRp').addEventListener('click', e => {
     const b = e.target.closest('[data-rp]'); if (!b || !RP) return;
     const a = b.dataset.rp;
@@ -5338,6 +5348,16 @@ setTool('select');
 if (root.offsetParent) setFull(true);                // ?tab=cad 로 들어와도 전체 화면으로
 renderLib();
 loadSyms();
+if (PLAY) {
+    setFull(true); flash('도면을 불러오는 중…');
+    fetch(API.replace(/drawings\/$/, 'play/') + PLAY + '/', {credentials: 'same-origin'}).then(r => r.json()).then(j => {
+        if (!j.ok) { flash(j.error || '재생할 수 없는 도면입니다'); return; }
+        doc = Object.assign(blankDoc(j.sheet), j.data || {});
+        cur.id = null; $('cadTitle').value = j.title; hist = []; redoS = []; dirty = false;
+        afterLoad(true);
+        requestAnimationFrame(() => requestAnimationFrame(() => { fit(); rpStart(); if (RP) { RP.leave = true; rpPlay(); } }));
+    }).catch(() => flash('서버에 닿지 못했습니다'));
+}
 })();
 {% endverbatim %}
 </script>

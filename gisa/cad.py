@@ -16,7 +16,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .models import CadDrawing, CadSymbol, Certification
+from .models import CadDrawing, CadSymbol, Certification, GisaDrawingRef
 
 # 모눈종이 — PDF 의 눈금 라벨을 읽어 옮겼다(파일 이름의 '74x40' 은 부지 크기이고,
 # 종이 범위는 그보다 5~10m 넉넉하다). 06 주택정원은 PDF 제목이 '(436)' 이지만
@@ -85,6 +85,22 @@ def drawing_list(request, cert_id):
 @login_required
 def drawing_get(request, cert_id, pk):
     d = get_object_or_404(CadDrawing, pk=pk, certification_id=cert_id, owner=request.user)
+    return JsonResponse({'ok': True, 'id': d.pk, 'title': d.title, 'sheet': d.sheet,
+                         'data': d.data})
+
+
+@login_required
+def drawing_play(request, cert_id, pk):
+    """기출분석 도면 자료에 재생 단추(`data-cad-play="pk"`)로 걸어 둔 도면은 누구나 재생해 본다.
+
+    도면은 본디 주인만 여는데(drawing_get), 운영자가 그린 모범 작도를 회원이 보려면
+    열어 줘야 한다. 자료에 단추를 달아 둔 도면만 열린다 — 아무 번호나 넣어 남의 도면을
+    엿볼 수 없다. 재생 전용이라 화면은 이 도면을 저장하지도 초안에 남기지도 않는다.
+    """
+    d = get_object_or_404(CadDrawing, pk=pk, certification_id=cert_id)
+    if d.owner_id != request.user.pk and not GisaDrawingRef.objects.filter(
+            certification_id=cert_id, content__contains=f'data-cad-play="{pk}"').exists():
+        return _err('재생할 수 없는 도면입니다.', 404)
     return JsonResponse({'ok': True, 'id': d.pk, 'title': d.title, 'sheet': d.sheet,
                          'data': d.data})
 
