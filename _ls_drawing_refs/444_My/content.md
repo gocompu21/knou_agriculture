@@ -2,7 +2,7 @@
 
 <p><a class="cad-play-btn" data-cad-play="3" href="?tab=cad&amp;play=3" style="display:inline-block;padding:9px 18px;border-radius:20px;background:#1b4332;color:#fff;font-weight:700;text-decoration:none">▶ 주차공원 444 CAD 작도 재생 (전체 화면)</a></p>
 
-CAD 탭에서 아래 작도 순서대로 그린 도면입니다. 누르면 전체 화면에서 I자·삼각자·템플릿·스케일자가 움직이며 선을 하나씩 긋습니다. 재생 막대로 앞뒤로 옮기고, 닫으면 이 화면으로 돌아옵니다.
+위 그림이 CAD 탭에서 완성한 시설배치도다. 단추를 누르면 전체 화면에서 I자·삼각자·템플릿·스케일자가 움직이며 선을 하나씩 긋고, 재생을 닫으면 이 화면으로 돌아온다.
 
 ### 1. 시설배치도 작성
 
