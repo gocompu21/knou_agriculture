@@ -71,19 +71,25 @@ def animate_objects():
             groups[k].append(o)
     for k, f0, f1 in STAGES:
         objs = groups[k]
-        # 서→동으로 훑듯 솟게: x 좌표 순으로 시작 프레임을 나눠 준다(조금 흔든다)
-        objs.sort(key=lambda o: world_box(o)[0] + rnd.uniform(-8, 8))
-        n = max(1, len(objs))
-        for i, o in enumerate(objs):
+        # 한 자리의 부품(줄기+수관, 차체+유리+바퀴)은 함께 솟게 — 1m 격자로 묶는다
+        bunch = {}
+        for o in objs:
             x0, x1, y0, y1, z0, z1 = world_box(o)
-            drop = (z1 - z0) + 0.6
-            z = o.location.z
+            bunch.setdefault((k, round((x0 + x1) / 2), round((y0 + y1) / 2)), []).append(o)
+        keys = sorted(bunch, key=lambda kk: kk[1] + rnd.uniform(-8, 8))   # 서→동으로 훑듯
+        n = max(1, len(keys))
+        for i, kk in enumerate(keys):
+            parts = bunch[kk]
+            top = max(world_box(o)[5] for o in parts)
+            drop = top + 0.6                                  # 꼭대기까지 땅속으로 — 기준점이 가운데인 물체(수관)도 숨는다
             start = f0 + (f1 - RISE - f0) * i / n
-            o.location.z = z - drop
-            o.keyframe_insert('location', index=2, frame=0)
-            o.keyframe_insert('location', index=2, frame=int(start))
-            o.location.z = z
-            o.keyframe_insert('location', index=2, frame=int(start + RISE))
+            for o in parts:
+                z = o.location.z
+                o.location.z = z - drop
+                o.keyframe_insert('location', index=2, frame=0)
+                o.keyframe_insert('location', index=2, frame=int(start))
+                o.location.z = z
+                o.keyframe_insert('location', index=2, frame=int(start + RISE))
         print('stage', k, len(objs))
     # 보간은 기본(베지어, 앞뒤 완만)으로 둔다 — 블렌더 5 는 Action 이 층 구조라 fcurves 를 바로 못 만진다
 
