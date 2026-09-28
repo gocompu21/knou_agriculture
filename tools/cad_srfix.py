@@ -50,7 +50,6 @@ def snap_groups(d):
             elif horiz and 0.01 < abs(p['y'] - my) < 1.5: moved.append((p['n'], p['y'], my)); p['y'] = my
     return moved
 def fix(d):
-    moved = snap_groups(d); print('snapped', moved)
     P = {p['n']: p for p in d['pts']}
     nmax = max(P); seq = d.get('seq', max(o['id'] for o in d['ops']) + 1)
     out_ops = []; nsplit = 0; nmark = 0; made = {}
@@ -59,7 +58,8 @@ def fix(d):
         if not (o.get('mark') and o.get('p') in P and isinstance(o.get('tl'), dict) and o['tl'].get('sr')):
             out_ops.append(o); continue
         nmark += 1
-        s = o['tl']['sr']; M = (P[o['p']]['x'], P[o['p']]['y']); r = float(o['mark']['r'])
+        # 마킹 자리는 점이 아니라 **표시(눈금 자리, pts[0])** 로 잡는다 — 점은 나중에 '호 끝 맞추기'로 접점까지 옮겨졌을 수 있다(P90·P98)
+        s = o['tl']['sr']; M = (o['pts'][0][0], o['pts'][0][1]) if o.get('pts') else (P[o['p']]['x'], P[o['p']]['y']); r = float(o['mark']['r'])
         # 원래 자에서 이 마킹이 놓인 모서리와 0 자리(원래 자는 1:800 크기)
         best = None
         for v, S, u0, du in edges(s, K_OLD):
