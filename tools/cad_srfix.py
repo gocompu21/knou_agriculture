@@ -29,7 +29,28 @@ def place(P0, a_deg, k):
 K_OLD, K_NEW, S_NEW = 0.8, 0.4, 400
 RUN_M = srRun(S_NEW) * K_NEW            # 120m
 STEP = 100.0                            # 한 번에 재는 최대 길이 — 눈금 끝(120)까지 가지 않고 100m 에서 옮긴다
+def snap_groups(d):
+    # 같은 자리에 놓인 자로 잰 가로·세로 마킹은 한 줄 위에 있어야 한다 — 원본에서 0.4~0.9m 벗어나 찍힌 점(P90·P98)을 줄 위로 옮긴다
+    from collections import defaultdict
+    P = {p['n']: p for p in d['pts']}; g = defaultdict(list)
+    for o in d['ops']:
+        if o.get('mark') and o.get('p') in P and isinstance(o.get('tl'), dict) and o['tl'].get('sr'):
+            s0 = o['tl']['sr']; key = json.dumps({k: s0.get(k) for k in ('x', 'y', 'rot', 'roll', 'swap', 'custom')}, sort_keys=True)
+            g[key].append(o)
+    moved = []
+    for key, ops in g.items():
+        if len(ops) < 3: continue
+        xs = sorted(P[o['p']]['x'] for o in ops); ys = sorted(P[o['p']]['y'] for o in ops)
+        mx, my = xs[len(xs)//2], ys[len(ys)//2]
+        vert = sum(abs(P[o['p']]['x'] - mx) < 0.01 for o in ops) >= len(ops) * 0.6
+        horiz = sum(abs(P[o['p']]['y'] - my) < 0.01 for o in ops) >= len(ops) * 0.6
+        for o in ops:
+            p = P[o['p']]
+            if vert and 0.01 < abs(p['x'] - mx) < 1.5: moved.append((p['n'], p['x'], mx)); p['x'] = mx
+            elif horiz and 0.01 < abs(p['y'] - my) < 1.5: moved.append((p['n'], p['y'], my)); p['y'] = my
+    return moved
 def fix(d):
+    moved = snap_groups(d); print('snapped', moved)
     P = {p['n']: p for p in d['pts']}
     nmax = max(P); seq = d.get('seq', max(o['id'] for o in d['ops']) + 1)
     out_ops = []; nsplit = 0; nmark = 0; made = {}
