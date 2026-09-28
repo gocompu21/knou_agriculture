@@ -50,7 +50,11 @@ def fix(d):
                 best = (dist, Z, dirv)
         _, Z, dv = best
         if r > 1e-6: dv = ((M[0]-Z[0])/r, (M[1]-Z[1])/r); nn = math.hypot(*dv); dv = (dv[0]/nn, dv[1]/nn)
-        horiz = abs(dv[1]) < 1e-3; vert = abs(dv[0]) < 1e-3
+        ang = math.degrees(math.atan2(dv[1], dv[0])) % 180
+        horiz = min(ang, 180 - ang) < 3; vert = abs(ang - 90) < 3
+        # 거의 가로·세로면 정확히 세운다 — 원래 0 자리와 마킹 점이 1m 남짓 어긋나 있어 자가 89°로 기울었다(대표님)
+        if vert: Z = (M[0], Z[1]); dv = (0.0, 1.0 if M[1] >= Z[1] else -1.0); r = abs(M[1] - Z[1]) if r > 1e-6 else r
+        if horiz: Z = (Z[0], M[1]); dv = (1.0 if M[0] >= Z[0] else -1.0, 0.0); r = abs(M[0] - Z[0]) if r > 1e-6 else r
         a_deg = 0 if horiz else 90 if vert else round(math.degrees(math.atan2(dv[1], dv[0])), 3)
         ax = (math.cos(math.radians(a_deg)), math.sin(math.radians(a_deg)))
         outv = (math.sin(math.radians(a_deg)), -math.cos(math.radians(a_deg)))
