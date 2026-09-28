@@ -2537,7 +2537,8 @@ function rpTween(to, dur, done) {
     const t0 = performance.now(), id = RP.anim = {};
     const frame = now => {
         if (!RP || RP.anim !== id) { rpOpac(null); return; }
-        const t = Math.max(0, Math.min(1, (now - t0) / dur)),   // rAF 시각이 t0 보다 앞설 수 있다(음수 진하기가 나왔다) e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        // rAF 시각이 t0 보다 앞설 수 있다(음수 진하기가 나왔다) — 0 밑으로 내려가지 않게
+        const t = Math.max(0, Math.min(1, (now - t0) / dur)), e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
         const s = cl(to), op = {};
         Object.keys(RP_G).forEach(k => {
             const m = mode[k];
