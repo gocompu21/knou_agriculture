@@ -261,10 +261,11 @@
                     <button type="button" data-rp="first" title="처음으로(Home)">⏮</button><button type="button" data-rp="prev" title="이전(←)">◀</button>
                     <button type="button" data-rp="play" class="pl" title="재생·멈춤(Space)">▶ 재생</button>
                     <button type="button" data-rp="next" title="다음(→)">▶</button><button type="button" data-rp="last" title="끝으로(End)">⏭</button>
-                    <select id="cadRpSpd" title="재생 배속 — 값은 한 칸에 쓰는 시간(ms), 1X = 1100"><option value="1100" selected>1X</option><option value="733">1.5X</option><option value="550">2X</option><option value="367">3X</option></select>
+                    <select id="cadRpSpd" hidden><option value="2200">0.5X</option><option value="1100" selected>1X</option><option value="733">1.5X</option><option value="550">2X</option><option value="367">3X</option></select>
                     <span class="no" id="cadRpNo"></span>
                     <button type="button" data-rp="end" class="x" title="재생 끝내기(Esc)">✕</button>
                 </div>
+                <div class="cad-rp-spd" id="cadRpSpdBtns" title="재생 배속">배속<button type="button" data-spd="2200">0.5X</button><button type="button" data-spd="1100" class="on">1X</button><button type="button" data-spd="733">1.5X</button><button type="button" data-spd="550">2X</button><button type="button" data-spd="367">3X</button></div>
                 <input type="range" id="cadRpBar" min="0" value="0" step="1">
                 <div class="cad-rp-time"><span id="cadRpCur">0:00</span><span id="cadRpDur">0:00</span></div>
                 <div class="cad-rp-tx" id="cadRpTx"></div>
@@ -525,6 +526,9 @@
 .cad-rp button.pl { min-width: 64px; font-weight: 700; background: #f4c542; color: #1b4332; border-color: #f4c542; }
 .cad-rp button.x { margin-left: auto; }
 .cad-rp select { height: 28px; border-radius: 6px; border: 0; font-size: 0.78rem; }
+.cad-rp-spd { display: flex; align-items: center; gap: 4px; margin: 6px 0 2px; font-size: 0.74rem; opacity: .95; }   /* 배속 단추(사용자 — 콤보 대신) */
+.cad-rp-spd button { min-width: 40px; height: 24px; font-size: 0.76rem; font-variant-numeric: tabular-nums; }
+.cad-rp-spd button.on { background: #f4c542; color: #1b4332; border-color: #f4c542; font-weight: 700; }
 .cad-rp .no { font-variant-numeric: tabular-nums; margin-left: 4px; opacity: .9; }
 .cad-rp-title { position: absolute; left: 50%; top: 14%; transform: translateX(-50%); z-index: 20; pointer-events: none; opacity: 0;
     background: rgba(27,67,50,.88); color: #fff; font-weight: 800; font-size: 1.35rem; padding: 10px 22px; border-radius: 12px; box-shadow: 0 8px 28px rgba(0,0,0,.2); white-space: nowrap; }
@@ -3102,7 +3106,13 @@ function rpClock() {
     const bar = $('cadRpBar'); if (!RP.dragging) { bar.max = Math.max(1, Math.round(T[T.length - 1])); bar.value = Math.round(cur); }
 }
 setInterval(() => { if (RP && RP.playing) rpClock(); }, 250);
-$('cadRpSpd').addEventListener('change', () => { if (RP) { RP.T = null; rpClock(); } });   // 빠르기를 바꾸면 전체 시간도 다시 센다
+$('cadRpSpd').addEventListener('change', () => { if (RP) { RP.T = null; rpClock(); } });
+// 배속 단추 — 숨긴 select(cadRpSpd)의 값을 바꾼다(재생 코드는 그 값을 읽는다)
+$('cadRpSpdBtns').addEventListener('click', e => {
+    const b = e.target.closest('[data-spd]'); if (!b) return;
+    $('cadRpSpd').value = b.dataset.spd; $('cadRpSpd').dispatchEvent(new Event('change'));
+    document.querySelectorAll('#cadRpSpdBtns [data-spd]').forEach(x => x.classList.toggle('on', x === b));
+});   // 빠르기를 바꾸면 전체 시간도 다시 센다
 // 목록 줄이 보이게 — **목록 칸 안에서만** 내린다. scrollIntoView 는 페이지까지 굴려, 도면 아래에 목록이 오는
 // 휴대폰에서 재생하면 화면이 목록으로 올라가 도면이 안 보였다(사용자)
 function paneScroll(el) {
