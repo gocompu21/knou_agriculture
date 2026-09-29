@@ -2630,6 +2630,19 @@ function srForMark(op) {
 function rpNoSr(s) { return s && s.sr ? {...s, sr: null} : s; }
 // ── 재생을 깔끔하게(사용자) ──
 // ① 그 칸에 쓰는 도구만 — 가로선 I자 · 세로·45°·60°·30° I자+삼각자 · 그 밖의 각도 회전 삼각자 · 원·호·템플릿 도형 템플릿 · 마킹 스케일자 · 나머지는 없음
+// 기록된 삼각자의 변이 그 선 위에 정말 놓였는가 — 기록 없는 칸은 앞뒤 기록을 빌려 오므로 삼각자가 엉뚱한 곳에 있을 수 있다.
+// 빗변이 선에서 떨어진 채 45° 선이 그어졌다(도면 틀을 옮긴 주차공원444, 사용자). 변과 나란하고 선의 두 끝이 변 위(tol 안)여야 맞다
+function rpTriFits(s, a, b, tol) {
+    const keep = {tri, barY, barOn}; let ok = false;
+    try {
+        tri = s.tri; barY = s.bar; barOn = true;
+        const G = triGeom(), L = Math.hypot(b.x - a.x, b.y - a.y); if (!G || !(L > 0)) return false;
+        const ux = (b.x - a.x) / L, uy = (b.y - a.y) / L;
+        ok = G.edges.some(e => Math.abs(e.dx * uy - e.dy * ux) < 0.02
+            && [a, b].every(p => Math.abs((p.x - e.ax) * e.dy - (p.y - e.ay) * e.dx) <= tol));
+    } catch (e) { ok = false; } finally { tri = keep.tri; barY = keep.barY; barOn = keep.barOn; }
+    return ok;
+}
 function rpToolsFor(s, op) {
     if (!s || !op || op.t === 'step') return s;
     if (op.mark) { const g = !op.tl && srForMark(op); return rpMarkTools(g ? {...s, sr: g} : s); }
@@ -2647,7 +2660,7 @@ function rpToolsFor(s, op) {
         const deg = Math.atan2(dy, dx) * 180 / Math.PI, near = v => Math.abs(deg - v) < 1.5;
         if (near(90) || near(45) || near(60) || near(30)) {
             if (!s.tri && s.ftri) return {...none, ftri: s.ftri};                  // 회전 삼각자로 그은 것
-            if (!s.tri || s.bar == null || Math.max(a.y, b.y) > s.bar + tolY) return ideal();
+            if (!s.tri || s.bar == null || Math.max(a.y, b.y) > s.bar + tolY || !rpTriFits(s, a, b, tolY)) return ideal();
             return {...none, bar: s.bar, tri: s.tri};
         }
         return s.ftri ? {...none, ftri: s.ftri} : ideal();
