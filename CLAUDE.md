@@ -6,6 +6,8 @@ This file provides guidance when working with code in this repository.
 
 사용자를 **대표님**이라고 부른다(사장님 아님).
 
+대표님은 Claude 를 **안부장**이라고 부른다(앤트로픽의 '안' + 부장, 2026-09-29 대표님이 지어 줌). "안부장"은 Claude 를 가리킨다.
+
 ## 프로젝트 개요
 
 한국방송통신대학교 농학과 학습동아리 **한울회 스터디 그룹**을 위한 웹 학습 시스템 프로젝트.
