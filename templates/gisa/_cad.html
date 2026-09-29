@@ -70,9 +70,6 @@
         <button type="button" id="cadCalcBtn" class="cad-bar-btn" aria-label="계산기" title="템플릿 계산기 — 축척과 실제 지름으로 몇 번 구멍을 쓸지, 구멍 번호로 실제 지름을 계산"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="2" width="12" height="16" rx="1.6"/><rect x="6" y="4.2" width="8" height="3.2" rx=".5"/><path d="M7 10.3h.01M10 10.3h.01M13 10.3h.01M7 13h.01M10 13h.01M13 13h.01M7 15.6h.01M10 15.6h.01M13 15.6h.01" stroke-width="2.1"/></svg></button>
         <span class="cad-sep"></span>
         <button type="button" id="cadAuxBtn" class="cad-bar-btn on" hidden aria-label="보조선" title="보조선 레이어 보이기·감추기 — 색은 설정(⚙)에서"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6h16M2 10h16M2 14h16" stroke-dasharray="2 1.6"/></svg></button>
-        <span class="cad-sep"></span>
-        <button type="button" id="cadUndo" title="되돌리기 (Ctrl+Z)">↶</button>
-        <button type="button" id="cadRedo" title="다시 하기 (Ctrl+Y)">↷</button>
         <button type="button" id="cadSetBtn" class="cad-set-btn" title="설정 — 점 번호·자 크기·샤프·보조선" aria-label="설정" aria-expanded="false"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.2v2.3M10 15.5v2.3M2.2 10h2.3M15.5 10h2.3M4.5 4.5l1.6 1.6M13.9 13.9l1.6 1.6M4.5 15.5l1.6-1.6M13.9 6.1l1.6-1.6"/><circle cx="10" cy="10" r="5.4"/></svg></button>
         <div class="cad-set cad-calc" id="cadCalc" hidden>
             <h4>템플릿 계산기</h4>
@@ -130,6 +127,8 @@
                 <button type="button" id="cadZprev" title="이전 화면 (Shift+Z)"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4L3 9l5 5M3 9h9a4.5 4.5 0 0 1 0 9h-3"/></svg></button>
                 <button type="button" id="cadZin" title="확대">+</button>
                 <button type="button" id="cadZout" title="축소">−</button>
+                <button type="button" id="cadUndo" class="gap" title="되돌리기 (Ctrl+Z)">↶</button>
+                <button type="button" id="cadRedo" title="다시 하기 (Ctrl+Y)">↷</button>
             </div>
             <div class="cad-status"><span id="cadXY">X — · Y —</span><span id="cadHint"></span></div>
         </div>
@@ -447,7 +446,8 @@
 .cad-tool-select #cadSvg { cursor: default; }
 .cad-zoom button.on { background: #1b4332; color: #fff; border-color: #1b4332; }
 .cad.zwin #cadSvg, .cad.zwin #cadSvg * { cursor: zoom-in !important; }
-.cad-zoom { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 4px; }   /* 맞춤 아래로 + − 세로 */
+.cad-zoom { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 4px; }   /* 맞춤 아래로 + − 세로, 그 아래 되돌리기·다시 하기 */
+.cad-zoom button.gap { margin-top: 8px; }
 .cad-zoom button { border: 1px solid #cfd8d3; background: rgba(255,255,255,.94); border-radius: 6px; min-width: 32px; height: 30px;
     font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #1b4332; }
 .cad-status { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 14px; padding: 4px 10px;
@@ -945,7 +945,7 @@ function drawTpl() {
             + `<path d="M${f(-rr - 0.7 * k)} ${f(0.05 * k)}L${f(-rr + 0.7 * k)} ${f(0.05 * k)}L${f(-rr)} ${f(-0.9 * k)}Z" fill="#6b4c00"/></g>`;
     }
     if (moving && drag.hole) {                          // 끄는 동안 잡은 구멍의 중심 좌표
-        const h = H.find(q => q.s === drag.hole.s && q.d === drag.hole.d), fs = 1.4 * U, lb = `${holeLabel(h)}  X ${fmt1(h.c.x)} · Y ${fmt1(h.c.y)}`, tw = lb.length * fs * 0.55;
+        const hk = drag.pin || drag.hole, h = H.find(q => q.s === hk.s && q.d === hk.d), fs = 1.4 * U, lb = `${holeLabel(h)}  X ${fmt1(h.c.x)} · Y ${fmt1(h.c.y)}`, tw = lb.length * fs * 0.55;
         o += `<g pointer-events="none"><path d="M${f(h.c.x)} ${f(sheet.y0)}V${f(sheet.y1)}M${f(sheet.x0)} ${f(h.c.y)}H${f(sheet.x1)}" stroke="#c62828" stroke-width="${f(0.06 * U)}" stroke-dasharray="${f(0.5 * U)} ${f(0.35 * U)}"/>`
            + `<rect x="${f(h.c.x + h.hr + 0.6 * U)}" y="${f(h.c.y - h.hr - 2.2 * U)}" width="${f(tw)}" height="${f(fs * 1.5)}" rx="${f(0.3 * U)}" fill="#c62828"/>`
            + `<text x="${f(h.c.x + h.hr + 0.6 * U + tw / 2)}" y="${f(h.c.y - h.hr - 2.2 * U + fs * 0.75)}" font-size="${f(fs)}" fill="#fff" font-weight="700" text-anchor="middle" dominant-baseline="central">${lb}</text></g>`;
@@ -1008,6 +1008,62 @@ function tangentCenter(raw, snapped, r) {
     }
     const t = (snapped.x - o1.a.x) * o1.d.x + (snapped.y - o1.a.y) * o1.d.y;   // 선 방향으로는 눈금 자리를 지킨다
     return {c: {x: o1.a.x + o1.d.x * t, y: o1.a.y + o1.d.y * t}, n: 1};
+}
+// 템플릿을 옮길 때 구멍 중심을 도면에 맞춘다 — ① 점 ② 두 선의 교점 ③ 선 위(선 방향으로는 눈금). 보조선도 선이다(보일 때).
+// 눈금 맞춤은 잡은 구멍 하나에만 걸려, 다른 구멍의 중심은 구멍 사이 거리(mm × 축척)만큼 눈금에서 벗어나 점·보조선 자리에 못 맞췄다(사용자).
+// 판에는 구멍이 수십 개라 어디서든 어느 구멍이 선 곁에 있다 — 모든 구멍을 보면 판이 선마다 달라붙으므로 **커서 곁(40px)의 구멍만** 본다.
+// raw 는 잡은 구멍 중심의 끌린 자리. 돌려주는 것: h(맞춘 구멍) · t(그 구멍 중심이 갈 자리) · what(상태줄 글)
+function tplPin(raw, g) {
+    tpl.x = raw.x - drag.ox; tpl.y = raw.y - drag.oy;
+    const px = pxPer(), tol = 10 / px, cur = {x: raw.x + drag.gx, y: raw.y + drag.gy};
+    const H = tplHoles().filter(h => Math.hypot(h.c.x - cur.x, h.c.y - cur.y) - h.hr < 40 / px);
+    if (!H.length) return null;
+    // 점 + 사각형·박스의 가운데 — 수목보호대 □ 안에 원을 넣듯 네모 한가운데에 구멍을 맞추는 일이 잦다(사용자)
+    const T = doc.pts.map(p => ({x: p.x, y: p.y, what: `P${p.n} `})), bx0 = {};
+    doc.ops.forEach(op => {
+        if (auxHidden(op)) return;
+        if (op.t === 'sym') { const G = symGeom(op); G.rcs.forEach(c => T.push({x: c.x, y: c.y, what: '기호 네모 가운데'})); G.circles.forEach(c => T.push({x: c.cx, y: c.cy, what: '기호 원 중심'})); return; }
+        const a = P(op.a), b = P(op.b); if (!a || !b) return;
+        if (op.t === 'rect') T.push({x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, what: '사각형 가운데'});
+        else if (op.t === 'line' && op.box) { const q = bx0[op.grp] = bx0[op.grp] || {x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity};
+            [a, b].forEach(p => { q.x0 = Math.min(q.x0, p.x); q.y0 = Math.min(q.y0, p.y); q.x1 = Math.max(q.x1, p.x); q.y1 = Math.max(q.y1, p.y); }); }
+    });
+    Object.values(bx0).forEach(q => T.push({x: (q.x0 + q.x1) / 2, y: (q.y0 + q.y1) / 2, what: '박스 가운데'}));
+    let best = null, bd = tol;
+    H.forEach(h => T.forEach(p => { const d = Math.hypot(p.x - h.c.x, p.y - h.c.y); if (d < bd) { bd = d; best = {h, t: {x: p.x, y: p.y}, what: p.what}; } }));
+    if (best) return best;
+    const L = [];                                      // 도면의 선·사각형 변(보이는 것) — 자의 변은 빼고
+    doc.ops.forEach(op => {
+        if (auxHidden(op) || (op.t !== 'line' && op.t !== 'rect')) return;
+        const a = P(op.a), b = P(op.b); if (!a || !b) return;
+        const aux = isAux(op), q = op.t === 'rect' ? [a, {x: b.x, y: a.y}, b, {x: a.x, y: b.y}] : [a, b];
+        for (let i = 0; i < (op.t === 'rect' ? 4 : 1); i++) {
+            const p0 = q[i], p1 = q[(i + 1) % q.length], n = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+            if (n > 1e-6) L.push({a: p0, d: {x: (p1.x - p0.x) / n, y: (p1.y - p0.y) / n}, lo: 0, hi: n, aux});
+        }
+    });
+    const name = l => (l.aux ? '보조선' : '선');
+    let bx = tol * 1.5, one = null, bo = tol;
+    H.forEach(h => {
+        const hit = L.map(l => ({l, sd: sdist(l, h.c), t: (h.c.x - l.a.x) * l.d.x + (h.c.y - l.a.y) * l.d.y}))
+                     .filter(o => Math.abs(o.sd) < tol && o.t >= o.l.lo - tol && o.t <= o.l.hi + tol).sort((a, b) => Math.abs(a.sd) - Math.abs(b.sd));
+        if (!hit.length) return;
+        const o1 = hit[0], o2 = hit.find(o => Math.abs(o.l.d.x * o1.l.d.y - o.l.d.y * o1.l.d.x) > 0.05);
+        if (o2) {                                      // 두 선의 교점
+            const A = o1.l, B = o2.l, den = A.d.x * B.d.y - A.d.y * B.d.x;
+            const s = ((B.a.x - A.a.x) * B.d.y - (B.a.y - A.a.y) * B.d.x) / den, t = {x: A.a.x + A.d.x * s, y: A.a.y + A.d.y * s};
+            const d = Math.hypot(t.x - h.c.x, t.y - h.c.y);
+            if (d < bx) { bx = d; best = {h, t, what: A.aux && B.aux ? '보조선 교점' : '두 선의 교점'}; }
+        }
+        if (Math.abs(o1.sd) < bo) {                     // 선 위 — 선을 따라서는 눈금에 맞춘다(가로·세로 선)
+            bo = Math.abs(o1.sd);
+            const l = o1.l, t = {x: h.c.x + l.d.y * o1.sd, y: h.c.y - l.d.x * o1.sd};
+            if (Math.abs(l.d.x) < 1e-6) t.y = Math.round(t.y / g) * g;
+            else if (Math.abs(l.d.y) < 1e-6) t.x = Math.round(t.x / g) * g;
+            one = {h, t, what: `${name(l)} 위`};
+        }
+    });
+    return best || one;
 }
 // 호의 끝 맞춤 — 원의 위·아래·왼쪽·오른쪽, 원이 접한 선의 접점, 원 위에 있는 점. 가까우면(14px) 그 각도로 붙인다
 function arcCands(h) {
@@ -3026,18 +3082,18 @@ function compactPts() {
 // 고른 점을 다른 것도 쓰면 그것이 틀어지지 않게, 교차점에 새 점을 두고 이 선의 끝만 옮긴다. 아무도 안 쓰게 된 점은 지운다
 // 기호(시설 및 수목) 안의 선·사각형·원 — 도면 좌표로 펴서 연장·줄이기·붙기의 상대로 쓴다(사용자: 원문자 원까지 연장)
 function symGeom(op) {
-    const d = doc.syms && doc.syms[op.sym], p = P(op.p); if (!d || !p) return {segs: [], circles: []};
-    const segs = [], circles = [];
+    const d = doc.syms && doc.syms[op.sym], p = P(op.p); if (!d || !p) return {segs: [], circles: [], rcs: []};
+    const segs = [], circles = [], rcs = [];   // rcs — 기호 안 사각형의 가운데(템플릿 맞춤)
     const walk = (items, tf) => (items || []).forEach(it => {
         if (it.t === 'line') segs.push([tf(it.x1, it.y1), tf(it.x2, it.y2)]);
-        else if (it.t === 'rect') { const q = [tf(it.x, it.y), tf(it.x + it.rw, it.y), tf(it.x + it.rw, it.y + it.rh), tf(it.x, it.y + it.rh)]; q.forEach((u, i) => segs.push([u, q[(i + 1) % 4]])); }
+        else if (it.t === 'rect') { const q = [tf(it.x, it.y), tf(it.x + it.rw, it.y), tf(it.x + it.rw, it.y + it.rh), tf(it.x, it.y + it.rh)]; q.forEach((u, i) => segs.push([u, q[(i + 1) % 4]])); rcs.push(tf(it.x + it.rw / 2, it.y + it.rh / 2)); }
         else if (it.t === 'circle') { const c0 = tf(it.cx, it.cy), c1 = tf(it.cx + it.r, it.cy); circles.push({cx: c0.x, cy: c0.y, R: Math.hypot(c1.x - c0.x, c1.y - c0.y)}); }
         else if (it.t === 'g') { const a = (+it.rot || 0) * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a);
             walk(it.items, (x, y) => tf(it.x + x * ca - y * sa, it.y + x * sa + y * ca)); }
     });
     const a = (+op.rot || 0) * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a);
     walk(d.items, (x, y) => ({x: p.x + x * ca - y * sa, y: p.y + x * sa + y * ca}));
-    return {segs, circles};
+    return {segs, circles, rcs};
 }
 function allSegs() {                                  // 부딪칠 선분들 — 선과 사각형의 네 변(보이는 것만)
     const segs = [];
@@ -4712,12 +4768,18 @@ svg.addEventListener('pointermove', e => {
     if (drag && drag.kind === 'tpl') {
         if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 4) { drag.moved = true; root.classList.add('bar-drag'); }
         if (drag.moved) {
-            const g = barStep(), raw = {x: w.x - drag.gx, y: w.y - drag.gy};
-            let cx = Math.round(raw.x / g) * g, cy = Math.round(raw.y / g) * g, tan = null;
-            if (drag.hole.s === 'c') { tan = tangentCenter(raw, {x: cx, y: cy}, drag.hole.r); if (tan) { cx = tan.c.x; cy = tan.c.y; } }
+            // 스냅을 끄면 0.001m 로 자유롭게 — barStep() 은 스냅이 꺼지면 PREC(종이 눈금 ÷ 50)라 A2 1:400 에서 0.08m 칸에 묶여
+            // 0.05 자리(네모 가운데 등)에 끝내 못 갔다(사용자)
+            const g = $('cadSnap').checked ? barStep() : 0.001, raw = {x: w.x - drag.gx, y: w.y - drag.gy};
+            let cx = Math.round(raw.x / g) * g, cy = Math.round(raw.y / g) * g, tan = null, pin = e.altKey ? null : tplPin(raw, g);
+            // 점·선에 맞춤(`tplPin`) → 선에 접하기 → 눈금. Alt 를 누르면 눈금만
+            if (pin) { cx = raw.x + pin.t.x - pin.h.c.x; cy = raw.y + pin.t.y - pin.h.c.y; }   // 잡은 구멍의 중심 자리(그만큼 판을 옮긴다)
+            else if (drag.hole.s === 'c' && !e.altKey) { tan = tangentCenter(raw, {x: cx, y: cy}, drag.hole.r); if (tan) { cx = tan.c.x; cy = tan.c.y; } }
             tpl.x = +(cx - drag.ox).toFixed(4); tpl.y = +(cy - drag.oy).toFixed(4);
+            drag.pin = pin && {s: pin.h.s, d: pin.h.d};
             drawTpl(); hover = null; drawPre();
-            $('cadXY').textContent = `템플릿 ${holeLabel(drag.hole)} 중심 X ${fmt1(+cx.toFixed(3))} · Y ${fmt1(+cy.toFixed(3))}` + (tan ? ` · 선 ${tan.n}개에 접함` : '');
+            $('cadXY').textContent = pin ? `템플릿 ${holeLabel(pin.h)} 중심을 ${pin.what}에 맞춤 · X ${fmt1(+pin.t.x.toFixed(3))} · Y ${fmt1(+pin.t.y.toFixed(3))}`
+                : `템플릿 ${holeLabel(drag.hole)} 중심 X ${fmt1(+cx.toFixed(3))} · Y ${fmt1(+cy.toFixed(3))}` + (tan ? ` · 선 ${tan.n}개에 접함` : '');
         }
         return;
     }
