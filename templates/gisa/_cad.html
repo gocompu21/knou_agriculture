@@ -2610,7 +2610,8 @@ function rpToolsFor(s, op) {
         // 기록된 도구 자리로는 그을 수 없는 선이면(I자·삼각자 없이 그었거나, I자가 선을 가로지른다) 그 선을 그을 자리를 새로 잡는다.
         // 세로선이 I자 몸통을 뚫고 지나가며 그어졌다(사용자) — 삼각자로 긋는 선은 늘 I자 윗날 **위**에 있다
         const ideal = () => { const t = toolsForLine(a, b); return t.ftri ? {...none, ftri: t.ftri} : {...none, bar: t.bar, tri: t.tri}; };
-        if (dy <= tolY && dx >= dy * 10) return s.bar != null && Math.min(Math.abs(s.bar - a.y), Math.abs(s.bar - b.y)) <= tolY ? {...none, bar: s.bar} : ideal();
+        // 가로선은 I자만 — toolsForLine 은 가로선에 지금 삼각자를 그대로 실어(박스가 쓴다) 앞 세로선의 삼각자 위로 가로선을 그었다(사용자)
+        if (dy <= tolY && dx >= dy * 10) return {...none, bar: s.bar != null && Math.min(Math.abs(s.bar - a.y), Math.abs(s.bar - b.y)) <= tolY ? s.bar : toolsForLine(a, b).bar};
         const deg = Math.atan2(dy, dx) * 180 / Math.PI, near = v => Math.abs(deg - v) < 1.5;
         if (near(90) || near(45) || near(60) || near(30)) {
             if (!s.tri && s.ftri) return {...none, ftri: s.ftri};                  // 회전 삼각자로 그은 것
