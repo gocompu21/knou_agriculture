@@ -2580,10 +2580,17 @@ function rpToolsFor(s, op) {
     if (op.t === 'line') {
         const a = P(op.a), b = P(op.b); if (!a || !b) return none;
         const dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y), tolY = Math.max(0.05, 0.3 * U);
-        if (dy <= tolY && dx >= dy * 10) return {...none, bar: s.bar};
+        // 기록된 도구 자리로는 그을 수 없는 선이면(I자·삼각자 없이 그었거나, I자가 선을 가로지른다) 그 선을 그을 자리를 새로 잡는다.
+        // 세로선이 I자 몸통을 뚫고 지나가며 그어졌다(사용자) — 삼각자로 긋는 선은 늘 I자 윗날 **위**에 있다
+        const ideal = () => { const t = toolsForLine(a, b); return t.ftri ? {...none, ftri: t.ftri} : {...none, bar: t.bar, tri: t.tri}; };
+        if (dy <= tolY && dx >= dy * 10) return s.bar != null && Math.min(Math.abs(s.bar - a.y), Math.abs(s.bar - b.y)) <= tolY ? {...none, bar: s.bar} : ideal();
         const deg = Math.atan2(dy, dx) * 180 / Math.PI, near = v => Math.abs(deg - v) < 1.5;
-        if (near(90) || near(45) || near(60) || near(30)) return {...none, bar: s.bar, tri: s.tri};
-        return s.ftri ? {...none, ftri: s.ftri} : {...none, bar: s.bar, tri: s.tri};
+        if (near(90) || near(45) || near(60) || near(30)) {
+            if (!s.tri && s.ftri) return {...none, ftri: s.ftri};                  // 회전 삼각자로 그은 것
+            if (!s.tri || s.bar == null || Math.max(a.y, b.y) > s.bar + tolY) return ideal();
+            return {...none, bar: s.bar, tri: s.tri};
+        }
+        return s.ftri ? {...none, ftri: s.ftri} : ideal();
     }
     if (op.t === 'arc' || op.t === 'circle') return {...none, tpl: s.tpl};
     return none;                                         // 프리드로잉·글자·채우기·기호(기호는 rpSymPlay 가 선·원마다 도구를 놓는다)
