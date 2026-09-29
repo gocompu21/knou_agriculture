@@ -448,6 +448,8 @@
 .cad.zwin #cadSvg, .cad.zwin #cadSvg * { cursor: zoom-in !important; }
 .cad-zoom { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 4px; }   /* 맞춤 아래로 + − 세로, 그 아래 되돌리기·다시 하기 */
 .cad-zoom button.gap { margin-top: 8px; }
+.cad-circ { display: inline-flex; align-items: center; justify-content: center; min-width: 1.15em; height: 1.15em; padding: 0 1px; box-sizing: border-box;
+    border: 1px solid currentColor; border-radius: 999px; font-size: 0.72em; line-height: 1; letter-spacing: -0.04em; vertical-align: 0.12em; }   /* 51 부터의 원문자 */
 .cad-zoom .cad-bar-btn { display: inline-flex; align-items: center; justify-content: center; }   /* 자 가운데로 — 그림 단추 */
 .cad-zoom button { border: 1px solid #cfd8d3; background: rgba(255,255,255,.94); border-radius: 6px; min-width: 32px; height: 30px;
     font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #1b4332; }
@@ -628,6 +630,8 @@ const INK = '#111', BLUE = '#2b4a9b', RED = '#d93025';
 const CIRC = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 // ①~⑳ 다음에도 원문자로 — ㉑~㉟(U+3251) · ㊱~㊿(U+32B1). 그 뒤만 (51) 꼴(사용자: 21번부터 괄호로 바뀌었다)
 const circ = i => i <= 20 ? CIRC[i - 1] : i <= 35 ? String.fromCharCode(0x3251 + i - 21) : i <= 50 ? String.fromCharCode(0x32B1 + i - 36) : `(${i})`;
+// 화면용 — 원문자 글자는 ㊿ 까지뿐이라 51 부터는 CSS 동그라미로 그린다(사용자: 51 부터 괄호로 바뀌었다). 복사 글(평문)은 circ 그대로
+const circH = i => i <= 50 ? circ(i) : `<span class="cad-circ">${i}</span>`;
 
 // 선 종류 — 굵기·간격은 종이 폭 100m 를 기준으로 한 m 값이고, 종이 크기에 비례해 늘고 준다(U)
 const LS = {
@@ -2900,7 +2904,7 @@ function rpInfo() {
     for (let j = 0; j < RP.k; j++) { const o = doc.ops[j]; if (o.t === 'step') { step = o.title; no++; i = 0; } else if (!(o.grp != null && j > 0 && doc.ops[j - 1].grp === o.grp)) i++; }
     $('cadRpNo').textContent = `${RP.k} / ${n}`;
     $('cadRpTx').innerHTML = !op ? '처음 — ▶ 재생을 누르면 작도 순서대로 그려 보입니다'
-        : (step ? `<b>(${no}) ${esc(step)}</b>` : '') + (op.t === 'step' ? '' : `${step ? ' — ' : ''}${circ(i)} ${esc(op.grp != null ? grpDesc(grpOps(op.id)) : desc(op))}`);   // 도구 자리는 속에만 둔다(사용자)
+        : (step ? `<b>(${no}) ${esc(step)}</b>` : '') + (op.t === 'step' ? '' : `${step ? ' — ' : ''}${circH(i)} ${esc(op.grp != null ? grpDesc(grpOps(op.id)) : desc(op))}`);   // 도구 자리는 속에만 둔다(사용자)
     const hid = op ? (op.grp != null ? grpOps(op.id)[0].id : op.id) : null;
     document.querySelectorAll('#cadOpList .cad-op').forEach(r => r.classList.toggle('rp', +r.dataset.id === hid));
     const cur = hid != null && document.querySelector(`#cadOpList .cad-op[data-id="${hid}"]`);
