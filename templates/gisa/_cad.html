@@ -261,11 +261,11 @@
                     <button type="button" data-rp="first" title="처음으로(Home)">⏮</button><button type="button" data-rp="prev" title="이전(←)">◀</button>
                     <button type="button" data-rp="play" class="pl" title="재생·멈춤(Space)">▶ 재생</button>
                     <button type="button" data-rp="next" title="다음(→)">▶</button><button type="button" data-rp="last" title="끝으로(End)">⏭</button>
-                    <select id="cadRpSpd" hidden><option value="2200">0.5X</option><option value="1100" selected>1X</option><option value="733">1.5X</option><option value="550">2X</option><option value="367">3X</option><option value="220">5X</option></select>
+                    <select id="cadRpSpd" hidden><option value="2200">0.5X</option><option value="1100" selected>1X</option><option value="733">1.5X</option><option value="550">2X</option><option value="367">3X</option><option value="220">5X</option><option value="110">10X</option></select>
                     <span class="no" id="cadRpNo"></span>
                     <button type="button" data-rp="end" class="x" title="재생 끝내기(Esc)">✕</button>
                 </div>
-                <div class="cad-rp-spd" title="재생 배속"><span class="lb">배속</span><span class="seg" id="cadRpSpdBtns"><button type="button" data-spd="2200">0.5X</button><button type="button" data-spd="1100" class="on">1X</button><button type="button" data-spd="733">1.5X</button><button type="button" data-spd="550">2X</button><button type="button" data-spd="367">3X</button><button type="button" data-spd="220">5X</button></span></div>
+                <div class="cad-rp-spd" title="재생 배속"><span class="lb">배속</span><span class="seg" id="cadRpSpdBtns"><button type="button" data-spd="2200">0.5X</button><button type="button" data-spd="1100" class="on">1X</button><button type="button" data-spd="733">1.5X</button><button type="button" data-spd="550">2X</button><button type="button" data-spd="367">3X</button><button type="button" data-spd="220">5X</button><button type="button" data-spd="110">10X</button></span></div>
                 <input type="range" id="cadRpBar" min="0" value="0" step="1">
                 <div class="cad-rp-time"><span id="cadRpCur">0:00</span><span id="cadRpDur">0:00</span></div>
                 <div class="cad-rp-tx" id="cadRpTx"></div>
@@ -2431,6 +2431,26 @@ function toolsForLine(a, b) {
 }
 // 호·원의 도구 자리 — 지름이 가장 가까운 원 구멍을 골라, 그 구멍 중심이 호의 중심에 오게 템플릿을 놓는다(사용자: 재생 때 호는 템플릿으로).
 // 지금 템플릿 종류(원형·도형)에서 먼저 찾고 없으면 원형. 구멍 지름이 1mm(종이 위) 넘게 어긋나면 도구를 옮기지 않는다
+// 템플릿으로 그린 다각형(△ □ ⬡ 묶음)의 템플릿 자리 — 기록된 템플릿에 그 모양·크기 구멍이 도형 자리에 있으면 그대로, 없으면 다시 놓는다.
+// 도면을 다른 축척으로 옮기면(444 1:800 → 1:400) 판 위 구멍 자리가 축척만큼 달라져, 템플릿은 엉뚱한 곳에 있고 도형은 제자리에 그어졌다(사용자)
+function rpTplFit(t, g) {
+    const V = [];
+    (g || []).forEach(o => [P(o.a), P(o.b)].forEach(q => { if (q && !V.some(v => Math.hypot(v.x - q.x, v.y - q.y) < 1e-3)) V.push(q); }));
+    const sh = {3: 't', 4: 's', 6: 'h'}[V.length]; if (!sh || !g.length) return t;
+    const xs = V.map(v => v.x), ys = V.map(v => v.y), c = {x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2};
+    const a0 = P(g[0].a), b0 = P(g[0].b), side = a0 && b0 ? Math.hypot(b0.x - a0.x, b0.y - a0.y) : 0, size = sh === 'h' ? side * Math.sqrt(3) : side;
+    if (!(size > 0)) return t;
+    const keep = tpl;
+    try {
+        if (t) { tpl = t; const tol = Math.max(0.02, size * 0.05);
+            if (tplHoles().some(h => h.s === sh && Math.hypot(h.c.x - c.x, h.c.y - c.y) < tol && Math.abs(h.a - size) < tol)) return t; }
+        tpl = {...(t || {}), kind: 'geo', x: 0, y: 0, rot: 0, den: scaleDenom()};
+        const k = tplK(), dmm = size / k; let best = null;
+        tplDef().holes.filter(h => h.s === sh).forEach(h => { const e = Math.abs(h.d - dmm); if (!best || e < best.e) best = {e, h}; });
+        if (!best) return t;
+        return {...tpl, x: rnd3(c.x - best.h.x * k), y: rnd3(c.y - best.h.y * k)};
+    } finally { tpl = keep; }
+}
 function toolsForCircle(cx, cy, R) {
     const base = toolState(), keep = tpl, kinds = [...new Set([(tpl && tpl.kind) || 'circle', 'circle', 'geo'])];
     let best = null;
@@ -2612,7 +2632,7 @@ function rpToolsFor(s, op) {
     if (op.mark) { const g = !op.tl && srForMark(op); return rpMarkTools(g ? {...s, sr: g} : s); }
     if (op.box) return rpNoSr(s);                        // 박스는 변마다 제 기록대로(삼각자를 왼쪽에 둔다 — 사용자)
     const none = {...s, bar: null, tri: null, tpl: null, sr: null, ftri: null};
-    if (op.grp != null && op.t === 'line') return {...none, tpl: s.tpl};   // 템플릿으로 돌려 그린 도형
+    if (op.grp != null && op.t === 'line') return {...none, tpl: rpTplFit(s.tpl, grpOps(op.id))};   // 템플릿으로 돌려 그린 도형 — 구멍이 도형 자리에 없으면 다시 놓는다
     if (op.t === 'line') {
         const a = P(op.a), b = P(op.b); if (!a || !b) return none;
         const dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y), tolY = Math.max(0.05, 0.3 * U);
