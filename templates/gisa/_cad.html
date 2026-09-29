@@ -2761,10 +2761,19 @@ function rpPenLayer() {
     if (!g) { g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.id = 'cadRpPen'; g.setAttribute('pointer-events', 'none'); svg.appendChild(g); }
     return g;
 }
+// 글자를 쓰는 샤프의 움직임(사용자: 글을 적는 움직임) — 글자마다 칸을 나눠, 칸 안에서 샤프심이 위아래로 몇 번 오르내리며
+// 조금씩 오른쪽으로 간다(획을 긋듯이). 글자는 샤프가 지나간 데까지 드러난다(cut: 드러난 비율 — 늘 앞으로만 간다)
+function rpWriteTip(bb, u, n) {
+    n = Math.max(1, n || 1);
+    const cw = bb.width / n, i = Math.min(n - 1, Math.floor(u * n)), f = u >= 1 ? 1 : u * n - i;
+    const base = bb.x + cw * (i + 0.1 + 0.8 * f), zz = t => 1 - Math.abs(2 * (t % 1) - 1);   // 0 → 1 → 0
+    const x = base + cw * 0.07 * Math.sin(f * 8 * Math.PI), y = bb.y + bb.height * (0.22 + 0.62 * zz(f * 3.5));
+    return {x, y, cut: Math.min(1, u >= 1 ? 1 : (cw * (i + 0.1 + 0.8 * f) + cw * 0.1) / bb.width)};
+}
 function rpReveal(op, dur) {                           // 방금 그은 것을 샤프가 긋듯이 — 선 끝을 샤프심이 따라간다. 묶음이면 변을 차례로
     const list = Array.isArray(op) ? op : [op]; op = list[0];
     const gs = list.map(o => gOps.querySelector(`[data-op="${o.id}"]`)).filter(Boolean); if (!gs.length) return;
-    if (list.length === 1 && op.t === 'text') {        // 글자 — 왼쪽부터 쓰듯이 드러내고 샤프가 글자 아래를 따라간다(기호 속 글자와 같게, 사용자)
+    if (list.length === 1 && op.t === 'text') {        // 글자 — 샤프가 글자마다 위아래로 오르내리며 쓰고(rpWriteTip), 지나간 데까지 드러난다(기호 속 글자와 같게, 사용자)
         const el = gs[0].querySelector('text'); let bb = null; try { bb = el.getBBox(); } catch (e) {}
         if (el && bb && bb.width) {
             const pen = rpPenImg('p5'), lay = rpPenLayer(), id = RP.reveal = {}, t0 = performance.now();
@@ -2773,8 +2782,9 @@ function rpReveal(op, dur) {                           // 방금 그은 것을 �
             const frame = now => {
                 if (!RP || RP.reveal !== id) { el.style.clipPath = ''; lay.innerHTML = ''; return; }
                 const u = Math.min(1, (now - t0) / dur);
-                el.style.clipPath = `inset(0 ${((1 - u) * 100).toFixed(1)}% 0 0)`;
-                const tip = toW({x: bb.x + bb.width * u, y: bb.y + bb.height * 0.85});
+                const wt = rpWriteTip(bb, u, [...(el.textContent || '')].filter(c => c.trim()).length);
+                el.style.clipPath = `inset(0 ${((1 - wt.cut) * 100).toFixed(1)}% 0 0)`;
+                const tip = toW({x: wt.x, y: wt.y});
                 if (pen && tip && u < 1) { const k = pxPer(), w = (pen.img.naturalWidth || 56) / k, h = (pen.img.naturalHeight || 56) / k;
                     lay.innerHTML = `<image href="${pen.src}" x="${fmt(tip.x - pen.hx / k)}" y="${fmt(tip.y - pen.hy / k)}" width="${fmt(w)}" height="${fmt(h)}"/>`; }
                 if (u < 1) requestAnimationFrame(frame); else { el.style.clipPath = ''; lay.innerHTML = ''; }
@@ -2861,8 +2871,9 @@ function rpSymPlay(op, spd, done) {
         const frame = now => {
             if (!RP || RP.reveal !== id) { el.style.clipPath = ''; lay.innerHTML = ''; return; }
             const u = Math.min(1, (now - t0) / dur);
-            el.style.clipPath = `inset(0 ${((1 - u) * 100).toFixed(1)}% 0 0)`;
-            const tip = toW(el, {x: bb.x + bb.width * u, y: bb.y + bb.height * 0.85});
+            const wt = rpWriteTip(bb, u, [...(el.textContent || '')].filter(c => c.trim()).length);
+            el.style.clipPath = `inset(0 ${((1 - wt.cut) * 100).toFixed(1)}% 0 0)`;
+            const tip = toW(el, {x: wt.x, y: wt.y});
             if (pen && tip && u < 1) { const k = pxPer(), w = (pen.img.naturalWidth || 56) / k, h = (pen.img.naturalHeight || 56) / k;
                 lay.innerHTML = `<image href="${pen.src}" x="${fmt(tip.x - pen.hx / k)}" y="${fmt(tip.y - pen.hy / k)}" width="${fmt(w)}" height="${fmt(h)}"/>`; }
             if (u < 1) requestAnimationFrame(frame); else { el.style.clipPath = ''; writeTexts(j + 1); }
