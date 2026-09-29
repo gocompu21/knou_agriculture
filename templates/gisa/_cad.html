@@ -114,6 +114,7 @@
                 <label class="cad-set-sub">색 <input type="color" id="cadAuxColor" class="cad-set-color"></label></div>
             <div class="cad-set-row"><span class="cad-set-lb" title="스케일자 눈금 모서리를 샤프로 찍어 남긴 표시">마킹 레이어</span>
                 <label class="cad-chk"><input type="checkbox" id="cadMarkOn" checked> 보이기</label>
+                <label class="cad-set-sub">색 <input type="color" id="cadMarkColor" class="cad-set-color"></label>
                 <button type="button" id="cadMarkClear" class="cad-bar-btn" title="마킹 표시와, 다른 선이 쓰지 않는 마킹 점을 모두 지웁니다 (Ctrl+Z 로 되돌림)">모두 지우기</button></div>
             <p class="cad-set-note">설정은 이 브라우저에 남습니다.</p>
         </div>
@@ -688,7 +689,7 @@ let tool = 'select', pickIdx = 0, editing = null, selOps = new Set(), selPt = nu
 let hover = null;
 // I자(평행자) — 제도판의 가로자. 켜 두면 윗변(barY) 근처를 누른 점이 그 높이에 붙는다
 // 설정(스냅·간격·점 번호·삼각자 크기) — 도면이 아니라 화면 습관이라 localStorage 에 둔다
-let SET = {snap: true, step: '', pts: true, triPct45: 50, triPct60: 70, p9: 0.5, p5: 0.25, auxOn: true, auxColor: '#a3a9b3', rulerNums: false, fillColor: '#9ccc65', fillOp: 0.35, fillType: 'solid', ls9: 'solid', ls5: 'aux'};   // 샤프마다 선 종류   // 샤프 굵기는 종이 위 mm
+let SET = {snap: true, step: '', pts: true, triPct45: 50, triPct60: 70, p9: 0.5, p5: 0.25, auxOn: true, auxColor: '#a3a9b3', markColor: '#f76707', rulerNums: false, fillColor: '#9ccc65', fillOp: 0.35, fillType: 'solid', ls9: 'solid', ls5: 'aux'};   // 샤프마다 선 종류   // 샤프 굵기는 종이 위 mm
 try { Object.assign(SET, JSON.parse(localStorage.getItem('cadSet') || '{}')); } catch (e) {}
 // 샤프 기본 굵기를 0.7·0.4 → 0.5·0.25mm 로 낮췄다(2026-09, 선이 뭉쳐 보였다). 설정은 통째로 저장되므로 옛 기본값 그대로인 사람만 한 번 옮긴다
 if (!SET.lw2) { if (SET.p9 === 0.7) SET.p9 = 0.5; if (SET.p5 === 0.4) SET.p5 = 0.25; SET.lw2 = 1; }
@@ -1094,7 +1095,7 @@ function srRun(S) {
     return Math.floor(SR_RUN / perM / lab + 1e-9) * lab * perM;
 }
 const SR_MARK = 0.75;                                  // 마킹 길이(종이 위 mm) — 실제 연필 표시처럼 짧게(3 → 1.5 → 0.75, 사용자)
-const markAttr = () => stAttr('solid', 'thin').replace(/stroke="[^"]*"/, 'stroke="#a5acb0"');   // 마킹은 옅은 회색(사용자)
+const markAttr = () => stAttr('solid', 'thin').replace(/stroke="[^"]*"/, `stroke="${SET.markColor || '#f76707'}"`);   // 마킹은 설정 색 — 옅은 회색이었는데 큰 도면에서 안 보였다(사용자)
 let sr = null;                                         // {x, y, rot, roll} 돌리기 전 왼쪽 위(도면 m) · 회전(°) · 바닥 면(0~2)
 try { sr = JSON.parse(localStorage.getItem('cadSr') || 'null'); } catch (e) {}
 if (sr && !(sr.roll >= 0 && sr.roll <= 2)) { sr.roll = 2; delete sr.s; }   // 예전 저장(축척을 고르던 때) → 검정 면 바닥
@@ -1792,11 +1793,11 @@ function lblBox(p, k, n) {
                [p.x + g, p.y - h / 2], [p.x - g - w, p.y - h / 2], [p.x - w / 2, p.y - g - h], [p.x - w / 2, p.y + g]][k] || [p.x + d, p.y - d - h];
     return {x0: B[0], y0: B[1], x1: B[0] + w, y1: B[1] + h};
 }
-function dotSvg(p, ring) {           // 점·번호 크기는 설정(SET.ptSize·ptNum, 배율)
+function dotSvg(p, ring, mk) {   // mk — 마킹 점은 마킹 색으로(큰 도면에서 검은 점과 가려 보이게, 사용자)           // 점·번호 크기는 설정(SET.ptSize·ptNum, 배율)
     const {r, fn} = lblSize();
     const tx = p.lp != null ? (() => { const b = lblBox(p, p.lp); return `x="${fmt(b.x0)}" y="${fmt((b.y0 + b.y1) / 2)}" dominant-baseline="central"`; })()
                             : `x="${fmt(p.x + r + fn * 0.22)}" y="${fmt(p.y - r - fn * 0.12)}"`;
-    return `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r)}" fill="${INK}"/>`
+    return `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r)}" fill="${mk ? (SET.markColor || '#f76707') : INK}"/>`
         + `<text ${tx} font-size="${fmt(fn)}" fill="${BLUE}" font-weight="700">${p.n}</text>`
         + (ring ? `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r * 2.6)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : '');
 }
@@ -1928,12 +1929,12 @@ function drawPts() {
         const used = new Set(); doc.ops.slice(RP.gs != null ? RP.gs : Math.max(0, RP.k - 1), RP.k).forEach(o => ptsOf(o).forEach(n => used.add(+n)));   // 지금 긋는 칸의 점만(사용자 — 번호가 선보다 먼저 눈에 들어왔다)
         const sh = doc.pts.filter(p => used.has(+p.n)), mk = markPtSet(RP.k);
         gPts.innerHTML = sh.filter(p => !mk.has(+p.n)).map(p => dotSvg(p, false)).join('');
-        $('cadPtsTop').innerHTML = sh.filter(p => mk.has(+p.n)).map(p => dotSvg(p, false)).join(''); return;
+        $('cadPtsTop').innerHTML = sh.filter(p => mk.has(+p.n)).map(p => dotSvg(p, false, true)).join(''); return;
     }
     // 마킹 점은 스케일자 모서리 위에 있어 자 밑에 가려진다 — 도구보다 위 층(#cadPtsTop)에 그린다(사용자: "마킹점도 점으로, 번호가 보여야")
     const on = activePts(), mk = markPtSet();
     gPts.innerHTML = doc.pts.filter(p => !mk.has(+p.n)).map(p => dotSvg(p, on.has(p.n))).join('');
-    $('cadPtsTop').innerHTML = doc.pts.filter(p => mk.has(+p.n)).map(p => dotSvg(p, on.has(p.n))).join('');
+    $('cadPtsTop').innerHTML = doc.pts.filter(p => mk.has(+p.n)).map(p => dotSvg(p, on.has(p.n), true)).join('');
 }
 function drawPre() {
     if (RP) { gPre.innerHTML = ''; return; }
@@ -5234,6 +5235,8 @@ $('cadMarkOn').checked = SET.markOn !== false; root.classList.toggle('mark-off',
 $('cadMarkOn').addEventListener('change', () => setMark($('cadMarkOn').checked));
 $('cadMarkClear').addEventListener('click', clearMarks);
 $('cadAuxColor').addEventListener('input', () => { SET.auxColor = $('cadAuxColor').value; saveSet(); drawOps(); drawPre(); });
+$('cadMarkColor').value = SET.markColor || '#f76707';
+$('cadMarkColor').addEventListener('input', () => { SET.markColor = $('cadMarkColor').value; saveSet(); drawOps(); drawPts(); });
 ['cadP9', 'cadP5'].forEach(id => $(id).addEventListener('change', () => {
     const v = +$(id).value; if (!(v > 0)) { $(id).value = SET[id === 'cadP9' ? 'p9' : 'p5']; return; }
     saveSet(); drawOps(); drawPre();
