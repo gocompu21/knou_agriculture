@@ -90,6 +90,8 @@
             <div class="cad-set-row"><button type="button" id="cadDropLone" class="cad-bar-btn" title="어떤 선·원·호·사각형·글자·기호에도 쓰이지 않는 점을 지웁니다(스케일자 마킹 점은 남김). Ctrl+Z 로 되돌림">독립 점 제거</button></div>
             <div class="cad-set-row"><span class="cad-set-lb">번호 크기</span><select id="cadPtNum" class="cad-set-ls" title="점 번호 글자 크기"><option value="0.25">25%</option><option value="0.3">30%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.25">125%</option><option value="1.5">150%</option><option value="2">200%</option><option value="2.5">250%</option><option value="3">300%</option></select></div>
             <div class="cad-set-row"><label class="cad-chk"><input type="checkbox" id="cadRulerNums"> 자 위치 숫자 보이기 <small class="cad-set-note">(I자 Y · 삼각자 X)</small></label></div>
+            <div class="cad-set-row"><label class="cad-chk"><input type="checkbox" id="cadRpMarkOn"> 재생 — 형광 동그라미 <small class="cad-set-note">(다음에 그을 자리)</small></label></div>
+            <div class="cad-set-row"><label class="cad-chk"><input type="checkbox" id="cadRpPtsOn"> 재생 — 점·번호 보이기</label></div>
             <div class="cad-set-row"><label class="cad-chk" title="I자(평행자) — 몸통을 끌어 위아래로(↑↓ 키로 한 칸씩). 투명 날을 따라 끌면 수평선이 그어집니다"><input type="checkbox" id="cadBarOn"> I자(평행자) 펴기</label></div>
             <div class="cad-set-row"><span class="cad-set-lb">45° 삼각자 <small class="cad-set-note" style="margin:0">(종이 높이 대비)</small></span>
                 <select id="cadTriSize" title="45° 삼각자 크기 — 직각을 낀 변의 길이를 종이 높이에 대한 비율로"><option value="30">30%</option><option value="40">40%</option><option value="50" selected>50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option><option value="100">100%</option><option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option><option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option></select>
@@ -719,7 +721,7 @@ try { Object.assign(SET, JSON.parse(localStorage.getItem('cadSet') || '{}')); } 
 // 샤프 기본 굵기를 0.7·0.4 → 0.5·0.25mm 로 낮췄다(2026-09, 선이 뭉쳐 보였다). 설정은 통째로 저장되므로 옛 기본값 그대로인 사람만 한 번 옮긴다
 if (!SET.lw2) { if (SET.p9 === 0.7) SET.p9 = 0.5; if (SET.p5 === 0.4) SET.p5 = 0.25; SET.lw2 = 1; }
 function saveSet() {
-    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.ptSize = +$('cadPtSize').value || 1; SET.ptNum = +$('cadPtNum').value || 1; SET.triPct45 = +$('cadTriSize').value || 50; SET.triPct60 = +$('cadTri60Size').value || 70; SET.font = $('ftFont').value; SET.ls9 = $('cadLs9').value || SET.ls9; SET.ls5 = $('cadLs5').value || SET.ls5; SET.fillType = $('cadFillType').value || SET.fillType; SET.fillColor = $('cadFillColor').value || SET.fillColor; SET.fillOp = +$('cadFillOp').value || SET.fillOp; SET.rulerNums = $('cadRulerNums').checked; SET.auxOn = $('cadAuxOn').checked; SET.auxColor = $('cadAuxColor').value || SET.auxColor; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
+    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.ptSize = +$('cadPtSize').value || 1; SET.ptNum = +$('cadPtNum').value || 1; SET.triPct45 = +$('cadTriSize').value || 50; SET.triPct60 = +$('cadTri60Size').value || 70; SET.font = $('ftFont').value; SET.ls9 = $('cadLs9').value || SET.ls9; SET.ls5 = $('cadLs5').value || SET.ls5; SET.fillType = $('cadFillType').value || SET.fillType; SET.fillColor = $('cadFillColor').value || SET.fillColor; SET.fillOp = +$('cadFillOp').value || SET.fillOp; SET.rulerNums = $('cadRulerNums').checked; SET.rpMark = $('cadRpMarkOn').checked; SET.rpPts = $('cadRpPtsOn').checked; SET.auxOn = $('cadAuxOn').checked; SET.auxColor = $('cadAuxColor').value || SET.auxColor; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
     try { localStorage.setItem('cadSet', JSON.stringify(SET)); } catch (e) {}
 }
 let barOn = false, barY = null;
@@ -2072,6 +2074,7 @@ function activePts() {
 function markPtSet(k) { const s = new Set(); (k == null ? doc.ops : doc.ops.slice(0, k)).forEach(o => { if (o.mark && o.p != null && !auxHidden(o)) s.add(+o.p); }); return s; }
 function drawPts() {
     if (!$('cadShowPts').checked) { gPts.innerHTML = ''; $('cadPtsTop').innerHTML = ''; return; }
+    if (RP && SET.rpPts === false) { gPts.innerHTML = ''; $('cadPtsTop').innerHTML = ''; return; }   // 설정에서 끈 경우(사용자)
     if (RP) {                                          // 재생 중 — 지금까지 그린 것이 쓰는 점만
         const used = new Set(); doc.ops.slice(RP.gs != null ? RP.gs : Math.max(0, RP.k - 1), RP.k).forEach(o => ptsOf(o).forEach(n => used.add(+n)));   // 지금 긋는 칸의 점만(사용자 — 번호가 선보다 먼저 눈에 들어왔다)
         const sh = doc.pts.filter(p => used.has(+p.n)), mk = markPtSet(RP.k);
@@ -3222,6 +3225,7 @@ function rpMark(op, dur, noPan) {
     if (!noPan && (w.x < vb.x + vb.w * m || w.x > vb.x + vb.w * (1 - m) || w.y < vb.y + vb.h * m || w.y > vb.y + vb.h * (1 - m))) {
         vb.x = w.x - vb.w / 2; vb.y = w.y - vb.h / 2; setVB();
     }
+    if (SET.rpMark === false) return;                  // 설정에서 끈 경우 — 화면 따라가기만 하고 동그라미는 안 띄운다(사용자)
     let g = $('cadRpMark');
     if (!g) { g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.id = 'cadRpMark'; g.setAttribute('pointer-events', 'none'); g.style.mixBlendMode = 'multiply'; svg.appendChild(g); }   // 형광펜 노랑 — 형광펜 띠와 같은 색, 밑이 비친다
     const t0 = performance.now(), id = rpMark.tok = {};   // 재생 밖(작도 순서 줄 누르기)에서도 쓴다
@@ -5646,6 +5650,8 @@ function syncPenLs() { if (tool.startsWith('pen')) $('fnLs').value = SET[tool ==
 $('fnLs').addEventListener('change', () => { if (!tool.startsWith('pen')) return; const k = tool === 'pen9' ? 'Ls9' : 'Ls5'; $('cad' + k).value = $('fnLs').value; saveSet(); });
 $('cadPtSize').value = String(SET.ptSize || 1); $('cadPtNum').value = String(SET.ptNum || 1);
 ['cadPtSize', 'cadPtNum'].forEach(id => $(id).addEventListener('change', () => { SET.ptSize = +$('cadPtSize').value || 1; SET.ptNum = +$('cadPtNum').value || 1; saveSet(); drawPts(); }));
+$('cadRpMarkOn').checked = SET.rpMark !== false; $('cadRpPtsOn').checked = SET.rpPts !== false;   // 기본은 켬
+['cadRpMarkOn', 'cadRpPtsOn'].forEach(id => $(id).addEventListener('change', () => { saveSet(); if (RP) drawPts(); }));
 $('cadRulerNums').checked = !!SET.rulerNums; root.classList.toggle('ruler-nums', !!SET.rulerNums);
 $('cadRulerNums').addEventListener('change', () => { root.classList.toggle('ruler-nums', $('cadRulerNums').checked); saveSet(); });
 PAVE.forEach(([v, n]) => $('cadFillType').insertAdjacentHTML('beforeend', `<option value="${v}">${n}</option>`));
