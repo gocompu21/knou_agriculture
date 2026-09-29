@@ -1162,8 +1162,14 @@ function srMark(edge, w) {
     const l = srLocal(w), perM = 1000 / edge.srS, minor = srGrad(edge.srS)[0], tot = srRun(edge.srS) / perM;
     // 찍는 단위 — 스냅이 켜져 있고 스냅 간격이 눈금보다 잘면 스냅 간격, 아니면 가장 작은 눈금. 1:800 사용자 지정 자는 작은 눈금이 1m 라
     // 스냅 0.5m 로 0.5m 자리를 찍어도 1m 로 반올림돼 이미 있는 마킹 위에 겹쳤다(사용자)
-    const snapS = $('cadSnap').checked ? +$('cadSnapStep').value : 0, stepR = snapS > 0 && snapS < minor ? snapS : minor;
-    const r = +Math.max(0, Math.min(tot, Math.round(((l.u - edge.srU0) * edge.srDu / perM) / stepR) * stepR)).toFixed(4);
+    // 스냅 간격은 도면 m 라 자의 m 로 바꿔 견준다 — 1:400 도면에 1/100 자를 대면 도면 0.1m 가 자로는 0.025m 라, 그 잘게로 반올림돼
+    // 10 을 누른 것이 9.9·10.14 로 찍혔다(사용자)
+    const snapS = $('cadSnap').checked ? +$('cadSnapStep').value * edge.srS / scaleDenom() : 0, stepR = snapS > 0 && snapS < minor ? snapS : minor;
+    const r0 = (l.u - edge.srU0) * edge.srDu / perM, pxR = perM * scaleDenom() / 1000 * pxPer();   // 자 1m 가 화면 몇 px
+    let r = Math.round(r0 / stepR) * stepR;
+    // 숫자 눈금·중간 눈금은 끌어당긴다 — 숫자를 겨냥해 누르면 그 숫자에 찍혀야 한다(화면 8px · 5px 안)
+    for (const [g, px] of [[srGrad(edge.srS)[3], 8], [srGrad(edge.srS)[1], 5]]) { const q = Math.round(r0 / g) * g; if (g > 0 && Math.abs(q - r0) * pxR <= px) { r = q; break; } }
+    r = +Math.max(0, Math.min(tot, r)).toFixed(4);
     const u = edge.srU0 + edge.srDu * r * perM, p = srMap(u, edge.srv), q = srMap(u, edge.srv + edge.srOut * SR_MARK);
     snapHist();
     const a = addPt(p.x, p.y);
