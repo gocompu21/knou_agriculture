@@ -2568,12 +2568,39 @@ function rpClearTri(tl, a, b) {
 }
 // 스케일자로 마킹할 때 — 삼각자는 치우고, I자는 스케일자가 그 날에 붙어 있을 때만 남긴다(사용자)
 function rpMarkTools(s) { return {...s, tri: null, bar: srOnBar(s.sr, s.bar) ? s.bar : null}; }
+// 도구 기록(tl)이 없는 마킹 — 도구 기록을 시작하기 전에 찍은 것. 재생이 뒤의 첫 기록(다른 방향의 자)을 빌려 와, 세로 마킹을
+// 가로 스케일자로 찍는 것처럼 보였다(사용자). 마킹 획(모서리 위 점 → 자 바깥쪽 끝)에서 모서리 방향·바깥쪽·축척·읽은 값을 알 수 있으니
+// 그 자리에 그 눈금이 오도록 스케일자를 다시 놓는다. 크게 보이는 면이 그 축척인 놓임을 먼저 고른다
+function srForMark(op) {
+    if (!op.pts || op.pts.length < 2 || !op.mark || !sheet) return null;
+    const [p0, q0] = op.pts, p = {x: p0[0], y: p0[1]}, t = {x: q0[0] - p0[0], y: q0[1] - p0[1]}, S = op.mark.s, r = op.mark.r;
+    const th = Math.atan2(t.x, -t.y) * 180 / Math.PI;    // 눈금과 직각인 모서리 방향
+    const keep = sr; let best = null;
+    try {
+        for (const rot of [th, th + 180]) for (const [roll, w] of SR_CYCLE) {
+            sr = {x: 0, y: 0, rot: +(((rot % 360) + 360) % 360).toFixed(3), roll, swap: !!w, den: scaleDenom()};
+            srEdges().forEach((e, ei) => {
+                if (e.srS !== S) return;
+                const u = e.srU0 + e.srDu * r * (1000 / S), a = srMap(u, e.srv), o = srMap(u, e.srv + e.srOut);
+                if ((o.x - a.x) * t.x + (o.y - a.y) * t.y <= 0) return;   // 자 바깥쪽이 마킹 쪽이어야
+                const rank = (srMain() === S ? 0 : 2) + ei;
+                if (!best || rank < best.rank) best = {rank, s: {...sr, x: rnd3(p.x - a.x), y: rnd3(p.y - a.y)}};
+            });
+        }
+        if (!best) {                                      // 그 축척 면이 없으면 사용자 지정 자(1:S)로
+            sr = {x: 0, y: 0, rot: th, roll: 2, custom: S, den: scaleDenom()};
+            const e = srEdges()[0], u = e.srU0 + e.srDu * r * (1000 / S), a = srMap(u, e.srv);
+            best = {s: {...sr, x: rnd3(p.x - a.x), y: rnd3(p.y - a.y)}};
+        }
+    } finally { sr = keep; }
+    return best.s;
+}
 function rpNoSr(s) { return s && s.sr ? {...s, sr: null} : s; }
 // ── 재생을 깔끔하게(사용자) ──
 // ① 그 칸에 쓰는 도구만 — 가로선 I자 · 세로·45°·60°·30° I자+삼각자 · 그 밖의 각도 회전 삼각자 · 원·호·템플릿 도형 템플릿 · 마킹 스케일자 · 나머지는 없음
 function rpToolsFor(s, op) {
     if (!s || !op || op.t === 'step') return s;
-    if (op.mark) return rpMarkTools(s);
+    if (op.mark) { const g = !op.tl && srForMark(op); return rpMarkTools(g ? {...s, sr: g} : s); }
     if (op.box) return rpNoSr(s);                        // 박스는 변마다 제 기록대로(삼각자를 왼쪽에 둔다 — 사용자)
     const none = {...s, bar: null, tri: null, tpl: null, sr: null, ftri: null};
     if (op.grp != null && op.t === 'line') return {...none, tpl: s.tpl};   // 템플릿으로 돌려 그린 도형
