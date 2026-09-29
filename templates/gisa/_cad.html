@@ -1906,8 +1906,13 @@ function setSheet(key) {
     const sel = $('cadSnapStep'), keep = sel.value || String(SET.step || '');
     // 0.1m·0.2m 는 늘 둔다 — 시설 치수(평의자 0.45m 등)를 잡을 때 쓴다
     // 1:100 이하(큰 축척) 종이는 0.05m 도 둔다 — 종이 위 0.5mm(사용자)
-    sel.innerHTML = [...new Set([...(scaleDenom() <= 100 ? [0.05] : []), 0.1, 0.2, mi / 2, mi, sheet.step].map(v => +v.toFixed(3)))].sort((x, y) => x - y).map(v => `<option value="${v}">${fmt(v)}m</option>`).join('');
-    sel.value = [...sel.options].some(o => o.value === keep) ? keep : String(mi);
+    // 트레이싱지는 눈금이 없으니 그 축척의 스케일자 눈금에 맞춘다(사용자) — 스냅으로 찍은 점을 늘 자 눈금으로 다시 잴 수 있게.
+    // 1:400 이면 0.25(시설 치수, 자 작은 눈금의 절반) · 0.5 · 1 · 5 · 10m. 모눈종이는 인쇄된 눈금(1cm → 1/5 → 1/10)을 따른다
+    const G = srGrad(scaleDenom()), trace = sheet.paper === 'trace';
+    const steps = trace ? [G[0] / 2, G[0], G[1], G[2], G[3]].filter(v => v > 0)
+                        : [...(scaleDenom() <= 100 ? [0.05] : []), 0.1, 0.2, mi / 2, mi, sheet.step];
+    sel.innerHTML = [...new Set(steps.map(v => +v.toFixed(3)))].sort((x, y) => x - y).map(v => `<option value="${v}">${fmt(v)}m</option>`).join('');
+    sel.value = [...sel.options].some(o => o.value === keep) ? keep : String(trace ? +G[0].toFixed(3) : mi);
     $('cadSheet').value = sheet.key;
     ftMmSync();   // 글자 크기는 종이 위 mm 로 고르고, 도면 m 는 축척으로 셈한다
 }
