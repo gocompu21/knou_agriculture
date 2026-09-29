@@ -2761,35 +2761,216 @@ function rpPenLayer() {
     if (!g) { g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.id = 'cadRpPen'; g.setAttribute('pointer-events', 'none'); svg.appendChild(g); }
     return g;
 }
-// 글자를 쓰는 샤프의 움직임(사용자: 글을 적는 움직임) — 글자마다 칸을 나눠, 칸 안에서 샤프심이 위아래로 몇 번 오르내리며
-// 조금씩 오른쪽으로 간다(획을 긋듯이). 글자는 샤프가 지나간 데까지 드러난다(cut: 드러난 비율 — 늘 앞으로만 간다)
-function rpWriteTip(bb, u, n) {
-    n = Math.max(1, n || 1);
-    const cw = bb.width / n, i = Math.min(n - 1, Math.floor(u * n)), f = u >= 1 ? 1 : u * n - i;
-    const base = bb.x + cw * (i + 0.1 + 0.8 * f), zz = t => 1 - Math.abs(2 * (t % 1) - 1);   // 0 → 1 → 0
-    const x = base + cw * 0.07 * Math.sin(f * 8 * Math.PI), y = bb.y + bb.height * (0.22 + 0.62 * zz(f * 3.5));
-    return {x, y, cut: Math.min(1, u >= 1 ? 1 : (cw * (i + 0.1 + 0.8 * f) + cw * 0.1) / bb.width)};
+// 글자를 쓰는 샤프(사용자: 글자 획을 따라 쓰고, 지나간 자리만 드러나게) — 글꼴은 그대로 두고 샤프만 어림 획을 따라간다.
+// 한글은 초·중·종성으로 나눠 자모마다 획(0~1 칸, y 는 아래로, 쓰는 차례·방향)을 모음 꼴에 따라 칸 안에 놓는다.
+// 숫자·로마자·기호는 작은 표, 없는 글자는 물결 한 획. 글자는 샤프 자취(굵은 둥근 선)로 만든 mask 로 드러난다
+const RP_O = (cx, cy, rx, ry) => { const p = []; for (let k = 0; k <= 16; k++) { const a = -Math.PI / 2 - k * Math.PI / 8; p.push([cx + rx * Math.cos(a), cy + ry * Math.sin(a)]); } return p; };   // 위에서 시작해 반시계로
+const RP_C = {                                          // 기본 자음 14
+    'ㄱ': [[[.12,.15],[.85,.15],[.8,.9]]],
+    'ㄴ': [[[.18,.1],[.18,.85],[.9,.85]]],
+    'ㄷ': [[[.15,.15],[.85,.15]],[[.15,.15],[.15,.85],[.9,.85]]],
+    'ㄹ': [[[.15,.12],[.85,.12],[.85,.48]],[[.15,.48],[.85,.48]],[[.15,.48],[.15,.88],[.9,.88]]],
+    'ㅁ': [[[.15,.15],[.15,.85]],[[.15,.15],[.85,.15],[.85,.85]],[[.15,.85],[.85,.85]]],
+    'ㅂ': [[[.15,.1],[.15,.88]],[[.85,.1],[.85,.88]],[[.15,.48],[.85,.48]],[[.15,.88],[.85,.88]]],
+    'ㅅ': [[[.5,.1],[.42,.52],[.1,.9]],[[.48,.45],[.9,.9]]],
+    'ㅇ': [RP_O(.5, .5, .36, .38)],
+    'ㅈ': [[[.12,.15],[.85,.15],[.45,.55],[.1,.9]],[[.5,.5],[.9,.9]]],
+    'ㅊ': [[[.42,.02],[.58,.12]],[[.12,.26],[.85,.26],[.45,.6],[.1,.92]],[[.5,.56],[.9,.92]]],
+    'ㅋ': [[[.12,.15],[.85,.15],[.8,.9]],[[.15,.5],[.82,.5]]],
+    'ㅌ': [[[.15,.12],[.85,.12]],[[.15,.48],[.8,.48]],[[.15,.12],[.15,.88],[.9,.88]]],
+    'ㅍ': [[[.1,.12],[.9,.12]],[[.35,.12],[.3,.86]],[[.65,.12],[.7,.86]],[[.08,.88],[.92,.88]]],
+    'ㅎ': [[[.4,.02],[.6,.1]],[[.12,.25],[.88,.25]],RP_O(.5, .64, .25, .26)],
+};
+const RP_SPLIT = {'ㄲ':'ㄱㄱ','ㄸ':'ㄷㄷ','ㅃ':'ㅂㅂ','ㅆ':'ㅅㅅ','ㅉ':'ㅈㅈ','ㄳ':'ㄱㅅ','ㄵ':'ㄴㅈ','ㄶ':'ㄴㅎ','ㄺ':'ㄹㄱ','ㄻ':'ㄹㅁ','ㄼ':'ㄹㅂ','ㄽ':'ㄹㅅ','ㄾ':'ㄹㅌ','ㄿ':'ㄹㅍ','ㅀ':'ㄹㅎ','ㅄ':'ㅂㅅ'};
+const RP_VV = {                                         // 세로 모음 — 오른쪽 칸
+    'ㅏ': [[[.35,.04],[.35,.96]],[[.35,.48],[.8,.48]]],
+    'ㅐ': [[[.18,.04],[.18,.96]],[[.18,.48],[.5,.48]],[[.72,.02],[.72,.98]]],
+    'ㅑ': [[[.35,.04],[.35,.96]],[[.35,.34],[.8,.34]],[[.35,.62],[.8,.62]]],
+    'ㅒ': [[[.18,.04],[.18,.96]],[[.18,.34],[.5,.34]],[[.18,.62],[.5,.62]],[[.72,.02],[.72,.98]]],
+    'ㅓ': [[[.15,.48],[.6,.48]],[[.6,.04],[.6,.96]]],
+    'ㅔ': [[[.08,.48],[.38,.48]],[[.38,.08],[.38,.92]],[[.72,.02],[.72,.98]]],
+    'ㅕ': [[[.15,.34],[.6,.34]],[[.15,.62],[.6,.62]],[[.6,.04],[.6,.96]]],
+    'ㅖ': [[[.05,.34],[.38,.34]],[[.05,.62],[.38,.62]],[[.38,.08],[.38,.92]],[[.72,.02],[.72,.98]]],
+    'ㅣ': [[[.5,.04],[.5,.96]]],
+};
+const RP_VH = {                                         // 가로 모음 — 아래 칸
+    'ㅗ': [[[.5,.15],[.5,.55]],[[.05,.6],[.95,.6]]],
+    'ㅛ': [[[.35,.15],[.35,.55]],[[.65,.15],[.65,.55]],[[.05,.6],[.95,.6]]],
+    'ㅜ': [[[.05,.35],[.95,.35]],[[.5,.35],[.5,.88]]],
+    'ㅠ': [[[.05,.35],[.95,.35]],[[.35,.35],[.32,.88]],[[.65,.35],[.68,.88]]],
+    'ㅡ': [[[.05,.5],[.95,.5]]],
+};
+const RP_VM = {'ㅘ':'ㅗㅏ','ㅙ':'ㅗㅐ','ㅚ':'ㅗㅣ','ㅝ':'ㅜㅓ','ㅞ':'ㅜㅔ','ㅟ':'ㅜㅣ','ㅢ':'ㅡㅣ'};   // 섞인 모음 = 가로 + 세로
+const RP_JI = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ', RP_JV = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ', RP_JF = 'ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ';
+const RP_LAY = {                                        // 모음 꼴(v 세로·h 가로·m 섞임) × 받침 유무(f) — 칸 [x0, y0, x1, y1]
+    v:  {i: [.04,.12,.56,.88], v: [.52,.02,.98,.98]},
+    h:  {i: [.18,.04,.82,.5], h: [.02,.46,.98,.98]},
+    m:  {i: [.04,.04,.6,.48], h: [.02,.46,.7,.98], v: [.62,.02,.98,.98]},
+    vf: {i: [.04,.06,.56,.56], v: [.52,.02,.98,.62], f: [.12,.64,.88,.98]},
+    hf: {i: [.18,.02,.82,.3], h: [.02,.26,.98,.6], f: [.12,.64,.88,.98]},
+    mf: {i: [.04,.02,.6,.3], h: [.02,.26,.7,.6], v: [.62,.02,.98,.62], f: [.12,.64,.88,.98]},
+};
+const RP_GL = {                                          // 숫자·로마자·기호(소문자는 대문자 획을 아래쪽으로 줄여 쓴다)
+    '0': [RP_O(.5, .5, .32, .42)], '1': [[[.35,.25],[.55,.1],[.55,.9]]],
+    '2': [[[.2,.3],[.35,.12],[.65,.12],[.8,.3],[.7,.5],[.2,.9],[.85,.9]]],
+    '3': [[[.2,.15],[.75,.15],[.45,.45],[.75,.55],[.8,.75],[.6,.9],[.2,.85]]],
+    '4': [[[.6,.9],[.6,.1],[.15,.65],[.9,.65]]],
+    '5': [[[.8,.12],[.25,.12],[.2,.45],[.6,.42],[.8,.6],[.7,.85],[.2,.85]]],
+    '6': [[[.75,.12],[.4,.25],[.2,.6],[.35,.88],[.7,.85],[.8,.65],[.6,.48],[.25,.6]]],
+    '7': [[[.15,.12],[.85,.12],[.4,.9]]],
+    '8': [[[.5,.5],[.2,.3],[.5,.1],[.8,.3],[.5,.5],[.2,.72],[.5,.9],[.8,.72],[.5,.5]]],
+    '9': [[[.75,.4],[.5,.52],[.22,.35],[.45,.1],[.75,.25],[.72,.6],[.5,.9],[.25,.85]]],
+    'A': [[[.1,.9],[.5,.1],[.9,.9]],[[.28,.6],[.72,.6]]],
+    'B': [[[.2,.1],[.2,.9]],[[.2,.1],[.65,.1],[.8,.28],[.65,.48],[.2,.48]],[[.65,.48],[.85,.68],[.65,.9],[.2,.9]]],
+    'C': [[[.82,.22],[.6,.1],[.3,.15],[.15,.5],[.3,.85],[.6,.9],[.82,.78]]],
+    'D': [[[.2,.1],[.2,.9]],[[.2,.1],[.6,.12],[.85,.5],[.6,.88],[.2,.9]]],
+    'E': [[[.8,.1],[.2,.1],[.2,.9],[.82,.9]],[[.2,.5],[.7,.5]]],
+    'F': [[[.8,.1],[.2,.1],[.2,.9]],[[.2,.5],[.7,.5]]],
+    'G': [[[.82,.22],[.6,.1],[.3,.15],[.15,.5],[.3,.85],[.6,.9],[.82,.75],[.82,.55],[.55,.55]]],
+    'H': [[[.2,.1],[.2,.9]],[[.8,.1],[.8,.9]],[[.2,.5],[.8,.5]]],
+    'I': [[[.5,.1],[.5,.9]]], 'J': [[[.7,.1],[.7,.75],[.5,.9],[.25,.8]]],
+    'K': [[[.2,.1],[.2,.9]],[[.8,.1],[.2,.55]],[[.38,.45],[.82,.9]]],
+    'L': [[[.2,.1],[.2,.9],[.82,.9]]],
+    'M': [[[.12,.9],[.12,.1],[.5,.6],[.88,.1],[.88,.9]]],
+    'N': [[[.18,.9],[.18,.1],[.82,.9],[.82,.1]]],
+    'O': [RP_O(.5, .5, .38, .4)],
+    'P': [[[.2,.9],[.2,.1],[.65,.1],[.82,.3],[.65,.5],[.2,.5]]],
+    'Q': [RP_O(.5, .48, .38, .38),[[.55,.7],[.88,.95]]],
+    'R': [[[.2,.9],[.2,.1],[.65,.1],[.82,.3],[.65,.5],[.2,.5]],[[.5,.5],[.85,.9]]],
+    'S': [[[.8,.2],[.55,.1],[.25,.18],[.25,.4],[.75,.58],[.78,.82],[.5,.92],[.18,.8]]],
+    'T': [[[.1,.1],[.9,.1]],[[.5,.1],[.5,.9]]],
+    'U': [[[.2,.1],[.2,.7],[.4,.9],[.6,.9],[.8,.7],[.8,.1]]],
+    'V': [[[.12,.1],[.5,.9],[.88,.1]]],
+    'W': [[[.05,.1],[.28,.9],[.5,.35],[.72,.9],[.95,.1]]],
+    'X': [[[.2,.12],[.8,.88]],[[.8,.12],[.2,.88]]],
+    'Y': [[[.15,.1],[.5,.5],[.85,.1]],[[.5,.5],[.5,.9]]],
+    'Z': [[[.18,.12],[.82,.12],[.18,.88],[.85,.88]]],
+    'm': [[[.15,.4],[.15,.9]],[[.15,.5],[.33,.38],[.5,.5],[.5,.9]],[[.5,.5],[.68,.38],[.85,.5],[.85,.9]]],
+    '×': [[[.22,.32],[.78,.85]],[[.78,.32],[.22,.85]]],
+    'Ø': [RP_O(.5, .5, .36, .4),[[.88,.05],[.12,.95]]],
+    '.': [[[.45,.85],[.52,.9]]], ',': [[[.52,.8],[.4,.98]]], '·': [[[.45,.5],[.52,.55]]],
+    ':': [[[.45,.35],[.52,.4]],[[.45,.8],[.52,.85]]],
+    '-': [[[.15,.55],[.85,.55]]], '~': [[[.1,.58],[.3,.45],[.5,.58],[.7,.7],[.9,.55]]],
+    '(': [[[.72,.04],[.38,.3],[.38,.7],[.72,.96]]], ')': [[[.28,.04],[.62,.3],[.62,.7],[.28,.96]]],
+    '[': [[[.7,.04],[.35,.04],[.35,.96],[.7,.96]]], ']': [[[.3,.04],[.65,.04],[.65,.96],[.3,.96]]],
+    '/': [[[.8,.06],[.2,.94]]], '+': [[[.15,.55],[.85,.55]],[[.5,.2],[.5,.9]]],
+    '=': [[[.15,.42],[.85,.42]],[[.15,.68],[.85,.68]]],
+    '%': [RP_O(.25, .25, .14, .16),[[.82,.1],[.18,.9]],RP_O(.75, .75, .14, .16)],
+    '°': [RP_O(.5, .22, .2, .18)],
+};
+Object.assign(RP_GL, {'⌀': RP_GL['Ø'], 'ø': RP_GL['Ø'], 'x': RP_GL['×'], '–': RP_GL['-'], '—': RP_GL['-'], '−': RP_GL['-'], '∼': RP_GL['~']});
+const rpMapS = (strokes, b) => strokes.map(s => s.map(([x, y]) => [b[0] + x * (b[2] - b[0]), b[1] + y * (b[3] - b[1])]));
+function rpGlyphStrokes(ch) {                           // 한 글자의 어림 획 — [[x, y] …] 목록(0~1 칸)
+    const c = ch.codePointAt(0);
+    const cons = (k, b) => {
+        const s = RP_SPLIT[k] || k;
+        if (s.length < 2) return rpMapS(RP_C[s] || [], b);
+        const m = (b[0] + b[2]) / 2, g = (b[2] - b[0]) * .04;       // 겹자음·겹받침은 두 자음을 나란히
+        return rpMapS(RP_C[s[0]] || [], [b[0], b[1], m - g, b[3]]).concat(rpMapS(RP_C[s[1]] || [], [m + g, b[1], b[2], b[3]]));
+    };
+    const vow = (k, B) => {
+        const s = RP_VM[k] || k;
+        if (RP_VV[s]) return rpMapS(RP_VV[s], B.v);
+        if (RP_VH[s]) return rpMapS(RP_VH[s], B.h);
+        return rpMapS(RP_VH[s[0]], B.h).concat(rpMapS(RP_VV[s[1]], B.v));
+    };
+    const kindOf = k => { const s = RP_VM[k] || k; return RP_VV[s] ? 'v' : RP_VH[s] ? 'h' : 'm'; };
+    if (c >= 0xAC00 && c <= 0xD7A3) {                   // 완성형 한글 = 초성 19 × 중성 21 × 종성 28
+        const n = c - 0xAC00, ci = Math.floor(n / 588), vi = Math.floor(n % 588 / 28), fi = n % 28;
+        const vk = RP_JV[vi], B = RP_LAY[kindOf(vk) + (fi ? 'f' : '')];
+        let out = cons(RP_JI[ci], B.i).concat(vow(vk, B));
+        if (fi) out = out.concat(cons(RP_JF[fi - 1], B.f));
+        return out;
+    }
+    if (RP_C[ch] || RP_SPLIT[ch]) return cons(ch, [.1, .1, .9, .9]);          // 낱자모
+    if (RP_VV[ch] || RP_VH[ch] || RP_VM[ch]) { const k = kindOf(ch);
+        return vow(ch, k === 'v' ? {v: [.15, .02, .85, .98]} : k === 'h' ? {h: [.02, .1, .98, .9]} : {h: [.02, .4, .7, .95], v: [.6, .02, .98, .98]}); }
+    if (ch === '²' || ch === '³') return rpMapS(RP_GL[ch === '²' ? '2' : '3'], [.15, 0, .85, .5]);   // 위첨자는 위쪽 절반
+    if (RP_GL[ch]) return RP_GL[ch].map(s => s.map(p => p.slice()));
+    const up = ch.toUpperCase();
+    if (up !== ch && RP_GL[up]) return rpMapS(RP_GL[up], [.08, .35, .92, .98]);   // 소문자는 대문자 획을 아래쪽으로 줄여
+    return [[[.1,.55],[.3,.35],[.5,.65],[.7,.35],[.9,.55]]];                  // 모르는 글자 — 물결 한 획
+}
+// 글자 칸(cells: {ch, x0, x1}, 글자 좌표)마다 획을 놓고, 획 사이에는 샤프를 든 채 옮기는 구간(draw: false)을 끼운다.
+// 시간 무게(wt)는 획 길이에 비례, 옮기기는 가볍게. 빈칸은 건너뛴다
+function rpWriteSegs(cells, y0, h) {
+    const segs = []; let last = null;
+    cells.forEach((c, k) => {
+        if (!c.ch.trim()) return;
+        const w = c.x1 - c.x0, x0 = c.x0 + w * .06, cw = w * .88;
+        rpGlyphStrokes(c.ch).forEach(st => {
+            const pts = st.map(([x, y]) => ({x: x0 + x * cw, y: y0 + y * h}));
+            if (last) segs.push({pts: [last, pts[0]], draw: false, ci: k});
+            segs.push({pts, draw: true, ci: k}); last = pts[pts.length - 1];
+        });
+    });
+    segs.forEach(s => { s.len = 0; for (let i = 1; i < s.pts.length; i++) s.len += Math.hypot(s.pts[i].x - s.pts[i - 1].x, s.pts[i].y - s.pts[i - 1].y);
+        s.wt = s.draw ? Math.max(s.len, h * .08) : s.len * .35 + h * .05; });
+    return segs;
+}
+const rpPtsD = pts => pts.map((p, i) => `${i ? 'L' : 'M'}${fmt(p.x)} ${fmt(p.y)}`).join('');
+function rpSegCut(s, f) {                               // 구간을 f(0~1)만큼 간 자리까지의 점들과 그 끝
+    let d = s.len * Math.max(0, Math.min(1, f)); const out = [s.pts[0]];
+    for (let i = 1; i < s.pts.length; i++) {
+        const a = s.pts[i - 1], b = s.pts[i], L = Math.hypot(b.x - a.x, b.y - a.y);
+        if (d <= L) { const q = L ? d / L : 0, p = {x: a.x + (b.x - a.x) * q, y: a.y + (b.y - a.y) * q}; out.push(p); return {pts: out, p}; }
+        d -= L; out.push(b);
+    }
+    return {pts: out, p: s.pts[s.pts.length - 1]};
+}
+// 글자 하나(<text>)를 샤프로 쓴다 — 획은 글자 좌표(글자의 transform 안)에서 만들고, 샤프 그림만 toW 로 도면 좌표에 놓는다.
+// 샤프 자취를 흰 선으로 그린 mask 가 글자를 드러내고, 한 글자를 다 쓰면 그 칸을 통째로 연다(어림 획이 못 덮은 조각이 남지 않게).
+// 끝나거나 재생이 멈추면 mask 를 걷는다. 다 쓰면 fin()
+let rpMaskSeq = 0;
+function rpWriteText(el, bb, dur, id, pen, lay, toW, fin) {
+    const NS = 'http://www.w3.org/2000/svg', chs = [...(el.textContent || '')], n = Math.max(1, chs.length);
+    const cells = []; let cu = 0, ok = typeof el.getExtentOfChar === 'function';
+    chs.forEach((ch, k) => { let r = null; if (ok) { try { r = el.getExtentOfChar(cu); } catch (e) { ok = false; } } cells.push({ch, r, k}); cu += ch.length; });
+    cells.forEach(c => { if (ok && c.r && c.r.width >= 0) { c.x0 = c.r.x; c.x1 = c.r.x + c.r.width; } else { c.x0 = bb.x + bb.width * c.k / n; c.x1 = bb.x + bb.width * (c.k + 1) / n; } });
+    const h = bb.height * .8, y0 = bb.y + bb.height * .1, segs = rpWriteSegs(cells, y0, h);
+    const mg = bb.height * .3, mid = 'rpWm' + (++rpMaskSeq) + '_' + Date.now().toString(36), mk = document.createElementNS(NS, 'mask');
+    const X = bb.x - mg, Y = bb.y - mg, Wd = bb.width + 2 * mg, Ht = bb.height + 2 * mg;
+    mk.id = mid; mk.setAttribute('maskUnits', 'userSpaceOnUse'); mk.setAttribute('maskContentUnits', 'userSpaceOnUse');
+    [['x', X], ['y', Y], ['width', Wd], ['height', Ht]].forEach(([a, v]) => mk.setAttribute(a, fmt(v)));
+    mk.innerHTML = `<rect x="${fmt(X)}" y="${fmt(Y)}" width="${fmt(Wd)}" height="${fmt(Ht)}" fill="#000"/>`
+        + `<path fill="none" stroke="#fff" stroke-width="${fmt(h * .3)}" stroke-linecap="round" stroke-linejoin="round"/><g fill="#fff"></g>`;
+    const trail = mk.querySelector('path'), opened = mk.querySelector('g');
+    const clean = () => { el.removeAttribute('mask'); mk.remove(); lay.innerHTML = ''; };
+    if (!segs.length || !el.parentNode) { clean(); if (fin) fin(); return; }
+    el.parentNode.insertBefore(mk, el); el.setAttribute('mask', `url(#${mid})`);
+    const W = segs.reduce((a, s) => a + s.wt, 0) || 1, lastOf = {};
+    segs.forEach((s, i) => { if (s.draw) lastOf[s.ci] = i; });
+    let doneD = '', si = 0, acc = 0;
+    const t0 = performance.now();
+    const frame = now => {
+        if (!RP || RP.reveal !== id) { clean(); return; }
+        const u = Math.min(1, (now - t0) / dur), T = u * W;
+        while (si < segs.length && acc + segs[si].wt <= T) {    // 다 지나간 구간 — 자취를 굳히고, 글자를 다 썼으면 그 칸을 연다
+            const s = segs[si];
+            if (s.draw) doneD += rpPtsD(s.pts);
+            if (lastOf[s.ci] === si) { const c = cells[s.ci];
+                opened.insertAdjacentHTML('beforeend', `<rect x="${fmt(c.x0)}" y="${fmt(Y)}" width="${fmt(c.x1 - c.x0)}" height="${fmt(Ht)}"/>`); }
+            acc += s.wt; si++;
+        }
+        let tip = null, part = '';
+        if (si < segs.length) { const s = segs[si], cut = rpSegCut(s, (T - acc) / s.wt); tip = cut.p; if (s.draw) part = rpPtsD(cut.pts); }
+        trail.setAttribute('d', doneD + part);
+        const tw = tip && toW(tip);
+        if (pen && tw && u < 1) { const k = pxPer(), w = (pen.img.naturalWidth || 56) / k, hh = (pen.img.naturalHeight || 56) / k;
+            lay.innerHTML = `<image href="${pen.src}" x="${fmt(tw.x - pen.hx / k)}" y="${fmt(tw.y - pen.hy / k)}" width="${fmt(w)}" height="${fmt(hh)}"/>`; }
+        if (u < 1) requestAnimationFrame(frame); else { clean(); if (fin) fin(); }
+    };
+    requestAnimationFrame(frame);
 }
 function rpReveal(op, dur) {                           // 방금 그은 것을 샤프가 긋듯이 — 선 끝을 샤프심이 따라간다. 묶음이면 변을 차례로
     const list = Array.isArray(op) ? op : [op]; op = list[0];
     const gs = list.map(o => gOps.querySelector(`[data-op="${o.id}"]`)).filter(Boolean); if (!gs.length) return;
-    if (list.length === 1 && op.t === 'text') {        // 글자 — 샤프가 글자마다 위아래로 오르내리며 쓰고(rpWriteTip), 지나간 데까지 드러난다(기호 속 글자와 같게, 사용자)
+    if (list.length === 1 && op.t === 'text') {        // 글자 — 샤프가 자모 획 차례를 따라 쓰고(rpWriteText), 지나간 자리만 드러난다(기호 속 글자와 같게, 사용자)
         const el = gs[0].querySelector('text'); let bb = null; try { bb = el.getBBox(); } catch (e) {}
         if (el && bb && bb.width) {
-            const pen = rpPenImg('p5'), lay = rpPenLayer(), id = RP.reveal = {}, t0 = performance.now();
+            const pen = rpPenImg('p5'), lay = rpPenLayer(), id = RP.reveal = {};
             const toW = q => { const m = el.getScreenCTM(), s = svg.getScreenCTM(); if (!m || !s) return null; const pt = svg.createSVGPoint(); pt.x = q.x; pt.y = q.y; return pt.matrixTransform(m).matrixTransform(s.inverse()); };
-            el.style.clipPath = 'inset(0 100% 0 0)';
-            const frame = now => {
-                if (!RP || RP.reveal !== id) { el.style.clipPath = ''; lay.innerHTML = ''; return; }
-                const u = Math.min(1, (now - t0) / dur);
-                const wt = rpWriteTip(bb, u, [...(el.textContent || '')].filter(c => c.trim()).length);
-                el.style.clipPath = `inset(0 ${((1 - wt.cut) * 100).toFixed(1)}% 0 0)`;
-                const tip = toW({x: wt.x, y: wt.y});
-                if (pen && tip && u < 1) { const k = pxPer(), w = (pen.img.naturalWidth || 56) / k, h = (pen.img.naturalHeight || 56) / k;
-                    lay.innerHTML = `<image href="${pen.src}" x="${fmt(tip.x - pen.hx / k)}" y="${fmt(tip.y - pen.hy / k)}" width="${fmt(w)}" height="${fmt(h)}"/>`; }
-                if (u < 1) requestAnimationFrame(frame); else { el.style.clipPath = ''; lay.innerHTML = ''; }
-            };
-            requestAnimationFrame(frame); return;
+            rpWriteText(el, bb, dur, id, pen, lay, toW); return;
         }
     }
     const g = gs[0];
@@ -2866,19 +3047,8 @@ function rpSymPlay(op, spd, done) {
         const el = texts[j]; let bb = null; try { bb = el.getBBox(); } catch (e) {}
         el.style.opacity = '';
         if (!bb || !bb.width) { writeTexts(j + 1); return; }
-        const dur = Math.min(per, 120 + 90 * (el.textContent || '').length), t0 = performance.now();
-        el.style.clipPath = 'inset(0 100% 0 0)';
-        const frame = now => {
-            if (!RP || RP.reveal !== id) { el.style.clipPath = ''; lay.innerHTML = ''; return; }
-            const u = Math.min(1, (now - t0) / dur);
-            const wt = rpWriteTip(bb, u, [...(el.textContent || '')].filter(c => c.trim()).length);
-            el.style.clipPath = `inset(0 ${((1 - wt.cut) * 100).toFixed(1)}% 0 0)`;
-            const tip = toW(el, {x: wt.x, y: wt.y});
-            if (pen && tip && u < 1) { const k = pxPer(), w = (pen.img.naturalWidth || 56) / k, h = (pen.img.naturalHeight || 56) / k;
-                lay.innerHTML = `<image href="${pen.src}" x="${fmt(tip.x - pen.hx / k)}" y="${fmt(tip.y - pen.hy / k)}" width="${fmt(w)}" height="${fmt(h)}"/>`; }
-            if (u < 1) requestAnimationFrame(frame); else { el.style.clipPath = ''; writeTexts(j + 1); }
-        };
-        requestAnimationFrame(frame);
+        const dur = Math.min(per, 120 + 90 * (el.textContent || '').length);
+        rpWriteText(el, bb, dur, id, pen, lay, q => toW(el, q), () => writeTexts(j + 1));   // 자모 획 차례를 따라 쓰고 지나간 자리만 드러난다
     };
     const next = () => {
         if (!RP || RP.reveal !== id) return;
