@@ -99,7 +99,7 @@
                 <select id="cadTriSize" title="45° 삼각자 크기 — 직각을 낀 변의 길이를 종이 높이에 대한 비율로"><option value="30">30%</option><option value="40">40%</option><option value="50" selected>50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option><option value="100">100%</option><option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option><option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option></select>
                 <span class="cad-set-note" id="cadTriSizeNote"></span></div>
             <div class="cad-set-row"><span class="cad-set-lb">60° 삼각자</span>
-                <select id="cadTri60Size" title="60° 삼각자 크기 — 직각을 낀 긴 변의 길이를 종이 높이에 대한 비율로"><option value="40">40%</option><option value="50">50%</option><option value="60">60%</option><option value="70" selected>70%</option><option value="80">80%</option><option value="90">90%</option><option value="100">100%</option><option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option><option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option></select>
+                <select id="cadTri60Size" hidden title="60° 삼각자 크기 — 직각을 낀 긴 변의 길이를 종이 높이에 대한 비율로"><option value="40">40%</option><option value="50">50%</option><option value="60">60%</option><option value="70" selected>70%</option><option value="80">80%</option><option value="90">90%</option><option value="100">100%</option><option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option><option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option></select>
                 <span class="cad-set-note" id="cadTri60SizeNote"></span></div>
             <div class="cad-set-row"><span class="cad-set-lb">샤프 선 종류 · 굵기</span><span class="cad-set-note" style="margin:0">(종이 위 mm)</span></div>
             <div class="cad-set-row cad-set-in"><span class="cad-set-sub cad-set-pen">굵은 샤프</span><select id="cadLs9" class="cad-set-ls"></select>
@@ -735,9 +735,13 @@ function triGeom() {
     // 도면 축척(1:430 이면 1cm = 4.3m)으로 m 로 바꾼다
     const is45 = tri.kind === '45', r3 = Math.sqrt(3);
     // 재생할 때는 그을 때 기록한 크기(tri.pct)를 쓴다 — 보는 사람의 설정을 따르면 자가 선보다 짧아진다
-    let L = (tri.pct || (is45 ? (SET.triPct45 || 50) : (SET.triPct60 || 70))) / 100 * (sheet.y1 - sheet.y0);
-    // 45° 자는 직각을 낀 두 변을 굵은 눈금(step) 배수로 — 세 꼭짓점이 모두 눈금 교차점에 온다
-    if (is45) L = Math.max(sheet.step, Math.round(L / sheet.step) * sheet.step);
+    // 60° 자는 45° 자와 한 벌이다(사용자) — 긴 변 = 45° 자의 빗변(직각변 × √2). 45° 크기만 정하면 60° 가 따라온다.
+    // 예전 기록(60° 자기 비율, p45 없음)은 그 비율 그대로 쓴다
+    const H = sheet.y1 - sheet.y0, leg45 = pc => Math.max(sheet.step, Math.round(pc / 100 * H / sheet.step) * sheet.step);
+    let L;
+    if (is45) L = leg45(tri.pct || SET.triPct45 || 50);   // 45° 자는 직각변을 굵은 눈금(step) 배수로 — 꼭짓점이 눈금 교차점에
+    else if (tri.pct && !tri.p45) L = tri.pct / 100 * H;
+    else L = leg45(tri.pct || SET.triPct45 || 50) * Math.SQRT2;
     if (tri.len) L = tri.len;   // 재생 — 그을 때의 실제 길이(m). 종이·축척이 바뀌어도 자가 선과 맞는다
     const base = is45 ? L : (tri.alt ? L : L / r3), h = is45 ? L : (tri.alt ? L / r3 : L);
     const sg = tri.flip ? 1 : -1, R = {x: tri.x, y: barY}, T = {x: tri.x, y: barY - h}, B = {x: tri.x + sg * base, y: barY};
@@ -2417,7 +2421,7 @@ function toolState() {
     const c = o => o ? JSON.parse(JSON.stringify(o)) : null;
     const s = {bar: barOn && barY != null ? rnd3(barY) : null, tri: c(tri), tpl: c(tpl), sr: c(sr), ftri: c(ftri)};
     if (s.tri && s.tri.x != null) s.tri.x = rnd3(s.tri.x);
-    if (s.tri && s.tri.pct == null) s.tri.pct = s.tri.kind === '45' ? (SET.triPct45 || 50) : (SET.triPct60 || 70);   // 자 크기도 기록한다
+    if (s.tri && s.tri.pct == null) { s.tri.pct = SET.triPct45 || 50; if (s.tri.kind !== '45') s.tri.p45 = 1; }   // 자 크기도 기록한다 — 60° 는 45° 비율 + p45(√2 배)
     // 자의 실제 크기(m·축척)도 적는다 — %·종이 mm 만 적으면 종이나 축척이 다른 도면으로 옮겼을 때 자가 선과 어긋난다
     if (s.tri && s.tri.len == null && sheet) { const t0 = tri; tri = s.tri; const G = triGeom(); tri = t0; if (G) s.tri.len = rnd3(Math.max(G.base, G.h)); }
     ['tpl', 'sr', 'ftri'].forEach(k => { if (s[k] && s[k].den == null) s[k].den = scaleDenom(); });
@@ -2938,7 +2942,7 @@ function rpEnd() {
     if (!RP) return;
     if (RP.leave) { clearTimeout(RP.timer); playLeave(); return; }
     clearTimeout(RP.timer); const live = RP.live; RP = null; if ($('cadRpPen')) $('cadRpPen').innerHTML = ''; if ($('cadRpMark')) $('cadRpMark').innerHTML = '';
-    rpApply(live); if (tri) { delete tri.pct; delete tri.len; } [tpl, sr, ftri].forEach(o => { if (o) delete o.den; });   // 재생이 끝나면 다시 내 설정 크기로
+    rpApply(live); if (tri) { delete tri.pct; delete tri.len; delete tri.p45; } [tpl, sr, ftri].forEach(o => { if (o) delete o.den; });   // 재생이 끝나면 다시 내 설정 크기로
     root.classList.remove('replaying'); $('cadRp').hidden = true; $('cadRpBtn').classList.remove('on');
     renderAll();
 }
@@ -5244,9 +5248,9 @@ $('cadRulerHome').addEventListener('click', () => {
 function triSizeNote() {                // 종이 위 길이 — 도면 축척으로 환산한 값을 함께 보인다
     const el = $('cadTriSizeNote'); if (!el || !sheet) return;
     const H = sheet.y1 - sheet.y0, d = scaleDenom(), cm = m => d ? ` · 종이 위 ${fmt(m / d * 100)}cm` : '';
-    const L45 = +$('cadTriSize').value / 100 * H, L60 = +$('cadTri60Size').value / 100 * H;
+    const L45 = Math.max(sheet.step, Math.round(+$('cadTriSize').value / 100 * H / sheet.step) * sheet.step), L60 = L45 * Math.SQRT2;
     el.textContent = `= 도면 ${fmt(L45)}m${cm(L45)}`;
-    const e6 = $('cadTri60SizeNote'); if (e6) e6.textContent = `= 도면 ${fmt(L60)}m${cm(L60)}`;
+    const e6 = $('cadTri60SizeNote'); if (e6) e6.textContent = `45° 자 빗변에 맞춤(× 1.414) — 긴 변 = 도면 ${fmt(L60)}m${cm(L60)}`;
 }
 ['cadSnap', 'cadSnapStep', 'cadShowPts', 'ftFont', 'ftDir'].forEach(id => $(id).addEventListener('change', saveSet));
 if (SET.font) $('ftFont').value = SET.font;
