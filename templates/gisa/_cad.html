@@ -1170,7 +1170,7 @@ function srRun(S) {
     const perM = 1000 / S, lab = srGrad(S)[3];
     return Math.floor(SR_RUN / perM / lab + 1e-9) * lab * perM;
 }
-const SR_MARK = 0.75;                                  // 마킹 길이(종이 위 mm) — 실제 연필 표시처럼 짧게(3 → 1.5 → 0.75, 사용자)
+const SR_MARK = 0.375;                                 // 마킹 길이(종이 위 mm) — 실제 연필 표시처럼 짧게(3 → 1.5 → 0.75 → 0.375, 사용자)
 // 마킹 한 획 — 종이 위 길이 L(도면 m). data-m 에 원래 값을 두고 markMin 이 화면에서 최소 크기를 보장한다(사용자)
 function markTick(x0, y0, x1, y1, L) {
     const d = Math.hypot(x1 - x0, y1 - y0) || 1, ux = (x1 - x0) / d, uy = (y1 - y0) / d, a = markAttr(), w = +(a.match(/stroke-width="([^"]*)"/) || [0, 0])[1];
@@ -1178,7 +1178,7 @@ function markTick(x0, y0, x1, y1, L) {
 }
 // 화면에서 최소 크기 — 멀리서 보면 0.75mm 마킹이 1~2px 이라 사라졌다(A2 1:400). 길이 9px·굵기 1.6px·점 반지름 2.6px 아래로는 안 줄인다.
 // 확대하면 원래 종이 크기로 돌아가고, 저장·SVG 내보내기에는 원래 값이 들어간다(화면 DOM 만 고친다)
-const MK_MIN = {len: 9, w: 1.6, r: 2.6};
+const MK_MIN = {len: 4.5, w: 1.6, r: 2.6};   // 화면 최소 길이도 반으로(9 → 4.5px, 사용자)
 function markMin() {
     let k; try { k = pxPer(); } catch (e) { return; } if (!(k > 0)) return;
     svg.querySelectorAll('path.mk-tk').forEach(el => {
