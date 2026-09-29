@@ -2998,6 +2998,18 @@ y 가 7% 어긋나 남측 경계를 58m 로 읽었고, 그래서 "철쭉 띠가 
 - 결과 주소 받기는 `curl` 이 "Connection was reset" 으로 자주 끊긴다 — `--retry 5 --retry-all-errors` 로 여러 번.
   업로드가 `HTTP 520` 으로 실패하면 그냥 다시 보낸다(크레딧은 안 나간다)
 
+### Aside 브라우저 CLI · MCP (2026-09-29 설치)
+
+- 설치: 공식 문서([docs.aside.com/help/developers](https://docs.aside.com/help/developers))의 Windows 절차 그대로 —
+  `releases.aside.com/install.ps1` 을 받아 **서명이 `AT YOUR SIDE INC` 의 유효한 서명인지 확인한 뒤** 실행한다.
+  서명 검사 없이 스크립트를 바로 돌리지 말 것
+- 위치 `C:\Users\gocom\AppData\Local\Aside\CLI\current\aside.exe`(사용자 PATH 에 추가됨, 새 터미널부터 `aside`).
+  설치한 판 1.26.916.1741, 갱신은 `aside --update`
+- 로그인은 대표님 계정이라 대표님이 직접 한다: `aside login`
+- MCP 는 **사용자 범위**로 등록했다(`~/.claude.json`, 모든 프로젝트에서 쓰인다):
+  `claude mcp add --scope user aside -- "%LOCALAPPDATA%\Aside\CLI\current\aside.exe" mcp`.
+  도구는 등록 뒤 **새 세션부터** 보인다. 되돌리기 `claude mcp remove --scope user aside`
+
 ### 편집·검사
 
 - 장면 검사는 **ffmpeg 로 차례대로** 뽑아(`select='not(mod(n\,12))'` + `tile`) 눈으로 본다. OpenCV 의 `set(CAP_PROP_POS_FRAMES)` 는
