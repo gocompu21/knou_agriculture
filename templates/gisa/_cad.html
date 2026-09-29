@@ -3507,39 +3507,58 @@ function closeTextBox(keep) {
 // ── 도형 채우기 ── 종이 전체를 격자(긴 변 1600칸)로 놓고 보이는 선·원·호·사각형을 벽으로 그린 뒤, 누른 칸에서 번져 나간다.
 // 종이 가장자리에 닿으면 면이 막혀 있지 않은 것 — 칠하지 않는다. 칠할 면은 칸 경계를 이어 고리로 만들고(구멍은 evenodd),
 // 계단을 줄여(더글러스-포이커) 경로로 저장한다. 선을 나중에 옮겨도 따라가지 않는다(AutoCAD 의 비연관 해치처럼)
-function fillAt(w) {
-    const s0 = sheet, span = Math.max(s0.x1 - s0.x0, s0.y1 - s0.y0), res = span / 1600;
-    const W = Math.ceil((s0.x1 - s0.x0) / res) + 2, H = Math.ceil((s0.y1 - s0.y0) / res) + 2, ox = s0.x0 - res, oy = s0.y0 - res;
+// 칠할 면 찾기 — 상자(box) 안을 res 칸으로 그려 누른 칸에서 번진다. 상자 끝에 닿으면 leak
+function fillFlood(w, box, res) {
+    const W = Math.ceil((box.x1 - box.x0) / res) + 2, H = Math.ceil((box.y1 - box.y0) / res) + 2, ox = box.x0 - res, oy = box.y0 - res;
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     const cx = cv.getContext('2d');
     cx.setTransform(1 / res, 0, 0, 1 / res, -ox / res, -oy / res);
     cx.lineWidth = 2.2 * res; cx.lineCap = 'round'; cx.lineJoin = 'round'; cx.strokeStyle = '#000';
     let walls = 0;
+    const circ = (x, y, r) => `M${x - r} ${y}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z`;
     doc.ops.forEach(op => {
-        if (op.t === 'step' || op.t === 'fill' || op.t === 'text' || op.t === 'sym' || op.mark || auxHidden(op)) return;
-        if (SET.fillNoAux === true && (isAux(op) || (op.t !== 'free' && op.ls && op.ls !== 'solid'))) return;   // '보조선 무시'(기본 끔, 사용자) — 면의 경계는 실선과 프리드로잉만, 보조선·쇄선은 넘어 번진다
+        if (op.t === 'step' || op.t === 'fill' || op.t === 'text' || op.mark || auxHidden(op)) return;
+        if (SET.fillNoAux === true && (isAux(op) || (op.t !== 'free' && op.t !== 'sym' && op.ls && op.ls !== 'solid'))) return;   // '보조선 무시'(기본 끔, 사용자) — 면의 경계는 실선과 프리드로잉만, 보조선·쇄선은 넘어 번진다
         let d = '';
         if (op.t === 'line') { const a = P(op.a), b = P(op.b); if (a && b) d = `M${a.x} ${a.y}L${b.x} ${b.y}`; }
         else if (op.t === 'rect') { const a = P(op.a), b = P(op.b); if (a && b) d = `M${a.x} ${a.y}H${b.x}V${b.y}H${a.x}Z`; }
-        else if (op.t === 'circle') { const c = P(op.c), r = radiusOf(op); if (c && r > 0) d = `M${c.x - r} ${c.y}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z`; }
+        else if (op.t === 'circle') { const c = P(op.c), r = radiusOf(op); if (c && r > 0) d = circ(c.x, c.y, r); }
         else if (op.t === 'arc') { const a = P(op.a), b = P(op.b); if (a && b) d = arcD(a.x, a.y, b.x, b.y, op.r, op.dir === 'cw', op.big); }
         else if (op.t === 'free' && op.pts && op.pts.length > 1) d = freeD(op.pts);
+        else if (op.t === 'sym') {                     // 기호 안의 선·네모·원도 벽이다 — 수목보호대 □ 안의 ○ 를 칠하려 했더니 벽이 없어 번졌다(사용자)
+            const G = symGeom(op);
+            d = G.segs.map(([a, b]) => `M${a.x} ${a.y}L${b.x} ${b.y}`).join('') + G.circles.map(c => circ(c.cx, c.cy, c.R)).join('');
+        }
         if (d) { cx.stroke(new Path2D(d)); walls++; }
     });
-    if (!walls) { flash('칠할 면이 없습니다 — 먼저 선으로 면을 둘러싸세요'); return; }
+    if (!walls) return {err: '칠할 면이 없습니다 — 먼저 선으로 면을 둘러싸세요'};
     const img = cx.getImageData(0, 0, W, H).data, wall = new Uint8Array(W * H);
     for (let i = 0; i < W * H; i++) wall[i] = img[i * 4 + 3] > 20 ? 1 : 0;
     const sx = Math.floor((w.x - ox) / res), sy = Math.floor((w.y - oy) / res);
-    if (sx < 1 || sy < 1 || sx >= W - 1 || sy >= H - 1) { flash('종이 안쪽을 누르세요'); return; }
-    if (wall[sy * W + sx]) { flash('선 위입니다 — 면의 안쪽을 누르세요'); return; }
-    const m = new Uint8Array(W * H), st = new Int32Array(W * H); let sp = 0, n = 0, leak = false;
+    if (sx < 1 || sy < 1 || sx >= W - 1 || sy >= H - 1) return {err: '종이 안쪽을 누르세요'};
+    if (wall[sy * W + sx]) return {err: '선 위입니다 — 면의 안쪽을 누르세요'};
+    const m = new Uint8Array(W * H), st = new Int32Array(W * H); let sp = 0, n = 0;
     st[sp++] = sy * W + sx; m[sy * W + sx] = 1;
     while (sp) {
         const i = st[--sp], x = i % W, y = (i - x) / W; n++;
-        if (x === 0 || y === 0 || x === W - 1 || y === H - 1) { leak = true; break; }
+        if (x === 0 || y === 0 || x === W - 1 || y === H - 1) return {leak: true};
         for (const j of [i - 1, i + 1, i - W, i + W]) if (!m[j] && !wall[j]) { m[j] = 1; st[sp++] = j; }
     }
-    if (leak) { flash('면이 막혀 있지 않습니다 — 틈이 있어 종이 끝까지 샙니다. 칠하지 않았습니다'); return; }
+    return {m, wall, W, H, ox, oy, n};
+}
+function fillAt(w) {
+    // 먼저 **지금 보이는 화면만** 그 화면에 맞는 촘촘한 칸(화면 폭 ÷ 1600)으로 본다. 종이 전체를 1600칸으로 보면 A2 1:400 에서
+    // 한 칸이 0.15m, 벽 두께가 0.33m 라 지름 1m 안팎의 작은 원은 안쪽이 벽으로 다 메워져 칠할 수 없었다(사용자).
+    // 화면 끝까지 번지면(면이 화면보다 크면) 종이 전체로 다시 본다
+    const s0 = sheet, span = Math.max(s0.x1 - s0.x0, s0.y1 - s0.y0), coarse = span / 1600;
+    const view = {x0: Math.max(s0.x0, vb.x), y0: Math.max(s0.y0, vb.y), x1: Math.min(s0.x1, vb.x + vb.w), y1: Math.min(s0.y1, vb.y + vb.h)};
+    const fine = Math.max(view.x1 - view.x0, view.y1 - view.y0) / 1600;
+    let r = null, res = coarse;
+    if (fine < coarse * 0.8 && view.x1 > view.x0 && view.y1 > view.y0) { r = fillFlood(w, view, fine); res = fine; }
+    if (!r || r.leak) { r = fillFlood(w, s0, coarse); res = coarse; }
+    if (r.err) { flash(r.err); return; }
+    if (r.leak) { flash('면이 막혀 있지 않습니다 — 틈이 있어 종이 끝까지 샙니다. 칠하지 않았습니다'); return; }
+    const {m, wall, W, H, ox, oy} = r; let n = r.n;
     // 선 두께 밑으로 2칸 넓힌다 — 칠과 선 사이에 흰 틈이 보이지 않게(벽 칸으로만)
     for (let k = 0; k < 2; k++) {
         const add = [];
