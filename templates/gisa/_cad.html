@@ -2995,6 +2995,24 @@ function rpWriteText(el, bb, dur, id, pen, lay, toW, fin) {
     };
     requestAnimationFrame(frame);
 }
+// 재생 샤프 그림 — 긋는 선과 나란히 눕지 않게 좌우·위아래로 뒤집어 고른다(사용자: 45° 빗변을 그을 때 샤프가 선을 따라 누워 보기 안 좋다).
+// 그림은 샤프심 끝이 왼쪽 아래, 몸통이 오른쪽 위(↗). 네 벌(↗ ↖ ↘ ↙) 가운데 선과 가장 직각에 가깝고 자가 덮은 쪽이 아닌 것을 고른다
+function rpPenTag(pen, tip, dir) {
+    const k = pxPer(), w = (pen.img.naturalWidth || 56) / k, h = (pen.img.naturalHeight || 56) / k;
+    let sx = 1, sy = 1;
+    const n = dir ? Math.hypot(dir.x, dir.y) : 0;
+    if (n > 1e-9) {
+        const ux = dir.x / n, uy = dir.y / n, far = 18 / k; let best = Infinity;
+        [[1, 1], [-1, 1], [1, -1], [-1, -1]].forEach(([fx, fy]) => {
+            const bx = fx * Math.SQRT1_2, by = -fy * Math.SQRT1_2;
+            let sc = Math.abs(bx * ux + by * uy) + (fy < 0 ? 0.02 : 0) + (fx < 0 ? 0.01 : 0);   // 같으면 몸통이 위로 선 것, 그다음 오른쪽
+            try { if (covered({x: tip.x + bx * far, y: tip.y + by * far})) sc += 1; } catch (e) {}
+            if (sc < best) { best = sc; sx = fx; sy = fy; }
+        });
+    }
+    const tr = sx === 1 && sy === 1 ? '' : ` transform="translate(${fmt(tip.x)} ${fmt(tip.y)}) scale(${sx} ${sy}) translate(${fmt(-tip.x)} ${fmt(-tip.y)})"`;
+    return `<image href="${pen.src}" x="${fmt(tip.x - pen.hx / k)}" y="${fmt(tip.y - pen.hy / k)}" width="${fmt(w)}" height="${fmt(h)}"${tr}/>`;
+}
 function rpReveal(op, dur) {                           // 방금 그은 것을 샤프가 긋듯이 — 선 끝을 샤프심이 따라간다. 묶음이면 변을 차례로
     const list = Array.isArray(op) ? op : [op]; op = list[0];
     const gs = list.map(o => gOps.querySelector(`[data-op="${o.id}"]`)).filter(Boolean); if (!gs.length) return;
@@ -3027,17 +3045,14 @@ function rpReveal(op, dur) {                           // 방금 그은 것을 �
         // 선마다 시작·끝은 천천히, 가운데는 빠르게(사용자) — 시간을 길이에 비례해 나눠 주고 한 선 안에서 easeInOutCubic
         const t = Math.min(1, (now - t0) / dur), s = tot * t,
               ez = op.mark ? (u => u) : (u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);   // 스케일자 마킹은 짧은 표시라 처음부터 고른 속도로(사용자)
-        let acc = 0, tip = null;
+        let acc = 0, tip = null, tipDir = null;
         els.forEach(e => {
             const d = e.L * ez(Math.max(0, Math.min(1, (s - acc) / e.L)));
             setDash(e, d);
-            if (!tip && (s - acc <= e.L || e === els[els.length - 1])) { try { tip = toW(e.el, e.el.getPointAtLength(d)); } catch (x) {} }
+            if (!tip && (s - acc <= e.L || e === els[els.length - 1])) { try { tip = toW(e.el, e.el.getPointAtLength(d)); const d2 = Math.min(e.L, d + Math.max(0.001, e.L * 0.01)), d1 = Math.max(0, d2 - Math.max(0.002, e.L * 0.02)), q1 = toW(e.el, e.el.getPointAtLength(d1)), q2 = toW(e.el, e.el.getPointAtLength(d2)); if (q1 && q2) tipDir = {x: q2.x - q1.x, y: q2.y - q1.y}; } catch (x) {} }
             acc += e.L;
         });
-        if (pen && tip && t < 1) {
-            const k = pxPer(), w = (pen.img.naturalWidth || 56) / k, h = (pen.img.naturalHeight || 56) / k;
-            lay.innerHTML = `<image href="${pen.src}" x="${fmt(tip.x - pen.hx / k)}" y="${fmt(tip.y - pen.hy / k)}" width="${fmt(w)}" height="${fmt(h)}"/>`;
-        }
+        if (pen && tip && t < 1) lay.innerHTML = rpPenTag(pen, tip, tipDir);
         if (t < 1) requestAnimationFrame(frame); else clear();
     };
     requestAnimationFrame(frame);
@@ -3263,9 +3278,8 @@ function rpSymPlay(op, spd, done) {
                 if (!RP || RP.reveal !== id) { el.style.strokeDasharray = ''; el.style.strokeDashoffset = ''; lay.innerHTML = ''; return; }
                 const u = Math.min(1, (now - t0) / per), d = s.L * ez(u);
                 el.style.strokeDashoffset = s.L - d;
-                const tip = toW(el, el.getPointAtLength(d));
-                if (pen && tip && u < 1) { const k = pxPer(), w = (pen.img.naturalWidth || 56) / k, h = (pen.img.naturalHeight || 56) / k;
-                    lay.innerHTML = `<image href="${pen.src}" x="${fmt(tip.x - pen.hx / k)}" y="${fmt(tip.y - pen.hy / k)}" width="${fmt(w)}" height="${fmt(h)}"/>`; }
+                const tip = toW(el, el.getPointAtLength(d)), q2 = toW(el, el.getPointAtLength(Math.min(s.L, d + s.L * 0.01 + 1e-3))), q1 = toW(el, el.getPointAtLength(Math.max(0, d - s.L * 0.01)));
+                if (pen && tip && u < 1) lay.innerHTML = rpPenTag(pen, tip, q1 && q2 ? {x: q2.x - q1.x, y: q2.y - q1.y} : null);
                 if (u < 1) requestAnimationFrame(frame); else { el.style.strokeDasharray = ''; el.style.strokeDashoffset = ''; next(); }
             };
             requestAnimationFrame(frame);
