@@ -1801,7 +1801,7 @@ function paveBody(kind, x0, y0, x1, y1, k, seed) {      // 상자를 덮는 패�
     }
     else if (kind === 'pv-tile') grid(1.8 * k);
     else if (kind === 'pv-ilp') {                        // 소형고압블럭 — 촘촘한 X자 사선
-        const st = fit(0.9 * k) * Math.SQRT2;
+        const st = fit(1.8 * k) * Math.SQRT2;   // 0.9 → 1.8mm — 자로 긋기 쉽게(사용자)
         for (let s = x0 + y0; s < x1 + y1 + st; s += st) d += `M${fmt(s - y1)} ${fmt(y1)}L${fmt(s - y0)} ${fmt(y0)}`;
         for (let s = y0 - x1; s < y1 - x0 + st; s += st) d += `M${fmt(x0)} ${fmt(x0 + s)}L${fmt(x1)} ${fmt(x1 + s)}`;
     } else if (kind === 'pv-natural') {                  // 자연석판석 — 흔든 격자점을 이어 모양이 제각각인 돌
@@ -3101,7 +3101,7 @@ function rpClipLine(rings, a, b) {                     // 선 a→b 가 면 안�
 }
 // 해칭 재생 계획 — opSvg 와 같은 식으로 선을 늘어놓고, 방향(th: 긋는 방향 각도)마다 면 안 구간·띠(bands)를 만든다. 해칭이 아니면 null
 // 자로 긋는 포장 — 격자·사선 무늬는 해칭처럼 I자·삼각자로(사용자: 화강석판석을 자로). [해칭 꼴, 종이 mm(paveBody 와 같게)]
-const RP_PAVE_HATCH = {'pv-granite': ['gs', 2.0], 'pv-tile': ['gs', 1.8], 'pv-ilp': ['x', 0.9]};
+const RP_PAVE_HATCH = {'pv-granite': ['gs', 2.0], 'pv-tile': ['gs', 1.8], 'pv-ilp': ['x', 1.8]};
 function rpFillPlan(op) {
     if (!op || op.t !== 'fill' || !op.bb) return null;
     const pv = RP_PAVE_HATCH[op.kind];
