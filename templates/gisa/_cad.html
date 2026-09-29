@@ -1095,6 +1095,22 @@ function srRun(S) {
     return Math.floor(SR_RUN / perM / lab + 1e-9) * lab * perM;
 }
 const SR_MARK = 0.75;                                  // 마킹 길이(종이 위 mm) — 실제 연필 표시처럼 짧게(3 → 1.5 → 0.75, 사용자)
+// 마킹 한 획 — 종이 위 길이 L(도면 m). data-m 에 원래 값을 두고 markMin 이 화면에서 최소 크기를 보장한다(사용자)
+function markTick(x0, y0, x1, y1, L) {
+    const d = Math.hypot(x1 - x0, y1 - y0) || 1, ux = (x1 - x0) / d, uy = (y1 - y0) / d, a = markAttr(), w = +(a.match(/stroke-width="([^"]*)"/) || [0, 0])[1];
+    return `<path class="mk-tk" data-m="${fmt(x0)} ${fmt(y0)} ${+ux.toFixed(5)} ${+uy.toFixed(5)} ${fmt(L)} ${fmt(w)}" d="M${fmt(x0)} ${fmt(y0)}L${fmt(x0 + ux * L)} ${fmt(y0 + uy * L)}" ${a}/>`;
+}
+// 화면에서 최소 크기 — 멀리서 보면 0.75mm 마킹이 1~2px 이라 사라졌다(A2 1:400). 길이 9px·굵기 1.6px·점 반지름 2.6px 아래로는 안 줄인다.
+// 확대하면 원래 종이 크기로 돌아가고, 저장·SVG 내보내기에는 원래 값이 들어간다(화면 DOM 만 고친다)
+const MK_MIN = {len: 9, w: 1.6, r: 2.6};
+function markMin() {
+    let k; try { k = pxPer(); } catch (e) { return; } if (!(k > 0)) return;
+    svg.querySelectorAll('path.mk-tk').forEach(el => {
+        const [x, y, ux, uy, L, w] = el.dataset.m.split(' ').map(Number), l = Math.max(L, MK_MIN.len / k);
+        el.setAttribute('d', `M${fmt(x)} ${fmt(y)}L${fmt(x + ux * l)} ${fmt(y + uy * l)}`); el.setAttribute('stroke-width', fmt(Math.max(w, MK_MIN.w / k)));
+    });
+    svg.querySelectorAll('circle.mk-dot').forEach(el => el.setAttribute('r', fmt(Math.max(+el.dataset.r, MK_MIN.r / k))));
+}
 const markAttr = () => stAttr('solid', 'thin').replace(/stroke="[^"]*"/, `stroke="${SET.markColor || '#f76707'}"`);   // 마킹은 설정 색 — 옅은 회색이었는데 큰 도면에서 안 보였다(사용자)
 let sr = null;                                         // {x, y, rot, roll} 돌리기 전 왼쪽 위(도면 m) · 회전(°) · 바닥 면(0~2)
 try { sr = JSON.parse(localStorage.getItem('cadSr') || 'null'); } catch (e) {}
@@ -1598,8 +1614,8 @@ function itemSvg(it) {
         case 'fill': return `<g class="sym-fill">${opSvg({...it.op, t: 'fill', id: 's' + (++symSeq)})}</g>`;   // 재생 때 음영을 가려내려고 감싼다   // 해칭 clipPath·mask 이름이 겹치지 않게 넣을 때마다 새 번호
         case 'free': return it.pts && it.pts.length > 1 ? `<path d="${freeD(it.pts)}" ${st()}/>` : '';
         case 'mark': { if (!it.pts || it.pts.length < 2) return '';   // 마킹 — 도면의 마킹과 같은 길이·가는 굵기, 마킹 레이어를 따른다
-            const [x0, y0] = it.pts[0], [x1, y1] = it.pts[1], d = Math.hypot(x1 - x0, y1 - y0) || 1, Lm = SR_MARK * scaleDenom() / 1000;
-            return `<g class="sym-mark" data-mk='${JSON.stringify({sr: it.sr || null})}'><path d="M${fmt(x0)} ${fmt(y0)}L${fmt(x0 + (x1 - x0) / d * Lm)} ${fmt(y0 + (y1 - y0) / d * Lm)}" ${markAttr()}/></g>`; }
+            const [x0, y0] = it.pts[0], [x1, y1] = it.pts[1], Lm = SR_MARK * scaleDenom() / 1000;
+            return `<g class="sym-mark" data-mk='${JSON.stringify({sr: it.sr || null})}'>${markTick(x0, y0, x1, y1, Lm)}</g>`; }
     }
     return '';
 }
@@ -1710,8 +1726,8 @@ function paveSvg(op) {
 }
 function opSvg(op) {
     if (op.mark && op.pts && op.pts.length > 1) {      // 마킹 — 길이(SR_MARK)와 가는 굵기로 늘 같게 그린다. 예전(3mm)에 찍은 것도 새 길이로
-        const [x0, y0] = op.pts[0], [x1, y1] = op.pts[1], d = Math.hypot(x1 - x0, y1 - y0) || 1, L = SR_MARK * scaleDenom() / 1000;
-        return `<path d="M${fmt(x0)} ${fmt(y0)}L${fmt(x0 + (x1 - x0) / d * L)} ${fmt(y0 + (y1 - y0) / d * L)}" ${markAttr()}/>`;
+        const [x0, y0] = op.pts[0], [x1, y1] = op.pts[1];
+        return markTick(x0, y0, x1, y1, SR_MARK * scaleDenom() / 1000);
     }
     if (op.t === 'free') return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${freeAttr(op.ls, op.w)}/>` : '';
     if (op.t === 'fill' && !op._raw && op.cuts && op.cuts.length) {   // 지우개로 지운 자리 — 원판들을 검게 뚫은 mask 로 가린다
@@ -1797,7 +1813,7 @@ function dotSvg(p, ring, mk) {   // mk — 마킹 점은 마킹 색으로(큰 �
     const {r, fn} = lblSize();
     const tx = p.lp != null ? (() => { const b = lblBox(p, p.lp); return `x="${fmt(b.x0)}" y="${fmt((b.y0 + b.y1) / 2)}" dominant-baseline="central"`; })()
                             : `x="${fmt(p.x + r + fn * 0.22)}" y="${fmt(p.y - r - fn * 0.12)}"`;
-    return `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r)}" fill="${mk ? (SET.markColor || '#f76707') : INK}"/>`
+    return `<circle${mk ? ` class="mk-dot" data-r="${fmt(r)}"` : ''} cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r)}" fill="${mk ? (SET.markColor || '#f76707') : INK}"/>`
         + `<text ${tx} font-size="${fmt(fn)}" fill="${BLUE}" font-weight="700">${p.n}</text>`
         + (ring ? `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r * 2.6)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : '');
 }
@@ -2914,7 +2930,7 @@ function rpEnd() {
 
 // ── 화면 이동·확대 ───────────────────────────────────────────────────────
 let vb = {x: 0, y: 0, w: 100, h: 70}, fitW = 100, fitted = false;
-function setVB() { svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); status(); }
+function setVB() { svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); status(); markMin(); }
 function aspect() { const r = svg.clientWidth / svg.clientHeight; return r > 0 && isFinite(r) ? r : 1.4; }
 function fit() {
     const B = boardGeom(), m = 3.4 * U, mt = 1.2 * U;   // 제도판 전체 + I자 죔쇠까지. 위는 틀만 있어 조금만 띄운다
@@ -5237,6 +5253,8 @@ $('cadMarkClear').addEventListener('click', clearMarks);
 $('cadAuxColor').addEventListener('input', () => { SET.auxColor = $('cadAuxColor').value; saveSet(); drawOps(); drawPre(); });
 $('cadMarkColor').value = SET.markColor || '#f76707';
 $('cadMarkColor').addEventListener('input', () => { SET.markColor = $('cadMarkColor').value; saveSet(); drawOps(); drawPts(); });
+// 다시 그릴 때마다 마킹의 화면 최소 크기를 다시 입힌다
+{ const o1 = drawOps, o2 = drawPts; drawOps = function () { const r = o1.apply(this, arguments); markMin(); return r; }; drawPts = function () { const r = o2.apply(this, arguments); markMin(); return r; }; }
 ['cadP9', 'cadP5'].forEach(id => $(id).addEventListener('change', () => {
     const v = +$(id).value; if (!(v > 0)) { $(id).value = SET[id === 'cadP9' ? 'p9' : 'p5']; return; }
     saveSet(); drawOps(); drawPre();
