@@ -4936,7 +4936,7 @@ $('cadStepAdd').addEventListener('click', () => {
     if (idx >= 0) { const r = document.querySelector(`#cadOpList .cad-op[data-id="${st.id}"]`); if (r) paneScroll(r); }
 });
 $('cadStepTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); $('cadStepAdd').click(); } });
-$('cadRpBtn').addEventListener('click', () => RP ? rpEnd() : rpStart());
+$('cadRpBtn').addEventListener('click', () => { if (RP) { rpEnd(); return; } rpStart(); if (RP) rpPlay(); });   // 누르면 바로 재생(사용자) — 막대의 ▶ 를 한 번 더 누르지 않게
 // 재생 전용으로 들어왔으면 닫을 때 왔던 곳(기출분석)으로 돌아간다
 function playLeave() {
     RP = null; dirty = false;
