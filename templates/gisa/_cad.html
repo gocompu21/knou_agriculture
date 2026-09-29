@@ -3001,7 +3001,7 @@ function rpReveal(op, dur) {                           // 방금 그은 것을 �
     if (list.length === 1 && op.t === 'text') {        // 글자 — 샤프가 자모 획 차례를 따라 쓰고(rpWriteText), 지나간 자리만 드러난다(기호 속 글자와 같게, 사용자)
         const el = gs[0].querySelector('text'); let bb = null; try { bb = el.getBBox(); } catch (e) {}
         if (el && bb && bb.width) {
-            const pen = rpPenImg('p5'), lay = rpPenLayer(), id = RP.reveal = {};
+            const pen = rpPenImg('p9'), lay = rpPenLayer(), id = RP.reveal = {};   // 글자는 노란 샤프(굵은 샤프)로 쓴다(사용자)
             const toW = q => { const m = el.getScreenCTM(), s = svg.getScreenCTM(); if (!m || !s) return null; const pt = svg.createSVGPoint(); pt.x = q.x; pt.y = q.y; return pt.matrixTransform(m).matrixTransform(s.inverse()); };
             rpWriteText(el, bb, dur, id, pen, lay, toW); return;
         }
@@ -3247,7 +3247,7 @@ function rpSymPlay(op, spd, done) {
         el.style.opacity = '';
         if (!bb || !bb.width) { writeTexts(j + 1); return; }
         const dur = Math.min(per, 120 + 90 * (el.textContent || '').length);
-        rpWriteText(el, bb, dur, id, pen, lay, q => toW(el, q), () => writeTexts(j + 1));   // 자모 획 차례를 따라 쓰고 지나간 자리만 드러난다
+        rpWriteText(el, bb, dur, id, rpPenImg('p9'), lay, q => toW(el, q), () => writeTexts(j + 1));   // 기호 속 글자도 노란 샤프로(사용자)   // 자모 획 차례를 따라 쓰고 지나간 자리만 드러난다
     };
     const next = () => {
         if (!RP || RP.reveal !== id) return;
