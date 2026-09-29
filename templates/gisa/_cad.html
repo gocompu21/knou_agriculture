@@ -126,6 +126,8 @@
             </svg>
             <div class="cad-zoom">
                 <button type="button" id="cadZfit" title="종이에 맞추기">맞춤</button>
+                <button type="button" id="cadZwin" title="창 확대 (Z) — 끌어서 네모로 잡은 곳을 화면 가득 봅니다"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="10" height="8" stroke-dasharray="2 1.5"/><circle cx="12.5" cy="12" r="3.6"/><path d="M15.2 14.7l3 3"/></svg></button>
+                <button type="button" id="cadZprev" title="이전 화면 (Shift+Z)"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4L3 9l5 5M3 9h9a4.5 4.5 0 0 1 0 9h-3"/></svg></button>
                 <button type="button" id="cadZin" title="확대">+</button>
                 <button type="button" id="cadZout" title="축소">−</button>
             </div>
@@ -443,6 +445,8 @@
 .cad-stage { flex: 1; min-width: 0; position: relative; background: #eef1f4; }
 #cadSvg { display: block; width: 100%; height: 72vh; touch-action: none; user-select: none; cursor: crosshair; }
 .cad-tool-select #cadSvg { cursor: default; }
+.cad-zoom button.on { background: #1b4332; color: #fff; border-color: #1b4332; }
+.cad.zwin #cadSvg, .cad.zwin #cadSvg * { cursor: zoom-in !important; }
 .cad-zoom { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 4px; }   /* 맞춤 아래로 + − 세로 */
 .cad-zoom button { border: 1px solid #cfd8d3; background: rgba(255,255,255,.94); border-radius: 6px; min-width: 32px; height: 30px;
     font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #1b4332; }
@@ -4333,6 +4337,51 @@ function pencilOn(edge, w) {                         // 그 변으로 긋기 시
     const p0 = onEdge(edge, w), bl = triBlock(edge);
     return {edge, p0, bl, blocked: !!(bl && p0.x > bl[0] + 1e-6 && p0.x < bl[1] - 1e-6)};
 }
+// ── 길이 직접 입력(사용자) — 샤프로 자의 변을 따라 끄는 동안 숫자를 치면 그 길이(도면 m)로 긋는다. 방향은 끄는 쪽, Enter·떼기로 확정.
+// 자 밖으로는 못 긋는다(자 끝에서 멈춘다) — 제도판에서 자보다 긴 선은 자를 옮겨 이어 긋는다
+function pencilLen(d, q) {
+    const L = d.len != null ? parseFloat(d.len) : NaN; if (!(L > 0)) return q;
+    const g = d.edge, a = d.p0, t0 = (a.x - g.ax) * g.dx + (a.y - g.ay) * g.dy, sgn = ((q.x - a.x) * g.dx + (q.y - a.y) * g.dy) < 0 ? -1 : 1;
+    let t = t0 + sgn * L; const lo = g.lo != null ? g.lo : -Infinity, hi = g.hi != null ? g.hi : Infinity;
+    d.over = t < lo - 1e-9 || t > hi + 1e-9; t = Math.max(lo, Math.min(hi, t));
+    return {x: +(g.ax + g.dx * t).toFixed(4), y: +(g.ay + g.dy * t).toFixed(4)};
+}
+function pencilCommit(d) {
+    gPre.innerHTML = '';
+    if (d.blocked) return;
+    if (d.len != null && d.lastW) {                    // 입력한 길이로 끝점을 다시 잡는다(삼각자에 걸리면 그 모서리에서 멈춤)
+        const a = d.p0, q = pencilLen(d, onEdge(d.edge, d.lastW));
+        if (d.bl) { if (a.x <= d.bl[0] + 1e-6 && q.x > d.bl[0]) q.x = d.bl[0]; if (a.x >= d.bl[1] - 1e-6 && q.x < d.bl[1]) q.x = d.bl[1]; }
+        d.p1 = q;
+    }
+    const q = d.p1, a0 = d.p0;
+    if (!q || Math.hypot(q.x - a0.x, q.y - a0.y) < 1e-6) return;
+    snapHist();
+    const a = addPt(a0.x, a0.y), b = addPt(q.x, q.y), L = Math.hypot(q.x - a0.x, q.y - a0.y);
+    doc.ops.push({id: doc.seq++, t: 'line', a, b, ...strokeStyle()});
+    if (strokeStyle().ls === 'aux' && !SET.auxOn) setAux(true);   // 감춘 채 보조선을 그으면 안 보이므로 레이어를 켠다
+    changed();
+    flash(d.len != null && d.over ? `자 끝까지만 그었습니다 — ${fmt(L)}m (입력 ${d.len}m). 자를 옮겨 이어 그으세요`
+                                  : `${d.edge.name}을(를) 따라 P${a} → P${b} (${fmt(L)}m) 를 그었습니다`);
+}
+// 끄는 동안의 키 — 숫자·점·Backspace 로 길이, Enter 로 확정, Esc 로 입력 지우기. 샤프 단축키(9·5)보다 먼저 받는다(capture)
+window.addEventListener('keydown', e => {
+    if (!drag || drag.kind !== 'pencil' || !drag.moved || e.isComposing) return;
+    const k = e.key; let used = true;
+    if (/^[0-9]$/.test(k) || (k === '.' && !(drag.len || '').includes('.'))) drag.len = (drag.len || '') + k;
+    else if (k === 'Backspace') { drag.len = (drag.len || '').slice(0, -1) || null; }
+    else if (k === 'Escape') drag.len = null;
+    else if (k === 'Enter') { const d = drag; drag = null; root.classList.remove('bar-drag'); pencilCommit(d); }
+    else used = false;
+    if (!used) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (drag && drag.lastW) { const ev = new PointerEvent('pointermove', {clientX: drag.lastCX, clientY: drag.lastCY}); ev._auto = true; svg.dispatchEvent(ev); }
+}, true);
+// ── 창 확대 · 이전 화면(사용자) ──
+let zwin = false; const vbHist = [];
+function vbPush() { vbHist.push({...vb}); if (vbHist.length > 30) vbHist.shift(); }
+function zwinOn(on, quiet) { zwin = on; $('cadZwin').classList.toggle('on', on); root.classList.toggle('zwin', on); if (on && !quiet) flash('끌어서 확대할 곳을 네모로 잡으세요 — 누르기만 하면 그 자리 2배, Esc 취소'); }
+function zoomPrev() { const v = vbHist.pop(); if (!v) { flash('이전 화면이 없습니다'); return; } vb = v; reAspect(); if (sr) drawSr(); }
 function startPencil(e, w, edge, right) {
     // 모서리(I자 날과 삼각자 세로 변이 만나는 곳 등)에서는 가까운 변이 둘 이상이다. 누른 곳만으로 고르면 엉뚱한 변이 잡혀
     // 옆으로 끌어도 길이가 0m 에 머물렀다 — 곁의 변들을 후보로 두고, 처음 끄는 방향과 가장 나란한 변으로 정한다
@@ -4397,6 +4446,7 @@ svg.addEventListener('pointerdown', e => {
     svg.setPointerCapture(e.pointerId);
     ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY});
     if (ptrs.size === 2) { drag = {kind: 'pinch'}; pinchD = 0; return; }
+    if (zwin && e.button === 0) { drag = {kind: 'zwin', w0: toWorld(e), sx: e.clientX, sy: e.clientY, moved: false}; return; }
     if (e.button === 0 && e.target.closest && e.target.closest('#cadSr .sr-roll')) {    // 스케일자 굴림 손잡이
         rollSr(e.shiftKey); drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return;
     }
@@ -4574,6 +4624,12 @@ svg.addEventListener('pointermove', e => {
         }
         return;
     }
+    if (drag && drag.kind === 'zwin') {
+        if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 5) drag.moved = true;
+        if (drag.moved) { const a = drag.w0, k = pxPer();
+            gPre.innerHTML = `<rect x="${fmt(Math.min(a.x, w.x))}" y="${fmt(Math.min(a.y, w.y))}" width="${fmt(Math.abs(w.x - a.x))}" height="${fmt(Math.abs(w.y - a.y))}" fill="rgba(27,67,50,.06)" stroke="#1b4332" stroke-width="${fmt(1.2 / k)}" stroke-dasharray="${fmt(5 / k)} ${fmt(3 / k)}"/>`; }
+        return;
+    }
     if (drag && drag.kind === 'pencil') {
         if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 5) {
             drag.moved = true;
@@ -4589,7 +4645,8 @@ svg.addEventListener('pointermove', e => {
                 if (!drag.warned) { drag.warned = true; flash('삼각자가 놓인 구간이라 그을 수 없습니다 — 삼각자 밖에서 그으세요'); }
                 return;
             }
-            const q = onEdge(drag.edge, w), a = drag.p0, st = strokeStyle();
+            drag.lastW = w; drag.lastCX = e.clientX; drag.lastCY = e.clientY;
+            const q = pencilLen(drag, onEdge(drag.edge, w)), a = drag.p0, st = strokeStyle();
             if (drag.bl) {                           // 삼각자에 부딪히면 그 모서리에서 멈춘다
                 if (a.x <= drag.bl[0] + 1e-6 && q.x > drag.bl[0]) q.x = drag.bl[0];
                 if (a.x >= drag.bl[1] - 1e-6 && q.x < drag.bl[1]) q.x = drag.bl[1];
@@ -4597,7 +4654,7 @@ svg.addEventListener('pointermove', e => {
             drag.p1 = q;
             gPre.innerHTML = (q.cross || a.cross ? [a, q].filter(z => z.cross).map(z => `<circle cx="${fmt(z.x)}" cy="${fmt(z.y)}" r="${fmt(0.7 * U)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.15 * U)}"/>`).join('') : '')
                 + `<path d="M${fmt(a.x)} ${fmt(a.y)}L${fmt(q.x)} ${fmt(q.y)}" ${stAttr(st.ls, st.w)}/>`
-                + `<text x="${fmt(q.x + 0.8 * U)}" y="${fmt(q.y - 1.0 * U)}" font-size="${fmt(1.1 * U)}" fill="${RED}" font-weight="700">${fmt(Math.hypot(q.x - a.x, q.y - a.y))}m</text>`;
+                + `<text x="${fmt(q.x + 0.8 * U)}" y="${fmt(q.y - 1.0 * U)}" font-size="${fmt(1.1 * U)}" fill="${RED}" font-weight="700">${drag.len != null ? `길이 ${esc(drag.len)}▌ m · Enter` : fmt(Math.hypot(q.x - a.x, q.y - a.y)) + 'm'}</text>`;
             hover = {x: q.x, y: q.y, pt: null}; status();
         }
         return;
@@ -4803,15 +4860,16 @@ function endPtr(e) {
     if (d.kind === 'pencil') {
         gPre.innerHTML = '';
         if (!d.moved) { if (d.btn === 0) penDot(d.p0); return; }   // 끌지 않고 왼쪽으로 누르면 그 변 위에 점
-        if (d.blocked) return;
-        const q = d.p1, a0 = d.p0;
-        if (!q || Math.hypot(q.x - a0.x, q.y - a0.y) < 1e-6) return;
-        snapHist();
-        const a = addPt(a0.x, a0.y), b = addPt(q.x, q.y);
-        doc.ops.push({id: doc.seq++, t: 'line', a, b, ...strokeStyle()});
-        if (strokeStyle().ls === 'aux' && !SET.auxOn) setAux(true);   // 감춘 채 보조선을 그으면 안 보이므로 레이어를 켠다
-        changed(); flash(`${d.edge.name}을(를) 따라 P${a} → P${b} (${fmt(Math.hypot(q.x - a0.x, q.y - a0.y))}m) 를 그었습니다`);
-        return;
+        pencilCommit(d); return;
+    }
+    if (d.kind === 'zwin') {                           // 창 확대 — 네모로 잡은 곳을 화면 가득
+        gPre.innerHTML = ''; zwinOn(false, true);
+        const w = toWorld(e), a = d.w0, bw = Math.abs(w.x - a.x), bh = Math.abs(w.y - a.y);
+        if (!d.moved || bw * pxPer() < 8 || bh * pxPer() < 8) { vbPush(); zoomAt(2, w.x, w.y); return; }   // 누르기만 하면 그 자리를 2배
+        let x = Math.min(a.x, w.x), y = Math.min(a.y, w.y), W = bw, H = bh; const r = aspect();
+        if (W / H < r) { const nw = H * r; x -= (nw - W) / 2; W = nw; } else { const nh = W / r; y -= (nh - H) / 2; H = nh; }
+        if (W < fitW / 80) { const cx = x + W / 2, cy = y + H / 2; W = fitW / 80; H = W / r; x = cx - W / 2; y = cy - H / 2; }
+        vbPush(); vb = {x, y, w: W, h: H}; setVB(); if (sr) drawSr(); return;
     }
     if (d.kind === 'ftri' || d.kind === 'ftrirot') { root.classList.remove('bar-drag'); if (d.moved) saveFtri(); else if (d.kind === 'ftrirot') flash('손잡이를 끌어서 돌리세요 (Shift 를 누르면 15° 씩)'); drawFtri(); return; }
     if (d.kind === 'tri') {
@@ -4853,7 +4911,15 @@ $('cadUndo').addEventListener('click', undo);
 $('cadRedo').addEventListener('click', redo);
 $('cadZin').addEventListener('click', () => zoomCenter(1.4));
 $('cadZout').addEventListener('click', () => zoomCenter(1 / 1.4));
-$('cadZfit').addEventListener('click', fit);
+$('cadZfit').addEventListener('click', () => { vbPush(); fit(); });
+$('cadZwin').addEventListener('click', () => zwinOn(!zwin));
+$('cadZprev').addEventListener('click', zoomPrev);
+document.addEventListener('keydown', e => {                // Z 창 확대 · Shift+Z 이전 화면 · Esc 로 창 확대 취소
+    if (e.ctrlKey || e.metaKey || e.altKey || RP || drag || (e.target.closest && e.target.closest('input,select,textarea,[contenteditable]'))) return;
+    if (!root.offsetParent && !root.classList.contains('full')) return;
+    if (e.key === 'Escape' && zwin) { e.preventDefault(); e.stopImmediatePropagation(); zwinOn(false, true); gPre.innerHTML = ''; return; }
+    if (e.code === 'KeyZ') { e.preventDefault(); e.stopImmediatePropagation(); if (e.shiftKey) zoomPrev(); else zwinOn(!zwin); }
+}, true);
 $('cadNew').addEventListener('click', newDrawing);
 $('cadSave').addEventListener('click', save);
 $('cadExport').addEventListener('click', download);
