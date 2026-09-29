@@ -261,11 +261,11 @@
                     <button type="button" data-rp="first" title="처음으로(Home)">⏮</button><button type="button" data-rp="prev" title="이전(←)">◀</button>
                     <button type="button" data-rp="play" class="pl" title="재생·멈춤(Space)">▶ 재생</button>
                     <button type="button" data-rp="next" title="다음(→)">▶</button><button type="button" data-rp="last" title="끝으로(End)">⏭</button>
-                    <select id="cadRpSpd" hidden><option value="2200">0.5X</option><option value="1100" selected>1X</option><option value="733">1.5X</option><option value="550">2X</option><option value="367">3X</option></select>
+                    <select id="cadRpSpd" hidden><option value="2200">0.5X</option><option value="1100" selected>1X</option><option value="733">1.5X</option><option value="550">2X</option><option value="367">3X</option><option value="220">5X</option></select>
                     <span class="no" id="cadRpNo"></span>
                     <button type="button" data-rp="end" class="x" title="재생 끝내기(Esc)">✕</button>
                 </div>
-                <div class="cad-rp-spd" id="cadRpSpdBtns" title="재생 배속">배속<button type="button" data-spd="2200">0.5X</button><button type="button" data-spd="1100" class="on">1X</button><button type="button" data-spd="733">1.5X</button><button type="button" data-spd="550">2X</button><button type="button" data-spd="367">3X</button></div>
+                <div class="cad-rp-spd" title="재생 배속"><span class="lb">배속</span><span class="seg" id="cadRpSpdBtns"><button type="button" data-spd="2200">0.5X</button><button type="button" data-spd="1100" class="on">1X</button><button type="button" data-spd="733">1.5X</button><button type="button" data-spd="550">2X</button><button type="button" data-spd="367">3X</button><button type="button" data-spd="220">5X</button></span></div>
                 <input type="range" id="cadRpBar" min="0" value="0" step="1">
                 <div class="cad-rp-time"><span id="cadRpCur">0:00</span><span id="cadRpDur">0:00</span></div>
                 <div class="cad-rp-tx" id="cadRpTx"></div>
@@ -526,9 +526,14 @@
 .cad-rp button.pl { min-width: 64px; font-weight: 700; background: #f4c542; color: #1b4332; border-color: #f4c542; }
 .cad-rp button.x { margin-left: auto; }
 .cad-rp select { height: 28px; border-radius: 6px; border: 0; font-size: 0.78rem; }
-.cad-rp-spd { display: flex; align-items: center; gap: 4px; margin: 6px 0 2px; font-size: 0.74rem; opacity: .95; }   /* 배속 단추(사용자 — 콤보 대신) */
-.cad-rp-spd button { min-width: 40px; height: 24px; font-size: 0.76rem; font-variant-numeric: tabular-nums; }
-.cad-rp-spd button.on { background: #f4c542; color: #1b4332; border-color: #f4c542; font-weight: 700; }
+.cad-rp-spd { display: flex; align-items: center; gap: 8px; margin: 8px 0 3px; padding-top: 7px; border-top: 1px dashed rgba(255,255,255,.25); }   /* 배속(사용자 — 콤보 대신 단추) */
+.cad-rp-spd .lb { font-size: 0.72rem; color: #b7e4c7; letter-spacing: .05em; }
+/* 위 재생 단추와 헷갈리지 않게 한 덩어리 분절 단추로 — 어두운 홈 안에 붙어 있고, 고른 것만 흰 바탕(사용자) */
+.cad-rp-spd .seg { display: inline-flex; background: rgba(0,0,0,.28); border-radius: 999px; padding: 2px; gap: 0; }
+.cad-rp-spd .seg button { border: 0; background: transparent; color: #d8f3dc; border-radius: 999px; min-width: 38px; height: 22px; padding: 0 7px;
+    font-size: 0.74rem; font-variant-numeric: tabular-nums; }
+.cad-rp-spd .seg button:hover { color: #fff; background: rgba(255,255,255,.08); }
+.cad-rp-spd .seg button.on { background: #fff; color: #1b4332; font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
 .cad-rp .no { font-variant-numeric: tabular-nums; margin-left: 4px; opacity: .9; }
 .cad-rp-title { position: absolute; left: 50%; top: 14%; transform: translateX(-50%); z-index: 20; pointer-events: none; opacity: 0;
     background: rgba(27,67,50,.88); color: #fff; font-weight: 800; font-size: 1.35rem; padding: 10px 22px; border-radius: 12px; box-shadow: 0 8px 28px rgba(0,0,0,.2); white-space: nowrap; }
