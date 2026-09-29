@@ -451,6 +451,13 @@
 .cad-zoom .cad-bar-btn { display: inline-flex; align-items: center; justify-content: center; }   /* 자 가운데로 — 그림 단추 */
 .cad-zoom button { border: 1px solid #cfd8d3; background: rgba(255,255,255,.94); border-radius: 6px; min-width: 32px; height: 30px;
     font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #1b4332; }
+/* 입체 단추(사용자) — 평소엔 위가 밝고 아래로 그늘진 볼록한 단추, 누르면 1.5px 내려앉으며 안쪽 그림자로 파인다 */
+.cad-zoom button:not(.on) { background: linear-gradient(#fff, #e9efeb); border-color: #c3cec8 #b3c0b9 #9fb0a7;
+    box-shadow: 0 2px 0 #b8c6be, 0 3px 5px rgba(0,0,0,.14), inset 0 1px 0 #fff; transition: transform .06s, box-shadow .06s, background .06s; }
+.cad-zoom button:not(.on):hover { background: linear-gradient(#fff, #dfe9e3); }
+.cad-zoom button:active, .cad-zoom button.on:active { transform: translateY(2px); background: linear-gradient(#dde6e1, #eef2ef);
+    box-shadow: 0 0 0 #b8c6be, inset 0 2px 4px rgba(0,0,0,.22); }
+.cad-zoom button.on { box-shadow: inset 0 2px 4px rgba(0,0,0,.35); }
 .cad-status { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 14px; padding: 4px 10px;
     background: rgba(255,255,255,.9); font-size: 0.78rem; color: #45524c; border-top: 1px solid #e2e7e4; font-variant-numeric: tabular-nums; }
 #cadHint { color: #2d6a4f; }
