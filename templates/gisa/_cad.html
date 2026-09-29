@@ -1218,6 +1218,41 @@ function srEdge(w) {                                   // 누른 곳에 가까�
     const d = e => Math.abs((w.x - e.ax) * e.dy - (w.y - e.ay) * e.dx);
     return d(E[0]) <= d(E[1]) ? E[0] : E[1];
 }
+// 스케일자를 옮길 때 — 눈금 모서리를 가로지르는 선(보조선 포함)·모서리 곁의 점이 어느 눈금 곁(화면 10px)에 오면, 자를 모서리 방향으로
+// 밀어 그 눈금에 딱 맞춘다. 0 눈금만 스냅 칸에 붙으니 선이 0.1m 칸 사이(원 가운데 보조선 등)에 있으면 눈금을 끝내 못 맞췄다(사용자).
+// 자를 가로지르는 선은 대개 여럿이라 모두 보면 자가 끌 때마다 선마다 달라붙는다 — **커서 곁(모서리 방향 80px)만** 본다(템플릿과 같은 결).
+// 돌려주는 것: 자를 옮길 양(dx, dy)과 상태줄 글
+function srPin(w) {
+    const px = pxPer(), tol = 10 / px, reach = 40 / px, near = 80 / px, L = [], Q = [];
+    doc.ops.forEach(op => {
+        if (auxHidden(op) || op.mark || (op.t !== 'line' && op.t !== 'rect')) return;
+        const a = P(op.a), b = P(op.b); if (!a || !b) return;
+        const q = op.t === 'rect' ? [a, {x: b.x, y: a.y}, b, {x: a.x, y: b.y}] : [a, b];
+        for (let i = 0; i < (op.t === 'rect' ? 4 : 1); i++) {
+            const p0 = q[i], p1 = q[(i + 1) % q.length], n = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+            if (n > 1e-6) L.push({a: p0, d: {x: (p1.x - p0.x) / n, y: (p1.y - p0.y) / n}, n, what: isAux(op) ? '보조선' : '선'});
+        }
+    });
+    doc.pts.forEach(p => { if (!(doc.ops.some(o => o.mark && o.p === p.n))) Q.push(p); });   // 마킹 점은 자와 함께 움직인 자리라 빼고
+    let best = null;
+    srEdges().forEach(e => {
+        const n = e.hi, mmPerM = SR_L / n, perM = 1000 / e.srS, minor = srGrad(e.srS)[0], tot = srRun(e.srS) / perM;
+        const sc = (w.x - e.ax) * e.dx + (w.y - e.ay) * e.dy;   // 커서의 모서리 위 자리
+        const tick = (s, what) => {                    // 모서리 위 s(m) 자리에서 가장 가까운 눈금까지
+            if (s < 0 || s > n || Math.abs(s - sc) > near) return;
+            const u = s * mmPerM, r = Math.max(0, Math.min(tot, Math.round((u - e.srU0) * e.srDu / perM / minor) * minor));
+            const off = (u - (e.srU0 + e.srDu * r * perM)) / mmPerM;   // 도면 m, 모서리 방향
+            if (Math.abs(off) < (best ? best.g : tol)) best = {g: Math.abs(off), dx: e.dx * off, dy: e.dy * off, what: `${fmt(+r.toFixed(4))} 눈금을 ${what}에 맞춤`};
+        };
+        L.forEach(l => {
+            const den = e.dx * l.d.y - e.dy * l.d.x; if (Math.abs(den) < 0.05) return;   // 모서리와 나란한 선은 빼고
+            const wx = l.a.x - e.ax, wy = l.a.y - e.ay, s = (wx * l.d.y - wy * l.d.x) / den, t = (wx * e.dy - wy * e.dx) / den;
+            if (t >= -reach && t <= l.n + reach) tick(s, l.what);
+        });
+        Q.forEach(p => { const wx = p.x - e.ax, wy = p.y - e.ay; if (Math.abs(wx * e.dy - wy * e.dx) <= reach) tick(wx * e.dx + wy * e.dy, `P${p.n}`); });
+    });
+    return best;
+}
 // 스케일자 눈금 모서리를 샤프로 찍으면 — 가장 가까운 작은 눈금 자리에서 눈금과 나란히, 자 바깥(종이) 쪽으로 짧은 보조선을 긋는다
 // 마킹 = 모서리 위의 점 하나(나중에 I자·삼각자를 맞추고 선을 잇는 기준, 스냅된다) + 짧은 표시(종이 위 3mm).
 // 표시는 점 번호를 쓰지 않는 두 좌표 획(free)이라 점이 늘지 않는다. op.mark 가 붙은 획은 '마킹' 레이어(보이기·모두 지우기)
@@ -4769,8 +4804,10 @@ svg.addEventListener('pointermove', e => {
             if (barOn && barY != null && srFlat(sr)) {        // 가로로 놓인 스케일자를 I자 윗날 가까이(화면 14px) 끌면 날에 딱 붙는다
                 const ly = srLowY(sr); if (ly != null && Math.abs(ly - barY) <= 14 / pxPer()) sr.y = +(sr.y + barY - ly).toFixed(4);
             }
+            const pin = e.altKey ? null : srPin(w);          // 눈금을 선·점에 맞춤(모서리 방향으로만 민다 — I자에 붙은 높이는 그대로). Alt 는 스냅 칸만
+            if (pin) { sr.x = +(sr.x + pin.dx).toFixed(4); sr.y = +(sr.y + pin.dy).toFixed(4); }
             drawSr(); hover = null; drawPre();
-            $('cadXY').textContent = `스케일자 0 눈금 X ${fmt1(+zx.toFixed(3))} · Y ${fmt1(+zy.toFixed(3))}`;
+            $('cadXY').textContent = pin ? `스케일자 ${pin.what}` : `스케일자 0 눈금 X ${fmt1(+zx.toFixed(3))} · Y ${fmt1(+zy.toFixed(3))}`;
         }
         return;
     }
