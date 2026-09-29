@@ -5078,7 +5078,7 @@ svg.addEventListener('pointerdown', e => {
         if (c('#cadTpl .tpl-body')) { startTplDrag(e, w); return; }
         if (c('#cadSr .sr-body')) { startSrDrag(e, w); return; }
         if (c('#cadBar .bar-body')) { drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return; }
-        drag = {kind: 'box', a: boxSnap(w), b: null};
+        drag = {kind: 'boxdraw', a: boxSnap(w), b: null};   // 'box' 는 선택 도구의 영역 선택(Shift+끌기)이 쓴다 — 같은 이름이라 영역 선택이 박스 긋기로 새어 먹혔다(사용자)
         return;
     }
     if (tool === 'free' && e.button === 0) {
@@ -5256,7 +5256,7 @@ svg.addEventListener('pointermove', e => {
         }
         return;
     }
-    if (drag && drag.kind === 'box') {
+    if (drag && drag.kind === 'boxdraw') {
         const A = drag.a, B = drag.b = boxSnap(w), st = boxStyle();
         gPre.innerHTML = `<path d="M${fmt(A.x)} ${fmt(A.y)}H${fmt(B.x)}V${fmt(B.y)}H${fmt(A.x)}Z" ${stAttr(st.ls, st.w)}/>`
             + `<text x="${fmt(B.x + 0.6 * U)}" y="${fmt(B.y + 1.6 * U)}" font-size="${fmt(1.4 * U)}" fill="${RED}">${fmt(Math.abs(B.x - A.x))} × ${fmt(Math.abs(B.y - A.y))}m</text>`;
@@ -5406,7 +5406,7 @@ function endPtr(e) {
     if (d.kind === 'erase') gPre.innerHTML = '';     // 떼면 빨간 원이 사라진다
     if (e.type === 'pointercancel') return;
     if (d.kind === 'trirot') { rotateTri(); return; }
-    if (d.kind === 'box') { gPre.innerHTML = ''; if (d.b) makeBox(d.a, d.b); return; }
+    if (d.kind === 'boxdraw') { gPre.innerHTML = ''; if (d.b) makeBox(d.a, d.b); return; }
     if (d.kind === 'free') {                          // 자가 덮은 곳에서 끊어 조각마다 한 획, 떨림은 0.6px 로 거른다
         gPre.innerHTML = '';
         const runs = []; let cur = [];
