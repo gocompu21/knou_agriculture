@@ -48,6 +48,7 @@
         <button type="button" data-tool="arc" hidden title="호 (A)" aria-label="호"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 15A6.5 6.5 0 0 1 16.5 15"/><circle cx="3.5" cy="15" r="1.7" class="f"/><circle cx="16.5" cy="15" r="1.7" class="f"/></svg></button>
         <button type="button" data-tool="sym" title="시설 및 수목 넣기 (B)" aria-label="기호"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="13" height="13"/><path d="M3.5 3.5l13 13M16.5 3.5l-13 13"/></svg></button>
         <button type="button" data-tool="box" title="박스 (X) — 왼쪽 위 모서리에서 오른쪽 아래 모서리까지 끌면 네모가 그려집니다. 재생 때는 I자·삼각자로 변마다 긋습니다" aria-label="박스"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="5" width="13" height="10"/><circle cx="3.5" cy="5" r="1.6" class="f"/><circle cx="16.5" cy="15" r="1.6" class="f"/></svg></button>
+        <button type="button" data-tool="poly" title="다각선 — 누르며 점을 이어 긋는다 (자유 삼각자) (Q)" aria-label="다각선"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 15.5 7 5.5l4.5 8 6-10"/><circle cx="2.5" cy="15.5" r="1.5" class="f"/><circle cx="7" cy="5.5" r="1.5" class="f"/><circle cx="11.5" cy="13.5" r="1.5" class="f"/><circle cx="17.5" cy="3.5" r="1.5" class="f"/></svg></button>
         <button type="button" data-tool="free" title="프리드로잉 (D) — 누른 채 끌면 손 가는 대로 선이 그어집니다(자 위로는 그어지지 않습니다)" aria-label="프리드로잉"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 15.5c2-3.5 3.6-4.6 5-3.4 1.3 1.1-.4 3.2 1 3.9 1.6.8 3.2-3.6 5-6.2 1.2-1.7 2.4-2.4 4-2.2"/><path d="m14.2 3.2 2.6 2.6-1.6 1.6-2.6-2.6Z" class="f"/></svg></button>
         <select id="cadFfSm" class="cad-txt" style="width:46px" title="프리드로잉 다듬기 세기 — 셀수록 손떨림을 펴서 크게 흐르는 곡선이 됩니다"><option value="0">약</option><option value="1">중</option><option value="2">강</option></select><button type="button" id="cadFfTidy" class="cad-b" style="padding:2px 7px;font-size:0.76rem" title="고른 프리드로잉을 한 단계 더 매끈하게 (누를 때마다, Ctrl+Z 로 되돌리기)">다듬기</button>
         <select id="cadFfW" class="cad-txt" style="width:62px" title="프리드로잉 선 두께"><option value="p5">얇은</option><option value="p9">굵은</option><option value="thin">가늘게</option><option value="mid">보통</option><option value="thick">굵게</option></select>
@@ -245,6 +246,14 @@
                        네 변은 한 묶음(작도 순서 한 줄)이고, 재생 때는 가로변은 I자로, 세로변은 I자에 얹은 삼각자로 아래에서 위로 긋습니다.</p>
                     <div class="cad-row"><label>샤프<select id="fbW"><option value="p9">굵은 샤프</option><option value="p5">얇은 샤프</option></select></label>
                         <span class="cad-help">선 종류는 설정의 그 샤프 선 종류</span></div>
+                </div>
+                <div data-form="poly">
+                    <h4>다각선</h4>
+                    <p class="cad-help"><b>있는 점만</b> 차례로 눌러 잇습니다(새 점은 만들지 않습니다). 커서 곁에서 잡힐 점이 노랗게 표시됩니다.<br>
+                       더블클릭·Enter·오른쪽 버튼으로 끝내고, 첫 점을 다시 누르면 닫힙니다. Backspace 는 한 점 되돌리기, Esc 는 취소.<br>
+                       변들은 한 묶음(작도 순서 한 줄)이고, 재생 때는 변마다 <b>회전 삼각자</b>(자유 삼각자)를 그 변에 대고 긋습니다.</p>
+                    <div class="cad-row"><label>선 종류<select class="ls" id="fpyLs"></select></label>
+                        <label>샤프<select id="fpyW"><option value="p9">굵은 샤프</option><option value="p5">얇은 샤프</option></select></label></div>
                 </div>
                 <div data-form="free">
                     <h4>프리드로잉</h4>
@@ -2130,6 +2139,7 @@ function drawPts() {
 }
 function drawPre() {
     if (RP) { gPre.innerHTML = ''; return; }
+    if (tool === 'poly') { gPre.innerHTML = polyPreSvg(); return; }   // 다각선 — 이은 변 + 다음 점(노랑)
     let o = '';
     const h = hover;
     if (h && h.w && tool.startsWith('erase')) {
@@ -2539,6 +2549,10 @@ function grpSpan(i) {                                  // i 번째 줄이 든 �
 const grpOps = id => { const i = doc.ops.findIndex(o => o.id === id); if (i < 0) return []; const [s, e] = grpSpan(i); return doc.ops.slice(s, e); };
 function grpDesc(ops, full) {                          // '정삼각형 P1 → P2 → P3 → P1 · 한 변 12m'
     const o = ops[0], ptxt = full ? ptxtFull : (n => `P${n}`), ns = [o.a, ...ops.map(x => x.b)];
+    if (o.poly) {                                        // 다각선 — '다각선 P1 → P2 → P3 · 2변 · 25.4m'
+        const L = ops.reduce((s, x) => { const a = P(x.a), b = P(x.b); return s + (a && b ? Math.hypot(b.x - a.x, b.y - a.y) : 0); }, 0);
+        return `다각선 ${ns.map(ptxt).join(' → ')} · ${ops.length}변 · ${fmt(L)}m · ${(LS[o.ls] || LS.solid).name}`;
+    }
     if (o.box) {                                         // 박스 — '박스 P1 ~ P3 · 12×8m'
         const q = ops.flatMap(x => [P(x.a), P(x.b)]).filter(Boolean), xs = q.map(v => v.x), ys = q.map(v => v.y);
         const top = ops[1] || o;
@@ -2688,7 +2702,8 @@ function rpTriFits(s, a, b, tol) {
 function rpToolsFor(s, op) {
     if (!s || !op || op.t === 'step') return s;
     if (op.mark) { const g = !op.tl && srForMark(op); return rpMarkTools(g ? {...s, sr: g} : s); }
-    if (op.box) return rpNoSr(s);                        // 박스는 변마다 제 기록대로(삼각자를 왼쪽에 둔다 — 사용자)
+    if (op.box) return rpNoSr(s);
+    if (op.poly) return {...s, bar: null, tri: null, tpl: null, sr: null, ftri: (op.tl && op.tl.ftri) || s.ftri};   // 다각선 — 변마다 기록한 회전 삼각자                        // 박스는 변마다 제 기록대로(삼각자를 왼쪽에 둔다 — 사용자)
     const none = {...s, bar: null, tri: null, tpl: null, sr: null, ftri: null};
     if (op.grp != null && op.t === 'line') return {...none, tpl: rpTplFit(s.tpl, grpOps(op.id))};   // 템플릿으로 돌려 그린 도형 — 구멍이 도형 자리에 없으면 다시 놓는다
     if (op.t === 'line') {
@@ -3373,7 +3388,7 @@ function rpTimes() {
         if (o.t === 'step') d = 0.8;
         else if (o.t === 'sym') { const it = ((doc.syms[o.sym] || {}).items || []).length || 1; d = 0.35 + 0.75 * 0.75 + 0.75 * it * 0.75 + 0.15; }
         else if (o.t === 'fill') d = 0.35 + rpFillDur(o, 1) + 0.15;   // 채우기 — 해칭은 줄 무리 수만큼(rpFillPlay 와 같은 셈)
-        else if (blk.length > 1 && o.box) d = 0.35 + blk.length * 0.9 + 0.15;
+        else if (blk.length > 1 && (o.box || o.poly)) d = 0.35 + blk.length * 0.9 + 0.15;
         else if (blk.length > 1) d = 0.35 + 1.05 + 0.15;
         else d = 0.35 + (o.mark ? 0.72 : 0.9);
         for (let k = s + 1; k <= e; k++) T[k] = T[s] + (k === e ? d * spd : 0);
@@ -3518,7 +3533,7 @@ function rpGo(k, anim, cb) {
         drawOps(); drawPts(); rpInfo();
         if (fwd && op && op.t === 'sym') { rpSymPlay(op, spd, () => { if (cb && RP) RP.timer = setTimeout(cb, spd * 0.15); }); return; }   // 기호 — 선·원마다 도구를 옮겨 가며
         if (fwd && op && op.t === 'fill') { rpFillPlay(op, spd, () => { if (cb && RP) RP.timer = setTimeout(cb, spd * 0.15); }); return; }   // 채우기 — 자를 옮겨 가며 샤프로 긋는다
-        if (fwd && blk.length > 1 && blk[0].box) {        // 박스 — 변마다 I자·삼각자를 옮겨 놓고 긋는다(사용자)
+        if (fwd && blk.length > 1 && (blk[0].box || blk[0].poly)) {   // 다각선도 변마다 회전 삼각자를 옮겨 가며        // 박스 — 변마다 I자·삼각자를 옮겨 놓고 긋는다(사용자)
             let i = 0;
             const gOf = o => gOps.querySelector(`[data-op="${o.id}"]`);
             blk.forEach(o => { const g = gOf(o); if (g) g.style.visibility = 'hidden'; });   // 아직 긋지 않은 변은 감춘다 — 첫 변 뒤에 네모가 통째로 나왔다(사용자)
@@ -3861,6 +3876,70 @@ function makeBox(A, B) {
     });
     changed(); flash(`박스 ${fmt(x1 - x0)} × ${fmt(y1 - y0)}m`);
 }
+// ── 다각선(사용자) — 있는 점만 차례로 누르며 잇는다(새 점을 만들지 않는다). 변마다 선 하나, 모두 한 묶음(poly).
+// 변마다 도구 자리는 **회전 삼각자**(자유 삼각자) — 가로·세로·45° 도 I자·삼각자가 아니라 회전 삼각자의 한 변을 그 변에 댄다
+var polyV = [];                                       // 지금 잇는 점 번호들 — setTool 이 도구를 바꾸면 비운다(var: 초기화 전에 불려도 되게)
+function polyStyle() { return {w: ($('fpyW') && $('fpyW').value) || 'p9', ls: ($('fpyLs') && $('fpyLs').value) || 'solid'}; }
+function polyNear(w) {                                // 커서 곁의 점 — 11px 안(hitPoint), 없으면 30px 안에서 가장 가까운 점
+    if (!w) return null;
+    const h = hitPoint(w); if (h) return h;
+    let best = null, bd = 30 / pxPer();
+    doc.pts.forEach(p => { const d = Math.hypot(p.x - w.x, p.y - w.y); if (d < bd) { bd = d; best = p; } });
+    return best;
+}
+function polyTools(a, b) {                            // 그 변을 회전 삼각자로 긋는 자리 — 변의 가운데를 자 변(12cm)의 가운데에, 변보다 길면 모서리부터
+    const base = toolState(), dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy); if (!(L > 0)) return base;
+    const rot = Math.atan2(dy, dx) * 180 / Math.PI, Lg = 120 * scaleDenom() / 1000, ux = dx / L, uy = dy / L, back = L >= Lg ? 0 : (Lg - L) / 2;
+    return {...base, bar: null, tri: null, tpl: null, sr: null,
+        ftri: {...(ftri || {}), den: scaleDenom(), x: rnd3(a.x - ux * back), y: rnd3(a.y - uy * back), rot: +rot.toFixed(2)}};
+}
+function polyPick(w) {
+    const p = polyNear(w);
+    if (!p) { flash('가까운 점이 없습니다 — 점 가까이를 누르세요'); return; }
+    if (polyV.length && polyV[polyV.length - 1] === p.n) return;          // 같은 점을 잇달아 고르지 않는다
+    if (polyV.length >= 3 && p.n === polyV[0]) { polyV.push(p.n); polyFinish(); return; }   // 첫 점을 다시 누르면 닫는다
+    polyV.push(p.n); drawPre(); status();
+}
+function polyFinish() {
+    const V = polyV.filter(n => P(n)); polyV = [];
+    if (V.length < 2) { drawPre(); status(); if (V.length) flash('다각선은 점을 둘 이상 이어야 합니다'); return; }
+    makePoly(V); drawPre(); status();
+}
+function makePoly(V) {                                // V — 점 번호 차례. 첫 점으로 끝나면 닫힌 다각형
+    const segs = []; for (let i = 0; i + 1 < V.length; i++) if (V[i] !== V[i + 1]) segs.push([V[i], V[i + 1]]);
+    if (!segs.length) return;
+    snapHist();
+    const st = polyStyle(), gid = doc.seq;
+    segs.forEach(([a, b]) => doc.ops.push({id: doc.seq++, t: 'line', a, b, ...st, grp: gid, gname: '다각선', poly: true, tl: polyTools(P(a), P(b))}));
+    const L = segs.reduce((s, [a, b]) => s + Math.hypot(P(b).x - P(a).x, P(b).y - P(a).y), 0);
+    changed(); flash(`다각선 ${segs.length}변 · ${fmt(L)}m${V[0] === V[V.length - 1] ? ' (닫힘)' : ''}`);
+}
+function polyPreSvg() {                               // 이은 변 + 마지막 점 → 고를 점(점선) + 고를 점 표시
+    const h = hover, cand = h && polyNear(h.w || h), pts = polyV.map(P).filter(Boolean), st = polyStyle();
+    let o = pts.length > 1 ? `<path d="M${pts.map(q => `${fmt(q.x)} ${fmt(q.y)}`).join('L')}" ${stAttr(st.ls, st.w)}/>` : '';
+    const last = pts[pts.length - 1];
+    if (cand) {
+        if (last && cand.n !== polyV[polyV.length - 1]) {
+            const L = Math.hypot(cand.x - last.x, cand.y - last.y);
+            o += `<path d="M${fmt(last.x)} ${fmt(last.y)}L${fmt(cand.x)} ${fmt(cand.y)}" stroke="${RED}" stroke-width="${fmt(0.1 * U)}" fill="none" stroke-dasharray="${fmt(0.5 * U)} ${fmt(0.3 * U)}"/>`
+                + `<text x="${fmt(cand.x + 0.8 * U)}" y="${fmt(cand.y - 1.0 * U)}" font-size="${fmt(1.1 * U)}" fill="${RED}" font-weight="700">${fmt(L)}m</text>`;
+        }
+        const close = polyV.length >= 3 && cand.n === polyV[0];
+        o += `<circle cx="${fmt(cand.x)}" cy="${fmt(cand.y)}" r="${fmt(0.9 * U)}" fill="rgba(255,245,0,.45)" stroke="${close ? '#2ea043' : RED}" stroke-width="${fmt(0.14 * U)}"/>`;
+    }
+    if (last) o += `<circle cx="${fmt(last.x)}" cy="${fmt(last.y)}" r="${fmt(0.45 * U)}" fill="${RED}"/>`;
+    return o;
+}
+function polyHint() {
+    const h = hover, cand = h && polyNear(h.w || h), last = polyV.length ? P(polyV[polyV.length - 1]) : null;
+    if (!polyV.length) return cand ? ` · P${cand.n} 에서 시작 — 누르세요` : ' · 점 가까이를 눌러 시작합니다(있는 점만 잇습니다)';
+    let s = ` · 다각선 ${polyV.length}점`;
+    if (cand && last && cand.n !== polyV[polyV.length - 1]) {
+        const dx = cand.x - last.x, dy = cand.y - last.y, ang = (Math.atan2(-dy, dx) * 180 / Math.PI + 360) % 360;
+        s += ` · P${cand.n} 까지 ${fmt(Math.hypot(dx, dy))}m · ${fmt(+ang.toFixed(1))}°${polyV.length >= 3 && cand.n === polyV[0] ? ' · 누르면 닫힘' : ''}`;
+    }
+    return s + ' · 더블클릭·Enter·우클릭 끝 · Backspace 한 점 되돌리기 · Esc 취소';
+}
 function hitPoint(w) {
     let best = null, bd = 11 / pxPer();
     doc.pts.forEach(p => { const d = Math.hypot(p.x - w.x, p.y - w.y); if (d < bd) { bd = d; best = p; } });
@@ -3873,6 +3952,7 @@ function status() {
     $('cadHint').textContent = `확대 ${z}% · 스냅 ${$('cadSnap').checked ? $('cadSnapStep').value + 'm' : '끔'}` + hintText();
 }
 function hintText() {
+    if (tool === 'poly') return polyHint();
     const f = picksOf(tool);
     if (tool === 'point') return ' · 도면을 누르면 점이 생깁니다';
     if (tool.startsWith('erase')) return ' · 누른 채 문지르면 지워집니다 · Ctrl+끌기로 화면 이동';
@@ -3898,7 +3978,7 @@ function setArcMode(m) {
 const FORM_OF = {line: 'fl', rect: 'fr', circle: 'fc', arc: 'fa'};
 function setTool(t, keepEdit) {
     root.classList.remove('in-hole');
-    if (t !== tool) closeTextBox(true);
+    if (t !== tool) { closeTextBox(true); polyV = []; }
     tool = t;
     if (!keepEdit) endEdit();
     root.className = root.className.replace(/\bcad-tool-\S+/g, '').trim() + ' cad-tool-' + t + (t === 'free' ? ' cad-tool-' + (($('ffW') && ['p9', 'mid', 'thick'].includes($('ffW').value)) ? 'pen9' : 'pen5') : '');
@@ -4681,7 +4761,7 @@ function revOp(id) {
     snapHist();
     if (op.grp != null) {                              // 묶음 — 변 차례를 뒤집고 변마다 두 점을 맞바꾼다
         const i = doc.ops.indexOf(op), [s, e] = grpSpan(i), blk = doc.ops.slice(s, e).reverse();
-        blk.forEach(o => { [o.a, o.b] = [o.b, o.a]; });
+        blk.forEach(o => { [o.a, o.b] = [o.b, o.a]; if (o.poly && P(o.a) && P(o.b)) o.tl = polyTools(P(o.a), P(o.b)); });
         doc.ops.splice(s, e - s, ...blk);
         changed(); rpMark(blk[0], 900); rpHilite(blk, 250); return;
     }
@@ -5519,6 +5599,19 @@ svg.addEventListener('pointerdown', e => {
     }
     // 샤프를 든 동안에는 끌어도 화면이 움직이지 않는다 — 날이 얇아 조금만 빗나가도 화면이 밀렸다.
     // 몸통을 왼쪽으로 끌면 자를 옮기고, 날 근처(위아래 40px)에서 끌면 어느 버튼이든 날을 따라 긋는다
+    if (tool === 'poly' && (e.button === 0 || e.button === 2)) {   // 다각선 — 누를 때마다 가까운 점, 더블클릭·오른쪽 버튼이면 끝
+        const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
+        if (e.button === 0) {
+            if (c('#cadTri .tri-body')) { startTriDrag(e, w); return; }
+            if (c('#cadFtri .tri-body')) { startFtriDrag(e, w); return; }
+            if (c('#cadTpl .tpl-body')) { startTplDrag(e, w); return; }
+            if (c('#cadSr .sr-body')) { startSrDrag(e, w); return; }
+            if (c('#cadBar .bar-body')) { drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return; }
+        }
+        drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true};
+        if (e.button === 2) { polyFinish(); return; }   // 더블클릭은 아래 dblclick 이 받는다(pointerdown 의 detail 은 늘 0 이다) — 두 번째 누름은 같은 점이라 건너뛴다
+        polyPick(w); return;
+    }
     if (tool === 'box' && e.button === 0) {           // 박스 — 누른 곳이 한 모서리, 뗀 곳이 맞은편 모서리
         const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
         if (c('#cadTri .tri-body')) { startTriDrag(e, w); return; }
@@ -6506,12 +6599,20 @@ document.addEventListener('keydown', e => {
     if (barOn && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         e.preventDefault(); setBarY(barY + (e.key === 'ArrowUp' ? -1 : 1) * barStep() * (e.shiftKey ? 5 : 1)); saveBar(); return;
     }
-    const map = {v: 'select', t: 'text', f: 'fill', d: 'free', x: 'box', b: 'sym', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
+    const map = {v: 'select', t: 'text', f: 'fill', d: 'free', x: 'box', q: 'poly', b: 'sym', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
     if (map[k]) setTool(map[k]);
     if (k === '+' || k === '=') zoomCenter(1.4);
     if (k === '-') zoomCenter(1 / 1.4);
 });
 document.addEventListener('keyup', e => { if (e.key === ' ') spaceDown = false; });
+svg.addEventListener('dblclick', () => { if (tool === 'poly' && polyV.length && !RP) polyFinish(); });
+document.addEventListener('keydown', e => {
+    if (tool !== 'poly' || !polyV.length || RP) return;
+    const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+    if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); polyFinish(); }
+    else if (e.key === 'Backspace') { e.preventDefault(); e.stopImmediatePropagation(); polyV.pop(); drawPre(); status(); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); polyV = []; drawPre(); status(); flash('다각선을 취소했습니다'); }
+}, true);
 window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 new ResizeObserver(() => { if (!svg.clientWidth) return; if (!fitted) fit(); else reAspect(); }).observe(svg);
 
