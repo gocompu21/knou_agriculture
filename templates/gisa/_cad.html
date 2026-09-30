@@ -343,7 +343,7 @@
     border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.14); width: min(360px, calc(100% - 20px)); max-height: 360px; overflow: auto; padding: 6px; }
 .cad-open .it { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; cursor: pointer; font-size: 0.84rem; }
 .cad-open .it:hover { background: #f1f6f3; }
-.cad-newbox { right: 10px; width: 280px; }
+.cad-newbox { right: 10px; width: min(400px, calc(100vw - 40px)); }   /* 280 은 이름표 칸(92px)을 두니 종이 콤보가 잘렸다(사용자) */
 .cad-newbox.wide { width: min(560px, calc(100vw - 40px)); }
 .cn-rows { border-top: 1px solid #f0f3f1; padding-top: 4px; }
 #cnRowList { max-height: 230px; overflow-y: auto; }
