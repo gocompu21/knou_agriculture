@@ -31,7 +31,8 @@
             <div id="cnOpts">
                 <div class="cad-set-row"><label class="cad-set-sub">도면명 <input id="cnName" class="cad-set-num" style="width:130px" maxlength="20" value="시설물배치도"></label></div>
                 <div class="cad-set-row"><label class="cad-set-sub">방위 <input type="number" id="cnNorth" class="cad-set-num" value="0" step="1" min="-180" max="360"> °</label><span class="cad-set-note" style="margin:0">(시계 방향 +)</span></div>
-                <div class="cad-set-row"><label class="cad-set-sub">시설물 수량표 <input type="number" id="cnRows" class="cad-set-num" value="7" step="1" min="1" max="20"> 줄</label></div>
+                <div class="cad-set-row"><label class="cad-set-sub">시설물 수량표 <input type="number" id="cnRows" class="cad-set-num" value="7" step="1" min="1" max="20"> 줄</label><span class="cad-set-note" style="margin:0">(미리 채워 두면 칸에 맞춰 넣습니다 — 비워도 됩니다)</span></div>
+                <div class="cn-rows"><div class="cn-row cn-head"><span>#</span><span>기호</span><span>시설명</span><span>규격</span><span>단위</span><span>수량</span></div><div id="cnRowList"></div></div>
                 <p class="cad-set-note" id="cnNote"></p>
             </div>
             <div class="cad-set-row" style="justify-content:flex-end"><button type="button" class="cad-b" id="cnCancel">취소</button><button type="button" class="cad-b pri" id="cnGo">만들기</button></div>
@@ -342,6 +343,13 @@
 .cad-open .it { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; cursor: pointer; font-size: 0.84rem; }
 .cad-open .it:hover { background: #f1f6f3; }
 .cad-newbox { right: 10px; width: 280px; }
+.cad-newbox.wide { width: min(560px, calc(100vw - 40px)); }
+.cn-rows { border-top: 1px solid #f0f3f1; padding-top: 4px; }
+#cnRowList { max-height: 230px; overflow-y: auto; }
+.cn-row { display: grid; grid-template-columns: 18px minmax(90px, 1.3fr) minmax(70px, 1.2fr) minmax(64px, 1fr) 40px 44px; gap: 3px; align-items: center; padding: 1px 0; }
+.cn-row > span { font-size: 0.72rem; color: #7a8a82; text-align: center; }
+.cn-head > span { font-weight: 700; color: #1b4332; }
+.cn-row select, .cn-row input { min-width: 0; width: 100%; border: 1px solid #d5ddd9; border-radius: 4px; padding: 2px 3px; font-size: 0.76rem; box-sizing: border-box; }
 .cad-open .it span { flex: 1; min-width: 0; }
 .cad-open .it small { color: #8a9690; display: block; }
 .cad-open .it button { border: 0; background: none; color: #b0b8b4; cursor: pointer; font-size: 0.9rem; }
@@ -4835,12 +4843,42 @@ function newDrawing() {
     if (!box.hidden) { box.hidden = true; return; }
     if (dirty && !confirm('저장하지 않은 작업이 있습니다. 버리고 새로 시작할까요?')) return;
     $('cnSheet').innerHTML = $('cadSheet').innerHTML; $('cnSheet').value = $('cadSheet').value || '401';
-    $('cadOpen').hidden = true; box.hidden = false; cnSync();
+    cnLoad(); $('cadOpen').hidden = true; box.hidden = false; cnSync(); cnRender();
+}
+// 수량표 미리 채우기 — 줄마다 기호(라이브러리)·시설명·규격·단위·수량. 실수로 창을 닫아도 남도록 브라우저에 적어 둔다
+const CN_KEY = 'cadFrameRows';
+let cnData = null;
+const cnBlank = () => ({sym: '', name: '', spec: '', unit: '개', qty: ''});
+function cnLoad() {
+    if (cnData) return;
+    cnData = [];
+    try { const j = JSON.parse(localStorage.getItem(CN_KEY) || 'null');
+        if (j && Array.isArray(j.rows)) { cnData = j.rows.map(r => ({...cnBlank(), ...r}));
+            if (j.name) $('cnName').value = j.name; if (j.north != null) $('cnNorth').value = j.north; if (j.n) $('cnRows').value = j.n; }
+    } catch (e) {}
+}
+function cnSave() {
+    try { localStorage.setItem(CN_KEY, JSON.stringify({name: $('cnName').value, north: $('cnNorth').value, n: $('cnRows').value, rows: cnData})); } catch (e) {}
+}
+const cnCount = () => Math.max(1, Math.min(20, Math.round(+$('cnRows').value || 7)));
+function cnRender() {                                 // 줄 수만큼 — 줄을 줄여도 적어 둔 것은 버리지 않는다
+    const n = cnCount();
+    while (cnData.length < n) cnData.push(cnBlank());
+    if (!$('fsSym').options.length) fillSymSelect();
+    const opts = '<option value="">(기호 없음)</option>' + $('fsSym').innerHTML;
+    $('cnRowList').innerHTML = cnData.slice(0, n).map((r, i) => `<div class="cn-row" data-i="${i}"><span>${i + 1}</span>`
+        + `<select data-k="sym" title="기호 — 시설 및 수목 라이브러리">${opts}</select>`
+        + `<input data-k="name" placeholder="시설명" maxlength="20" value="${esc(r.name)}">`
+        + `<input data-k="spec" placeholder="규격" maxlength="24" value="${esc(r.spec)}">`
+        + `<input data-k="unit" placeholder="단위" maxlength="4" value="${esc(r.unit)}">`
+        + `<input data-k="qty" placeholder="수량" maxlength="6" value="${esc(r.qty)}"></div>`).join('');
+    $('cnRowList').querySelectorAll('select').forEach((s, i) => { s.value = [...s.options].some(o => o.value === cnData[i].sym) ? cnData[i].sym : ''; });
 }
 function cnSync() {                                   // 틀은 A2 트레이싱지에만
     const tr = sheetOf($('cnSheet').value).paper === 'trace';
     $('cnFrameRow').hidden = !tr; if (!tr) $('cnFrame').value = '';
     $('cnOpts').hidden = !$('cnFrame').value;
+    $('cadNewBox').classList.toggle('wide', !!$('cnFrame').value);
     const N = scaleOfKey($('cnSheet').value);
     $('cnNote').textContent = tr && $('cnFrame').value ? `축척 1:${N} — 막대 축척은 ${frameBar(N).slice(-1)[0]}m 까지 그립니다.` : '';
 }
@@ -4854,14 +4892,29 @@ function cnGo() {
     const key = $('cnSheet').value, fr = $('cnFrame').value;
     $('cadNewBox').hidden = true;
     if (!fr) { startNew(key); return; }
-    const opt = {name: $('cnName').value.trim() || '시설물배치도', north: +$('cnNorth').value || 0, rows: Math.round(+$('cnRows').value || 7)};
+    cnSave();
+    const n = cnCount(), rows = cnData.slice(0, n).map(r => { const s = r.sym && symOf(r.sym);
+        return {...r, sym: s ? {id: s.id, name: s.name, items: s.items} : null}; });
+    const opt = {name: $('cnName').value.trim() || '시설물배치도', north: +$('cnNorth').value || 0, n, rows, measure: cnMeasure, symBox: cnSymBox};
     const go = src => { const r = buildFrame(src, scaleOfKey(key), opt);
         startNew(key, Object.assign(blankDoc(key), r.doc)); flash(r.warn || '답안지 Ⅱ 틀로 시작합니다'); };
-    if (frameSrc) { go(frameSrc); return; }
-    fetch(root.dataset.frameapi, {credentials: 'same-origin'}).then(r => r.json()).then(j => {
-        if (!j.ok) { flash(j.error || '틀을 받지 못했습니다'); return; }
-        frameSrc = j.data; go(frameSrc);
-    }).catch(() => flash('틀을 받지 못했습니다'));
+    // 글자 폭은 실제 글꼴로 잰다 — 글꼴이 늦게 오면 어림으로 잰 것과 어긋나므로 먼저 불러 둔다
+    const font = document.fonts && document.fonts.load ? Promise.race([document.fonts.load('600 40px "Nanum Gothic"'), new Promise(r => setTimeout(r, 1500))]).catch(() => {}) : Promise.resolve();
+    const src = frameSrc ? Promise.resolve(frameSrc) : fetch(root.dataset.frameapi, {credentials: 'same-origin'}).then(r => r.json()).then(j => {
+        if (!j.ok) throw new Error(j.error || ''); frameSrc = j.data; return frameSrc; });
+    Promise.all([src, font]).then(([s]) => go(s)).catch(e => flash((e && e.message) || '틀을 받지 못했습니다'));
+}
+const cnCtx = document.createElement('canvas').getContext('2d');
+function cnMeasure(s, size) {                          // 글자 도구와 같은 글꼴·굵기(textSvg: 600)로 잰 폭
+    cnCtx.font = `600 100px ${FONTS.gothic}`;
+    return cnCtx.measureText(String(s)).width / 100 * size;
+}
+function cnSymBox(items) {                             // 기호의 실제 둘레 — 그려 보고 잰다(못 재면 어림)
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    try { g.innerHTML = items.map(itemSvg).join(''); svg.appendChild(g);
+        const b = g.getBBox(); if (b.width > 1e-6 || b.height > 1e-6) return [b.x, b.y, b.x + b.width, b.y + b.height];
+    } catch (e) {} finally { g.remove(); }
+    return frameItemsBox(items);
 }
 // ── 도면 틀(답안지 Ⅱ) — 1:100 원본(gisa/cad_frames/answer2.json)을 고른 축척으로 옮기고 도면명·방위·수량표 줄 수를 채운다 ──
 // 종이 위 자리·크기는 그대로(좌표 × N/100). 수량표는 줄을 비우고 n 줄로 다시 긋고, 막대 축척은 그 축척에 맞는 눈금으로 다시 만든다.
@@ -4875,9 +4928,85 @@ function frameBar(N) {                                // 종이 위 60~80mm 가 
     const nice = v => { const q = Math.pow(10, Math.floor(Math.log10(v))); return [1, 2, 5, 10].map(m => m * q).reduce((a, b) => Math.abs(b - v) < Math.abs(a - v) ? b : a); };
     return [...new Set([0, nice(T / 30), nice(T / 10), nice(T / 6), nice(T / 2), T].map(v => +v.toPrecision(3)))].sort((a, b) => a - b);
 }
+// 경로 d 의 좌표를 s 배 — 호(A)의 회전·두 플래그는 그대로 둔다
+function framePathScale(d, s) {
+    const re = /([MmLlHhVvCcSsQqTtAaZz])|(-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?)/gi, out = [];
+    let m, cmd = '', i = 0;
+    while ((m = re.exec(String(d || '')))) {
+        if (m[1]) { cmd = m[1]; i = 0; out.push(cmd); continue; }
+        const v = +m[2], j = i % 7, keep = (cmd === 'A' || cmd === 'a') && j >= 2 && j <= 4;
+        out.push(String(keep ? v : Math.round(v * s * 1e4) / 1e4)); i++;
+    }
+    return out.join(' ');
+}
+function framePathPts(d) {                            // 경로가 지나는 점(끝점·조절점) — 둘레 상자 어림용
+    const re = /([MmLlHhVvCcSsQqTtAaZz])|(-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?)/gi, toks = [], out = [];
+    let m; while ((m = re.exec(String(d || '')))) toks.push(m[1] || +m[2]);
+    const NP = {M: 2, L: 2, T: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, A: 7, Z: 0};
+    let x = 0, y = 0, sx = 0, sy = 0, cmd = 'M', i = 0;
+    while (i < toks.length) {
+        if (typeof toks[i] === 'string') { cmd = toks[i++]; if (/z/i.test(cmd)) { x = sx; y = sy; } continue; }
+        const U = cmd.toUpperCase(), rel = cmd !== U, n = NP[U] || 2, a = toks.slice(i, i + n); i += n;
+        if (a.length < n || a.some(v => typeof v !== 'number')) break;
+        const px = v => rel ? x + v : v, py = v => rel ? y + v : v;
+        if (U === 'H') x = px(a[0]); else if (U === 'V') y = py(a[0]);
+        else if (U === 'A') { x = px(a[5]); y = py(a[6]); }
+        else { for (let j = 0; j + 1 < n - 2; j += 2) out.push([px(a[j]), py(a[j + 1])]); x = px(a[n - 2]); y = py(a[n - 1]); }
+        out.push([x, y]);
+        if (U === 'M') { sx = x; sy = y; cmd = rel ? 'l' : 'L'; }
+    }
+    return out;
+}
+function frameItemsBox(items) {                        // 기호 항목들의 둘레 상자(기호 좌표) — 화면이 없을 때의 어림
+    const q = [], walk = (its, tf) => (its || []).forEach(it => {
+        const add = (x, y) => q.push(tf(x, y));
+        switch (it.t) {
+            case 'line': case 'arc': add(it.x1, it.y1); add(it.x2, it.y2); break;
+            case 'rect': add(it.x, it.y); add(it.x + it.rw, it.y); add(it.x, it.y + it.rh); add(it.x + it.rw, it.y + it.rh); break;
+            case 'circle': add(it.cx - it.r, it.cy); add(it.cx + it.r, it.cy); add(it.cx, it.cy - it.r); add(it.cx, it.cy + it.r); break;
+            case 'path': framePathPts(it.d).forEach(([x, y]) => add(x, y)); break;
+            case 'text': { const sz = it.size || 1.4, w = sz * 0.6 * String(it.s || '').length, x0 = it.anchor === 'start' || it.anchor === 'corner' ? it.x : it.x - w / 2;
+                add(x0, it.y - sz / 2); add(x0 + w, it.y + sz / 2); break; }
+            case 'svg': add(-it.w / 2, -it.h / 2); add(it.w / 2, it.h / 2); break;
+            case 'g': { const a = (+it.rot || 0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+                walk(it.items, (x, y) => tf(it.x + x * c - y * s, it.y + x * s + y * c)); break; }
+            case 'fill': if (it.op && it.op.bb) { const b = it.op.bb; add(b[0], b[1]); add(b[2], b[3]); } break;
+            case 'free': case 'mark': (it.pts || []).forEach(([x, y]) => add(x, y)); break;
+        }
+    });
+    walk(items, (x, y) => [x, y]);
+    const ok = q.filter(([x, y]) => isFinite(x) && isFinite(y));
+    return ok.length ? [Math.min(...ok.map(u => u[0])), Math.min(...ok.map(u => u[1])), Math.max(...ok.map(u => u[0])), Math.max(...ok.map(u => u[1]))] : null;
+}
+// 기호 항목을 s 배 — 기호 렌더러(itemSvg)가 받는 모든 꼴. 선 굵기(p5·p9·thin…)는 종이 mm 라 그대로 둔다
+function frameScaleItem(it, s) {
+    const R = v => Math.round(v * s * 1e4) / 1e4, o = {...it};
+    ['x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rw', 'rh', 'size'].forEach(q => { if (typeof o[q] === 'number') o[q] = R(o[q]); });
+    if (o.t === 'svg') { if (typeof o.w === 'number') o.w = R(o.w); if (typeof o.h === 'number') o.h = R(o.h); }
+    if (o.t === 'path' && o.d) o.d = framePathScale(o.d, s);
+    if (o.pts) o.pts = o.pts.map(([x, y]) => [R(x), R(y)]);
+    if (o.items) o.items = o.items.map(i => frameScaleItem(i, s));
+    if (o.op) o.op = frameScaleFill({...o.op}, s);
+    if (o.sr && typeof o.sr === 'object') o.sr = {...o.sr, x: R(o.sr.x), y: R(o.sr.y)};
+    return o;
+}
+function frameScaleFill(o, s) {
+    const R = v => Math.round(v * s * 1e4) / 1e4;
+    if (o.d) o.d = framePathScale(o.d, s);
+    if (o.bb) o.bb = o.bb.map(R);
+    if (o.gap) o.gap = R(o.gap);
+    if (o.area) o.area = Math.round(o.area * s * s * 1e4) / 1e4;
+    if (o.cuts) o.cuts = o.cuts.map(c => c.map(R));
+    if (o.part) o.part = {x: R(o.part.x), y: R(o.part.y), r: R(o.part.r)};
+    return o;
+}
+// 글자 폭 어림(화면이 없을 때) — 한글·한자 1, 빈칸 0.33, 그 밖 0.6 (글자 크기 대비)
+const frameMeasure = (s, size) => [...String(s)].reduce((w, c) => w + size * (c === ' ' ? 0.33 : /[ᄀ-ᇿ㄰-㆏가-힣一-鿿]/.test(c) ? 1 : 0.6), 0);
 function buildFrame(src, N, opt) {
     const R = v => Math.round(v * 1e4) / 1e4, E = 0.02, f = N / 100, k = 100 / N;
-    const n = Math.max(1, Math.min(20, Math.round(+opt.rows || 7)));
+    const rows = Array.isArray(opt.rows) ? opt.rows : [];
+    const n = Math.max(1, Math.min(20, Math.round(+(Array.isArray(opt.rows) ? opt.n || rows.length : opt.rows) || 7)));
+    const measure = opt.measure || frameMeasure, symBox = opt.symBox || frameItemsBox;
     const X0 = 46.4, X1 = 58.4, TOP = 5.2, OLD = 12.2, BOT = TOP + n;          // 오른쪽 칸 · 수량표(1:100 자리)
     const pts = new Map(src.pts.map(p => [+p.n, {...p}]));
     let pn = Math.max(0, ...pts.keys()) + 1, id = Math.max(0, ...src.ops.map(o => +o.id || 0)) + 1;
@@ -4933,8 +5062,50 @@ function buildFrame(src, N, opt) {
     bar.push(line(bm[0].p, bm[bm.length - 1].p, 'p5', 'aux'));
     B.forEach((v, i) => { const s = String(v), last = i === B.length - 1;
         bar.push(text(s + (last ? '(M)' : ''), BX(v) - s.length * 0.3 * 0.28, 38.76, 0.3)); });
+    // 수량표 내용 — 줄마다 기호(칸에 맞춰 줄인 복사본) · 시설명(칸 폭에 글자를 벌려) · 규격·단위·수량(가운데)
+    // 글자 x 는 첫 글자의 왼쪽 아래라 가운데 맞춤은 잰 폭으로 한다(화면은 canvas 로 재고, 여기 기본값은 어림)
+    const COLS = [[46.4, 48.4], [48.4, 51.8], [51.8, 54.9], [54.9, 56.4], [56.4, 58.4]], TS = 0.4, items = [], rowSyms = [], warns = [];
+    const cellText = (s, c, y, spread, no) => {
+        s = String(s == null ? '' : s).trim(); if (!s) return;
+        const [x0, x1] = COLS[c], W = x1 - x0; let size = TS, str = s;
+        if (spread) {                                  // 글자 사이를 고르게 — 빈칸(낱말 경계)은 글자 사이의 두 배
+            let words = s.split(/\s+/); if (words.every(w => [...w].length === 1)) words = [words.join('')];   // '수 목 보 호 대' 처럼 한 글자씩 띄운 것은 한 낱말로
+            const chars = words.join(''), G = words.reduce((g, w) => g + [...w].length - 1, 0) + (words.length - 1) * 2;
+            if (G > 0) {                               // 빈칸 수는 반올림으로 고르고, 칸의 95% 를 넘으면 하나씩 줄인다
+                const mkS = kk => words.map(w => [...w].join(' '.repeat(kk))).join(' '.repeat(Math.max(1, 2 * kk)));
+                let kk = Math.max(0, Math.round((0.85 * W - measure(chars, size)) / (G * measure(' ', size))));
+                while (kk > 0 && measure(mkS(kk), size) > 0.95 * W) kk--;
+                str = mkS(kk);
+            }
+        }
+        let w = measure(str, size); const max = (spread ? 0.95 : 0.92) * W;
+        if (w > max) { size = Math.max(TS * 0.7, TS * max / w); w = measure(str, size); }
+        if (w > W) warns.push(`${no}번 줄 "${s}" 이(가) 칸보다 깁니다`);
+        items.push(text(str, x0 + (W - w) / 2, y, R(size)));
+    };
+    rows.slice(0, n).forEach((r, i) => {
+        if (!r) return;
+        const has = r.sym || [r.name, r.spec, r.qty].some(v => String(v == null ? '' : v).trim());
+        if (!has) return;                             // 빈 줄
+        const top = TOP + i, y = top + 0.8;
+        if (r.sym) {                                  // 칸(폭 2 × 높이 1)의 70% 안에 들게 줄여 가운데에
+            let its = r.sym.items || [], b = its.length ? symBox(its) : null, s = 0;
+            const bw = b ? b[2] - b[0] : 0, bh = b ? b[3] - b[1] : 0;
+            if (b && isFinite(bw) && isFinite(bh) && (bw > 1e-6 || bh > 1e-6))
+                s = Math.min(bw > 1e-6 ? 1.4 / bw : Infinity, bh > 1e-6 ? 0.7 / bh : Infinity);
+            let cx = 0, cy = 0;
+            if (s > 0 && isFinite(s)) { its = its.map(it => frameScaleItem(it, s)); cx = (b[0] + b[2]) / 2 * s; cy = (b[1] + b[3]) / 2 * s; }
+            else { its = [{t: 'circle', cx: 0, cy: 0, r: 0.2, w: 'p5'}]; warns.push(`${i + 1}번 줄 기호의 크기를 알 수 없어 작은 원으로 두었습니다`); }
+            const key = `frame-r${i + 1}-${N}`; rowSyms.push([key, {name: r.sym.name || '기호', items: its}]);
+            items.push(mk({t: 'sym', p: np(47.4 - cx, top + 0.5 - cy), rot: 0, sym: key}));
+        }
+        cellText(r.name, 1, y, true, i + 1);
+        cellText(r.spec, 2, y, false, i + 1);
+        cellText(r.unit, 3, y, false, i + 1);
+        cellText(r.qty, 4, y, false, i + 1);
+    });
     // 원본을 차례대로 훑으며 버리고·고치고·끼워 넣는다
-    const out = [], put = {mark: rowMarks, line: rowLines, aux: rowAux, bar};
+    const out = [], put = {mark: rowMarks, line: rowLines, aux: rowAux, bar, items};
     let warn = '';
     src.ops.forEach(o0 => {
         if (o0.t === 'step') return;
@@ -4943,7 +5114,7 @@ function buildFrame(src, N, opt) {
         if (op.mark && op.pts && Math.abs(op.pts[0][0] - X0) < E && inRows(op.pts[0][1]) && op.pts[1][0] > op.pts[0][0]) cat = 'mark';
         else if (inRows(hy)) cat = op.ls === 'aux' ? 'aux' : 'line';
         else if (inBox(b, 48.3, 37.8, 57.5, 40.97) && !(op.t === 'text' && /^SCALE/.test(op.s))) cat = 'bar';
-        else if (inBox(b, X0 - 0.1, TOP + 0.05, X1 + 0.1, OLD + 0.05)) return;          // 수량표 안의 기호·글자 — 비운다
+        else if (inBox(b, X0 - 0.1, TOP + 0.05, X1 + 0.1, OLD + 0.05)) cat = 'items';   // 수량표 안의 원래 기호·글자 — 비우고 그 자리에 새 내용
         if (cat) { if (put[cat]) { out.push(...put[cat]); put[cat] = null; } return; }
         if (op.t === 'line') {                        // 수량표 세로줄 — 새 바닥까지 늘린다
             const a = P(op.a), c = P(op.b);
@@ -4966,28 +5137,11 @@ function buildFrame(src, N, opt) {
     });
     Object.keys(put).forEach(c => { if (put[c]) out.push(...put[c]); });
     // 축척 옮기기 — 종이 위 자리·크기는 그대로
-    const sc = v => R(v * f), scD = d => String(d).replace(/-?\d*\.?\d+(?:e-?\d+)?/gi, m => String(sc(+m)));
-    const scItem = it => {
-        const o = {...it};
-        ['x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rw', 'rh', 'size'].forEach(q => { if (typeof o[q] === 'number') o[q] = sc(o[q]); });
-        if (o.t === 'svg') { if (typeof o.w === 'number') o.w = sc(o.w); if (typeof o.h === 'number') o.h = sc(o.h); }
-        if (o.pts) o.pts = o.pts.map(([x, y]) => [sc(x), sc(y)]);
-        if (o.items) o.items = o.items.map(scItem);
-        if (o.op) o.op = scFill({...o.op});
-        if (o.sr && typeof o.sr === 'object') o.sr = {...o.sr, x: sc(o.sr.x), y: sc(o.sr.y)};
-        return o;
-    };
-    const scFill = o => {
-        if (o.d) o.d = scD(o.d);
-        if (o.bb) o.bb = o.bb.map(sc);
-        if (o.gap) o.gap = sc(o.gap);
-        if (o.area) o.area = R(o.area * f * f);
-        if (o.cuts) o.cuts = o.cuts.map(c => c.map(sc));
-        if (o.part) o.part = {x: sc(o.part.x), y: sc(o.part.y), r: sc(o.part.r)};
-        return o;
-    };
+    const sc = v => R(v * f), scItem = it => frameScaleItem(it, f), scFill = o => frameScaleFill(o, f);
     const syms = {}, symKey = {};
     Object.keys(src.syms || {}).forEach(q => { symKey[q] = `frame-${q}-${N}`; syms[symKey[q]] = {...src.syms[q], items: (src.syms[q].items || []).map(scItem)}; });
+    rowSyms.forEach(([q, d]) => { syms[q] = {...d, items: d.items.map(scItem)}; });
+    if (warns.length) warn = [warn, ...warns].filter(Boolean).join(' · ');
     out.forEach(o => {
         o.tl = 0;
         if (o.t === 'text') { if (o.x != null) o.x = sc(o.x); if (o.y != null) o.y = sc(o.y); o.size = sc(o.size); }
@@ -4996,7 +5150,7 @@ function buildFrame(src, N, opt) {
         if (o.pts) o.pts = o.pts.map(([x, y]) => [sc(x), sc(y)]);
         if (o.mark) o.mark = {...o.mark, r: sc(o.mark.r), s: N};
         if (o.t === 'fill') scFill(o);
-        if (o.t === 'sym') o.sym = symKey[o.sym] || o.sym;
+        if (o.t === 'sym' && symKey[o.sym]) o.sym = symKey[o.sym];
     });
     // 점 — 작도 순서에 처음 나오는 차례로 1, 2, 3 … (쓰지 않는 점은 버린다)
     const KEYS = ['a', 'b', 'c', 'p', 'fr'], map = {}, outPts = [];
@@ -5714,8 +5868,14 @@ $('cadNew').addEventListener('click', newDrawing);
 $('cnSheet').addEventListener('change', cnSync);
 $('cnFrame').addEventListener('change', cnSync);
 $('cnGo').addEventListener('click', cnGo);
+$('cnRows').addEventListener('input', () => { cnRender(); cnSave(); });
+['cnName', 'cnNorth'].forEach(k => $(k).addEventListener('input', cnSave));
+['input', 'change'].forEach(ev => $('cnRowList').addEventListener(ev, e => {
+    const el = e.target.closest('[data-k]'), row = el && el.closest('.cn-row'); if (!row) return;
+    cnData[+row.dataset.i][el.dataset.k] = el.value; cnSave();
+}));
 $('cnCancel').addEventListener('click', () => { $('cadNewBox').hidden = true; });
-$('cadNewBox').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && !e.isComposing) cnGo(); else if (e.key === 'Escape') $('cadNewBox').hidden = true; });
+$('cadNewBox').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && !e.isComposing && !e.target.closest('#cnRowList')) cnGo(); else if (e.key === 'Escape') $('cadNewBox').hidden = true; });
 document.addEventListener('click', e => { if (!e.target.closest('#cadNewBox, #cadNew')) $('cadNewBox').hidden = true; });
 $('cadSave').addEventListener('click', save);
 $('cadExport').addEventListener('click', download);
