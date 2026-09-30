@@ -4885,10 +4885,30 @@ function cnRender() {                                 // 줄 수만큼 — 줄�
     $('cnRowList').innerHTML = cnData.slice(0, n).map((r, i) => { const tr = t3 && cnTree(r.name);
         return `<div class="cn-row" data-i="${i}">` + (tr && tr.note ? `<span class="nt" title="${esc(tr.note)}">${i + 1}※</span>` : `<span>${i + 1}</span>`)
         + (t3 ? `<input data-k="form" list="cnFormList" placeholder="성상" maxlength="6" value="${esc(r.form || '')}">` : '')
-        + `<input data-k="name" ${t3 ? 'list="cnTreeList" placeholder="수목명"' : 'placeholder="시설명"'} maxlength="20" value="${esc(r.name)}"${tr && tr.note ? ` title="${esc(tr.note)}"` : ''}>`
-        + `<input data-k="spec" placeholder="규격" maxlength="24" value="${esc(r.spec)}">`
-        + `<input data-k="unit" placeholder="단위" maxlength="4" value="${esc(r.unit)}">`
+        + (t3 ? cnTreeSel(r, tr) : `<input data-k="name" placeholder="시설명" maxlength="20" value="${esc(r.name)}">`)
+        + (t3 ? cnSpecSel(r, tr) : `<input data-k="spec" placeholder="규격" maxlength="24" value="${esc(r.spec)}">`)
+        + (t3 ? cnUnitSel(r) : `<input data-k="unit" placeholder="단위" maxlength="4" value="${esc(r.unit)}">`)
         + `<input data-k="qty" placeholder="수량" maxlength="6" value="${esc(r.qty)}"></div>`; }).join('');
+}
+// Ⅲ 의 수목명·규격은 콤보로 고른다(사용자) — 수목명은 성상별 묶음, 규격은 그 수목의 규격이 먼저이고 같은 성상의 다른 규격이 뒤에 온다.
+// 목록에 없는 옛 값(손으로 적어 두었던 것)은 그대로 한 줄 넣어 잃지 않게 한다
+function cnTreeSel(r, tr) {
+    const T = cnTrees || [], forms = [...new Set(T.map(q => q.form))], cur = String(r.name || '').trim();
+    let o = `<option value="">${T.length ? '— 수목 —' : '(불러오는 중)'}</option>`;
+    if (cur && !tr) o += `<option value="${esc(cur)}">${esc(cur)}</option>`;
+    forms.forEach(f => { o += `<optgroup label="${esc(f)}">` + T.filter(q => q.form === f).map(q => `<option value="${esc(q.name)}">${esc(q.name)}</option>`).join('') + '</optgroup>'; });
+    return `<select data-k="name" title="${tr && tr.note ? esc(tr.note) : '수목명'}">${o.replace(`value="${esc(cur)}"`, `value="${esc(cur)}" selected`)}</select>`;
+}
+function cnSpecSel(r, tr) {
+    const T = cnTrees || [], cur = String(r.spec || '').trim(), form = (tr && tr.form) || r.form;
+    const list = [...new Set([...(tr ? [tr.spec] : []), ...T.filter(q => q.form === form).map(q => q.spec)])];
+    if (cur && !list.includes(cur)) list.unshift(cur);
+    return `<select data-k="spec" title="규격"><option value="">— 규격 —</option>` + list.map(v => `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(v)}</option>`).join('') + '</select>';
+}
+function cnUnitSel(r) {                              // 단위도 콤보(사용자) — 나무 주, 풀 본, 그 밖 포기·분·㎡
+    const cur = String(r.unit || '').trim(), list = ['주', '본', '포기', '분', '㎡'];
+    if (cur && !list.includes(cur)) list.unshift(cur);
+    return `<select data-k="unit" title="단위">` + list.map(v => `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(v)}</option>`).join('') + '</select>';
 }
 function cnLoadTrees() {                              // 수목 규격표(trees.json) — Ⅲ 을 처음 고를 때 한 번 받는다
     if (cnTrees) return;
@@ -5925,7 +5945,11 @@ $('cnRows').addEventListener('input', () => { cnRender(); cnSave(); });
 ['input', 'change'].forEach(ev => $('cnRowList').addEventListener(ev, e => {
     const el = e.target.closest('[data-k]'), row = el && el.closest('.cn-row'); if (!row) return;
     cnData[+row.dataset.i][el.dataset.k] = el.value;
-    if (cnCur === 'answer3' && el.dataset.k === 'name') cnAutoFill(+row.dataset.i, row);
+    if (cnCur === 'answer3' && el.dataset.k === 'name') {       // 수목명이 정해지면 규격은 그 수목의 것으로 바뀐다(사용자) — 성상·단위는 손으로 고친 것이 아니면
+        const r = cnData[+row.dataset.i], q = cnTree(r.name);
+        if (q) { r.auto = r.auto || {}; r.auto.spec = r.spec = q.spec; r.auto.unit = r.unit = q.unit; }   // 단위도 수목을 따라 바뀐다(사용자)
+        cnAutoFill(+row.dataset.i, row); cnRender();
+    }
     cnSave();
 }));
 $('cnCancel').addEventListener('click', () => { $('cadNewBox').hidden = true; });
