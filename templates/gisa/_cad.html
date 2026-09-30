@@ -1817,12 +1817,56 @@ function shrubStyle() {                               // 샤프 · 파형 크기
     const w = ($('fshW') && $('fshW').value) || 'p9', mm = +(($('fshS') && $('fshS').value) || 2);
     return {w, ls: 'solid', mm, size: mm * scaleDenom() / 1000};
 }
-function shrubCloses(pts) {                           // 끝이 시작점 곁(파형 2.5개 또는 화면 16px 안 — 큰 쪽)이면 닫는다
+function shrubCloses(pts, size) {                     // 끝이 시작점 곁(파형 2.5개 또는 화면 16px 안 — 큰 쪽)이면 닫는다
     if (pts.length < 8) return false;
     const a = pts[0], b = pts[pts.length - 1], D = Math.hypot(b[0] - a[0], b[1] - a[1]);
     let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
-    const tol = Math.max(2.5 * shrubStyle().size, 16 / pxPer());
+    const tol = Math.max(2.5 * (size || shrubStyle().size), 16 / pxPer());
     return D <= tol && L > 3 * tol;
+}
+// 이어 긋기(사용자: 다각선처럼 — 떼면 그 조각이 그려지고, 끝난 점에서 이어 가다 처음 점으로 오면 닫힘).
+// 긋는 동안은 끈 자리(raws)만 모아 두고 미리보기로 파형을 보인다. 끝낼 때 모두 이은 중심선을 한 번에 파형으로 바꿔 **한 획**으로 넣는다 —
+// 조각마다 따로 바꾸면 이음매에서 파형이 끊긴다
+var shrubCh = null;                                   // {raws: [[x,y]…], seed, size, mm, w, svg} — 도구를 바꾸면 버린다(다각선과 같다)
+const shrubChRaw = () => shrubCh ? shrubCh.raws : [];
+function shrubChSvg() {                               // 지금까지 이은 것의 파형(열린 선) + 시작점·끝점 표시
+    if (!shrubCh) return '';
+    if (shrubCh.svg == null) {
+        const r = shrubScallop(shrubCh.raws, shrubCh.size, shrubCh.seed, false), R = shrubCh.raws;
+        shrubCh.svg = (r ? `<path d="${freeD(r.pts)}" ${freeAttr('solid', shrubCh.w)}/>` : `<path d="${freeD(R)}" ${stAttr('solid', shrubCh.w)}/>`);
+    }
+    const a = shrubCh.raws[0], b = shrubCh.raws[shrubCh.raws.length - 1];
+    return shrubCh.svg + `<circle cx="${fmt(a[0])}" cy="${fmt(a[1])}" r="${fmt(Math.max(shrubCh.size, 0.8 * U))}" fill="none" stroke="#2ea043" stroke-width="${fmt(0.12 * U)}"/>`
+        + `<circle cx="${fmt(b[0])}" cy="${fmt(b[1])}" r="${fmt(0.45 * U)}" fill="${RED}"/>`;
+}
+function shrubAdd(piece) {                            // 뗀 조각을 잇는다 — 처음 점 곁으로 돌아오면 닫고 끝낸다
+    if (!shrubCh) { const st = shrubStyle(); shrubCh = {raws: [], seed: Math.floor(Math.random() * 1e6) / 1000, size: st.size, mm: st.mm, w: st.w, n: 0}; }
+    shrubCh.raws = shrubCh.raws.concat(shrubCh.raws.length ? piece.slice(1) : piece);
+    (shrubCh.cuts = shrubCh.cuts || []).push(shrubCh.raws.length);   // 조각 끝자리 — Backspace 로 한 조각씩 되돌린다
+    shrubCh.svg = null;
+    if (shrubCloses(shrubCh.raws, shrubCh.size)) { shrubFinish(true); return; }
+    drawPre(); status();
+}
+function shrubUndo() {
+    if (!shrubCh) return;
+    shrubCh.cuts.pop();
+    if (!shrubCh.cuts.length) { shrubCh = null; flash('관목 군식을 처음부터 다시 긋습니다'); }
+    else { shrubCh.raws = shrubCh.raws.slice(0, shrubCh.cuts[shrubCh.cuts.length - 1]); shrubCh.svg = null; }
+    drawPre(); status();
+}
+function shrubFinish(closed) {
+    const c = shrubCh; shrubCh = null; if (!c) return;
+    if (closed) c.raws[c.raws.length - 1] = [c.raws[0][0], c.raws[0][1]];
+    const r = shrubScallop(c.raws, c.size, c.seed, !!closed);
+    if (!r) { drawPre(); status(); flash('조금 더 길게 그어 주세요'); return; }
+    snapHist();
+    doc.ops.push({id: doc.seq++, t: 'free', pts: r.pts, ls: 'solid', w: c.w, shrub: {size: +c.size.toFixed(3), mm: c.mm, seed: c.seed, closed: r.closed}});
+    changed(); drawPre(); status();
+    flash(r.closed ? `관목 군식 — 닫힘 · 면적 약 ${fmt(Math.round(shrubArea(r.pts)))}㎡ (안은 채우기 도구로)` : '관목 군식 — 열린 선으로 끝냈습니다');
+}
+function shrubHint() {
+    if (!shrubCh) return ' · 누른 채 끌면 파형 테두리 · 떼고 다시 끌면 끝난 점에서 이어집니다';
+    return ` · 이어 긋는 중(조각 ${shrubCh.cuts.length}) · 처음 점(초록 고리)으로 돌아오면 닫힘 · Enter·더블클릭·우클릭 열린 채 끝 · Backspace 한 조각 되돌리기 · Esc 취소`;
 }
 function arcD(x1, y1, x2, y2, r, cw, big) {
     const c = Math.hypot(x2 - x1, y2 - y1), rr = Math.max(+r || 0, c / 2);
@@ -2214,7 +2258,8 @@ function drawPts() {
 }
 function drawPre() {
     if (RP) { gPre.innerHTML = ''; return; }
-    if (tool === 'poly') { gPre.innerHTML = polyPreSvg(); return; }   // 다각선 — 이은 변 + 다음 점(노랑)
+    if (tool === 'poly') { gPre.innerHTML = polyPreSvg(); return; }
+    if (tool === 'shrub' && shrubCh && !(drag && drag.kind === 'shrub')) { gPre.innerHTML = shrubChSvg(); return; }   // 관목 군식 — 이어 긋는 중   // 다각선 — 이은 변 + 다음 점(노랑)
     let o = '';
     const h = hover;
     if (h && h.w && tool.startsWith('erase')) {
@@ -4049,6 +4094,7 @@ function status() {
 }
 function hintText() {
     if (tool === 'poly') return polyHint();
+    if (tool === 'shrub') return shrubHint();
     const f = picksOf(tool);
     if (tool === 'point') return ' · 도면을 누르면 점이 생깁니다';
     if (tool.startsWith('erase')) return ' · 누른 채 문지르면 지워집니다 · Ctrl+끌기로 화면 이동';
@@ -4074,7 +4120,7 @@ function setArcMode(m) {
 const FORM_OF = {line: 'fl', rect: 'fr', circle: 'fc', arc: 'fa'};
 function setTool(t, keepEdit) {
     root.classList.remove('in-hole');
-    if (t !== tool) { closeTextBox(true); polyV = []; }
+    if (t !== tool) { closeTextBox(true); polyV = []; shrubCh = null; }   // 이어 긋던 다각선·관목 군식은 버린다
     tool = t;
     if (!keepEdit) endEdit();
     root.className = root.className.replace(/\bcad-tool-\S+/g, '').trim() + ' cad-tool-' + t + (t === 'free' ? ' cad-tool-' + (($('ffW') && ['p9', 'mid', 'thick'].includes($('ffW').value)) ? 'pen9' : 'pen5') : '');
@@ -5718,6 +5764,7 @@ svg.addEventListener('pointerdown', e => {
         drag = {kind: 'boxdraw', a: boxSnap(w), b: null};   // 'box' 는 선택 도구의 영역 선택(Shift+끌기)이 쓴다 — 같은 이름이라 영역 선택이 박스 긋기로 새어 먹혔다(사용자)
         return;
     }
+    if (tool === 'shrub' && e.button === 2 && shrubCh) { drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; shrubFinish(false); return; }
     if ((tool === 'free' || tool === 'shrub') && e.button === 0) {
         const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
         if (c('#cadTri .tri-body')) { startTriDrag(e, w); return; }
@@ -5726,6 +5773,10 @@ svg.addEventListener('pointerdown', e => {
         if (c('#cadSr .sr-body')) { startSrDrag(e, w); return; }
         if (c('#cadBar .bar-body')) { drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return; }
         drag = {kind: tool === 'shrub' ? 'shrub' : 'free', pts: [[w.x, w.y]], sx: e.clientX, sy: e.clientY};
+        if (tool === 'shrub' && shrubCh) {             // 이어 긋기 — 늘 끝난 점에서 시작한다. 멀리서 누르면 거기까지 곧게 이은 뒤 끈다(사슬이 끊기지 않게)
+            const E = shrubCh.raws[shrubCh.raws.length - 1], far = Math.hypot(w.x - E[0], w.y - E[1]) * pxPer() > 20;
+            drag.pts = far ? [[E[0], E[1]], [w.x, w.y]] : [[E[0], E[1]]]; drag.cont = true;
+        }
         return;
     }
     if (tool.startsWith('erase') && e.button === 0) {
@@ -5902,8 +5953,8 @@ svg.addEventListener('pointermove', e => {
     if (drag && drag.kind === 'shrub') {            // 관목 군식 — 끄는 동안은 끈 자리 그대로, 닫힐 자리면 시작점에 초록 고리
         const l = drag.pts[drag.pts.length - 1];
         if (Math.hypot(w.x - l[0], w.y - l[1]) * pxPer() >= 2) drag.pts.push([w.x, w.y]);
-        const s0 = drag.pts[0], st = shrubStyle(), cl = shrubCloses(drag.pts);
-        gPre.innerHTML = (drag.pts.length > 1 ? `<path d="${freeD(drag.pts)}" ${stAttr(st.ls, st.w)}/>` : '')
+        const all = shrubCh ? shrubChRaw().concat(drag.pts.slice(1)) : drag.pts, s0 = all[0], st = shrubStyle(), cl = shrubCloses(all, shrubCh && shrubCh.size);
+        gPre.innerHTML = (shrubCh ? shrubChSvg() : '') + (drag.pts.length > 1 ? `<path d="${freeD(drag.pts)}" ${stAttr(st.ls, st.w)}/>` : '')
             + (cl ? `<circle cx="${fmt(s0[0])}" cy="${fmt(s0[1])}" r="${fmt(Math.max(st.size, 0.8 * U))}" fill="none" stroke="#2ea043" stroke-width="${fmt(0.15 * U)}"/>` : '');
         return;
     }
@@ -6052,14 +6103,10 @@ function endPtr(e) {
     if (e.type === 'pointercancel') return;
     if (d.kind === 'trirot') { rotateTri(); return; }
     if (d.kind === 'boxdraw') { gPre.innerHTML = ''; if (d.b) makeBox(d.a, d.b); return; }
-    if (d.kind === 'shrub') {                         // 관목 군식 — 둥그런 파형으로 바꿔 프리드로잉 한 획(shrub)으로 넣는다
-        gPre.innerHTML = '';
-        const st = shrubStyle(), closed = shrubCloses(d.pts), seed = Math.floor(Math.random() * 1e6) / 1000;   // seed 는 저장해 둔다(모양은 pts 에 이미 굳어 있다)
-        const r = shrubScallop(d.pts, st.size, seed, closed);
-        if (!r) { if (d.pts.length > 1) flash('조금 더 길게 그어 주세요'); return; }
-        snapHist();
-        doc.ops.push({id: doc.seq++, t: 'free', pts: r.pts, ls: st.ls, w: st.w, shrub: {size: +st.size.toFixed(3), mm: st.mm, seed, closed: r.closed}});
-        changed(); flash(r.closed ? `관목 군식 — 닫힘 · 면적 약 ${fmt(Math.round(shrubArea(r.pts)))}㎡ (안은 채우기 도구로)` : '관목 군식 — 열린 선'); return;
+    if (d.kind === 'shrub') {                         // 관목 군식 — 뗀 조각을 잇는다(끝낼 때 한 획으로 넣는다)
+        const moved = Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 4 || d.pts.length > 3;
+        if (!moved) { drawPre(); return; }            // 누르기만 한 것(더블클릭의 첫 누름 등)은 잇지 않는다
+        shrubAdd(d.pts); return;
     }
     if (d.kind === 'free') {                          // 자가 덮은 곳에서 끊어 조각마다 한 획, 떨림은 0.6px 로 거른다
         gPre.innerHTML = '';
@@ -6718,7 +6765,14 @@ document.addEventListener('keydown', e => {
     if (k === '-') zoomCenter(1 / 1.4);
 });
 document.addEventListener('keyup', e => { if (e.key === ' ') spaceDown = false; });
-svg.addEventListener('dblclick', () => { if (tool === 'poly' && polyV.length && !RP) polyFinish(); });
+svg.addEventListener('dblclick', () => { if (tool === 'poly' && polyV.length && !RP) polyFinish(); if (tool === 'shrub' && shrubCh && !RP) shrubFinish(false); });
+document.addEventListener('keydown', e => {           // 관목 군식을 이어 긋는 중 — Enter 열린 채 끝 · Backspace 한 조각 · Esc 취소(도구는 그대로)
+    if (tool !== 'shrub' || !shrubCh || RP) return;
+    const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+    if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); shrubFinish(false); }
+    else if (e.key === 'Backspace') { e.preventDefault(); e.stopImmediatePropagation(); shrubUndo(); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); shrubCh = null; drawPre(); status(); flash('관목 군식을 취소했습니다'); }
+}, true);
 document.addEventListener('keydown', e => {
     if (tool !== 'poly' || !polyV.length || RP) return;
     const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
