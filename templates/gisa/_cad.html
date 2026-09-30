@@ -2703,7 +2703,7 @@ function rpToolsFor(s, op) {
     if (!s || !op || op.t === 'step') return s;
     if (op.mark) { const g = !op.tl && srForMark(op); return rpMarkTools(g ? {...s, sr: g} : s); }
     if (op.box) return rpNoSr(s);
-    if (op.poly) return {...s, bar: null, tri: null, tpl: null, sr: null, ftri: (op.tl && op.tl.ftri) || s.ftri};   // 다각선 — 변마다 기록한 회전 삼각자                        // 박스는 변마다 제 기록대로(삼각자를 왼쪽에 둔다 — 사용자)
+    if (op.poly) { const pa = P(op.a), pb = P(op.b); return {...s, bar: null, tri: null, tpl: null, sr: null, ftri: pa && pb ? polyTools(pa, pb).ftri : ((op.tl && op.tl.ftri) || s.ftri)}; }   // 다각선 — 변마다 회전 삼각자(선 곁에 대어 — 예전에 그은 것도 새로 잡는다)   // 다각선 — 변마다 기록한 회전 삼각자                        // 박스는 변마다 제 기록대로(삼각자를 왼쪽에 둔다 — 사용자)
     const none = {...s, bar: null, tri: null, tpl: null, sr: null, ftri: null};
     if (op.grp != null && op.t === 'line') return {...none, tpl: rpTplFit(s.tpl, grpOps(op.id))};   // 템플릿으로 돌려 그린 도형 — 구멍이 도형 자리에 없으면 다시 놓는다
     if (op.t === 'line') {
@@ -3541,7 +3541,7 @@ function rpGo(k, anim, cb) {
                 if (!RP) return;
                 if (i >= blk.length) { if (cb) RP.timer = setTimeout(cb, spd * 0.15); return; }
                 const o = blk[i++];
-                rpTween(rpNoSr(o.tl || null), spd * 0.3, () => { if (!RP) return; const g = gOf(o); if (g) g.style.visibility = ''; rpReveal(o, spd * 0.55); RP.timer = setTimeout(one, spd * 0.6); });
+                rpTween(rpNoSr(o.poly ? rpToolsFor(o.tl || toolState(), o) : (o.tl || null)), spd * 0.3, () => { if (!RP) return; const g = gOf(o); if (g) g.style.visibility = ''; rpReveal(o, spd * 0.55); RP.timer = setTimeout(one, spd * 0.6); });
             };
             one(); return;
         }
@@ -3890,8 +3890,11 @@ function polyNear(w) {                                // 커서 곁의 점 — 1
 function polyTools(a, b) {                            // 그 변을 회전 삼각자로 긋는 자리 — 변의 가운데를 자 변(12cm)의 가운데에, 변보다 길면 모서리부터
     const base = toolState(), dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy); if (!(L > 0)) return base;
     const rot = Math.atan2(dy, dx) * 180 / Math.PI, Lg = 120 * scaleDenom() / 1000, ux = dx / L, uy = dy / L, back = L >= Lg ? 0 : (Lg - L) / 2;
+    // 자의 변을 선 바로 곁에 댄다 — 변을 선 위에 겹쳐 두면 샤프 끝이 자 안으로 들어가 보였다(사용자). 몸통 쪽(ftriGeom 의 B 방향 (uy, −ux))으로
+    // 종이 위 0.4mm 물린다 — 샤프심 반지름쯤이라 선은 자의 경계 바로 바깥에 그어진다
+    const gap = 0.4 * scaleDenom() / 1000;
     return {...base, bar: null, tri: null, tpl: null, sr: null,
-        ftri: {...(ftri || {}), den: scaleDenom(), x: rnd3(a.x - ux * back), y: rnd3(a.y - uy * back), rot: +rot.toFixed(2)}};
+        ftri: {...(ftri || {}), den: scaleDenom(), x: rnd3(a.x - ux * back + uy * gap), y: rnd3(a.y - uy * back - ux * gap), rot: +rot.toFixed(2)}};
 }
 function polyPick(w) {
     const p = polyNear(w);
