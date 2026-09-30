@@ -49,6 +49,7 @@
         <button type="button" data-tool="sym" title="시설 및 수목 넣기 (B)" aria-label="기호"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="13" height="13"/><path d="M3.5 3.5l13 13M16.5 3.5l-13 13"/></svg></button>
         <button type="button" data-tool="box" title="박스 (X) — 왼쪽 위 모서리에서 오른쪽 아래 모서리까지 끌면 네모가 그려집니다. 재생 때는 I자·삼각자로 변마다 긋습니다" aria-label="박스"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="5" width="13" height="10"/><circle cx="3.5" cy="5" r="1.6" class="f"/><circle cx="16.5" cy="15" r="1.6" class="f"/></svg></button>
         <button type="button" data-tool="poly" title="다각선 — 누르며 점을 이어 긋는다 (자유 삼각자) (Q)" aria-label="다각선"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 15.5 7 5.5l4.5 8 6-10"/><circle cx="2.5" cy="15.5" r="1.5" class="f"/><circle cx="7" cy="5.5" r="1.5" class="f"/><circle cx="11.5" cy="13.5" r="1.5" class="f"/><circle cx="17.5" cy="3.5" r="1.5" class="f"/></svg></button>
+        <button type="button" data-tool="shrub" title="관목 군식 (G) — 누른 채 끌면 둥그런 파형(구름 모양) 테두리. 시작점 곁에서 놓으면 닫힙니다. 안은 채우기 도구로" aria-label="관목 군식"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 12.5a2.3 2.3 0 0 1 .4-4.4 2.6 2.6 0 0 1 4.3-2.3 2.6 2.6 0 0 1 4.6.6 2.4 2.4 0 0 1 2.2 3.8 2.3 2.3 0 0 1-1.4 3.9 2.5 2.5 0 0 1-4.3 1.2 2.5 2.5 0 0 1-4.3-.6 2.2 2.2 0 0 1-1.5-2.2Z"/></svg></button>
         <button type="button" data-tool="free" title="프리드로잉 (D) — 누른 채 끌면 손 가는 대로 선이 그어집니다(자 위로는 그어지지 않습니다)" aria-label="프리드로잉"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 15.5c2-3.5 3.6-4.6 5-3.4 1.3 1.1-.4 3.2 1 3.9 1.6.8 3.2-3.6 5-6.2 1.2-1.7 2.4-2.4 4-2.2"/><path d="m14.2 3.2 2.6 2.6-1.6 1.6-2.6-2.6Z" class="f"/></svg></button>
         <select id="cadFfSm" class="cad-txt" style="width:46px" title="프리드로잉 다듬기 세기 — 셀수록 손떨림을 펴서 크게 흐르는 곡선이 됩니다"><option value="0">약</option><option value="1">중</option><option value="2">강</option></select><button type="button" id="cadFfTidy" class="cad-b" style="padding:2px 7px;font-size:0.76rem" title="고른 프리드로잉을 한 단계 더 매끈하게 (누를 때마다, Ctrl+Z 로 되돌리기)">다듬기</button>
         <select id="cadFfW" class="cad-txt" style="width:62px" title="프리드로잉 선 두께"><option value="p5">얇은</option><option value="p9">굵은</option><option value="thin">가늘게</option><option value="mid">보통</option><option value="thick">굵게</option></select>
@@ -254,6 +255,13 @@
                        변들은 한 묶음(작도 순서 한 줄)이고, 재생 때는 변마다 <b>회전 삼각자</b>(자유 삼각자)를 그 변에 대고 긋습니다.</p>
                     <div class="cad-row"><label>선 종류<select class="ls" id="fpyLs"></select></label>
                         <label>샤프<select id="fpyW"><option value="p9">굵은 샤프</option><option value="p5">얇은 샤프</option></select></label></div>
+                </div>
+                <div data-form="shrub">
+                    <h4>관목 군식</h4>
+                    <p class="cad-help">누른 채 끌면 손 가는 대로 그은 선이 <b>둥그런 파형</b>(구름 모양 테두리)으로 바뀝니다. 파형 크기와 높이를 조금씩 달리해 손으로 그린 듯이 보입니다.<br>
+                       시작점 가까이에서 놓으면 <b>닫힌 모양</b>이 되고 파형이 바깥쪽으로 부풉니다. 안은 <b>채우기 도구</b>로 원하는 무늬를 채우세요.</p>
+                    <div class="cad-row"><label>샤프<select id="fshW"><option value="p9">굵은 샤프</option><option value="p5">얇은 샤프</option></select></label>
+                        <label>파형 크기<select id="fshS"><option value="1.5">1.5mm</option><option value="2" selected>2mm</option><option value="3">3mm</option><option value="4">4mm</option></select></label></div>
                 </div>
                 <div data-form="free">
                     <h4>프리드로잉</h4>
@@ -1744,10 +1752,77 @@ function stAttr(ls, w, fill, len, closed) {
     return a;
 }
 // 얇은 샤프 프리드로잉 — 아주 가늘고 엷게(사용자). 종이 위 0.12mm, 회색 · 진하기 0.6. 보조선은 보조선 색 그대로
+// ── 관목 군식(사용자) — 손으로 그은 선을 둥그런 파형(바깥으로 부푼 작은 호들의 사슬)으로 바꾼다. 화면·재생·지우개·채우기는 프리드로잉(free)과 같다 ──
+// 저장은 파형을 따라 찍은 점(pts) 그대로라 늘 같은 모양이다. seed 는 파형마다 크기·높이를 조금씩 달리하는 값(재생·다시 그리기에서 흔들리지 않게)
+const shrubRnd = n => ((Math.sin(n * 12.9898 + 78.233) * 43758.5453) % 1 + 1) % 1;
+function shrubInside(P, x, y) {                        // 점이 닫힌 선 안인가(홀짝)
+    let c = false;
+    for (let i = 0, j = P.length - 1; i < P.length; j = i++) {
+        const [xi, yi] = P[i], [xj, yj] = P[j];
+        if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c;
+    }
+    return c;
+}
+function shrubArea(P) { let a = 0; for (let i = 0, j = P.length - 1; i < P.length; j = i++) a += P[j][0] * P[i][1] - P[i][0] * P[j][1]; return Math.abs(a) / 2; }
+// raw — 끈 자리들, size — 파형 하나의 폭(m), closed — 닫을지. 돌려주는 것 {pts, closed} 또는 너무 짧으면 null
+function shrubScallop(raw, size, seed, closed) {
+    let P = raw.map(q => [q[0], q[1]]);
+    if (P.length < 2 || !(size > 0)) return null;
+    if (closed) { P[P.length - 1] = [P[0][0], P[0][1]]; P = P.slice(0, -1); }
+    for (let k = 0; k < 4; k++) {                      // 떨림 펴기 — 닫힌 선은 고리째, 열린 선은 양 끝을 둔다
+        const n = P.length;
+        P = P.map((q, i) => {
+            if (!closed && (i === 0 || i === n - 1)) return q;
+            const a = P[(i - 1 + n) % n], b = P[(i + 1) % n];
+            return [(a[0] + 2 * q[0] + b[0]) / 4, (a[1] + 2 * q[1] + b[1]) / 4];
+        });
+    }
+    if (closed) P.push([P[0][0], P[0][1]]);
+    const cum = [0]; for (let i = 1; i < P.length; i++) cum.push(cum[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
+    const L = cum[cum.length - 1]; if (L < size * (closed ? 3 : 1.2)) return null;
+    const steps = []; let acc = 0;                     // 파형 폭을 ±20% 흔들고 전체 길이에 맞춘다
+    for (let i = 0; acc < L - size * 0.5 || steps.length < (closed ? 3 : 1); i++) { const s = size * (0.8 + 0.4 * shrubRnd(seed + i * 7.13)); steps.push(s); acc += s; }
+    const at = d => { let i = 1; while (i < cum.length - 1 && cum[i] < d) i++;
+        const t = (d - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1); return [P[i - 1][0] + (P[i][0] - P[i - 1][0]) * t, P[i - 1][1] + (P[i][1] - P[i - 1][1]) * t]; };
+    const S = [[P[0][0], P[0][1]]]; let d = 0;
+    steps.forEach((s, i) => { d += s * L / acc; S.push(i === steps.length - 1 ? [P[P.length - 1][0], P[P.length - 1][1]] : at(d)); });
+    // 부풀 쪽 — 닫힌 선은 바깥쪽(파형 가운데에서 조금 밀어 본 자리가 안이면 반대쪽), 열린 선은 긋는 방향의 한쪽으로 늘 같게
+    let side = 1;
+    if (closed) {
+        let v = 0;
+        for (let j = 0; j + 1 < S.length; j++) {
+            const [ax, ay] = S[j], [bx, by] = S[j + 1], c = Math.hypot(bx - ax, by - ay) || 1;
+            v += shrubInside(S, (ax + bx) / 2 + (by - ay) / c * size * 0.25, (ay + by) / 2 - (bx - ax) / c * size * 0.25) ? -1 : 1;
+        }
+        side = v >= 0 ? 1 : -1;
+    }
+    const out = [[S[0][0], S[0][1]]], K = 8;
+    for (let j = 0; j + 1 < S.length; j++) {
+        const [ax, ay] = S[j], [bx, by] = S[j + 1], dx = bx - ax, dy = by - ay, c = Math.hypot(dx, dy) || 1, nx = dy / c * side, ny = -dx / c * side;
+        const h = c / 2 * (0.7 + 0.45 * shrubRnd(seed + j * 3.31 + 1)), sk = (shrubRnd(seed + j * 5.77 + 2) - 0.5) * 0.35;   // 높이·기울기를 조금씩 달리
+        for (let k = 1; k <= K; k++) {
+            const u = k / K, w = Math.sin(Math.PI * u), f = u + sk * w * 0.5;   // 꼭대기를 앞뒤로 조금 밀어 손맛
+            out.push([ax + dx * f + nx * h * w, ay + dy * f + ny * h * w]);
+        }
+    }
+    return {pts: out.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]), closed: !!closed, side};
+}
+// ── 관목 군식 끝 ──
 function freeAttr(ls, w) {
     const a = stAttr(ls, w);
     if (w !== 'p5' || ls === 'aux') return a;
     return a.replace(/stroke="[^"]*"/, 'stroke="#777"').replace(/stroke-width="[^"]*"/, `stroke-width="${fmt(0.12 / 1000 * scaleDenom())}"`) + ' stroke-opacity="0.6"';
+}
+function shrubStyle() {                               // 샤프 · 파형 크기(종이 mm → 도면 m)
+    const w = ($('fshW') && $('fshW').value) || 'p9', mm = +(($('fshS') && $('fshS').value) || 2);
+    return {w, ls: 'solid', mm, size: mm * scaleDenom() / 1000};
+}
+function shrubCloses(pts) {                           // 끝이 시작점 곁(파형 2.5개 또는 화면 16px 안 — 큰 쪽)이면 닫는다
+    if (pts.length < 8) return false;
+    const a = pts[0], b = pts[pts.length - 1], D = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+    const tol = Math.max(2.5 * shrubStyle().size, 16 / pxPer());
+    return D <= tol && L > 3 * tol;
 }
 function arcD(x1, y1, x2, y2, r, cw, big) {
     const c = Math.hypot(x2 - x1, y2 - y1), rr = Math.max(+r || 0, c / 2);
@@ -2189,7 +2264,9 @@ function lsTxtFull(op) {
 function desc(op, full) {
     const ptxt = full ? ptxtFull : (n => `P${n}`), lsTxt = full ? lsTxtFull : (o => (LS[o.ls] || LS.solid).name);   // 목록에는 굵기(굵은 샤프 등)를 안 보인다(사용자)
     switch (op.t) {
-        case 'free': return op.mark ? `마킹${op.p != null ? ' ' + ptxt(op.p) : ''} · ${full ? `1/${op.mark.s} ` : ''}${fmt(op.mark.r)}m` : `프리드로잉 · 점 ${op.pts ? op.pts.length : 0}개 · ${lsTxt(op)}`;
+        case 'free': if (op.shrub) { const a = op.pts || []; let L = 0; for (let i = 1; i < a.length; i++) L += Math.hypot(a[i][0] - a[i - 1][0], a[i][1] - a[i - 1][1]);
+                return op.shrub.closed ? `관목 군식 · 폐곡 · 면적 약 ${fmt(Math.round(shrubArea(a)))}㎡` : `관목 군식 · 열린 선 · ${fmt(L)}m`; }
+            return op.mark ? `마킹${op.p != null ? ' ' + ptxt(op.p) : ''} · ${full ? `1/${op.mark.s} ` : ''}${fmt(op.mark.r)}m` : `프리드로잉 · 점 ${op.pts ? op.pts.length : 0}개 · ${lsTxt(op)}`;
         case 'fill': if (isPave(op.kind)) return `${op.tile ? op.tile.name : paveName(op.kind)}${op.part ? '(부분 표현)' : ''} · 면적 약 ${fmt(+(op.area || 0).toFixed(1))}㎡`;
             return `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자', grass: '잔디'})[op.kind] ? `${({h: '수평선', v: '수직선', d: '사선', x: 'X자', dot: '점', gl: '큰 격자', gs: '작은 격자', grass: '잔디'})[op.kind]} 채우기(간격 ${fmt(+(op.gap * (op.kind === 'gl' ? 1.5 : op.kind === 'gs' ? 1 : 1)).toFixed(3))}m)` : '채우기'} · 면적 약 ${fmt(+(op.area || 0).toFixed(1))}㎡ · 색 ${op.color}`;
         case 'line': { const a = P(op.a), b = P(op.b), len = a && b && !isAux(op) ? ` · ${fmt(Math.hypot(b.x - a.x, b.y - a.y))}m` : '';   // 길이(m) — 보조선은 빼고(사용자)
@@ -4660,7 +4737,7 @@ function eraseAt(C, r) {
             }
             out.push(op); return;
         }
-        if (op.t === 'free') pcs = cutFree(op, C, r);
+        if (op.t === 'free') pcs = op.shrub ? (cutFree(op, C, r) ? [] : null) : cutFree(op, C, r);   // 관목 군식은 닿으면 통째로
         else if (op.t === 'line') pcs = cutLine(op, C, r);
         else if (op.t === 'circle' || op.t === 'arc') pcs = cutArc(op, C, r);
         else if ((op.t === 'sym' || op.t === 'text') && !covered(C) && touchBox(op, C, r)) pcs = [];
@@ -5641,14 +5718,14 @@ svg.addEventListener('pointerdown', e => {
         drag = {kind: 'boxdraw', a: boxSnap(w), b: null};   // 'box' 는 선택 도구의 영역 선택(Shift+끌기)이 쓴다 — 같은 이름이라 영역 선택이 박스 긋기로 새어 먹혔다(사용자)
         return;
     }
-    if (tool === 'free' && e.button === 0) {
+    if ((tool === 'free' || tool === 'shrub') && e.button === 0) {
         const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
         if (c('#cadTri .tri-body')) { startTriDrag(e, w); return; }
         if (c('#cadFtri .tri-body')) { startFtriDrag(e, w); return; }
         if (c('#cadTpl .tpl-body')) { startTplDrag(e, w); return; }
         if (c('#cadSr .sr-body')) { startSrDrag(e, w); return; }
         if (c('#cadBar .bar-body')) { drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return; }
-        drag = {kind: 'free', pts: [[w.x, w.y]], sx: e.clientX, sy: e.clientY};
+        drag = {kind: tool === 'shrub' ? 'shrub' : 'free', pts: [[w.x, w.y]], sx: e.clientX, sy: e.clientY};
         return;
     }
     if (tool.startsWith('erase') && e.button === 0) {
@@ -5722,7 +5799,7 @@ svg.addEventListener('pointerdown', e => {
             moved: false, target: e.target, w0: w, shift: e.shiftKey || e.ctrlKey || e.metaKey};
 });
 // 긋다가 화면 끝(36px 안)에 닿으면 화면이 저절로 그쪽으로 흘러가며 계속 긋는다(사용자) — 샤프·프리드로잉·박스
-const AUTO_KINDS = ['pencil', 'free', 'box'];
+const AUTO_KINDS = ['pencil', 'free', 'box', 'shrub'];
 let autoPan = null;
 function autoPanCheck(e) {
     const r = svg.getBoundingClientRect(), m = 36;
@@ -5820,6 +5897,14 @@ svg.addEventListener('pointermove', e => {
         const A = drag.a, B = drag.b = boxSnap(w), st = boxStyle();
         gPre.innerHTML = `<path d="M${fmt(A.x)} ${fmt(A.y)}H${fmt(B.x)}V${fmt(B.y)}H${fmt(A.x)}Z" ${stAttr(st.ls, st.w)}/>`
             + `<text x="${fmt(B.x + 0.6 * U)}" y="${fmt(B.y + 1.6 * U)}" font-size="${fmt(1.4 * U)}" fill="${RED}">${fmt(Math.abs(B.x - A.x))} × ${fmt(Math.abs(B.y - A.y))}m</text>`;
+        return;
+    }
+    if (drag && drag.kind === 'shrub') {            // 관목 군식 — 끄는 동안은 끈 자리 그대로, 닫힐 자리면 시작점에 초록 고리
+        const l = drag.pts[drag.pts.length - 1];
+        if (Math.hypot(w.x - l[0], w.y - l[1]) * pxPer() >= 2) drag.pts.push([w.x, w.y]);
+        const s0 = drag.pts[0], st = shrubStyle(), cl = shrubCloses(drag.pts);
+        gPre.innerHTML = (drag.pts.length > 1 ? `<path d="${freeD(drag.pts)}" ${stAttr(st.ls, st.w)}/>` : '')
+            + (cl ? `<circle cx="${fmt(s0[0])}" cy="${fmt(s0[1])}" r="${fmt(Math.max(st.size, 0.8 * U))}" fill="none" stroke="#2ea043" stroke-width="${fmt(0.15 * U)}"/>` : '');
         return;
     }
     if (drag && drag.kind === 'free') {             // 2px 넘게 움직일 때마다 한 점
@@ -5967,6 +6052,15 @@ function endPtr(e) {
     if (e.type === 'pointercancel') return;
     if (d.kind === 'trirot') { rotateTri(); return; }
     if (d.kind === 'boxdraw') { gPre.innerHTML = ''; if (d.b) makeBox(d.a, d.b); return; }
+    if (d.kind === 'shrub') {                         // 관목 군식 — 둥그런 파형으로 바꿔 프리드로잉 한 획(shrub)으로 넣는다
+        gPre.innerHTML = '';
+        const st = shrubStyle(), closed = shrubCloses(d.pts), seed = Math.floor(Math.random() * 1e6) / 1000;   // seed 는 저장해 둔다(모양은 pts 에 이미 굳어 있다)
+        const r = shrubScallop(d.pts, st.size, seed, closed);
+        if (!r) { if (d.pts.length > 1) flash('조금 더 길게 그어 주세요'); return; }
+        snapHist();
+        doc.ops.push({id: doc.seq++, t: 'free', pts: r.pts, ls: st.ls, w: st.w, shrub: {size: +st.size.toFixed(3), mm: st.mm, seed, closed: r.closed}});
+        changed(); flash(r.closed ? `관목 군식 — 닫힘 · 면적 약 ${fmt(Math.round(shrubArea(r.pts)))}㎡ (안은 채우기 도구로)` : '관목 군식 — 열린 선'); return;
+    }
     if (d.kind === 'free') {                          // 자가 덮은 곳에서 끊어 조각마다 한 획, 떨림은 0.6px 로 거른다
         gPre.innerHTML = '';
         const runs = []; let cur = [];
@@ -6618,7 +6712,7 @@ document.addEventListener('keydown', e => {
     if (barOn && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         e.preventDefault(); setBarY(barY + (e.key === 'ArrowUp' ? -1 : 1) * barStep() * (e.shiftKey ? 5 : 1)); saveBar(); return;
     }
-    const map = {v: 'select', t: 'text', f: 'fill', d: 'free', x: 'box', q: 'poly', b: 'sym', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
+    const map = {v: 'select', t: 'text', f: 'fill', d: 'free', x: 'box', q: 'poly', g: 'shrub', b: 'sym', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
     if (map[k]) setTool(map[k]);
     if (k === '+' || k === '=') zoomCenter(1.4);
     if (k === '-') zoomCenter(1 / 1.4);
@@ -6649,7 +6743,7 @@ $('ffW').addEventListener('change', () => { $('cadFfW').value = $('ffW').value; 
 $('cadFfSm').value = String(+SET.ffsm || 0);
 $('cadFfSm').addEventListener('change', () => { SET.ffsm = +$('cadFfSm').value; saveSet(); if (tool !== 'free') setTool('free'); flash(`프리드로잉 다듬기: ${['약', '중', '강'][SET.ffsm]}`); });
 $('cadFfTidy').addEventListener('click', () => {
-    const fs = doc.ops.filter(o => selOps.has(o.id) && o.t === 'free' && !o.mark && o.pts && o.pts.length > 2);
+    const fs = doc.ops.filter(o => selOps.has(o.id) && o.t === 'free' && !o.mark && !o.shrub && o.pts && o.pts.length > 2);   // 관목 군식은 파형이 뭉개지므로 빼고
     if (!fs.length) { flash('다듬을 프리드로잉을 먼저 고르세요 (작도 순서나 도면에서)'); return; }
     snapHist();
     const tol = 1 / pxPer();                             // 평균 세 번으로 떨림을 펴고, 점을 줄인 뒤, 모서리를 한 번 깎아 둥글린다
