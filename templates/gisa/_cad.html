@@ -32,7 +32,7 @@
                 <div class="cad-set-row"><label class="cad-set-sub">도면명 <input id="cnName" class="cad-set-num" style="width:130px" maxlength="20" value="시설물배치도"></label></div>
                 <div class="cad-set-row"><label class="cad-set-sub">방위 <input type="number" id="cnNorth" class="cad-set-num" value="0" step="1" min="-180" max="360"> °</label><span class="cad-set-note" style="margin:0">(시계 방향 +)</span></div>
                 <div class="cad-set-row"><label class="cad-set-sub">시설물 수량표 <input type="number" id="cnRows" class="cad-set-num" value="7" step="1" min="1" max="20"> 줄</label><span class="cad-set-note" style="margin:0">(미리 채워 두면 칸에 맞춰 넣습니다 — 비워도 됩니다)</span></div>
-                <div class="cn-rows"><div class="cn-row cn-head"><span>#</span><span>기호</span><span>시설명</span><span>규격</span><span>단위</span><span>수량</span></div><div id="cnRowList"></div></div>
+                <div class="cn-rows"><div class="cn-row cn-head"><span>#</span><span>시설명</span><span>규격</span><span>단위</span><span>수량</span></div><div id="cnRowList"></div></div>
                 <p class="cad-set-note" id="cnNote"></p>
             </div>
             <div class="cad-set-row" style="justify-content:flex-end"><button type="button" class="cad-b" id="cnCancel">취소</button><button type="button" class="cad-b pri" id="cnGo">만들기</button></div>
@@ -346,7 +346,7 @@
 .cad-newbox.wide { width: min(560px, calc(100vw - 40px)); }
 .cn-rows { border-top: 1px solid #f0f3f1; padding-top: 4px; }
 #cnRowList { max-height: 230px; overflow-y: auto; }
-.cn-row { display: grid; grid-template-columns: 18px minmax(90px, 1.3fr) minmax(70px, 1.2fr) minmax(64px, 1fr) 40px 44px; gap: 3px; align-items: center; padding: 1px 0; }
+.cn-row { display: grid; grid-template-columns: 18px minmax(80px, 1.3fr) minmax(70px, 1.2fr) 40px 44px;   /* 기호 칸은 뺐다(사용자) */ gap: 3px; align-items: center; padding: 1px 0; }
 .cn-row > span { font-size: 0.72rem; color: #7a8a82; text-align: center; }
 .cn-head > span { font-weight: 700; color: #1b4332; }
 .cn-row select, .cn-row input { min-width: 0; width: 100%; border: 1px solid #d5ddd9; border-radius: 4px; padding: 2px 3px; font-size: 0.76rem; box-sizing: border-box; }
@@ -4864,15 +4864,12 @@ const cnCount = () => Math.max(1, Math.min(20, Math.round(+$('cnRows').value || 
 function cnRender() {                                 // 줄 수만큼 — 줄을 줄여도 적어 둔 것은 버리지 않는다
     const n = cnCount();
     while (cnData.length < n) cnData.push(cnBlank());
-    if (!$('fsSym').options.length) fillSymSelect();
-    const opts = '<option value="">(기호 없음)</option>' + $('fsSym').innerHTML;
+    // 기호는 미리 넣지 않는다(사용자: 템플릿에서 기호는 빼는 게 좋겠다) — 기호 칸은 도면을 그리며 채운다. 만드는 코드(buildFrame 의 r.sym)는 남겨 둔다
     $('cnRowList').innerHTML = cnData.slice(0, n).map((r, i) => `<div class="cn-row" data-i="${i}"><span>${i + 1}</span>`
-        + `<select data-k="sym" title="기호 — 시설 및 수목 라이브러리">${opts}</select>`
         + `<input data-k="name" placeholder="시설명" maxlength="20" value="${esc(r.name)}">`
         + `<input data-k="spec" placeholder="규격" maxlength="24" value="${esc(r.spec)}">`
         + `<input data-k="unit" placeholder="단위" maxlength="4" value="${esc(r.unit)}">`
         + `<input data-k="qty" placeholder="수량" maxlength="6" value="${esc(r.qty)}"></div>`).join('');
-    $('cnRowList').querySelectorAll('select').forEach((s, i) => { s.value = [...s.options].some(o => o.value === cnData[i].sym) ? cnData[i].sym : ''; });
 }
 function cnSync() {                                   // 틀은 A2 트레이싱지에만
     const tr = sheetOf($('cnSheet').value).paper === 'trace';
@@ -4893,8 +4890,7 @@ function cnGo() {
     $('cadNewBox').hidden = true;
     if (!fr) { startNew(key); return; }
     cnSave();
-    const n = cnCount(), rows = cnData.slice(0, n).map(r => { const s = r.sym && symOf(r.sym);
-        return {...r, sym: s ? {id: s.id, name: s.name, items: s.items} : null}; });
+    const n = cnCount(), rows = cnData.slice(0, n).map(r => ({...r, sym: null}));   // 기호는 넣지 않는다(사용자)
     const opt = {name: $('cnName').value.trim() || '시설물배치도', north: +$('cnNorth').value || 0, n, rows, measure: cnMeasure, symBox: cnSymBox};
     const go = src => { const r = buildFrame(src, scaleOfKey(key), opt);
         startNew(key, Object.assign(blankDoc(key), r.doc)); flash(r.warn || '답안지 Ⅱ 틀로 시작합니다'); };
