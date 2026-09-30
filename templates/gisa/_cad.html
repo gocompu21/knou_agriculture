@@ -262,6 +262,8 @@
                        시작점 가까이에서 놓으면 <b>닫힌 모양</b>이 되고 파형이 바깥쪽으로 부풉니다. 안은 <b>채우기 도구</b>로 원하는 무늬를 채우세요.</p>
                     <div class="cad-row"><label>샤프<select id="fshW"><option value="p9">굵은 샤프</option><option value="p5">얇은 샤프</option></select></label>
                         <label>파형 크기<select id="fshS"><option value="1.5">1.5mm</option><option value="2" selected>2mm</option><option value="3">3mm</option><option value="4">4mm</option></select></label></div>
+                    <div class="cad-row"><label>볼록함<select id="fshB"><option value="0.6">완만하게</option><option value="1" selected>둥글게</option><option value="1.3">아주 둥글게</option></select></label>
+                        <label>고르기<select id="fshJ"><option value="0.05">고르게</option><option value="0.2" selected>보통</option><option value="0.35">들쭉날쭉</option></select></label></div>
                 </div>
                 <div data-form="free">
                     <h4>프리드로잉</h4>
@@ -1765,7 +1767,9 @@ function shrubInside(P, x, y) {                        // 점이 닫힌 선 안�
 }
 function shrubArea(P) { let a = 0; for (let i = 0, j = P.length - 1; i < P.length; j = i++) a += P[j][0] * P[i][1] - P[i][0] * P[j][1]; return Math.abs(a) / 2; }
 // raw — 끈 자리들, size — 파형 하나의 폭(m), closed — 닫을지. 돌려주는 것 {pts, closed} 또는 너무 짧으면 null
-function shrubScallop(raw, size, seed, closed) {
+// bulge — 파형 높이 ÷ 파형 폭의 절반(1 = 반원, 1 넘으면 반원보다 부푼 구름 모양), jit — 폭·높이를 흔드는 정도
+function shrubScallop(raw, size, seed, closed, bulge, jit) {
+    bulge = bulge > 0 ? bulge : 1; jit = jit >= 0 ? jit : 0.2;
     let P = raw.map(q => [q[0], q[1]]);
     if (P.length < 2 || !(size > 0)) return null;
     if (closed) { P[P.length - 1] = [P[0][0], P[0][1]]; P = P.slice(0, -1); }
@@ -1781,7 +1785,7 @@ function shrubScallop(raw, size, seed, closed) {
     const cum = [0]; for (let i = 1; i < P.length; i++) cum.push(cum[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
     const L = cum[cum.length - 1]; if (L < size * (closed ? 3 : 1.2)) return null;
     const steps = []; let acc = 0;                     // 파형 폭을 ±20% 흔들고 전체 길이에 맞춘다
-    for (let i = 0; acc < L - size * 0.5 || steps.length < (closed ? 3 : 1); i++) { const s = size * (0.8 + 0.4 * shrubRnd(seed + i * 7.13)); steps.push(s); acc += s; }
+    for (let i = 0; acc < L - size * 0.5 || steps.length < (closed ? 3 : 1); i++) { const s = size * (1 - jit + 2 * jit * shrubRnd(seed + i * 7.13)); steps.push(s); acc += s; }
     const at = d => { let i = 1; while (i < cum.length - 1 && cum[i] < d) i++;
         const t = (d - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1); return [P[i - 1][0] + (P[i][0] - P[i - 1][0]) * t, P[i - 1][1] + (P[i][1] - P[i - 1][1]) * t]; };
     const S = [[P[0][0], P[0][1]]]; let d = 0;
@@ -1796,13 +1800,16 @@ function shrubScallop(raw, size, seed, closed) {
         }
         side = v >= 0 ? 1 : -1;
     }
-    const out = [[S[0][0], S[0][1]]], K = 8;
+    // 파형 하나 = 원호(사용자: 더 둥글게). 사인 곡선은 밑동이 뾰족해 물결처럼 보였다. 현 c · 높이 h 인 원의 호를 긋는다 — h > c/2 면 반원보다 큰 호
+    const out = [[S[0][0], S[0][1]]], K = 14;
     for (let j = 0; j + 1 < S.length; j++) {
-        const [ax, ay] = S[j], [bx, by] = S[j + 1], dx = bx - ax, dy = by - ay, c = Math.hypot(dx, dy) || 1, nx = dy / c * side, ny = -dx / c * side;
-        const h = c / 2 * (0.7 + 0.45 * shrubRnd(seed + j * 3.31 + 1)), sk = (shrubRnd(seed + j * 5.77 + 2) - 0.5) * 0.35;   // 높이·기울기를 조금씩 달리
+        const [ax, ay] = S[j], [bx, by] = S[j + 1], dx = bx - ax, dy = by - ay, c = Math.hypot(dx, dy) || 1, tx = dx / c, ty = dy / c, nx = ty * side, ny = -tx * side;
+        const h = c / 2 * bulge * (1 - jit * 0.75 + jit * 1.5 * shrubRnd(seed + j * 3.31 + 1));
+        const R = (c * c / 4 + h * h) / (2 * h), ph = h <= R ? Math.asin(Math.min(1, c / 2 / R)) : Math.PI - Math.asin(Math.min(1, c / 2 / R));
+        const mx = (ax + bx) / 2 + nx * (h - R), my = (ay + by) / 2 + ny * (h - R);
         for (let k = 1; k <= K; k++) {
-            const u = k / K, w = Math.sin(Math.PI * u), f = u + sk * w * 0.5;   // 꼭대기를 앞뒤로 조금 밀어 손맛
-            out.push([ax + dx * f + nx * h * w, ay + dy * f + ny * h * w]);
+            const th = -ph + 2 * ph * k / K, sn = Math.sin(th), cs = Math.cos(th);
+            out.push(k === K ? [bx, by] : [mx + R * (sn * tx + cs * nx), my + R * (sn * ty + cs * ny)]);
         }
     }
     return {pts: out.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]), closed: !!closed, side};
@@ -1815,7 +1822,7 @@ function freeAttr(ls, w) {
 }
 function shrubStyle() {                               // 샤프 · 파형 크기(종이 mm → 도면 m)
     const w = ($('fshW') && $('fshW').value) || 'p9', mm = +(($('fshS') && $('fshS').value) || 2);
-    return {w, ls: 'solid', mm, size: mm * scaleDenom() / 1000};
+    return {w, ls: 'solid', mm, size: mm * scaleDenom() / 1000, bulge: +(($('fshB') && $('fshB').value) || 1), jit: +(($('fshJ') && $('fshJ').value) || 0.2)};
 }
 function shrubCloses(pts, size) {                     // 끝이 시작점 곁(파형 2.5개 또는 화면 16px 안 — 큰 쪽)이면 닫는다
     if (pts.length < 8) return false;
@@ -1832,7 +1839,7 @@ const shrubChRaw = () => shrubCh ? shrubCh.raws : [];
 function shrubChSvg() {                               // 지금까지 이은 것의 파형(열린 선) + 시작점·끝점 표시
     if (!shrubCh) return '';
     if (shrubCh.svg == null) {
-        const r = shrubScallop(shrubCh.raws, shrubCh.size, shrubCh.seed, false), R = shrubCh.raws;
+        const r = shrubScallop(shrubCh.raws, shrubCh.size, shrubCh.seed, false, shrubCh.bulge, shrubCh.jit), R = shrubCh.raws;
         shrubCh.svg = (r ? `<path d="${freeD(r.pts)}" ${freeAttr('solid', shrubCh.w)}/>` : `<path d="${freeD(R)}" ${stAttr('solid', shrubCh.w)}/>`);
     }
     const a = shrubCh.raws[0], b = shrubCh.raws[shrubCh.raws.length - 1];
@@ -1840,7 +1847,7 @@ function shrubChSvg() {                               // 지금까지 이은 것
         + `<circle cx="${fmt(b[0])}" cy="${fmt(b[1])}" r="${fmt(0.45 * U)}" fill="${RED}"/>`;
 }
 function shrubAdd(piece) {                            // 뗀 조각을 잇는다 — 처음 점 곁으로 돌아오면 닫고 끝낸다
-    if (!shrubCh) { const st = shrubStyle(); shrubCh = {raws: [], seed: Math.floor(Math.random() * 1e6) / 1000, size: st.size, mm: st.mm, w: st.w, n: 0}; }
+    if (!shrubCh) { const st = shrubStyle(); shrubCh = {raws: [], seed: Math.floor(Math.random() * 1e6) / 1000, size: st.size, mm: st.mm, w: st.w, bulge: st.bulge, jit: st.jit, n: 0}; }
     shrubCh.raws = shrubCh.raws.concat(shrubCh.raws.length ? piece.slice(1) : piece);
     (shrubCh.cuts = shrubCh.cuts || []).push(shrubCh.raws.length);   // 조각 끝자리 — Backspace 로 한 조각씩 되돌린다
     shrubCh.svg = null;
@@ -1857,10 +1864,10 @@ function shrubUndo() {
 function shrubFinish(closed) {
     const c = shrubCh; shrubCh = null; if (!c) return;
     if (closed) c.raws[c.raws.length - 1] = [c.raws[0][0], c.raws[0][1]];
-    const r = shrubScallop(c.raws, c.size, c.seed, !!closed);
+    const r = shrubScallop(c.raws, c.size, c.seed, !!closed, c.bulge, c.jit);
     if (!r) { drawPre(); status(); flash('조금 더 길게 그어 주세요'); return; }
     snapHist();
-    doc.ops.push({id: doc.seq++, t: 'free', pts: r.pts, ls: 'solid', w: c.w, shrub: {size: +c.size.toFixed(3), mm: c.mm, seed: c.seed, closed: r.closed}});
+    doc.ops.push({id: doc.seq++, t: 'free', pts: r.pts, ls: 'solid', w: c.w, shrub: {size: +c.size.toFixed(3), mm: c.mm, seed: c.seed, bulge: c.bulge, jit: c.jit, closed: r.closed}});
     changed(); drawPre(); status();
     flash(r.closed ? `관목 군식 — 닫힘 · 면적 약 ${fmt(Math.round(shrubArea(r.pts)))}㎡ (안은 채우기 도구로)` : '관목 군식 — 열린 선으로 끝냈습니다');
 }
