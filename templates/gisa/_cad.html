@@ -2703,7 +2703,7 @@ function rpToolsFor(s, op) {
     if (!s || !op || op.t === 'step') return s;
     if (op.mark) { const g = !op.tl && srForMark(op); return rpMarkTools(g ? {...s, sr: g} : s); }
     if (op.box) return rpNoSr(s);
-    if (op.poly) { const pa = P(op.a), pb = P(op.b); return {...s, bar: null, tri: null, tpl: null, sr: null, ftri: pa && pb ? polyTools(pa, pb).ftri : ((op.tl && op.tl.ftri) || s.ftri)}; }   // 다각선 — 변마다 회전 삼각자(선 곁에 대어 — 예전에 그은 것도 새로 잡는다)   // 다각선 — 변마다 기록한 회전 삼각자                        // 박스는 변마다 제 기록대로(삼각자를 왼쪽에 둔다 — 사용자)
+    if (op.poly) { const pa = P(op.a), pb = P(op.b); return {...s, bar: null, tri: null, tpl: null, sr: null, ftri: pa && pb ? polyTools(pa, pb, polyOthers(op)).ftri : ((op.tl && op.tl.ftri) || s.ftri)}; }   // 다각선 — 변마다 회전 삼각자(선 곁에 대어 — 예전에 그은 것도 새로 잡는다)   // 다각선 — 변마다 기록한 회전 삼각자                        // 박스는 변마다 제 기록대로(삼각자를 왼쪽에 둔다 — 사용자)
     const none = {...s, bar: null, tri: null, tpl: null, sr: null, ftri: null};
     if (op.grp != null && op.t === 'line') return {...none, tpl: rpTplFit(s.tpl, grpOps(op.id))};   // 템플릿으로 돌려 그린 도형 — 구멍이 도형 자리에 없으면 다시 놓는다
     if (op.t === 'line') {
@@ -3887,14 +3887,28 @@ function polyNear(w) {                                // 커서 곁의 점 — 1
     doc.pts.forEach(p => { const d = Math.hypot(p.x - w.x, p.y - w.y); if (d < bd) { bd = d; best = p; } });
     return best;
 }
-function polyTools(a, b) {                            // 그 변을 회전 삼각자로 긋는 자리 — 변의 가운데를 자 변(12cm)의 가운데에, 변보다 길면 모서리부터
+function polyTools(a, b, others) {                    // 그 변을 회전 삼각자로 긋는 자리 — 변의 가운데를 자 변(12cm)의 가운데에, 변보다 길면 모서리부터
     const base = toolState(), dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy); if (!(L > 0)) return base;
-    const rot = Math.atan2(dy, dx) * 180 / Math.PI, Lg = 120 * scaleDenom() / 1000, ux = dx / L, uy = dy / L, back = L >= Lg ? 0 : (Lg - L) / 2;
+    // 자 몸통은 긋는 방향의 왼쪽(ftriGeom 의 B)에 놓인다. 다각선의 나머지 점들이 그쪽에 있으면 자가 다각선을 덮어, 샤프가 자 안을
+    // 긋는 것처럼 보였다(사용자) — 그때는 방향을 뒤집어(b → a) 몸통을 반대쪽으로 둔다. 선은 같은 선이다
+    let ux = dx / L, uy = dy / L, s0 = a;
+    const side = q => ux * (q.y - a.y) - uy * (q.x - a.x);   // 몸통 쪽이면 음수
+    const O = (others || []).filter(q => q && Math.hypot(q.x - a.x, q.y - a.y) > 1e-6 && Math.hypot(q.x - b.x, q.y - b.y) > 1e-6);
+    if (O.length) {
+        const inB = O.filter(q => side(q) < -1e-6).length, outB = O.filter(q => side(q) > 1e-6).length;
+        if (inB > outB) { ux = -ux; uy = -uy; s0 = b; }
+    }
+    const rot = Math.atan2(uy, ux) * 180 / Math.PI, Lg = 120 * scaleDenom() / 1000, back = L >= Lg ? 0 : (Lg - L) / 2;
     // 자의 변을 선 바로 곁에 댄다 — 변을 선 위에 겹쳐 두면 샤프 끝이 자 안으로 들어가 보였다(사용자). 몸통 쪽(ftriGeom 의 B 방향 (uy, −ux))으로
     // 종이 위 0.4mm 물린다 — 샤프심 반지름쯤이라 선은 자의 경계 바로 바깥에 그어진다
     const gap = 0.4 * scaleDenom() / 1000;
     return {...base, bar: null, tri: null, tpl: null, sr: null,
-        ftri: {...(ftri || {}), den: scaleDenom(), x: rnd3(a.x - ux * back + uy * gap), y: rnd3(a.y - uy * back - ux * gap), rot: +rot.toFixed(2)}};
+        ftri: {...(ftri || {}), den: scaleDenom(), x: rnd3(s0.x - ux * back + uy * gap), y: rnd3(s0.y - uy * back - ux * gap), rot: +rot.toFixed(2)}};
+}
+function polyOthers(op) {                             // 같은 다각선 묶음의 점들 — 자를 어느 쪽에 둘지 가른다
+    const g = op.grp != null ? doc.ops.filter(o => o.grp === op.grp && o.poly) : [op], seen = new Set(), out = [];
+    g.forEach(o => [o.a, o.b].forEach(n => { if (!seen.has(n)) { seen.add(n); const q = P(n); if (q) out.push(q); } }));
+    return out;
 }
 function polyPick(w) {
     const p = polyNear(w);
@@ -3913,7 +3927,8 @@ function makePoly(V) {                                // V — 점 번호 차례
     if (!segs.length) return;
     snapHist();
     const st = polyStyle(), gid = doc.seq;
-    segs.forEach(([a, b]) => doc.ops.push({id: doc.seq++, t: 'line', a, b, ...st, grp: gid, gname: '다각선', poly: true, tl: polyTools(P(a), P(b))}));
+    const vs = [...new Set(segs.flat())].map(n => P(n));
+    segs.forEach(([a, b]) => doc.ops.push({id: doc.seq++, t: 'line', a, b, ...st, grp: gid, gname: '다각선', poly: true, tl: polyTools(P(a), P(b), vs)}));
     const L = segs.reduce((s, [a, b]) => s + Math.hypot(P(b).x - P(a).x, P(b).y - P(a).y), 0);
     changed(); flash(`다각선 ${segs.length}변 · ${fmt(L)}m${V[0] === V[V.length - 1] ? ' (닫힘)' : ''}`);
 }
@@ -4764,7 +4779,7 @@ function revOp(id) {
     snapHist();
     if (op.grp != null) {                              // 묶음 — 변 차례를 뒤집고 변마다 두 점을 맞바꾼다
         const i = doc.ops.indexOf(op), [s, e] = grpSpan(i), blk = doc.ops.slice(s, e).reverse();
-        blk.forEach(o => { [o.a, o.b] = [o.b, o.a]; if (o.poly && P(o.a) && P(o.b)) o.tl = polyTools(P(o.a), P(o.b)); });
+        blk.forEach(o => { [o.a, o.b] = [o.b, o.a]; if (o.poly && P(o.a) && P(o.b)) o.tl = polyTools(P(o.a), P(o.b), polyOthers(o)); });
         doc.ops.splice(s, e - s, ...blk);
         changed(); rpMark(blk[0], 900); rpHilite(blk, 250); return;
     }
