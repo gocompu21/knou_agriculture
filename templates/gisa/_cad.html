@@ -6022,17 +6022,18 @@ svg.addEventListener('pointerdown', e => {
 // 긋다가 화면 끝(36px 안)에 닿으면 화면이 저절로 그쪽으로 흘러가며 계속 긋는다(사용자) — 샤프·프리드로잉·박스
 const AUTO_KINDS = ['pencil', 'free', 'box', 'shrub'];
 // 시설 및 수목(기호)을 넣을 때는 누르지 않고 커서만 끝으로 가져가도 화면이 흘러간다(대표님) — 여러 그루를 이어 심다 화면 끝에 닿았을 때
-const autoOk = () => drag ? AUTO_KINDS.includes(drag.kind) : (tool === 'sym' && !RP);
+const autoOk = () => drag ? AUTO_KINDS.includes(drag.kind) : !RP;   // 누르지 않아도 어느 도구든(대표님) — 끝에 0.25초 머물러야 흐른다(도구 줄·목록으로 지나갈 때 튀지 않게)
 let autoPan = null;
 function autoPanCheck(e) {
     const r = svg.getBoundingClientRect(), m = 36;
     const dx = e.clientX < r.left + m ? -1 : e.clientX > r.right - m ? 1 : 0, dy = e.clientY < r.top + m ? -1 : e.clientY > r.bottom - m ? 1 : 0;
     if (!autoOk() || (!dx && !dy)) { autoPan = null; return; }
     const fresh = !autoPan;
-    autoPan = {dx, dy, ev: {clientX: e.clientX, clientY: e.clientY, pointerId: e.pointerId, button: e.button, buttons: e.buttons, target: e.target}};
+    autoPan = {dx, dy, t0: fresh ? performance.now() : autoPan.t0, hov: !drag, ev: {clientX: e.clientX, clientY: e.clientY, pointerId: e.pointerId, button: e.button, buttons: e.buttons, target: e.target}};
     if (!fresh) return;
     const step = () => {
         if (!autoPan || !autoOk()) { autoPan = null; return; }
+        if (autoPan.hov && performance.now() - autoPan.t0 < 250) { requestAnimationFrame(step); return; }
         const k = pxPer(), mg = 0.08 * Math.max(sheet.x1 - sheet.x0, sheet.y1 - sheet.y0);   // 종이(+여백) 밖으로는 더 흘러가지 않는다
         let mx = autoPan.dx * 9 / k, my = autoPan.dy * 9 / k;
         if ((mx > 0 && vb.x + vb.w >= sheet.x1 + mg) || (mx < 0 && vb.x <= sheet.x0 - mg)) mx = 0;
