@@ -1867,20 +1867,21 @@ function shrubSymPts(op) {                            // 기호가 그린 것의
     walk(d.items, (x, y) => [p.x + x * ca - y * sa, p.y + x * sa + y * ca]);
     return out;
 }
-function shrubObstacles() {
+function shrubObstacleShapes() {                     // 가리는 것들의 모양(다각형) — 원은 32각형
     const out = [], rings = {};
     doc.ops.forEach(op => {
         if (auxHidden(op) || op.ls === 'aux') return;
-        if (op.t === 'circle') { const c = P(op.c), r = radiusOf(op); if (c && r > 0) out.push((x, y) => (x - c.x) ** 2 + (y - c.y) ** 2 < r * r); }
-        else if (op.t === 'sym') { const H = shrubHull(shrubSymPts(op)); if (H.length > 2) out.push((x, y) => shrubInside(H, x, y)); }
+        if (op.t === 'circle') { const c = P(op.c), r = radiusOf(op); if (c && r > 0) { const Q = []; for (let k = 0; k < 32; k++) { const t = k * Math.PI / 16; Q.push([c.x + r * Math.cos(t), c.y + r * Math.sin(t)]); } out.push(Q); } }
+        else if (op.t === 'sym') { const H = shrubHull(shrubSymPts(op)); if (H.length > 2) out.push(H); }
         else if (op.t === 'free' && op.shrub && op.pts) {
-            if (op.shrub.closed) { const Q = op.pts; out.push((x, y) => shrubInside(Q, x, y)); }
+            if (op.shrub.closed) out.push(op.pts);
             else if (op.shrub.cc) { const k = op.grp != null ? 'g' + op.grp : 'o' + op.id; (rings[k] = rings[k] || []).push(...op.pts); }
         }
     });
-    Object.values(rings).forEach(Q => { if (Q.length > 2) out.push((x, y) => shrubInside(Q, x, y)); });
+    Object.values(rings).forEach(Q => { if (Q.length > 2) out.push(Q); });
     return out;
 }
+function shrubObstacles() { return shrubObstacleShapes().map(Q => (x, y) => shrubInside(Q, x, y)); }
 // 파형 점(pts)을 가리는 것 밖의 조각들로. 가린 곳이 없으면 null. 끊는 자리는 둘레까지 반씩 좁혀(14번) 정확히 둔다
 function shrubCut(pts, closed, obs, size) {
     if (!obs.length || pts.length < 2) return null;
@@ -2183,11 +2184,12 @@ function opSvg(op) {
         return markTick(x0, y0, x1, y1, SR_MARK * scaleDenom() / 1000);
     }
     if (op.t === 'free') return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${op.hedge ? stAttr(op.ls, op.w) : freeAttr(op.ls, op.w)}/>` : '';   // 경계식재 선은 엷은 프리드로잉 굵기가 아니라 샤프 선 그대로
-    if (op.t === 'fill' && !op._raw && op.cuts && op.cuts.length) {   // 지우개로 지운 자리 — 원판들을 검게 뚫은 mask 로 가린다
+    if (op.t === 'fill' && !op._raw && ((op.cuts && op.cuts.length) || (op.holes && op.holes.length))) {   // holes — 위에 얹힌 교목·관목 자리(경계식재)   // 지우개로 지운 자리 — 원판들을 검게 뚫은 mask 로 가린다
         const id = `cadFm${op.id}`, [x0, y0, x1, y1] = op.bb || [sheet.x0, sheet.y0, sheet.x1, sheet.y1], m = 2 * U;
         return `<mask id="${id}" maskUnits="userSpaceOnUse" x="${fmt(x0 - m)}" y="${fmt(y0 - m)}" width="${fmt(x1 - x0 + 2 * m)}" height="${fmt(y1 - y0 + 2 * m)}">`
             + `<rect x="${fmt(x0 - m)}" y="${fmt(y0 - m)}" width="${fmt(x1 - x0 + 2 * m)}" height="${fmt(y1 - y0 + 2 * m)}" fill="#fff"/>`
-            + op.cuts.map(([x, y, r]) => `<circle cx="${fmt(x)}" cy="${fmt(y)}" r="${fmt(r)}" fill="#000"/>`).join('') + '</mask>'
+            + (op.cuts || []).map(([x, y, r]) => `<circle cx="${fmt(x)}" cy="${fmt(y)}" r="${fmt(r)}" fill="#000"/>`).join('')
+            + (op.holes || []).map(Q => `<path d="M${Q.map(q => `${fmt(q[0])} ${fmt(q[1])}`).join('L')}Z" fill="#000"/>`).join('') + '</mask>'
             + `<g mask="url(#${id})">${opSvg({...op, _raw: true})}</g>`;
     }
     if (op.t === 'fill' && isPave(op.kind) && op.bb) return paveSvg(op);
@@ -4451,15 +4453,19 @@ function hedgeFinish(side) {
     const {o, res} = hedgeBuild(side); hedgeW = [];
     snapHist();
     let tot = 0;
+    const shapes = shrubObstacleShapes(), obs = shapes.map(Q => (x, y) => shrubInside(Q, x, y));
     res.forEach(r => {
         const gid = doc.seq; tot += r.len;
-        [r.oPts, r.iPts].forEach(pts => doc.ops.push({id: doc.seq++, t: 'free', pts, ls: 'solid', w: o.w, hedge: {W: o.W, S: +o.S.toFixed(3)}, grp: gid, gname: '경계식재', hedgeLen: +r.len.toFixed(2)}));
+        // 먼저 그린 교목·관목에 가려진다(대표님) — 그 안을 지나는 선은 끊고, 채우기는 그 자리를 뺀다
+        const edges = [r.oPts, r.iPts].flatMap(pts => { const c = shrubCut(pts, false, obs, o.S * 0.25); return c === null ? [pts] : c; });
+        edges.forEach(pts => doc.ops.push({id: doc.seq++, t: 'free', pts, ls: 'solid', w: o.w, hedge: {W: o.W, S: +o.S.toFixed(3)}, grp: gid, gname: '경계식재', hedgeLen: +r.len.toFixed(2)}));
         if (o.fill !== 'none') {                        // 띠 안 빗금 — 바깥 선 + 거꾸로 된 안쪽 선을 이은 면
             const P2 = r.oPts.concat(r.iPts.slice().reverse());
             const d = 'M' + P2.map(q => `${fmt(q[0])} ${fmt(q[1])}`).join('L') + 'Z';
             const xs = P2.map(q => q[0]), ys = P2.map(q => q[1]), bb = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)].map(v => +v.toFixed(3));
             const area = +(Math.abs(P2.reduce((s, q, i) => { const p = P2[(i + 1) % P2.length]; return s + q[0] * p[1] - p[0] * q[1]; }, 0)) / 2).toFixed(2);
-            doc.ops.push({id: doc.seq++, t: 'fill', d, kind: o.fill, bb, gap: +(o.W * (o.fill === 'dg' ? 0.35 : 0.45)).toFixed(3), color: '#333', op: 0.6, area});
+            const holes = shapes.filter(Q => Q.some(q => q[0] >= bb[0] && q[0] <= bb[2] && q[1] >= bb[1] && q[1] <= bb[3])).map(Q => Q.map(q => [+(+q[0]).toFixed(3), +(+q[1]).toFixed(3)]));
+            doc.ops.push({id: doc.seq++, t: 'fill', d, kind: o.fill, bb, gap: +(o.W * (o.fill === 'dg' ? 0.35 : 0.45)).toFixed(3), color: '#333', op: 0.6, area, ...(holes.length ? {holes} : {})});
         }
     });
     changed(); drawPre(); status();
@@ -4472,7 +4478,8 @@ function hedgePreSvg() {
     if (cand) s += `<path d="M${fmt(cand.a.x)} ${fmt(cand.a.y)}L${fmt(cand.b.x)} ${fmt(cand.b.y)}" stroke="rgba(255,200,0,.8)" stroke-width="${fmt(0.35 * U)}" fill="none"/>`;
     else if (w && hedgeW.length) {                      // 띠를 둘 쪽 미리보기
         const {res} = hedgeBuild(w);
-        res.forEach(r => { s += `<path d="${freeD(r.oPts)}" stroke="${RED}" stroke-width="${sw}" fill="none"/><path d="${freeD(r.iPts)}" stroke="${RED}" stroke-width="${sw}" fill="none"/>`; });
+        const obs = shrubObstacles();
+        res.forEach(r => [r.oPts, r.iPts].forEach(pts => { const c = shrubCut(pts, false, obs, 0.3); (c === null ? [pts] : c).forEach(q => { s += `<path d="${freeD(q)}" stroke="${RED}" stroke-width="${sw}" fill="none"/>`; }); }));
     }
     return s;
 }
