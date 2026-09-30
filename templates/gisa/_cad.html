@@ -4292,7 +4292,7 @@ function leadStart(p) {
 }
 function leadTexts() {
     const c = String($('fdCnt').value || '').trim(), nm = String($('fdName').value || '').trim();
-    return {top: c && nm ? `${c}-${nm}` : nm || c, bot: String($('fdSpec').value || '').trim()};
+    return {top: c && nm ? `${c} - ${nm}` : nm || c, bot: String($('fdSpec').value || '').trim()};
 }
 function leadSize() { return +(+($('fdMm') && $('fdMm').value || 3) * scaleDenom() / 1000).toFixed(4); }
 // 두 번째로 누른 자리 w → 선의 꼭짓점들과 글자 자리
