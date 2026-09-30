@@ -4443,7 +4443,11 @@ function hedgeEdge(Q, sg, into, S, dw, dh, wob, phase, seed) {
         let t = 0;
         cs.forEach(c => {
             straight(t, c - dw / 2);
-            for (let k = 0; k <= 8; k++) { const th = Math.PI - k / 8 * Math.PI; pts.push(at(c + Math.cos(th) * dw / 2, Math.sin(th) * dh)); }
+            // 파인 홈은 불규칙한 삼각형(대표님: 파인 느낌) — 폭·깊이·꼭지 위치를 홈마다 조금씩 달리한다. freeD 가 점 사이를 둥글리므로
+            // 꼭지·밑동 바로 곁에 점을 하나씩 더 두어 모서리가 뾰족하게 남게 한다
+            const n = Math.floor(L0 + c), hw = dw / 2 * (0.8 + 0.4 * R(n * 3.7)), hd = dh * (0.75 + 0.6 * R(n * 5.1)), ax = c + (R(n * 7.3) - 0.5) * hw * 0.8;
+            const A0 = [c - hw, 0], T = [ax, hd], A1 = [c + hw, 0], near = (p, q, f) => [p[0] + (q[0] - p[0]) * f, p[1] + (q[1] - p[1]) * f];
+            [A0, near(A0, T, 0.08), near(A0, T, 0.92), T, near(A1, T, 0.92), near(A1, T, 0.08), A1].forEach(q => pts.push(at(q[0], q[1])));
             t = c + dw / 2;
         });
         straight(t, L);
@@ -4461,7 +4465,7 @@ function hedgeBuild(side) {
         const a = V[best], b = V[best + 1], sg = ((b.x - a.x) * (side.y - a.y) - (b.y - a.y) * (side.x - a.x)) >= 0 ? 1 : -1;
         // 화면 좌표(y 아래)에서 왼쪽 법선 (-uy, ux) 이 cross>=0 쪽이다
         const outer = hedgeOffset(V, o.W, sg), inner = V.map(p => ({x: p.x, y: p.y}));
-        const dw = Math.min(o.S * 0.45, o.W * 0.55), dh = dw * 0.45, seed = (Date.now() % 997) / 10 + ci;
+        const dw = Math.min(o.S * 0.45, o.W * 0.55), dh = dw * 0.55, seed = (Date.now() % 997) / 10 + ci;
         const oPts = hedgeEdge(outer, sg, -1, o.S, dw, dh, o.W * 0.04, o.S * 0.5, seed);   // 바깥 선 — 벽 쪽으로 파인다
         const iPts = hedgeEdge(inner, sg, 1, o.S, dw * 0.8, dh * 0.8, 0, o.S, seed + 3);   // 안쪽 선 — 띠 쪽으로(벽에서 멀어지게) 파인다, 바깥과 반 칸 엇갈림
         res.push({oPts, iPts, len: V.reduce((s, p, i) => i ? s + Math.hypot(p.x - V[i - 1].x, p.y - V[i - 1].y) : 0, 0)});
