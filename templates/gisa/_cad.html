@@ -5229,6 +5229,7 @@ function buildFrame(src, N, opt) {
         if (T3 && op.t === 'text') {                 // Ⅲ 머리글 — 표 제목·첫 칸('기'·'호' → '성   상')·시설명 → 수목명
             const s0 = op.s.replace(/\s/g, '');
             if (s0 === '시설물수량표') op.s = '수 목 수 량 표';
+            else if (s0 === '답안지Ⅱ') op.s = op.s.replace('Ⅱ', 'Ⅲ');   // 제목 '답   안   지  Ⅱ' → Ⅲ(사용자)
             else if (s0 === '시설명') op.s = op.s.replace('시', '수').replace('설', '목');
             else if ((s0 === '기' || s0 === '호') && op.x >= COLS[0][0] && op.x < COLS[0][1] && op.y > TOP - 0.9 && op.y <= TOP) {
                 if (s0 === '호') return;
