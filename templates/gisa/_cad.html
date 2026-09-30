@@ -4427,7 +4427,39 @@ function closeTextBox(keep) {
 // 종이 가장자리에 닿으면 면이 막혀 있지 않은 것 — 칠하지 않는다. 칠할 면은 칸 경계를 이어 고리로 만들고(구멍은 evenodd),
 // 계단을 줄여(더글러스-포이커) 경로로 저장한다. 선을 나중에 옮겨도 따라가지 않는다(AutoCAD 의 비연관 해치처럼)
 // 칠할 면 찾기 — 상자(box) 안을 res 칸으로 그려 누른 칸에서 번진다. 상자 끝에 닿으면 leak
+// 관목 군식 안을 누르면 그 관목 테두리 전체를 한 면으로 칠한다(대표님: 위에 얹힌 교목·그 사이 선 때문에 조각조각 나뉘지 않게).
+// 교목 기호·원은 관목 위에 있으므로 그 자리만 뺀다. 관목 테두리 = 닫힌 관목 한 획, 또는 교목 뒤로 지나가 끊긴 조각들을 이은 고리
+function shrubRingAt(x, y) {
+    const rings = {}, out = [];
+    doc.ops.forEach(op => {
+        if (op.t !== 'free' || !op.shrub || !op.pts || auxHidden(op)) return;
+        if (op.shrub.closed) out.push(op.pts);
+        else if (op.shrub.cc) { const k = op.grp != null ? 'g' + op.grp : 'o' + op.id; (rings[k] = rings[k] || []).push(...op.pts); }
+    });
+    Object.values(rings).forEach(Q => Q.length > 2 && out.push(Q));
+    return out.filter(Q => shrubInside(Q, x, y)).sort((a, b) => shrubArea(a) - shrubArea(b))[0] || null;
+}
+function shrubFillMask(w, box, res, ring) {
+    const W = Math.ceil((box.x1 - box.x0) / res) + 2, H = Math.ceil((box.y1 - box.y0) / res) + 2, ox = box.x0 - res, oy = box.y0 - res;
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const cx = cv.getContext('2d'); cx.setTransform(1 / res, 0, 0, 1 / res, -ox / res, -oy / res);
+    const poly = Q => 'M' + Q.map(q => `${q[0]} ${q[1]}`).join('L') + 'Z';
+    cx.fill(new Path2D(poly(ring)));
+    cx.globalCompositeOperation = 'destination-out';
+    doc.ops.forEach(op => {                            // 관목 위의 교목 — 기호 전체의 볼록 껍질, 템플릿 원
+        if (auxHidden(op) || op.ls === 'aux') return;
+        if (op.t === 'sym') { const Hh = shrubHull(shrubSymPts(op)); if (Hh.length > 2) cx.fill(new Path2D(poly(Hh))); }
+        else if (op.t === 'circle') { const c = P(op.c), r = radiusOf(op); if (c && r > 0) { cx.beginPath(); cx.arc(c.x, c.y, r, 0, 2 * Math.PI); cx.fill(); } }
+    });
+    const img = cx.getImageData(0, 0, W, H).data, m = new Uint8Array(W * H); let n = 0, edge = false;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = y * W + x; if (img[i * 4 + 3] > 127) { m[i] = 1; n++; if (x === 0 || y === 0 || x === W - 1 || y === H - 1) edge = true; } }
+    const sx = Math.floor((w.x - ox) / res), sy = Math.floor((w.y - oy) / res);
+    if (sx < 0 || sy < 0 || sx >= W || sy >= H || !m[sy * W + sx]) return null;   // 교목 위를 눌렀다 — 보통 칠하기로
+    if (edge) return {leak: true};                     // 화면보다 크다 — 종이 전체로 다시
+    return {m, wall: new Uint8Array(W * H), W, H, ox, oy, n};
+}
 function fillFlood(w, box, res) {
+    { const ring = shrubRingAt(w.x, w.y); if (ring) { const r = shrubFillMask(w, box, res, ring); if (r) return r; } }
     const W = Math.ceil((box.x1 - box.x0) / res) + 2, H = Math.ceil((box.y1 - box.y0) / res) + 2, ox = box.x0 - res, oy = box.y0 - res;
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     const cx = cv.getContext('2d');
