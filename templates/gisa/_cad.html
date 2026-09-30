@@ -50,6 +50,7 @@
         <button type="button" data-tool="box" title="박스 (X) — 왼쪽 위 모서리에서 오른쪽 아래 모서리까지 끌면 네모가 그려집니다. 재생 때는 I자·삼각자로 변마다 긋습니다" aria-label="박스"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="5" width="13" height="10"/><circle cx="3.5" cy="5" r="1.6" class="f"/><circle cx="16.5" cy="15" r="1.6" class="f"/></svg></button>
         <button type="button" data-tool="poly" title="다각선 — 누르며 점을 이어 긋는다 (자유 삼각자) (Q)" aria-label="다각선"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 15.5 7 5.5l4.5 8 6-10"/><circle cx="2.5" cy="15.5" r="1.5" class="f"/><circle cx="7" cy="5.5" r="1.5" class="f"/><circle cx="11.5" cy="13.5" r="1.5" class="f"/><circle cx="17.5" cy="3.5" r="1.5" class="f"/></svg></button>
         <button type="button" data-tool="shrub" title="관목 군식 (G) — 누른 채 끌면 둥그런 파형(구름 모양) 테두리. 시작점 곁에서 놓으면 닫힙니다. 안은 채우기 도구로" aria-label="관목 군식"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 12.5a2.3 2.3 0 0 1 .4-4.4 2.6 2.6 0 0 1 4.3-2.3 2.6 2.6 0 0 1 4.6.6 2.4 2.4 0 0 1 2.2 3.8 2.3 2.3 0 0 1-1.4 3.9 2.5 2.5 0 0 1-4.3 1.2 2.5 2.5 0 0 1-4.3-.6 2.2 2.2 0 0 1-1.5-2.2Z"/></svg></button>
+        <button type="button" data-tool="hedge" title="경계식재 (H) — 벽 선을 차례로 누르고 띠를 둘 쪽을 누르면 벽을 따라 폭 1m 식재 띠(파인 홈 + 빗금)" aria-label="경계식재"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 15H18"/><path d="M2 8H5.5a1.5 1.5 0 0 0 3 0H11.5a1.5 1.5 0 0 0 3 0H18"/><path d="M4 14.5 7 8.6M9.5 14.5 12 9.2M15 14.5 17 10.5" stroke-width="1"/></svg></button>
         <button type="button" data-tool="lead" title="지시선 (L) — 수목을 이은 다각선 끝점 → 꺾는 자리. 위에 '갯수-수종', 아래에 규격" aria-label="지시선"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16L8 7H18"/><circle cx="3" cy="16" r="1.6" class="f"/><path d="M10 5H16M10 10H15" stroke-width="1.2"/></svg></button>
         <button type="button" data-tool="free" title="프리드로잉 (D) — 누른 채 끌면 손 가는 대로 선이 그어집니다(자 위로는 그어지지 않습니다)" aria-label="프리드로잉"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 15.5c2-3.5 3.6-4.6 5-3.4 1.3 1.1-.4 3.2 1 3.9 1.6.8 3.2-3.6 5-6.2 1.2-1.7 2.4-2.4 4-2.2"/><path d="m14.2 3.2 2.6 2.6-1.6 1.6-2.6-2.6Z" class="f"/></svg></button>
         <select id="cadFfSm" class="cad-txt" style="width:46px" title="프리드로잉 다듬기 세기 — 셀수록 손떨림을 펴서 크게 흐르는 곡선이 됩니다"><option value="0">약</option><option value="1">중</option><option value="2">강</option></select><button type="button" id="cadFfTidy" class="cad-b" style="padding:2px 7px;font-size:0.76rem" title="고른 프리드로잉을 한 단계 더 매끈하게 (누를 때마다, Ctrl+Z 로 되돌리기)">다듬기</button>
@@ -256,6 +257,15 @@
                        변들은 한 묶음(작도 순서 한 줄)이고, 재생 때는 변마다 <b>회전 삼각자</b>(자유 삼각자)를 그 변에 대고 긋습니다.</p>
                     <div class="cad-row"><label>선 종류<select class="ls" id="fpyLs"></select></label>
                         <label>샤프<select id="fpyW"><option value="p9">굵은 샤프</option><option value="p5">얇은 샤프</option></select></label></div>
+                </div>
+                <div data-form="hedge">
+                    <h4>경계식재</h4>
+                    <p class="cad-help">① 식재할 <b>벽 선</b>을 차례로 누르세요(이어진 벽은 모서리에서 이어집니다). ② 띠를 둘 쪽의 <b>빈 곳</b>을 누르면 벽을 따라 띠가 그려집니다.<br>
+                       바깥 선은 살짝 구불구불한 직선에 일정 간격마다 안쪽으로 파인 홈, 안쪽 선(벽 쪽)도 일정 간격마다 파인 홈이고 사이는 빗금입니다. 출입구 등 끊을 곳은 지우개로 지우세요. Backspace 한 면 빼기 · Esc 취소.</p>
+                    <div class="cad-row"><label>폭<input type="number" id="fhgW" value="1" min="0.1" step="0.1" style="width:4.5em"> m</label>
+                        <label>홈 간격<select id="fhgS"><option value="3">3mm</option><option value="4" selected>4mm</option><option value="5">5mm</option><option value="6">6mm</option></select></label></div>
+                    <div class="cad-row"><label>채우기<select id="fhgF"><option value="d" selected>사선</option><option value="dg">두 줄 빗금·자갈</option><option value="none">없음</option></select></label>
+                        <label>샤프<select id="fhgP"><option value="p5">얇은 샤프</option><option value="p9">굵은 샤프</option></select></label></div>
                 </div>
                 <div data-form="lead">
                     <h4>지시선</h4>
@@ -2172,7 +2182,7 @@ function opSvg(op) {
         const [x0, y0] = op.pts[0], [x1, y1] = op.pts[1];
         return markTick(x0, y0, x1, y1, SR_MARK * scaleDenom() / 1000);
     }
-    if (op.t === 'free') return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${freeAttr(op.ls, op.w)}/>` : '';
+    if (op.t === 'free') return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${op.hedge ? stAttr(op.ls, op.w) : freeAttr(op.ls, op.w)}/>` : '';   // 경계식재 선은 엷은 프리드로잉 굵기가 아니라 샤프 선 그대로
     if (op.t === 'fill' && !op._raw && op.cuts && op.cuts.length) {   // 지우개로 지운 자리 — 원판들을 검게 뚫은 mask 로 가린다
         const id = `cadFm${op.id}`, [x0, y0, x1, y1] = op.bb || [sheet.x0, sheet.y0, sheet.x1, sheet.y1], m = 2 * U;
         return `<mask id="${id}" maskUnits="userSpaceOnUse" x="${fmt(x0 - m)}" y="${fmt(y0 - m)}" width="${fmt(x1 - x0 + 2 * m)}" height="${fmt(y1 - y0 + 2 * m)}">`
@@ -2411,6 +2421,7 @@ function drawPre() {
     if (RP) { gPre.innerHTML = ''; return; }
     if (tool === 'poly') { gPre.innerHTML = polyPreSvg(); return; }
     if (tool === 'lead') { gPre.innerHTML = leadPreSvg(); return; }
+    if (tool === 'hedge') { gPre.innerHTML = hedgePreSvg(); return; }
     if (tool === 'shrub' && shrubCh && !(drag && drag.kind === 'shrub')) { gPre.innerHTML = shrubChSvg(); return; }   // 관목 군식 — 이어 긋는 중   // 다각선 — 이은 변 + 다음 점(노랑)
     let o = '';
     const h = hover;
@@ -2824,6 +2835,7 @@ const grpOps = id => { const i = doc.ops.findIndex(o => o.id === id); if (i < 0)
 function grpDesc(ops, full) {                          // '정삼각형 P1 → P2 → P3 → P1 · 한 변 12m'
     const o = ops[0], ptxt = full ? ptxtFull : (n => `P${n}`), ns = [o.a, ...ops.map(x => x.b)];
     if (o.lead) return `지시선 · ${o.leadTxt || ''}`;
+    if (o.hedge) return `경계식재 · 폭 ${fmt(o.hedge.W)}m · 길이 ${fmt(o.hedgeLen || 0)}m`;
     if (o.t === 'free' && o.shrub) {                     // 관목 군식 — 교목·관목 뒤로 지나가 끊긴 조각들
         const L = ops.reduce((t, x) => { const a = x.pts || []; for (let i = 1; i < a.length; i++) t += Math.hypot(a[i][0] - a[i - 1][0], a[i][1] - a[i - 1][1]); return t; }, 0);
         return `관목 군식 · ${o.shrub.cc ? '폐곡' : '열린 선'} · ${ops.length}조각(가린 곳 제외) · ${fmt(L)}m`;
@@ -4346,6 +4358,129 @@ function leadHint() {
     return (t === 'r' || t === 'l' ? ' · 글을 시작할 자리를 누르세요' : ' · 꺾는 자리를 누르세요(끝점 바로 위·아래면 90°, 비스듬히면 45°)') + ' · 우클릭·Esc 취소';
 }
 // ── 지시선 끝 ──
+// ── 경계식재(대표님) — 벽 선을 차례로 고르고 띠를 둘 쪽을 누르면, 벽에서 폭(기본 1m)만큼 띠를 만든다.
+// 바깥 선은 살짝 구불구불한 직선에 일정 간격마다 안쪽(띠 쪽)으로 파인 홈, 안쪽 선(벽을 따라)도 일정 간격마다 띠 쪽으로 파인 홈. 띠 안은 빗금
+var hedgeW = [];                                      // 고른 벽 [{a:{x,y}, b:{x,y}}] — 도구를 바꾸면 비운다
+function hedgeSegNear(w) {                            // 커서 곁의 벽 — 선·사각형 변(보이는 것)만
+    const tol = 10 / pxPer(); let best = null, bd = tol;
+    allSegs().forEach(g => {
+        if (g.op.t !== 'line' && g.op.t !== 'rect') return;
+        const d = segDist(w, g.a, g.b); if (d < bd) { bd = d; best = {a: {x: g.a.x, y: g.a.y}, b: {x: g.b.x, y: g.b.y}}; }
+    });
+    return best;
+}
+function hedgeOpts() {
+    const den = scaleDenom() / 1000, W = Math.max(0.1, +($('fhgW') && $('fhgW').value) || 1);
+    const S = (+($('fhgS') && $('fhgS').value) || 4) * den;   // 홈 간격 — 종이 위 mm
+    return {W, S, w: ($('fhgP') && $('fhgP').value) || 'p5', fill: ($('fhgF') && $('fhgF').value) || 'd'};
+}
+// 고른 벽들을 끝과 끝으로 이은 사슬들로(떨어져 있으면 새 사슬)
+function hedgeChains(segs) {
+    const out = []; let cur = null;
+    const D = (p, q) => Math.hypot(p.x - q.x, p.y - q.y), tol = Math.max(0.3, 0.5 * U);
+    segs.forEach((s, i) => {
+        let a = s.a, b = s.b;
+        if (cur) {
+            const e = cur[cur.length - 1];
+            if (D(b, e) < D(a, e)) [a, b] = [b, a];
+            if (D(a, e) <= tol) { cur.push(b); return; }
+            if (cur.length === 2 && i === 1) {           // 첫 벽의 방향을 둘째 벽에 맞춰 뒤집어 본다
+                const s0 = cur[0]; const aa = D(a, s0) < D(b, s0) ? [a, b] : [b, a];
+                if (D(aa[0], s0) <= tol) { cur.reverse(); cur.push(aa[1]); return; }
+            }
+        }
+        cur = [a, b]; out.push(cur);
+    });
+    return out;
+}
+// 폴리라인 V 를 법선 쪽(sg: +1 왼쪽 / -1 오른쪽)으로 d 만큼 — 모서리는 두 선의 교점
+function hedgeOffset(V, d, sg) {
+    const n = i => { const a = V[i], b = V[i + 1], L = Math.hypot(b.x - a.x, b.y - a.y) || 1; return {x: -(b.y - a.y) / L * sg, y: (b.x - a.x) / L * sg}; };
+    const out = [];
+    for (let i = 0; i < V.length; i++) {
+        if (i === 0) { const m = n(0); out.push({x: V[0].x + m.x * d, y: V[0].y + m.y * d}); continue; }
+        if (i === V.length - 1) { const m = n(i - 1); out.push({x: V[i].x + m.x * d, y: V[i].y + m.y * d}); continue; }
+        const m1 = n(i - 1), m2 = n(i), k = 1 + m1.x * m2.x + m1.y * m2.y;
+        if (k < 1e-3) { out.push({x: V[i].x + m2.x * d, y: V[i].y + m2.y * d}); continue; }
+        out.push({x: V[i].x + (m1.x + m2.x) * d / k, y: V[i].y + (m1.y + m2.y) * d / k});   // 마이터
+    }
+    return out;
+}
+// 폴리라인 Q 를 따라 점을 찍되, 간격 S 마다 폭 dw·깊이 dh 의 홈을 into 쪽(법선 부호)으로 판다. wob — 구불구불한 정도(m)
+function hedgeEdge(Q, sg, into, S, dw, dh, wob, phase, seed) {
+    const R = i => ((Math.sin(i * 12.9898 + seed * 78.233) * 43758.5453) % 1 + 1) % 1;
+    const pts = []; let L0 = 0;
+    for (let j = 0; j + 1 < Q.length; j++) {
+        const a = Q[j], b = Q[j + 1], L = Math.hypot(b.x - a.x, b.y - a.y); if (L < 1e-6) continue;
+        const ux = (b.x - a.x) / L, uy = (b.y - a.y) / L, nx = -uy * sg * into, ny = ux * sg * into;   // 띠 쪽
+        const at = (t, o) => [a.x + ux * t + nx * o, a.y + uy * t + ny * o];
+        const cs = [];                                   // 이 변 위의 홈 가운데(모서리 가까이는 피한다)
+        for (let c = Math.ceil((L0 - phase) / S) * S + phase; c < L0 + L; c += S) { const t = c - L0; if (t > dw * 0.8 && t < L - dw * 0.8) cs.push(t); }
+        const step = Math.max(dw / 3, 0.12);
+        const straight = (t0, t1) => { for (let t = t0; t < t1 - 1e-6; t += step) pts.push(at(t, wob ? wob * Math.sin((L0 + t) / S * Math.PI * 2.3 + seed) * (0.6 + 0.8 * R(Math.floor(L0 + t))) : 0)); };
+        let t = 0;
+        cs.forEach(c => {
+            straight(t, c - dw / 2);
+            for (let k = 0; k <= 8; k++) { const th = Math.PI - k / 8 * Math.PI; pts.push(at(c + Math.cos(th) * dw / 2, Math.sin(th) * dh)); }
+            t = c + dw / 2;
+        });
+        straight(t, L);
+        L0 += L;
+    }
+    const e = Q[Q.length - 1]; pts.push([e.x, e.y]);
+    return pts.map(q => Array.isArray(q) ? [+q[0].toFixed(3), +q[1].toFixed(3)] : q);
+}
+function hedgeBuild(side) {
+    const o = hedgeOpts(), chains = hedgeChains(hedgeW), res = [];
+    chains.forEach((V, ci) => {
+        // 띠를 둘 쪽 — 누른 자리가 사슬의 가장 가까운 변의 왼쪽이면 +1
+        let best = 0, bd = Infinity;
+        for (let i = 0; i + 1 < V.length; i++) { const d = segDist(side, V[i], V[i + 1]); if (d < bd) { bd = d; best = i; } }
+        const a = V[best], b = V[best + 1], sg = ((b.x - a.x) * (side.y - a.y) - (b.y - a.y) * (side.x - a.x)) >= 0 ? 1 : -1;
+        // 화면 좌표(y 아래)에서 왼쪽 법선 (-uy, ux) 이 cross>=0 쪽이다
+        const outer = hedgeOffset(V, o.W, sg), inner = V.map(p => ({x: p.x, y: p.y}));
+        const dw = Math.min(o.S * 0.45, o.W * 0.55), dh = dw * 0.45, seed = (Date.now() % 997) / 10 + ci;
+        const oPts = hedgeEdge(outer, sg, -1, o.S, dw, dh, o.W * 0.04, o.S * 0.5, seed);   // 바깥 선 — 벽 쪽으로 파인다
+        const iPts = hedgeEdge(inner, sg, 1, o.S, dw * 0.8, dh * 0.8, 0, o.S, seed + 3);   // 안쪽 선 — 띠 쪽으로(벽에서 멀어지게) 파인다, 바깥과 반 칸 엇갈림
+        res.push({oPts, iPts, len: V.reduce((s, p, i) => i ? s + Math.hypot(p.x - V[i - 1].x, p.y - V[i - 1].y) : 0, 0)});
+    });
+    return {o, res};
+}
+function hedgeFinish(side) {
+    if (!hedgeW.length) return;
+    const {o, res} = hedgeBuild(side); hedgeW = [];
+    snapHist();
+    let tot = 0;
+    res.forEach(r => {
+        const gid = doc.seq; tot += r.len;
+        [r.oPts, r.iPts].forEach(pts => doc.ops.push({id: doc.seq++, t: 'free', pts, ls: 'solid', w: o.w, hedge: {W: o.W, S: +o.S.toFixed(3)}, grp: gid, gname: '경계식재', hedgeLen: +r.len.toFixed(2)}));
+        if (o.fill !== 'none') {                        // 띠 안 빗금 — 바깥 선 + 거꾸로 된 안쪽 선을 이은 면
+            const P2 = r.oPts.concat(r.iPts.slice().reverse());
+            const d = 'M' + P2.map(q => `${fmt(q[0])} ${fmt(q[1])}`).join('L') + 'Z';
+            const xs = P2.map(q => q[0]), ys = P2.map(q => q[1]), bb = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)].map(v => +v.toFixed(3));
+            const area = +(Math.abs(P2.reduce((s, q, i) => { const p = P2[(i + 1) % P2.length]; return s + q[0] * p[1] - p[0] * q[1]; }, 0)) / 2).toFixed(2);
+            doc.ops.push({id: doc.seq++, t: 'fill', d, kind: o.fill, bb, gap: +(o.W * (o.fill === 'dg' ? 0.35 : 0.45)).toFixed(3), color: '#333', op: 0.6, area});
+        }
+    });
+    changed(); drawPre(); status();
+    flash(`경계식재 — 폭 ${fmt(o.W)}m · 길이 ${fmt(+tot.toFixed(1))}m`);
+}
+function hedgePreSvg() {
+    const h = hover, w = h && (h.w || h), sw = fmt(0.14 * U); let s = '';
+    hedgeW.forEach(g => { s += `<path d="M${fmt(g.a.x)} ${fmt(g.a.y)}L${fmt(g.b.x)} ${fmt(g.b.y)}" stroke="${RED}" stroke-width="${fmt(0.3 * U)}" stroke-opacity=".55" fill="none"/>`; });
+    const cand = w && hedgeSegNear(w);
+    if (cand) s += `<path d="M${fmt(cand.a.x)} ${fmt(cand.a.y)}L${fmt(cand.b.x)} ${fmt(cand.b.y)}" stroke="rgba(255,200,0,.8)" stroke-width="${fmt(0.35 * U)}" fill="none"/>`;
+    else if (w && hedgeW.length) {                      // 띠를 둘 쪽 미리보기
+        const {res} = hedgeBuild(w);
+        res.forEach(r => { s += `<path d="${freeD(r.oPts)}" stroke="${RED}" stroke-width="${sw}" fill="none"/><path d="${freeD(r.iPts)}" stroke="${RED}" stroke-width="${sw}" fill="none"/>`; });
+    }
+    return s;
+}
+function hedgeHint() {
+    if (!hedgeW.length) return ' · 식재할 벽 선을 누르세요(여러 면이면 차례로)';
+    return ` · 벽 ${hedgeW.length}면 · 벽을 더 누르거나, 띠를 둘 쪽(빈 곳)을 누르면 그려집니다 · Backspace 한 면 빼기 · Esc 취소`;
+}
+// ── 경계식재 끝 ──
 function hitPoint(w) {
     let best = null, bd = 11 / pxPer();
     doc.pts.forEach(p => { const d = Math.hypot(p.x - w.x, p.y - w.y); if (d < bd) { bd = d; best = p; } });
@@ -4360,6 +4495,7 @@ function status() {
 function hintText() {
     if (tool === 'poly') return polyHint();
     if (tool === 'lead') return leadHint();
+    if (tool === 'hedge') return hedgeHint();
     if (tool === 'shrub') return shrubHint();
     const f = picksOf(tool);
     if (tool === 'point') return ' · 도면을 누르면 점이 생깁니다';
@@ -4386,7 +4522,7 @@ function setArcMode(m) {
 const FORM_OF = {line: 'fl', rect: 'fr', circle: 'fc', arc: 'fa'};
 function setTool(t, keepEdit) {
     root.classList.remove('in-hole');
-    if (t !== tool) { closeTextBox(true); polyV = []; shrubCh = null; leadS = null; }
+    if (t !== tool) { closeTextBox(true); polyV = []; shrubCh = null; leadS = null; hedgeW = []; }
     if (t === 'lead') { cnLoadTrees(); leadTypeDraw(); }   // 이어 긋던 다각선·관목 군식은 버린다
     tool = t;
     if (!keepEdit) endEdit();
@@ -6041,6 +6177,26 @@ svg.addEventListener('pointerdown', e => {
     }
     // 샤프를 든 동안에는 끌어도 화면이 움직이지 않는다 — 날이 얇아 조금만 빗나가도 화면이 밀렸다.
     // 몸통을 왼쪽으로 끌면 자를 옮기고, 날 근처(위아래 40px)에서 끌면 어느 버튼이든 날을 따라 긋는다
+    if (tool === 'hedge' && (e.button === 0 || e.button === 2)) {   // 경계식재 — 벽을 고르고, 빈 곳을 누르면 그 쪽으로 띠
+        const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
+        if (e.button === 0) {
+            if (c('#cadTri .tri-body')) { startTriDrag(e, w); return; }
+            if (c('#cadFtri .tri-body')) { startFtriDrag(e, w); return; }
+            if (c('#cadTpl .tpl-body')) { startTplDrag(e, w); return; }
+            if (c('#cadSr .sr-body')) { startSrDrag(e, w); return; }
+            if (c('#cadBar .bar-body')) { drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return; }
+        }
+        drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true};
+        if (e.button === 2) { if (hedgeW.length) { hedgeW = []; drawPre(); status(); flash('경계식재를 취소했습니다'); } return; }
+        const g = hedgeSegNear(w);
+        if (g) {
+            const k = hedgeW.findIndex(q => Math.hypot(q.a.x - g.a.x, q.a.y - g.a.y) + Math.hypot(q.b.x - g.b.x, q.b.y - g.b.y) < 1e-6);
+            if (k >= 0) hedgeW.splice(k, 1); else hedgeW.push(g);   // 다시 누르면 뺀다
+            drawPre(); status(); return;
+        }
+        if (!hedgeW.length) { flash('벽 선 가까이를 누르세요'); return; }
+        hedgeFinish(w); return;
+    }
     if (tool === 'lead' && (e.button === 0 || e.button === 2)) {   // 지시선 — 다각선 끝점 → 꺾는 자리(글 시작 자리)
         const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
         if (e.button === 0) {
@@ -6989,6 +7145,12 @@ $('cadDbl').addEventListener('click', dblStart);
 $('fdTypes').addEventListener('click', e => { const b = e.target.closest('[data-lt]'); if (!b) return; try { localStorage.setItem('cadLeadType', b.dataset.lt); } catch (er) {} leadTypeDraw(); drawPre(); status(); });
 $('fdName').addEventListener('change', () => { const q = cnTree($('fdName').value); if (q) $('fdSpec').value = q.spec; drawPre(); });
 ['fdCnt', 'fdSpec', 'fdMm'].forEach(id => $(id).addEventListener('input', () => drawPre()));
+document.addEventListener('keydown', e => {           // 경계식재 — Backspace 한 면 빼기 · Esc 취소
+    if (tool !== 'hedge' || !hedgeW.length || RP) return;
+    const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+    if (e.key === 'Backspace') { e.preventDefault(); e.stopImmediatePropagation(); hedgeW.pop(); drawPre(); status(); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); hedgeW = []; drawPre(); status(); flash('경계식재를 취소했습니다'); }
+}, true);
 document.addEventListener('keydown', e => {           // 지시선 — Esc 취소(도구는 그대로)
     if (tool !== 'lead' || !leadS || RP || e.key !== 'Escape') return;
     const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
@@ -7088,7 +7250,7 @@ document.addEventListener('keydown', e => {
     if (barOn && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         e.preventDefault(); setBarY(barY + (e.key === 'ArrowUp' ? -1 : 1) * barStep() * (e.shiftKey ? 5 : 1)); saveBar(); return;
     }
-    const map = {v: 'select', t: 'text', f: 'fill', d: 'free', x: 'box', q: 'poly', g: 'shrub', l: 'lead', b: 'sym', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
+    const map = {v: 'select', t: 'text', f: 'fill', d: 'free', x: 'box', q: 'poly', g: 'shrub', l: 'lead', h: 'hedge', b: 'sym', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
     if (map[k]) setTool(map[k]);
     if (k === '+' || k === '=') zoomCenter(1.4);
     if (k === '-') zoomCenter(1 / 1.4);
