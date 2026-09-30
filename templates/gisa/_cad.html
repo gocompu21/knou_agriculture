@@ -11,7 +11,7 @@
 {% endcomment %}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Pen+Script&display=swap">
 <div class="cad" id="cad" data-cert="{{ cert.pk }}" data-staff="{% if request.user.is_staff %}1{% endif %}"
-     data-api="{% url 'gisa:cad_drawing_list' cert.pk %}" data-symapi="{% url 'gisa:cad_symbol_list' %}" data-frameapi="{% url 'gisa:cad_frame' 'answer2' %}">
+     data-api="{% url 'gisa:cad_drawing_list' cert.pk %}" data-symapi="{% url 'gisa:cad_symbol_list' %}" data-frameapi="{% url 'gisa:cad_frame' 'answer2' %}" data-treeapi="{% url 'gisa:cad_frame_trees' %}">
     <div class="cad-top">
         <select id="cadSheet" title="종이 — 모눈종이 또는 A2 트레이싱지"></select>
         <input id="cadTitle" class="cad-title" placeholder="도면 이름" maxlength="100">
@@ -27,12 +27,13 @@
         <div class="cad-set cad-newbox" id="cadNewBox" hidden>
             <h4>새 도면</h4>
             <div class="cad-set-row"><span class="cad-set-lb">종이</span><select id="cnSheet" class="cad-set-ls" style="max-width:190px"></select></div>
-            <div class="cad-set-row" id="cnFrameRow"><span class="cad-set-lb">틀</span><select id="cnFrame" class="cad-set-ls"><option value="">틀 없음</option><option value="answer2">답안지 Ⅱ 틀</option></select></div>
+            <div class="cad-set-row" id="cnFrameRow"><span class="cad-set-lb">틀</span><select id="cnFrame" class="cad-set-ls"><option value="">틀 없음</option><option value="answer2">답안지 Ⅱ 틀</option><option value="answer3">답안지 Ⅲ 틀 (배식)</option></select></div>
             <div id="cnOpts">
                 <div class="cad-set-row"><label class="cad-set-sub">도면명 <input id="cnName" class="cad-set-num" style="width:130px" maxlength="20" value="시설물배치도"></label></div>
                 <div class="cad-set-row"><label class="cad-set-sub">방위 <input type="number" id="cnNorth" class="cad-set-num" value="0" step="1" min="-180" max="360"> °</label><span class="cad-set-note" style="margin:0">(시계 방향 +)</span></div>
-                <div class="cad-set-row"><label class="cad-set-sub">시설물 수량표 <input type="number" id="cnRows" class="cad-set-num" value="7" step="1" min="1" max="20"> 줄</label><span class="cad-set-note" style="margin:0">(미리 채워 두면 칸에 맞춰 넣습니다 — 비워도 됩니다)</span></div>
-                <div class="cn-rows"><div class="cn-row cn-head"><span>#</span><span>시설명</span><span>규격</span><span>단위</span><span>수량</span></div><div id="cnRowList"></div></div>
+                <div class="cad-set-row"><label class="cad-set-sub"><span id="cnRowsLb">시설물 수량표</span> <input type="number" id="cnRows" class="cad-set-num" value="7" step="1" min="1" max="20"> 줄</label><span class="cad-set-note" style="margin:0">(미리 채워 두면 칸에 맞춰 넣습니다 — 비워도 됩니다)</span></div>
+                <div class="cn-rows" id="cnRowsBox"><div class="cn-row cn-head" id="cnHead"></div><div id="cnRowList"></div></div>
+                <datalist id="cnFormList"><option value="상교"><option value="낙교"><option value="상관"><option value="낙관"><option value="초화"><option value="초본"><option value="수생"></datalist><datalist id="cnTreeList"></datalist>
                 <p class="cad-set-note" id="cnNote"></p>
             </div>
             <div class="cad-set-row" style="justify-content:flex-end"><button type="button" class="cad-b" id="cnCancel">취소</button><button type="button" class="cad-b pri" id="cnGo">만들기</button></div>
@@ -349,6 +350,8 @@
 .cn-row { display: grid; grid-template-columns: 18px minmax(80px, 1.3fr) minmax(70px, 1.2fr) 40px 44px;   /* 기호 칸은 뺐다(사용자) */ gap: 3px; align-items: center; padding: 1px 0; }
 .cn-row > span { font-size: 0.72rem; color: #7a8a82; text-align: center; }
 .cn-head > span { font-weight: 700; color: #1b4332; }
+.cn-rows.t3 .cn-row { grid-template-columns: 18px 50px minmax(80px, 1.3fr) minmax(70px, 1.2fr) 40px 44px; }   /* Ⅲ — 성상 칸이 앞에 */
+.cn-row > span.nt { color: #c0632b; cursor: help; }
 .cn-row select, .cn-row input { min-width: 0; width: 100%; border: 1px solid #d5ddd9; border-radius: 4px; padding: 2px 3px; font-size: 0.76rem; box-sizing: border-box; }
 .cad-open .it span { flex: 1; min-width: 0; }
 .cad-open .it small { color: #8a9690; display: block; }
@@ -4837,50 +4840,92 @@ function openDrawing(id) {
         $('cadOpen').hidden = true; afterLoad(true); saveDraft();
     });
 }
-// 새 도면 — 종이를 고르고, A2 트레이싱지면 틀(답안지 Ⅱ)을 얹어 시작할 수 있다
+// 새 도면 — 종이를 고르고, A2 트레이싱지면 틀(답안지 Ⅱ 시설 · Ⅲ 배식)을 얹어 시작할 수 있다
 function newDrawing() {
     const box = $('cadNewBox');
     if (!box.hidden) { box.hidden = true; return; }
     if (dirty && !confirm('저장하지 않은 작업이 있습니다. 버리고 새로 시작할까요?')) return;
     $('cnSheet').innerHTML = $('cadSheet').innerHTML; $('cnSheet').value = $('cadSheet').value || '401';
-    cnLoad(); $('cadOpen').hidden = true; box.hidden = false; cnSync(); cnRender();
+    $('cadOpen').hidden = true; box.hidden = false; cnSync();
 }
-// 수량표 미리 채우기 — 줄마다 기호(라이브러리)·시설명·규격·단위·수량. 실수로 창을 닫아도 남도록 브라우저에 적어 둔다
-const CN_KEY = 'cadFrameRows';
-let cnData = null;
-const cnBlank = () => ({sym: '', name: '', spec: '', unit: '개', qty: ''});
-function cnLoad() {
-    if (cnData) return;
-    cnData = [];
-    try { const j = JSON.parse(localStorage.getItem(CN_KEY) || 'null');
-        if (j && Array.isArray(j.rows)) { cnData = j.rows.map(r => ({...cnBlank(), ...r}));
-            if (j.name) $('cnName').value = j.name; if (j.north != null) $('cnNorth').value = j.north; if (j.n) $('cnRows').value = j.n; }
-    } catch (e) {}
+// 수량표 미리 채우기 — Ⅱ 시설명·규격·단위·수량 / Ⅲ 성상·수목명·규격·단위·수량. 실수로 창을 닫아도 남도록 브라우저에 적어 둔다.
+// 틀마다 따로 둔다(도면명·방위·줄 수·줄) — 틀을 바꿔도 서로 섞이지 않게
+const CN_KEYS = {answer2: 'cadFrameRows', answer3: 'cadFrameRows:answer3'};
+const CN_DEF = {answer2: {name: '시설물배치도', unit: '개', label: '시설물 수량표', done: '답안지 Ⅱ 틀로 시작합니다'},
+                answer3: {name: '배식평면도', unit: '주', label: '수목수량표', done: '답안지 Ⅲ 틀(배식)로 시작합니다'}};
+let cnSt = {}, cnCur = '', cnData = [], cnTrees = null;
+const cnBlank = fr => fr === 'answer3' ? {form: '', name: '', spec: '', unit: '주', qty: '', auto: {unit: '주'}} : {sym: '', name: '', spec: '', unit: '개', qty: ''};
+function cnState(fr) {
+    if (!cnSt[fr]) {
+        let j = null; try { j = JSON.parse(localStorage.getItem(CN_KEYS[fr]) || 'null'); } catch (e) {}
+        cnSt[fr] = {name: (j && j.name) || CN_DEF[fr].name, north: j && j.north != null ? j.north : 0, n: (j && j.n) || 7,
+            rows: j && Array.isArray(j.rows) ? j.rows.map(r => ({...cnBlank(fr), ...r})) : []};
+    }
+    return cnSt[fr];
+}
+function cnStash() { if (!cnCur) return; const s = cnState(cnCur); s.name = $('cnName').value; s.north = $('cnNorth').value; s.n = $('cnRows').value; }
+function cnSwitch(fr) {                              // 틀을 바꾸면 적어 둔 것을 그 틀 것으로 갈아 끼운다
+    cnStash(); cnCur = fr; if (!fr) return;
+    const s = cnState(fr); $('cnName').value = s.name; $('cnNorth').value = s.north; $('cnRows').value = s.n; cnData = s.rows;
 }
 function cnSave() {
-    try { localStorage.setItem(CN_KEY, JSON.stringify({name: $('cnName').value, north: $('cnNorth').value, n: $('cnRows').value, rows: cnData})); } catch (e) {}
+    if (!cnCur) return; cnStash();
+    try { localStorage.setItem(CN_KEYS[cnCur], JSON.stringify(cnState(cnCur))); } catch (e) {}
 }
 const cnCount = () => Math.max(1, Math.min(20, Math.round(+$('cnRows').value || 7)));
+const cnTree = name => (cnTrees || []).find(q => q.name === String(name || '').trim());
 function cnRender() {                                 // 줄 수만큼 — 줄을 줄여도 적어 둔 것은 버리지 않는다
-    const n = cnCount();
-    while (cnData.length < n) cnData.push(cnBlank());
+    if (!cnCur) return;
+    const n = cnCount(), t3 = cnCur === 'answer3';
+    while (cnData.length < n) cnData.push(cnBlank(cnCur));
+    $('cnRowsLb').textContent = CN_DEF[cnCur].label;
+    $('cnRowsBox').classList.toggle('t3', t3);
+    $('cnHead').innerHTML = '<span>#</span>' + (t3 ? ['성상', '수목명', '규격', '단위', '수량'] : ['시설명', '규격', '단위', '수량']).map(s => `<span>${s}</span>`).join('');
     // 기호는 미리 넣지 않는다(사용자: 템플릿에서 기호는 빼는 게 좋겠다) — 기호 칸은 도면을 그리며 채운다. 만드는 코드(buildFrame 의 r.sym)는 남겨 둔다
-    $('cnRowList').innerHTML = cnData.slice(0, n).map((r, i) => `<div class="cn-row" data-i="${i}"><span>${i + 1}</span>`
-        + `<input data-k="name" placeholder="시설명" maxlength="20" value="${esc(r.name)}">`
+    $('cnRowList').innerHTML = cnData.slice(0, n).map((r, i) => { const tr = t3 && cnTree(r.name);
+        return `<div class="cn-row" data-i="${i}">` + (tr && tr.note ? `<span class="nt" title="${esc(tr.note)}">${i + 1}※</span>` : `<span>${i + 1}</span>`)
+        + (t3 ? `<input data-k="form" list="cnFormList" placeholder="성상" maxlength="6" value="${esc(r.form || '')}">` : '')
+        + `<input data-k="name" ${t3 ? 'list="cnTreeList" placeholder="수목명"' : 'placeholder="시설명"'} maxlength="20" value="${esc(r.name)}"${tr && tr.note ? ` title="${esc(tr.note)}"` : ''}>`
         + `<input data-k="spec" placeholder="규격" maxlength="24" value="${esc(r.spec)}">`
         + `<input data-k="unit" placeholder="단위" maxlength="4" value="${esc(r.unit)}">`
-        + `<input data-k="qty" placeholder="수량" maxlength="6" value="${esc(r.qty)}"></div>`).join('');
+        + `<input data-k="qty" placeholder="수량" maxlength="6" value="${esc(r.qty)}"></div>`; }).join('');
+}
+function cnLoadTrees() {                              // 수목 규격표(trees.json) — Ⅲ 을 처음 고를 때 한 번 받는다
+    if (cnTrees) return;
+    cnTrees = [];
+    fetch(root.dataset.treeapi, {credentials: 'same-origin'}).then(r => r.json()).then(j => {
+        if (!j.ok) return; cnTrees = j.trees || [];
+        $('cnTreeList').innerHTML = cnTrees.map(q => `<option value="${esc(q.name)}">${esc(q.form + ' · ' + q.spec + (q.note ? ' · ' + q.note : ''))}</option>`).join('');
+        if (cnCur === 'answer3') cnRender();
+    }).catch(() => { cnTrees = null; });
+}
+// 수목명을 고르면 성상·규격·단위를 채운다 — 비어 있거나 앞서 자동으로 채운 값 그대로일 때만(손으로 고친 것은 두기)
+function cnAutoFill(i, row) {
+    const r = cnData[i], q = cnTree(r.name); if (!q) return;
+    r.auto = r.auto || {};
+    ['form', 'spec', 'unit'].forEach(k => {
+        if (String(r[k] || '').trim() === '' || r[k] === r.auto[k]) {
+            r[k] = r.auto[k] = q[k];
+            const el = row.querySelector(`[data-k="${k}"]`); if (el) el.value = q[k];
+        }
+    });
+    const no = row.firstElementChild, nm = row.querySelector('[data-k="name"]');
+    if (q.note) { no.className = 'nt'; no.title = q.note; no.textContent = (i + 1) + '※'; nm.title = q.note; }
 }
 function cnSync() {                                   // 틀은 A2 트레이싱지에만
     const tr = sheetOf($('cnSheet').value).paper === 'trace';
     $('cnFrameRow').hidden = !tr; if (!tr) $('cnFrame').value = '';
-    $('cnOpts').hidden = !$('cnFrame').value;
-    $('cadNewBox').classList.toggle('wide', !!$('cnFrame').value);
+    const fr = $('cnFrame').value;
+    if (fr !== cnCur) cnSwitch(fr);
+    if (fr === 'answer3') cnLoadTrees();
+    $('cnOpts').hidden = !fr;
+    $('cadNewBox').classList.toggle('wide', !!fr);
+    cnRender();
     const N = scaleOfKey($('cnSheet').value);
-    $('cnNote').textContent = tr && $('cnFrame').value ? `축척 1:${N} — 막대 축척은 ${frameBar(N).slice(-1)[0]}m 까지 그립니다.` : '';
+    $('cnNote').textContent = tr && fr ? `축척 1:${N} — 막대 축척은 ${frameBar(N).slice(-1)[0]}m 까지 그립니다.` : '';
 }
 const scaleOfKey = k => +((sheetOf(k).scale || '').split(':')[1]) || 100;
-let frameSrc = null;                                  // 틀 원본(1:100) — 한 번 받아 둔다
+let frameSrc = null;                                  // 틀 원본(1:100) — 한 번 받아 둔다. Ⅲ 도 같은 원본을 쓴다
 function startNew(key, d) {
     doc = d || blankDoc(key); cur.id = null; $('cadTitle').value = '';
     hist = []; redoS = []; dirty = false; afterLoad(true); saveDraft();
@@ -4890,10 +4935,10 @@ function cnGo() {
     $('cadNewBox').hidden = true;
     if (!fr) { startNew(key); return; }
     cnSave();
-    const n = cnCount(), rows = cnData.slice(0, n).map(r => ({...r, sym: null}));   // 기호는 넣지 않는다(사용자)
-    const opt = {name: $('cnName').value.trim() || '시설물배치도', north: +$('cnNorth').value || 0, n, rows, measure: cnMeasure, symBox: cnSymBox};
+    const n = cnCount(), rows = cnData.slice(0, n).map(r => ({form: r.form, name: r.name, spec: r.spec, unit: r.unit, qty: r.qty, sym: null}));   // 기호는 넣지 않는다(사용자)
+    const opt = {kind: fr, name: $('cnName').value.trim() || CN_DEF[fr].name, north: +$('cnNorth').value || 0, n, rows, measure: cnMeasure, symBox: cnSymBox};
     const go = src => { const r = buildFrame(src, scaleOfKey(key), opt);
-        startNew(key, Object.assign(blankDoc(key), r.doc)); flash(r.warn || '답안지 Ⅱ 틀로 시작합니다'); };
+        startNew(key, Object.assign(blankDoc(key), r.doc)); flash(r.warn || CN_DEF[fr].done); };
     // 글자 폭은 실제 글꼴로 잰다 — 글꼴이 늦게 오면 어림으로 잰 것과 어긋나므로 먼저 불러 둔다
     const font = document.fonts && document.fonts.load ? Promise.race([document.fonts.load('600 40px "Nanum Gothic"'), new Promise(r => setTimeout(r, 1500))]).catch(() => {}) : Promise.resolve();
     const src = frameSrc ? Promise.resolve(frameSrc) : fetch(root.dataset.frameapi, {credentials: 'same-origin'}).then(r => r.json()).then(j => {
@@ -5003,6 +5048,7 @@ function buildFrame(src, N, opt) {
     const rows = Array.isArray(opt.rows) ? opt.rows : [];
     const n = Math.max(1, Math.min(20, Math.round(+(Array.isArray(opt.rows) ? opt.n || rows.length : opt.rows) || 7)));
     const measure = opt.measure || frameMeasure, symBox = opt.symBox || frameItemsBox;
+    const T3 = opt.kind === 'answer3';                // 답안지 Ⅲ(배식) — 수목수량표 · 첫 칸은 성상(글자) · 시설명 → 수목명
     const X0 = 46.4, X1 = 58.4, TOP = 5.2, OLD = 12.2, BOT = TOP + n;          // 오른쪽 칸 · 수량표(1:100 자리)
     const pts = new Map(src.pts.map(p => [+p.n, {...p}]));
     let pn = Math.max(0, ...pts.keys()) + 1, id = Math.max(0, ...src.ops.map(o => +o.id || 0)) + 1;
@@ -5081,7 +5127,7 @@ function buildFrame(src, N, opt) {
     };
     rows.slice(0, n).forEach((r, i) => {
         if (!r) return;
-        const has = r.sym || [r.name, r.spec, r.qty].some(v => String(v == null ? '' : v).trim());
+        const has = r.sym || [r.name, r.spec, r.qty, T3 ? r.form : ''].some(v => String(v == null ? '' : v).trim());
         if (!has) return;                             // 빈 줄
         const top = TOP + i, y = top + 0.8;
         if (r.sym) {                                  // 칸(폭 2 × 높이 1)의 70% 안에 들게 줄여 가운데에
@@ -5095,8 +5141,9 @@ function buildFrame(src, N, opt) {
             const key = `frame-r${i + 1}-${N}`; rowSyms.push([key, {name: r.sym.name || '기호', items: its}]);
             items.push(mk({t: 'sym', p: np(47.4 - cx, top + 0.5 - cy), rot: 0, sym: key}));
         }
+        if (T3) cellText(r.form, 0, y, false, i + 1);  // 성상 — 기호 칸 자리에 글자로
         cellText(r.name, 1, y, true, i + 1);
-        cellText(r.spec, 2, y, false, i + 1);
+        cellText(String(r.spec == null ? '' : r.spec).replace(/\s*\*\s*/g, ' x '), 2, y, false, i + 1);   // 'H4.0*W2.0' → 'H4.0 x W2.0'
         cellText(r.unit, 3, y, false, i + 1);
         cellText(r.qty, 4, y, false, i + 1);
     });
@@ -5123,8 +5170,17 @@ function buildFrame(src, N, opt) {
             op.a = turn(op.a, h); op.b = turn(op.b, h); }
         if (north && op.t === 'sym' && op.id === north.id) op.rot = rot;
         if (op.t === 'text' && /^SCALE/.test(op.s)) op.s = `SCALE : 1 / ${N}`;
+        if (T3 && op.t === 'text') {                 // Ⅲ 머리글 — 표 제목·첫 칸('기'·'호' → '성   상')·시설명 → 수목명
+            const s0 = op.s.replace(/\s/g, '');
+            if (s0 === '시설물수량표') op.s = '수 목 수 량 표';
+            else if (s0 === '시설명') op.s = op.s.replace('시', '수').replace('설', '목');
+            else if ((s0 === '기' || s0 === '호') && op.x >= COLS[0][0] && op.x < COLS[0][1] && op.y > TOP - 0.9 && op.y <= TOP) {
+                if (s0 === '호') return;
+                op.s = '성   상'; op.x = COLS[0][0] + (COLS[0][1] - COLS[0][0] - measure(op.s, op.size)) / 2;
+            }
+        }
         if (op.t === 'text' && op.s.replace(/\s/g, '') === '시설물배치도') {
-            const ch = [...String(opt.name || '').replace(/\s/g, '')], sp = ch.length <= 8 ? '  ' : ch.length <= 10 ? ' ' : '';
+            const ch = [...String(opt.name || (T3 ? '배식평면도' : '시설물배치도')).replace(/\s/g, '')], sp = ch.length <= 8 ? '  ' : ch.length <= 10 ? ' ' : '';
             op.s = ch.join(sp);
             const w = op.size * (ch.length + (ch.length - 1) * sp.length * 0.3);   // 어림 폭
             if (op.x + w > X1 - 0.2) warn = `도면명이 길어 칸을 넘칠 수 있습니다(${ch.length}자)`;
@@ -5868,7 +5924,9 @@ $('cnRows').addEventListener('input', () => { cnRender(); cnSave(); });
 ['cnName', 'cnNorth'].forEach(k => $(k).addEventListener('input', cnSave));
 ['input', 'change'].forEach(ev => $('cnRowList').addEventListener(ev, e => {
     const el = e.target.closest('[data-k]'), row = el && el.closest('.cn-row'); if (!row) return;
-    cnData[+row.dataset.i][el.dataset.k] = el.value; cnSave();
+    cnData[+row.dataset.i][el.dataset.k] = el.value;
+    if (cnCur === 'answer3' && el.dataset.k === 'name') cnAutoFill(+row.dataset.i, row);
+    cnSave();
 }));
 $('cnCancel').addEventListener('click', () => { $('cadNewBox').hidden = true; });
 $('cadNewBox').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && !e.isComposing && !e.target.closest('#cnRowList')) cnGo(); else if (e.key === 'Escape') $('cadNewBox').hidden = true; });

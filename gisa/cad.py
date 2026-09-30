@@ -226,3 +226,12 @@ def frame_get(request, key):
     f = _frame_cache[key]
     return JsonResponse({'ok': True, 'key': key, 'title': f.get('title', ''),
                          'sheet': f.get('sheet'), 'data': f['data']})
+
+
+@login_required
+def frame_trees(request):
+    """답안지 Ⅲ(배식) 수목수량표 미리 채우기 — 수목명을 고르면 성상·규격·단위를 채운다(cad_frames/trees.json)."""
+    if 'trees' not in _frame_cache:
+        with open(Path(__file__).resolve().parent / 'cad_frames' / 'trees.json', encoding='utf-8') as fp:
+            _frame_cache['trees'] = json.load(fp).get('trees', [])
+    return JsonResponse({'ok': True, 'trees': _frame_cache['trees']})
