@@ -5157,9 +5157,9 @@ function buildFrame(src, N, opt) {
     // 수량표 내용 — 줄마다 기호(칸에 맞춰 줄인 복사본) · 시설명(칸 폭에 글자를 벌려) · 규격·단위·수량(가운데)
     // 글자 x 는 첫 글자의 왼쪽 아래라 가운데 맞춤은 잰 폭으로 한다(화면은 canvas 로 재고, 여기 기본값은 어림)
     const COLS = [[46.4, 48.4], [48.4, 51.8], [51.8, 54.9], [54.9, 56.4], [56.4, 58.4]], TS = 0.4, items = [], rowSyms = [], warns = [];
-    const cellText = (s, c, y, spread, no) => {
+    const cellText = (s, c, y, spread, no, how) => {   // how: 'left' 왼쪽 맞춤(규격) · 'gap3' 글자 사이 세 칸(성상 — 머리글 '성   상' 과 같게)
         s = String(s == null ? '' : s).trim(); if (!s) return;
-        const [x0, x1] = COLS[c], W = x1 - x0; let size = TS, str = s;
+        const [x0, x1] = COLS[c], W = x1 - x0; let size = TS, str = how === 'gap3' ? [...s.replace(/\s+/g, '')].join('   ') : s;
         if (spread) {                                  // 글자 사이를 고르게 — 빈칸(낱말 경계)은 글자 사이의 두 배
             let words = s.split(/\s+/); if (words.every(w => [...w].length === 1)) words = [words.join('')];   // '수 목 보 호 대' 처럼 한 글자씩 띄운 것은 한 낱말로
             const chars = words.join(''), G = words.reduce((g, w) => g + [...w].length - 1, 0) + (words.length - 1) * 2;
@@ -5173,7 +5173,7 @@ function buildFrame(src, N, opt) {
         let w = measure(str, size); const max = (spread ? 0.95 : 0.92) * W;
         if (w > max) { size = Math.max(TS * 0.7, TS * max / w); w = measure(str, size); }
         if (w > W) warns.push(`${no}번 줄 "${s}" 이(가) 칸보다 깁니다`);
-        items.push(text(str, x0 + (W - w) / 2, y, R(size)));
+        items.push(text(str, how === 'left' ? x0 + Math.min(0.4 * TS, Math.max(0, W - w)) : x0 + (W - w) / 2, y, R(size)));   // 왼쪽은 글자 반 칸쯤 띄운다
     };
     rows.slice(0, n).forEach((r, i) => {
         if (!r) return;
@@ -5191,9 +5191,9 @@ function buildFrame(src, N, opt) {
             const key = `frame-r${i + 1}-${N}`; rowSyms.push([key, {name: r.sym.name || '기호', items: its}]);
             items.push(mk({t: 'sym', p: np(47.4 - cx, top + 0.5 - cy), rot: 0, sym: key}));
         }
-        if (T3) cellText(r.form, 0, y, false, i + 1);  // 성상 — 기호 칸 자리에 글자로
+        if (T3) cellText(r.form, 0, y, false, i + 1, 'gap3');   // 성상 — 기호 칸 자리에 글자로, 머리글처럼 띄어(사용자)
         cellText(r.name, 1, y, true, i + 1);
-        cellText(String(r.spec == null ? '' : r.spec).replace(/\s*\*\s*/g, ' x '), 2, y, false, i + 1);   // 'H4.0*W2.0' → 'H4.0 x W2.0'
+        cellText(String(r.spec == null ? '' : r.spec).replace(/\s*\*\s*/g, ' x '), 2, y, false, i + 1, 'left');   // 규격은 왼쪽 맞춤(사용자)   // 'H4.0*W2.0' → 'H4.0 x W2.0'
         cellText(r.unit, 3, y, false, i + 1);
         cellText(r.qty, 4, y, false, i + 1);
     });
