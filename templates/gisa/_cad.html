@@ -4910,10 +4910,10 @@ function cnFormSel(r) {                               // 성상도 콤보 — �
 }
 function cnTreeSel(r, tr) {
     const all = cnTrees || [], fsel = String(r.form || '').trim(), T = fsel && all.some(q => q.form === fsel) ? all.filter(q => q.form === fsel) : all,
-          forms = [...new Set(T.map(q => q.form))], cur = String(r.name || '').trim();
+          forms = [...new Set([...CN_FORMS, ...T.map(q => q.form)])].filter(f => T.some(q => q.form === f)), cur = String(r.name || '').trim();   // 성상 차례는 상교·낙교…
     let o = `<option value="">${T.length ? '— 수목 —' : '(불러오는 중)'}</option>`;
     if (cur && !tr) o += `<option value="${esc(cur)}">${esc(cur)}</option>`;
-    forms.forEach(f => { o += `<optgroup label="${esc(f)}">` + T.filter(q => q.form === f).map(q => `<option value="${esc(q.name)}">${esc(q.name)}</option>`).join('') + '</optgroup>'; });
+    forms.forEach(f => { o += `<optgroup label="${esc(f)}">` + T.filter(q => q.form === f).sort((x, y) => x.name.localeCompare(y.name, 'ko')).map(q => `<option value="${esc(q.name)}">${esc(q.name)}</option>`).join('') + '</optgroup>'; });
     return `<select data-k="name" title="${tr && tr.note ? esc(tr.note) : '수목명'}">${o.replace(`value="${esc(cur)}"`, `value="${esc(cur)}" selected`)}</select>`;
 }
 function cnSpecSel(r, tr) {
