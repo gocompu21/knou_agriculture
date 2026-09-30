@@ -4305,7 +4305,7 @@ function leadGeom(w) {
     else {                                               // 꺾는 자리 — 위·아래를 형에 맞춘다
         let by = w.y; const up = t[0] === 'u';
         if (up ? by > S.y : by < S.y) by = 2 * S.y - by;
-        B = {x: rnd(w.x), y: rnd(by)}; y = B.y; x0 = right ? B.x + pad : B.x - pad;
+        B = {x: S.x, y: rnd(by)}; y = B.y; x0 = right ? B.x + pad : B.x - pad;   // 위·아래로 꺾는 선은 곧게 세운다(90°, 대표님) — 누른 자리는 높이만 쓴다
     }
     const tx0 = right ? x0 : x0 - W, E = {x: rnd(right ? x0 + W + pad : x0 - W - pad), y: rnd(y)};
     return {S, B, E, y, size, font, top: tx.top, bot: tx.bot, tx: rnd(tx0), ty: rnd(y - size * 0.35), by: rnd(y + size * 1.3)};
@@ -4341,7 +4341,7 @@ function leadFinish(w) {
 function leadHint() {
     if (!leadS) return ' · 수목을 이은 다각선의 끝점을 누르세요';
     const t = leadType();
-    return (t === 'r' || t === 'l' ? ' · 글을 시작할 자리를 누르세요' : ' · 꺾는 자리를 누르세요') + ' · 우클릭·Esc 취소';
+    return (t === 'r' || t === 'l' ? ' · 글을 시작할 자리를 누르세요' : ' · 꺾을 높이를 누르세요(곧게 위·아래로)') + ' · 우클릭·Esc 취소';
 }
 // ── 지시선 끝 ──
 function hitPoint(w) {
