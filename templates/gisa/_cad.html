@@ -4335,7 +4335,7 @@ function leadGeom(w) {
     const t = leadType(), right = t === 'ur' || t === 'dr' || t === 'r', size = leadSize(), font = $('ftFont').value;
     const tx = leadTexts(), W = Math.max(leadMeasure(tx.top || ' ', size, font), leadMeasure(tx.bot || ' ', size, font)), pad = size * 0.5;
     let B = null, y = S.y, x0;
-    if (t === 'r' || t === 'l') x0 = right ? Math.max(w.x, S.x + pad) + size * 0.8 : Math.min(w.x, S.x - pad) - size * 0.8;   // 글을 시작할 자리 — 누른 점에서 글자 0.8칸 띄운다(대표님: 두 번째 점에 글이 붙어 보였다)
+    if (t === 'r' || t === 'l') x0 = right ? Math.max(w.x, S.x + pad) + size * 1.5 : Math.min(w.x, S.x - pad) - size * 1.5;   // 글을 시작할 자리 — 누른 점에서 글자 1.5칸 띄운다(대표님: 붙어 보였다 → 0.8칸도 가깝다)
     else {                                               // 꺾는 자리 — 위·아래를 형에 맞춘다
         let by = w.y; const up = t[0] === 'u';
         if (up ? by > S.y : by < S.y) by = 2 * S.y - by;
