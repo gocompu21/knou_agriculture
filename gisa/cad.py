@@ -50,7 +50,7 @@ TRACES = [(f'a2-{n}', f'A2 트레이싱지 1:{n}', 0, round(0.594 * n, 3), 0, ro
           for n in TRACE_SCALES]
 SHEET_KEYS = {s[0] for s in SHEETS} | {t[0] for t in TRACES} | {'blank'}
 
-MAX_DATA = 600_000          # 도면 JSON 한도(자) — 점 수천 개도 여유 있게 들어간다
+MAX_DATA = 5_000_000        # 도면 JSON 한도(자). 60만이었는데 배식평면도(70만 자)가 넘어 저장이 조용히 거절됐다(대표님 작업이 날아갈 뻔 — 2026-09-30)
 
 
 def sheets_json():

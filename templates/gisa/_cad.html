@@ -5537,7 +5537,7 @@ function save() {
     const body = {id: cur.id, title: $('cadTitle').value.trim() || sheet.title + ' 도면', sheet: doc.sheet, data: doc};
     $('cadTitle').value = body.title;
     post(API + 'save/', body).then(j => {
-        if (!j.ok) { flash(j.error || '저장하지 못했습니다'); return; }
+        if (!j.ok) { alert('저장하지 못했습니다 — ' + (j.error || '서버가 거절했습니다') + '\n\n작업은 이 브라우저에 그대로 남아 있습니다. 다른 도면을 열지 말고 알려 주세요.'); return; }   // 토스트는 놓치기 쉽다 — 저장 실패를 모르고 다른 도면을 열어 작업이 날아갈 뻔했다
         cur.id = j.id; dirty = false; saveDraft(); savedLabel(); flash('저장했습니다');
     });
 }
@@ -5551,7 +5551,7 @@ function openList() {
     });
 }
 function openDrawing(id) {
-    if (dirty && !confirm('저장하지 않은 작업이 있습니다. 버리고 열까요?')) return;
+    if (dirty && !confirm('저장하지 않은 작업이 있습니다.\n지금 열면 그 작업은 사라집니다(되돌릴 수 없음). 버리고 열까요?')) return;
     fetch(`${API}${id}/`, {credentials: 'same-origin'}).then(r => r.json()).then(j => {
         if (!j.ok) { flash('열지 못했습니다'); return; }
         doc = Object.assign(blankDoc(j.sheet), j.data || {});
