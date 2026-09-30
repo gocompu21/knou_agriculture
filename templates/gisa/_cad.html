@@ -11,7 +11,7 @@
 {% endcomment %}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Pen+Script&display=swap">
 <div class="cad" id="cad" data-cert="{{ cert.pk }}" data-staff="{% if request.user.is_staff %}1{% endif %}"
-     data-api="{% url 'gisa:cad_drawing_list' cert.pk %}" data-symapi="{% url 'gisa:cad_symbol_list' %}">
+     data-api="{% url 'gisa:cad_drawing_list' cert.pk %}" data-symapi="{% url 'gisa:cad_symbol_list' %}" data-frameapi="{% url 'gisa:cad_frame' 'answer2' %}">
     <div class="cad-top">
         <select id="cadSheet" title="종이 — 모눈종이 또는 A2 트레이싱지"></select>
         <input id="cadTitle" class="cad-title" placeholder="도면 이름" maxlength="100">
@@ -24,6 +24,18 @@
         <button type="button" class="cad-b" id="cadCopy">작도 순서 복사</button>
         <button type="button" class="cad-b" id="cadFull" title="전체 화면"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 7V2h5M18 7V2h-5M2 13v5h5M18 13v5h-5"/></svg></button>
         <div class="cad-open" id="cadOpen" hidden></div>
+        <div class="cad-set cad-newbox" id="cadNewBox" hidden>
+            <h4>새 도면</h4>
+            <div class="cad-set-row"><span class="cad-set-lb">종이</span><select id="cnSheet" class="cad-set-ls" style="max-width:190px"></select></div>
+            <div class="cad-set-row" id="cnFrameRow"><span class="cad-set-lb">틀</span><select id="cnFrame" class="cad-set-ls"><option value="">틀 없음</option><option value="answer2">답안지 Ⅱ 틀</option></select></div>
+            <div id="cnOpts">
+                <div class="cad-set-row"><label class="cad-set-sub">도면명 <input id="cnName" class="cad-set-num" style="width:130px" maxlength="20" value="시설물배치도"></label></div>
+                <div class="cad-set-row"><label class="cad-set-sub">방위 <input type="number" id="cnNorth" class="cad-set-num" value="0" step="1" min="-180" max="360"> °</label><span class="cad-set-note" style="margin:0">(시계 방향 +)</span></div>
+                <div class="cad-set-row"><label class="cad-set-sub">시설물 수량표 <input type="number" id="cnRows" class="cad-set-num" value="7" step="1" min="1" max="20"> 줄</label></div>
+                <p class="cad-set-note" id="cnNote"></p>
+            </div>
+            <div class="cad-set-row" style="justify-content:flex-end"><button type="button" class="cad-b" id="cnCancel">취소</button><button type="button" class="cad-b pri" id="cnGo">만들기</button></div>
+        </div>
     </div>
     <div class="cad-tools" id="cadTools">
         <button type="button" data-tool="select" title="선택·점 끌어 옮기기 (V)" aria-label="선택"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 2.5V16l3.6-3.4 2.6 5.4 2.2-1-2.6-5.3H16Z" class="f"/></svg></button>
@@ -329,6 +341,7 @@
     border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.14); width: min(360px, calc(100% - 20px)); max-height: 360px; overflow: auto; padding: 6px; }
 .cad-open .it { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; cursor: pointer; font-size: 0.84rem; }
 .cad-open .it:hover { background: #f1f6f3; }
+.cad-newbox { right: 10px; width: 280px; }
 .cad-open .it span { flex: 1; min-width: 0; }
 .cad-open .it small { color: #8a9690; display: block; }
 .cad-open .it button { border: 0; background: none; color: #b0b8b4; cursor: pointer; font-size: 0.9rem; }
@@ -4816,11 +4829,183 @@ function openDrawing(id) {
         $('cadOpen').hidden = true; afterLoad(true); saveDraft();
     });
 }
+// 새 도면 — 종이를 고르고, A2 트레이싱지면 틀(답안지 Ⅱ)을 얹어 시작할 수 있다
 function newDrawing() {
+    const box = $('cadNewBox');
+    if (!box.hidden) { box.hidden = true; return; }
     if (dirty && !confirm('저장하지 않은 작업이 있습니다. 버리고 새로 시작할까요?')) return;
-    doc = blankDoc($('cadSheet').value || '401'); cur.id = null; $('cadTitle').value = '';
+    $('cnSheet').innerHTML = $('cadSheet').innerHTML; $('cnSheet').value = $('cadSheet').value || '401';
+    $('cadOpen').hidden = true; box.hidden = false; cnSync();
+}
+function cnSync() {                                   // 틀은 A2 트레이싱지에만
+    const tr = sheetOf($('cnSheet').value).paper === 'trace';
+    $('cnFrameRow').hidden = !tr; if (!tr) $('cnFrame').value = '';
+    $('cnOpts').hidden = !$('cnFrame').value;
+    const N = scaleOfKey($('cnSheet').value);
+    $('cnNote').textContent = tr && $('cnFrame').value ? `축척 1:${N} — 막대 축척은 ${frameBar(N).slice(-1)[0]}m 까지 그립니다.` : '';
+}
+const scaleOfKey = k => +((sheetOf(k).scale || '').split(':')[1]) || 100;
+let frameSrc = null;                                  // 틀 원본(1:100) — 한 번 받아 둔다
+function startNew(key, d) {
+    doc = d || blankDoc(key); cur.id = null; $('cadTitle').value = '';
     hist = []; redoS = []; dirty = false; afterLoad(true); saveDraft();
 }
+function cnGo() {
+    const key = $('cnSheet').value, fr = $('cnFrame').value;
+    $('cadNewBox').hidden = true;
+    if (!fr) { startNew(key); return; }
+    const opt = {name: $('cnName').value.trim() || '시설물배치도', north: +$('cnNorth').value || 0, rows: Math.round(+$('cnRows').value || 7)};
+    const go = src => { const r = buildFrame(src, scaleOfKey(key), opt);
+        startNew(key, Object.assign(blankDoc(key), r.doc)); flash(r.warn || '답안지 Ⅱ 틀로 시작합니다'); };
+    if (frameSrc) { go(frameSrc); return; }
+    fetch(root.dataset.frameapi, {credentials: 'same-origin'}).then(r => r.json()).then(j => {
+        if (!j.ok) { flash(j.error || '틀을 받지 못했습니다'); return; }
+        frameSrc = j.data; go(frameSrc);
+    }).catch(() => flash('틀을 받지 못했습니다'));
+}
+// ── 도면 틀(답안지 Ⅱ) — 1:100 원본(gisa/cad_frames/answer2.json)을 고른 축척으로 옮기고 도면명·방위·수량표 줄 수를 채운다 ──
+// 종이 위 자리·크기는 그대로(좌표 × N/100). 수량표는 줄을 비우고 n 줄로 다시 긋고, 막대 축척은 그 축척에 맞는 눈금으로 다시 만든다.
+// 틀의 작도는 모두 도구 기록을 비운다(tl = 0) — 재생 때 선 모양으로 도구 자리를 새로 잡는다
+const FRAME_BAR = {100: [0, 0.5, 1, 2, 5, 7.5], 200: [0, 1, 2, 5, 10, 15], 250: [0, 1, 2, 5, 10, 20], 300: [0, 1, 2, 5, 10, 20],
+    400: [0, 1, 3, 5, 15, 30], 500: [0, 2, 5, 10, 20, 40], 600: [0, 2, 5, 10, 20, 40], 800: [0, 5, 10, 20, 30, 60]};
+function frameBar(N) {                                // 종이 위 60~80mm 가 되는 막대 — 표에 없는 축척은 어림
+    if (FRAME_BAR[N]) return FRAME_BAR[N];
+    const want = 0.075 * N, e = Math.pow(10, Math.floor(Math.log10(want)));
+    const T = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 7.5, 8, 10].map(m => m * e).reduce((a, b) => Math.abs(b - want) < Math.abs(a - want) ? b : a);
+    const nice = v => { const q = Math.pow(10, Math.floor(Math.log10(v))); return [1, 2, 5, 10].map(m => m * q).reduce((a, b) => Math.abs(b - v) < Math.abs(a - v) ? b : a); };
+    return [...new Set([0, nice(T / 30), nice(T / 10), nice(T / 6), nice(T / 2), T].map(v => +v.toPrecision(3)))].sort((a, b) => a - b);
+}
+function buildFrame(src, N, opt) {
+    const R = v => Math.round(v * 1e4) / 1e4, E = 0.02, f = N / 100, k = 100 / N;
+    const n = Math.max(1, Math.min(20, Math.round(+opt.rows || 7)));
+    const X0 = 46.4, X1 = 58.4, TOP = 5.2, OLD = 12.2, BOT = TOP + n;          // 오른쪽 칸 · 수량표(1:100 자리)
+    const pts = new Map(src.pts.map(p => [+p.n, {...p}]));
+    let pn = Math.max(0, ...pts.keys()) + 1, id = Math.max(0, ...src.ops.map(o => +o.id || 0)) + 1;
+    const np = (x, y) => { const q = pn++; pts.set(q, {n: q, x, y}); return q; };   // 반올림은 축척을 옮길 때 한 번만(1:300 에서 0.9999 가 나왔다)
+    const P = q => pts.get(+q);
+    const mk = o => Object.assign({id: id++}, o);
+    const line = (a, b, w, ls) => mk({t: 'line', a, b, w, ls});
+    const mark = (x, y, dx, dy, r, w) => { const p = np(x, y); return {p, op: mk({t: 'free', w: w || 'p9', ls: 'solid', p, pts: [[x, y], [x + dx, y + dy]], mark: {r, s: 100}})}; };
+    const text = (s, x, y, size) => mk({t: 'text', s, x, y, dir: 'h', rot: 0, font: 'gothic', size});
+    const bb = op => {                                // 1:100 자리의 둘레 상자
+        let q = [];
+        if (op.t === 'line' || op.t === 'rect' || op.t === 'arc') q = [P(op.a), P(op.b)];
+        else if (op.t === 'circle') { const c = P(op.c), r = op.mode === 'd' ? op.v / 2 : +op.v; if (c) q = [{x: c.x - r, y: c.y - r}, {x: c.x + r, y: c.y + r}]; }
+        else if (op.t === 'free') q = (op.pts || []).map(([x, y]) => ({x, y}));
+        else if (op.t === 'fill' && op.bb) q = [{x: op.bb[0], y: op.bb[1]}, {x: op.bb[2], y: op.bb[3]}];
+        else if (op.t === 'text') q = [op.p != null ? P(op.p) : {x: op.x, y: op.y}];
+        else if (op.t === 'sym') q = [P(op.p)];
+        q = q.filter(Boolean); if (!q.length) return null;
+        return [Math.min(...q.map(u => u.x)), Math.min(...q.map(u => u.y)), Math.max(...q.map(u => u.x)), Math.max(...q.map(u => u.y))];
+    };
+    const inBox = (b, x0, y0, x1, y1) => b && b[0] >= x0 && b[1] >= y0 && b[2] <= x1 && b[3] <= y1;
+    const hLine = op => { if (op.t !== 'line') return null; const a = P(op.a), b = P(op.b);
+        return a && b && Math.abs(a.y - b.y) < 1e-3 && Math.min(a.x, b.x) <= X0 + E && Math.max(a.x, b.x) >= X1 - E ? a.y : null; };
+    const inRows = y => y != null && y > TOP + E && y < OLD + E;
+    // 방위 — 북향 기호의 기준점과 그 둘레 보조선(십자)
+    const north = src.ops.find(o => o.t === 'sym');
+    const C = north && P(north.p), rot = ((+opt.north || 0) % 360 + 360) % 360;
+    const onC = op => { if (!C || op.t !== 'line' || op.ls !== 'aux') return false; const a = P(op.a), b = P(op.b);
+        const L = Math.hypot(b.x - a.x, b.y - a.y); return L > 0 && Math.hypot(a.x - C.x, a.y - C.y) < 6 && Math.hypot(b.x - C.x, b.y - C.y) < 6
+            && Math.abs((b.x - a.x) * (C.y - a.y) - (b.y - a.y) * (C.x - a.x)) / L < 0.01; };
+    // 십자 보조선은 기준점 둘레로 돌리되 짧은 쪽 길이로 맞춘다 — 세로 보조선이 아래로 길어(4.7m) 그대로 돌리면 도면명 칸을 뚫는다
+    const turn = (q, h) => { const t = rot * Math.PI / 180, c = Math.cos(t), s = Math.sin(t), p = P(q), L = Math.hypot(p.x - C.x, p.y - C.y) || 1,
+        dx = (p.x - C.x) / L * h, dy = (p.y - C.y) / L * h;
+        return np(C.x + dx * c - dy * s, C.y + dx * s + dy * c); };
+    // 새로 그을 것 — 수량표 줄(마킹·실선·보조선), 막대 축척
+    const rowMarks = [], rowLines = [], rowAux = [];
+    for (let i = 1; i <= n; i++) { const y = TOP + i, m = mark(X0, y, 0.3, 0, y - 1.2); rowMarks.push(m.op); rowLines.push(line(m.p, np(X1, y), 'p9', 'solid')); }
+    for (let i = 0; i < n; i++) [0.2, 0.8].forEach(d => rowAux.push(line(np(X0, TOP + i + d), np(X1, TOP + i + d), 'p5', 'aux')));
+    const B = frameBar(N), BX = v => 48.65 + v * k, bar = [], xe = BX(B[B.length - 1]);
+    const bm = B.map(v => mark(BX(v), 38.75, 0, -0.075, v * k)); bm.forEach(m => bar.push(m.op));
+    bar.push(line(np(BX(0), 37.9), np(BX(0), 40.95), 'p5', 'aux'));
+    const rm = [[39.5, 11.5], [39.2, 11.2], [38.9, 10.9]].map(([y, r]) => mark(BX(0), y, 0.075, 0, r, 'p5')); rm.forEach(m => bar.push(m.op));
+    const e3 = np(xe, 39.5);
+    bar.push(line(np(xe, 38), e3, 'p5', 'aux'));
+    const e2 = np(xe, 39.2), e1 = np(xe, 38.9);
+    bar.push(line(rm[0].p, e3, 'p9', 'solid'), line(rm[1].p, e2, 'p9', 'solid'), line(rm[2].p, e1, 'p9', 'solid'), line(rm[2].p, rm[0].p, 'p9', 'solid'));
+    B.slice(1, -1).forEach(v => bar.push(line(np(BX(v), 38.9), np(BX(v), 39.5), 'p9', 'solid')));
+    bar.push(line(e1, e3, 'p9', 'solid'));
+    for (let j = 0; j + 1 < B.length; j++) {          // 칸마다 위·아래 줄을 번갈아 검게
+        const x0 = BX(B[j]), x1 = BX(B[j + 1]), [y0, y1] = j % 2 ? [39.2, 39.5] : [38.9, 39.2];
+        bar.push(mk({t: 'fill', d: `M${x0} ${y0}L${x1} ${y0}L${x1} ${y1}L${x0} ${y1}Z`, bb: [x0, y0, x1, y1], op: 1, gap: 0.05, area: R((x1 - x0) * (y1 - y0)), kind: 'solid', color: '#000000'}));
+    }
+    bar.push(line(bm[0].p, bm[bm.length - 1].p, 'p5', 'aux'));
+    B.forEach((v, i) => { const s = String(v), last = i === B.length - 1;
+        bar.push(text(s + (last ? '(M)' : ''), BX(v) - s.length * 0.3 * 0.28, 38.76, 0.3)); });
+    // 원본을 차례대로 훑으며 버리고·고치고·끼워 넣는다
+    const out = [], put = {mark: rowMarks, line: rowLines, aux: rowAux, bar};
+    let warn = '';
+    src.ops.forEach(o0 => {
+        if (o0.t === 'step') return;
+        const op = JSON.parse(JSON.stringify(o0)), b = bb(op), hy = hLine(op);
+        let cat = null;
+        if (op.mark && op.pts && Math.abs(op.pts[0][0] - X0) < E && inRows(op.pts[0][1]) && op.pts[1][0] > op.pts[0][0]) cat = 'mark';
+        else if (inRows(hy)) cat = op.ls === 'aux' ? 'aux' : 'line';
+        else if (inBox(b, 48.3, 37.8, 57.5, 40.97) && !(op.t === 'text' && /^SCALE/.test(op.s))) cat = 'bar';
+        else if (inBox(b, X0 - 0.1, TOP + 0.05, X1 + 0.1, OLD + 0.05)) return;          // 수량표 안의 기호·글자 — 비운다
+        if (cat) { if (put[cat]) { out.push(...put[cat]); put[cat] = null; } return; }
+        if (op.t === 'line') {                        // 수량표 세로줄 — 새 바닥까지 늘린다
+            const a = P(op.a), c = P(op.b);
+            if (a && c && Math.abs(a.x - c.x) < 1e-3 && a.x > X0 + E && a.x < X1 - E && Math.min(a.y, c.y) < TOP && Math.max(a.y, c.y) > OLD - 0.35 && Math.max(a.y, c.y) < OLD + E) {
+                const lo = a.y > c.y ? 'a' : 'b', y = P(op[lo]).y;
+                op[lo] = np(a.x, BOT - (OLD - y));
+            }
+        }
+        if (C && onC(op) && rot) { const h = Math.min(...[op.a, op.b].map(q => Math.hypot(P(q).x - C.x, P(q).y - C.y)));
+            op.a = turn(op.a, h); op.b = turn(op.b, h); }
+        if (north && op.t === 'sym' && op.id === north.id) op.rot = rot;
+        if (op.t === 'text' && /^SCALE/.test(op.s)) op.s = `SCALE : 1 / ${N}`;
+        if (op.t === 'text' && op.s.replace(/\s/g, '') === '시설물배치도') {
+            const ch = [...String(opt.name || '').replace(/\s/g, '')], sp = ch.length <= 8 ? '  ' : ch.length <= 10 ? ' ' : '';
+            op.s = ch.join(sp);
+            const w = op.size * (ch.length + (ch.length - 1) * sp.length * 0.3);   // 어림 폭
+            if (op.x + w > X1 - 0.2) warn = `도면명이 길어 칸을 넘칠 수 있습니다(${ch.length}자)`;
+        }
+        out.push(op);
+    });
+    Object.keys(put).forEach(c => { if (put[c]) out.push(...put[c]); });
+    // 축척 옮기기 — 종이 위 자리·크기는 그대로
+    const sc = v => R(v * f), scD = d => String(d).replace(/-?\d*\.?\d+(?:e-?\d+)?/gi, m => String(sc(+m)));
+    const scItem = it => {
+        const o = {...it};
+        ['x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rw', 'rh', 'size'].forEach(q => { if (typeof o[q] === 'number') o[q] = sc(o[q]); });
+        if (o.t === 'svg') { if (typeof o.w === 'number') o.w = sc(o.w); if (typeof o.h === 'number') o.h = sc(o.h); }
+        if (o.pts) o.pts = o.pts.map(([x, y]) => [sc(x), sc(y)]);
+        if (o.items) o.items = o.items.map(scItem);
+        if (o.op) o.op = scFill({...o.op});
+        if (o.sr && typeof o.sr === 'object') o.sr = {...o.sr, x: sc(o.sr.x), y: sc(o.sr.y)};
+        return o;
+    };
+    const scFill = o => {
+        if (o.d) o.d = scD(o.d);
+        if (o.bb) o.bb = o.bb.map(sc);
+        if (o.gap) o.gap = sc(o.gap);
+        if (o.area) o.area = R(o.area * f * f);
+        if (o.cuts) o.cuts = o.cuts.map(c => c.map(sc));
+        if (o.part) o.part = {x: sc(o.part.x), y: sc(o.part.y), r: sc(o.part.r)};
+        return o;
+    };
+    const syms = {}, symKey = {};
+    Object.keys(src.syms || {}).forEach(q => { symKey[q] = `frame-${q}-${N}`; syms[symKey[q]] = {...src.syms[q], items: (src.syms[q].items || []).map(scItem)}; });
+    out.forEach(o => {
+        o.tl = 0;
+        if (o.t === 'text') { if (o.x != null) o.x = sc(o.x); if (o.y != null) o.y = sc(o.y); o.size = sc(o.size); }
+        if (o.t === 'circle') o.v = sc(o.v);
+        if (o.t === 'arc' && o.r != null) o.r = sc(o.r);
+        if (o.pts) o.pts = o.pts.map(([x, y]) => [sc(x), sc(y)]);
+        if (o.mark) o.mark = {...o.mark, r: sc(o.mark.r), s: N};
+        if (o.t === 'fill') scFill(o);
+        if (o.t === 'sym') o.sym = symKey[o.sym] || o.sym;
+    });
+    // 점 — 작도 순서에 처음 나오는 차례로 1, 2, 3 … (쓰지 않는 점은 버린다)
+    const KEYS = ['a', 'b', 'c', 'p', 'fr'], map = {}, outPts = [];
+    out.forEach(o => KEYS.forEach(q => { if (o[q] != null && map[o[q]] == null && P(o[q])) { const p = P(o[q]); map[o[q]] = outPts.length + 1; outPts.push({...p, n: outPts.length + 1, x: sc(p.x), y: sc(p.y)}); } }));
+    out.forEach(o => KEYS.forEach(q => { if (o[q] != null) o[q] = map[o[q]]; }));
+    const ops = [{id: id++, t: 'step', title: '도면 틀'}, ...out];
+    return {doc: {v: 1, sheet: `a2-${N}`, pts: outPts, ops, syms, seq: id}, warn};
+}
+// ── 틀 끝 ──
 function afterLoad(refit) {
     if (RP) rpEnd();
     doc.ops.forEach(o => { if (o.t !== 'step' && !('tl' in o)) o.tl = 0; });
@@ -5526,6 +5711,12 @@ document.addEventListener('keydown', e => {                // Z 창 확대 · Sh
     if (e.code === 'KeyZ') { e.preventDefault(); e.stopImmediatePropagation(); if (e.shiftKey) zoomPrev(); else zwinOn(!zwin); }
 }, true);
 $('cadNew').addEventListener('click', newDrawing);
+$('cnSheet').addEventListener('change', cnSync);
+$('cnFrame').addEventListener('change', cnSync);
+$('cnGo').addEventListener('click', cnGo);
+$('cnCancel').addEventListener('click', () => { $('cadNewBox').hidden = true; });
+$('cadNewBox').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && !e.isComposing) cnGo(); else if (e.key === 'Escape') $('cadNewBox').hidden = true; });
+document.addEventListener('click', e => { if (!e.target.closest('#cadNewBox, #cadNew')) $('cadNewBox').hidden = true; });
 $('cadSave').addEventListener('click', save);
 $('cadExport').addEventListener('click', download);
 $('cadCopy').addEventListener('click', copyDesc);

@@ -100,6 +100,7 @@ urlpatterns = [
     path("<int:cert_id>/cad/drawings/save/", cad.drawing_save, name="cad_drawing_save"),
     path("<int:cert_id>/cad/drawings/<int:pk>/delete/", cad.drawing_delete, name="cad_drawing_delete"),
     path("cad/symbols/", cad.symbol_list, name="cad_symbol_list"),
+    path("cad/frames/<slug:key>/", cad.frame_get, name="cad_frame"),
     path("cad/symbols/save/", cad.symbol_save, name="cad_symbol_save"),
     path("cad/symbols/<int:pk>/delete/", cad.symbol_delete, name="cad_symbol_delete"),
     path("<int:cert_id>/essay/work/ref/<int:ref_id>/", essay_views.drawing_ref_update,

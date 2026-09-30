@@ -9,6 +9,7 @@
 (`CadSymbol`)을 쓴다. 기본 기호(퍼걸러·평의자…)는 화면 코드(`_cad.html`)에 있다.
 """
 import json
+from pathlib import Path
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -207,3 +208,21 @@ def symbol_delete(request, pk):
         return _err('권한이 없습니다.', 403)
     s.delete()
     return JsonResponse({'ok': True})
+
+
+# 도면 틀 — 새 도면을 틀이 그려진 채로 시작한다. 원본은 A2 트레이싱지 1:100 에 그린 도면(cad_frames/*.json)이고,
+# 고른 축척으로 옮기기·도면명·방위·수량표 줄 수는 화면(_cad.html 의 buildFrame)이 한다. 틀은 회원 누구나 쓴다
+FRAMES = {'answer2': 'answer2.json'}
+_frame_cache = {}
+
+
+@login_required
+def frame_get(request, key):
+    if key not in FRAMES:
+        return _err('모르는 틀입니다.', 404)
+    if key not in _frame_cache:
+        with open(Path(__file__).resolve().parent / 'cad_frames' / FRAMES[key], encoding='utf-8') as fp:
+            _frame_cache[key] = json.load(fp)
+    f = _frame_cache[key]
+    return JsonResponse({'ok': True, 'key': key, 'title': f.get('title', ''),
+                         'sheet': f.get('sheet'), 'data': f['data']})
