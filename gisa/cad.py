@@ -74,8 +74,22 @@ def _body(request):
 def _err(msg, status=400):
     return JsonResponse({'ok': False, 'error': msg}, status=status)
 
+# CAD 는 특허 출원 전까지 관리자만 쓴다(대표님, 2026-09-30) — 탭을 감추는 것만으로는 API 가 열려 있으므로
+# 모든 API 가 스태프인지 본다. 출원 뒤 회원에게 열 때는 이 장식자를 login_required 로 되돌리면 된다
+def _staff_only(view):
+    from functools import wraps
 
-@login_required
+    @wraps(view)
+    def wrapped(request, *a, **kw):
+        if not request.user.is_authenticated:
+            return _err('로그인이 필요합니다.', 401)
+        if not request.user.is_staff:
+            return _err('관리자만 쓸 수 있습니다.', 403)
+        return view(request, *a, **kw)
+    return wrapped
+
+
+@_staff_only
 def drawing_list(request, cert_id):
     rows = CadDrawing.objects.filter(certification_id=cert_id, owner=request.user)
     return JsonResponse({'ok': True, 'items': [
@@ -83,14 +97,14 @@ def drawing_list(request, cert_id):
          'updated': _when(d)} for d in rows]})
 
 
-@login_required
+@_staff_only
 def drawing_get(request, cert_id, pk):
     d = get_object_or_404(CadDrawing, pk=pk, certification_id=cert_id, owner=request.user)
     return JsonResponse({'ok': True, 'id': d.pk, 'title': d.title, 'sheet': d.sheet,
                          'data': d.data})
 
 
-@login_required
+@_staff_only
 def drawing_play(request, cert_id, pk):
     """기출분석 도면 자료에 재생 단추(`data-cad-play="pk"`)로 걸어 둔 도면은 누구나 재생해 본다.
 
@@ -106,7 +120,7 @@ def drawing_play(request, cert_id, pk):
                          'data': d.data})
 
 
-@login_required
+@_staff_only
 @require_POST
 def drawing_save(request, cert_id):
     """id 가 있으면 그 도면을 고치고, 없으면 새로 만든다."""
@@ -134,7 +148,7 @@ def drawing_save(request, cert_id):
                          'updated': _when(d)})
 
 
-@login_required
+@_staff_only
 @require_POST
 def drawing_delete(request, cert_id, pk):
     d = get_object_or_404(CadDrawing, pk=pk, certification_id=cert_id, owner=request.user)
@@ -149,7 +163,7 @@ def _sym_row(s, user):
             'shared': s.shared, 'mine': s.owner_id == user.pk}
 
 
-@login_required
+@_staff_only
 def symbol_list(request):
     from django.db.models import Q
     rows = CadSymbol.objects.filter(Q(owner=request.user) | Q(shared=True))
@@ -157,7 +171,7 @@ def symbol_list(request):
                          'staff': request.user.is_staff})
 
 
-@login_required
+@_staff_only
 @require_POST
 def symbol_save(request):
     """새 기호 등록. pk 가 있으면 이름·공유만 고친다(모양은 다시 등록해 바꾼다)."""
@@ -200,7 +214,7 @@ def symbol_save(request):
     return JsonResponse({'ok': True, 'item': _sym_row(s, request.user)})
 
 
-@login_required
+@_staff_only
 @require_POST
 def symbol_delete(request, pk):
     s = get_object_or_404(CadSymbol, pk=pk)
@@ -216,7 +230,7 @@ FRAMES = {'answer2': 'answer2.json'}
 _frame_cache = {}
 
 
-@login_required
+@_staff_only
 def frame_get(request, key):
     if key not in FRAMES:
         return _err('모르는 틀입니다.', 404)
@@ -228,7 +242,7 @@ def frame_get(request, key):
                          'sheet': f.get('sheet'), 'data': f['data']})
 
 
-@login_required
+@_staff_only
 def frame_trees(request):
     """답안지 Ⅲ(배식) 수목수량표 미리 채우기 — 수목명을 고르면 성상·규격·단위를 채운다(cad_frames/trees.json)."""
     if 'trees' not in _frame_cache:

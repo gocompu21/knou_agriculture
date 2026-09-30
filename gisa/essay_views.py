@@ -867,6 +867,8 @@ def essay_work(request, cert_id):
         tab = 'video'               # 옛 주소 ?tab=sheets·overview·basics 는 여기로 받는다
     if tab == 'elements' and 'work-elements' not in notes:
         tab = 'video'               # 자료가 없으면 탭 자체가 없다(템플릿도 같은 조건)
+    if tab == 'cad' and not request.user.is_staff:
+        tab = 'video'               # CAD 는 특허 출원 전까지 관리자만(대표님) — 탭·API 모두 막는다
     return render(request, 'gisa/essay_work.html', {
         # 자료실(블로그·사이트)과 동영상(분류별) — 둘 다 part='work' 를 본다
         **resource_tab_context(cert, 'work'),
@@ -875,7 +877,7 @@ def essay_work(request, cert_id):
         'cert': cert,
         'info': info,
         # CAD 탭 — 모눈종이 목록(좌표 범위)만 내려준다. 도면·기호는 탭이 API 로 받는다
-        'cad_sheets': cad_sheets_json(),
+        'cad_sheets': cad_sheets_json() if request.user.is_staff else [],
         # 표 머리말이 종목마다 달라진다 — 회차 차례(1·2·4회 / 1·2·3회)와,
         # 도면에 번호가 있는지(조경은 있고 자연생태복원은 없다)
         'round_label': round_label,
