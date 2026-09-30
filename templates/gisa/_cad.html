@@ -1814,6 +1814,85 @@ function shrubScallop(raw, size, seed, closed, bulge, jit) {
     }
     return {pts: out.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]), closed: !!closed, side};
 }
+// 먼저 그린 교목·관목을 지나가지 않는다(대표님) — 그 안에 든 구간은 긋지 않고, 둘레에서 딱 끊어 **뒤로 지나간 것처럼** 보이게 한다.
+// 가리는 것: 원(템플릿 원) · 기호(교목 등 — 그린 것 전체의 볼록 껍질) · 닫힌 관목(끊긴 조각이면 조각을 이은 고리)
+function shrubHull(Q) {                               // 볼록 껍질(모노톤 체인)
+    const q = Q.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]); if (q.length < 3) return q;
+    const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), lo = [], up = [];
+    q.forEach(p => { while (lo.length > 1 && cr(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); });
+    for (let i = q.length - 1; i >= 0; i--) { const p = q[i]; while (up.length > 1 && cr(up[up.length - 2], up[up.length - 1], p) <= 0) up.pop(); up.push(p); }
+    return lo.slice(0, -1).concat(up.slice(0, -1));
+}
+function shrubSymPts(op) {                            // 기호가 그린 것의 점들(도면 좌표) — 글자·마킹·칠은 빼고
+    const d = doc.syms && doc.syms[op.sym], p = P(op.p), out = []; if (!d || !p) return out;
+    const walk = (items, tf) => (items || []).forEach(it => {
+        if (it.t === 'line') out.push(tf(it.x1, it.y1), tf(it.x2, it.y2));
+        else if (it.t === 'rect') out.push(tf(it.x, it.y), tf(it.x + it.rw, it.y), tf(it.x + it.rw, it.y + it.rh), tf(it.x, it.y + it.rh));
+        else if (it.t === 'circle') for (let k = 0; k < 32; k++) { const a = k * Math.PI / 16; out.push(tf(it.cx + it.r * Math.cos(a), it.cy + it.r * Math.sin(a))); }
+        else if (it.t === 'arc') out.push(tf(it.x1, it.y1), tf(it.x2, it.y2));
+        else if (it.t === 'free' && it.pts) it.pts.forEach(q => out.push(tf(q[0], q[1])));
+        else if (it.t === 'svg' && it.w > 0) { const w = it.w / 2, h = (it.h || it.w) / 2; out.push(tf(-w, -h), tf(w, -h), tf(w, h), tf(-w, h)); }
+        else if (it.t === 'g') { const a = (+it.rot || 0) * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a);
+            walk(it.items, (x, y) => tf(it.x + x * ca - y * sa, it.y + x * sa + y * ca)); }
+    });
+    const a = (+op.rot || 0) * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a);
+    walk(d.items, (x, y) => [p.x + x * ca - y * sa, p.y + x * sa + y * ca]);
+    return out;
+}
+function shrubObstacles() {
+    const out = [], rings = {};
+    doc.ops.forEach(op => {
+        if (auxHidden(op) || op.ls === 'aux') return;
+        if (op.t === 'circle') { const c = P(op.c), r = radiusOf(op); if (c && r > 0) out.push((x, y) => (x - c.x) ** 2 + (y - c.y) ** 2 < r * r); }
+        else if (op.t === 'sym') { const H = shrubHull(shrubSymPts(op)); if (H.length > 2) out.push((x, y) => shrubInside(H, x, y)); }
+        else if (op.t === 'free' && op.shrub && op.pts) {
+            if (op.shrub.closed) { const Q = op.pts; out.push((x, y) => shrubInside(Q, x, y)); }
+            else if (op.shrub.cc) { const k = op.grp != null ? 'g' + op.grp : 'o' + op.id; (rings[k] = rings[k] || []).push(...op.pts); }
+        }
+    });
+    Object.values(rings).forEach(Q => { if (Q.length > 2) out.push((x, y) => shrubInside(Q, x, y)); });
+    return out;
+}
+// 파형 점(pts)을 가리는 것 밖의 조각들로. 가린 곳이 없으면 null. 끊는 자리는 둘레까지 반씩 좁혀(14번) 정확히 둔다
+function shrubCut(pts, closed, obs, size) {
+    if (!obs.length || pts.length < 2) return null;
+    const IN = (x, y) => obs.some(f => f(x, y)), st = Math.max(size / 10, 1e-4);
+    const A = closed ? pts.concat([pts[0]]) : pts;
+    const seq = [];                                   // {p, in} — 원래 점 + 둘레 점(edge, to = 넘어간 뒤 안인가)
+    let prevIn = IN(A[0][0], A[0][1]), any = prevIn;
+    seq.push({p: A[0], in: prevIn});
+    for (let i = 1; i < A.length; i++) {
+        const [ax, ay] = A[i - 1], [bx, by] = A[i], L = Math.hypot(bx - ax, by - ay), n = Math.max(1, Math.ceil(L / st));
+        let t0 = 0;
+        for (let k = 1; k <= n; k++) {
+            const t1 = k / n, v = IN(ax + (bx - ax) * t1, ay + (by - ay) * t1);
+            if (v !== prevIn) {                        // 둘레를 넘었다 — 그 자리를 좁혀 찾는다
+                let lo = t0, hi = t1;
+                for (let j = 0; j < 14; j++) { const m = (lo + hi) / 2; if (IN(ax + (bx - ax) * m, ay + (by - ay) * m) === prevIn) lo = m; else hi = m; }
+                const m = (lo + hi) / 2;
+                seq.push({p: [ax + (bx - ax) * m, ay + (by - ay) * m], edge: true, to: v});
+                prevIn = v; any = any || v;
+            }
+            t0 = t1;
+        }
+        seq.push({p: A[i], in: prevIn});
+    }
+    if (!any) return null;
+    let S = seq;
+    if (closed) {                                      // 고리 — 밖으로 나오는 둘레 점에서 시작해 한 바퀴
+        S = S.slice(0, -1);
+        const k = S.findIndex(q => q.edge && q.to === false); if (k < 0) return [];
+        S = S.slice(k).concat(S.slice(0, k));
+    }
+    const runs = []; let cur = [];
+    S.forEach(q => {
+        if (q.edge) { if (q.to === false) cur = [q.p]; else { cur.push(q.p); runs.push(cur); cur = []; } }
+        else if (!q.in) cur.push(q.p);
+    });
+    if (cur.length) runs.push(cur);
+    const len = r => { let L = 0; for (let i = 1; i < r.length; i++) L += Math.hypot(r[i][0] - r[i - 1][0], r[i][1] - r[i - 1][1]); return L; };
+    return runs.filter(r => r.length > 1 && len(r) > size * 0.15).map(r => r.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]));
+}
 // ── 관목 군식 끝 ──
 function freeAttr(ls, w) {
     const a = stAttr(ls, w);
@@ -1840,7 +1919,9 @@ function shrubChSvg() {                               // 지금까지 이은 것
     if (!shrubCh) return '';
     if (shrubCh.svg == null) {
         const r = shrubScallop(shrubCh.raws, shrubCh.size, shrubCh.seed, false, shrubCh.bulge, shrubCh.jit), R = shrubCh.raws;
-        shrubCh.svg = (r ? `<path d="${freeD(r.pts)}" ${freeAttr('solid', shrubCh.w)}/>` : `<path d="${freeD(R)}" ${stAttr('solid', shrubCh.w)}/>`);
+        if (!shrubCh.obs) shrubCh.obs = shrubObstacles();
+        const cut = r ? shrubCut(r.pts, false, shrubCh.obs, shrubCh.size) : null;
+        shrubCh.svg = (r ? (cut || [r.pts]).map(q => `<path d="${freeD(q)}" ${freeAttr('solid', shrubCh.w)}/>`).join('') : `<path d="${freeD(R)}" ${stAttr('solid', shrubCh.w)}/>`);
     }
     const a = shrubCh.raws[0], b = shrubCh.raws[shrubCh.raws.length - 1];
     return shrubCh.svg + `<circle cx="${fmt(a[0])}" cy="${fmt(a[1])}" r="${fmt(Math.max(shrubCh.size, 0.8 * U))}" fill="none" stroke="#2ea043" stroke-width="${fmt(0.12 * U)}"/>`
@@ -1866,8 +1947,18 @@ function shrubFinish(closed) {
     if (closed) c.raws[c.raws.length - 1] = [c.raws[0][0], c.raws[0][1]];
     const r = shrubScallop(c.raws, c.size, c.seed, !!closed, c.bulge, c.jit);
     if (!r) { drawPre(); status(); flash('조금 더 길게 그어 주세요'); return; }
+    const sh = {size: +c.size.toFixed(3), mm: c.mm, seed: c.seed, bulge: c.bulge, jit: c.jit, closed: r.closed};
+    const cut = shrubCut(r.pts, r.closed, c.obs || shrubObstacles(), c.size);
+    if (cut && !cut.length) { drawPre(); status(); flash('관목이 모두 먼저 그린 교목·관목 안에 들어 그리지 않았습니다'); return; }
     snapHist();
-    doc.ops.push({id: doc.seq++, t: 'free', pts: r.pts, ls: 'solid', w: c.w, shrub: {size: +c.size.toFixed(3), mm: c.mm, seed: c.seed, bulge: c.bulge, jit: c.jit, closed: r.closed}});
+    if (cut) {                                         // 가린 곳을 뺀 조각들 — 한 묶음(조각이 하나면 묶지 않는다)
+        const gid = doc.seq, many = cut.length > 1;
+        cut.forEach(q => doc.ops.push({id: doc.seq++, t: 'free', pts: q, ls: 'solid', w: c.w, shrub: {...sh, closed: false, cc: r.closed}, ...(many ? {grp: gid, gname: '관목 군식'} : {})}));
+        changed(); drawPre(); status();
+        flash(`관목 군식 — 먼저 그린 교목·관목 뒤로 지나가게 끊어 그렸습니다(${cut.length}조각)` + (r.closed ? ` · 면적 약 ${fmt(Math.round(shrubArea(r.pts)))}㎡` : ''));
+        return;
+    }
+    doc.ops.push({id: doc.seq++, t: 'free', pts: r.pts, ls: 'solid', w: c.w, shrub: sh});
     changed(); drawPre(); status();
     flash(r.closed ? `관목 군식 — 닫힘 · 면적 약 ${fmt(Math.round(shrubArea(r.pts)))}㎡ (안은 채우기 도구로)` : '관목 군식 — 열린 선으로 끝냈습니다');
 }
@@ -2678,6 +2769,10 @@ function grpSpan(i) {                                  // i 번째 줄이 든 �
 const grpOps = id => { const i = doc.ops.findIndex(o => o.id === id); if (i < 0) return []; const [s, e] = grpSpan(i); return doc.ops.slice(s, e); };
 function grpDesc(ops, full) {                          // '정삼각형 P1 → P2 → P3 → P1 · 한 변 12m'
     const o = ops[0], ptxt = full ? ptxtFull : (n => `P${n}`), ns = [o.a, ...ops.map(x => x.b)];
+    if (o.t === 'free' && o.shrub) {                     // 관목 군식 — 교목·관목 뒤로 지나가 끊긴 조각들
+        const L = ops.reduce((t, x) => { const a = x.pts || []; for (let i = 1; i < a.length; i++) t += Math.hypot(a[i][0] - a[i - 1][0], a[i][1] - a[i - 1][1]); return t; }, 0);
+        return `관목 군식 · ${o.shrub.cc ? '폐곡' : '열린 선'} · ${ops.length}조각(가린 곳 제외) · ${fmt(L)}m`;
+    }
     if (o.poly) {                                        // 다각선 — '다각선 P1 → P2 → P3 · 2변 · 25.4m'
         const L = ops.reduce((s, x) => { const a = P(x.a), b = P(x.b); return s + (a && b ? Math.hypot(b.x - a.x, b.y - a.y) : 0); }, 0);
         return `다각선 ${ns.map(ptxt).join(' → ')} · ${ops.length}변 · ${fmt(L)}m · ${(LS[o.ls] || LS.solid).name}`;
@@ -4778,7 +4873,7 @@ function eraseAt(C, r) {
         if (auxHidden(op)) return;
         if (q.some((u, i) => segDist(C, u, q[(i + 1) % 4]) < r) && !covered(C)) explodeRect(op);
     });
-    const out = [];
+    const out = []; let shGone = null;
     doc.ops.forEach(op => {
         let pcs = null;
         if (auxHidden(op)) { out.push(op); return; }
@@ -4790,13 +4885,14 @@ function eraseAt(C, r) {
             }
             out.push(op); return;
         }
-        if (op.t === 'free') pcs = op.shrub ? (cutFree(op, C, r) ? [] : null) : cutFree(op, C, r);   // 관목 군식은 닿으면 통째로
+        if (op.t === 'free') { pcs = op.shrub ? (cutFree(op, C, r) ? [] : null) : cutFree(op, C, r);   // 관목 군식은 닿으면 통째로(끊긴 조각 묶음이면 묶음째)
+            if (op.shrub && pcs && op.grp != null) (shGone = shGone || new Set()).add(op.grp); }
         else if (op.t === 'line') pcs = cutLine(op, C, r);
         else if (op.t === 'circle' || op.t === 'arc') pcs = cutArc(op, C, r);
         else if ((op.t === 'sym' || op.t === 'text') && !covered(C) && touchBox(op, C, r)) pcs = [];
         if (pcs) { hit = true; out.push(...pcs); } else out.push(op);
     });
-    if (hit) { doc.ops = out; pruneSyms(); }
+    if (hit) { doc.ops = shGone ? out.filter(o => !(o.shrub && shGone.has(o.grp))) : out; pruneSyms(); }
     const n = doc.pts.length;                                   // 지운 자리에 남은 빈 점
     doc.pts = doc.pts.filter(p => Math.hypot(p.x - C.x, p.y - C.y) >= r || covered(p) || usedBy(p.n));
     return hit || doc.pts.length !== n;
@@ -4910,7 +5006,7 @@ function revOp(id) {
     snapHist();
     if (op.grp != null) {                              // 묶음 — 변 차례를 뒤집고 변마다 두 점을 맞바꾼다
         const i = doc.ops.indexOf(op), [s, e] = grpSpan(i), blk = doc.ops.slice(s, e).reverse();
-        blk.forEach(o => { [o.a, o.b] = [o.b, o.a]; if (o.poly && P(o.a) && P(o.b)) o.tl = polyTools(P(o.a), P(o.b), polyOthers(o)); });
+        blk.forEach(o => { if (o.t === 'free') { if (o.pts) o.pts.reverse(); return; } [o.a, o.b] = [o.b, o.a]; if (o.poly && P(o.a) && P(o.b)) o.tl = polyTools(P(o.a), P(o.b), polyOthers(o)); });
         doc.ops.splice(s, e - s, ...blk);
         changed(); rpMark(blk[0], 900); rpHilite(blk, 250); return;
     }
