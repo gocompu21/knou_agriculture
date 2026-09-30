@@ -5144,6 +5144,18 @@ function keptOf(runs, total) {     // 지운 구간들의 여집합
     return kept;
 }
 let _fillCtx = null;
+function fillLeft(op) {                              // 지우개로 뚫고 남은 몫(0~1) — 면을 64칸 캔버스에 칠하고 원판을 도려내 센다
+    if (!op.bb || !op.cuts || !op.cuts.length) return 1;
+    const N = 64, [x0, y0, x1, y1] = op.bb, w = Math.max(x1 - x0, 1e-6), h = Math.max(y1 - y0, 1e-6);
+    const cv = document.createElement('canvas'); cv.width = cv.height = N; const cx = cv.getContext('2d');
+    cx.setTransform(N / w, 0, 0, N / h, -x0 * N / w, -y0 * N / h);
+    cx.fill(new Path2D(op.d), 'evenodd');
+    const cnt = () => { const a = cx.getImageData(0, 0, N, N).data; let n = 0; for (let i = 3; i < a.length; i += 4) if (a[i] > 127) n++; return n; };
+    const n0 = cnt(); if (!n0) return 1;
+    cx.globalCompositeOperation = 'destination-out';
+    op.cuts.forEach(([x, y, r]) => { cx.beginPath(); cx.ellipse(x, y, r, r, 0, 0, 2 * Math.PI); cx.fill(); });
+    return cnt() / n0;
+}
 function fillTouch(op, C, r) {                        // 원판이 칠한 면에 닿는가 — 가운데와 둘레 여덟 점을 면 경로로 짚어 본다
     if (op.bb && (C.x + r < op.bb[0] || C.x - r > op.bb[2] || C.y + r < op.bb[1] || C.y - r > op.bb[3])) return false;
     _fillCtx = _fillCtx || document.createElement('canvas').getContext('2d');
@@ -5244,6 +5256,8 @@ function eraseAt(C, r) {
                 const cs = op.cuts || (op.cuts = []), l = cs[cs.length - 1];
                 if (!l || Math.hypot(l[0] - C.x, l[1] - C.y) > r * 0.3 || Math.abs(l[2] - r) > 1e-6) cs.push([+C.x.toFixed(3), +C.y.toFixed(3), +r.toFixed(3)]);
                 hit = true;
+                // 다 지운 면은 데이터에서 뺀다(대표님) — 남겨 두면 재생 때 자와 샤프만 움직이고 아무것도 안 그어졌다. 1% 안쪽만 남으면 다 지운 것으로 본다
+                if (fillLeft(op) < 0.01) return;
             }
             out.push(op); return;
         }
@@ -5959,6 +5973,7 @@ function buildFrame(src, N, opt) {
 function afterLoad(refit) {
     if (RP) rpEnd();
     doc.ops.forEach(o => { if (o.t !== 'step' && !('tl' in o)) o.tl = 0; });
+    doc.ops = doc.ops.filter(o => !(o.t === 'fill' && o.cuts && o.cuts.length && fillLeft(o) < 0.01));   // 지우개로 다 지운 채 남은 칠(예전 도면) — 재생 때 헛손질만 했다
     opsSeen = doc.ops.length;
     groupTplOps();
     doc.seq = Math.max(doc.seq || 1, ...doc.ops.map(o => (o.id || 0) + 1));   // id 가 겹치면 한 줄을 지울 때 다른 줄도 지워진다
