@@ -2178,7 +2178,26 @@ function rbGravel(x0, y0, x1, y1, g) {
     }
     return {lines, stones, dots};
 }
+// 경계식재는 늘 교목·관목 밑이다(대표님) — 먼저 그렸든 나중에 그렸든. 그릴 때마다 가리는 것의 모양을 검게 뚫은 mask 로 덮는다.
+// 가리는 것이 지워지면 경계식재가 다시 보인다. 모양 목록은 drawOps 한 번에 한 번만 센다(occCache)
+var occCache = null;
+function hedgeMaskSvg(op) {
+    if (!occCache) occCache = shrubObstacleShapes();
+    let bb;
+    if (op.t === 'fill') bb = op.bb; else { const xs = op.pts.map(q => q[0]), ys = op.pts.map(q => q[1]); bb = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]; }
+    if (!bb) return null;
+    const m = 1 * U, x0 = bb[0] - m, y0 = bb[1] - m, x1 = bb[2] + m, y1 = bb[3] + m;
+    const hit = occCache.filter(Q => { let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity; Q.forEach(q => { a = Math.min(a, q[0]); b = Math.min(b, q[1]); c = Math.max(c, q[0]); d = Math.max(d, q[1]); }); return c >= x0 && a <= x1 && d >= y0 && b <= y1; });
+    if (!hit.length) return null;
+    const id = `cadHm${op.id}`;
+    return {id, svg: `<mask id="${id}" maskUnits="userSpaceOnUse" x="${fmt(x0)}" y="${fmt(y0)}" width="${fmt(x1 - x0)}" height="${fmt(y1 - y0)}"><rect x="${fmt(x0)}" y="${fmt(y0)}" width="${fmt(x1 - x0)}" height="${fmt(y1 - y0)}" fill="#fff"/>`
+        + hit.map(Q => `<path d="M${Q.map(q => `${fmt(q[0])} ${fmt(q[1])}`).join('L')}Z" fill="#000"/>`).join('') + '</mask>'};
+}
 function opSvg(op) {
+    if (!op._hm && ((op.t === 'free' && op.hedge && op.pts && op.pts.length > 1) || (op.t === 'fill' && op.hedgeFill))) {
+        const mk = hedgeMaskSvg(op), inner = opSvg({...op, _hm: true});
+        return mk && inner ? mk.svg + `<g mask="url(#${mk.id})">${inner}</g>` : inner;
+    }
     if (op.mark && op.pts && op.pts.length > 1) {      // 마킹 — 길이(SR_MARK)와 가는 굵기로 늘 같게 그린다. 예전(3mm)에 찍은 것도 새 길이로
         const [x0, y0] = op.pts[0], [x1, y1] = op.pts[1];
         return markTick(x0, y0, x1, y1, SR_MARK * scaleDenom() / 1000);
@@ -2390,6 +2409,7 @@ function setAux(on) {
     saveSet(); drawOps(); selInfo();
 }
 function drawOps() {
+    occCache = null;                                  // 경계식재를 가릴 모양 — 이번 그리기에서 새로 센다
     // 보조선은 따로 된 레이어 — 맨 아래에 먼저 그리고(class aux) 설정·도구 줄에서 켜고 끈다
     const ops = (RP ? doc.ops.slice(0, RP.k) : doc.ops).filter(o => o.t !== 'step'), fills = ops.filter(o => o.t === 'fill'), aux = ops.filter(isAux), marks = ops.filter(o => o.mark && !isAux(o)),
           rest = ops.filter(o => !isAux(o) && !o.mark && o.t !== 'fill');
@@ -4453,19 +4473,17 @@ function hedgeFinish(side) {
     const {o, res} = hedgeBuild(side); hedgeW = [];
     snapHist();
     let tot = 0;
-    const shapes = shrubObstacleShapes(), obs = shapes.map(Q => (x, y) => shrubInside(Q, x, y));
     res.forEach(r => {
         const gid = doc.seq; tot += r.len;
         // 먼저 그린 교목·관목에 가려진다(대표님) — 그 안을 지나는 선은 끊고, 채우기는 그 자리를 뺀다
-        const edges = [r.oPts, r.iPts].flatMap(pts => { const c = shrubCut(pts, false, obs, o.S * 0.25); return c === null ? [pts] : c; });
+        const edges = [r.oPts, r.iPts];                 // 끊지 않는다 — 그릴 때 교목·관목 자리를 mask 로 가린다(hedgeMaskSvg). 교목을 지우면 다시 보인다
         edges.forEach(pts => doc.ops.push({id: doc.seq++, t: 'free', pts, ls: 'solid', w: o.w, hedge: {W: o.W, S: +o.S.toFixed(3)}, grp: gid, gname: '경계식재', hedgeLen: +r.len.toFixed(2)}));
         if (o.fill !== 'none') {                        // 띠 안 빗금 — 바깥 선 + 거꾸로 된 안쪽 선을 이은 면
             const P2 = r.oPts.concat(r.iPts.slice().reverse());
             const d = 'M' + P2.map(q => `${fmt(q[0])} ${fmt(q[1])}`).join('L') + 'Z';
             const xs = P2.map(q => q[0]), ys = P2.map(q => q[1]), bb = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)].map(v => +v.toFixed(3));
             const area = +(Math.abs(P2.reduce((s, q, i) => { const p = P2[(i + 1) % P2.length]; return s + q[0] * p[1] - p[0] * q[1]; }, 0)) / 2).toFixed(2);
-            const holes = shapes.filter(Q => Q.some(q => q[0] >= bb[0] && q[0] <= bb[2] && q[1] >= bb[1] && q[1] <= bb[3])).map(Q => Q.map(q => [+(+q[0]).toFixed(3), +(+q[1]).toFixed(3)]));
-            doc.ops.push({id: doc.seq++, t: 'fill', d, kind: o.fill, bb, gap: +(o.W * (o.fill === 'dg' ? 0.35 : 0.45)).toFixed(3), color: '#333', op: 0.6, area, ...(holes.length ? {holes} : {})});
+            doc.ops.push({id: doc.seq++, t: 'fill', d, kind: o.fill, bb, gap: +(o.W * (o.fill === 'dg' ? 0.35 : 0.45)).toFixed(3), color: '#333', op: 0.6, area, hedgeFill: true});
         }
     });
     changed(); drawPre(); status();
