@@ -3328,7 +3328,8 @@ function rpSymPlay(op, spd, done) {
     const steps = els.map(el => {
         let L = 0; try { L = el.getTotalLength(); } catch (e) {}
         let tl = null;
-        if (isDot) { /* 도구를 옮기지 않는다 */ }
+        const fc = String(el.getAttribute('fill') || 'none').toLowerCase(), fillC = el.tagName === 'circle' && !['none', '#fff', '#ffffff', 'white', 'transparent'].includes(fc);   // 검게 채워진 점(나무 기호 가운데 점 등) — 흰 바탕 원은 템플릿으로
+        if (isDot || fillC) tl = {...toolState(), bar: null, tri: null, tpl: null, sr: null, ftri: null};   // 채워진 점은 템플릿 없이 샤프로 — 자를 모두 치운다(사용자)
         else if (el.tagName === 'circle' || (el.tagName === 'ellipse' && Math.abs(+el.getAttribute('rx') - +el.getAttribute('ry')) < 1e-6)) {
             const cx = +el.getAttribute('cx') || 0, cy = +el.getAttribute('cy') || 0, r = +(el.getAttribute('r') || el.getAttribute('rx')) || 0;
             const c0 = toW(el, {x: cx, y: cy}), c1 = toW(el, {x: cx + r, y: cy});
