@@ -32,7 +32,7 @@
                 <div class="cn-f"><label for="cnName">도면명</label><div class="cn-c"><input id="cnName" maxlength="20" value="시설물배치도"></div></div>
                 <div class="cn-f"><label for="cnNorth">방위</label><div class="cn-c"><input type="number" id="cnNorth" class="sm" value="0" step="1" min="-180" max="360"><span class="u">°</span><span class="hint">시계 방향 +</span></div></div>
                 <div class="cn-f"><label for="cnRows" id="cnRowsLb">시설물 수량표</label><div class="cn-c"><input type="number" id="cnRows" class="sm" value="7" step="1" min="1" max="20"><span class="u">줄</span><span class="hint">미리 채우면 칸에 맞춰 넣습니다 · 비워도 됩니다</span></div></div>
-                <div class="cn-rows" id="cnRowsBox"><div class="cn-row cn-head" id="cnHead"></div><div id="cnRowList"></div></div>
+                <div class="cn-rows" id="cnRowsBox"><div class="cn-row cn-head" id="cnHead"></div><div id="cnRowList"></div><div class="cn-bar"><button type="button" id="cnAddRow" title="맨 아래에 한 줄 더">＋ 줄 추가</button><button type="button" class="clr" id="cnClear" title="이 틀에 적어 둔 것을 모두 지운다">비우기</button></div></div>
                 <datalist id="cnFormList"><option value="상교"><option value="낙교"><option value="상관"><option value="낙관"><option value="초화"><option value="초본"><option value="수생"></datalist><datalist id="cnTreeList"></datalist>
                 <p class="cad-set-note" id="cnNote"></p>
             </div>
@@ -347,10 +347,17 @@
 .cad-newbox.wide { width: min(560px, calc(100vw - 40px)); }
 .cn-rows { border-top: 1px solid #f0f3f1; padding-top: 4px; }
 #cnRowList { max-height: 230px; overflow-y: auto; }
-.cn-row { display: grid; grid-template-columns: 18px minmax(80px, 1.3fr) minmax(70px, 1.2fr) 40px 44px;   /* 기호 칸은 뺐다(사용자) */ gap: 3px; align-items: center; padding: 1px 0; }
+.cn-row { display: grid; grid-template-columns: 18px minmax(80px, 1.3fr) minmax(70px, 1.2fr) 40px 44px 44px;   /* 기호 칸은 뺐다(사용자) */ gap: 3px; align-items: center; padding: 1px 0; }
 .cn-row > span { font-size: 0.72rem; color: #7a8a82; text-align: center; }
 .cn-head > span { font-weight: 700; color: #1b4332; }
-.cn-rows.t3 .cn-row { grid-template-columns: 18px 50px minmax(80px, 1.3fr) minmax(70px, 1.2fr) 40px 44px; }   /* Ⅲ — 성상 칸이 앞에 */
+.cn-rows.t3 .cn-row { grid-template-columns: 18px 58px minmax(80px, 1.3fr) minmax(70px, 1.2fr) 48px 44px 44px; }
+.cn-bt { display: flex; gap: 2px; }   /* 줄 끼우기(＋ 아래에)·지우기(✕) — 사용자 */
+.cn-bt button { width: 20px; height: 22px; padding: 0; border: 1px solid #d5ddd9; border-radius: 4px; background: #fff; color: #2d6a4f; font-size: 0.78rem; line-height: 1; cursor: pointer; }
+.cn-bt button.del { color: #c62828; }
+.cn-bt button:hover { background: #eef5f0; }
+.cn-bar { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 4px 0 2px; }
+.cn-bar button { border: 1px solid #cad5cf; border-radius: 6px; background: #fff; font-size: 0.76rem; padding: 3px 10px; cursor: pointer; color: #1b4332; }
+.cn-bar button.clr { color: #c62828; border-color: #f0c9c9; }   /* Ⅲ — 성상 칸이 앞에 */
 .cn-row > span.nt { color: #c0632b; cursor: help; }
 .cn-row select, .cn-row input { min-width: 0; width: 100%; border: 1px solid #d5ddd9; border-radius: 4px; padding: 2px 3px; font-size: 0.76rem; box-sizing: border-box; }
 .cad-open .it span { flex: 1; min-width: 0; }
@@ -4857,6 +4864,10 @@ function newDrawing() {
     if (!box.hidden) { box.hidden = true; return; }
     if (dirty && !confirm('저장하지 않은 작업이 있습니다. 버리고 새로 시작할까요?')) return;
     $('cnSheet').innerHTML = $('cadSheet').innerHTML; $('cnSheet').value = $('cadSheet').value || '401';
+    // 마지막에 고른 종이·틀로 연다(사용자: 틀의 마지막 상태를 저장) — 줄 내용은 틀마다 따로 이미 남는다
+    try { const L = JSON.parse(localStorage.getItem('cadNewLast') || 'null');
+        if (L && [...$('cnSheet').options].some(o => o.value === L.sheet)) $('cnSheet').value = L.sheet;
+        if (L && L.frame != null && [...$('cnFrame').options].some(o => o.value === L.frame)) $('cnFrame').value = L.frame; } catch (e) {}
     $('cadOpen').hidden = true; box.hidden = false; cnSync();
 }
 // 수량표 미리 채우기 — Ⅱ 시설명·규격·단위·수량 / Ⅲ 성상·수목명·규격·단위·수량. 실수로 창을 닫아도 남도록 브라우저에 적어 둔다.
@@ -4891,7 +4902,7 @@ function cnRender() {                                 // 줄 수만큼 — 줄�
     while (cnData.length < n) cnData.push(cnBlank(cnCur));
     $('cnRowsLb').textContent = CN_DEF[cnCur].label;
     $('cnRowsBox').classList.toggle('t3', t3);
-    $('cnHead').innerHTML = '<span>#</span>' + (t3 ? ['성상', '수목명', '규격', '단위', '수량'] : ['시설명', '규격', '단위', '수량']).map(s => `<span>${s}</span>`).join('');
+    $('cnHead').innerHTML = '<span>#</span>' + (t3 ? ['성상', '수목명', '규격', '단위', '수량'] : ['시설명', '규격', '단위', '수량']).map(s => `<span>${s}</span>`).join('') + '<span></span>';
     // 기호는 미리 넣지 않는다(사용자: 템플릿에서 기호는 빼는 게 좋겠다) — 기호 칸은 도면을 그리며 채운다. 만드는 코드(buildFrame 의 r.sym)는 남겨 둔다
     $('cnRowList').innerHTML = cnData.slice(0, n).map((r, i) => { const tr = t3 && cnTree(r.name);
         return `<div class="cn-row" data-i="${i}">` + (tr && tr.note ? `<span class="nt" title="${esc(tr.note)}">${i + 1}※</span>` : `<span>${i + 1}</span>`)
@@ -4899,7 +4910,8 @@ function cnRender() {                                 // 줄 수만큼 — 줄�
         + (t3 ? cnTreeSel(r, tr) : `<input data-k="name" placeholder="시설명" maxlength="20" value="${esc(r.name)}">`)
         + (t3 ? cnSpecSel(r, tr) : `<input data-k="spec" placeholder="규격" maxlength="24" value="${esc(r.spec)}">`)
         + (t3 ? cnUnitSel(r) : `<input data-k="unit" placeholder="단위" maxlength="4" value="${esc(r.unit)}">`)
-        + `<input data-k="qty" placeholder="수량" maxlength="6" value="${esc(r.qty)}"></div>`; }).join('');
+        + `<input data-k="qty" placeholder="수량" maxlength="6" value="${esc(r.qty)}">`
+        + `<span class="cn-bt"><button type="button" data-a="ins" title="아래에 한 줄 끼우기">＋</button><button type="button" class="del" data-a="del" title="이 줄 지우기">✕</button></span></div>`; }).join('');
 }
 // Ⅲ 의 수목명·규격은 콤보로 고른다(사용자) — 수목명은 성상별 묶음, 규격은 그 수목의 규격이 먼저이고 같은 성상의 다른 규격이 뒤에 온다.
 // 목록에 없는 옛 값(손으로 적어 두었던 것)은 그대로 한 줄 넣어 잃지 않게 한다
@@ -4953,6 +4965,7 @@ function cnSync() {                                   // 틀은 A2 트레이싱�
     const tr = sheetOf($('cnSheet').value).paper === 'trace';
     $('cnFrameRow').hidden = !tr; if (!tr) $('cnFrame').value = '';
     const fr = $('cnFrame').value;
+    try { localStorage.setItem('cadNewLast', JSON.stringify({sheet: $('cnSheet').value, frame: fr})); } catch (e) {}
     if (fr !== cnCur) cnSwitch(fr);
     if (fr === 'answer3') cnLoadTrees();
     $('cnOpts').hidden = !fr;
@@ -5959,6 +5972,25 @@ $('cnFrame').addEventListener('change', cnSync);
 $('cnGo').addEventListener('click', cnGo);
 $('cnRows').addEventListener('input', () => { cnRender(); cnSave(); });
 ['cnName', 'cnNorth'].forEach(k => $(k).addEventListener('input', cnSave));
+// 줄 끼우기·지우기 — 줄 수(cnRows)도 따라 바뀐다. 줄 수를 줄여도 뒤 줄이 남던 것과 달리 지우기는 그 줄을 없앤다
+$('cnRowList').addEventListener('click', e => {
+    const b = e.target.closest('[data-a]'), row = b && b.closest('.cn-row'); if (!row) return;
+    e.stopPropagation();                               // 줄을 다시 그리면 누른 단추가 문서에서 떨어져, 바깥 누름으로 보고 창이 닫혔다
+    const i = +row.dataset.i, n = cnCount();
+    if (b.dataset.a === 'ins') { if (n >= 20) { flash('수량표는 20줄까지입니다'); return; } cnData.splice(i + 1, 0, cnBlank(cnCur)); $('cnRows').value = n + 1; }
+    else { if (n <= 1) { cnData[0] = cnBlank(cnCur); } else { cnData.splice(i, 1); $('cnRows').value = n - 1; } }
+    cnRender(); cnSave();
+});
+$('cnAddRow').addEventListener('click', () => {
+    const n = cnCount(); if (n >= 20) { flash('수량표는 20줄까지입니다'); return; }
+    cnData.splice(n, 0, cnBlank(cnCur)); $('cnRows').value = n + 1; cnRender(); cnSave();
+    const l = $('cnRowList'); l.scrollTop = l.scrollHeight;
+});
+$('cnClear').addEventListener('click', () => {
+    if (!cnCur || !confirm(`${CN_DEF[cnCur].label}에 적어 둔 것을 모두 지울까요? (도면명·방위도 처음 값으로)`)) return;
+    cnData.length = 0; $('cnName').value = CN_DEF[cnCur].name; $('cnNorth').value = 0;
+    const s = cnState(cnCur); s.rows = cnData; cnRender(); cnSave(); flash('비웠습니다');
+});
 ['input', 'change'].forEach(ev => $('cnRowList').addEventListener(ev, e => {
     const el = e.target.closest('[data-k]'), row = el && el.closest('.cn-row'); if (!row) return;
     cnData[+row.dataset.i][el.dataset.k] = el.value;
@@ -5976,7 +6008,7 @@ $('cnRows').addEventListener('input', () => { cnRender(); cnSave(); });
 }));
 $('cnCancel').addEventListener('click', () => { $('cadNewBox').hidden = true; });
 $('cadNewBox').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && !e.isComposing && !e.target.closest('#cnRowList')) cnGo(); else if (e.key === 'Escape') $('cadNewBox').hidden = true; });
-document.addEventListener('click', e => { if (!e.target.closest('#cadNewBox, #cadNew')) $('cadNewBox').hidden = true; });
+document.addEventListener('click', e => { if (e.target.isConnected && !e.target.closest('#cadNewBox, #cadNew')) $('cadNewBox').hidden = true; });   // 다시 그려져 떨어진 요소는 바깥 누름이 아니다
 $('cadSave').addEventListener('click', save);
 $('cadExport').addEventListener('click', download);
 $('cadCopy').addEventListener('click', copyDesc);
