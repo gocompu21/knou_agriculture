@@ -4369,8 +4369,8 @@ function leadFinish(w) {
         const pa = P(ns[i]), pb = P(ns[i + 1]);
         doc.ops.push({id: doc.seq++, t: 'line', a: ns[i], b: ns[i + 1], ...st, grp: gid, gname: '지시선', lead: true, leadTxt: lbl, tl: {...toolState(), ...toolsForLine(pa, pb)}});
     }
-    if (G.top) doc.ops.push({id: doc.seq++, t: 'text', x: G.tx, y: G.ty, s: G.top, size: G.size, rot: 0, font: G.font, dir: 'h'});
-    if (G.bot) doc.ops.push({id: doc.seq++, t: 'text', x: G.tx, y: G.by, s: G.bot, size: G.size, rot: 0, font: G.font, dir: 'h'});
+    if (G.top) doc.ops.push({id: doc.seq++, t: 'text', x: G.tx, y: G.ty, s: G.top, size: G.size, rot: 0, font: G.font, dir: 'h', leadOf: gid});
+    if (G.bot) doc.ops.push({id: doc.seq++, t: 'text', x: G.tx, y: G.by, s: G.bot, size: G.size, rot: 0, font: G.font, dir: 'h', leadOf: gid});
     leadS = null; changed(); drawPre(); status();
     flash(`지시선 — ${lbl}`);
 }
@@ -5067,6 +5067,23 @@ function placeLabels() {
 // 독립 점 제거(설정) — 선으로 이어지지 않은 점. 스케일자 마킹 점은 일부러 남긴 기준점이라 남긴다. 지운 뒤 번호를 메운다
 // 작도 순서에서 지우기 — 그 선만 지우면 점(번호)이 도면에 남는다. 그 선이 쓰던 점 가운데 이제 아무도 안 쓰는 점과
 // 마킹의 점까지 함께 지우고 번호를 메운다(사용자: "작도 순서에서 삭제하면 도면에도 반영")
+// 지시선 한 벌 — 선 묶음 + 그 글 두 줄(대표님: 지시선을 지우면 글과 점도 같이). 글은 leadOf 로 잇고,
+// 그 표시가 없던 예전 지시선은 선 묶음 바로 뒤에 오는 글 가운데 leadTxt 의 두 줄과 같은 것으로 찾는다
+function leadSet(op) {
+    const gid = op.lead ? op.grp : op.leadOf; if (gid == null) return null;
+    const lines = doc.ops.filter(o => o.lead && o.grp === gid); if (!lines.length) return null;
+    const ids = new Set(lines.map(o => o.id));
+    doc.ops.forEach(o => { if (o.t === 'text' && o.leadOf === gid) ids.add(o.id); });
+    const last = doc.ops.indexOf(lines[lines.length - 1]), parts = String(lines[0].leadTxt || '').split(' / ');
+    for (let i = last + 1; i < Math.min(doc.ops.length, last + 3); i++) { const o = doc.ops[i]; if (o.t === 'text' && o.leadOf == null && parts.includes(o.s)) ids.add(o.id); }
+    return ids;
+}
+function withLeads(ids) {                              // 고른 것 가운데 지시선의 선이나 글이 있으면 그 지시선 한 벌 전체를 더한다
+    const out = new Set(ids);
+    doc.ops.forEach(o => { if (ids.has(o.id) && (o.lead || o.leadOf != null || o.t === 'text')) { const L = o.lead || o.leadOf != null ? leadSet(o) : null; if (L) L.forEach(x => out.add(x)); } });
+    doc.ops.forEach(o => { if (ids.has(o.id) && o.t === 'text' && o.leadOf == null) { const ln = doc.ops.slice(Math.max(0, doc.ops.indexOf(o) - 3), doc.ops.indexOf(o)).find(x => x.lead); const L = ln && leadSet(ln); if (L && L.has(o.id)) L.forEach(x => out.add(x)); } });
+    return out;
+}
 function delOpClean(id) {
     const op = doc.ops.find(o => o.id === id); if (!op) return;
     const cand = new Set(ptsOf(op).map(Number));
@@ -5247,7 +5264,7 @@ function eraseAt(C, r) {
         if (auxHidden(op)) return;
         if (q.some((u, i) => segDist(C, u, q[(i + 1) % 4]) < r) && !covered(C)) explodeRect(op);
     });
-    const out = []; let shGone = null;
+    const out = []; let shGone = null, leadGone = null;
     doc.ops.forEach(op => {
         let pcs = null;
         if (auxHidden(op)) { out.push(op); return; }
@@ -5263,12 +5280,13 @@ function eraseAt(C, r) {
         }
         if (op.t === 'free') { pcs = op.shrub ? (cutFree(op, C, r) ? [] : null) : cutFree(op, C, r);   // 관목 군식은 닿으면 통째로(끊긴 조각 묶음이면 묶음째)
             if (op.shrub && pcs && op.grp != null) (shGone = shGone || new Set()).add(op.grp); }
-        else if (op.t === 'line') pcs = cutLine(op, C, r);
+        else if (op.t === 'line') { pcs = cutLine(op, C, r); if (pcs && op.lead) { (leadGone = leadGone || new Set()).add(op.id); pcs = [op]; } }   // 지시선은 조각내지 않고 한 벌 통째로(아래에서)
         else if (op.t === 'circle' || op.t === 'arc') pcs = cutArc(op, C, r);
         else if ((op.t === 'sym' || op.t === 'text') && !covered(C) && touchBox(op, C, r)) pcs = [];
         if (pcs) { hit = true; out.push(...pcs); } else out.push(op);
     });
     if (hit) { doc.ops = shGone ? out.filter(o => !(o.shrub && shGone.has(o.grp))) : out; pruneSyms(); }
+    if (leadGone) { const all = new Set(); leadGone.forEach(id => { const o = doc.ops.find(x => x.id === id); const L = o && leadSet(o); (L || [id]).forEach(x => all.add(x)); }); all.forEach(id => delOpClean(id)); hit = true; pruneSyms(); }
     const n = doc.pts.length;                                   // 지운 자리에 남은 빈 점
     doc.pts = doc.pts.filter(p => Math.hypot(p.x - C.x, p.y - C.y) >= r || covered(p) || usedBy(p.n));
     return hit || doc.pts.length !== n;
@@ -5285,7 +5303,10 @@ function selectOp(id, add) {
 function deleteSelected() {
     if (!selOps.size && !selPts.size) { flash('지울 것을 먼저 고르세요'); return; }
     snapHist();
+    const leads = withLeads(selOps), leadOnly = [...leads].filter(id => !selOps.has(id) || doc.ops.some(o => o.id === id && (o.lead || o.leadOf != null)));
+    leads.forEach(id => selOps.add(id));
     const nOps = [...selOps].filter(id => doc.ops.some(o => o.id === id)).length;
+    leadOnly.forEach(id => delOpClean(id));             // 지시선 한 벌은 쓰던 점(꺾는 점·끝점)까지 지운다
     doc.ops = doc.ops.filter(o => !selOps.has(o.id));
     // 고른 점은 이제 아무도 쓰지 않을 때만 지운다 — 남은 선이 쓰는 점을 지우면 선이 사라진다
     let gone = 0, kept = 0;
@@ -6970,7 +6991,7 @@ $('cadOpList').addEventListener('click', e => {
     if (act) {
         const a = act.dataset.act;
         if (RP) rpEnd();                               // 재생 중이어도 ✕·✎·↑↓ 는 듣는다 — 재생을 끝내고 한다(재생 처리가 먼저 가로채 아무 일도 안 했다)
-        if (a === 'del') { snapHist(); grpOps(id).map(o => o.id).forEach(x => { delOpClean(x); selOps.delete(x); }); pruneSyms(); changed(); }
+        if (a === 'del') { snapHist(); [...withLeads(new Set(grpOps(id).map(o => o.id)))].forEach(x => { delOpClean(x); selOps.delete(x); }); pruneSyms(); changed(); }   // 지시선이면 글까지
         if (a === 'rev') revOp(id);
         if (a === 'up') moveOp(id, -1);
         if (a === 'down') moveOp(id, 1);
