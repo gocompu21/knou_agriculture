@@ -26,12 +26,12 @@
         <div class="cad-open" id="cadOpen" hidden></div>
         <div class="cad-set cad-newbox" id="cadNewBox" hidden>
             <h4>새 도면</h4>
-            <div class="cad-set-row"><span class="cad-set-lb">종이</span><select id="cnSheet" class="cad-set-ls" style="max-width:190px"></select></div>
-            <div class="cad-set-row" id="cnFrameRow"><span class="cad-set-lb">틀</span><select id="cnFrame" class="cad-set-ls"><option value="">틀 없음</option><option value="answer2">답안지 Ⅱ 틀</option><option value="answer3">답안지 Ⅲ 틀 (배식)</option></select></div>
+            <div class="cn-f"><label for="cnSheet">종이</label><div class="cn-c"><select id="cnSheet"></select></div></div>
+            <div class="cn-f" id="cnFrameRow"><label for="cnFrame">틀</label><div class="cn-c"><select id="cnFrame"><option value="">틀 없음</option><option value="answer2">답안지 Ⅱ 틀</option><option value="answer3">답안지 Ⅲ 틀 (배식)</option></select></div></div>
             <div id="cnOpts">
-                <div class="cad-set-row"><label class="cad-set-sub">도면명 <input id="cnName" class="cad-set-num" style="width:130px" maxlength="20" value="시설물배치도"></label></div>
-                <div class="cad-set-row"><label class="cad-set-sub">방위 <input type="number" id="cnNorth" class="cad-set-num" value="0" step="1" min="-180" max="360"> °</label><span class="cad-set-note" style="margin:0">(시계 방향 +)</span></div>
-                <div class="cad-set-row"><label class="cad-set-sub"><span id="cnRowsLb">시설물 수량표</span> <input type="number" id="cnRows" class="cad-set-num" value="7" step="1" min="1" max="20"> 줄</label><span class="cad-set-note" style="margin:0">(미리 채워 두면 칸에 맞춰 넣습니다 — 비워도 됩니다)</span></div>
+                <div class="cn-f"><label for="cnName">도면명</label><div class="cn-c"><input id="cnName" maxlength="20" value="시설물배치도"></div></div>
+                <div class="cn-f"><label for="cnNorth">방위</label><div class="cn-c"><input type="number" id="cnNorth" class="sm" value="0" step="1" min="-180" max="360"><span class="u">°</span><span class="hint">시계 방향 +</span></div></div>
+                <div class="cn-f"><label for="cnRows" id="cnRowsLb">시설물 수량표</label><div class="cn-c"><input type="number" id="cnRows" class="sm" value="7" step="1" min="1" max="20"><span class="u">줄</span><span class="hint">미리 채우면 칸에 맞춰 넣습니다 · 비워도 됩니다</span></div></div>
                 <div class="cn-rows" id="cnRowsBox"><div class="cn-row cn-head" id="cnHead"></div><div id="cnRowList"></div></div>
                 <datalist id="cnFormList"><option value="상교"><option value="낙교"><option value="상관"><option value="낙관"><option value="초화"><option value="초본"><option value="수생"></datalist><datalist id="cnTreeList"></datalist>
                 <p class="cad-set-note" id="cnNote"></p>
@@ -412,6 +412,17 @@
     border-radius: 8px; box-shadow: 0 6px 22px rgba(0,0,0,.14); padding: 10px 12px; }
 .cad-set[hidden] { display: none; }
 .cad-set h4 { margin: 0 0 8px; font-size: 0.84rem; color: #1b4332; }
+/* 새 도면 창 — 이름표는 오른쪽 맞춤 한 칸, 입력은 한 줄로 가지런히(사용자: 레이블과 입력부 정렬·가시성) */
+.cn-f { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 12px; padding: 7px 2px; border-top: 1px solid #eef2ef; }
+.cn-f[hidden] { display: none; }
+.cn-f > label { font-size: 0.82rem; font-weight: 700; color: #1b4332; text-align: right; white-space: nowrap; }
+.cn-c { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.cn-c select, .cn-c input { height: 32px; border: 1px solid #cad5cf; border-radius: 7px; padding: 0 10px; font-size: 0.86rem; color: #1f2a24; background: #fff; box-sizing: border-box; }
+.cn-c select, #cnName { width: 240px; max-width: 100%; }
+.cn-c input.sm { width: 76px; text-align: right; }
+.cn-c select:focus, .cn-c input:focus { outline: none; border-color: #2d6a4f; box-shadow: 0 0 0 3px rgba(45,106,79,.15); }
+.cn-c .u { font-size: 0.86rem; color: #333; }
+.cn-c .hint { font-size: 0.74rem; color: #7f9088; margin-left: 4px; }
 .cad-set-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 5px 0; border-top: 1px solid #f0f3f1; }
 .cad-set-sub, .cad-set-lb { font-size: 0.8rem; color: #444; display: inline-flex; align-items: center; gap: 4px; }
 .cad-set select { border: 1px solid #d5ddd9; border-radius: 5px; padding: 2px 4px; font-size: 0.78rem; }
@@ -4884,7 +4895,7 @@ function cnRender() {                                 // 줄 수만큼 — 줄�
     // 기호는 미리 넣지 않는다(사용자: 템플릿에서 기호는 빼는 게 좋겠다) — 기호 칸은 도면을 그리며 채운다. 만드는 코드(buildFrame 의 r.sym)는 남겨 둔다
     $('cnRowList').innerHTML = cnData.slice(0, n).map((r, i) => { const tr = t3 && cnTree(r.name);
         return `<div class="cn-row" data-i="${i}">` + (tr && tr.note ? `<span class="nt" title="${esc(tr.note)}">${i + 1}※</span>` : `<span>${i + 1}</span>`)
-        + (t3 ? `<input data-k="form" list="cnFormList" placeholder="성상" maxlength="6" value="${esc(r.form || '')}">` : '')
+        + (t3 ? cnFormSel(r) : '')
         + (t3 ? cnTreeSel(r, tr) : `<input data-k="name" placeholder="시설명" maxlength="20" value="${esc(r.name)}">`)
         + (t3 ? cnSpecSel(r, tr) : `<input data-k="spec" placeholder="규격" maxlength="24" value="${esc(r.spec)}">`)
         + (t3 ? cnUnitSel(r) : `<input data-k="unit" placeholder="단위" maxlength="4" value="${esc(r.unit)}">`)
@@ -4892,8 +4903,14 @@ function cnRender() {                                 // 줄 수만큼 — 줄�
 }
 // Ⅲ 의 수목명·규격은 콤보로 고른다(사용자) — 수목명은 성상별 묶음, 규격은 그 수목의 규격이 먼저이고 같은 성상의 다른 규격이 뒤에 온다.
 // 목록에 없는 옛 값(손으로 적어 두었던 것)은 그대로 한 줄 넣어 잃지 않게 한다
+const CN_FORMS = ['상교', '낙교', '상관', '낙관', '초화', '초본', '수생'];
+function cnFormSel(r) {                               // 성상도 콤보 — 고르면 수목명 목록이 그 성상의 수목으로 좁혀진다(사용자)
+    const cur = String(r.form || '').trim(), list = [...CN_FORMS]; if (cur && !list.includes(cur)) list.unshift(cur);
+    return `<select data-k="form" title="성상"><option value="">— 성상 —</option>` + list.map(v => `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(v)}</option>`).join('') + '</select>';
+}
 function cnTreeSel(r, tr) {
-    const T = cnTrees || [], forms = [...new Set(T.map(q => q.form))], cur = String(r.name || '').trim();
+    const all = cnTrees || [], fsel = String(r.form || '').trim(), T = fsel && all.some(q => q.form === fsel) ? all.filter(q => q.form === fsel) : all,
+          forms = [...new Set(T.map(q => q.form))], cur = String(r.name || '').trim();
     let o = `<option value="">${T.length ? '— 수목 —' : '(불러오는 중)'}</option>`;
     if (cur && !tr) o += `<option value="${esc(cur)}">${esc(cur)}</option>`;
     forms.forEach(f => { o += `<optgroup label="${esc(f)}">` + T.filter(q => q.form === f).map(q => `<option value="${esc(q.name)}">${esc(q.name)}</option>`).join('') + '</optgroup>'; });
@@ -5945,6 +5962,11 @@ $('cnRows').addEventListener('input', () => { cnRender(); cnSave(); });
 ['input', 'change'].forEach(ev => $('cnRowList').addEventListener(ev, e => {
     const el = e.target.closest('[data-k]'), row = el && el.closest('.cn-row'); if (!row) return;
     cnData[+row.dataset.i][el.dataset.k] = el.value;
+    if (cnCur === 'answer3' && el.dataset.k === 'form') {       // 성상을 바꾸면 그 성상이 아닌 수목명·규격은 비운다
+        const r = cnData[+row.dataset.i], q = cnTree(r.name);
+        if (q && q.form !== r.form) { r.name = ''; r.spec = ''; r.auto = {unit: r.unit}; }
+        r.auto = r.auto || {}; r.auto.form = r.form; cnRender();
+    }
     if (cnCur === 'answer3' && el.dataset.k === 'name') {       // 수목명이 정해지면 규격은 그 수목의 것으로 바뀐다(사용자) — 성상·단위는 손으로 고친 것이 아니면
         const r = cnData[+row.dataset.i], q = cnTree(r.name);
         if (q) { r.auto = r.auto || {}; r.auto.spec = r.spec = q.spec; r.auto.unit = r.unit = q.unit; }   // 단위도 수목을 따라 바뀐다(사용자)
