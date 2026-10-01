@@ -285,7 +285,7 @@
                     <h4>동선 화살표</h4>
                     <p class="cad-help">점을 찍어 가며 긋고 <b>더블클릭·Enter·오른쪽 버튼</b>으로 끝내면 끝에 화살촉이 달립니다. '곡선'을 켜면 찍은 점들을 매끄럽게 잇습니다. Backspace 한 점 되돌리기 · Esc 취소.</p>
                     <div class="cad-row"><label>종류<select id="fawK"><option value="main">주동선 (굵은 실선)</option><option value="sub">부동선 (가는 파선)</option><option value="car">차량동선 (일점쇄선)</option><option value="ped">보행동선 (두 줄 · 사다리)</option></select></label></div>
-                    <div class="cad-row"><label>그리기<select id="fawM"><option value="free" selected>자유곡선 (끌기)</option><option value="pts">점 찍기</option></select></label></div>
+                    <div class="cad-row"><label>그리기<select id="fawM"><option value="edge">한쪽 변 그리기 (보행동선)</option><option value="free" selected>자유곡선 — 가운데 (끌기)</option><option value="pts">점 찍기</option></select></label></div>
                     <div class="cad-row"><label class="cad-chk"><input type="checkbox" id="fawC" checked> 곡선</label>
                         <label class="cad-chk"><input type="checkbox" id="fawB"> 양방향</label></div>
                     <div class="cad-row" id="fawPedRow" hidden><label>띠 폭<select id="fawPW"><option value="8">8mm</option><option value="10">10mm</option><option value="13" selected>13mm</option><option value="16">16mm</option></select></label>
@@ -2279,7 +2279,7 @@ function opSvg(op) {
         const [x0, y0] = op.pts[0], [x1, y1] = op.pts[1];
         return markTick(x0, y0, x1, y1, SR_MARK * scaleDenom() / 1000);
     }
-    if (op.t === 'free' && op.arrow && op.arrow.kind === 'ped') return op.pts && op.pts.length > 1 ? pedSvg(op.pts, op.arrow) : '';
+    if (op.t === 'free' && op.arrow && op.arrow.kind === 'ped') return op.pts && op.pts.length > 1 ? (op.arrow.edge ? pedEdgeSvg(op.pts, op.arrow) : pedSvg(op.pts, op.arrow)) : '';
     if (op.t === 'free' && op.arrow) return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${arrowAttr(op.arrow.kind)}/>` + arrowHeadSvg(op.pts, op.arrow.kind, op.arrow.both) : '';   // 동선 화살표
     if (op.t === 'free' && op.space) return op.pts && op.pts.length > 1 ? `<path d="${spD(op.pts)}" ${stAttr(op.ls, op.w)}/>` : '';   // 공간 — 끝 막음이 반듯하게
     if (op.t === 'free') return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${op.hedge || op.space ? stAttr(op.ls, op.w) : freeAttr(op.ls, op.w)}/>` : '';   // 경계식재 선은 엷은 프리드로잉 굵기가 아니라 샤프 선 그대로
@@ -4786,6 +4786,92 @@ function arrowFreePts(R) {                              // 손으로 그은 선 
     for (let r = 0; r < 2 && n > 3; r++) Q = Q.map((q, i) => i === 0 || i === n - 1 ? q : [(Q[i - 1][0] + 2 * q[0] + Q[i + 1][0]) / 4, (Q[i - 1][1] + 2 * q[1] + Q[i + 1][1]) / 4]);
     return Q.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]);
 }
+// 보행동선 '한쪽 변 그리기'(대표님): 띠의 한쪽 변을 손으로 그어 두면, 마우스를 옆으로 옮겨 맞은편 변 자리를 고른다 —
+// 누른 자리까지의 거리가 띠 폭(설정 칸이 아니다), 그 쪽이 띠가 놓일 쪽. 그은 변은 손으로 그은 그대로 두고
+// 맞은편 변·가로대·양 끝 빈 화살촉을 붙인다(arrow.edge = 띠가 놓인 쪽 ±1, wmm = 고른 폭)
+var awEdge = null;
+// 한쪽 변은 관목처럼 이어 긋는다(대표님) — 떼면 그 조각까지 남고, 다음에 끌면 끝난 점에서 이어진다.
+// 더블클릭·Enter·오른쪽 버튼으로 변을 끝내면 맞은편 변 자리를 고르는 단계로 넘어간다. Backspace 한 조각 되돌리기
+var awChain = null;                                     // {pts: 이어 그은 점, cuts: 조각마다 끝난 자리(점 개수)}
+function awChainEnd() {                                 // 이어 긋기를 끝내고 폭 고르기로
+    const c = awChain; awChain = null;
+    if (!c || c.pts.length < 3) { drawPre(); status(); flash('변을 조금 더 길게 그으세요'); return; }
+    const k = scaleDenom() / 1000;
+    awEdge = spSmooth(c.pts, 0.4 * k, true).concat([c.pts[c.pts.length - 1]]).map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]);
+    drawPre(); status();
+}
+function pedEdgeGeom(pts) {                             // 그은 변 → 촘촘한 점·길이·고른 법선(떨림에 안 흔들리게 앞뒤 1.5mm 로 잰다)
+    const k = scaleDenom() / 1000, D = spDense(pts, 0.6 * k, false); if (D.P.length < 2) return null;
+    const P = D.P, S = D.S, n = P.length, win = 1.5 * k;
+    const N = P.map((q, i) => {
+        let j = i; while (j > 0 && S[i] - S[j] < win) j--;
+        let m = i; while (m < n - 1 && S[m] - S[i] < win) m++;
+        const tx = P[m][0] - P[j][0], ty = P[m][1] - P[j][1], l = Math.hypot(tx, ty) || 1; return [-ty / l, tx / l];
+    });
+    const at = s => {
+        s = Math.max(0, Math.min(D.L, s)); let i = 0; while (i < n - 2 && S[i + 1] < s) i++;
+        const t = S[i + 1] > S[i] ? (s - S[i]) / (S[i + 1] - S[i]) : 0;
+        let nx = N[i][0] + (N[i + 1][0] - N[i][0]) * t, ny = N[i][1] + (N[i + 1][1] - N[i][1]) * t; const l = Math.hypot(nx, ny) || 1;
+        return {p: [P[i][0] + (P[i + 1][0] - P[i][0]) * t, P[i][1] + (P[i + 1][1] - P[i][1]) * t], n: [nx / l, ny / l]};
+    };
+    return {P, S, L: D.L, N, at};
+}
+function pedEdgePick(pts, w) {                          // 커서 자리 → 띠가 놓일 쪽(±1)과 폭(m) — 그은 변에서 가장 가까운 점까지의 거리
+    const G = pedEdgeGeom(pts); if (!G) return null;
+    let bi = 0, bd = 1e18; G.P.forEach((q, i) => { const d = Math.hypot(w.x - q[0], w.y - q[1]); if (d < bd) { bd = d; bi = i; } });
+    const q = G.P[bi], nn = G.N[bi], dot = (w.x - q[0]) * nn[0] + (w.y - q[1]) * nn[1];
+    const k = scaleDenom() / 1000, W = Math.max(2 * k, Math.min(40 * k, Math.abs(dot)));
+    return {sg: dot >= 0 ? 1 : -1, W};
+}
+function deLoop(A, win) {                               // 꺾은선의 제 몸 엇갈림(안쪽 모서리에서 띠를 민 선이 매듭지는 것)을 잘라 낸다 → {pts, cut: 잘린 표본 표시}
+    const P = A.map(q => q.slice()), n = P.length, cut = new Array(n).fill(false), out = [P[0]];
+    const X = (a, b, c, d) => {
+        const r = [b[0] - a[0], b[1] - a[1]], q = [d[0] - c[0], d[1] - c[1]], den = r[0] * q[1] - r[1] * q[0]; if (Math.abs(den) < 1e-12) return null;
+        const t = ((c[0] - a[0]) * q[1] - (c[1] - a[1]) * q[0]) / den, u = ((c[0] - a[0]) * r[1] - (c[1] - a[1]) * r[0]) / den;
+        return t > 0 && t < 1 && u > 0 && u < 1 ? [a[0] + r[0] * t, a[1] + r[1] * t] : null;
+    };
+    let i = 0;
+    while (i < n - 1) {
+        let hit = -1, ip = null;
+        for (let j = Math.min(n - 2, i + win); j > i + 1; j--) { const r = X(P[i], P[i + 1], P[j], P[j + 1]); if (r) { hit = j; ip = r; break; } }
+        if (hit >= 0) { for (let q = i + 1; q <= hit; q++) cut[q] = true; P[hit] = ip; out.push(ip); i = hit; }
+        else { out.push(P[i + 1]); i++; }
+    }
+    return {pts: out, cut};
+}
+function pedEdgeSvg(pts, a, color) {
+    const k = scaleDenom() / 1000, G = pedEdgeGeom(pts); if (!G) return '';
+    const W = (a.wmm || 13) * k, sg = a.edge > 0 ? 1 : -1, rnd = spRng(a.seed || 1), Lt = G.L, at = G.at;
+    const HL = W * 0.7, HW = W * 0.85, amp = 0.22 * k;
+    const nO = spNoise(rnd, Lt, false, [[17 * k, 0.6], [43 * k, 0.4]]), nG = spNoise(rnd, Lt, false, [[31 * k, 0.7], [77 * k, 0.3]]);
+    const E = s => at(s).p;
+    const O = s => { const q = at(s), off = sg * (W * (1 + 0.07 * nG(s)) + amp * nO(s)); return [q.p[0] + q.n[0] * off, q.p[1] + q.n[1] * off]; };
+    const J = v => v + (rnd() - 0.5) * 2 * 0.25 * k, f2 = q => `${fmt(q[0])} ${fmt(q[1])}`;
+    let d = 'M' + pts.map(f2).join('L');               // 그은 변은 그은 그대로
+    const st = 0.8 * k, Ls = []; for (let s = 0; s < Lt; s += st) Ls.push(O(s)); Ls.push(O(Lt));
+    const DL = deLoop(Ls, 80), L = DL.pts;   // 안쪽 모서리에서 맞은편 변이 매듭지지 않게
+    d += 'M' + L.map(f2).join('L');
+    const gap = W * 1.6;
+    for (let s = gap * (0.45 + rnd() * 0.2); s < Lt - gap * 0.35; s += gap * (0.85 + rnd() * 0.3)) {
+        const tilt = (rnd() - 0.5) * 0.12 * W, A = E(s + tilt), B = O(s - tilt);
+        if (DL.cut[Math.min(DL.cut.length - 1, Math.round((s - tilt) / st))]) continue;   // 잘린 매듭 자리의 가로대는 긋지 않는다
+        const dx = B[0] - A[0], dy = B[1] - A[1], l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
+        const ea = (rnd() * 0.9 - 0.35) * k, eb = (rnd() * 0.9 - 0.35) * k;
+        const A2 = [A[0] - ux * ea, A[1] - uy * ea], B2 = [B[0] + ux * eb, B[1] + uy * eb];
+        const bow = (rnd() - 0.5) * 0.5 * k, M = [(A2[0] + B2[0]) / 2 - uy * bow, (A2[1] + B2[1]) / 2 + ux * bow];
+        d += `M${f2(A2)}Q${f2(M)} ${f2(B2)}`;
+    }
+    const head = (s, dir) => {                          // 띠 끝 너머로 빈 화살촉(그은 변은 건드리지 않는다)
+        const q = at(s), n = q.n, t = [n[1] * dir, -n[0] * dir], c = [q.p[0] + n[0] * sg * W / 2, q.p[1] + n[1] * sg * W / 2], hw = HW * (0.95 + rnd() * 0.1);
+        const bE = [J(c[0] - n[0] * sg * hw), J(c[1] - n[1] * sg * hw)], bO = [J(c[0] + n[0] * sg * hw), J(c[1] + n[1] * sg * hw)];
+        const tip = [J(c[0] + t[0] * HL), J(c[1] + t[1] * HL)];
+        return `M${f2(E(s))}L${f2(bE)}L${f2(tip)}L${f2(bO)}L${f2(O(s))}`;
+    };
+    d += head(Lt, 1);
+    if (a.both) d += head(0, -1);
+    else d += `M${f2(E(0))}L${f2(O(0))}`;
+    return `<path d="${d}" fill="none" stroke="${color || INK}" stroke-width="${fmt(0.35 * k)}" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
 function arrowFinish() {
     const V = arrowV.slice(); arrowV = [];
     if (V.length < 2) { drawPre(); status(); if (V.length) flash('화살표는 점을 둘 이상 찍어야 합니다'); return; }
@@ -4807,12 +4893,26 @@ function arrowShapeSvg(pts, color) {                    // 중심선 → 화살�
 }
 function arrowPreSvg() {
     const h = hover, w = h && (h.w || h), o = arrowOpts(), K = ARROW_KINDS[o.kind];
+    if (awChain && awChain.pts.length > 1) {
+        const P = awChain.pts, f = P[0], l = P[P.length - 1];
+        return `<path d="${freeD(P)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.35 * scaleDenom() / 1000)}"/>`
+            + `<circle cx="${fmt(f[0])}" cy="${fmt(f[1])}" r="${fmt(0.8 * U)}" fill="none" stroke="#2ea043" stroke-width="${fmt(0.15 * U)}"/>`
+            + `<circle cx="${fmt(l[0])}" cy="${fmt(l[1])}" r="${fmt(0.45 * U)}" fill="${RED}"/>`;
+    }
+    if (awEdge) {
+        const f2 = q => `${fmt(q[0])} ${fmt(q[1])}`, line = `<path d="M${awEdge.map(f2).join('L')}" fill="none" stroke="${RED}" stroke-width="${fmt(0.35 * scaleDenom() / 1000)}"/>`;
+        const pk = w && pedEdgePick(awEdge, w); if (!pk) return line;
+        return pedEdgeSvg(awEdge, {both: o.both, wmm: pk.W / (scaleDenom() / 1000), seed: 7, edge: pk.sg}, RED) + `<text x="${fmt(w.x)}" y="${fmt(w.y - 1.2 * U)}" font-size="${fmt(1.4 * U)}" fill="${RED}">폭 ${fmt(+pk.W.toFixed(1))}m</text>`;
+    }
     if (!arrowV.length) return '';
     const V = w ? arrowV.concat([snapXY(w)]) : arrowV, pts = arrowPath(V, o.curve);
     if (K.band) return pedSvg(pts, {kind: o.kind, both: o.both, wmm: o.wmm, seed: 7}, RED);
     return `<path d="${freeD(pts)}" ${arrowAttr(o.kind, RED)}/>` + arrowHeadSvg(pts, o.kind, o.both).replace(`fill="${INK}"`, `fill="${RED}"`);
 }
 function arrowHint() {
+    if (awEdge) return ' · 띠가 놓일 쪽으로 마우스를 옮겨 맞은편 변 자리를 누르세요(그 거리가 띠 폭) · 오른쪽 버튼·Esc 취소';
+    if (awChain) return ' · 끝난 점에서 이어 그으세요 · 더블클릭·Enter·오른쪽 버튼으로 변 끝내기 · Backspace 한 조각 되돌리기 · Esc 취소';
+    if (!arrowV.length && $('fawM') && $('fawM').value === 'edge') return ' · 보행동선의 한쪽 변을 누른 채 그으세요 — 놓은 뒤 맞은편 변 자리를 누르면 두 줄·가로대·화살표가 붙습니다';
     if (!arrowV.length && $('fawM') && $('fawM').value === 'free') return ' · 누른 채 손 가는 대로 그으세요 — 놓으면 그 선을 따라 화살표가 됩니다';
     return arrowV.length ? ` · 화살표 ${arrowV.length}점 · 더블클릭·Enter·우클릭 끝 · Backspace 한 점 되돌리기 · Esc 취소` : ' · 화살표가 시작할 자리를 누르세요(점을 찍어 가며)';
 }
@@ -5126,7 +5226,7 @@ function setArcMode(m) {
 const FORM_OF = {line: 'fl', rect: 'fr', circle: 'fc', arc: 'fa'};
 function setTool(t, keepEdit) {
     root.classList.remove('in-hole');
-    if (t !== tool) { closeTextBox(true); polyV = []; shrubCh = null; leadS = null; hedgeW = []; arrowV = []; spaceV = []; }
+    if (t !== tool) { closeTextBox(true); polyV = []; shrubCh = null; leadS = null; hedgeW = []; arrowV = []; awEdge = null; awChain = null; spaceV = []; }
     if (t === 'lead') { cnLoadTrees(); leadTypeDraw(); }   // 이어 긋던 다각선·관목 군식은 버린다
     tool = t;
     if (!keepEdit) endEdit();
@@ -6954,6 +7054,19 @@ svg.addEventListener('pointerdown', e => {
             if (c('#cadSr .sr-body')) { startSrDrag(e, w); return; }
             if (c('#cadBar .bar-body')) { drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return; }
         }
+        if (awEdge) {                               // 맞은편 변 자리 — 왼쪽은 확정, 오른쪽은 취소
+            drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true};
+            if (e.button === 2) { awEdge = null; drawPre(); status(); flash('보행동선을 취소했습니다'); return; }
+            const pk = pedEdgePick(awEdge, w), o = arrowOpts(), K = ARROW_KINDS.ped, k = scaleDenom() / 1000;
+            if (pk) { snapHist(); doc.ops.push({id: doc.seq++, t: 'free', pts: awEdge, ls: K.ls, w: K.w, arrow: {kind: 'ped', both: o.both, wmm: +(pk.W / k).toFixed(2), seed: (Math.random() * 1e9) | 0, edge: pk.sg}}); changed(); flash(`보행동선 · 폭 ${fmt(+pk.W.toFixed(1))}m`); }
+            awEdge = null; drawPre(); status(); return;
+        }
+        if (awChain && e.button === 2) { drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; awChainEnd(); return; }
+        if (e.button === 0 && !arrowV.length && $('fawM') && $('fawM').value === 'edge') {
+            let st = [[w.x, w.y]];
+            if (awChain) { const l = awChain.pts[awChain.pts.length - 1]; st = Math.hypot(w.x - l[0], w.y - l[1]) * pxPer() > 20 ? [l, [w.x, w.y]] : [l]; }   // 늘 끝난 점에서 이어진다(멀면 거기까지 곧게)
+            drag = {kind: 'awfree', edge: true, pts: st, sx: e.clientX, sy: e.clientY}; return;
+        }
         if (e.button === 0 && !arrowV.length && $('fawM') && $('fawM').value === 'free') { drag = {kind: 'awfree', pts: [[w.x, w.y]], sx: e.clientX, sy: e.clientY}; return; }
         drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true};
         if (e.button === 2) { arrowFinish(); return; }
@@ -7209,7 +7322,7 @@ svg.addEventListener('pointermove', e => {
     if (drag && drag.kind === 'awfree') {          // 동선 화살표 — 자유곡선(그은 선을 따라 화살표·두 줄 띠를 미리 보인다)
         const l = drag.pts[drag.pts.length - 1];
         if (Math.hypot(w.x - l[0], w.y - l[1]) * pxPer() >= 2) drag.pts.push([w.x, w.y]);
-        gPre.innerHTML = drag.pts.length > 3 ? arrowShapeSvg(arrowFreePts(drag.pts), RED) : ''; return;
+        gPre.innerHTML = drag.pts.length > 3 ? (drag.edge ? `<path d="${freeD((awChain ? awChain.pts : []).concat(drag.pts))}" fill="none" stroke="${RED}" stroke-width="${fmt(0.35 * scaleDenom() / 1000)}"/>` : arrowShapeSvg(arrowFreePts(drag.pts), RED)) : ''; return;
     }
     if (drag && drag.kind === 'spfree') {          // 공간 — 자유곡선
         const l = drag.pts[drag.pts.length - 1];
@@ -7377,7 +7490,16 @@ function endPtr(e) {
     if (d.kind === 'boxdraw') { gPre.innerHTML = ''; if (d.b) makeBox(d.a, d.b); return; }
     if (d.kind === 'spbox') { gPre.innerHTML = ''; if (d.b && Math.abs(d.b.x - d.a.x) > 1e-6 && Math.abs(d.b.y - d.a.y) > 1e-6) spaceFinish([[d.a.x, d.a.y], [d.b.x, d.a.y], [d.b.x, d.b.y], [d.a.x, d.b.y]], 'box', true); return; }
     if (d.kind === 'awfree') { gPre.innerHTML = ''; const P = arrowFreePts(d.pts); let L = 0; for (let i = 1; i < P.length; i++) L += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
-        if (d.pts.length > 5 && L * pxPer() > 20) arrowCommit(P); else flash('조금 더 길게 그으세요'); status(); return; }
+        if (d.edge) {                                  // 한쪽 변 — 관목처럼 이어 긋는다(누르기만 한 것은 무시: 더블클릭의 첫 누름)
+            let M = 0; for (let i = 1; i < d.pts.length; i++) M += Math.hypot(d.pts[i][0] - d.pts[i - 1][0], d.pts[i][1] - d.pts[i - 1][1]);
+            if (M * pxPer() < 6) { drawPre(); status(); return; }
+            if (!awChain) awChain = {pts: [], cuts: []};
+            awChain.cuts.push(awChain.pts.length);
+            awChain.pts = awChain.pts.length ? awChain.pts.concat(d.pts.slice(1)) : d.pts.slice();
+            drawPre(); status(); return;
+        }
+        if (!(d.pts.length > 5 && L * pxPer() > 20)) { flash('조금 더 길게 그으세요'); status(); return; }
+        arrowCommit(P); status(); return; }
     if (d.kind === 'spfree') { gPre.innerHTML = ''; if (d.pts.length > 8) { const f = d.pts[0], l = d.pts[d.pts.length - 1], cl = Math.hypot(l[0] - f[0], l[1] - f[1]) * pxPer() < 16; spaceFinish(cl ? d.pts.slice(0, -1) : d.pts, 'free', cl); } else flash('조금 더 길게 그리세요'); return; }   // 처음 자리 곁에서 놓았을 때만 닫힌다
     if (d.kind === 'shrub') {                         // 관목 군식 — 뗀 조각을 잇는다(끝낼 때 한 획으로 넣는다)
         const moved = Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 4 || d.pts.length > 3;
@@ -7944,8 +8066,13 @@ $('cadAuxBtn').classList.toggle('on', SET.auxOn !== false); root.classList.toggl
 $('cadAuxBtn').addEventListener('click', () => { setAux(!SET.auxOn); flash(SET.auxOn ? '보조선을 보입니다' : '보조선을 감췄습니다 — 지우개·선택도 건드리지 않습니다'); });
 $('cadAuxOn').addEventListener('change', () => setAux($('cadAuxOn').checked));
 $('cadDbl').addEventListener('click', dblStart);
-if ($('fawK')) $('fawK').addEventListener('change', () => { const ped = $('fawK').value === 'ped'; $('fawPedRow').hidden = !ped; if (ped) { $('fawB').checked = true; $('fawM').value = 'free'; } drawPre(); status(); });
-if ($('fawM')) $('fawM').addEventListener('change', () => { arrowV = []; drawPre(); status(); });
+function awSync() {                                    // 띠 폭 칸은 '가운데'·'점 찍기'로 보행동선을 그을 때만 — 한쪽 변 그리기는 누른 자리로 폭을 정한다
+    const ped = $('fawK').value === 'ped', edge = $('fawM').value === 'edge';
+    if (edge && !ped) { $('fawK').value = 'ped'; }
+    $('fawPedRow').hidden = !($('fawK').value === 'ped') || edge;
+}
+if ($('fawK')) $('fawK').addEventListener('change', () => { if ($('fawK').value === 'ped') { $('fawB').checked = true; $('fawM').value = 'edge'; } else if ($('fawM').value === 'edge') $('fawM').value = 'free'; awEdge = null; awChain = null; awSync(); drawPre(); status(); });
+if ($('fawM')) $('fawM').addEventListener('change', () => { arrowV = []; awEdge = null; awChain = null; awSync(); drawPre(); status(); });
 ['feK', 'feS', 'feB', 'feJ', 'feW'].forEach(id => $(id).addEventListener('change', shrubEditApply));   // 관목 고치기
 $('fdFree').checked = leadFree();
 $('fdFree').addEventListener('change', () => { try { localStorage.setItem('cadLeadFree', $('fdFree').checked ? '1' : '0'); } catch (e) {} drawPre(); status(); });
@@ -7960,6 +8087,13 @@ document.addEventListener('keydown', e => {           // 공간(점) — Enter �
     else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); spaceV = []; drawPre(); status(); flash('공간을 취소했습니다'); }
 }, true);
 document.addEventListener('keydown', e => {           // 동선 화살표 — Enter 끝 · Backspace 한 점 · Esc 취소
+    if (tool === 'arrow' && awChain && !RP) {
+        const tg = (e.target.tagName || '').toLowerCase(); if (tg === 'input' || tg === 'textarea' || tg === 'select') return;
+        if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); awChainEnd(); return; }
+        if (e.key === 'Backspace') { e.preventDefault(); e.stopImmediatePropagation(); const c = awChain.cuts.pop(); awChain.pts = awChain.pts.slice(0, c || 0); if (!awChain.pts.length) awChain = null; drawPre(); status(); return; }
+        if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); awChain = null; drawPre(); status(); flash('보행동선을 취소했습니다'); return; }
+    }
+    if (tool === 'arrow' && awEdge && !RP && e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); awEdge = null; drawPre(); status(); flash('보행동선을 취소했습니다'); return; }
     if (tool !== 'arrow' || !arrowV.length || RP) return;
     const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
     if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); arrowFinish(); }
@@ -8091,7 +8225,7 @@ document.addEventListener('keydown', e => {
     if (k === '-') zoomCenter(1 / 1.4);
 });
 document.addEventListener('keyup', e => { if (e.key === ' ') spaceDown = false; });
-svg.addEventListener('dblclick', () => { if (tool === 'space' && spaceV.length >= 2 && !RP) { const V = spaceV.map(q => [q.x, q.y]); spaceV = []; spaceFinish(V, 'pts', false); } if (tool === 'arrow' && arrowV.length && !RP) arrowFinish(); if (tool === 'poly' && polyV.length && !RP) polyFinish(); if (tool === 'shrub' && shrubCh && !RP) shrubFinish(false); });
+svg.addEventListener('dblclick', () => { if (tool === 'arrow' && awChain && !RP) { awChainEnd(); return; } if (tool === 'space' && spaceV.length >= 2 && !RP) { const V = spaceV.map(q => [q.x, q.y]); spaceV = []; spaceFinish(V, 'pts', false); } if (tool === 'arrow' && arrowV.length && !RP) arrowFinish(); if (tool === 'poly' && polyV.length && !RP) polyFinish(); if (tool === 'shrub' && shrubCh && !RP) shrubFinish(false); });
 document.addEventListener('keydown', e => {           // 관목 군식을 이어 긋는 중 — Enter 열린 채 끝 · Backspace 한 조각 · Esc 취소(도구는 그대로)
     if (tool !== 'shrub' || !shrubCh || RP) return;
     const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
