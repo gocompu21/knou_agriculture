@@ -4346,7 +4346,7 @@ function leadGeom(w) {
         B = {x: rnd(is45 ? S.x + Math.sign(ox) * ad : S.x), y: rnd(by)}; y = B.y; x0 = right ? B.x + pad : B.x - pad;
     }
     const tx0 = right ? x0 : x0 - W, E = {x: rnd(right ? x0 + W + pad : x0 - W - pad), y: rnd(y)};
-    return {S, B, E, y, size, font, top: tx.top, bot: tx.bot, tx: rnd(tx0), ty: rnd(y - size * 0.35), by: rnd(y + size * 1.3)};
+    return {S, B, E, y, size, font, W, top: tx.top, bot: tx.bot, tx: rnd(tx0), ty: rnd(y - size * 0.35), by: rnd(y + size * 1.3)};
 }
 function leadPreSvg() {
     const h = hover, cand = h && polyNear(h.w || h);
@@ -4371,6 +4371,15 @@ function leadFinish(w) {
         const pa = P(ns[i]), pb = P(ns[i + 1]);
         doc.ops.push({id: doc.seq++, t: 'line', a: ns[i], b: ns[i + 1], ...st, grp: gid, gname: '지시선', lead: true, leadTxt: lbl, tl: {...toolState(), ...toolsForLine(pa, pb)}});
     }
+    // 글자 보조선(대표님) — 글 두 줄마다 글자 윗선·밑선을 보조선으로 먼저 긋는다(레터링처럼). 한 벌에 넣어 지시선을 지우면 같이 지워진다
+    [[G.top, G.ty], [G.bot, G.by]].forEach(([txt, by]) => {
+        if (!txt) return;
+        const w = leadMeasure(txt, G.size, G.font), x0 = G.tx - G.size * 0.15, x1 = G.tx + w + G.size * 0.15;
+        [by, by - G.size].forEach(yy => {
+            const a = addPt(x0, yy), b = addPt(x1, yy);
+            doc.ops.push({id: doc.seq++, t: 'line', a, b, ls: 'aux', w: 'p5', grp: gid, gname: '지시선', lead: true, leadTxt: lbl, leadGuide: true, tl: {...toolState(), ...toolsForLine(P(a), P(b))}});
+        });
+    });
     if (G.top) doc.ops.push({id: doc.seq++, t: 'text', x: G.tx, y: G.ty, s: G.top, size: G.size, rot: 0, font: G.font, dir: 'h', leadOf: gid});
     if (G.bot) doc.ops.push({id: doc.seq++, t: 'text', x: G.tx, y: G.by, s: G.bot, size: G.size, rot: 0, font: G.font, dir: 'h', leadOf: gid});
     leadS = null; changed(); drawPre(); status();
