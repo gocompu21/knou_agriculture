@@ -4387,6 +4387,7 @@ function leadFinish(w) {
     flash(`지시선 — ${lbl}`);
 }
 // 보조선이 없던 예전 지시선에 글자 윗선·밑선 보조선을 넣는다(대표님) — 열 때 한 번. 글꼴을 다 읽은 뒤 재야 폭이 맞는다
+// 예전 지시선 보조선 채우기 — 한 번 돌려 서버 도면이 모두 채워져서(2026-10-01) 이제 부르지 않는다. 열 때마다 돌면 일부러 지운 보조선이 되살아난다
 function leadGuideMigrate() {
     if (RP) return;
     const gids = [...new Set(doc.ops.filter(o => o.lead && o.grp != null).map(o => o.grp))];
@@ -6053,7 +6054,6 @@ function afterLoad(refit) {
     selOps.clear(); selPts.clear(); selPt = null; endEdit();
     Object.keys(doc.syms || {}).forEach(ensureSymOption);
     setSheet(doc.sheet); renderAll(); regInfo();
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!RP) leadGuideMigrate(); }); else leadGuideMigrate();
     if (refit) fit();
 }
 
