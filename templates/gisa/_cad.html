@@ -5246,8 +5246,15 @@ function carHoriz(P, Q, hq) {
     }
     return n ? s / n : null;
 }
-function carHatchWins(o, earlier, myP, myW, oW) {
+// 세 갈래(T자) — 한쪽 끝이 상대 길에 닿아 끝나면 그 길은 갈래이고, 지나가는 길의 빗금이 이긴다(대표님). 둘 다 지나가는 교차(+)만 세로 빗금 규칙
+function carEndsIn(pts, closed, P, h) {
+    if (closed || !pts || pts.length < 2) return false;
+    return [pts[0], pts[pts.length - 1]].some(e => P.some(c => Math.hypot(c[0] - e[0], c[1] - e[1]) < h));
+}
+function carHatchWins(o, earlier, myP, myW, oW, myPts, myClosed) {
     const oP = carCenter(o.pts, o.arrow).P;
+    const meEnd = carEndsIn(myPts, myClosed, oP, oW / 2 + myW * 0.6), oEnd = carEndsIn(o.pts, o.arrow.closed, myP, myW / 2 + oW * 0.6);
+    if (meEnd !== oEnd) return meEnd;                    // 내가 갈래면 상대(지나가는 길)가 이긴다
     const hMe = carHoriz(myP, oP, oW / 2), hO = carHoriz(oP, myP, myW / 2);
     if (hMe == null || hO == null || Math.abs(hMe - hO) < 0.15) return earlier;
     return hO > hMe;
@@ -5323,7 +5330,7 @@ function carSvg(pts, a, color, self) {
     const idx = self ? doc.ops.indexOf(self) : doc.ops.length;
     let mH = '';
     const myP = carCenter(pts, a).P;
-    others.forEach(o => { if (!(g.joined || []).includes(o) && carHatchWins(o, doc.ops.indexOf(o) < idx, myP, W, (o.arrow.wmm || 13) * k)) mH += `<path d="${carPoly(o, 0.02 * W, [0.12 * W, 0.12 * W])}" fill="black" fill-rule="evenodd"/>`; });   // 끝을 조금 더 덮어 모서리에 빗금 토막이 남지 않게
+    others.forEach(o => { if (!(g.joined || []).includes(o) && carHatchWins(o, doc.ops.indexOf(o) < idx, myP, W, (o.arrow.wmm || 13) * k, pts, a.closed)) mH += `<path d="${carPoly(o, 0.02 * W, [0.12 * W, 0.12 * W])}" fill="black" fill-rule="evenodd"/>`; });   // 끝을 조금 더 덮어 모서리에 빗금 토막이 남지 않게
     const net = carNetwork(self ? null : {t: 'free', pts, arrow: a});
     const col = color || INK, id = 'cm' + (self ? self.id : 'p') + '_' + ((a.seed || 1) % 100000 | 0);
     const big = `<rect x="-100000" y="-100000" width="200000" height="200000" fill="white"/>`;
