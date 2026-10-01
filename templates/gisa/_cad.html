@@ -2416,7 +2416,8 @@ function setAux(on) {
     saveSet(); drawOps(); selInfo();
 }
 function drawOps() {
-    occCache = null;                                  // 경계식재를 가릴 모양 — 이번 그리기에서 새로 센다
+    occCache = null;
+    if (typeof underRender === 'function') underRender();   // 재생 칸에 따라 밑그림이 나타나고 사라진다                                  // 경계식재를 가릴 모양 — 이번 그리기에서 새로 센다
     // 보조선은 따로 된 레이어 — 맨 아래에 먼저 그리고(class aux) 설정·도구 줄에서 켜고 끈다
     const ops = (RP ? doc.ops.slice(0, RP.k) : doc.ops).filter(o => o.t !== 'step'), fills = ops.filter(o => o.t === 'fill'), aux = ops.filter(isAux), marks = ops.filter(o => o.mark && !isAux(o)),
           rest = ops.filter(o => !isAux(o) && !o.mark && o.t !== 'fill');
@@ -2501,6 +2502,7 @@ function lsTxtFull(op) {
 function desc(op, full) {
     const ptxt = full ? ptxtFull : (n => `P${n}`), lsTxt = full ? lsTxtFull : (o => (LS[o.ls] || LS.solid).name);   // 목록에는 굵기(굵은 샤프 등)를 안 보인다(사용자)
     switch (op.t) {
+        case 'under': return op.under ? `밑그림 깔기 — ${op.under.name || '도면 ' + op.under.id}` : '밑그림 걷기';
         case 'free': if (op.shrub) { const a = op.pts || []; let L = 0; for (let i = 1; i < a.length; i++) L += Math.hypot(a[i][0] - a[i - 1][0], a[i][1] - a[i - 1][1]);
                 return op.shrub.closed ? `관목 군식 · 폐곡 · 면적 약 ${fmt(Math.round(shrubArea(a)))}㎡` : `관목 군식 · 열린 선 · ${fmt(L)}m`; }
             return op.mark ? `마킹${op.p != null ? ' ' + ptxt(op.p) : ''} · ${full ? `1/${op.mark.s} ` : ''}${fmt(op.mark.r)}m` : `프리드로잉 · 점 ${op.pts ? op.pts.length : 0}개 · ${lsTxt(op)}`;
@@ -3928,48 +3930,57 @@ function toWorld(e) {
     return pt.matrixTransform(svg.getScreenCTM().inverse());
 }
 const pxPer = () => svg.getScreenCTM().a;
-// ── 밑그림(대표님) — 다른 도면을 트레이싱지 밑에 깔듯 옅게 보인다. 내 도면(doc.ops)에는 들어가지 않으므로
-// 저장·재생·SVG·작도 순서·지우개·채우기·고르기가 건드리지 않는다. 어느 도면을 깔았는지는 doc.under = {id, op} 로 남는다
-var underDoc = null, underKey = '';
+// ── 밑그림(대표님) — 다른 도면을 트레이싱지 밑에 깔듯 옅게 보인다. 밑그림 도면의 선은 내 도면에 들어가지 않으므로
+// 저장·재생·SVG·지우개·채우기·고르기가 건드리지 않는다. 깔고 걷는 것은 **작도 순서의 한 줄**({t:'under', under:{id, op, name}|null})로
+// 남아 재생 때 그 줄에서 밑그림이 서서히 나타나고 사라진다. 그 줄이 없던 예전 도면은 doc.under(도면 설정)를 쓴다
+var underDocs = {}, underShown = '';
+function underState() {                                  // 지금(재생 중이면 그 칸까지) 깔린 밑그림 — {id, op, name} 또는 null
+    const ops = RP ? doc.ops.slice(0, RP.k) : doc.ops;
+    for (let i = ops.length - 1; i >= 0; i--) if (ops[i].t === 'under') return ops[i].under || null;
+    return doc.ops.some(o => o.t === 'under') ? null : (doc.under || null);
+}
 function underRender() {
     const g = $('cadUnder'); if (!g) return;
-    const u = doc.under;
-    if (!u || !u.id || !underDoc) { g.innerHTML = ''; return; }
-    const saved = doc, savedOcc = occCache;
-    let html = '';
-    try {
-        doc = underDoc; occCache = null;                // P()·기호·mask 가 밑그림 도면을 보게 잠시 바꿔 그린다
-        html = underDoc.ops.filter(o => o.t !== 'step' && !o.mark && !(o.ls === 'aux')).map(o => { try { return opSvg(o); } catch (e) { return ''; } }).join('');
-    } finally { doc = saved; occCache = savedOcc; }
-    g.innerHTML = html;
+    if (!underDocs) underDocs = {};
+    const u = underState(), key = u && u.id ? String(u.id) : '';
+    g.style.transition = 'opacity .6s'; g.style.filter = 'grayscale(1)';
+    if (!key) { g.setAttribute('opacity', '0'); return; }
+    const ud = underDocs[key];
+    if (ud === undefined) { underFetch(key); g.setAttribute('opacity', '0'); return; }
+    if (!ud) { g.setAttribute('opacity', '0'); return; }
+    if (underShown !== key) {                            // 다른 도면이면 새로 그린다 — P()·기호·mask 가 밑그림 도면을 보게 doc 을 잠시 바꾼다
+        const saved = doc, savedOcc = occCache; let html = '';
+        try {
+            doc = ud; occCache = null;
+            html = ud.ops.filter(o => o.t !== 'step' && o.t !== 'under' && !o.mark && o.ls !== 'aux').map(o => { try { return opSvg(o); } catch (e) { return ''; } }).join('');
+        } finally { doc = saved; occCache = savedOcc; }
+        g.innerHTML = html; underShown = key;
+    }
     g.setAttribute('opacity', String(+u.op || 0.35));
-    g.style.filter = 'grayscale(1)';
 }
-function underLoad() {
-    const u = doc.under, key = u && u.id ? String(u.id) : '';
-    if (!key) { underDoc = null; underKey = ''; underRender(); return; }
-    if (key === underKey && underDoc) { underRender(); return; }
-    underKey = key; underDoc = null; underRender();
-    fetch(`${API}${u.id}/`, {credentials: 'same-origin'}).then(r => r.json()).then(j => {
-        if (underKey !== key) return;
+function underFetch(key) {
+    underDocs[key] = null;                               // 받는 중
+    fetch(`${API}${key}/`, {credentials: 'same-origin'}).then(r => r.json()).then(j => {
         if (!j.ok) { flash('밑그림 도면을 열지 못했습니다'); return; }
-        underDoc = Object.assign(blankDoc(j.sheet), j.data || {}); underRender();
-    }).catch(() => flash('밑그림 도면을 열지 못했습니다'));
+        underDocs[key] = Object.assign(blankDoc(j.sheet), j.data || {}); underRender();
+    }).catch(() => { delete underDocs[key]; flash('밑그림 도면을 열지 못했습니다'); });
 }
+function underLoad() { underDocs = {}; underShown = ''; underRender(); }   // 도면을 열 때 — 밑그림 도면을 새로 받는다(그 사이 고쳤을 수 있다)
 function underSnap(w) {                                  // 밑그림의 점 — 화면 10px 안
-    if (!underDoc || !doc.under || !$('cadUnderSnap') || !$('cadUnderSnap').checked) return null;
+    const u = underState(), ud = u && u.id && underDocs[String(u.id)];
+    if (!ud || !$('cadUnderSnap') || !$('cadUnderSnap').checked) return null;
     let best = null, bd = 10 / pxPer();
-    underDoc.pts.forEach(p => { const d = Math.hypot(p.x - w.x, p.y - w.y); if (d < bd) { bd = d; best = p; } });
+    ud.pts.forEach(p => { const d = Math.hypot(p.x - w.x, p.y - w.y); if (d < bd) { bd = d; best = p; } });
     return best ? {x: best.x, y: best.y} : null;
 }
 function underFill() {                                   // 설정 창의 고르기 — 내 도면 목록(지금 도면은 빼고)
     const sel = $('cadUnderSel'); if (!sel) return;
     fetch(API, {credentials: 'same-origin'}).then(r => r.json()).then(j => {
-        const cur0 = doc.under && doc.under.id ? String(doc.under.id) : '';
+        const u = underState(), cur0 = u && u.id ? String(u.id) : '';
         sel.innerHTML = '<option value="">없음</option>' + (j.items || []).filter(d => String(d.id) !== String(cur.id))
             .map(d => `<option value="${d.id}">${esc(d.title)}</option>`).join('');
-        sel.value = cur0; if (sel.value !== cur0 && cur0) sel.insertAdjacentHTML('beforeend', `<option value="${cur0}" selected>도면 ${cur0}</option>`);
-        $('cadUnderOp').value = String(doc.under && doc.under.op || 0.35);
+        sel.value = cur0; if (sel.value !== cur0 && cur0) sel.insertAdjacentHTML('beforeend', `<option value="${cur0}" selected>${esc(u.name || '도면 ' + cur0)}</option>`);
+        $('cadUnderOp').value = String(u && u.op || 0.35);
     }).catch(() => {});
 }
 // ── 밑그림 끝 ──
@@ -7344,13 +7355,19 @@ $('cadMarkColor').addEventListener('input', () => { SET.markColor = $('cadMarkCo
     saveSet(); drawOps(); drawPre();
 }));
 if (SET.dir) $('ftDir').value = SET.dir;
-$('cadUnderSel').addEventListener('change', () => {
-    const v = $('cadUnderSel').value;
-    if (v) doc.under = {id: +v, op: +$('cadUnderOp').value || 0.35}; else delete doc.under;
-    dirty = true; savedLabel(); saveDraft(); underLoad();
-    flash(v ? '밑그림을 깔았습니다 — 저장하면 이 도면에 남습니다' : '밑그림을 걷었습니다');
+$('cadUnderSel').addEventListener('change', () => {   // 깔고 걷는 것을 작도 순서에 한 줄로 남긴다 — 재생 때 그 줄에서 나타나고 사라진다
+    const sel = $('cadUnderSel'), v = sel.value, name = v ? (sel.options[sel.selectedIndex] || {}).textContent : '';
+    snapHist();
+    if (doc.under && !doc.ops.some(o => o.t === 'under')) delete doc.under;   // 예전 도면 설정은 작도 순서 줄로 넘긴다
+    doc.ops.push({id: doc.seq++, t: 'under', under: v ? {id: +v, op: +$('cadUnderOp').value || 0.35, name} : null});
+    changed(); underRender();
+    flash(v ? `밑그림을 깔았습니다 — ${name} (작도 순서에 한 줄)` : '밑그림을 걷었습니다 (작도 순서에 한 줄)');
 });
-$('cadUnderOp').addEventListener('change', () => { if (!doc.under) return; doc.under.op = +$('cadUnderOp').value; dirty = true; savedLabel(); saveDraft(); underRender(); });
+$('cadUnderOp').addEventListener('change', () => {     // 진하기는 지금 깔린 밑그림 줄의 값을 고친다
+    const L = [...doc.ops].reverse().find(o => o.t === 'under');
+    if (L && L.under) { L.under.op = +$('cadUnderOp').value; changed(); underRender(); }
+    else if (doc.under) { doc.under.op = +$('cadUnderOp').value; dirty = true; savedLabel(); saveDraft(); underRender(); }
+});
 $('cadSetBtn').addEventListener('click', e => {
     underFill();
     e.stopPropagation(); const on = $('cadSet').hidden;
