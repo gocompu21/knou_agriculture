@@ -1772,12 +1772,12 @@ function fitDash(dash, len, closed) {
     const s = len / (n * P + (closed ? 0 : D));
     return dash.map(d => d * s);
 }
-const PEN5_COLOR = '#d93025';                     // 얇은 샤프로 그은 선은 빨강(대표님) — 보조선이라도 얇은 샤프면 빨강
+const PEN5_COLOR = '#d93025';                     // 얇은 샤프로 그은 **보조선**은 빨강(대표님). 얇은 샤프 실선(지시선·경계식재 외곽 등)은 검정 그대로
 function stAttr(ls, w, fill, len, closed) {
     const L = LS[ls] || LS.solid;
     // 샤프 선은 설정의 종이 위 mm 를 도면 축척으로 m 로 바꾼다(1:430 에서 0.7mm = 0.3m)
     const sw = (w === 'p9' || w === 'p5') ? SET[w] / 1000 * scaleDenom() : L.w != null ? L.w * U : (WD[w] || WD.mid).w * U;
-    let a = `fill="${fill || 'none'}" stroke="${w === 'p5' ? PEN5_COLOR : ls === 'aux' ? SET.auxColor : L.color || INK}" stroke-width="${fmt(sw)}" stroke-linecap="round" stroke-linejoin="round"`;
+    let a = `fill="${fill || 'none'}" stroke="${w === 'p5' && ls === 'aux' ? PEN5_COLOR : ls === 'aux' ? SET.auxColor : L.color || INK}" stroke-width="${fmt(sw)}" stroke-linecap="round" stroke-linejoin="round"`;
     if (L.dash) {
         const ds = L.fit && len > 0 ? fitDash(L.dash.map(d => d * U), len, closed) : L.dash.map(d => d * U);
         if (ds) a += ` stroke-dasharray="${ds.map(d => fmt(d)).join(' ')}"`;
@@ -1929,7 +1929,7 @@ function shrubCut(pts, closed, obs, size) {
 function freeAttr(ls, w) {
     const a = stAttr(ls, w);
     if (w !== 'p5' || ls === 'aux') return a;
-    return a.replace(/stroke="[^"]*"/, `stroke="${PEN5_COLOR}"`).replace(/stroke-width="[^"]*"/, `stroke-width="${fmt(0.12 / 1000 * scaleDenom())}"`) + ' stroke-opacity="0.6"';
+    return a.replace(/stroke="[^"]*"/, 'stroke="#777"').replace(/stroke-width="[^"]*"/, `stroke-width="${fmt(0.12 / 1000 * scaleDenom())}"`) + ' stroke-opacity="0.6"';
 }
 function shrubStyle() {                               // 샤프 · 파형 크기(종이 mm → 도면 m)
     const w = ($('fshW') && $('fshW').value) || 'p9', mm = +(($('fshS') && $('fshS').value) || 2);
