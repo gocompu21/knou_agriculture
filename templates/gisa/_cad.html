@@ -4816,7 +4816,7 @@ function pedRung(A, B, rnd, k, W, f2) {
 // 바깥 빗변이 꼭지로 모인다. 밑변(띠를 가로지르는 선)은 없다. 획마다 따로 긋고 이음매에서 조금씩 지나쳐 손그림처럼 엇갈린다.
 // 띠 끝(B)에서 꼭지까지 약 0.85 × 띠 폭(PED_HL) — pedSvg 가 띠 선을 그만큼 앞에서 멈춘다
 const PED_HL = 0.85;
-function pedHead(Lb, Rb, c, t, W, rnd, k, f2) {
+function pedHead(Lb, Rb, c, t, W, rnd, k, f2, sz) {   // sz — {lin, th}: 안쪽 빗변 길이·마구리 두께(띠 폭 비) — 차량동선은 작게
     const seg = (a, b, o0, o1, amp) => {               // a→b, 양 끝을 조금 지나치고 살짝 휘게
         const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
         const A2 = [a[0] - ux * o0, a[1] - uy * o0], B2 = [b[0] + ux * o1, b[1] + uy * o1], bw = (rnd() - 0.5) * amp;
@@ -4828,7 +4828,7 @@ function pedHead(Lb, Rb, c, t, W, rnd, k, f2) {
         let sx = m[0] - t[0] * along, sy = m[1] - t[1] * along; const sl = Math.hypot(sx, sy) || 1; sx /= sl; sy /= sl;
         const aa = 0.58 + (rnd() - 0.5) * 0.08, bb = Math.sqrt(1 - aa * aa);
         const e = [-t[0] * aa + sx * bb, -t[1] * aa + sy * bb], q = [t[0] * bb + sx * aa, t[1] * bb + sy * aa];
-        const Lin = W * (0.74 + (rnd() - 0.5) * 0.08), T = W * (0.4 + (rnd() - 0.5) * 0.06);
+        const Lin = W * ((sz ? sz.lin : 0.74) + (rnd() - 0.5) * 0.08), T = W * ((sz ? sz.th : 0.4) + (rnd() - 0.5) * 0.06);
         const I = [B[0] + e[0] * Lin, B[1] + e[1] * Lin], O = [I[0] + q[0] * T, I[1] + q[1] * T];
         const off = (O[0] - c[0]) * sx + (O[1] - c[1]) * sy, u = off / bb;   // 바깥 빗변이 축에 닿는 자리 = 꼭지
         return {B, e, q, I, O, tip: [O[0] + e[0] * -u, O[1] + e[1] * -u]};
@@ -5015,6 +5015,8 @@ function awBoxPts(A, B) {
 // 입구·출구에는 빗금 친 화살촉. **여러 띠를 이어 그릴 수 있다** — 먼저 그린 띠와 만나는 자리는 서로의 변을 지워 한 길처럼 보이고,
 // 겹친 곳의 빗금은 먼저 그린 띠 것만 남긴다. 점 찍기에서 처음 점을 누르면 고리(화살촉 없음)로 닫힌다.
 // 저장은 중심선 + arrow:{kind:'carb', both, none, closed, wmm, seed}
+// 차량동선 화살촉 — 띠 옆으로 덜 튀어나오게(대표님): 안쪽 빗변 0.35W·마구리 0.3W → 띠 변 밖으로 약 0.46W(보행동선은 0.83W), 띠 끝~꼭지 0.73W
+const CAR_HEAD = {lin: 0.35, th: 0.3}, CAR_HL = 0.73;
 function carCenter(pts, a) {                             // 중심선 — 꺾인 자리를 폭만큼 둥글린 촘촘한 점들
     const k = scaleDenom() / 1000, W = (a.wmm || 13) * k;
     let R = pts; if (a.closed && R.length > 2) { const f = R[0], l = R[R.length - 1]; if (Math.hypot(f[0] - l[0], f[1] - l[1]) < 1e-6) R = R.slice(0, -1); }
@@ -5052,7 +5054,7 @@ function carSvg(pts, a, color, self) {
         return {p: [P[i][0] + (P[i + 1][0] - P[i][0]) * t, P[i][1] + (P[i + 1][1] - P[i][1]) * t], n: [nx / l, ny / l]};
     };
     const heads = cl || a.none ? 0 : (a.both ? 2 : 1);
-    let HL = W * PED_HL; if (Lt < heads * HL + W * 0.5) HL = Math.max(0, (Lt - W * 0.5) / Math.max(1, heads));
+    let HL = W * CAR_HL; if (Lt < heads * HL + W * 0.5) HL = Math.max(0, (Lt - W * 0.5) / Math.max(1, heads));
     const s0 = heads === 2 ? HL : 0, s1 = heads ? Lt - HL : Lt, amp = 0.1 * k;
     const nL = pedWob(rnd, Lt, k), nR = pedWob(rnd, Lt, k);
     const side = (sg, s) => { const q = at(s), off = sg * W / 2 + amp * (sg > 0 ? nL(s) : nR(s)); return [q.p[0] + q.n[0] * off, q.p[1] + q.n[1] * off]; };
@@ -5069,7 +5071,7 @@ function carSvg(pts, a, color, self) {
         }
     }
     // 빗금 — 종이 0.75mm 안팎 간격, 양 끝은 변에 닿을락 말락, 살짝 기울고 휜다(곡선에서는 저절로 부채꼴)
-    for (let s = s0 + 0.2 * k; s < s1 - 0.1 * k; s += 1.0 * k * (0.8 + rnd() * 0.4)) {   // 간격 종이 1mm 안팎(대표님: 0.75 에서 조금 띄움)
+    for (let s = s0 + 0.2 * k; s < s1 - 0.1 * k; s += 1.4 * k * (0.8 + rnd() * 0.4)) {   // 간격 종이 1.4mm 안팎(대표님: 0.75 → 1 → 1.4)
         if (darkS.some(d => Math.abs(d - s) < 0.85 * k)) continue;   // 진한 두 줄 곁의 빗금은 뺀다(세 줄로 뭉친다)
         const q = at(s), tl = (Math.sin(s / (5 * k) + (a.seed || 1)) * 0.6 + (rnd() - 0.5) * 0.4) * 0.025 * W, tx = q.n[1], ty = -q.n[0];   // 기울기 — 이웃끼리 엇갈리면 지그재그로 보여 아주 작게·천천히
         const e1 = W / 2 - rnd() * 0.07 * W, e2 = W / 2 - rnd() * 0.07 * W;
@@ -5079,12 +5081,12 @@ function carSvg(pts, a, color, self) {
     let hd = '', hn = 0;
     const head = (sb, dir) => {                          // 화살촉 — 보행동선과 같은 속 빈 두꺼운 '<' 꼴(pedHead) + 그 안을 손으로 그은 빗금 명암(대표님 스케치)
         const c = at(sb), nn = c.n, t = [nn[1] * dir, -nn[0] * dir], Lb = side(1, sb), Rb = side(-1, sb);
-        ed += pedHead(Lb, Rb, c.p, t, W, rnd, k, f2);
+        ed += pedHead(Lb, Rb, c.p, t, W, rnd, k, f2, CAR_HEAD);
         const wing = B => {                              // 명암 칠할 날개 모양(pedHead 와 같은 비율, 흔들림 없이)
             const m = [B[0] - c.p[0], B[1] - c.p[1]], al = m[0] * t[0] + m[1] * t[1];
             let sx = m[0] - t[0] * al, sy = m[1] - t[1] * al; const sl = Math.hypot(sx, sy) || 1; sx /= sl; sy /= sl;
             const aa = 0.58, bb = Math.sqrt(1 - aa * aa), e = [-t[0] * aa + sx * bb, -t[1] * aa + sy * bb], q = [t[0] * bb + sx * aa, t[1] * bb + sy * aa];
-            const I = [B[0] + e[0] * W * 0.74, B[1] + e[1] * W * 0.74], O = [I[0] + q[0] * W * 0.4, I[1] + q[1] * W * 0.4];
+            const I = [B[0] + e[0] * W * CAR_HEAD.lin, B[1] + e[1] * W * CAR_HEAD.lin], O = [I[0] + q[0] * W * CAR_HEAD.th, I[1] + q[1] * W * CAR_HEAD.th];
             const lat = (O[0] - c.p[0]) * sx + (O[1] - c.p[1]) * sy, tip = [O[0] - e[0] * lat / bb, O[1] - e[1] * lat / bb];
             const latB = (B[0] - c.p[0]) * sx + (B[1] - c.p[1]) * sy, V = [B[0] - e[0] * latB / bb, B[1] - e[1] * latB / bb];
             return {I, O, tip, V};
@@ -5098,7 +5100,7 @@ function carSvg(pts, a, color, self) {
             sh += `M${f2([m[0] + nn[0] * ext + t[0] * tl, m[1] + nn[1] * ext + t[1] * tl])}L${f2([m[0] - nn[0] * ext - t[0] * tl, m[1] - nn[1] * ext - t[1] * tl])}`;
         }
         { const lam = (W / 2) * 0.58 / 0.81;           // 띠 빗금을 화살촉 안쪽 꼭지(V)까지 이어 칠한다 — 띠가 화살촉으로 흘러들어 가게
-            for (let u = 0.6 * k; u < lam - 0.15 * k; u += 1.0 * k * (0.8 + rnd() * 0.4)) {
+            for (let u = 0.6 * k; u < lam - 0.15 * k; u += 1.4 * k * (0.8 + rnd() * 0.4)) {
                 const m = [c.p[0] + t[0] * u, c.p[1] + t[1] * u], h = (W / 2) * (1 - u / lam) * 0.95;
                 ht += `M${f2([m[0] + nn[0] * h, m[1] + nn[1] * h])}L${f2([m[0] - nn[0] * h, m[1] - nn[1] * h])}`;
             } }
