@@ -4756,18 +4756,21 @@ function pedRung(A, B, rnd, k, W, f2) {
     }
     return d;
 }
-function pedHead(Lb, Rb, oL, oR, tip, rnd, k, f2) {
-    const seg = (a, b, over0, over1, bowAmp) => {      // a→b 를 양 끝 조금씩 지나치게, 살짝 휘게
-        const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
-        const A2 = [a[0] - ux * over0, a[1] - uy * over0], B2 = [b[0] + ux * over1, b[1] + uy * over1];
-        const bw = (rnd() - 0.5) * bowAmp, M = [(A2[0] + B2[0]) / 2 - uy * bw, (A2[1] + B2[1]) / 2 + ux * bw];
-        return `M${f2(A2)}Q${f2(M)} ${f2(B2)}`;
-    };
-    const cr = () => (0.7 + rnd() * 0.7) * k, ov = () => (0.3 + rnd() * 0.6) * k;
+function pedHead(Lb, Rb, oL, oR, tip, rnd, k, f2) {   // 대표님 스케치 그대로 — 띠 선이 밑변 위로 'ㅅ' 처럼 솟았다가 꺾여 내려가 밑변이 되고,
+    // 둥근 바깥 모서리를 돌아 꼭지(둥글게)로 올라갔다가 반대쪽도 같게 — 한 획
     const mx = (Lb[0] + Rb[0]) / 2, my = (Lb[1] + Rb[1]) / 2, tl = Math.hypot(tip[0] - mx, tip[1] - my) || 1, tx = (tip[0] - mx) / tl, ty = (tip[1] - my) / tl;
-    const pass = q => { const e = (0.4 + rnd() * 0.6) * k; return `M${f2(q)}L${f2([q[0] + tx * e, q[1] + ty * e])}`; };   // 띠 선이 밑변을 조금 지나간다
-    return pass(Lb) + pass(Rb) + seg(Lb, oL, cr(), 0.1 * k, 0.4 * k) + seg(Rb, oR, cr(), 0.1 * k, 0.4 * k)   // 밑변 — 띠 선 안쪽에서 시작해 가로지른다
-        + seg(oL, tip, 0.15 * k, ov(), 0.8 * k) + seg(oR, tip, 0.15 * k, ov(), 0.8 * k); // 두 빗변 — 촉에서 엇갈린다
+    const at = (q, a, b) => [q[0] + tx * a + (b ? b[0] : 0), q[1] + ty * a + (b ? b[1] : 0)];
+    const toward = (a, b, d) => { const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1, r = Math.min(d, l * 0.45); return [a[0] + dx / l * r, a[1] + dy / l * r]; };
+    const bowQ = (a, b, amp) => { const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1, bw = (rnd() - 0.5) * amp; return `Q${f2([(a[0] + b[0]) / 2 - dy / l * bw, (a[1] + b[1]) / 2 + dx / l * bw])} ${f2(b)}`; };
+    const rc = (0.55 + rnd() * 0.3) * k, rt = (0.35 + rnd() * 0.25) * k;
+    const side = (B, O) => {                             // 띠 끝 B → 솟은 끝 → 밑변(살짝 처짐) → 바깥 모서리 O 앞
+        const peak = at(B, (0.7 + rnd() * 0.4) * k), m = [B[0] + (O[0] - B[0]) * 0.45, B[1] + (O[1] - B[1]) * 0.45], low = at(m, -(0.15 + rnd() * 0.25) * k);
+        return {peak, low, pre: toward(O, B, rc)};
+    };
+    const sL = side(Lb, oL), sR = side(Rb, oR);
+    const b1 = toward(oL, tip, rc), t1 = toward(tip, oL, rt), t2 = toward(tip, oR, rt), b2 = toward(oR, tip, rc);
+    return `M${f2(Lb)}L${f2(sL.peak)}Q${f2(sL.low)} ${f2(sL.pre)}Q${f2(oL)} ${f2(b1)}` + bowQ(b1, t1, 0.7 * k) + `Q${f2(tip)} ${f2(t2)}`
+        + bowQ(t2, b2, 0.7 * k) + `Q${f2(oR)} ${f2(sR.pre)}Q${f2(sR.low)} ${f2(sR.peak)}L${f2(Rb)}`;
 }
 function pedSvg(pts, a, color) {
     const k = scaleDenom() / 1000, W = (a.wmm || 13) * k, rnd = spRng(a.seed || 1);
@@ -4779,7 +4782,7 @@ function pedSvg(pts, a, color) {
         let nx = N[i][0] + (N[i + 1][0] - N[i][0]) * t, ny = N[i][1] + (N[i + 1][1] - N[i][1]) * t; const l = Math.hypot(nx, ny) || 1;
         return {p: [a1[0] + (b1[0] - a1[0]) * t, a1[1] + (b1[1] - a1[1]) * t], n: [nx / l, ny / l]};
     };
-    let HL = W * 0.7, HW = W * 0.85; const heads = a.both ? 2 : 1;
+    let HL = W * 0.62, HW = W * 0.92; const heads = a.both ? 2 : 1;
     if (Lt < heads * HL + W) { const f = Lt / (heads * HL + W); HL *= f; HW *= Math.max(f, 0.6); }
     const s0 = a.both ? HL : 0, s1 = Lt - HL, amp = 0.26 * k;
     const nL = pedWob(rnd, Lt, k), nR = pedWob(rnd, Lt, k), nG = spNoise(rnd, Lt, false, [[31 * k, 0.7], [77 * k, 0.3]]);
@@ -4870,7 +4873,7 @@ function deLoop(A, win) {                               // 꺾은선의 제 몸 
 function pedEdgeSvg(pts, a, color) {
     const k = scaleDenom() / 1000, G = pedEdgeGeom(pts); if (!G) return '';
     const W = (a.wmm || 13) * k, sg = a.edge > 0 ? 1 : -1, rnd = spRng(a.seed || 1), Lt = G.L, at = G.at;
-    const HL = W * 0.7, HW = W * 0.85, amp = 0.26 * k;
+    const HL = W * 0.62, HW = W * 0.92, amp = 0.26 * k;
     const nO = pedWob(rnd, Lt, k), nG = spNoise(rnd, Lt, false, [[31 * k, 0.7], [77 * k, 0.3]]);
     const E = s => at(s).p;
     const O = s => { const q = at(s), off = sg * (W * (1 + 0.07 * nG(s)) + amp * nO(s)); return [q.p[0] + q.n[0] * off, q.p[1] + q.n[1] * off]; };
