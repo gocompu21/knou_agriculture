@@ -2276,6 +2276,7 @@ function opSvg(op) {
         return markTick(x0, y0, x1, y1, SR_MARK * scaleDenom() / 1000);
     }
     if (op.t === 'free' && op.arrow) return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${arrowAttr(op.arrow.kind)}/>` + arrowHeadSvg(op.pts, op.arrow.kind, op.arrow.both) : '';   // 동선 화살표
+    if (op.t === 'free' && op.space) return op.pts && op.pts.length > 1 ? `<path d="${spD(op.pts)}" ${stAttr(op.ls, op.w)}/>` : '';   // 공간 — 끝 막음이 반듯하게
     if (op.t === 'free') return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${op.hedge || op.space ? stAttr(op.ls, op.w) : freeAttr(op.ls, op.w)}/>` : '';   // 경계식재 선은 엷은 프리드로잉 굵기가 아니라 샤프 선 그대로
     if (op.t === 'fill' && !op._raw && ((op.cuts && op.cuts.length) || (op.holes && op.holes.length))) {   // holes — 위에 얹힌 교목·관목 자리(경계식재)   // 지우개로 지운 자리 — 원판들을 검게 뚫은 mask 로 가린다
         const id = `cadFm${op.id}`, [x0, y0, x1, y1] = op.bb || [sheet.x0, sheet.y0, sheet.x1, sheet.y1], m = 2 * U;
@@ -2937,7 +2938,7 @@ const grpOps = id => { const i = doc.ops.findIndex(o => o.id === id); if (i < 0)
 function grpDesc(ops, full) {                          // '정삼각형 P1 → P2 → P3 → P1 · 한 변 12m'
     const o = ops[0], ptxt = full ? ptxtFull : (n => `P${n}`), ns = [o.a, ...ops.map(x => x.b)];
     if (o.lead) return `지시선 · ${o.leadTxt || ''}`;
-    if (o.space) return `공간 · ${({box: '네모', pts: '점', free: '자유곡선'})[o.space.mode] || ''} · 면적 약 ${fmt(Math.round(o.spaceArea || 0))}㎡`;
+    if (o.space) return `공간 · ${({box: '네모', pts: '점', free: '자유곡선'})[o.space.mode] || ''} · ${o.space.open ? '열린 선' : `면적 약 ${fmt(Math.round(o.spaceArea || 0))}㎡`}`;
     if (o.hedge) return `경계식재 · 폭 ${fmt(o.hedge.W)}m · 길이 ${fmt(o.hedgeLen || 0)}m`;
     if (o.t === 'free' && o.shrub) {                     // 관목 군식 — 교목·관목 뒤로 지나가 끊긴 조각들
         const L = ops.reduce((t, x) => { const a = x.pts || []; for (let i = 1; i < a.length; i++) t += Math.hypot(a[i][0] - a[i - 1][0], a[i][1] - a[i - 1][1]); return t; }, 0);
@@ -4756,10 +4757,12 @@ function spaceOpts() {
     return {mode: ($('fspM') && $('fspM').value) || 'pts', r: (+($('fspR') && $('fspR').value) || 2) * k, gap: (+($('fspG') && $('fspG').value) || 0.7) * k,
             two: !$('fspTwo') || $('fspTwo').checked, rmm: +($('fspR') && $('fspR').value) || 2, gmm: +($('fspG') && $('fspG').value) || 0.7};
 }
+const spD = Q => 'M' + Q.map(q => `${fmt(q[0])} ${fmt(q[1])}`).join('L');   // 공간 선 — 점을 그대로(촘촘해 곡선은 매끄럽고, 끝 막음 모서리는 반듯)
 const spArea = Q => { let a = 0; for (let i = 0, j = Q.length - 1; i < Q.length; j = i++) a += Q[j][0] * Q[i][1] - Q[i][0] * Q[j][1]; return a / 2; };
-function spRound(V, r) {                               // 닫힌 꺾은선 V([x,y]) 의 모서리를 반지름 r 로 둥글린 점들(닫힘, 첫 점 반복 없음)
+function spRound(V, r, open) {                         // 꺾은선 V([x,y]) 의 모서리를 반지름 r 로 둥글린 점들(닫힌 것은 첫 점 반복 없음, 열린 것은 양 끝 그대로)
     const n = V.length, out = [];
     for (let i = 0; i < n; i++) {
+        if (open && (i === 0 || i === n - 1)) { out.push(V[i]); continue; }
         const P0 = V[(i - 1 + n) % n], P1 = V[i], P2 = V[(i + 1) % n];
         const ax = P0[0] - P1[0], ay = P0[1] - P1[1], bx = P2[0] - P1[0], by = P2[1] - P1[1], la = Math.hypot(ax, ay), lb = Math.hypot(bx, by);
         if (la < 1e-6 || lb < 1e-6) { out.push(P1); continue; }
@@ -4776,39 +4779,44 @@ function spRound(V, r) {                               // 닫힌 꺾은선 V([x,
     }
     return out;
 }
-function spSmooth(R, step) {                           // 자유곡선 — 고르게 다시 찍고(간격 step) 이동 평균으로 떨림만 편다(손맛은 남긴다)
+function spSmooth(R, step, open) {                     // 자유곡선 — 고르게 다시 찍고(간격 step) 이동 평균으로 떨림만 편다(손맛은 남긴다). 열린 것은 양 끝을 둔다
     const pts = [R[0]]; let acc = 0;
     for (let i = 1; i < R.length; i++) { const l = pts[pts.length - 1]; if (Math.hypot(R[i][0] - l[0], R[i][1] - l[1]) >= step) pts.push(R[i]); }
     const n = pts.length; if (n < 4) return pts;
     let Q = pts;
-    for (let k = 0; k < 2; k++) Q = Q.map((q, i) => { const a = Q[(i - 1 + n) % n], b = Q[(i + 1) % n]; return [(a[0] + 2 * q[0] + b[0]) / 4, (a[1] + 2 * q[1] + b[1]) / 4]; });
+    for (let k = 0; k < 2; k++) Q = Q.map((q, i) => { if (open && (i === 0 || i === n - 1)) return q; const a = Q[(i - 1 + n) % n], b = Q[(i + 1) % n]; return [(a[0] + 2 * q[0] + b[0]) / 4, (a[1] + 2 * q[1] + b[1]) / 4]; });
     return Q;
 }
-function spInner(Q, gap) {                             // 닫힌 점들 Q 의 안쪽 평행선(점마다 이웃 두 변의 법선 평균으로 gap 만큼)
-    const n = Q.length, s = spArea(Q) > 0 ? 1 : -1;   // 화면 좌표(y 아래)에서 넓이가 양수면 시계 방향 — 안쪽은 진행 방향의 오른쪽
+function spInner(Q, gap, open) {                       // 점들 Q 의 안쪽 평행선(점마다 이웃 두 변의 법선 평균으로 gap 만큼). 열린 것은 양 끝을 이어 닫은 모양의 안쪽
+    const n = Q.length, s = spArea(Q) > 0 ? 1 : -1;
     return Q.map((q, i) => {
-        const a = Q[(i - 1 + n) % n], b = Q[(i + 1) % n], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1;
+        const a = open && i === 0 ? q : Q[(i - 1 + n) % n], b = open && i === n - 1 ? q : Q[(i + 1) % n], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1;
         return [q[0] - dy / L * gap * s, q[1] + dx / L * gap * s];
     });
 }
-function spaceShape(V, mode, o) {                      // V — 닫힌 꺾은선(또는 자유곡선) → {outer, inner}(닫힌 점들, 첫 점 반복 포함)
+function spaceShape(V, mode, o, open) {                // V — 꺾은선(또는 자유곡선) → 닫힌 것: {outer, inner} 두 고리 · 열린 것: 두 줄의 양 끝을 짧은 선으로 막은 띠 하나(대표님 사진)
     let Q;
-    if (mode === 'free') Q = spSmooth(V, Math.max(o.r * 0.3, 0.05));
-    else Q = spRound(V, o.r);
-    if (Q.length < 3) return null;
-    const close = A => A.concat([A[0]]).map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]);
+    if (mode === 'free') Q = spSmooth(V, Math.max(o.r * 0.3, 0.05), open);
+    else Q = spRound(V, o.r, open);
+    if (Q.length < (open ? 2 : 3)) return null;
+    const R3 = A => A.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]), close = A => R3(A.concat([A[0]]));
+    if (open) {
+        if (!o.two) return {outer: R3(Q), inner: null, area: 0, open: true};
+        const I = spInner(Q, o.gap, true);
+        return {outer: R3(Q.concat(I.slice().reverse(), [Q[0]])), inner: null, area: 0, open: true};   // 바깥 줄 → 끝 막음 → 안쪽 줄(거꾸로) → 처음 막음
+    }
     return {outer: close(Q), inner: o.two ? close(spInner(Q, o.gap)) : null, area: Math.abs(spArea(Q))};
 }
-function spaceFinish(V, mode) {
-    const o = spaceOpts();
-    if (V.length < 3) { flash('공간은 점을 셋 이상 둘러야 합니다'); return; }
-    const S = spaceShape(V, mode, o); if (!S) { flash('공간을 만들지 못했습니다'); return; }
+function spaceFinish(V, mode, closed) {
+    const o = spaceOpts(), open = !closed;
+    if (V.length < (open ? 2 : 3)) { flash(open ? '공간은 점을 둘 이상 찍어야 합니다' : '닫힌 공간은 점을 셋 이상 둘러야 합니다'); return; }
+    const S = spaceShape(V, mode, o, open); if (!S) { flash('공간을 만들지 못했습니다'); return; }
     snapHist();
-    const gid = doc.seq, sp = {mode, r: o.rmm, gap: o.gmm};
+    const gid = doc.seq, sp = {mode, r: o.rmm, gap: o.gmm, open};
     doc.ops.push({id: doc.seq++, t: 'free', pts: S.outer, ls: 'solid', w: 'p9', space: sp, grp: gid, gname: '공간', spaceArea: +S.area.toFixed(1)});
-    if (S.inner) doc.ops.push({id: doc.seq++, t: 'free', pts: S.inner, ls: 'solid', w: 'p5', space: sp, grp: gid, gname: '공간', spaceArea: +S.area.toFixed(1)});
+    if (S.inner) doc.ops.push({id: doc.seq++, t: 'free', pts: S.inner, ls: 'solid', w: 'p9', space: sp, grp: gid, gname: '공간', spaceArea: +S.area.toFixed(1)});
     changed(); drawPre(); status();
-    flash(`공간 — 면적 약 ${fmt(Math.round(S.area))}㎡`);
+    flash(open ? '공간 — 열린 선(양 끝을 막았습니다)' : `공간 — 닫힘 · 면적 약 ${fmt(Math.round(S.area))}㎡`);
 }
 function spacePreSvg(extra) {
     const o = spaceOpts(), h = hover, w = h && (h.w || h);
@@ -4818,15 +4826,17 @@ function spacePreSvg(extra) {
     const raw = `<path d="M${V.map(q => `${fmt(q[0] != null ? q[0] : q.x)} ${fmt(q[1] != null ? q[1] : q.y)}`).join('L')}" fill="none" stroke="${RED}" stroke-width="${fmt(0.1 * U)}" stroke-dasharray="${fmt(0.5 * U)} ${fmt(0.3 * U)}"/>`;
     const A = V.map(q => q[0] != null ? q : [q.x, q.y]);
     if (A.length < 3) return raw;
-    const S = spaceShape(A, o.mode, o); if (!S) return raw;
+    const f = A[0], l = A[A.length - 1], cl = o.mode === 'box' || (A.length >= 4 && Math.hypot(l[0] - f[0], l[1] - f[1]) * pxPer() < 12);
+    const S = spaceShape(cl && o.mode !== 'box' ? A.slice(0, -1) : A, o.mode, o, !cl); if (!S) return raw;
     const sw = fmt(0.12 * U);
-    return raw + `<path d="${freeD(S.outer)}" fill="none" stroke="${RED}" stroke-width="${sw}"/>` + (S.inner ? `<path d="${freeD(S.inner)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.06 * U)}"/>` : '');
+    return raw + `<path d="${spD(S.outer)}" fill="none" stroke="${RED}" stroke-width="${sw}"/>` + (S.inner ? `<path d="${spD(S.inner)}" fill="none" stroke="${RED}" stroke-width="${sw}"/>` : '')
+        + (cl && o.mode === 'pts' ? `<circle cx="${fmt(f[0])}" cy="${fmt(f[1])}" r="${fmt(0.8 * U)}" fill="none" stroke="#2ea043" stroke-width="${fmt(0.15 * U)}"/>` : '');
 }
 function spaceHint() {
     const m = spaceOpts().mode;
     if (m === 'box') return ' · 한 모서리에서 맞은편 모서리까지 끄세요';
-    if (m === 'free') return ' · 손 가는 대로 둘러 그리고 놓으면 닫힙니다';
-    return spaceV.length ? ` · 공간 ${spaceV.length}점 · 처음 점을 누르거나 더블클릭·Enter·우클릭으로 닫기 · Backspace 한 점 · Esc 취소` : ' · 공간을 두를 첫 점을 누르세요';
+    if (m === 'free') return ' · 손 가는 대로 그립니다 — 처음 자리 곁에서 놓으면 닫히고, 아니면 열린 채(양 끝을 막는다)';
+    return spaceV.length ? ` · 공간 ${spaceV.length}점 · 처음 점(초록 고리)을 누르면 닫힘 · 더블클릭·Enter·우클릭은 열린 채 끝(양 끝을 막는다) · Backspace 한 점 · Esc 취소` : ' · 공간을 두를 첫 점을 누르세요';
 }
 // ── 공간 끝 ──
 function hitPoint(w) {
@@ -6685,9 +6695,9 @@ svg.addEventListener('pointerdown', e => {
         if (m === 'free' && e.button === 0) { drag = {kind: 'spfree', pts: [[w.x, w.y]], sx: e.clientX, sy: e.clientY}; return; }
         drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true};
         if (m !== 'pts') return;
-        if (e.button === 2) { const V = spaceV.map(q => [q.x, q.y]); spaceV = []; if (V.length >= 3) spaceFinish(V, 'pts'); else { drawPre(); status(); } return; }
+        if (e.button === 2) { const V = spaceV.map(q => [q.x, q.y]); spaceV = []; if (V.length >= 2) spaceFinish(V, 'pts', false); else { drawPre(); status(); } return; }
         const q = snapXY(w), f = spaceV[0], l = spaceV[spaceV.length - 1];
-        if (f && spaceV.length >= 3 && Math.hypot(q.x - f.x, q.y - f.y) * pxPer() < 12) { const V = spaceV.map(v => [v.x, v.y]); spaceV = []; spaceFinish(V, 'pts'); return; }   // 처음 점 — 닫기
+        if (f && spaceV.length >= 3 && Math.hypot(q.x - f.x, q.y - f.y) * pxPer() < 12) { const V = spaceV.map(v => [v.x, v.y]); spaceV = []; spaceFinish(V, 'pts', true); return; }   // 처음 점 — 닫기
         if (!l || Math.hypot(q.x - l.x, q.y - l.y) > 1e-6) spaceV.push(q);
         drawPre(); status(); return;
     }
@@ -7115,8 +7125,8 @@ function endPtr(e) {
     if (e.type === 'pointercancel') return;
     if (d.kind === 'trirot') { rotateTri(); return; }
     if (d.kind === 'boxdraw') { gPre.innerHTML = ''; if (d.b) makeBox(d.a, d.b); return; }
-    if (d.kind === 'spbox') { gPre.innerHTML = ''; if (d.b && Math.abs(d.b.x - d.a.x) > 1e-6 && Math.abs(d.b.y - d.a.y) > 1e-6) spaceFinish([[d.a.x, d.a.y], [d.b.x, d.a.y], [d.b.x, d.b.y], [d.a.x, d.b.y]], 'box'); return; }
-    if (d.kind === 'spfree') { gPre.innerHTML = ''; if (d.pts.length > 8) spaceFinish(d.pts, 'free'); else flash('조금 더 길게 둘러 그리세요'); return; }
+    if (d.kind === 'spbox') { gPre.innerHTML = ''; if (d.b && Math.abs(d.b.x - d.a.x) > 1e-6 && Math.abs(d.b.y - d.a.y) > 1e-6) spaceFinish([[d.a.x, d.a.y], [d.b.x, d.a.y], [d.b.x, d.b.y], [d.a.x, d.b.y]], 'box', true); return; }
+    if (d.kind === 'spfree') { gPre.innerHTML = ''; if (d.pts.length > 8) { const f = d.pts[0], l = d.pts[d.pts.length - 1], cl = Math.hypot(l[0] - f[0], l[1] - f[1]) * pxPer() < 16; spaceFinish(cl ? d.pts.slice(0, -1) : d.pts, 'free', cl); } else flash('조금 더 길게 그리세요'); return; }   // 처음 자리 곁에서 놓았을 때만 닫힌다
     if (d.kind === 'shrub') {                         // 관목 군식 — 뗀 조각을 잇는다(끝낼 때 한 획으로 넣는다)
         const moved = Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 4 || d.pts.length > 3;
         if (!moved) { drawPre(); return; }            // 누르기만 한 것(더블클릭의 첫 누름 등)은 잇지 않는다
@@ -7691,7 +7701,7 @@ $('fdName').addEventListener('change', () => { const q = cnTree($('fdName').valu
 document.addEventListener('keydown', e => {           // 공간(점) — Enter 닫기 · Backspace 한 점 · Esc 취소
     if (tool !== 'space' || !spaceV.length || RP) return;
     const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
-    if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); const V = spaceV.map(q => [q.x, q.y]); spaceV = []; if (V.length >= 3) spaceFinish(V, 'pts'); else { drawPre(); status(); } }
+    if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); const V = spaceV.map(q => [q.x, q.y]); spaceV = []; if (V.length >= 2) spaceFinish(V, 'pts', false); else { drawPre(); status(); } }
     else if (e.key === 'Backspace') { e.preventDefault(); e.stopImmediatePropagation(); spaceV.pop(); drawPre(); status(); }
     else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); spaceV = []; drawPre(); status(); flash('공간을 취소했습니다'); }
 }, true);
@@ -7827,7 +7837,7 @@ document.addEventListener('keydown', e => {
     if (k === '-') zoomCenter(1 / 1.4);
 });
 document.addEventListener('keyup', e => { if (e.key === ' ') spaceDown = false; });
-svg.addEventListener('dblclick', () => { if (tool === 'space' && spaceV.length >= 3 && !RP) { const V = spaceV.map(q => [q.x, q.y]); spaceV = []; spaceFinish(V, 'pts'); } if (tool === 'arrow' && arrowV.length && !RP) arrowFinish(); if (tool === 'poly' && polyV.length && !RP) polyFinish(); if (tool === 'shrub' && shrubCh && !RP) shrubFinish(false); });
+svg.addEventListener('dblclick', () => { if (tool === 'space' && spaceV.length >= 2 && !RP) { const V = spaceV.map(q => [q.x, q.y]); spaceV = []; spaceFinish(V, 'pts', false); } if (tool === 'arrow' && arrowV.length && !RP) arrowFinish(); if (tool === 'poly' && polyV.length && !RP) polyFinish(); if (tool === 'shrub' && shrubCh && !RP) shrubFinish(false); });
 document.addEventListener('keydown', e => {           // 관목 군식을 이어 긋는 중 — Enter 열린 채 끝 · Backspace 한 조각 · Esc 취소(도구는 그대로)
     if (tool !== 'shrub' || !shrubCh || RP) return;
     const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
