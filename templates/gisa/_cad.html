@@ -4343,7 +4343,8 @@ function leadGeom(w) {
     if (t === 'r' || t === 'l') x0 = right ? Math.max(w.x, S.x + pad) + size * 1.5 : Math.min(w.x, S.x - pad) - size * 1.5;   // 글을 시작할 자리 — 누른 점에서 글자 1.5칸 띄운다(대표님: 붙어 보였다 → 0.8칸도 가깝다)
     else {                                               // 꺾는 자리 — 위·아래를 형에 맞춘다
         let by = w.y; const up = t[0] === 'u';
-        if (up ? by > S.y : by < S.y) by = 2 * S.y - by;
+        const mn = size * 1.5;                           // 형과 반대쪽으로는 넘어가지 않는다(대표님) — 거울로 뒤집지 않고 최소 길이에서 멈춘다
+        if (up ? by > S.y - mn : by < S.y + mn) by = up ? S.y - mn : S.y + mn;
         // 꺾는 선 — '자유각도'를 켜면 누른 자리 그대로(사선), 끄면 곧게 90°(대표님)
         B = {x: rnd(leadFree() ? w.x : S.x), y: rnd(by)}; y = B.y; x0 = right ? B.x + pad : B.x - pad;
     }
