@@ -4386,6 +4386,32 @@ function leadFinish(w) {
     leadS = null; changed(); drawPre(); status();
     flash(`지시선 — ${lbl}`);
 }
+// 보조선이 없던 예전 지시선에 글자 윗선·밑선 보조선을 넣는다(대표님) — 열 때 한 번. 글꼴을 다 읽은 뒤 재야 폭이 맞는다
+function leadGuideMigrate() {
+    if (RP) return;
+    const gids = [...new Set(doc.ops.filter(o => o.lead && o.grp != null).map(o => o.grp))]
+        .filter(g => !doc.ops.some(o => o.lead && o.grp === g && o.leadGuide));
+    if (!gids.length) return;
+    let n = 0;
+    gids.forEach(gid => {
+        const lines = doc.ops.filter(o => o.lead && o.grp === gid), ids = leadSet(lines[0]); if (!ids) return;
+        const texts = doc.ops.filter(o => ids.has(o.id) && o.t === 'text');
+        if (!texts.length) return;
+        const add = [];
+        texts.forEach(t => {
+            if (t.leadOf == null) t.leadOf = gid;          // 예전 글도 묶음 표시를 단다
+            const sz = +t.size || 1, w = leadMeasure(t.s, sz, t.font || 'gothic'), x0 = t.x - sz * 0.15, x1 = t.x + w + sz * 0.15;
+            [t.y, t.y - sz].forEach(yy => {
+                const a = addPt(x0, yy), b = addPt(x1, yy);
+                add.push({id: doc.seq++, t: 'line', a, b, ls: 'aux', w: 'p5', grp: gid, gname: '지시선', lead: true, leadTxt: lines[0].leadTxt, leadGuide: true,
+                    tl: {bar: null, tri: null, tpl: null, sr: null, ftri: null, ...toolsForLine(P(a), P(b))}});
+            });
+        });
+        const at = doc.ops.indexOf(lines[lines.length - 1]) + 1;   // 지시선 선 바로 뒤, 글 앞에
+        doc.ops.splice(at, 0, ...add); n++;
+    });
+    if (n) { dirty = true; savedLabel(); renderAll(); saveDraft(); flash(`예전 지시선 ${n}개에 글자 보조선을 넣었습니다 — 저장해 주세요`); }
+}
 function leadHint() {
     if (!leadS) return ' · 수목을 이은 다각선의 끝점을 누르세요';
     const t = leadType();
@@ -6018,6 +6044,7 @@ function afterLoad(refit) {
     selOps.clear(); selPts.clear(); selPt = null; endEdit();
     Object.keys(doc.syms || {}).forEach(ensureSymOption);
     setSheet(doc.sheet); renderAll(); regInfo();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!RP) leadGuideMigrate(); }); else leadGuideMigrate();
     if (refit) fit();
 }
 
