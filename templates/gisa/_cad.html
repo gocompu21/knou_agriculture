@@ -4858,26 +4858,70 @@ function spCorners(V, mode, open) {                     // 크게(45° 넘게) �
     }
     return out;
 }
-function spaceShape(V, mode, o, open, seed) {                // V — 꺾은선(또는 자유곡선) → 닫힌 것: {outer, inner} 두 고리 · 열린 것: 두 줄의 양 끝을 짧은 선으로 막은 띠 하나(대표님 사진)
+function spInnerStrokes(V, o, open, seed) {             // 안쪽 줄을 손으로 긋듯 — 크게 꺾이는 모서리마다 획을 끊고, 획 끝이 모서리를 지나쳐 서로 엇갈리게(대표님 스케치)
+    const k = scaleDenom() / 1000, n = V.length, m = open ? n - 1 : n, rnd = spRng((seed ^ 0x5bd1e995) >>> 0);
+    const s = spArea(V) > 0 ? 1 : -1, E = [];
+    for (let i = 0; i < m; i++) {                       // 변마다 안쪽으로 gap 만큼 민 직선
+        const A = V[i], B = V[(i + 1) % n], dx = B[0] - A[0], dy = B[1] - A[1], L = Math.hypot(dx, dy);
+        if (L < 1e-6) continue;
+        const nx = -dy / L * o.gap * s, ny = dx / L * o.gap * s;
+        E.push({a: [A[0] + nx, A[1] + ny], b: [B[0] + nx, B[1] + ny], u: [dx / L, dy / L]});
+    }
+    const me = E.length; if (!me) return [];
+    const meet = (e1, e2) => {                          // 두 민 직선의 교점(나란하면 앞 변 끝)
+        const d = e1.u[0] * e2.u[1] - e1.u[1] * e2.u[0]; if (Math.abs(d) < 1e-9) return e1.b.slice();
+        const t = ((e2.a[0] - e1.a[0]) * e2.u[1] - (e2.a[1] - e1.a[1]) * e2.u[0]) / d;
+        return [e1.a[0] + e1.u[0] * t, e1.a[1] + e1.u[1] * t];
+    };
+    const sharp = (e1, e2) => Math.acos(Math.max(-1, Math.min(1, e1.u[0] * e2.u[0] + e1.u[1] * e2.u[1]))) > Math.PI / 4;
+    const J = [];                                       // J[i] — 변 i 와 i+1 사이 이음(닫힌 것은 마지막 → 첫 변까지)
+    for (let i = 0; i < (open ? me - 1 : me); i++) { const e1 = E[i], e2 = E[(i + 1) % me]; J.push({p: meet(e1, e2), sharp: sharp(e1, e2)}); }
+    let start = 0;                                      // 닫힌 것은 꺾이는 모서리에서 시작
+    if (!open) { const f = J.findIndex(j => j.sharp); if (f < 0) return null; start = (f + 1) % me; }
+    const strokes = []; let cur = null;
+    const ov = () => o.gap * (1.1 + rnd() * 0.9) + 0.3 * k;   // 모서리를 지나치는 길이 — 바깥 줄까지 닿거나 살짝 넘는다
+    for (let c = 0; c < me; c++) {
+        const i = (start + c) % me, e = E[i], ji = open ? i - 1 : (i - 1 + me) % me;
+        const jIn = open && i === 0 ? null : J[ji], jOut = open && i === me - 1 ? null : J[i];
+        if (!cur) {                                     // 획 시작 — 꺾인 모서리면 교점에서 거꾸로 더 나가서
+            const p0 = jIn ? jIn.p : e.a, o0 = jIn ? ov() : 0;
+            cur = [[p0[0] - e.u[0] * o0, p0[1] - e.u[1] * o0]];
+        }
+        if (jOut && !jOut.sharp) { cur.push(jOut.p); continue; }   // 완만한 꺾임은 이어 긋는다
+        const p1 = jOut ? jOut.p : e.b, o1 = jOut ? ov() : 0;
+        cur.push([p1[0] + e.u[0] * o1, p1[1] + e.u[1] * o1]); strokes.push(cur); cur = null;
+    }
+    return strokes.map(P => {                           // 획마다 구불거림 + 간격 흔들림
+        const D = spDense(P, 0.8 * k, false); if (D.P.length < 2) return P;
+        const N = spNormals(D.P, false), w = spNoise(rnd, D.L, false, [[13 * k, 0.6], [37 * k, 0.4]]), g = spNoise(rnd, D.L, false, [[29 * k, 0.65], [71 * k, 0.35]]);
+        return D.P.map((q, i) => { const e = 0.16 * k * w(D.S[i]) + 0.22 * o.gap * g(D.S[i]) * s; return [q[0] + N[i][0] * e, q[1] + N[i][1] * e]; });
+    });
+}
+function spaceShape(V, mode, o, open, seed) {                // V — 꺾은선(또는 자유곡선) → {outer, inners[], caps[]} · 바깥 줄은 둥근 모서리 한 획, 안쪽 줄은 모서리마다 끊어 엇갈리게
+    seed = seed == null ? spSeed : seed;
     let Q;
     if (mode === 'free') Q = spSmooth(V, Math.max(o.r * 0.3, 0.05), open);
     else Q = spRound(V, o.r, open);
     if (Q.length < (open ? 2 : 3)) return null;
-    const R3 = A => A.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]), close = A => R3(A.concat([A[0]]));
+    const R3 = A => A.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]);
     const area = open ? 0 : Math.abs(spArea(Q));
-    const K = spSketch(Q, spCorners(V, mode, open), o, open, seed == null ? spSeed : seed);
-    if (K) {                                          // 손 스케치 맛 — 구불거림·간격 변화·모서리 겹침
-        if (!open) return {outer: R3(K.outer), inner: o.two ? R3(K.inner) : null, area};
-        Q = K.outer;
+    const K = spSketch(Q, [], o, open, seed);           // 바깥 줄 구불거림(모서리 처리는 안쪽 획이 맡는다)
+    const outer = K ? K.outer : (open ? Q : Q.concat([Q[0]]));
+    let inners = [];
+    if (o.two) {
+        const st = mode !== 'free' && spCorners(V, mode, open).length ? spInnerStrokes(V, o, open, seed) : null;
+        inners = st && st.length ? st : [K ? K.inner : spInner(Q, o.gap, open)];
     }
-    if (open) {                                       // 열린 것 — 두 줄은 따로, 끊긴 양 끝은 두 줄에 직각인 짧은 선으로 막되 두 줄 밖으로 조금 더 나오게(대표님 그림)
-        if (!o.two) return {outer: R3(Q), inner: null, caps: [], area: 0, open: true};
-        const I = K ? K.inner : spInner(Q, o.gap, true), ov = Math.max(o.gap, 0.8 * scaleDenom() / 1000);
+    if (!open) return {outer: R3(outer), inners: inners.map(R3), caps: [], area};
+    let caps = [];                                      // 열린 것 — 끊긴 양 끝은 두 줄에 직각인 짧은 선으로 막되 두 줄 밖으로 조금 더 나오게(대표님 그림)
+    if (inners.length) {
+        const ov = Math.max(o.gap, 0.8 * scaleDenom() / 1000);
         const cap = (a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
             return R3([[a[0] - ux * ov, a[1] - uy * ov], [b[0] + ux * ov, b[1] + uy * ov]]); };
-        return {outer: R3(Q), inner: R3(I), caps: [cap(Q[0], I[0]), cap(Q[Q.length - 1], I[I.length - 1])], area: 0, open: true};
+        const I0 = inners[0], I1 = inners[inners.length - 1];
+        caps = [cap(outer[0], I0[0]), cap(outer[outer.length - 1], I1[I1.length - 1])];
     }
-    return {outer: close(Q), inner: o.two ? close(spInner(Q, o.gap)) : null, area: Math.abs(spArea(Q))};
+    return {outer: R3(outer), inners: inners.map(R3), caps, area: 0, open: true};
 }
 function spaceFinish(V, mode, closed) {
     const o = spaceOpts(), open = !closed;
@@ -4887,7 +4931,7 @@ function spaceFinish(V, mode, closed) {
     const gid = doc.seq, sp = {mode, r: o.rmm, gap: o.gmm, open, seed: spSeed};
     spSeed = (Math.random() * 1e9) | 0;
     doc.ops.push({id: doc.seq++, t: 'free', pts: S.outer, ls: 'solid', w: 'p9', space: sp, grp: gid, gname: '공간', spaceArea: +S.area.toFixed(1)});
-    if (S.inner) doc.ops.push({id: doc.seq++, t: 'free', pts: S.inner, ls: 'solid', w: 'p9', space: sp, grp: gid, gname: '공간', spaceArea: +S.area.toFixed(1)});
+    S.inners.forEach(I => doc.ops.push({id: doc.seq++, t: 'free', pts: I, ls: 'solid', w: 'p9', space: sp, grp: gid, gname: '공간', spaceArea: +S.area.toFixed(1)}));
     (S.caps || []).forEach(c => doc.ops.push({id: doc.seq++, t: 'free', pts: c, ls: 'solid', w: 'p9', space: sp, grp: gid, gname: '공간', spaceArea: 0}));   // 끊긴 끝 막음
     changed(); drawPre(); status();
     flash(open ? '공간 — 열린 선(끊긴 양 끝을 직각 선으로 막았습니다)' : `공간 — 닫힘 · 면적 약 ${fmt(Math.round(S.area))}㎡`);
@@ -4903,7 +4947,7 @@ function spacePreSvg(extra) {
     const f = A[0], l = A[A.length - 1], cl = o.mode === 'box' || (A.length >= 4 && Math.hypot(l[0] - f[0], l[1] - f[1]) * pxPer() < 12);
     const S = spaceShape(cl && o.mode !== 'box' ? A.slice(0, -1) : A, o.mode, o, !cl); if (!S) return raw;
     const sw = fmt(0.12 * U);
-    return raw + `<path d="${spD(S.outer)}" fill="none" stroke="${RED}" stroke-width="${sw}"/>` + (S.inner ? `<path d="${spD(S.inner)}" fill="none" stroke="${RED}" stroke-width="${sw}"/>` : '')
+    return raw + `<path d="${spD(S.outer)}" fill="none" stroke="${RED}" stroke-width="${sw}"/>` + S.inners.map(I => `<path d="${spD(I)}" fill="none" stroke="${RED}" stroke-width="${sw}"/>`).join('')
         + (S.caps || []).map(c => `<path d="${spD(c)}" fill="none" stroke="${RED}" stroke-width="${sw}"/>`).join('')
         + (cl && o.mode === 'pts' ? `<circle cx="${fmt(f[0])}" cy="${fmt(f[1])}" r="${fmt(0.8 * U)}" fill="none" stroke="#2ea043" stroke-width="${fmt(0.15 * U)}"/>` : '');
 }
