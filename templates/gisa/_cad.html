@@ -5016,7 +5016,7 @@ function awBoxPts(A, B) {
 // 겹친 곳의 빗금은 먼저 그린 띠 것만 남긴다. 점 찍기에서 처음 점을 누르면 고리(화살촉 없음)로 닫힌다.
 // 저장은 중심선 + arrow:{kind:'carb', both, none, closed, wmm, seed}
 // 차량동선 화살촉 — 띠 옆으로 덜 튀어나오게(대표님): 안쪽 빗변 0.35W·마구리 0.3W → 띠 변 밖으로 약 0.46W(보행동선은 0.83W), 띠 끝~꼭지 0.73W
-const CAR_HEAD = {lin: 0.35, th: 0.3}, CAR_HL = 0.73;
+const CAR_HEAD = {lin: 0.22, th: 0.22}, CAR_HL = 0.63;   // 대표님: 두께·튀어나옴을 더 줄임(0.35·0.3 → 0.22·0.22, 변 밖 약 0.31W)
 function carCenter(pts, a) {                             // 중심선 — 꺾인 자리를 폭만큼 둥글린 촘촘한 점들
     const k = scaleDenom() / 1000, W = (a.wmm || 13) * k;
     let R = pts; if (a.closed && R.length > 2) { const f = R[0], l = R[R.length - 1]; if (Math.hypot(f[0] - l[0], f[1] - l[1]) < 1e-6) R = R.slice(0, -1); }
@@ -5032,7 +5032,9 @@ function carPtsX(pts, a, self, forMask) {
     const oc = (doc.ops || []).filter(o => o.t === 'free' && o.arrow && o.arrow.kind === 'carb' && o !== self && o.pts && o.pts.length > 1)
         .map(o => ({o, P: carCenter(o.pts, o.arrow).P, h: (o.arrow.wmm || 13) * k / 2}));
     if (!oc.length) return pts;
+    let ownLast = false;
     const ext = (q, r) => {
+        ownLast = false;
         const dx = q[0] - r[0], dy = q[1] - r[1], l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
         const dist = (o, p) => Math.min(...o.P.map(c => Math.hypot(c[0] - p[0], c[1] - p[1])));
         let best = null, bd = Infinity; oc.forEach(o => { const d = dist(o, q); if (d < o.h + W * 0.1 && d < bd) { bd = d; best = o; } });
@@ -5042,12 +5044,13 @@ function carPtsX(pts, a, self, forMask) {
         const ends = best.o.arrow.closed ? [] : [best.o.pts[0], best.o.pts[best.o.pts.length - 1]];
         const corner = ends.some(e => Math.hypot(e[0] - q[0], e[1] - q[1]) < best.h * 2.4);
         const mine = self ? doc.ops.indexOf(self) : doc.ops.length, own = corner && mine < doc.ops.indexOf(best.o);   // ㄱ자 모서리는 먼저 그린 길이 차지한다(둘 다 채우면 변이 겹쳐 두 줄)
-        const e = own ? d : d - (corner ? 0.35 : 0.14) * best.h;   // 모서리를 차지한 길은 가리기 면도 끝까지(그 끝막음이 바깥 모서리 변), 진 쪽은 일찍 멈춰 그 안에 숨는다
+        const e = own ? d : d - (corner ? 0.35 : 0.14) * best.h; ownLast = own && e > 0;   // 모서리를 차지한 길은 가리기 면도 끝까지(그 끝막음이 바깥 모서리 변), 진 쪽은 일찍 멈춰 그 안에 숨는다
         return e > 0 ? [q[0] + ux * e, q[1] + uy * e] : q;
     };
-    const P = pts.slice(), n = P.length, s0 = ext(P[0], P[1]), s1 = ext(P[n - 1], P[n - 2]);
+    const P = pts.slice(), n = P.length, s0 = ext(P[0], P[1]), o0 = ownLast, s1 = ext(P[n - 1], P[n - 2]), o1 = ownLast;
     if (s0 !== P[0]) P.unshift(s0);
     if (s1 !== pts[n - 1]) P.push(s1);
+    P.cornerStart = o0; P.cornerEnd = o1;                 // ㄱ자 모서리를 차지한 끝 — 바깥 모서리를 둥글린다
     return P;
 }
 function carPoly(op, grow, ext) {                       // 띠의 면(가리기용) — grow: 반폭에 더할 몫(음수면 줄임), ext: 열린 끝을 늘일 길이
@@ -5065,15 +5068,15 @@ function carInPoly(q, op) {                             // 점이 그 띠 안인
     const a = op.arrow, W = (a.wmm || 13) * scaleDenom() / 1000, D = carCenter(op.pts, a);
     return D.P.some(c => Math.hypot(c[0] - q[0], c[1] - q[1]) < W / 2);
 }
-function carSvg(pts, a, color, self) {
-    const k = scaleDenom() / 1000, W = (a.wmm || 13) * k, rnd = spRng(a.seed || 1), cl = !!a.closed;
+function carGeom(pts, a, self) {                        // 한 띠의 뼈대 — 화살촉 쪽 정하기·닿은 끝 늘이기·중심선·몸통 범위(s0~s1)
+    const k = scaleDenom() / 1000, W = (a.wmm || 13) * k, cl = !!a.closed;
     const others = (doc.ops || []).filter(o => o.t === 'free' && o.arrow && o.arrow.kind === 'carb' && o !== self && o.pts && o.pts.length > 1);
     if (!cl && !a.none && !a.both && others.length) {   // 화살촉은 다른 길에 닿지 않은 끝(입구·출구)에 — 어느 쪽으로 그었든
         const touch = q => others.some(o => { const ow = (o.arrow.wmm || 13) * k; return carCenter(o.pts, o.arrow).P.some(c => Math.hypot(c[0] - q[0], c[1] - q[1]) < ow / 2 + W * 0.6); });
         if (touch(pts[pts.length - 1]) && !touch(pts[0])) pts = pts.slice().reverse();
     }
     pts = carPtsX(pts, a, self, false);                  // 다른 길에 닿은 끝은 그 길 너머 변까지
-    const D = carCenter(pts, a); if (D.P.length < 2 || D.L < W * 0.5) return '';
+    const D = carCenter(pts, a); if (D.P.length < 2 || D.L < W * 0.5) return null;
     const P = D.P, S = D.S, Lt = D.L, N = spNormals(P, cl), n = P.length;
     const at = s => {
         s = cl ? ((s % Lt) + Lt) % Lt : Math.max(0, Math.min(Lt, s)); let i = 0; while (i < n - 2 && S[i + 1] < s) i++;
@@ -5083,37 +5086,111 @@ function carSvg(pts, a, color, self) {
     };
     const heads = cl || a.none ? 0 : (a.both ? 2 : 1);
     let HL = W * CAR_HL; if (Lt < heads * HL + W * 0.5) HL = Math.max(0, (Lt - W * 0.5) / Math.max(1, heads));
-    const s0 = heads === 2 ? HL : 0, s1 = heads ? Lt - HL : Lt, amp = 0.1 * k;
-    const nL = pedWob(rnd, Lt, k), nR = pedWob(rnd, Lt, k);
-    const side = (sg, s) => { const q = at(s), off = sg * W / 2 + amp * (sg > 0 ? nL(s) : nR(s)); return [q.p[0] + q.n[0] * off, q.p[1] + q.n[1] * off]; };
+    return {k, W, cl, Lt, at, heads, HL, s0: heads === 2 ? HL : 0, s1: heads ? Lt - HL : Lt, others};
+}
+// 차량동선 길 전체의 외곽선(대표님 — 띠마다 변을 그리고 서로 가리니 길목마다 끊긴 선·날카로운 구석이 남았다).
+// 모든 띠 몸통을 한 장에 칠해 합친 다음 살짝 흐려서 구석을 둥글리고, 0.5 문턱에서 등고선을 딴다(marching squares).
+// 화살촉 밑변 자리는 몸통을 화살촉 안으로 조금 더 늘려 칠하고 그 앞을 가려 — 띠 변이 화살촉 안쪽 빗변까지 곧게 닿게 한다
+function carNetwork(extra) {
+    const ops = (doc.ops || []).filter(o => o.t === 'free' && o.arrow && o.arrow.kind === 'carb' && o.pts && o.pts.length > 1);
+    if (extra) ops.push(extra);
+    if (!ops.length) return null;
+    const k = scaleDenom() / 1000, key = JSON.stringify([k, ops.map(o => [o.pts, o.arrow.wmm, o.arrow.closed, o.arrow.none, o.arrow.both])]);
+    if (carNetwork.memo && carNetwork.memo.key === key) return carNetwork.memo.v;
+    const rings = [], cuts = []; let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, Wm = 0;
+    ops.forEach(o => {
+        const g = carGeom(o.pts, o.arrow, o === extra ? null : o); if (!g) return;
+        const W = g.W, h = W / 2, step = 0.5 * k, sA = g.heads === 2 ? g.s0 - W * 0.8 : g.s0, sB = g.heads ? g.s1 + W * 0.8 : g.s1;   // 화살촉 쪽은 몸통을 길게 칠해 둥글림이 가려진 곳에서 일어나게
+        const L = [], R = [];
+        const put = (s) => { const q = g.cl ? g.at(s) : g.at(Math.max(0, Math.min(g.Lt, s))), ext = (!g.cl && (s < 0 || s > g.Lt)) ? s : null;
+            let p = q.p; if (ext !== null) { const tt = [q.n[1], -q.n[0]], d = s < 0 ? s : s - g.Lt; p = [p[0] + tt[0] * d, p[1] + tt[1] * d]; }
+            L.push([p[0] + q.n[0] * h, p[1] + q.n[1] * h]); R.push([p[0] - q.n[0] * h, p[1] - q.n[1] * h]); };
+        if (g.cl) { for (let s = 0; s < g.Lt; s += step) put(s); rings.push({cl: true, A: L, B: R}); }
+        else { for (let s = sA; s < sB; s += step) put(s); put(sB); rings.push({cl: false, A: L.concat(R.reverse())}); }
+        if (g.heads) {                                  // 화살촉 밑변 앞을 가린다
+            const cut = (s, dir) => { const q = g.at(s), tt = [q.n[1] * dir, -q.n[0] * dir], nn = q.n;
+                return [[q.p[0] + nn[0] * W, q.p[1] + nn[1] * W], [q.p[0] + nn[0] * W + tt[0] * W, q.p[1] + nn[1] * W + tt[1] * W],
+                        [q.p[0] - nn[0] * W + tt[0] * W, q.p[1] - nn[1] * W + tt[1] * W], [q.p[0] - nn[0] * W, q.p[1] - nn[1] * W]]; };
+            cuts.push(cut(g.s1, 1)); if (g.heads === 2) cuts.push(cut(g.s0, -1));
+        }
+        Wm = Math.max(Wm, W);
+        rings[rings.length - 1].A.concat(rings[rings.length - 1].B || []).forEach(q => { x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); });
+    });
+    if (!rings.length) return null;
+    const mg = Wm; x0 -= mg; y0 -= mg; x1 += mg; y1 += mg;
+    let c = 0.2 * k; const area = (x1 - x0) * (y1 - y0); if (area / (c * c) > 3e6) c = Math.sqrt(area / 3e6);
+    const nx = Math.ceil((x1 - x0) / c) + 1, ny = Math.ceil((y1 - y0) / c) + 1;
+    const cv = document.createElement('canvas'); cv.width = nx; cv.height = ny;
+    const cx = cv.getContext('2d'); cx.setTransform(1 / c, 0, 0, 1 / c, -x0 / c, -y0 / c); cx.fillStyle = '#000';
+    rings.forEach(r => { cx.beginPath(); const pl = A => { cx.moveTo(A[0][0], A[0][1]); A.forEach(q => cx.lineTo(q[0], q[1])); cx.closePath(); };
+        pl(r.A); if (r.B) pl(r.B); cx.fill(r.cl ? 'evenodd' : 'nonzero'); });
+    const cv2 = document.createElement('canvas'); cv2.width = nx; cv2.height = ny;
+    const c2 = cv2.getContext('2d'); c2.filter = `blur(${(0.22 * Wm / c).toFixed(2)}px)`; c2.drawImage(cv, 0, 0);   // 흐림 = 구석 둥글기
+    const im = c2.getImageData(0, 0, nx, ny).data, v = (i, j) => (i < 0 || j < 0 || i >= nx || j >= ny) ? 0 : im[(j * nx + i) * 4 + 3] / 255;
+    // marching squares — 칸마다 0.5 문턱이 지나는 변 둘을 잇고, 같은 변을 공유하는 조각끼리 꿰어 고리로 만든다
+    const segs = new Map(), T = 0.5;
+    const ept = (i, j, hz) => { if (hz) { const a1 = v(i, j), b1 = v(i + 1, j), t = (T - a1) / ((b1 - a1) || 1e-9); return [x0 + (i + t) * c, y0 + j * c]; }
+        const a1 = v(i, j), b1 = v(i, j + 1), t = (T - a1) / ((b1 - a1) || 1e-9); return [x0 + i * c, y0 + (j + t) * c]; };
+    const link = (e1, e2) => { (segs.get(e1) || segs.set(e1, []).get(e1)).push(e2); (segs.get(e2) || segs.set(e2, []).get(e2)).push(e1); };
+    for (let j = -1; j < ny; j++) for (let i = -1; i < nx; i++) {
+        const tl = v(i, j) > T, tr = v(i + 1, j) > T, br = v(i + 1, j + 1) > T, bl = v(i, j + 1) > T, idx = (tl ? 8 : 0) | (tr ? 4 : 0) | (br ? 2 : 0) | (bl ? 1 : 0);
+        if (!idx || idx === 15) continue;
+        const top = `h${i},${j}`, bot = `h${i},${j + 1}`, lef = `v${i},${j}`, rig = `v${i + 1},${j}`;
+        const m = {1: [[lef, bot]], 2: [[bot, rig]], 3: [[lef, rig]], 4: [[top, rig]], 6: [[top, bot]], 7: [[lef, top]], 8: [[lef, top]], 9: [[top, bot]], 11: [[top, rig]], 12: [[lef, rig]], 13: [[bot, rig]], 14: [[lef, bot]]};
+        let ps = m[idx];
+        if (idx === 5 || idx === 10) { const mid = (v(i, j) + v(i + 1, j) + v(i + 1, j + 1) + v(i, j + 1)) / 4 > T;
+            ps = idx === 5 ? (mid ? [[lef, top], [bot, rig]] : [[lef, bot], [top, rig]]) : (mid ? [[lef, bot], [top, rig]] : [[lef, top], [bot, rig]]); }
+        ps.forEach(([e1, e2]) => link(e1, e2));
+    }
+    const pt = e => { const hz = e[0] === 'h', [i, j] = e.slice(1).split(',').map(Number); return ept(i, j, hz); };
+    const used = new Set(), loops = [];
+    segs.forEach((_, e) => {
+        if (used.has(e)) return;
+        const L = []; let cur = e, prev = null;
+        while (cur && !used.has(cur)) { used.add(cur); L.push(pt(cur)); const nb = (segs.get(cur) || []).filter(x => x !== prev && !used.has(x)); prev = cur; cur = nb[0]; }
+        if (L.length > 4) loops.push(L);
+    });
+    // 손맛 — 고리마다 아주 약하게 구불거린다(종이 0.08mm)
+    const rnd = spRng(7), f2 = q => `${fmt(q[0])} ${fmt(q[1])}`;
+    const outline = loops.map(L => { const D = spDense(L, 0.6 * k, true); const Nn = spNormals(D.P, true), w = pedWob(rnd, D.L, k);
+        return 'M' + D.P.map((q, i) => f2([q[0] + Nn[i][0] * 0.08 * k * w(D.S[i]), q[1] + Nn[i][1] * 0.08 * k * w(D.S[i])])).join('L') + 'Z'; }).join('');
+    const region = loops.map(L => 'M' + L.map(f2).join('L') + 'Z').join('');
+    const cutD = cuts.map(Q => 'M' + Q.map(f2).join('L') + 'Z').join('');
+    const val = {outline, region, cutD};
+    carNetwork.memo = {key, v: val};
+    return val;
+}
+function carSvg(pts, a, color, self) {
+    const g = carGeom(pts, a, self); if (!g) return '';
+    const {k, W, cl, Lt, at, heads, s0, s1, others} = g, rnd = spRng(a.seed || 1);
+    const side = (sg, s) => { const q = at(s); return [q.p[0] + q.n[0] * sg * W / 2, q.p[1] + q.n[1] * sg * W / 2]; };
     const f2 = q => `${fmt(q[0])} ${fmt(q[1])}`;
     let ed = '', ht = '';
-    for (const sg of [1, -1]) { const L = []; for (let s = s0; s < s1; s += 0.6 * k) L.push(side(sg, s)); if (!cl) L.push(side(sg, s1)); ed += 'M' + L.map(f2).join('L') + (cl ? 'Z' : ''); }
-    // 진한 두 줄 — 빗금 사이에 띠 폭 2배 안팎마다 굵은 줄 둘(대표님 스케치). 변에서 변까지 닿는다
+    // 진한 두 줄 — 빗금 사이에 띠 폭 2배 안팎마다 굵은 줄 둘(대표님 스케치). 양쪽 변이 다 있는 자리에만
     let dk = ''; const darkS = [];
     const oc = others.map(o => ({P: carCenter(o.pts, o.arrow).P, h: (o.arrow.wmm || 13) * k / 2}));
-    const open = q => oc.some(o => o.P.some(c => Math.hypot(c[0] - q[0], c[1] - q[1]) < o.h + 0.15 * W));   // 그 자리 변이 다른 길에 지워졌나
-    for (let s = s0 + W * (0.8 + rnd() * 0.4); s < s1 - W * 0.5; s += W * 2 * (0.9 + rnd() * 0.2)) {
-        if ([-0.6 * k, 0.6 * k].some(ds => open(side(1, s + ds)) || open(side(-1, s + ds)))) continue;   // 양쪽 변이 다 있는 자리에만(대표님 — 길목에 걸치면 지저분하다)
+    const open = q => oc.some(o => o.P.some(c => Math.hypot(c[0] - q[0], c[1] - q[1]) < o.h + 0.15 * W));
+    for (let s = s0 + W * (0.8 + rnd() * 0.4); s < s1 - W * 0.8; s += W * 2 * (0.9 + rnd() * 0.2)) {
+        if (!cl && (s < W * 0.8 || s > Lt - W * 0.8)) continue;   // 끝 구석(둥근 자리) 곁에는 두지 않는다
+        if ([-0.6 * k, 0.6 * k].some(ds => open(side(1, s + ds)) || open(side(-1, s + ds)))) continue;
         darkS.push(s);
-        for (const ds of [-0.4 * k, 0.4 * k]) {   // 두 줄 사이 종이 0.8mm — 붙으면 한 줄로 뭉친다
-            const q = at(s + ds), tl = (rnd() - 0.5) * 0.02 * W, tx = q.n[1], ty = -q.n[0], e = W / 2 - 0.02 * W;
+        for (const ds of [-0.4 * k, 0.4 * k]) {
+            const q = at(s + ds), tl = (rnd() - 0.5) * 0.02 * W, tx = q.n[1], ty = -q.n[0], e = W / 2 + 0.05 * W;   // 변을 살짝 넘겨 긋고 외곽 안으로 오린다
             dk += `M${f2([q.p[0] + q.n[0] * e + tx * tl, q.p[1] + q.n[1] * e + ty * tl])}L${f2([q.p[0] - q.n[0] * e - tx * tl, q.p[1] - q.n[1] * e - ty * tl])}`;
         }
     }
-    // 빗금 — 종이 0.75mm 안팎 간격, 양 끝은 변에 닿을락 말락, 살짝 기울고 휜다(곡선에서는 저절로 부채꼴)
-    for (let s = s0 + 0.2 * k; s < s1 - 0.1 * k; s += 1.4 * k * (0.8 + rnd() * 0.4)) {   // 간격 종이 1.4mm 안팎(대표님: 0.75 → 1 → 1.4)
-        if (darkS.some(d => Math.abs(d - s) < 0.85 * k)) continue;   // 진한 두 줄 곁의 빗금은 뺀다(세 줄로 뭉친다)
-        const q = at(s), tl = (Math.sin(s / (5 * k) + (a.seed || 1)) * 0.6 + (rnd() - 0.5) * 0.4) * 0.025 * W, tx = q.n[1], ty = -q.n[0];   // 기울기 — 이웃끼리 엇갈리면 지그재그로 보여 아주 작게·천천히
+    // 빗금 — 종이 1.4mm 안팎 간격, 살짝 기울고, 변에 닿을락 말락(외곽 안으로 오린다 — 둥근 구석에서도 안 삐져나온다)
+    for (let s = s0 + 0.2 * k; s < s1 - 0.1 * k; s += 1.4 * k * (0.8 + rnd() * 0.4)) {
+        if (darkS.some(d => Math.abs(d - s) < 0.85 * k)) continue;
+        const q = at(s), tl = (Math.sin(s / (5 * k) + (a.seed || 1)) * 0.6 + (rnd() - 0.5) * 0.4) * 0.025 * W, tx = q.n[1], ty = -q.n[0];
         const e1 = W / 2 - rnd() * 0.07 * W, e2 = W / 2 - rnd() * 0.07 * W;
-        const A = [q.p[0] + q.n[0] * e1 + tx * tl, q.p[1] + q.n[1] * e1 + ty * tl], B = [q.p[0] - q.n[0] * e2 - tx * tl, q.p[1] - q.n[1] * e2 - ty * tl];
-        ht += `M${f2(A)}L${f2(B)}`;
+        ht += `M${f2([q.p[0] + q.n[0] * e1 + tx * tl, q.p[1] + q.n[1] * e1 + ty * tl])}L${f2([q.p[0] - q.n[0] * e2 - tx * tl, q.p[1] - q.n[1] * e2 - ty * tl])}`;
     }
     let hd = '', hn = 0;
-    const head = (sb, dir) => {                          // 화살촉 — 보행동선과 같은 속 빈 두꺼운 '<' 꼴(pedHead) + 그 안을 손으로 그은 빗금 명암(대표님 스케치)
+    const head = (sb, dir) => {                          // 화살촉 — 보행동선과 같은 속 빈 '<' 꼴(작게) + 날개 안 빗금 명암
         const c = at(sb), nn = c.n, t = [nn[1] * dir, -nn[0] * dir], Lb = side(1, sb), Rb = side(-1, sb);
         ed += pedHead(Lb, Rb, c.p, t, W, rnd, k, f2, CAR_HEAD);
-        const wing = B => {                              // 명암 칠할 날개 모양(pedHead 와 같은 비율, 흔들림 없이)
+        const wing = B => {
             const m = [B[0] - c.p[0], B[1] - c.p[1]], al = m[0] * t[0] + m[1] * t[1];
             let sx = m[0] - t[0] * al, sy = m[1] - t[1] * al; const sl = Math.hypot(sx, sy) || 1; sx /= sl; sy /= sl;
             const aa = 0.58, bb = Math.sqrt(1 - aa * aa), e = [-t[0] * aa + sx * bb, -t[1] * aa + sy * bb], q = [t[0] * bb + sx * aa, t[1] * bb + sy * aa];
@@ -5124,36 +5201,44 @@ function carSvg(pts, a, color, self) {
         };
         const L = wing(Lb), R = wing(Rb), tip = [(L.tip[0] + R.tip[0]) / 2, (L.tip[1] + R.tip[1]) / 2];
         const poly = [Lb, L.I, L.O, tip, R.O, R.I, Rb, [(L.V[0] + R.V[0]) / 2, (L.V[1] + R.V[1]) / 2]];
-        let sh = '';                                     // 명암 — 축에 직각인 짧은 빗금을 촘촘히(띠 빗금보다 진하게), 살짝 기울고 길이가 들쭉날쭉
+        let sh = '';
         const pr = q => (q[0] - c.p[0]) * t[0] + (q[1] - c.p[1]) * t[1], u0 = Math.min(...poly.map(pr)), u1 = Math.max(...poly.map(pr));
         for (let u = u0 + 0.15 * k; u < u1; u += 0.45 * k * (0.75 + rnd() * 0.5)) {
             const m = [c.p[0] + t[0] * u, c.p[1] + t[1] * u], tl = (rnd() - 0.5) * 0.6 * k, ext = W * 2;
             sh += `M${f2([m[0] + nn[0] * ext + t[0] * tl, m[1] + nn[1] * ext + t[1] * tl])}L${f2([m[0] - nn[0] * ext - t[0] * tl, m[1] - nn[1] * ext - t[1] * tl])}`;
         }
-        { const lam = (W / 2) * 0.58 / 0.81;           // 띠 빗금을 화살촉 안쪽 꼭지(V)까지 이어 칠한다 — 띠가 화살촉으로 흘러들어 가게
-            for (let u = 0.6 * k; u < lam - 0.15 * k; u += 1.4 * k * (0.8 + rnd() * 0.4)) {
+        { const lam = (W / 2) * 0.58 / 0.81;
+            let hh = ''; for (let u = 0.6 * k; u < lam - 0.15 * k; u += 1.4 * k * (0.8 + rnd() * 0.4)) {
                 const m = [c.p[0] + t[0] * u, c.p[1] + t[1] * u], h = (W / 2) * (1 - u / lam) * 0.95;
-                ht += `M${f2([m[0] + nn[0] * h, m[1] + nn[1] * h])}L${f2([m[0] - nn[0] * h, m[1] - nn[1] * h])}`;
-            } }
+                hh += `M${f2([m[0] + nn[0] * h, m[1] + nn[1] * h])}L${f2([m[0] - nn[0] * h, m[1] - nn[1] * h])}`;
+            }
+            hd += `<path d="${hh}" fill="none" stroke="${color || INK}" stroke-width="${fmt(0.16 * k)}" stroke-opacity="0.5" stroke-linecap="round"/>`; }
         const cid = 'ch' + (self ? self.id : 'p') + '_' + (hn++) + '_' + ((a.seed || 1) % 100000 | 0);
         hd += `<clipPath id="${cid}"><path d="M${poly.map(f2).join('L')}Z"/></clipPath><path d="${sh}" fill="none" stroke="${color || INK}" stroke-width="${fmt(0.22 * k)}" stroke-linecap="round" clip-path="url(#${cid})"/>`;
     };
     if (heads) { head(s1, 1); if (heads === 2) head(s0, -1); }
-    else if (!cl) ed += `M${f2(side(1, 0))}L${f2(side(-1, 0))}M${f2(side(1, Lt))}L${f2(side(-1, Lt))}`;   // 화살촉 없는 열린 끝은 막는다
-    // 이어 그리기 — 다른 차량동선과 만나는 자리: 내 변은 남의 띠 안에서 지우고, 내 빗금은 먼저 그린 띠 안에서 지운다
+    // 겹친 곳의 빗금은 먼저 그린 띠 것만 — 뒤에 그린 띠는 먼저 그린 띠 안에서 빗금을 지운다
     const idx = self ? doc.ops.indexOf(self) : doc.ops.length;
-    const myEnds = cl ? [] : [pts[0], pts[pts.length - 1]];
-    let mE = '', mH = '';
-    others.forEach(o => {
-        mE += `<path d="${carPoly(o, -0.06 * W, null)}" fill="black" fill-rule="evenodd"/>`;
-        if (doc.ops.indexOf(o) < idx) mH += `<path d="${carPoly(o, 0, null)}" fill="black" fill-rule="evenodd"/>`;
-    });
-    const col = color || INK, sw = fmt(0.35 * k), swh = fmt(0.2 * k), id = 'cm' + (self ? self.id : 'p') + '_' + ((a.seed || 1) % 100000 | 0);
+    let mH = '';
+    others.forEach(o => { if (doc.ops.indexOf(o) < idx) mH += `<path d="${carPoly(o, 0.02 * W, [0.12 * W, 0.12 * W])}" fill="black" fill-rule="evenodd"/>`; });   // 끝을 조금 더 덮어 모서리에 빗금 토막이 남지 않게
+    const net = carNetwork(self ? null : {t: 'free', pts, arrow: a});
+    const col = color || INK, id = 'cm' + (self ? self.id : 'p') + '_' + ((a.seed || 1) % 100000 | 0);
     const big = `<rect x="-100000" y="-100000" width="200000" height="200000" fill="white"/>`;
-    const defs = (mE || mH) ? `<defs>${mE ? `<mask id="${id}e" maskUnits="userSpaceOnUse" x="-100000" y="-100000" width="200000" height="200000">${big}${mE}</mask>` : ''}${mH ? `<mask id="${id}h" maskUnits="userSpaceOnUse" x="-100000" y="-100000" width="200000" height="200000">${big}${mH}</mask>` : ''}</defs>` : '';
-    return defs + `<path d="${ht}" fill="none" stroke="${col}" stroke-width="${fmt(0.16 * k)}" stroke-opacity="0.5" stroke-linecap="round"${mH ? ` mask="url(#${id}h)"` : ''}/>`   // 빗금은 연하게(대표님) — 진한 두 줄·변이 도드라진다
-        + (dk ? `<path d="${dk}" fill="none" stroke="${col}" stroke-width="${fmt(0.35 * k)}" stroke-linecap="round"${mH ? ` mask="url(#${id}h)"` : ''}/>` : '') + hd
-        + `<path d="${ed}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"${mE ? ` mask="url(#${id}e)"` : ''}/>`;
+    let defs = '';
+    if (mH) defs += `<mask id="${id}h" maskUnits="userSpaceOnUse" x="-100000" y="-100000" width="200000" height="200000">${big}${mH}</mask>`;
+    if (net) defs += `<clipPath id="${id}r"><path d="${net.region}" clip-rule="evenodd"/></clipPath>`;
+    const clip = net ? ` clip-path="url(#${id}r)"` : '', msk = mH ? ` mask="url(#${id}h)"` : '';
+    let out = `<defs>${defs}</defs><g${clip}><path d="${ht}" fill="none" stroke="${col}" stroke-width="${fmt(0.16 * k)}" stroke-opacity="0.5" stroke-linecap="round"${msk}/>`
+        + (dk ? `<path d="${dk}" fill="none" stroke="${col}" stroke-width="${fmt(0.35 * k)}" stroke-linecap="round"${msk}/>` : '') + `</g>` + hd
+        + `<path d="${ed}" fill="none" stroke="${col}" stroke-width="${fmt(0.35 * k)}" stroke-linecap="round" stroke-linejoin="round"/>`;
+    // 길 전체의 외곽선 — 맨 먼저 그린 차량동선(미리보기면 미리보기)이 한 번만 그린다
+    const firstCar = (doc.ops || []).find(o => o.t === 'free' && o.arrow && o.arrow.kind === 'carb');
+    if (net && (!self || self === firstCar)) {
+        const cm = id + 'c';
+        out += (net.cutD ? `<defs><mask id="${cm}" maskUnits="userSpaceOnUse" x="-100000" y="-100000" width="200000" height="200000">${big}<path d="${net.cutD}" fill="black"/></mask></defs>` : '')
+            + `<path d="${net.outline}" fill="none" stroke="${col}" stroke-width="${fmt(0.35 * k)}" stroke-linejoin="round"${net.cutD ? ` mask="url(#${cm})"` : ''}/>`;
+    }
+    return out;
 }
 function bandSvg(pts, a, color, self) { return a.kind === 'carb' ? carSvg(pts, a, color, self) : pedSvg(pts, a, color); }
 // ── 차량동선 끝 ──
