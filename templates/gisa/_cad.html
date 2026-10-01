@@ -4964,8 +4964,8 @@ function spaceShape(V, mode, o, open, seed) {                // V — 꺾은선(
     let inners = [];
     if (o.two) {
         let st = null;
-        if (mode !== 'free') st = spCorners(V, mode, open).length ? spInnerStrokes(V, o, open, seed) : null;
-        else { const C = spFreeCorners(Q, !open); if (C.length) st = spInnerFree(Q, o, !open, seed, C); }   // 자유곡선도 급히 꺾이면 끊어 엇갈리게
+        // 네모·점은 안쪽 줄도 둥근 모서리로 이어 긋는다(대표님 — 엇갈림 없이 자연스러운 곡선). spInnerStrokes 는 남겨 둠
+        if (mode === 'free') { const C = spFreeCorners(Q, !open); if (C.length) st = spInnerFree(Q, o, !open, seed, C); }   // 자유곡선도 급히 꺾이면 끊어 엇갈리게
         inners = st && st.length ? st : [K ? K.inner : spInner(Q, o.gap, open)];
     }
     if (!open) return {outer: R3(outer), inners: inners.map(R3), caps: [], area};
