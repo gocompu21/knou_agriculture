@@ -4756,21 +4756,32 @@ function pedRung(A, B, rnd, k, W, f2) {
     }
     return d;
 }
-function pedHead(Lb, Rb, oL, oR, tip, rnd, k, f2) {   // 대표님 스케치 그대로 — 띠 선이 밑변 위로 'ㅅ' 처럼 솟았다가 꺾여 내려가 밑변이 되고,
-    // 둥근 바깥 모서리를 돌아 꼭지(둥글게)로 올라갔다가 반대쪽도 같게 — 한 획
-    const mx = (Lb[0] + Rb[0]) / 2, my = (Lb[1] + Rb[1]) / 2, tl = Math.hypot(tip[0] - mx, tip[1] - my) || 1, tx = (tip[0] - mx) / tl, ty = (tip[1] - my) / tl;
-    const at = (q, a, b) => [q[0] + tx * a + (b ? b[0] : 0), q[1] + ty * a + (b ? b[1] : 0)];
-    const toward = (a, b, d) => { const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1, r = Math.min(d, l * 0.45); return [a[0] + dx / l * r, a[1] + dy / l * r]; };
-    const bowQ = (a, b, amp) => { const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1, bw = (rnd() - 0.5) * amp; return `Q${f2([(a[0] + b[0]) / 2 - dy / l * bw, (a[1] + b[1]) / 2 + dx / l * bw])} ${f2(b)}`; };
-    const rc = (0.55 + rnd() * 0.3) * k, rt = (0.35 + rnd() * 0.25) * k;
-    const side = (B, O) => {                             // 띠 끝 B → 솟은 끝 → 밑변(살짝 처짐) → 바깥 모서리 O 앞
-        const peak = at(B, (0.7 + rnd() * 0.4) * k), m = [B[0] + (O[0] - B[0]) * 0.45, B[1] + (O[1] - B[1]) * 0.45], low = at(m, -(0.15 + rnd() * 0.25) * k);
-        return {peak, low, pre: toward(O, B, rc)};
+// 화살촉(대표님 스케치, 2026-10) — 속 빈 두꺼운 '<' 꼴. 띠 선 끝에서 안쪽 빗변이 뒤로 벌어져 나가고, 짧은 마구리를 지나
+// 바깥 빗변이 꼭지로 모인다. 밑변(띠를 가로지르는 선)은 없다. 획마다 따로 긋고 이음매에서 조금씩 지나쳐 손그림처럼 엇갈린다.
+// 띠 끝(B)에서 꼭지까지 약 0.85 × 띠 폭(PED_HL) — pedSvg 가 띠 선을 그만큼 앞에서 멈춘다
+const PED_HL = 0.85;
+function pedHead(Lb, Rb, c, t, W, rnd, k, f2) {
+    const seg = (a, b, o0, o1, amp) => {               // a→b, 양 끝을 조금 지나치고 살짝 휘게
+        const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
+        const A2 = [a[0] - ux * o0, a[1] - uy * o0], B2 = [b[0] + ux * o1, b[1] + uy * o1], bw = (rnd() - 0.5) * amp;
+        return `M${f2(A2)}Q${f2([(A2[0] + B2[0]) / 2 - uy * bw, (A2[1] + B2[1]) / 2 + ux * bw])} ${f2(B2)}`;
     };
-    const sL = side(Lb, oL), sR = side(Rb, oR);
-    const b1 = toward(oL, tip, rc), t1 = toward(tip, oL, rt), t2 = toward(tip, oR, rt), b2 = toward(oR, tip, rc);
-    return `M${f2(Lb)}L${f2(sL.peak)}Q${f2(sL.low)} ${f2(sL.pre)}Q${f2(oL)} ${f2(b1)}` + bowQ(b1, t1, 0.7 * k) + `Q${f2(tip)} ${f2(t2)}`
-        + bowQ(t2, b2, 0.7 * k) + `Q${f2(oR)} ${f2(sR.pre)}Q${f2(sR.low)} ${f2(sR.peak)}L${f2(Rb)}`;
+    const ov = () => (0.25 + rnd() * 0.5) * k;
+    const wing = B => {                                 // 한쪽 날개 — 안쪽 빗변 끝 I, 바깥 모서리 O
+        const m = [B[0] - c[0], B[1] - c[1]], along = m[0] * t[0] + m[1] * t[1];
+        let sx = m[0] - t[0] * along, sy = m[1] - t[1] * along; const sl = Math.hypot(sx, sy) || 1; sx /= sl; sy /= sl;
+        const aa = 0.58 + (rnd() - 0.5) * 0.08, bb = Math.sqrt(1 - aa * aa);
+        const e = [-t[0] * aa + sx * bb, -t[1] * aa + sy * bb], q = [t[0] * bb + sx * aa, t[1] * bb + sy * aa];
+        const Lin = W * (0.74 + (rnd() - 0.5) * 0.08), T = W * (0.4 + (rnd() - 0.5) * 0.06);
+        const I = [B[0] + e[0] * Lin, B[1] + e[1] * Lin], O = [I[0] + q[0] * T, I[1] + q[1] * T];
+        const off = (O[0] - c[0]) * sx + (O[1] - c[1]) * sy, u = off / bb;   // 바깥 빗변이 축에 닿는 자리 = 꼭지
+        return {B, e, q, I, O, tip: [O[0] + e[0] * -u, O[1] + e[1] * -u]};
+    };
+    const L = wing(Lb), R = wing(Rb), tip = [(L.tip[0] + R.tip[0]) / 2 + (rnd() - 0.5) * 0.3 * k, (L.tip[1] + R.tip[1]) / 2 + (rnd() - 0.5) * 0.3 * k];
+    const one = w => seg(w.B, w.I, (0.4 + rnd() * 0.5) * k, ov(), 0.5 * k)   // 안쪽 빗변 — 띠 선 안쪽에서 시작해 마구리를 조금 지나친다
+        + seg(w.I, w.O, ov(), ov(), 0.2 * k)                               // 마구리
+        + seg(w.O, tip, ov(), 0.15 * k, 0.8 * k);                          // 바깥 빗변 — 꼭지로
+    return one(L) + one(R);
 }
 function pedSvg(pts, a, color) {
     const k = scaleDenom() / 1000, W = (a.wmm || 13) * k, rnd = spRng(a.seed || 1);
@@ -4782,7 +4793,7 @@ function pedSvg(pts, a, color) {
         let nx = N[i][0] + (N[i + 1][0] - N[i][0]) * t, ny = N[i][1] + (N[i + 1][1] - N[i][1]) * t; const l = Math.hypot(nx, ny) || 1;
         return {p: [a1[0] + (b1[0] - a1[0]) * t, a1[1] + (b1[1] - a1[1]) * t], n: [nx / l, ny / l]};
     };
-    let HL = W * 0.62, HW = W * 0.92; const heads = a.both ? 2 : 1;
+    let HL = W * PED_HL, HW = W * 0.92; const heads = a.both ? 2 : 1;
     if (Lt < heads * HL + W) { const f = Lt / (heads * HL + W); HL *= f; HW *= Math.max(f, 0.6); }
     const s0 = a.both ? HL : 0, s1 = Lt - HL, amp = 0.26 * k;
     const nL = pedWob(rnd, Lt, k), nR = pedWob(rnd, Lt, k), nG = spNoise(rnd, Lt, false, [[31 * k, 0.7], [77 * k, 0.3]]);
@@ -4800,9 +4811,8 @@ function pedSvg(pts, a, color) {
         d += pedRung(A, B, rnd, k, W, f2);
     }
     const head = (sb, tipS) => {
-        const c = at(sb), tip = at(tipS).p, Lb = side(1, sb), Rb = side(-1, sb), hw = HW * (0.95 + rnd() * 0.1);
-        const oL = [J(c.p[0] + c.n[0] * hw), J(c.p[1] + c.n[1] * hw)], oR = [J(c.p[0] - c.n[0] * hw), J(c.p[1] - c.n[1] * hw)];
-        return pedHead(Lb, Rb, oL, oR, [J(tip[0]), J(tip[1])], rnd, k, f2);
+        const c = at(sb), dir = tipS > sb ? 1 : -1, t = [c.n[1] * dir, -c.n[0] * dir];
+        return pedHead(side(1, sb), side(-1, sb), c.p, t, W, rnd, k, f2);
     };
     d += head(s1, Lt);
     if (a.both) d += head(s0, 0);
@@ -4889,10 +4899,8 @@ function pedEdgeSvg(pts, a, color) {
         d += pedRung(A, B, rnd, k, W, f2);
     }
     const head = (s, dir) => {                          // 띠 끝 너머로 빈 화살촉(그은 변은 건드리지 않는다)
-        const q = at(s), n = q.n, t = [n[1] * dir, -n[0] * dir], c = [q.p[0] + n[0] * sg * W / 2, q.p[1] + n[1] * sg * W / 2], hw = HW * (0.95 + rnd() * 0.1);
-        const bE = [J(c[0] - n[0] * sg * hw), J(c[1] - n[1] * sg * hw)], bO = [J(c[0] + n[0] * sg * hw), J(c[1] + n[1] * sg * hw)];
-        const tip = [J(c[0] + t[0] * HL), J(c[1] + t[1] * HL)];
-        return pedHead(E(s), O(s), bE, bO, tip, rnd, k, f2);
+        const q = at(s), n = q.n, t = [n[1] * dir, -n[0] * dir], c = [q.p[0] + n[0] * sg * W / 2, q.p[1] + n[1] * sg * W / 2];
+        return pedHead(E(s), O(s), c, t, W, rnd, k, f2);
     };
     d += head(Lt, 1);
     if (a.both) d += head(0, -1);
