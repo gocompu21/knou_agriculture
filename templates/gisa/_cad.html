@@ -1864,10 +1864,15 @@ function shrubScallop(raw, size, seed, closed, bulge, jit, kind) {
     for (let j = 0; j + 1 < S.length; j++) {
         const [ax, ay] = S[j], [bx, by] = S[j + 1], dx = bx - ax, dy = by - ay, c = Math.hypot(dx, dy) || 1, tx = dx / c, ty = dy / c, nx = ty * side, ny = -tx * side;
         const h = c / 2 * bulge * (1 - jit * 0.75 + jit * 1.5 * shrubRnd(seed + j * 3.31 + 1));
-        if (spike) {                                     // 뾰족한 이 — 꼭지를 앞뒤로 흔들고, freeD 가 둥글리지 않게 꼭지·골 곁에 점을 더 둔다
-            const u = 0.5 + (shrubRnd(seed + j * 5.77 + 2) - 0.5) * 0.5, H = h * 1.1;
-            const T = [ax + dx * u + nx * H, ay + dy * u + ny * H], L = (p, q, f) => [p[0] + (q[0] - p[0]) * f, p[1] + (q[1] - p[1]) * f];
-            [L([ax, ay], T, 0.06), L([ax, ay], T, 0.94), T, L(T, [bx, by], 0.06), L(T, [bx, by], 0.94), [bx, by]].forEach(q => out.push(q));
+        if (spike) {                                     // 뾰족한 이(대표님: 끝은 아주 뾰족, 아래는 둥글게) — 두 변을 안으로 휜 2차 곡선으로.
+            // 조절점을 꼭지 바로 밑 밑선에 두면 변이 밑선에 누운 채 출발해 골이 둥글게 이어지고, 꼭지에서는 두 변이 가파르게 만나 바늘처럼 뾰족하다
+            const u = 0.5 + (shrubRnd(seed + j * 5.77 + 2) - 0.5) * 0.4, H = h * 1.7;
+            const T = [ax + dx * u + nx * H, ay + dy * u + ny * H], Cq = [ax + dx * u + nx * H * 0.3, ay + dy * u + ny * H * 0.3];   // 조절점을 조금 띄워 이를 길게, 골은 얕고 둥글게
+            const q = (p0, p1, p2, t) => [(1 - t) * (1 - t) * p0[0] + 2 * (1 - t) * t * p1[0] + t * t * p2[0], (1 - t) * (1 - t) * p0[1] + 2 * (1 - t) * t * p1[1] + t * t * p2[1]];
+            [0.25, 0.5, 0.7, 0.85, 0.95, 0.99].forEach(t => out.push(q([ax, ay], Cq, T, t)));
+            out.push(T);
+            [0.01, 0.05, 0.15, 0.3, 0.5, 0.75].forEach(t => out.push(q(T, Cq, [bx, by], t)));
+            out.push([bx, by]);
             continue;
         }
         const R = (c * c / 4 + h * h) / (2 * h), ph = h <= R ? Math.asin(Math.min(1, c / 2 / R)) : Math.PI - Math.asin(Math.min(1, c / 2 / R));
