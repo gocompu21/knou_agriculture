@@ -5080,6 +5080,38 @@ function carInPoly(q, op) {                             // 점이 그 띠 안인
     const a = op.arrow, W = (a.wmm || 13) * scaleDenom() / 1000, D = carCenter(op.pts, a);
     return D.P.some(c => Math.hypot(c[0] - q[0], c[1] - q[1]) < W / 2);
 }
+// 내 끝(atEnd)이 다른 열린 길의 끝과 만나는가(ㄱ자 이음) — {o, C: 두 끝 방향선의 교점, O: 상대 길로 2W 들어간 점}
+function carJoint(pts, atEnd, W, k, self, others) {
+    const n = pts.length; if (n < 2) return null;
+    const E = atEnd ? pts[n - 1] : pts[0], F = atEnd ? pts[n - 2] : pts[1];
+    let ux = E[0] - F[0], uy = E[1] - F[1]; const ul = Math.hypot(ux, uy) || 1; ux /= ul; uy /= ul;
+    let best = null, bd = Infinity;
+    others.forEach(o => {
+        if (o.arrow.closed || o.pts.length < 2) return;
+        const Wo = (o.arrow.wmm || 13) * k, m = o.pts.length;
+        [[o.pts[0], o.pts[1], false], [o.pts[m - 1], o.pts[m - 2], true]].forEach(([Eo, Fo, oe]) => {
+            const d = Math.hypot(Eo[0] - E[0], Eo[1] - E[1]); if (d > 0.8 * (W + Wo) || d >= bd) return;
+            let vx = Eo[0] - Fo[0], vy = Eo[1] - Fo[1]; const vl = Math.hypot(vx, vy) || 1; vx /= vl; vy /= vl;
+            if (ux * vx + uy * vy > 0.5) return;             // 나란히 같은 쪽을 보는 끝 — 이음이 아니다
+            bd = d; best = {o, Eo, vx, vy, Wo, oe};
+        });
+    });
+    if (!best) return null;
+    const {o, Eo, vx, vy, Wo, oe} = best, cr = ux * vy - uy * vx;
+    let C = [(E[0] + Eo[0]) / 2, (E[1] + Eo[1]) / 2];
+    if (Math.abs(cr) > 0.2) {                           // E + t·u = Eo + t'·v
+        const t = ((Eo[0] - E[0]) * vy - (Eo[1] - E[1]) * vx) / cr;
+        if (Math.abs(t) < 2 * W) C = [E[0] + ux * t, E[1] + uy * t];
+    }
+    const op = oe ? o.pts.slice().reverse() : o.pts, want = Math.max(W, Wo) * 2;   // 상대 끝에서 안으로 2W
+    let O = op[op.length - 1], acc = Math.hypot(op[0][0] - C[0], op[0][1] - C[1]);
+    for (let i = 1; i < op.length; i++) {
+        const l = Math.hypot(op[i][0] - op[i - 1][0], op[i][1] - op[i - 1][1]);
+        if (acc + l >= want) { const t = (want - acc) / (l || 1); O = [op[i - 1][0] + (op[i][0] - op[i - 1][0]) * t, op[i - 1][1] + (op[i][1] - op[i - 1][1]) * t]; break; }
+        acc += l;
+    }
+    return {o, C, O};
+}
 function carGeom(pts, a, self) {                        // 한 띠의 뼈대 — 화살촉 쪽 정하기·닿은 끝 늘이기·중심선·몸통 범위(s0~s1)
     const k = scaleDenom() / 1000, W = (a.wmm || 13) * k, cl = !!a.closed;
     const others = (doc.ops || []).filter(o => o.t === 'free' && o.arrow && o.arrow.kind === 'carb' && o !== self && o.pts && o.pts.length > 1);
@@ -5087,7 +5119,17 @@ function carGeom(pts, a, self) {                        // 한 띠의 뼈대 —
         const touch = q => others.some(o => { const ow = (o.arrow.wmm || 13) * k; return carCenter(o.pts, o.arrow).P.some(c => Math.hypot(c[0] - q[0], c[1] - q[1]) < ow / 2 + W * 0.6); });
         if (touch(pts[pts.length - 1]) && !touch(pts[0])) pts = pts.slice().reverse();
     }
+    const pts0 = pts;
     pts = carPtsX(pts, a, self, false);                  // 다른 길에 닿은 끝은 그 길 너머 변까지
+    // ㄱ자로 이어 그린 두 길(끝과 끝이 만남) — 상대 길로 이어지는 한 줄처럼 둥글게 돌려, 빗금이 한 띠의 구석처럼 부채꼴로 이어지게(대표님).
+    // 이음매(두 끝 방향선의 교점 C)를 지나 상대 쪽으로 2W 더 간 점까지 중심선을 잇고, 내 몫은 둥근 구석의 한가운데(C 에 가장 가까운 점)까지
+    const J0 = cl ? null : carJoint(pts0, false, W, k, self, others), J1 = cl ? null : carJoint(pts0, true, W, k, self, others);
+    if (J0 || J1) {
+        let B = pts.slice();
+        if (J0) { if (B[0] !== pts0[0]) B.shift(); B = [J0.O, J0.C, ...B.slice(1)]; }
+        if (J1) { if (B[B.length - 1] !== pts0[pts0.length - 1]) B.pop(); B = [...B.slice(0, -1), J1.C, J1.O]; }
+        pts = B;
+    }
     const D = carCenter(pts, a); if (D.P.length < 2 || D.L < W * 0.5) return null;
     const P = D.P, S = D.S, Lt = D.L, N = spNormals(P, cl), n = P.length;
     const at = s => {
@@ -5096,9 +5138,13 @@ function carGeom(pts, a, self) {                        // 한 띠의 뼈대 —
         let nx = N[i][0] + (N[i + 1][0] - N[i][0]) * t, ny = N[i][1] + (N[i + 1][1] - N[i][1]) * t; const l = Math.hypot(nx, ny) || 1;
         return {p: [P[i][0] + (P[i + 1][0] - P[i][0]) * t, P[i][1] + (P[i + 1][1] - P[i][1]) * t], n: [nx / l, ny / l]};
     };
-    const heads = cl || a.none ? 0 : (a.both ? 2 : 1);
-    let HL = W * CAR_HL; if (Lt < heads * HL + W * 0.5) HL = Math.max(0, (Lt - W * 0.5) / Math.max(1, heads));
-    return {k, W, cl, Lt, at, heads, HL, s0: heads === 2 ? HL : 0, s1: heads ? Lt - HL : Lt, others};
+    const near = C => { let bi = 0, bd = Infinity; P.forEach((q, i) => { const d = Math.hypot(q[0] - C[0], q[1] - C[1]); if (d < bd) { bd = d; bi = i; } }); return S[bi]; };
+    const lo = J0 ? near(J0.C) : 0, hi = J1 ? near(J1.C) : Lt;
+    const hE = !cl && !a.none && !J1, hS = !cl && !a.none && a.both && !J0;   // 이음매 끝에는 화살촉을 두지 않는다
+    let heads = hE ? (hS ? 2 : 1) : 0;
+    let HL = W * CAR_HL; if (hi - lo < heads * HL + W * 0.5) HL = Math.max(0, (hi - lo - W * 0.5) / Math.max(1, heads));
+    const joined = [J0 && J0.o, J1 && J1.o].filter(Boolean);
+    return {k, W, cl, Lt, at, heads, HL, s0: heads === 2 ? HL : lo, s1: heads ? Lt - HL : hi, others, joined, lo, hi};
 }
 // 차량동선 길 전체의 외곽선(대표님 — 띠마다 변을 그리고 서로 가리니 길목마다 끊긴 선·날카로운 구석이 남았다).
 // 모든 띠 몸통을 한 장에 칠해 합친 다음 살짝 흐려서 구석을 둥글리고, 0.5 문턱에서 등고선을 딴다(marching squares).
@@ -5112,7 +5158,7 @@ function carNetwork(extra) {
     const rings = [], cuts = []; let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, Wm = 0;
     ops.forEach(o => {
         const g = carGeom(o.pts, o.arrow, o === extra ? null : o); if (!g) return;
-        const W = g.W, h = W / 2, step = 0.5 * k, sA = g.heads === 2 ? g.s0 - W * 0.8 : g.s0, sB = g.heads ? g.s1 + W * 0.8 : g.s1;   // 화살촉 쪽은 몸통을 길게 칠해 둥글림이 가려진 곳에서 일어나게
+        const W = g.W, h = W / 2, step = 0.5 * k, sA = g.heads === 2 ? g.s0 - W * 0.8 : g.s0 - (g.lo > 0 ? 0.15 * W : 0), sB = g.heads ? g.s1 + W * 0.8 : g.s1 + (g.hi < g.Lt ? 0.15 * W : 0);   // 화살촉 쪽은 몸통을 길게 칠해 둥글림이 가려진 곳에서 일어나게
         const L = [], R = [];
         const put = (s) => { const q = g.cl ? g.at(s) : g.at(Math.max(0, Math.min(g.Lt, s))), ext = (!g.cl && (s < 0 || s > g.Lt)) ? s : null;
             let p = q.p; if (ext !== null) { const tt = [q.n[1], -q.n[0]], d = s < 0 ? s : s - g.Lt; p = [p[0] + tt[0] * d, p[1] + tt[1] * d]; }
@@ -5260,7 +5306,7 @@ function carSvg(pts, a, color, self) {
     const idx = self ? doc.ops.indexOf(self) : doc.ops.length;
     let mH = '';
     const myP = carCenter(pts, a).P;
-    others.forEach(o => { if (carHatchWins(o, doc.ops.indexOf(o) < idx, myP, W, (o.arrow.wmm || 13) * k)) mH += `<path d="${carPoly(o, 0.02 * W, [0.12 * W, 0.12 * W])}" fill="black" fill-rule="evenodd"/>`; });   // 끝을 조금 더 덮어 모서리에 빗금 토막이 남지 않게
+    others.forEach(o => { if (!(g.joined || []).includes(o) && carHatchWins(o, doc.ops.indexOf(o) < idx, myP, W, (o.arrow.wmm || 13) * k)) mH += `<path d="${carPoly(o, 0.02 * W, [0.12 * W, 0.12 * W])}" fill="black" fill-rule="evenodd"/>`; });   // 끝을 조금 더 덮어 모서리에 빗금 토막이 남지 않게
     const net = carNetwork(self ? null : {t: 'free', pts, arrow: a});
     const col = color || INK, id = 'cm' + (self ? self.id : 'p') + '_' + ((a.seed || 1) % 100000 | 0);
     const big = `<rect x="-100000" y="-100000" width="200000" height="200000" fill="white"/>`;
