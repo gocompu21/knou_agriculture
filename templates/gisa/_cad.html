@@ -50,6 +50,7 @@
         <button type="button" data-tool="box" title="박스 (X) — 왼쪽 위 모서리에서 오른쪽 아래 모서리까지 끌면 네모가 그려집니다. 재생 때는 I자·삼각자로 변마다 긋습니다" aria-label="박스"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="5" width="13" height="10"/><circle cx="3.5" cy="5" r="1.6" class="f"/><circle cx="16.5" cy="15" r="1.6" class="f"/></svg></button>
         <button type="button" data-tool="poly" title="다각선 — 누르며 점을 이어 긋는다 (자유 삼각자) (Q)" aria-label="다각선"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 15.5 7 5.5l4.5 8 6-10"/><circle cx="2.5" cy="15.5" r="1.5" class="f"/><circle cx="7" cy="5.5" r="1.5" class="f"/><circle cx="11.5" cy="13.5" r="1.5" class="f"/><circle cx="17.5" cy="3.5" r="1.5" class="f"/></svg></button>
         <button type="button" data-tool="shrub" title="관목 군식 (G) — 누른 채 끌면 둥그런 파형(구름 모양) 테두리. 시작점 곁에서 놓으면 닫힙니다. 안은 채우기 도구로" aria-label="관목 군식"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 12.5a2.3 2.3 0 0 1 .4-4.4 2.6 2.6 0 0 1 4.3-2.3 2.6 2.6 0 0 1 4.6.6 2.4 2.4 0 0 1 2.2 3.8 2.3 2.3 0 0 1-1.4 3.9 2.5 2.5 0 0 1-4.3 1.2 2.5 2.5 0 0 1-4.3-.6 2.2 2.2 0 0 1-1.5-2.2Z"/></svg></button>
+        <button type="button" data-tool="space" title="공간 (K) — 둥근 모서리 테두리 + 안쪽 가는 선(설계구상도 공간 구획). 네모·점·자유곡선" aria-label="공간"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4.5" width="15" height="11" rx="3"/><rect x="4.3" y="6.3" width="11.4" height="7.4" rx="1.8" stroke-width="0.9"/></svg></button>
         <button type="button" data-tool="arrow" title="동선 화살표 (A) — 점을 찍어 가며 긋고 끝에 화살촉. 주동선·부동선·차량동선" aria-label="동선 화살표"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 15C6 15 7 6 13.5 6"/><path d="M12 2.6 17.5 6 12 9.4Z" class="f"/></svg></button>
         <button type="button" data-tool="hedge" title="경계식재 (H) — 벽 선을 차례로 누르고 띠를 둘 쪽을 누르면 벽을 따라 폭 1m 식재 띠(파인 홈 + 빗금)" aria-label="경계식재"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 15H18"/><path d="M2 8H5.5a1.5 1.5 0 0 0 3 0H11.5a1.5 1.5 0 0 0 3 0H18"/><path d="M4 14.5 7 8.6M9.5 14.5 12 9.2M15 14.5 17 10.5" stroke-width="1"/></svg></button>
         <button type="button" data-tool="lead" title="지시선 (L) — 수목을 이은 다각선 끝점 → 꺾는 자리. 위에 '갯수-수종', 아래에 규격" aria-label="지시선"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16L8 7H18"/><circle cx="3" cy="16" r="1.6" class="f"/><path d="M10 5H16M10 10H15" stroke-width="1.2"/></svg></button>
@@ -270,6 +271,15 @@
                        변들은 한 묶음(작도 순서 한 줄)이고, 재생 때는 변마다 <b>회전 삼각자</b>(자유 삼각자)를 그 변에 대고 긋습니다.</p>
                     <div class="cad-row"><label>선 종류<select class="ls" id="fpyLs"></select></label>
                         <label>샤프<select id="fpyW"><option value="p9">굵은 샤프</option><option value="p5">얇은 샤프</option></select></label></div>
+                </div>
+                <div data-form="space">
+                    <h4>공간</h4>
+                    <p class="cad-help">공간 구획 선 — 둥근 모서리 테두리(굵은 샤프)와 그 안쪽의 가는 선(얇은 샤프)을 한 번에 긋습니다.<br>
+                       <b>네모</b>: 끌기 · <b>점</b>: 찍어 가며 두르고 처음 점·더블클릭·Enter·오른쪽 버튼으로 닫기 · <b>자유곡선</b>: 손 가는 대로 둘러 놓으면 닫힘(손맛).</p>
+                    <div class="cad-row"><label>그리기<select id="fspM"><option value="box">네모</option><option value="pts" selected>점</option><option value="free">자유곡선</option></select></label>
+                        <label class="cad-chk"><input type="checkbox" id="fspTwo" checked> 안쪽 선</label></div>
+                    <div class="cad-row"><label>모서리<select id="fspR"><option value="1">1mm</option><option value="2" selected>2mm</option><option value="3">3mm</option><option value="4">4mm</option></select></label>
+                        <label>안쪽 간격<select id="fspG"><option value="0.5">0.5mm</option><option value="0.7" selected>0.7mm</option><option value="1">1mm</option></select></label></div>
                 </div>
                 <div data-form="arrow">
                     <h4>동선 화살표</h4>
@@ -2266,7 +2276,7 @@ function opSvg(op) {
         return markTick(x0, y0, x1, y1, SR_MARK * scaleDenom() / 1000);
     }
     if (op.t === 'free' && op.arrow) return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${arrowAttr(op.arrow.kind)}/>` + arrowHeadSvg(op.pts, op.arrow.kind, op.arrow.both) : '';   // 동선 화살표
-    if (op.t === 'free') return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${op.hedge ? stAttr(op.ls, op.w) : freeAttr(op.ls, op.w)}/>` : '';   // 경계식재 선은 엷은 프리드로잉 굵기가 아니라 샤프 선 그대로
+    if (op.t === 'free') return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${op.hedge || op.space ? stAttr(op.ls, op.w) : freeAttr(op.ls, op.w)}/>` : '';   // 경계식재 선은 엷은 프리드로잉 굵기가 아니라 샤프 선 그대로
     if (op.t === 'fill' && !op._raw && ((op.cuts && op.cuts.length) || (op.holes && op.holes.length))) {   // holes — 위에 얹힌 교목·관목 자리(경계식재)   // 지우개로 지운 자리 — 원판들을 검게 뚫은 mask 로 가린다
         const id = `cadFm${op.id}`, [x0, y0, x1, y1] = op.bb || [sheet.x0, sheet.y0, sheet.x1, sheet.y1], m = 2 * U;
         return `<mask id="${id}" maskUnits="userSpaceOnUse" x="${fmt(x0 - m)}" y="${fmt(y0 - m)}" width="${fmt(x1 - x0 + 2 * m)}" height="${fmt(y1 - y0 + 2 * m)}">`
@@ -2510,6 +2520,7 @@ function drawPre() {
     if (tool === 'lead') { gPre.innerHTML = leadPreSvg(); return; }
     if (tool === 'hedge') { gPre.innerHTML = hedgePreSvg(); return; }
     if (tool === 'arrow') { gPre.innerHTML = arrowPreSvg(); return; }
+    if (tool === 'space' && spaceOpts().mode === 'pts') { gPre.innerHTML = spacePreSvg(); return; }
     if (tool === 'shrub' && shrubCh && !(drag && drag.kind === 'shrub')) { gPre.innerHTML = shrubChSvg(); return; }   // 관목 군식 — 이어 긋는 중   // 다각선 — 이은 변 + 다음 점(노랑)
     let o = '';
     const h = hover;
@@ -2926,6 +2937,7 @@ const grpOps = id => { const i = doc.ops.findIndex(o => o.id === id); if (i < 0)
 function grpDesc(ops, full) {                          // '정삼각형 P1 → P2 → P3 → P1 · 한 변 12m'
     const o = ops[0], ptxt = full ? ptxtFull : (n => `P${n}`), ns = [o.a, ...ops.map(x => x.b)];
     if (o.lead) return `지시선 · ${o.leadTxt || ''}`;
+    if (o.space) return `공간 · ${({box: '네모', pts: '점', free: '자유곡선'})[o.space.mode] || ''} · 면적 약 ${fmt(Math.round(o.spaceArea || 0))}㎡`;
     if (o.hedge) return `경계식재 · 폭 ${fmt(o.hedge.W)}m · 길이 ${fmt(o.hedgeLen || 0)}m`;
     if (o.t === 'free' && o.shrub) {                     // 관목 군식 — 교목·관목 뒤로 지나가 끊긴 조각들
         const L = ops.reduce((t, x) => { const a = x.pts || []; for (let i = 1; i < a.length; i++) t += Math.hypot(a[i][0] - a[i - 1][0], a[i][1] - a[i - 1][1]); return t; }, 0);
@@ -4735,6 +4747,88 @@ function arrowHint() {
     return arrowV.length ? ` · 화살표 ${arrowV.length}점 · 더블클릭·Enter·우클릭 끝 · Backspace 한 점 되돌리기 · Esc 취소` : ' · 화살표가 시작할 자리를 누르세요(점을 찍어 가며)';
 }
 // ── 동선 화살표 끝 ──
+// ── 공간(대표님 — 설계구상도의 공간 구획) — 둥근 모서리 테두리(굵은 샤프) + 그 안쪽에 가는 선 한 줄(얇은 샤프).
+// 그리는 법 셋: 네모(끌기) · 점(찍어 가며 두르고 처음 점에서 닫기) · 자유곡선(손 가는 대로 둘러 놓으면 닫힘 — 손맛).
+// 두 선은 프리드로잉 획(free) + space:{mode, r, gap} 한 묶음(gname '공간')
+var spaceV = [];
+function spaceOpts() {
+    const k = scaleDenom() / 1000;
+    return {mode: ($('fspM') && $('fspM').value) || 'pts', r: (+($('fspR') && $('fspR').value) || 2) * k, gap: (+($('fspG') && $('fspG').value) || 0.7) * k,
+            two: !$('fspTwo') || $('fspTwo').checked, rmm: +($('fspR') && $('fspR').value) || 2, gmm: +($('fspG') && $('fspG').value) || 0.7};
+}
+const spArea = Q => { let a = 0; for (let i = 0, j = Q.length - 1; i < Q.length; j = i++) a += Q[j][0] * Q[i][1] - Q[i][0] * Q[j][1]; return a / 2; };
+function spRound(V, r) {                               // 닫힌 꺾은선 V([x,y]) 의 모서리를 반지름 r 로 둥글린 점들(닫힘, 첫 점 반복 없음)
+    const n = V.length, out = [];
+    for (let i = 0; i < n; i++) {
+        const P0 = V[(i - 1 + n) % n], P1 = V[i], P2 = V[(i + 1) % n];
+        const ax = P0[0] - P1[0], ay = P0[1] - P1[1], bx = P2[0] - P1[0], by = P2[1] - P1[1], la = Math.hypot(ax, ay), lb = Math.hypot(bx, by);
+        if (la < 1e-6 || lb < 1e-6) { out.push(P1); continue; }
+        const ua = [ax / la, ay / la], ub = [bx / lb, by / lb], cs = Math.max(-1, Math.min(1, ua[0] * ub[0] + ua[1] * ub[1])), th = Math.acos(cs);
+        if (th > Math.PI - 0.02 || th < 0.02) { out.push(P1); continue; }   // 거의 곧은 자리
+        let t = r / Math.tan(th / 2); t = Math.min(t, la * 0.48, lb * 0.48);
+        const rr = t * Math.tan(th / 2), A = [P1[0] + ua[0] * t, P1[1] + ua[1] * t], B = [P1[0] + ub[0] * t, P1[1] + ub[1] * t];
+        const bis = [ua[0] + ub[0], ua[1] + ub[1]], bl = Math.hypot(bis[0], bis[1]) || 1, dc = rr / Math.sin(th / 2);
+        const C = [P1[0] + bis[0] / bl * dc, P1[1] + bis[1] / bl * dc];
+        let a0 = Math.atan2(A[1] - C[1], A[0] - C[0]), a1 = Math.atan2(B[1] - C[1], B[0] - C[0]), da = a1 - a0;
+        while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
+        const m = Math.max(4, Math.ceil(Math.abs(da) / 0.2));
+        for (let k = 0; k <= m; k++) { const a = a0 + da * k / m; out.push([C[0] + rr * Math.cos(a), C[1] + rr * Math.sin(a)]); }
+    }
+    return out;
+}
+function spSmooth(R, step) {                           // 자유곡선 — 고르게 다시 찍고(간격 step) 이동 평균으로 떨림만 편다(손맛은 남긴다)
+    const pts = [R[0]]; let acc = 0;
+    for (let i = 1; i < R.length; i++) { const l = pts[pts.length - 1]; if (Math.hypot(R[i][0] - l[0], R[i][1] - l[1]) >= step) pts.push(R[i]); }
+    const n = pts.length; if (n < 4) return pts;
+    let Q = pts;
+    for (let k = 0; k < 2; k++) Q = Q.map((q, i) => { const a = Q[(i - 1 + n) % n], b = Q[(i + 1) % n]; return [(a[0] + 2 * q[0] + b[0]) / 4, (a[1] + 2 * q[1] + b[1]) / 4]; });
+    return Q;
+}
+function spInner(Q, gap) {                             // 닫힌 점들 Q 의 안쪽 평행선(점마다 이웃 두 변의 법선 평균으로 gap 만큼)
+    const n = Q.length, s = spArea(Q) > 0 ? 1 : -1;   // 화면 좌표(y 아래)에서 넓이가 양수면 시계 방향 — 안쪽은 진행 방향의 오른쪽
+    return Q.map((q, i) => {
+        const a = Q[(i - 1 + n) % n], b = Q[(i + 1) % n], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1;
+        return [q[0] - dy / L * gap * s, q[1] + dx / L * gap * s];
+    });
+}
+function spaceShape(V, mode, o) {                      // V — 닫힌 꺾은선(또는 자유곡선) → {outer, inner}(닫힌 점들, 첫 점 반복 포함)
+    let Q;
+    if (mode === 'free') Q = spSmooth(V, Math.max(o.r * 0.3, 0.05));
+    else Q = spRound(V, o.r);
+    if (Q.length < 3) return null;
+    const close = A => A.concat([A[0]]).map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]);
+    return {outer: close(Q), inner: o.two ? close(spInner(Q, o.gap)) : null, area: Math.abs(spArea(Q))};
+}
+function spaceFinish(V, mode) {
+    const o = spaceOpts();
+    if (V.length < 3) { flash('공간은 점을 셋 이상 둘러야 합니다'); return; }
+    const S = spaceShape(V, mode, o); if (!S) { flash('공간을 만들지 못했습니다'); return; }
+    snapHist();
+    const gid = doc.seq, sp = {mode, r: o.rmm, gap: o.gmm};
+    doc.ops.push({id: doc.seq++, t: 'free', pts: S.outer, ls: 'solid', w: 'p9', space: sp, grp: gid, gname: '공간', spaceArea: +S.area.toFixed(1)});
+    if (S.inner) doc.ops.push({id: doc.seq++, t: 'free', pts: S.inner, ls: 'solid', w: 'p5', space: sp, grp: gid, gname: '공간', spaceArea: +S.area.toFixed(1)});
+    changed(); drawPre(); status();
+    flash(`공간 — 면적 약 ${fmt(Math.round(S.area))}㎡`);
+}
+function spacePreSvg(extra) {
+    const o = spaceOpts(), h = hover, w = h && (h.w || h);
+    let V = spaceV.slice(); if (o.mode === 'pts' && w && V.length) V = V.concat([snapXY(w)]);
+    if (extra) V = extra;
+    if (V.length < 2) return '';
+    const raw = `<path d="M${V.map(q => `${fmt(q[0] != null ? q[0] : q.x)} ${fmt(q[1] != null ? q[1] : q.y)}`).join('L')}" fill="none" stroke="${RED}" stroke-width="${fmt(0.1 * U)}" stroke-dasharray="${fmt(0.5 * U)} ${fmt(0.3 * U)}"/>`;
+    const A = V.map(q => q[0] != null ? q : [q.x, q.y]);
+    if (A.length < 3) return raw;
+    const S = spaceShape(A, o.mode, o); if (!S) return raw;
+    const sw = fmt(0.12 * U);
+    return raw + `<path d="${freeD(S.outer)}" fill="none" stroke="${RED}" stroke-width="${sw}"/>` + (S.inner ? `<path d="${freeD(S.inner)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.06 * U)}"/>` : '');
+}
+function spaceHint() {
+    const m = spaceOpts().mode;
+    if (m === 'box') return ' · 한 모서리에서 맞은편 모서리까지 끄세요';
+    if (m === 'free') return ' · 손 가는 대로 둘러 그리고 놓으면 닫힙니다';
+    return spaceV.length ? ` · 공간 ${spaceV.length}점 · 처음 점을 누르거나 더블클릭·Enter·우클릭으로 닫기 · Backspace 한 점 · Esc 취소` : ' · 공간을 두를 첫 점을 누르세요';
+}
+// ── 공간 끝 ──
 function hitPoint(w) {
     let best = null, bd = 11 / pxPer();
     doc.pts.forEach(p => { const d = Math.hypot(p.x - w.x, p.y - w.y); if (d < bd) { bd = d; best = p; } });
@@ -4751,6 +4845,7 @@ function hintText() {
     if (tool === 'lead') return leadHint();
     if (tool === 'hedge') return hedgeHint();
     if (tool === 'arrow') return arrowHint();
+    if (tool === 'space') return spaceHint();
     if (tool === 'shrub') return shrubHint();
     const f = picksOf(tool);
     if (tool === 'point') return ' · 도면을 누르면 점이 생깁니다';
@@ -4777,7 +4872,7 @@ function setArcMode(m) {
 const FORM_OF = {line: 'fl', rect: 'fr', circle: 'fc', arc: 'fa'};
 function setTool(t, keepEdit) {
     root.classList.remove('in-hole');
-    if (t !== tool) { closeTextBox(true); polyV = []; shrubCh = null; leadS = null; hedgeW = []; arrowV = []; }
+    if (t !== tool) { closeTextBox(true); polyV = []; shrubCh = null; leadS = null; hedgeW = []; arrowV = []; spaceV = []; }
     if (t === 'lead') { cnLoadTrees(); leadTypeDraw(); }   // 이어 긋던 다각선·관목 군식은 버린다
     tool = t;
     if (!keepEdit) endEdit();
@@ -6577,6 +6672,25 @@ svg.addEventListener('pointerdown', e => {
     }
     // 샤프를 든 동안에는 끌어도 화면이 움직이지 않는다 — 날이 얇아 조금만 빗나가도 화면이 밀렸다.
     // 몸통을 왼쪽으로 끌면 자를 옮기고, 날 근처(위아래 40px)에서 끌면 어느 버튼이든 날을 따라 긋는다
+    if (tool === 'space' && (e.button === 0 || e.button === 2)) {   // 공간 — 네모(끌기) · 점(찍기) · 자유곡선(끌기)
+        const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel), m = spaceOpts().mode;
+        if (e.button === 0) {
+            if (c('#cadTri .tri-body')) { startTriDrag(e, w); return; }
+            if (c('#cadFtri .tri-body')) { startFtriDrag(e, w); return; }
+            if (c('#cadTpl .tpl-body')) { startTplDrag(e, w); return; }
+            if (c('#cadSr .sr-body')) { startSrDrag(e, w); return; }
+            if (c('#cadBar .bar-body')) { drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return; }
+        }
+        if (m === 'box' && e.button === 0) { drag = {kind: 'spbox', a: boxSnap(w), b: null}; return; }
+        if (m === 'free' && e.button === 0) { drag = {kind: 'spfree', pts: [[w.x, w.y]], sx: e.clientX, sy: e.clientY}; return; }
+        drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true};
+        if (m !== 'pts') return;
+        if (e.button === 2) { const V = spaceV.map(q => [q.x, q.y]); spaceV = []; if (V.length >= 3) spaceFinish(V, 'pts'); else { drawPre(); status(); } return; }
+        const q = snapXY(w), f = spaceV[0], l = spaceV[spaceV.length - 1];
+        if (f && spaceV.length >= 3 && Math.hypot(q.x - f.x, q.y - f.y) * pxPer() < 12) { const V = spaceV.map(v => [v.x, v.y]); spaceV = []; spaceFinish(V, 'pts'); return; }   // 처음 점 — 닫기
+        if (!l || Math.hypot(q.x - l.x, q.y - l.y) > 1e-6) spaceV.push(q);
+        drawPre(); status(); return;
+    }
     if (tool === 'arrow' && (e.button === 0 || e.button === 2)) {   // 동선 화살표 — 점을 찍어 가며, 오른쪽 버튼·더블클릭이면 끝
         const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
         if (e.button === 0) {
@@ -6736,7 +6850,7 @@ svg.addEventListener('pointerdown', e => {
             moved: false, target: e.target, w0: w, shift: e.shiftKey || e.ctrlKey || e.metaKey};
 });
 // 긋다가 화면 끝(36px 안)에 닿으면 화면이 저절로 그쪽으로 흘러가며 계속 긋는다(사용자) — 샤프·프리드로잉·박스
-const AUTO_KINDS = ['pencil', 'free', 'box', 'shrub'];
+const AUTO_KINDS = ['pencil', 'free', 'box', 'shrub', 'spbox', 'spfree', 'boxdraw'];
 // 시설 및 수목(기호)을 넣을 때는 누르지 않고 커서만 끝으로 가져가도 화면이 흘러간다(대표님) — 여러 그루를 이어 심다 화면 끝에 닿았을 때
 const autoOk = () => drag ? AUTO_KINDS.includes(drag.kind) : !RP;   // 누르지 않아도 어느 도구든(대표님) — 끝에 0.25초 머물러야 흐른다(도구 줄·목록으로 지나갈 때 튀지 않게)
 let autoPan = null;
@@ -6832,6 +6946,15 @@ svg.addEventListener('pointermove', e => {
             hover = {x: q.x, y: q.y, pt: null}; status();
         }
         return;
+    }
+    if (drag && drag.kind === 'spbox') {           // 공간 — 네모
+        const A = drag.a, B = drag.b = boxSnap(w);
+        gPre.innerHTML = spacePreSvg([[A.x, A.y], [B.x, A.y], [B.x, B.y], [A.x, B.y]]); return;
+    }
+    if (drag && drag.kind === 'spfree') {          // 공간 — 자유곡선
+        const l = drag.pts[drag.pts.length - 1];
+        if (Math.hypot(w.x - l[0], w.y - l[1]) * pxPer() >= 2) drag.pts.push([w.x, w.y]);
+        gPre.innerHTML = drag.pts.length > 1 ? `<path d="${freeD(drag.pts)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : ''; return;
     }
     if (drag && drag.kind === 'boxdraw') {
         const A = drag.a, B = drag.b = boxSnap(w), st = boxStyle();
@@ -6992,6 +7115,8 @@ function endPtr(e) {
     if (e.type === 'pointercancel') return;
     if (d.kind === 'trirot') { rotateTri(); return; }
     if (d.kind === 'boxdraw') { gPre.innerHTML = ''; if (d.b) makeBox(d.a, d.b); return; }
+    if (d.kind === 'spbox') { gPre.innerHTML = ''; if (d.b && Math.abs(d.b.x - d.a.x) > 1e-6 && Math.abs(d.b.y - d.a.y) > 1e-6) spaceFinish([[d.a.x, d.a.y], [d.b.x, d.a.y], [d.b.x, d.b.y], [d.a.x, d.b.y]], 'box'); return; }
+    if (d.kind === 'spfree') { gPre.innerHTML = ''; if (d.pts.length > 8) spaceFinish(d.pts, 'free'); else flash('조금 더 길게 둘러 그리세요'); return; }
     if (d.kind === 'shrub') {                         // 관목 군식 — 뗀 조각을 잇는다(끝낼 때 한 획으로 넣는다)
         const moved = Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 4 || d.pts.length > 3;
         if (!moved) { drawPre(); return; }            // 누르기만 한 것(더블클릭의 첫 누름 등)은 잇지 않는다
@@ -7563,6 +7688,13 @@ $('fdFree').addEventListener('change', () => { try { localStorage.setItem('cadLe
 $('fdTypes').addEventListener('click', e => { const b = e.target.closest('[data-lt]'); if (!b) return; try { localStorage.setItem('cadLeadType', b.dataset.lt); } catch (er) {} leadTypeDraw(); drawPre(); status(); });
 $('fdName').addEventListener('change', () => { const q = cnTree($('fdName').value); if (q) $('fdSpec').value = q.spec; drawPre(); });
 ['fdCnt', 'fdSpec', 'fdMm'].forEach(id => $(id).addEventListener('input', () => drawPre()));
+document.addEventListener('keydown', e => {           // 공간(점) — Enter 닫기 · Backspace 한 점 · Esc 취소
+    if (tool !== 'space' || !spaceV.length || RP) return;
+    const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+    if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); const V = spaceV.map(q => [q.x, q.y]); spaceV = []; if (V.length >= 3) spaceFinish(V, 'pts'); else { drawPre(); status(); } }
+    else if (e.key === 'Backspace') { e.preventDefault(); e.stopImmediatePropagation(); spaceV.pop(); drawPre(); status(); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); spaceV = []; drawPre(); status(); flash('공간을 취소했습니다'); }
+}, true);
 document.addEventListener('keydown', e => {           // 동선 화살표 — Enter 끝 · Backspace 한 점 · Esc 취소
     if (tool !== 'arrow' || !arrowV.length || RP) return;
     const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
@@ -7689,13 +7821,13 @@ document.addEventListener('keydown', e => {
     if (barOn && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         e.preventDefault(); setBarY(barY + (e.key === 'ArrowUp' ? -1 : 1) * barStep() * (e.shiftKey ? 5 : 1)); saveBar(); return;
     }
-    const map = {v: 'select', t: 'text', f: 'fill', d: 'free', x: 'box', q: 'poly', g: 'shrub', l: 'lead', h: 'hedge', a: 'arrow', b: 'sym', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
+    const map = {v: 'select', t: 'text', f: 'fill', d: 'free', x: 'box', q: 'poly', g: 'shrub', l: 'lead', h: 'hedge', a: 'arrow', k: 'space', b: 'sym', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
     if (map[k]) setTool(map[k]);
     if (k === '+' || k === '=') zoomCenter(1.4);
     if (k === '-') zoomCenter(1 / 1.4);
 });
 document.addEventListener('keyup', e => { if (e.key === ' ') spaceDown = false; });
-svg.addEventListener('dblclick', () => { if (tool === 'arrow' && arrowV.length && !RP) arrowFinish(); if (tool === 'poly' && polyV.length && !RP) polyFinish(); if (tool === 'shrub' && shrubCh && !RP) shrubFinish(false); });
+svg.addEventListener('dblclick', () => { if (tool === 'space' && spaceV.length >= 3 && !RP) { const V = spaceV.map(q => [q.x, q.y]); spaceV = []; spaceFinish(V, 'pts'); } if (tool === 'arrow' && arrowV.length && !RP) arrowFinish(); if (tool === 'poly' && polyV.length && !RP) polyFinish(); if (tool === 'shrub' && shrubCh && !RP) shrubFinish(false); });
 document.addEventListener('keydown', e => {           // 관목 군식을 이어 긋는 중 — Enter 열린 채 끝 · Backspace 한 조각 · Esc 취소(도구는 그대로)
     if (tool !== 'shrub' || !shrubCh || RP) return;
     const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
