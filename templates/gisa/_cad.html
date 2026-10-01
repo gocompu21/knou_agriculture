@@ -4785,10 +4785,11 @@ function linkSvg(pts, both, color) {
         return {p: [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * t, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * t], t: [(pts[i][0] - pts[i - 1][0]) / ((acc[i] - acc[i - 1]) || 1), (pts[i][1] - pts[i - 1][1]) / ((acc[i] - acc[i - 1]) || 1)]}; };
     const rnd = spRng(Math.abs(Math.round(pts[0][0] * 97 + pts[0][1] * 131 + L * 7)) + 1), f2 = q => `${fmt(q[0])} ${fmt(q[1])}`;
     // 동그라미 셋 — 범례처럼 한 묶음으로(간격 고정 5mm, 길이가 모자라면 줄인다). 끝 화살촉 바로 뒤부터 거꾸로 놓는다(양방향이면 두 화살촉 가운데)
-    const hS = both ? H : 0, a1 = L - H - r - 1.5 * k, a0 = hS + r + (both ? 1.5 * k : 0), gap = Math.min(5 * k, Math.max(0, (a1 - a0) / 2));
+    const hS = both ? H : 0, a1 = L - H - r - 1.5 * k, a0 = hS + r + (both ? 1.5 * k : 0), room = Math.max(0, a1 - a0), gmin = 2 * r + 1.2 * k;
+    const cnt = Math.max(1, Math.min(3, Math.floor(room / gmin) + 1)), gap = cnt > 1 ? Math.min(5 * k, room / (cnt - 1)) : 0;   // 짧으면 동그라미를 줄인다 — 겹치지 않게(대표님)
     let c = '';
-    for (let j = 0; j < 3; j++) {
-        const q = at(both ? (a0 + a1) / 2 + gap * (j - 1) : a1 - gap * (2 - j)), rr = r * (0.93 + rnd() * 0.14);
+    for (let j = 0; j < cnt; j++) {
+        const q = at(both ? (a0 + a1) / 2 + gap * (j - (cnt - 1) / 2) : a1 - gap * (cnt - 1 - j)), rr = r * (0.93 + rnd() * 0.14);
         c += `<ellipse cx="${fmt(q.p[0] + (rnd() - 0.5) * 0.15 * k)}" cy="${fmt(q.p[1] + (rnd() - 0.5) * 0.15 * k)}" rx="${fmt(rr)}" ry="${fmt(rr * (0.9 + rnd() * 0.1))}" transform="rotate(${fmt(rnd() * 180)} ${fmt(q.p[0])} ${fmt(q.p[1])})"/>`;
     }
     const head = (s, dir) => {                           // 손으로 칠한 삼각형 — 꼭짓점을 조금씩 흔들고, 세 변을 살짝 지나치게 긋는다
