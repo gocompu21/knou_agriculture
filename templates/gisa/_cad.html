@@ -27,7 +27,7 @@
         <div class="cad-set cad-newbox" id="cadNewBox" hidden>
             <h4>새 도면</h4>
             <div class="cn-f"><label for="cnSheet">종이</label><div class="cn-c"><select id="cnSheet"></select></div></div>
-            <div class="cn-f" id="cnFrameRow"><label for="cnFrame">틀</label><div class="cn-c"><select id="cnFrame"><option value="">틀 없음</option><option value="answer2">답안지 Ⅱ 틀</option><option value="answer3">답안지 Ⅲ 틀 (배식)</option></select></div></div>
+            <div class="cn-f" id="cnFrameRow"><label for="cnFrame">틀</label><div class="cn-c"><select id="cnFrame"><option value="">틀 없음</option><option value="answer2">답안지 Ⅱ 틀</option><option value="answer3">답안지 Ⅲ 틀 (배식)</option><option value="answer1">답안지 Ⅰ 틀 (설계구상)</option></select></div></div>
             <div id="cnOpts">
                 <div class="cn-f"><label for="cnName">도면명</label><div class="cn-c"><input id="cnName" maxlength="20" value="시설물배치도"></div></div>
                 <div class="cn-f"><label for="cnNorth">방위</label><div class="cn-c"><input type="number" id="cnNorth" class="sm" value="0" step="1" min="-180" max="360"><span class="u">°</span><span class="hint">시계 방향 +</span></div></div>
@@ -414,6 +414,7 @@
 .cn-row { display: grid; grid-template-columns: 18px minmax(80px, 1.3fr) minmax(70px, 1.2fr) 40px 44px 44px;   /* 기호 칸은 뺐다(사용자) */ gap: 3px; align-items: center; padding: 1px 0; }
 .cn-row > span { font-size: 0.72rem; color: #7a8a82; text-align: center; }
 .cn-head > span { font-weight: 700; color: #1b4332; }
+.cn-rows.t1 .cn-row { grid-template-columns: 18px minmax(120px, 1fr) 44px; }
 .cn-rows.t3 .cn-row { grid-template-columns: 18px 58px minmax(80px, 1.3fr) minmax(70px, 1.2fr) 48px 44px 44px; }
 .cn-bt { display: flex; gap: 2px; }   /* 줄 끼우기(＋ 아래에)·지우기(✕) — 사용자 */
 .cn-bt button { width: 20px; height: 22px; padding: 0; border: 1px solid #d5ddd9; border-radius: 4px; background: #fff; color: #2d6a4f; font-size: 0.78rem; line-height: 1; cursor: pointer; }
@@ -5792,16 +5793,19 @@ function newDrawing() {
 }
 // 수량표 미리 채우기 — Ⅱ 시설명·규격·단위·수량 / Ⅲ 성상·수목명·규격·단위·수량. 실수로 창을 닫아도 남도록 브라우저에 적어 둔다.
 // 틀마다 따로 둔다(도면명·방위·줄 수·줄) — 틀을 바꿔도 서로 섞이지 않게
-const CN_KEYS = {answer2: 'cadFrameRows', answer3: 'cadFrameRows:answer3'};
+const CN_KEYS = {answer2: 'cadFrameRows', answer3: 'cadFrameRows:answer3', answer1: 'cadFrameRows:answer1'};
 const CN_DEF = {answer2: {name: '시설물배치도', unit: '개', label: '시설물 수량표', done: '답안지 Ⅱ 틀로 시작합니다'},
-                answer3: {name: '배식평면도', unit: '주', label: '수목수량표', done: '답안지 Ⅲ 틀(배식)로 시작합니다'}};
+                answer3: {name: '배식평면도', unit: '주', label: '수목수량표', done: '답안지 Ⅲ 틀(배식)로 시작합니다'},
+                answer1: {name: '설계구상도', unit: '', label: '범례', done: '답안지 Ⅰ 틀(설계구상)로 시작합니다'}};
+// 답안지 Ⅰ 범례의 처음 줄 — 시험 답안의 설계구상도에 흔히 쓰는 것(대표님이 보여 준 답안 차례)
+const CN_A1 = ['공 간', '차 량 동 선', '보 행 동 선', '연 계 동 선', '차 폐 식 재', '완 충 식 재', '녹 음 식 재', '경 관 식 재', '요 점 식 재'];
 let cnSt = {}, cnCur = '', cnData = [], cnTrees = null;
-const cnBlank = fr => fr === 'answer3' ? {form: '', name: '', spec: '', unit: '주', qty: '', auto: {unit: '주'}} : {sym: '', name: '', spec: '', unit: '개', qty: ''};
+const cnBlank = fr => fr === 'answer1' ? {name: ''} : fr === 'answer3' ? {form: '', name: '', spec: '', unit: '주', qty: '', auto: {unit: '주'}} : {sym: '', name: '', spec: '', unit: '개', qty: ''};
 function cnState(fr) {
     if (!cnSt[fr]) {
         let j = null; try { j = JSON.parse(localStorage.getItem(CN_KEYS[fr]) || 'null'); } catch (e) {}
-        cnSt[fr] = {name: (j && j.name) || CN_DEF[fr].name, north: j && j.north != null ? j.north : 0, n: (j && j.n) || 7,
-            rows: j && Array.isArray(j.rows) ? j.rows.map(r => ({...cnBlank(fr), ...r})) : []};
+        cnSt[fr] = {name: (j && j.name) || CN_DEF[fr].name, north: j && j.north != null ? j.north : 0, n: (j && j.n) || (fr === 'answer1' ? CN_A1.length : 7),
+            rows: j && Array.isArray(j.rows) ? j.rows.map(r => ({...cnBlank(fr), ...r})) : fr === 'answer1' ? CN_A1.map(name => ({name})) : []};
     }
     return cnSt[fr];
 }
@@ -5814,17 +5818,19 @@ function cnSave() {
     if (!cnCur) return; cnStash();
     try { localStorage.setItem(CN_KEYS[cnCur], JSON.stringify(cnState(cnCur))); } catch (e) {}
 }
-const cnCount = () => Math.max(1, Math.min(20, Math.round(+$('cnRows').value || 7)));
+const cnCount = () => Math.max(1, Math.min(cnCur === 'answer1' ? 12 : 20, Math.round(+$('cnRows').value || 7)));   // Ⅰ 범례는 한 줄이 두 칸 높이라 12줄까지(도면명 칸 위)
 const cnTree = name => (cnTrees || []).find(q => q.name === String(name || '').trim());
 function cnRender() {                                 // 줄 수만큼 — 줄을 줄여도 적어 둔 것은 버리지 않는다
     if (!cnCur) return;
-    const n = cnCount(), t3 = cnCur === 'answer3';
+    const n = cnCount(), t3 = cnCur === 'answer3', t1 = cnCur === 'answer1';
     while (cnData.length < n) cnData.push(cnBlank(cnCur));
     $('cnRowsLb').textContent = CN_DEF[cnCur].label;
-    $('cnRowsBox').classList.toggle('t3', t3);
-    $('cnHead').innerHTML = '<span>#</span>' + (t3 ? ['성상', '수목명', '규격', '단위', '수량'] : ['시설명', '규격', '단위', '수량']).map(s => `<span>${s}</span>`).join('') + '<span></span>';
+    $('cnRowsBox').classList.toggle('t3', t3); $('cnRowsBox').classList.toggle('t1', t1);
+    $('cnHead').innerHTML = '<span>#</span>' + (t1 ? ['표시 (기호는 그리며 넣습니다)'] : t3 ? ['성상', '수목명', '규격', '단위', '수량'] : ['시설명', '규격', '단위', '수량']).map(s => `<span>${s}</span>`).join('') + '<span></span>';
     // 기호는 미리 넣지 않는다(사용자: 템플릿에서 기호는 빼는 게 좋겠다) — 기호 칸은 도면을 그리며 채운다. 만드는 코드(buildFrame 의 r.sym)는 남겨 둔다
     $('cnRowList').innerHTML = cnData.slice(0, n).map((r, i) => { const tr = t3 && cnTree(r.name);
+        if (t1) return `<div class="cn-row" data-i="${i}"><span>${i + 1}</span><input data-k="name" placeholder="표시 (예: 차 량 동 선)" maxlength="20" value="${esc(r.name)}">`
+            + `<span class="cn-bt"><button type="button" data-a="ins" title="아래에 한 줄 끼우기">＋</button><button type="button" class="del" data-a="del" title="이 줄 지우기">✕</button></span></div>`;
         return `<div class="cn-row" data-i="${i}">` + (tr && tr.note ? `<span class="nt" title="${esc(tr.note)}">${i + 1}※</span>` : `<span>${i + 1}</span>`)
         + (t3 ? cnFormSel(r) : '')
         + (t3 ? cnTreeSel(r, tr) : `<input data-k="name" placeholder="시설명" maxlength="20" value="${esc(r.name)}">`)
@@ -6016,10 +6022,12 @@ const frameMeasure = (s, size) => [...String(s)].reduce((w, c) => w + size * (c 
 function buildFrame(src, N, opt) {
     const R = v => Math.round(v * 1e4) / 1e4, E = 0.02, f = N / 100, k = 100 / N;
     const rows = Array.isArray(opt.rows) ? opt.rows : [];
-    const n = Math.max(1, Math.min(20, Math.round(+(Array.isArray(opt.rows) ? opt.n || rows.length : opt.rows) || 7)));
+    const n = Math.max(1, Math.min(opt.kind === 'answer1' ? 12 : 20, Math.round(+(Array.isArray(opt.rows) ? opt.n || rows.length : opt.rows) || 7)));
     const measure = opt.measure || frameMeasure, symBox = opt.symBox || frameItemsBox;
     const T3 = opt.kind === 'answer3';                // 답안지 Ⅲ(배식) — 수목수량표 · 첫 칸은 성상(글자) · 시설명 → 수목명
-    const X0 = 46.4, X1 = 58.4, TOP = 5.2, OLD = 12.2, BOT = TOP + n;          // 오른쪽 칸 · 수량표(1:100 자리)
+    const T1 = opt.kind === 'answer1';                // 답안지 Ⅰ(설계구상) — 범례 표: 기호 | 표시 두 칸, 한 줄 높이 2(대표님이 보여 준 답안)
+    const RH = T1 ? 2 : 1, XM = 52.4;                 // 줄 높이 · Ⅰ 의 두 칸 경계
+    const X0 = 46.4, X1 = 58.4, TOP = 5.2, OLD = 12.2, BOT = TOP + n * RH;          // 오른쪽 칸 · 수량표(1:100 자리)
     const pts = new Map(src.pts.map(p => [+p.n, {...p}]));
     let pn = Math.max(0, ...pts.keys()) + 1, id = Math.max(0, ...src.ops.map(o => +o.id || 0)) + 1;
     const np = (x, y) => { const q = pn++; pts.set(q, {n: q, x, y}); return q; };   // 반올림은 축척을 옮길 때 한 번만(1:300 에서 0.9999 가 나왔다)
@@ -6055,8 +6063,12 @@ function buildFrame(src, N, opt) {
         return np(C.x + dx * c - dy * s, C.y + dx * s + dy * c); };
     // 새로 그을 것 — 수량표 줄(마킹·실선·보조선), 막대 축척
     const rowMarks = [], rowLines = [], rowAux = [];
-    for (let i = 1; i <= n; i++) { const y = TOP + i, m = mark(X0, y, 0.3, 0, y - 1.2); rowMarks.push(m.op); rowLines.push(line(m.p, np(X1, y), 'p9', 'solid')); }
-    for (let i = 0; i < n; i++) [0.2, 0.8].forEach(d => rowAux.push(line(np(X0, TOP + i + d), np(X1, TOP + i + d), 'p5', 'aux')));
+    for (let i = 1; i <= n; i++) { const y = TOP + i * RH, m = mark(X0, y, 0.3, 0, y - 1.2); rowMarks.push(m.op); rowLines.push(line(m.p, np(X1, y), 'p9', 'solid')); }
+    if (T1) {                                         // Ⅰ — 표시 칸에만 글자 윗선·밑선, 기호 칸 가운데 세로 보조선, 두 칸 경계 실선
+        for (let i = 0; i < n; i++) { const mid = TOP + i * RH + RH / 2; [mid - 0.2, mid + 0.2].forEach(y => rowAux.push(line(np(XM, y), np(X1, y), 'p5', 'aux'))); }
+        rowAux.push(line(np((X0 + XM) / 2, TOP + 0.2), np((X0 + XM) / 2, BOT - 0.2), 'p5', 'aux'));   // 머리글 글자를 지나지 않게 줄 안에서만
+        rowLines.push(line(np(XM, TOP - 0.9), np(XM, BOT), 'p9', 'solid'));
+    } else for (let i = 0; i < n; i++) [0.2, 0.8].forEach(d => rowAux.push(line(np(X0, TOP + i + d), np(X1, TOP + i + d), 'p5', 'aux')));
     const B = frameBar(N), BX = v => 48.65 + v * k, bar = [], xe = BX(B[B.length - 1]);
     const bm = B.map(v => mark(BX(v), 38.75, 0, -0.075, v * k)); bm.forEach(m => bar.push(m.op));
     bar.push(line(np(BX(0), 37.9), np(BX(0), 40.95), 'p5', 'aux'));
@@ -6076,7 +6088,7 @@ function buildFrame(src, N, opt) {
         bar.push(text(s + (last ? '(M)' : ''), BX(v) - s.length * 0.3 * 0.28, 38.76, 0.3)); });
     // 수량표 내용 — 줄마다 기호(칸에 맞춰 줄인 복사본) · 시설명(칸 폭에 글자를 벌려) · 규격·단위·수량(가운데)
     // 글자 x 는 첫 글자의 왼쪽 아래라 가운데 맞춤은 잰 폭으로 한다(화면은 canvas 로 재고, 여기 기본값은 어림)
-    const COLS = [[46.4, 48.4], [48.4, 51.8], [51.8, 54.9], [54.9, 56.4], [56.4, 58.4]], TS = 0.4, items = [], rowSyms = [], warns = [];
+    const COLS = T1 ? [[X0, XM], [XM, X1]] : [[46.4, 48.4], [48.4, 51.8], [51.8, 54.9], [54.9, 56.4], [56.4, 58.4]], TS = 0.4, items = [], rowSyms = [], warns = [];
     const cellText = (s, c, y, spread, no, how) => {   // how: 'left' 왼쪽에서 한 칸(규격) · 'pad' 양쪽 한 칸 안에 벌리기(수목명) · 'gap3' 글자 사이 세 칸(성상 — 머리글 '성   상' 과 같게)
         s = String(s == null ? '' : s).trim(); if (!s) return;
         const [x0, x1] = COLS[c], W = x1 - x0, m = measure('가', TS);   // 한 칸 = 글자 하나 폭(사용자)
@@ -6105,6 +6117,7 @@ function buildFrame(src, N, opt) {
         if (!r) return;
         const has = r.sym || [r.name, r.spec, r.qty, T3 ? r.form : ''].some(v => String(v == null ? '' : v).trim());
         if (!has) return;                             // 빈 줄
+        if (T1) { cellText(r.name, 1, TOP + i * RH + RH / 2 + 0.2, true, i + 1); return; }   // Ⅰ — 표시만(기호는 도면을 그리며 넣는다)
         const top = TOP + i, y = top + 0.8;
         if (r.sym) {                                  // 칸(폭 2 × 높이 1)의 70% 안에 들게 줄여 가운데에
             let its = r.sym.items || [], b = its.length ? symBox(its) : null, s = 0;
@@ -6135,6 +6148,10 @@ function buildFrame(src, N, opt) {
         else if (inBox(b, 48.3, 37.8, 57.5, 40.97) && !(op.t === 'text' && /^SCALE/.test(op.s))) cat = 'bar';
         else if (inBox(b, X0 - 0.1, TOP + 0.05, X1 + 0.1, OLD + 0.05)) cat = 'items';   // 수량표 안의 원래 기호·글자 — 비우고 그 자리에 새 내용
         if (cat) { if (put[cat]) { out.push(...put[cat]); put[cat] = null; } return; }
+        if (T1 && op.t === 'line') {                  // Ⅰ — 표 안의 세로줄(실선·보조선)은 걷는다
+            const a = P(op.a), c = P(op.b);
+            if (a && c && Math.abs(a.x - c.x) < 1e-3 && a.x > X0 + E && a.x < X1 - E && Math.min(a.y, c.y) > 3.95 && Math.max(a.y, c.y) < OLD + E) return;
+        }
         if (op.t === 'line') {                        // 수량표 세로줄 — 새 바닥까지 늘린다
             const a = P(op.a), c = P(op.b);
             if (a && c && Math.abs(a.x - c.x) < 1e-3 && a.x > X0 + E && a.x < X1 - E && Math.min(a.y, c.y) < TOP && Math.max(a.y, c.y) > OLD - 0.35 && Math.max(a.y, c.y) < OLD + E) {
@@ -6146,6 +6163,16 @@ function buildFrame(src, N, opt) {
             op.a = turn(op.a, h); op.b = turn(op.b, h); }
         if (north && op.t === 'sym' && op.id === north.id) op.rot = rot;
         if (op.t === 'text' && /^SCALE/.test(op.s)) op.s = `SCALE : 1 / ${N}`;
+        if (T1 && op.t === 'text') {                 // Ⅰ 머리글 — 표 제목 '범 례' · '기 호' | '표 시' · 제목 Ⅰ
+            const s0 = op.s.replace(/\s/g, ''), cx = (c0, c1) => c0 + (c1 - c0 - measure(op.s, op.size)) / 2;
+            if (s0 === '시설물수량표') op.s = '범       례';
+            else if (s0 === '답안지Ⅱ') op.s = op.s.replace('Ⅱ', 'Ⅰ');
+            else if (op.y > TOP - 0.9 && op.y <= TOP && op.x >= X0 && op.x < X1) {
+                if (s0 === '기') { op.s = '기          호'; op.x = cx(X0, XM); }
+                else if (s0 === '시설명') { op.s = '표          시'; op.x = cx(XM, X1); }
+                else return;                          // '호' · 규격 · 단위 · 수량
+            }
+        }
         if (T3 && op.t === 'text') {                 // Ⅲ 머리글 — 표 제목·첫 칸('기'·'호' → '성   상')·시설명 → 수목명
             const s0 = op.s.replace(/\s/g, '');
             if (s0 === '시설물수량표') op.s = '수 목 수 량 표';
@@ -6157,7 +6184,7 @@ function buildFrame(src, N, opt) {
             }
         }
         if (op.t === 'text' && op.s.replace(/\s/g, '') === '시설물배치도') {
-            const ch = [...String(opt.name || (T3 ? '배식평면도' : '시설물배치도')).replace(/\s/g, '')], sp = ch.length <= 8 ? '  ' : ch.length <= 10 ? ' ' : '';
+            const ch = [...String(opt.name || (T1 ? '설계구상도' : T3 ? '배식평면도' : '시설물배치도')).replace(/\s/g, '')], sp = ch.length <= 8 ? '  ' : ch.length <= 10 ? ' ' : '';
             op.s = ch.join(sp);
             const w = op.size * (ch.length + (ch.length - 1) * sp.length * 0.3);   // 어림 폭
             if (op.x + w > X1 - 0.2) warn = `도면명이 길어 칸을 넘칠 수 있습니다(${ch.length}자)`;
