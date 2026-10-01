@@ -1870,6 +1870,16 @@ function shrubScallop(raw, size, seed, closed, bulge, jit, kind) {
         }
         side = v >= 0 ? 1 : -1;
     }
+    // 그은 선은 바깥 경계다(대표님) — 파형의 꼭대기가 그 선에 닿고 몸체는 안쪽에 들도록, 밑선을 파형 높이만큼 부푸는 반대쪽으로 옮긴다
+    {
+        const dIn = size / 2 * bulge * (spike ? 1.7 : 1) * (1 + jit * 0.75), n = S.length;   // 가장 큰 파형 기준 — 흔들려 커진 파형도 선을 넘지 않게
+        const segN = j => { const [ax, ay] = S[j], [bx, by] = S[j + 1], c = Math.hypot(bx - ax, by - ay) || 1; return [(by - ay) / c * side, -(bx - ax) / c * side]; };
+        const NN = S.map((q, i) => {
+            const a = i > 0 ? segN(i - 1) : closed ? segN(n - 2) : null, b = i < n - 1 ? segN(i) : closed ? segN(0) : null;
+            let x = (a ? a[0] : 0) + (b ? b[0] : 0), y = (a ? a[1] : 0) + (b ? b[1] : 0); const L = Math.hypot(x, y) || 1; return [x / L, y / L];
+        });
+        for (let i = 0; i < n; i++) S[i] = [S[i][0] - NN[i][0] * dIn, S[i][1] - NN[i][1] * dIn];
+    }
     // 파형 하나 = 원호(사용자: 더 둥글게). 사인 곡선은 밑동이 뾰족해 물결처럼 보였다. 현 c · 높이 h 인 원의 호를 긋는다 — h > c/2 면 반원보다 큰 호
     const out = [[S[0][0], S[0][1]]], K = 14;
     for (let j = 0; j + 1 < S.length; j++) {
@@ -5569,7 +5579,8 @@ function shrubCenter(ops) {                             // 중심선 — 저장�
     const nrm = i => { const a = M[Math.max(0, i - 1)], b = M[Math.min(n - 1, i + 1)], L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; return [-(b[1] - a[1]) / L, (b[0] - a[0]) / L]; };
     for (let i = 0; i < n; i++) { const N = nrm(i); dot += (Q[i][0] - M[i][0]) * N[0] + (Q[i][1] - M[i][1]) * N[1]; cnt++; }
     const off = cnt ? dot / cnt : 0;
-    const raw = M.map((q, i) => { const N = nrm(i); return [q[0] + N[0] * off, q[1] + N[1] * off]; });
+    // 파형 점들의 평균 높이는 꼭대기의 약 0.64(원호를 고르게 찍은 평균) — 꼭대기 선(=바깥 경계)까지 늘려 돌려준다. 다시 만들면 꼭대기가 이 선에 닿는다
+    const raw = M.map((q, i) => { const N = nrm(i); return [q[0] + N[0] * off * 1.55, q[1] + N[1] * off * 1.55]; });
     if (closed) raw.push([raw[0][0], raw[0][1]]);
     return {raw: shrubThin(raw, (sh.size || 1)), closed};
 }
