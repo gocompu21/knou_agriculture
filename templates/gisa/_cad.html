@@ -5063,7 +5063,10 @@ function carSvg(pts, a, color, self) {
     for (const sg of [1, -1]) { const L = []; for (let s = s0; s < s1; s += 0.6 * k) L.push(side(sg, s)); if (!cl) L.push(side(sg, s1)); ed += 'M' + L.map(f2).join('L') + (cl ? 'Z' : ''); }
     // 진한 두 줄 — 빗금 사이에 띠 폭 2배 안팎마다 굵은 줄 둘(대표님 스케치). 변에서 변까지 닿는다
     let dk = ''; const darkS = [];
+    const oc = others.map(o => ({P: carCenter(o.pts, o.arrow).P, h: (o.arrow.wmm || 13) * k / 2}));
+    const open = q => oc.some(o => o.P.some(c => Math.hypot(c[0] - q[0], c[1] - q[1]) < o.h + 0.15 * W));   // 그 자리 변이 다른 길에 지워졌나
     for (let s = s0 + W * (0.8 + rnd() * 0.4); s < s1 - W * 0.5; s += W * 2 * (0.9 + rnd() * 0.2)) {
+        if ([-0.6 * k, 0.6 * k].some(ds => open(side(1, s + ds)) || open(side(-1, s + ds)))) continue;   // 양쪽 변이 다 있는 자리에만(대표님 — 길목에 걸치면 지저분하다)
         darkS.push(s);
         for (const ds of [-0.4 * k, 0.4 * k]) {   // 두 줄 사이 종이 0.8mm — 붙으면 한 줄로 뭉친다
             const q = at(s + ds), tl = (rnd() - 0.5) * 0.02 * W, tx = q.n[1], ty = -q.n[0], e = W / 2 - 0.02 * W;
