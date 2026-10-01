@@ -4897,6 +4897,53 @@ function spInnerStrokes(V, o, open, seed) {             // 안쪽 줄을 손으�
         return D.P.map((q, i) => { const e = 0.16 * k * w(D.S[i]) + 0.22 * o.gap * g(D.S[i]) * s; return [q[0] + N[i][0] * e, q[1] + N[i][1] * e]; });
     });
 }
+function spFreeCorners(Q, closed) {                   // 자유곡선에서 급히 꺾이는 자리 — 앞뒤 종이 2.5mm 를 이은 두 방향이 55° 넘게 꺾이는 곳(가장 크게 꺾인 한 점만)
+    const k = scaleDenom() / 1000, n = Q.length, win = 2.5 * k, S = [0];
+    for (let i = 1; i < n; i++) S.push(S[i - 1] + Math.hypot(Q[i][0] - Q[i - 1][0], Q[i][1] - Q[i - 1][1]));
+    const L = S[n - 1] + (closed ? Math.hypot(Q[0][0] - Q[n - 1][0], Q[0][1] - Q[n - 1][1]) : 0);
+    const at = d => {                                   // 누적 길이 d 의 자리(닫힌 것은 한 바퀴 돌림)
+        if (closed) d = ((d % L) + L) % L; else d = Math.max(0, Math.min(S[n - 1], d));
+        let j = 0; while (j < n - 1 && S[j + 1] < d) j++;
+        const a = Q[j], b = j < n - 1 ? Q[j + 1] : Q[0], sl = (j < n - 1 ? S[j + 1] : L) - S[j], t = sl > 1e-9 ? (d - S[j]) / sl : 0;
+        return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+    };
+    const T = Q.map((q, i) => {
+        if (!closed && (S[i] < win * 1.2 || S[n - 1] - S[i] < win * 1.2)) return 0;
+        const a = at(S[i] - win), b = at(S[i] + win), u = [q[0] - a[0], q[1] - a[1]], v = [b[0] - q[0], b[1] - q[1]];
+        const lu = Math.hypot(u[0], u[1]), lv = Math.hypot(v[0], v[1]); if (lu < 1e-9 || lv < 1e-9) return 0;
+        return Math.acos(Math.max(-1, Math.min(1, (u[0] * v[0] + u[1] * v[1]) / lu / lv)));
+    });
+    const out = [], lim = 55 * Math.PI / 180;
+    for (let i = 0; i < n; i++) {
+        if (T[i] < lim) continue;
+        let j = i, best = i; while (j + 1 < n && T[j + 1] >= lim) { j++; if (T[j] > T[best]) best = j; }
+        if (!out.length || S[best] - S[out[out.length - 1]] > win) out.push(best);
+        i = j;
+    }
+    if (closed && out.length > 1 && L - S[out[out.length - 1]] + S[out[0]] < win) out.pop();
+    return out;
+}
+function spInnerFree(Q, o, closed, seed, C) {           // 자유곡선 안쪽 줄 — 급히 꺾인 자리(C)에서 획을 끊고, 획 끝을 모서리 너머로 지나치게(네모·점과 같은 손맛)
+    const k = scaleDenom() / 1000, n = Q.length, rnd = spRng((seed ^ 0x27d4eb2d) >>> 0), s = spArea(Q) > 0 ? 1 : -1;
+    const chains = [];
+    if (closed) C.forEach((c, j) => { const e = C[(j + 1) % C.length], P = []; let i = c; do { P.push(Q[i]); i = (i + 1) % n; } while (i !== (e + 1) % n && P.length <= n); chains.push(P); });
+    else { const cut = [0, ...C, n - 1]; for (let j = 0; j + 1 < cut.length; j++) chains.push(Q.slice(cut[j], cut[j + 1] + 1)); }
+    const tan = (P, end) => {                           // 획 끝의 방향 — 끝에서 종이 1mm 안쪽 점과 이어 본다(떨림에 안 흔들리게)
+        const m = P.length; let i = end ? m - 1 : 0, j = i, d = 0;
+        while (d < 1 * k && (end ? j > 0 : j < m - 1)) { const q = end ? j - 1 : j + 1; d += Math.hypot(P[q][0] - P[j][0], P[q][1] - P[j][1]); j = q; }
+        const dx = P[i][0] - P[j][0], dy = P[i][1] - P[j][1], L = Math.hypot(dx, dy) || 1; return [dx / L, dy / L];
+    };
+    return chains.filter(P => P.length > 1).map((P, ci) => {
+        const N = spNormals(P, false);
+        let I = P.map((q, i) => [q[0] + N[i][0] * o.gap * s, q[1] + N[i][1] * o.gap * s]);
+        const atStartCorner = closed || ci > 0, atEndCorner = closed || ci < chains.length - 1;
+        if (atStartCorner) { const t = tan(I, false), ov = o.gap * (1.1 + rnd() * 0.9) + 0.3 * k; I.unshift([I[0][0] + t[0] * ov, I[0][1] + t[1] * ov]); }
+        if (atEndCorner) { const t = tan(I, true), ov = o.gap * (1.1 + rnd() * 0.9) + 0.3 * k, l = I[I.length - 1]; I.push([l[0] + t[0] * ov, l[1] + t[1] * ov]); }
+        const D = spDense(I, 0.8 * k, false); if (D.P.length < 2) return I;
+        const M = spNormals(D.P, false), w = spNoise(rnd, D.L, false, [[13 * k, 0.6], [37 * k, 0.4]]), g = spNoise(rnd, D.L, false, [[29 * k, 0.65], [71 * k, 0.35]]);
+        return D.P.map((q, i) => { const e = 0.16 * k * w(D.S[i]) + 0.22 * o.gap * g(D.S[i]) * s; return [q[0] + M[i][0] * e, q[1] + M[i][1] * e]; });
+    });
+}
 function spaceShape(V, mode, o, open, seed) {                // V — 꺾은선(또는 자유곡선) → {outer, inners[], caps[]} · 바깥 줄은 둥근 모서리 한 획, 안쪽 줄은 모서리마다 끊어 엇갈리게
     seed = seed == null ? spSeed : seed;
     let Q;
@@ -4909,7 +4956,9 @@ function spaceShape(V, mode, o, open, seed) {                // V — 꺾은선(
     const outer = K ? K.outer : (open ? Q : Q.concat([Q[0]]));
     let inners = [];
     if (o.two) {
-        const st = mode !== 'free' && spCorners(V, mode, open).length ? spInnerStrokes(V, o, open, seed) : null;
+        let st = null;
+        if (mode !== 'free') st = spCorners(V, mode, open).length ? spInnerStrokes(V, o, open, seed) : null;
+        else { const C = spFreeCorners(Q, !open); if (C.length) st = spInnerFree(Q, o, !open, seed, C); }   // 자유곡선도 급히 꺾이면 끊어 엇갈리게
         inners = st && st.length ? st : [K ? K.inner : spInner(Q, o.gap, open)];
     }
     if (!open) return {outer: R3(outer), inners: inners.map(R3), caps: [], area};
