@@ -5052,29 +5052,58 @@ function carSvg(pts, a, color, self) {
         return {p: [P[i][0] + (P[i + 1][0] - P[i][0]) * t, P[i][1] + (P[i + 1][1] - P[i][1]) * t], n: [nx / l, ny / l]};
     };
     const heads = cl || a.none ? 0 : (a.both ? 2 : 1);
-    let HL = W * 0.8; if (Lt < heads * HL + W * 0.5) HL = Math.max(0, (Lt - W * 0.5) / Math.max(1, heads));
+    let HL = W * PED_HL; if (Lt < heads * HL + W * 0.5) HL = Math.max(0, (Lt - W * 0.5) / Math.max(1, heads));
     const s0 = heads === 2 ? HL : 0, s1 = heads ? Lt - HL : Lt, amp = 0.1 * k;
     const nL = pedWob(rnd, Lt, k), nR = pedWob(rnd, Lt, k);
     const side = (sg, s) => { const q = at(s), off = sg * W / 2 + amp * (sg > 0 ? nL(s) : nR(s)); return [q.p[0] + q.n[0] * off, q.p[1] + q.n[1] * off]; };
     const f2 = q => `${fmt(q[0])} ${fmt(q[1])}`;
     let ed = '', ht = '';
     for (const sg of [1, -1]) { const L = []; for (let s = s0; s < s1; s += 0.6 * k) L.push(side(sg, s)); if (!cl) L.push(side(sg, s1)); ed += 'M' + L.map(f2).join('L') + (cl ? 'Z' : ''); }
+    // 진한 두 줄 — 빗금 사이에 띠 폭 2배 안팎마다 굵은 줄 둘(대표님 스케치). 변에서 변까지 닿는다
+    let dk = ''; const darkS = [];
+    for (let s = s0 + W * (0.8 + rnd() * 0.4); s < s1 - W * 0.5; s += W * 2 * (0.9 + rnd() * 0.2)) {
+        darkS.push(s);
+        for (const ds of [-0.4 * k, 0.4 * k]) {   // 두 줄 사이 종이 0.8mm — 붙으면 한 줄로 뭉친다
+            const q = at(s + ds), tl = (rnd() - 0.5) * 0.02 * W, tx = q.n[1], ty = -q.n[0], e = W / 2 - 0.02 * W;
+            dk += `M${f2([q.p[0] + q.n[0] * e + tx * tl, q.p[1] + q.n[1] * e + ty * tl])}L${f2([q.p[0] - q.n[0] * e - tx * tl, q.p[1] - q.n[1] * e - ty * tl])}`;
+        }
+    }
     // 빗금 — 종이 0.75mm 안팎 간격, 양 끝은 변에 닿을락 말락, 살짝 기울고 휜다(곡선에서는 저절로 부채꼴)
-    for (let s = s0 + 0.2 * k; s < s1 - 0.1 * k; s += 0.75 * k * (0.8 + rnd() * 0.4)) {
+    for (let s = s0 + 0.2 * k; s < s1 - 0.1 * k; s += 1.0 * k * (0.8 + rnd() * 0.4)) {   // 간격 종이 1mm 안팎(대표님: 0.75 에서 조금 띄움)
+        if (darkS.some(d => Math.abs(d - s) < 0.85 * k)) continue;   // 진한 두 줄 곁의 빗금은 뺀다(세 줄로 뭉친다)
         const q = at(s), tl = (Math.sin(s / (5 * k) + (a.seed || 1)) * 0.6 + (rnd() - 0.5) * 0.4) * 0.025 * W, tx = q.n[1], ty = -q.n[0];   // 기울기 — 이웃끼리 엇갈리면 지그재그로 보여 아주 작게·천천히
         const e1 = W / 2 - rnd() * 0.07 * W, e2 = W / 2 - rnd() * 0.07 * W;
         const A = [q.p[0] + q.n[0] * e1 + tx * tl, q.p[1] + q.n[1] * e1 + ty * tl], B = [q.p[0] - q.n[0] * e2 - tx * tl, q.p[1] - q.n[1] * e2 - ty * tl];
         ht += `M${f2(A)}L${f2(B)}`;
     }
-    const head = (sb, dir) => {                          // 빗금 친 화살촉 — 띠 끝에서 바깥으로 벌렸다가 꼭지로
-        const c = at(sb), nn = c.n, t = [nn[1] * dir, -nn[0] * dir], hw = W * 0.92, J = () => (rnd() - 0.5) * 0.3 * k;
-        const tip = [c.p[0] + t[0] * HL + J(), c.p[1] + t[1] * HL + J()];
-        const bL = [c.p[0] + nn[0] * hw + J(), c.p[1] + nn[1] * hw + J()], bR = [c.p[0] - nn[0] * hw + J(), c.p[1] - nn[1] * hw + J()];
-        ed += `M${f2(side(1, sb))}L${f2(bL)}L${f2(tip)}L${f2(bR)}L${f2(side(-1, sb))}`;
-        for (let u = 0.35 * k; u < HL - 0.3 * k; u += 0.75 * k * (0.8 + rnd() * 0.4)) {
-            const w2 = hw * (1 - u / HL) * 0.93, m = [c.p[0] + t[0] * u, c.p[1] + t[1] * u];
-            ht += `M${f2([m[0] + nn[0] * w2, m[1] + nn[1] * w2])}L${f2([m[0] - nn[0] * w2, m[1] - nn[1] * w2])}`;
+    let hd = '', hn = 0;
+    const head = (sb, dir) => {                          // 화살촉 — 보행동선과 같은 속 빈 두꺼운 '<' 꼴(pedHead) + 그 안을 손으로 그은 빗금 명암(대표님 스케치)
+        const c = at(sb), nn = c.n, t = [nn[1] * dir, -nn[0] * dir], Lb = side(1, sb), Rb = side(-1, sb);
+        ed += pedHead(Lb, Rb, c.p, t, W, rnd, k, f2);
+        const wing = B => {                              // 명암 칠할 날개 모양(pedHead 와 같은 비율, 흔들림 없이)
+            const m = [B[0] - c.p[0], B[1] - c.p[1]], al = m[0] * t[0] + m[1] * t[1];
+            let sx = m[0] - t[0] * al, sy = m[1] - t[1] * al; const sl = Math.hypot(sx, sy) || 1; sx /= sl; sy /= sl;
+            const aa = 0.58, bb = Math.sqrt(1 - aa * aa), e = [-t[0] * aa + sx * bb, -t[1] * aa + sy * bb], q = [t[0] * bb + sx * aa, t[1] * bb + sy * aa];
+            const I = [B[0] + e[0] * W * 0.74, B[1] + e[1] * W * 0.74], O = [I[0] + q[0] * W * 0.4, I[1] + q[1] * W * 0.4];
+            const lat = (O[0] - c.p[0]) * sx + (O[1] - c.p[1]) * sy, tip = [O[0] - e[0] * lat / bb, O[1] - e[1] * lat / bb];
+            const latB = (B[0] - c.p[0]) * sx + (B[1] - c.p[1]) * sy, V = [B[0] - e[0] * latB / bb, B[1] - e[1] * latB / bb];
+            return {I, O, tip, V};
+        };
+        const L = wing(Lb), R = wing(Rb), tip = [(L.tip[0] + R.tip[0]) / 2, (L.tip[1] + R.tip[1]) / 2];
+        const poly = [Lb, L.I, L.O, tip, R.O, R.I, Rb, [(L.V[0] + R.V[0]) / 2, (L.V[1] + R.V[1]) / 2]];
+        let sh = '';                                     // 명암 — 축에 직각인 짧은 빗금을 촘촘히(띠 빗금보다 진하게), 살짝 기울고 길이가 들쭉날쭉
+        const pr = q => (q[0] - c.p[0]) * t[0] + (q[1] - c.p[1]) * t[1], u0 = Math.min(...poly.map(pr)), u1 = Math.max(...poly.map(pr));
+        for (let u = u0 + 0.15 * k; u < u1; u += 0.45 * k * (0.75 + rnd() * 0.5)) {
+            const m = [c.p[0] + t[0] * u, c.p[1] + t[1] * u], tl = (rnd() - 0.5) * 0.6 * k, ext = W * 2;
+            sh += `M${f2([m[0] + nn[0] * ext + t[0] * tl, m[1] + nn[1] * ext + t[1] * tl])}L${f2([m[0] - nn[0] * ext - t[0] * tl, m[1] - nn[1] * ext - t[1] * tl])}`;
         }
+        { const lam = (W / 2) * 0.58 / 0.81;           // 띠 빗금을 화살촉 안쪽 꼭지(V)까지 이어 칠한다 — 띠가 화살촉으로 흘러들어 가게
+            for (let u = 0.6 * k; u < lam - 0.15 * k; u += 1.0 * k * (0.8 + rnd() * 0.4)) {
+                const m = [c.p[0] + t[0] * u, c.p[1] + t[1] * u], h = (W / 2) * (1 - u / lam) * 0.95;
+                ht += `M${f2([m[0] + nn[0] * h, m[1] + nn[1] * h])}L${f2([m[0] - nn[0] * h, m[1] - nn[1] * h])}`;
+            } }
+        const cid = 'ch' + (self ? self.id : 'p') + '_' + (hn++) + '_' + ((a.seed || 1) % 100000 | 0);
+        hd += `<clipPath id="${cid}"><path d="M${poly.map(f2).join('L')}Z"/></clipPath><path d="${sh}" fill="none" stroke="${color || INK}" stroke-width="${fmt(0.22 * k)}" stroke-linecap="round" clip-path="url(#${cid})"/>`;
     };
     if (heads) { head(s1, 1); if (heads === 2) head(s0, -1); }
     else if (!cl) ed += `M${f2(side(1, 0))}L${f2(side(-1, 0))}M${f2(side(1, Lt))}L${f2(side(-1, Lt))}`;   // 화살촉 없는 열린 끝은 막는다
@@ -5098,6 +5127,7 @@ function carSvg(pts, a, color, self) {
     const big = `<rect x="-100000" y="-100000" width="200000" height="200000" fill="white"/>`;
     const defs = (mE || mH) ? `<defs>${mE ? `<mask id="${id}e" maskUnits="userSpaceOnUse" x="-100000" y="-100000" width="200000" height="200000">${big}${mE}</mask>` : ''}${mH ? `<mask id="${id}h" maskUnits="userSpaceOnUse" x="-100000" y="-100000" width="200000" height="200000">${big}${mH}</mask>` : ''}</defs>` : '';
     return defs + `<path d="${ht}" fill="none" stroke="${col}" stroke-width="${swh}" stroke-linecap="round"${mH ? ` mask="url(#${id}h)"` : ''}/>`
+        + (dk ? `<path d="${dk}" fill="none" stroke="${col}" stroke-width="${fmt(0.35 * k)}" stroke-linecap="round"${mH ? ` mask="url(#${id}h)"` : ''}/>` : '') + hd
         + `<path d="${ed}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"${mE ? ` mask="url(#${id}e)"` : ''}/>`;
 }
 function bandSvg(pts, a, color, self) { return a.kind === 'carb' ? carSvg(pts, a, color, self) : pedSvg(pts, a, color); }
