@@ -284,7 +284,7 @@
                 <div data-form="arrow">
                     <h4>동선 화살표</h4>
                     <p class="cad-help">점을 찍어 가며 긋고 <b>더블클릭·Enter·오른쪽 버튼</b>으로 끝내면 끝에 화살촉이 달립니다. '곡선'을 켜면 찍은 점들을 매끄럽게 잇습니다. Backspace 한 점 되돌리기 · Esc 취소.</p>
-                    <div class="cad-row"><label>종류<select id="fawK"><option value="main">주동선 (굵은 실선)</option><option value="sub">부동선 (가는 파선)</option><option value="car">차량동선 (일점쇄선)</option><option value="ped">보행동선 (두 줄 · 사다리)</option><option value="carb">차량동선 (빗금 띠 · 이어 그리기)</option></select></label></div>
+                    <div class="cad-row"><label>종류<select id="fawK"><option value="main">주동선 (굵은 실선)</option><option value="sub">부동선 (가는 파선)</option><option value="car">차량동선 (일점쇄선)</option><option value="ped">보행동선 (두 줄 · 사다리)</option><option value="carb">차량동선 (빗금 띠 · 이어 그리기)</option><option value="link">연계동선 (동그라미 줄)</option></select></label></div>
                     <div class="cad-row"><label>그리기<select id="fawM"><option value="edge">한쪽 변 그리기 (보행동선)</option><option value="free" selected>자유곡선 (끌기 · 보행동선은 윤곽을 대충)</option><option value="box">네모 그리기 (끌기)</option><option value="pts">점 찍기</option></select></label></div>
                     <div class="cad-row"><label class="cad-chk"><input type="checkbox" id="fawC" checked> 곡선</label>
                         <label class="cad-chk"><input type="checkbox" id="fawB"> 양방향</label>
@@ -2332,6 +2332,7 @@ function opSvg(op) {
     }
     if (op.t === 'free' && op.arrow && op.arrow.kind === 'carb') return op.pts && op.pts.length > 1 ? carSvg(op.pts, op.arrow, null, op) : '';   // 차량동선 — 빗금 띠
     if (op.t === 'free' && op.arrow && op.arrow.kind === 'ped') return op.pts && op.pts.length > 1 ? (op.arrow.edge ? pedEdgeSvg(op.pts, op.arrow) : pedSvg(op.pts, op.arrow)) : '';
+    if (op.t === 'free' && op.arrow && op.arrow.kind === 'link') return op.pts && op.pts.length > 1 ? linkSvg(op.pts, op.arrow.both) : '';   // 연계동선 — 동그라미 줄
     if (op.t === 'free' && op.arrow) return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${arrowAttr(op.arrow.kind)}/>` + arrowHeadSvg(op.pts, op.arrow.kind, op.arrow.both) : '';   // 동선 화살표
     if (op.t === 'free' && op.space) return op.pts && op.pts.length > 1 ? `<path d="${spD(op.pts)}" ${stAttr(op.ls, op.w)}/>` : '';   // 공간 — 끝 막음이 반듯하게
     if (op.t === 'free') return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${op.hedge || op.space ? stAttr(op.ls, op.w) : freeAttr(op.ls, op.w)}/>` : '';   // 경계식재 선은 엷은 프리드로잉 굵기가 아니라 샤프 선 그대로
@@ -4751,7 +4752,8 @@ var arrowV = [];
 // 굵기·쇄선·화살촉은 모두 종이 위 mm(축척에 맞춰 m 로) — 도면 단위로 두니 1:400 에서 주동선이 2mm, 차량동선 쇄선 마디가 28m 였다
 const ARROW_KINDS = {main: {name: '주동선', ls: 'solid', w: 'p9', mm: 1.2, head: 7}, sub: {name: '부동선', ls: 'dash', w: 'p5', mm: 0.3, dash: [2, 1.2], head: 4}, car: {name: '차량동선', ls: 'chain', w: 'p9', mm: 0.6, dash: [7, 1.2, 0.5, 1.2], head: 5.5},
     ped: {name: '보행동선', ls: 'solid', w: 'p9', mm: 0.35, head: 0, band: true},
-    carb: {name: '차량동선', ls: 'solid', w: 'p9', mm: 0.35, head: 0, band: true}};   // 차량동선 — 빗금 띠, 이어 그리면 만나는 자리가 한 길로(carSvg)   // 보행동선 — 두 줄 띠 + 사다리 가로대 + 빈 화살촉(pedSvg)
+    carb: {name: '차량동선', ls: 'solid', w: 'p9', mm: 0.35, head: 0, band: true},
+    link: {name: '연계동선', ls: 'solid', w: 'p5', mm: 0.3, head: 3.5, dots: true}};   // 연계동선 — 작은 동그라미 줄 ∘∘∘∘▶(linkSvg)   // 차량동선 — 빗금 띠, 이어 그리면 만나는 자리가 한 길로(carSvg)   // 보행동선 — 두 줄 띠 + 사다리 가로대 + 빈 화살촉(pedSvg)
 function arrowAttr(kind, color) {
     const K = ARROW_KINDS[kind] || ARROW_KINDS.main, k = scaleDenom() / 1000;
     return `fill="none" stroke="${color || INK}" stroke-width="${fmt(K.mm * k)}" stroke-linecap="round" stroke-linejoin="round"` + (K.dash ? ` stroke-dasharray="${K.dash.map(v => fmt(v * k)).join(' ')}"` : '');
@@ -4774,6 +4776,16 @@ function arrowPath(V, curve) {                         // 찍은 점 → 그릴 
     }
     const e = V[V.length - 1]; out.push([+e.x.toFixed(3), +e.y.toFixed(3)]);
     return out;
+}
+// 연계동선(대표님 — 범례 'o o o o ▶'): 중심선을 따라 작은 빈 동그라미를 고르게 늘어놓고 끝에 채운 화살촉. 크기는 종이 mm
+function linkSvg(pts, both, color) {
+    const k = scaleDenom() / 1000, r = 0.75 * k, gap = 3.6 * k, H = ARROW_KINDS.link.head * k, col = color || INK;
+    let L = 0; const acc = [0]; for (let i = 1; i < pts.length; i++) { L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); acc.push(L); }
+    const at = s => { let i = 1; while (i < acc.length - 1 && acc[i] < s) i++; const t = (s - acc[i - 1]) / ((acc[i] - acc[i - 1]) || 1); return [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * t, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * t]; };
+    const s0 = (both ? H + gap * 0.5 : r) , s1 = L - H - gap * 0.5, n = Math.max(1, Math.round((s1 - s0) / gap));
+    let c = '';
+    if (s1 > s0) for (let j = 0; j <= n; j++) { const q = at(s0 + (s1 - s0) * j / n); c += `<circle cx="${fmt(q[0])}" cy="${fmt(q[1])}" r="${fmt(r)}"/>`; }
+    return `<g fill="none" stroke="${col}" stroke-width="${fmt(ARROW_KINDS.link.mm * k)}">${c}</g>` + arrowHeadSvg(pts, 'link', both).replace(`fill="${INK}"`, `fill="${col}"`);
 }
 function arrowHeadSvg(pts, kind, both) {               // 화살촉 — 끝(양방향이면 처음도)에 채운 삼각형. 방향은 촉 길이만큼 뒤의 점에서 잰다
     const K = ARROW_KINDS[kind] || ARROW_KINDS.main, L = K.head * scaleDenom() / 1000, W = L * 0.6;
@@ -5013,14 +5025,14 @@ function awBoxPts(A, B) {
 }
 // ── 차량동선(대표님 — 설계구상도 범례 '차량동선'): 두 변 사이를 촘촘한 가로 빗금으로 채운 띠. 꺾이는 곳은 둥글게 돌며 빗금이 부채꼴로 퍼지고,
 // 입구·출구에는 빗금 친 화살촉. **여러 띠를 이어 그릴 수 있다** — 먼저 그린 띠와 만나는 자리는 서로의 변을 지워 한 길처럼 보이고,
-// 겹친 곳의 빗금은 먼저 그린 띠 것만 남긴다. 점 찍기에서 처음 점을 누르면 고리(화살촉 없음)로 닫힌다.
+// 겹친 곳의 빗금은 세로 빗금(가로로 달리는 길)이 이기고, 방향이 비슷하면 먼저 그린 띠 것만 남긴다. 점 찍기에서 처음 점을 누르면 고리(화살촉 없음)로 닫힌다.
 // 저장은 중심선 + arrow:{kind:'carb', both, none, closed, wmm, seed}
 // 차량동선 화살촉 — 띠 옆으로 덜 튀어나오게(대표님): 안쪽 빗변 0.35W·마구리 0.3W → 띠 변 밖으로 약 0.46W(보행동선은 0.83W), 띠 끝~꼭지 0.73W
 const CAR_HEAD = {lin: 0.22, th: 0.22}, CAR_HL = 0.63;   // 대표님: 두께·튀어나옴을 더 줄임(0.35·0.3 → 0.22·0.22, 변 밖 약 0.31W)
 function carCenter(pts, a) {                             // 중심선 — 꺾인 자리를 폭만큼 둥글린 촘촘한 점들
     const k = scaleDenom() / 1000, W = (a.wmm || 13) * k;
     let R = pts; if (a.closed && R.length > 2) { const f = R[0], l = R[R.length - 1]; if (Math.hypot(f[0] - l[0], f[1] - l[1]) < 1e-6) R = R.slice(0, -1); }
-    if (R.length > 2) R = spRound(R, W * 0.35, !a.closed);   // 꺾인 자리 둥글기 — 0.9W 는 너무 둥글었다(대표님)
+    if (R.length > 2) R = spRound(R, W * 0.6, !a.closed);   // 꺾인 자리 둥글기 — 0.9W 는 너무 둥글고, 0.35W 는 안쪽 구석이 접혀 빗금이 한 점에 몰렸다. 0.6W 면 안쪽에 작은 둥근 구석이 남아 가로·세로 빗금이 부채꼴로 이어진다(대표님 스케치)
     return spDense(R, 0.25 * k, !!a.closed);
 }
 // 다른 길에 닿은 끝은 그 길 너머 변까지 늘인다(대표님 — 꺾이는 바깥 모서리에서 변이 끊기지 않게).
@@ -5160,6 +5172,23 @@ function carNetwork(extra) {
     carNetwork.memo = {key, v: val};
     return val;
 }
+// 겹친 곳에서 상대(o) 빗금이 이기나 — 겹친 구간에서 길의 가로 성분(|tx|)이 큰 쪽(빗금이 세로)이 이긴다. 비슷하면 먼저 그린 쪽
+function carHoriz(P, Q, hq) {
+    let s = 0, n = 0;
+    for (let i = 1; i < P.length; i += 2) {
+        const m = [(P[i][0] + P[i - 1][0]) / 2, (P[i][1] + P[i - 1][1]) / 2];
+        if (!Q.some(c => Math.abs(c[0] - m[0]) < hq && Math.abs(c[1] - m[1]) < hq && Math.hypot(c[0] - m[0], c[1] - m[1]) < hq)) continue;
+        const dx = P[i][0] - P[i - 1][0], dy = P[i][1] - P[i - 1][1], l = Math.hypot(dx, dy); if (!l) continue;
+        s += Math.abs(dx) / l; n++;
+    }
+    return n ? s / n : null;
+}
+function carHatchWins(o, earlier, myP, myW, oW) {
+    const oP = carCenter(o.pts, o.arrow).P;
+    const hMe = carHoriz(myP, oP, oW / 2), hO = carHoriz(oP, myP, myW / 2);
+    if (hMe == null || hO == null || Math.abs(hMe - hO) < 0.15) return earlier;
+    return hO > hMe;
+}
 function carSvg(pts, a, color, self) {
     const g = carGeom(pts, a, self); if (!g) return '';
     const {k, W, cl, Lt, at, heads, s0, s1, others} = g, rnd = spRng(a.seed || 1);
@@ -5180,11 +5209,21 @@ function carSvg(pts, a, color, self) {
         }
     }
     // 빗금 — 종이 1.4mm 안팎 간격, 살짝 기울고, 변에 닿을락 말락(외곽 안으로 오린다 — 둥근 구석에서도 안 삐져나온다)
+    let hPrev = null;
     for (let s = s0 + 0.2 * k; s < s1 - 0.1 * k; s += 1.4 * k * (0.8 + rnd() * 0.4)) {
         if (darkS.some(d => Math.abs(d - s) < 0.85 * k)) continue;
         const q = at(s), tl = (Math.sin(s / (5 * k) + (a.seed || 1)) * 0.6 + (rnd() - 0.5) * 0.4) * 0.025 * W, tx = q.n[1], ty = -q.n[0];
         const e1 = W / 2 - rnd() * 0.07 * W, e2 = W / 2 - rnd() * 0.07 * W;
-        ht += `M${f2([q.p[0] + q.n[0] * e1 + tx * tl, q.p[1] + q.n[1] * e1 + ty * tl])}L${f2([q.p[0] - q.n[0] * e2 - tx * tl, q.p[1] - q.n[1] * e2 - ty * tl])}`;
+        let A = [q.p[0] + q.n[0] * e1 + tx * tl, q.p[1] + q.n[1] * e1 + ty * tl], B = [q.p[0] - q.n[0] * e2 - tx * tl, q.p[1] - q.n[1] * e2 - ty * tl];
+        // 꺾인 자리(부채꼴) — 안쪽 끝이 앞 빗금과 0.7mm 안으로 붙으면 그만큼 안쪽 끝을 바깥으로 물린다. 안쪽 구석에 빗금이 한 점으로 몰려 뭉치지 않고 둥근 빈자리가 남는다(대표님 스케치)
+        if (hPrev) {
+            const g0 = 0.7 * k, gA = Math.hypot(A[0] - hPrev[0][0], A[1] - hPrev[0][1]), gB = Math.hypot(B[0] - hPrev[1][0], B[1] - hPrev[1][1]);
+            const raw = [A, B];
+            if (gA < g0 && gB > g0) { const u = Math.min(0.85, (g0 - gA) / (gB - gA)); A = [A[0] + (B[0] - A[0]) * u, A[1] + (B[1] - A[1]) * u]; }
+            else if (gB < g0 && gA > g0) { const u = Math.min(0.85, (g0 - gB) / (gA - gB)); B = [B[0] + (A[0] - B[0]) * u, B[1] + (A[1] - B[1]) * u]; }
+            hPrev = raw;
+        } else hPrev = [A, B];
+        ht += `M${f2(A)}L${f2(B)}`;
     }
     let hd = '', hn = 0;
     const head = (sb, dir) => {                          // 화살촉 — 보행동선과 같은 속 빈 '<' 꼴(작게) + 날개 안 빗금 명암
@@ -5217,10 +5256,11 @@ function carSvg(pts, a, color, self) {
         hd += `<clipPath id="${cid}"><path d="M${poly.map(f2).join('L')}Z"/></clipPath><path d="${sh}" fill="none" stroke="${color || INK}" stroke-width="${fmt(0.22 * k)}" stroke-linecap="round" clip-path="url(#${cid})"/>`;
     };
     if (heads) { head(s1, 1); if (heads === 2) head(s0, -1); }
-    // 겹친 곳의 빗금은 먼저 그린 띠 것만 — 뒤에 그린 띠는 먼저 그린 띠 안에서 빗금을 지운다
+    // 겹친 곳의 빗금 — 교차하면 세로 빗금(가로로 달리는 길)이 이긴다(대표님). 방향이 비슷하면 먼저 그린 띠 것만
     const idx = self ? doc.ops.indexOf(self) : doc.ops.length;
     let mH = '';
-    others.forEach(o => { if (doc.ops.indexOf(o) < idx) mH += `<path d="${carPoly(o, 0.02 * W, [0.12 * W, 0.12 * W])}" fill="black" fill-rule="evenodd"/>`; });   // 끝을 조금 더 덮어 모서리에 빗금 토막이 남지 않게
+    const myP = carCenter(pts, a).P;
+    others.forEach(o => { if (carHatchWins(o, doc.ops.indexOf(o) < idx, myP, W, (o.arrow.wmm || 13) * k)) mH += `<path d="${carPoly(o, 0.02 * W, [0.12 * W, 0.12 * W])}" fill="black" fill-rule="evenodd"/>`; });   // 끝을 조금 더 덮어 모서리에 빗금 토막이 남지 않게
     const net = carNetwork(self ? null : {t: 'free', pts, arrow: a});
     const col = color || INK, id = 'cm' + (self ? self.id : 'p') + '_' + ((a.seed || 1) % 100000 | 0);
     const big = `<rect x="-100000" y="-100000" width="200000" height="200000" fill="white"/>`;
@@ -5259,6 +5299,7 @@ function arrowShapeSvg(pts, color) {                    // 중심선 → 화살�
     const o = arrowOpts(), K = ARROW_KINDS[o.kind];
     if (pts.length < 2) return '';
     if (K.band) return bandSvg(pts, {kind: o.kind, both: o.both, none: o.none, wmm: o.wmm, seed: 7}, color);
+    if (K.dots) return linkSvg(pts, o.both, color);
     return `<path d="${freeD(pts)}" ${arrowAttr(o.kind, color)}/>` + arrowHeadSvg(pts, o.kind, o.both).replace(`fill="${INK}"`, `fill="${color}"`);
 }
 function arrowPreSvg() {
