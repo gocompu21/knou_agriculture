@@ -285,7 +285,7 @@
                     <h4>동선 화살표</h4>
                     <p class="cad-help">점을 찍어 가며 긋고 <b>더블클릭·Enter·오른쪽 버튼</b>으로 끝내면 끝에 화살촉이 달립니다. '곡선'을 켜면 찍은 점들을 매끄럽게 잇습니다. Backspace 한 점 되돌리기 · Esc 취소.</p>
                     <div class="cad-row"><label>종류<select id="fawK"><option value="main">주동선 (굵은 실선)</option><option value="sub">부동선 (가는 파선)</option><option value="car">차량동선 (일점쇄선)</option><option value="ped">보행동선 (두 줄 · 사다리)</option></select></label></div>
-                    <div class="cad-row"><label>그리기<select id="fawM"><option value="edge">한쪽 변 그리기 (보행동선)</option><option value="free" selected>자유곡선 — 가운데 (끌기)</option><option value="pts">점 찍기</option></select></label></div>
+                    <div class="cad-row"><label>그리기<select id="fawM"><option value="edge">한쪽 변 그리기 (보행동선)</option><option value="free" selected>자유곡선 (끌기 · 보행동선은 윤곽을 대충)</option><option value="pts">점 찍기</option></select></label></div>
                     <div class="cad-row"><label class="cad-chk"><input type="checkbox" id="fawC" checked> 곡선</label>
                         <label class="cad-chk"><input type="checkbox" id="fawB"> 양방향</label></div>
                     <div class="cad-row" id="fawPedRow" hidden><label>띠 폭<select id="fawPW"><option value="8">8mm</option><option value="10">10mm</option><option value="13" selected>13mm</option><option value="16">16mm</option></select></label>
@@ -4896,13 +4896,53 @@ function pedEdgeSvg(pts, a, color) {
     else d += `M${f2(E(0))}L${f2(O(0))}`;
     return `<path d="${d}" fill="none" stroke="${color || INK}" stroke-width="${fmt(0.35 * k)}" stroke-linecap="round" stroke-linejoin="round"/>`;
 }
+// 보행동선 '자유곡선'(대표님): 띠 폭을 고르지 않는다 — 띠의 윤곽을 대충 둘러 그리면(닫힌 모양) 그것을 읽어 다시 그린다.
+// 윤곽에서 가장 먼 두 점을 양 끝으로 잡아 둘레를 두 변으로 가르고, 두 변을 같은 비율로 짝지어 가운데 선과 폭(가운데값)을 낸다
+function pedFromOutline(R) {
+    const k = scaleDenom() / 1000; if (R.length < 6) return null;
+    const D = spDense(R, 0.5 * k, true), P = D.P, n = P.length; if (n < 8) return null;
+    const stp = Math.max(1, Math.floor(n / 240));
+    let bi = 0, bj = 0, bd = -1;
+    for (let i = 0; i < n; i += stp) for (let j = i + stp; j < n; j += stp) { const d = Math.hypot(P[i][0] - P[j][0], P[i][1] - P[j][1]); if (d > bd) { bd = d; bi = i; bj = j; } }
+    if (bd < 4 * k) return null;
+    const A = P.slice(bi, bj + 1), B = P.slice(bj).concat(P.slice(0, bi + 1)).reverse();   // 둘 다 bi → bj
+    const res = (Q, m) => {                              // 길이 비율로 m+1 점
+        const S = [0]; for (let i = 1; i < Q.length; i++) S.push(S[i - 1] + Math.hypot(Q[i][0] - Q[i - 1][0], Q[i][1] - Q[i - 1][1]));
+        const L = S[S.length - 1] || 1, out = []; let j = 0;
+        for (let t = 0; t <= m; t++) { const s = L * t / m; while (j < Q.length - 2 && S[j + 1] < s) j++; const u = S[j + 1] > S[j] ? (s - S[j]) / (S[j + 1] - S[j]) : 0;
+            out.push([Q[j][0] + (Q[j + 1][0] - Q[j][0]) * u, Q[j][1] + (Q[j + 1][1] - Q[j][1]) * u]); }
+        return out;
+    };
+    const m = 80, a = res(A, m), Bd = res(B, 4 * m);       // 한 변의 점마다 맞은편 변의 가장 가까운 점과 짝짓는다(끝 모서리에서 짝이 비껴 꺾이지 않게)
+    const pr = a.map(q => { let bd = 1e18, bq = Bd[0]; Bd.forEach(r => { const d = (q[0] - r[0]) ** 2 + (q[1] - r[1]) ** 2; if (d < bd) { bd = d; bq = r; } }); return {c: [(q[0] + bq[0]) / 2, (q[1] + bq[1]) / 2], d: Math.sqrt(bd)}; });
+    const ws = pr.slice(Math.round(m * 0.2), Math.round(m * 0.8) + 1).map(o => o.d).sort((x, y) => x - y);
+    const W = Math.max(2 * k, Math.min(40 * k, ws[Math.floor(ws.length / 2)] || 13 * k));
+    // 끝 모서리(둘레가 꺾여 맞은편과 붙는 토막)는 버리고, 남은 끝에서 진행 방향으로 윤곽에 닿을 때까지 늘여 끝을 윤곽 한가운데에 둔다
+    let C = pr.filter(o => o.d > 0.6 * W && o.d < 1.7 * W).map(o => o.c);
+    if (C.length < 4) return null;
+    for (let r = 0; r < 6; r++) C = C.map((q, i) => i === 0 || i === C.length - 1 ? q : [(C[i - 1][0] + 2 * q[0] + C[i + 1][0]) / 4, (C[i - 1][1] + 2 * q[1] + C[i + 1][1]) / 4]);
+    const ray = (o, dx, dy) => {                        // o 에서 (dx,dy) 로 윤곽에 처음 닿는 거리
+        let best = Infinity;
+        for (let i = 0; i < n; i++) { const p1 = P[i], p2 = P[(i + 1) % n], ex = p2[0] - p1[0], ey = p2[1] - p1[1], den = dx * ey - dy * ex; if (Math.abs(den) < 1e-12) continue;
+            const t = ((p1[0] - o[0]) * ey - (p1[1] - o[1]) * ex) / den, u = ((p1[0] - o[0]) * dy - (p1[1] - o[1]) * dx) / den; if (t > 0 && u >= 0 && u <= 1 && t < best) best = t; }
+        return best;
+    };
+    const ext = (e, f) => { const dx = e[0] - f[0], dy = e[1] - f[1], l = Math.hypot(dx, dy) || 1, t = ray(e, dx / l, dy / l); return isFinite(t) && t < 3 * W ? [e[0] + dx / l * t, e[1] + dy / l * t] : e; };
+    const back = (end) => {                              // 끝에서 폭의 2배 안쪽 점 — 끝 방향을 길게 잡아 떨림에 안 휘게
+        let acc = 0, i = end ? C.length - 1 : 0, st = end ? -1 : 1, j = i;
+        while (j + st >= 0 && j + st < C.length && acc < 2 * W) { acc += Math.hypot(C[j + st][0] - C[j][0], C[j + st][1] - C[j][1]); j += st; }
+        return C[j];
+    };
+    if (C.length > 4) { const b0 = back(false), b1 = back(true); C.unshift(ext(C[0], b0)); C.push(ext(C[C.length - 1], b1)); }
+    return {pts: C.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]), W};
+}
 function arrowFinish() {
     const V = arrowV.slice(); arrowV = [];
     if (V.length < 2) { drawPre(); status(); if (V.length) flash('화살표는 점을 둘 이상 찍어야 합니다'); return; }
     const o = arrowOpts(); arrowCommit(arrowPath(V, o.curve));
 }
-function arrowCommit(pts) {                             // 중심선으로 화살표 하나를 넣는다(점 찍기·자유곡선 공통)
-    const o = arrowOpts(), K = ARROW_KINDS[o.kind];
+function arrowCommit(pts, wmm) {                        // 중심선으로 화살표 하나를 넣는다(점 찍기·자유곡선 공통). wmm — 윤곽에서 읽은 띠 폭
+    const o = arrowOpts(), K = ARROW_KINDS[o.kind]; if (wmm) o.wmm = +wmm.toFixed(2);
     snapHist();
     doc.ops.push({id: doc.seq++, t: 'free', pts, ls: K.ls, w: K.w, arrow: K.band ? {kind: o.kind, both: o.both, wmm: o.wmm, seed: (Math.random() * 1e9) | 0} : {kind: o.kind, both: o.both}});
     changed(); drawPre(); status();
@@ -4937,6 +4977,7 @@ function arrowHint() {
     if (awEdge) return ' · 띠가 놓일 쪽으로 마우스를 옮겨 맞은편 변 자리를 누르세요(그 거리가 띠 폭) · 오른쪽 버튼·Esc 취소';
     if (awChain) return ' · 끝난 점에서 이어 그으세요 · 더블클릭·Enter·오른쪽 버튼으로 변 끝내기 · Backspace 한 조각 되돌리기 · Esc 취소';
     if (!arrowV.length && $('fawM') && $('fawM').value === 'edge') return ' · 보행동선의 한쪽 변을 누른 채 그으세요 — 놓은 뒤 맞은편 변 자리를 누르면 두 줄·가로대·화살표가 붙습니다';
+    if (!arrowV.length && $('fawM') && $('fawM').value === 'free' && $('fawK').value === 'ped') return ' · 보행동선 띠의 윤곽을 대충 둘러 그리세요(닫힌 모양) — 놓으면 그 모양대로 두 줄·가로대·화살표로 다시 그립니다';
     if (!arrowV.length && $('fawM') && $('fawM').value === 'free') return ' · 누른 채 손 가는 대로 그으세요 — 놓으면 그 선을 따라 화살표가 됩니다';
     return arrowV.length ? ` · 화살표 ${arrowV.length}점 · 더블클릭·Enter·우클릭 끝 · Backspace 한 점 되돌리기 · Esc 취소` : ' · 화살표가 시작할 자리를 누르세요(점을 찍어 가며)';
 }
@@ -7346,7 +7387,7 @@ svg.addEventListener('pointermove', e => {
     if (drag && drag.kind === 'awfree') {          // 동선 화살표 — 자유곡선(그은 선을 따라 화살표·두 줄 띠를 미리 보인다)
         const l = drag.pts[drag.pts.length - 1];
         if (Math.hypot(w.x - l[0], w.y - l[1]) * pxPer() >= 2) drag.pts.push([w.x, w.y]);
-        gPre.innerHTML = drag.pts.length > 3 ? (drag.edge ? `<path d="${freeD((awChain ? awChain.pts : []).concat(drag.pts))}" fill="none" stroke="${RED}" stroke-width="${fmt(0.35 * scaleDenom() / 1000)}"/>` : arrowShapeSvg(arrowFreePts(drag.pts), RED)) : ''; return;
+        gPre.innerHTML = drag.pts.length > 3 ? (drag.edge || ARROW_KINDS[arrowOpts().kind].band ? `<path d="${freeD((awChain ? awChain.pts : []).concat(drag.pts))}" fill="none" stroke="${RED}" stroke-width="${fmt(0.35 * scaleDenom() / 1000)}"/>` : arrowShapeSvg(arrowFreePts(drag.pts), RED)) : ''; return;
     }
     if (drag && drag.kind === 'spfree') {          // 공간 — 자유곡선
         const l = drag.pts[drag.pts.length - 1];
@@ -7521,6 +7562,11 @@ function endPtr(e) {
             awChain.cuts.push(awChain.pts.length);
             awChain.pts = awChain.pts.length ? awChain.pts.concat(d.pts.slice(1)) : d.pts.slice();
             drawPre(); status(); return;
+        }
+        if (ARROW_KINDS[arrowOpts().kind].band) {      // 보행동선 — 대충 둘러 그린 윤곽을 읽어 다시 그린다
+            const r = pedFromOutline(d.pts);
+            if (!r) { flash('띠 윤곽을 길쭉하게 둘러 그리세요'); status(); return; }
+            arrowCommit(r.pts, r.W / (scaleDenom() / 1000)); status(); return;
         }
         if (!(d.pts.length > 5 && L * pxPer() > 20)) { flash('조금 더 길게 그으세요'); status(); return; }
         arrowCommit(P); status(); return; }
@@ -8093,7 +8139,7 @@ $('cadDbl').addEventListener('click', dblStart);
 function awSync() {                                    // 띠 폭 칸은 '가운데'·'점 찍기'로 보행동선을 그을 때만 — 한쪽 변 그리기는 누른 자리로 폭을 정한다
     const ped = $('fawK').value === 'ped', edge = $('fawM').value === 'edge';
     if (edge && !ped) { $('fawK').value = 'ped'; }
-    $('fawPedRow').hidden = !($('fawK').value === 'ped') || edge;
+    $('fawPedRow').hidden = !($('fawK').value === 'ped') || $('fawM').value !== 'pts';   // 폭은 점 찍기일 때만 고른다 — 한쪽 변·자유곡선은 그린 모양에서 읽는다
 }
 if ($('fawK')) $('fawK').addEventListener('change', () => { if ($('fawK').value === 'ped') { $('fawB').checked = true; $('fawM').value = 'edge'; } else if ($('fawM').value === 'edge') $('fawM').value = 'free'; awEdge = null; awChain = null; awSync(); drawPre(); status(); });
 if ($('fawM')) $('fawM').addEventListener('change', () => { arrowV = []; awEdge = null; awChain = null; awSync(); drawPre(); status(); });
