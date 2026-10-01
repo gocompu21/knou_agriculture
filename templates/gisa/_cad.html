@@ -278,7 +278,7 @@
                        <b>네모</b>: 끌기 · <b>점</b>: 찍어 가며 두르고 처음 점·더블클릭·Enter·오른쪽 버튼으로 닫기 · <b>자유곡선</b>: 손 가는 대로 둘러 놓으면 닫힘(손맛).</p>
                     <div class="cad-row"><label>그리기<select id="fspM"><option value="box">네모</option><option value="pts">점</option><option value="free" selected>자유곡선</option></select></label>
                         <label class="cad-chk"><input type="checkbox" id="fspTwo" checked> 안쪽 선</label></div>
-                    <div class="cad-row"><label>모서리<select id="fspR"><option value="1">1mm</option><option value="2" selected>2mm</option><option value="3">3mm</option><option value="4">4mm</option></select></label>
+                    <div class="cad-row"><label>모서리<select id="fspR"><option value="1">1mm</option><option value="2">2mm</option><option value="3">3mm</option><option value="4" selected>4mm</option></select></label>
                         <label>안쪽 간격<select id="fspG"><option value="0.5">0.5mm</option><option value="0.7" selected>0.7mm</option><option value="1">1mm</option></select></label></div>
                 </div>
                 <div data-form="arrow">
@@ -5024,8 +5024,8 @@ function arrowHint() {
 var spaceV = [];
 function spaceOpts() {
     const k = scaleDenom() / 1000;
-    return {mode: ($('fspM') && $('fspM').value) || 'free', r: (+($('fspR') && $('fspR').value) || 2) * k, gap: (+($('fspG') && $('fspG').value) || 0.7) * k,
-            two: !$('fspTwo') || $('fspTwo').checked, rmm: +($('fspR') && $('fspR').value) || 2, gmm: +($('fspG') && $('fspG').value) || 0.7};
+    return {mode: ($('fspM') && $('fspM').value) || 'free', r: (+($('fspR') && $('fspR').value) || 4) * k, gap: (+($('fspG') && $('fspG').value) || 0.7) * k,
+            two: !$('fspTwo') || $('fspTwo').checked, rmm: +($('fspR') && $('fspR').value) || 4, gmm: +($('fspG') && $('fspG').value) || 0.7};
 }
 const spD = Q => 'M' + Q.map(q => `${fmt(q[0])} ${fmt(q[1])}`).join('L');   // 공간 선 — 점을 그대로(촘촘해 곡선은 매끄럽고, 끝 막음 모서리는 반듯)
 const spArea = Q => { let a = 0; for (let i = 0, j = Q.length - 1; i < Q.length; j = i++) a += Q[j][0] * Q[i][1] - Q[i][0] * Q[j][1]; return a / 2; };
