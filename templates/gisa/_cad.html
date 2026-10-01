@@ -284,9 +284,11 @@
                 <div data-form="arrow">
                     <h4>동선 화살표</h4>
                     <p class="cad-help">점을 찍어 가며 긋고 <b>더블클릭·Enter·오른쪽 버튼</b>으로 끝내면 끝에 화살촉이 달립니다. '곡선'을 켜면 찍은 점들을 매끄럽게 잇습니다. Backspace 한 점 되돌리기 · Esc 취소.</p>
-                    <div class="cad-row"><label>종류<select id="fawK"><option value="main">주동선 (굵은 실선)</option><option value="sub">부동선 (가는 파선)</option><option value="car">차량동선 (일점쇄선)</option></select></label></div>
+                    <div class="cad-row"><label>종류<select id="fawK"><option value="main">주동선 (굵은 실선)</option><option value="sub">부동선 (가는 파선)</option><option value="car">차량동선 (일점쇄선)</option><option value="ped">보행동선 (두 줄 · 사다리)</option></select></label></div>
                     <div class="cad-row"><label class="cad-chk"><input type="checkbox" id="fawC" checked> 곡선</label>
                         <label class="cad-chk"><input type="checkbox" id="fawB"> 양방향</label></div>
+                    <div class="cad-row" id="fawPedRow" hidden><label>띠 폭<select id="fawPW"><option value="8">8mm</option><option value="10">10mm</option><option value="13" selected>13mm</option><option value="16">16mm</option></select></label>
+                        <span class="cad-help" style="margin:0">종이 위 폭 · 가로대 간격은 폭의 1.6배</span></div>
                 </div>
                 <div data-form="hedge">
                     <h4>경계식재</h4>
@@ -693,6 +695,7 @@
 .cad-zoom button[hidden] { display: none !important; }   /* 이전 화면·확대·축소 단추는 뺐다(대표님) — 휠·Shift+Z·+/− 키로 한다 */
 .cad-shrub-edit { margin-top: 10px; padding-top: 8px; border-top: 1px solid #e3ebe6; }
 .cad-shrub-edit[hidden] { display: none; }
+#fawPedRow[hidden] { display: none; }
 .cad-lead-types { display: inline-flex; gap: 3px; flex-wrap: wrap; }
 .cad-lead-free { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; white-space: nowrap; }
 .cad-lead-types button { width: 30px; height: 28px; padding: 3px; border: 1px solid #cfd8d2; border-radius: 6px; background: #fff; cursor: pointer; }
@@ -2275,6 +2278,7 @@ function opSvg(op) {
         const [x0, y0] = op.pts[0], [x1, y1] = op.pts[1];
         return markTick(x0, y0, x1, y1, SR_MARK * scaleDenom() / 1000);
     }
+    if (op.t === 'free' && op.arrow && op.arrow.kind === 'ped') return op.pts && op.pts.length > 1 ? pedSvg(op.pts, op.arrow) : '';
     if (op.t === 'free' && op.arrow) return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${arrowAttr(op.arrow.kind)}/>` + arrowHeadSvg(op.pts, op.arrow.kind, op.arrow.both) : '';   // 동선 화살표
     if (op.t === 'free' && op.space) return op.pts && op.pts.length > 1 ? `<path d="${spD(op.pts)}" ${stAttr(op.ls, op.w)}/>` : '';   // 공간 — 끝 막음이 반듯하게
     if (op.t === 'free') return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${op.hedge || op.space ? stAttr(op.ls, op.w) : freeAttr(op.ls, op.w)}/>` : '';   // 경계식재 선은 엷은 프리드로잉 굵기가 아니라 샤프 선 그대로
@@ -4690,14 +4694,15 @@ function hedgeHint() {
 // 종류: 주동선(굵은 실선) · 부동선(가는 파선) · 차량동선(일점쇄선). 프리드로잉 획(free) + arrow:{kind, both} 로 저장한다
 var arrowV = [];
 // 굵기·쇄선·화살촉은 모두 종이 위 mm(축척에 맞춰 m 로) — 도면 단위로 두니 1:400 에서 주동선이 2mm, 차량동선 쇄선 마디가 28m 였다
-const ARROW_KINDS = {main: {name: '주동선', ls: 'solid', w: 'p9', mm: 1.2, head: 7}, sub: {name: '부동선', ls: 'dash', w: 'p5', mm: 0.3, dash: [2, 1.2], head: 4}, car: {name: '차량동선', ls: 'chain', w: 'p9', mm: 0.6, dash: [7, 1.2, 0.5, 1.2], head: 5.5}};
+const ARROW_KINDS = {main: {name: '주동선', ls: 'solid', w: 'p9', mm: 1.2, head: 7}, sub: {name: '부동선', ls: 'dash', w: 'p5', mm: 0.3, dash: [2, 1.2], head: 4}, car: {name: '차량동선', ls: 'chain', w: 'p9', mm: 0.6, dash: [7, 1.2, 0.5, 1.2], head: 5.5},
+    ped: {name: '보행동선', ls: 'solid', w: 'p9', mm: 0.35, head: 0, band: true}};   // 보행동선 — 두 줄 띠 + 사다리 가로대 + 빈 화살촉(pedSvg)
 function arrowAttr(kind, color) {
     const K = ARROW_KINDS[kind] || ARROW_KINDS.main, k = scaleDenom() / 1000;
     return `fill="none" stroke="${color || INK}" stroke-width="${fmt(K.mm * k)}" stroke-linecap="round" stroke-linejoin="round"` + (K.dash ? ` stroke-dasharray="${K.dash.map(v => fmt(v * k)).join(' ')}"` : '');
 }
 function arrowOpts() {
     const k = ($('fawK') && $('fawK').value) || 'main';
-    return {kind: ARROW_KINDS[k] ? k : 'main', both: !!($('fawB') && $('fawB').checked), curve: !$('fawC') || $('fawC').checked};
+    return {kind: ARROW_KINDS[k] ? k : 'main', both: !!($('fawB') && $('fawB').checked), curve: !$('fawC') || $('fawC').checked, wmm: +($('fawPW') && $('fawPW').value) || 13};
 }
 function arrowPath(V, curve) {                         // 찍은 점 → 그릴 점들. 곡선이면 Catmull-Rom 으로 사이를 채운다
     if (V.length < 2) return V.map(q => [q.x, q.y]);
@@ -4728,12 +4733,56 @@ function arrowHeadSvg(pts, kind, both) {               // 화살촉 — 끝(양�
     if (both) d += head(pts[0], pts.slice().reverse());
     return d ? `<path d="${d}" fill="${INK}" stroke="none"/>` : '';
 }
+// 보행동선(대표님 — 답안지 Ⅰ 범례 '보행동선'): 두 줄 띠에 일정 간격 가로대(사다리), 양 끝은 속이 빈 화살촉.
+// 사람이 그린 것처럼 — 두 줄이 따로 조금씩 구불거리고 폭이 살짝 들쭉날쭉, 가로대는 간격·기울기·길이가 조금씩 다르다.
+// 저장은 중심선(pts) + arrow:{kind:'ped', both, wmm, seed} 하나, 모양은 그릴 때 seed 로 늘 같게 만든다
+function pedSvg(pts, a, color) {
+    const k = scaleDenom() / 1000, W = (a.wmm || 13) * k, rnd = spRng(a.seed || 1);
+    const D = spDense(pts, 0.6 * k, false); if (D.P.length < 2 || D.L < W) return '';
+    const P = D.P, S = D.S, Lt = D.L, N = spNormals(P, false), n = P.length;
+    const at = s => {
+        s = Math.max(0, Math.min(Lt, s)); let i = 0; while (i < n - 2 && S[i + 1] < s) i++;
+        const t = S[i + 1] > S[i] ? (s - S[i]) / (S[i + 1] - S[i]) : 0, a1 = P[i], b1 = P[i + 1];
+        let nx = N[i][0] + (N[i + 1][0] - N[i][0]) * t, ny = N[i][1] + (N[i + 1][1] - N[i][1]) * t; const l = Math.hypot(nx, ny) || 1;
+        return {p: [a1[0] + (b1[0] - a1[0]) * t, a1[1] + (b1[1] - a1[1]) * t], n: [nx / l, ny / l]};
+    };
+    let HL = W * 0.7, HW = W * 0.85; const heads = a.both ? 2 : 1;
+    if (Lt < heads * HL + W) { const f = Lt / (heads * HL + W); HL *= f; HW *= Math.max(f, 0.6); }
+    const s0 = a.both ? HL : 0, s1 = Lt - HL, amp = 0.22 * k;
+    const nL = spNoise(rnd, Lt, false, [[17 * k, 0.6], [43 * k, 0.4]]), nR = spNoise(rnd, Lt, false, [[15 * k, 0.6], [39 * k, 0.4]]), nG = spNoise(rnd, Lt, false, [[31 * k, 0.7], [77 * k, 0.3]]);
+    const side = (sg, s) => { const q = at(s), off = sg * W / 2 * (1 + 0.07 * nG(s)) + amp * (sg > 0 ? nL(s) : nR(s)); return [q.p[0] + q.n[0] * off, q.p[1] + q.n[1] * off]; };
+    const J = v => v + (rnd() - 0.5) * 2 * 0.25 * k;
+    const f2 = q => `${fmt(q[0])} ${fmt(q[1])}`;
+    let d = '';
+    for (const sg of [1, -1]) {
+        const L = []; for (let s = s0; s < s1; s += 0.8 * k) L.push(side(sg, s)); L.push(side(sg, s1));
+        d += 'M' + L.map(f2).join('L');
+    }
+    const gap = W * 1.6;
+    for (let s = s0 + gap * (0.45 + rnd() * 0.2); s < s1 - gap * 0.35; s += gap * (0.85 + rnd() * 0.3)) {
+        const tilt = (rnd() - 0.5) * 0.12 * W, A = side(1, s + tilt), B = side(-1, s - tilt);
+        const dx = B[0] - A[0], dy = B[1] - A[1], l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
+        const ea = (rnd() * 0.9 - 0.35) * k, eb = (rnd() * 0.9 - 0.35) * k;
+        const A2 = [A[0] - ux * ea, A[1] - uy * ea], B2 = [B[0] + ux * eb, B[1] + uy * eb];
+        const bow = (rnd() - 0.5) * 0.5 * k, M = [(A2[0] + B2[0]) / 2 - uy * bow, (A2[1] + B2[1]) / 2 + ux * bow];
+        d += `M${f2(A2)}Q${f2(M)} ${f2(B2)}`;
+    }
+    const head = (sb, tipS) => {
+        const c = at(sb), tip = at(tipS).p, Lb = side(1, sb), Rb = side(-1, sb), hw = HW * (0.95 + rnd() * 0.1);
+        const oL = [J(c.p[0] + c.n[0] * hw), J(c.p[1] + c.n[1] * hw)], oR = [J(c.p[0] - c.n[0] * hw), J(c.p[1] - c.n[1] * hw)];
+        return `M${f2(Lb)}L${f2(oL)}L${f2([J(tip[0]), J(tip[1])])}L${f2(oR)}L${f2(Rb)}`;
+    };
+    d += head(s1, Lt);
+    if (a.both) d += head(s0, 0);
+    else { const A = side(1, 0), B = side(-1, 0); d += `M${f2(A)}L${f2(B)}`; }
+    return `<path d="${d}" fill="none" stroke="${color || INK}" stroke-width="${fmt(0.35 * k)}" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
 function arrowFinish() {
     const V = arrowV.slice(); arrowV = [];
     if (V.length < 2) { drawPre(); status(); if (V.length) flash('화살표는 점을 둘 이상 찍어야 합니다'); return; }
     const o = arrowOpts(), K = ARROW_KINDS[o.kind], pts = arrowPath(V, o.curve);
     snapHist();
-    doc.ops.push({id: doc.seq++, t: 'free', pts, ls: K.ls, w: K.w, arrow: {kind: o.kind, both: o.both}});
+    doc.ops.push({id: doc.seq++, t: 'free', pts, ls: K.ls, w: K.w, arrow: K.band ? {kind: o.kind, both: o.both, wmm: o.wmm, seed: (Math.random() * 1e9) | 0} : {kind: o.kind, both: o.both}});
     changed(); drawPre(); status();
     let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
     flash(`${K.name} 화살표 · ${fmt(+L.toFixed(1))}m`);
@@ -4742,6 +4791,7 @@ function arrowPreSvg() {
     const h = hover, w = h && (h.w || h), o = arrowOpts(), K = ARROW_KINDS[o.kind];
     if (!arrowV.length) return '';
     const V = w ? arrowV.concat([snapXY(w)]) : arrowV, pts = arrowPath(V, o.curve);
+    if (K.band) return pedSvg(pts, {kind: o.kind, both: o.both, wmm: o.wmm, seed: 7}, RED);
     return `<path d="${freeD(pts)}" ${arrowAttr(o.kind, RED)}/>` + arrowHeadSvg(pts, o.kind, o.both).replace(`fill="${INK}"`, `fill="${RED}"`);
 }
 function arrowHint() {
@@ -7867,6 +7917,7 @@ $('cadAuxBtn').classList.toggle('on', SET.auxOn !== false); root.classList.toggl
 $('cadAuxBtn').addEventListener('click', () => { setAux(!SET.auxOn); flash(SET.auxOn ? '보조선을 보입니다' : '보조선을 감췄습니다 — 지우개·선택도 건드리지 않습니다'); });
 $('cadAuxOn').addEventListener('change', () => setAux($('cadAuxOn').checked));
 $('cadDbl').addEventListener('click', dblStart);
+if ($('fawK')) $('fawK').addEventListener('change', () => { const ped = $('fawK').value === 'ped'; $('fawPedRow').hidden = !ped; if (ped) $('fawB').checked = true; drawPre(); });
 ['feK', 'feS', 'feB', 'feJ', 'feW'].forEach(id => $(id).addEventListener('change', shrubEditApply));   // 관목 고치기
 $('fdFree').checked = leadFree();
 $('fdFree').addEventListener('change', () => { try { localStorage.setItem('cadLeadFree', $('fdFree').checked ? '1' : '0'); } catch (e) {} drawPre(); status(); });
