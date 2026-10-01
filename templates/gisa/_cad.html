@@ -5138,6 +5138,7 @@ function carGeom(pts, a, self) {                        // 한 띠의 뼈대 —
     }
     const pts0 = pts;
     pts = carPtsX(pts, a, self, false);                  // 다른 길에 닿은 끝은 그 길 너머 변까지
+    const xS = pts[0] !== pts0[0], xE = pts[pts.length - 1] !== pts0[pts0.length - 1];   // 다른 길에 닿아 늘인 끝
     // ㄱ자로 이어 그린 두 길(끝과 끝이 만남) — 상대 길로 이어지는 한 줄처럼 둥글게 돌려, 빗금이 한 띠의 구석처럼 부채꼴로 이어지게(대표님).
     // 이음매(두 끝 방향선의 교점 C)를 지나 상대 쪽으로 2W 더 간 점까지 중심선을 잇고, 내 몫은 둥근 구석의 한가운데(C 에 가장 가까운 점)까지
     const J0 = cl ? null : carJoint(pts0, false, W, k, self, others), J1 = cl ? null : carJoint(pts0, true, W, k, self, others);
@@ -5161,7 +5162,9 @@ function carGeom(pts, a, self) {                        // 한 띠의 뼈대 —
     let heads = hE ? (hS ? 2 : 1) : 0;
     let HL = W * CAR_HL; if (hi - lo < heads * HL + W * 0.5) HL = Math.max(0, (hi - lo - W * 0.5) / Math.max(1, heads));
     const joined = [J0 && J0.o, J1 && J1.o].filter(Boolean);
-    return {k, W, cl, Lt, at, heads, HL, s0: heads === 2 ? HL : lo, s1: heads ? Lt - HL : hi, others, joined, lo, hi};
+    // 화살촉도 이음도 없는 열린 끝은 직각으로 끊는다(대표님 — 둥글지 않게)
+    const capS = !cl && !J0 && heads !== 2 && !xS, capE = !cl && !J1 && !heads && !xE;
+    return {k, W, cl, Lt, at, heads, HL, s0: heads === 2 ? HL : lo, s1: heads ? Lt - HL : hi, others, joined, lo, hi, capS, capE};
 }
 // 차량동선 길 전체의 외곽선(대표님 — 띠마다 변을 그리고 서로 가리니 길목마다 끊긴 선·날카로운 구석이 남았다).
 // 모든 띠 몸통을 한 장에 칠해 합친 다음 살짝 흐려서 구석을 둥글리고, 0.5 문턱에서 등고선을 딴다(marching squares).
@@ -5175,7 +5178,7 @@ function carNetwork(extra) {
     const rings = [], cuts = []; let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, Wm = 0;
     ops.forEach(o => {
         const g = carGeom(o.pts, o.arrow, o === extra ? null : o); if (!g) return;
-        const W = g.W, h = W / 2, step = 0.5 * k, sA = g.heads === 2 ? g.s0 - W * 0.8 : g.s0 - (g.lo > 0 ? 0.15 * W : 0), sB = g.heads ? g.s1 + W * 0.8 : g.s1 + (g.hi < g.Lt ? 0.15 * W : 0);   // 화살촉 쪽은 몸통을 길게 칠해 둥글림이 가려진 곳에서 일어나게
+        const W = g.W, h = W / 2, step = 0.5 * k, sA = g.heads === 2 || g.capS ? g.s0 - W * 0.8 : g.s0 - (g.lo > 0 ? 0.15 * W : 0), sB = g.heads || g.capE ? g.s1 + W * 0.8 : g.s1 + (g.hi < g.Lt ? 0.15 * W : 0);   // 화살촉·직각 끝은 몸통을 길게 칠해 둥글림이 가려진 곳에서 일어나게   // 화살촉 쪽은 몸통을 길게 칠해 둥글림이 가려진 곳에서 일어나게
         const L = [], R = [];
         const put = (s) => { const q = g.cl ? g.at(s) : g.at(Math.max(0, Math.min(g.Lt, s))), ext = (!g.cl && (s < 0 || s > g.Lt)) ? s : null;
             let p = q.p; if (ext !== null) { const tt = [q.n[1], -q.n[0]], d = s < 0 ? s : s - g.Lt; p = [p[0] + tt[0] * d, p[1] + tt[1] * d]; }
@@ -5187,6 +5190,12 @@ function carNetwork(extra) {
                 return [[q.p[0] + nn[0] * W, q.p[1] + nn[1] * W], [q.p[0] + nn[0] * W + tt[0] * W, q.p[1] + nn[1] * W + tt[1] * W],
                         [q.p[0] - nn[0] * W + tt[0] * W, q.p[1] - nn[1] * W + tt[1] * W], [q.p[0] - nn[0] * W, q.p[1] - nn[1] * W]]; };
             cuts.push(cut(g.s1, 1)); if (g.heads === 2) cuts.push(cut(g.s0, -1));
+        }
+        if (g.capS || g.capE) {                       // 직각 끝 — 끝 앞을 가린다(끝막음 선은 carSvg 가 긋는다)
+            const cut = (s, dir) => { const q = g.at(s), tt = [q.n[1] * dir, -q.n[0] * dir], nn = q.n;
+                return [[q.p[0] + nn[0] * W, q.p[1] + nn[1] * W], [q.p[0] + nn[0] * W + tt[0] * W, q.p[1] + nn[1] * W + tt[1] * W],
+                        [q.p[0] - nn[0] * W + tt[0] * W, q.p[1] - nn[1] * W + tt[1] * W], [q.p[0] - nn[0] * W, q.p[1] - nn[1] * W]]; };
+            if (g.capS) cuts.push(cut(0, -1)); if (g.capE) cuts.push(cut(g.Lt, 1));
         }
         Wm = Math.max(Wm, W);
         rings[rings.length - 1].A.concat(rings[rings.length - 1].B || []).forEach(q => { x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); });
@@ -5325,6 +5334,9 @@ function carSvg(pts, a, color, self) {
                 + `<path d="${eg}" fill="none" stroke="${color || INK}" stroke-width="${fmt(0.3 * k)}" stroke-linecap="round" stroke-linejoin="round"/>`;
         }
     };
+    const cap = s => { const q = at(s), e = W / 2 + 0.05 * k, bw = (rnd() - 0.5) * 0.3 * k;   // 직각 끝막음 — 손으로 그은 듯 살짝 휜 선
+        ed += `M${f2([q.p[0] + q.n[0] * e, q.p[1] + q.n[1] * e])}Q${f2([q.p[0] + q.n[1] * bw, q.p[1] - q.n[0] * bw])} ${f2([q.p[0] - q.n[0] * e, q.p[1] - q.n[1] * e])}`; };
+    if (g.capS) cap(0); if (g.capE) cap(Lt);
     if (heads) { head(s1, 1); if (heads === 2) head(s0, -1); }
     // 겹친 곳의 빗금 — 교차하면 세로 빗금(가로로 달리는 길)이 이긴다(대표님). 방향이 비슷하면 먼저 그린 띠 것만
     const idx = self ? doc.ops.indexOf(self) : doc.ops.length;
