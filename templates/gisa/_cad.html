@@ -4800,10 +4800,12 @@ function spaceShape(V, mode, o, open) {                // V — 꺾은선(또는
     else Q = spRound(V, o.r, open);
     if (Q.length < (open ? 2 : 3)) return null;
     const R3 = A => A.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]), close = A => R3(A.concat([A[0]]));
-    if (open) {
-        if (!o.two) return {outer: R3(Q), inner: null, area: 0, open: true};
-        const I = spInner(Q, o.gap, true);
-        return {outer: R3(Q.concat(I.slice().reverse(), [Q[0]])), inner: null, area: 0, open: true};   // 바깥 줄 → 끝 막음 → 안쪽 줄(거꾸로) → 처음 막음
+    if (open) {                                       // 열린 것 — 두 줄은 따로, 끊긴 양 끝은 두 줄에 직각인 짧은 선으로 막되 두 줄 밖으로 조금 더 나오게(대표님 그림)
+        if (!o.two) return {outer: R3(Q), inner: null, caps: [], area: 0, open: true};
+        const I = spInner(Q, o.gap, true), ov = Math.max(o.gap, 0.8 * scaleDenom() / 1000);
+        const cap = (a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
+            return R3([[a[0] - ux * ov, a[1] - uy * ov], [b[0] + ux * ov, b[1] + uy * ov]]); };
+        return {outer: R3(Q), inner: R3(I), caps: [cap(Q[0], I[0]), cap(Q[Q.length - 1], I[I.length - 1])], area: 0, open: true};
     }
     return {outer: close(Q), inner: o.two ? close(spInner(Q, o.gap)) : null, area: Math.abs(spArea(Q))};
 }
@@ -4815,8 +4817,9 @@ function spaceFinish(V, mode, closed) {
     const gid = doc.seq, sp = {mode, r: o.rmm, gap: o.gmm, open};
     doc.ops.push({id: doc.seq++, t: 'free', pts: S.outer, ls: 'solid', w: 'p9', space: sp, grp: gid, gname: '공간', spaceArea: +S.area.toFixed(1)});
     if (S.inner) doc.ops.push({id: doc.seq++, t: 'free', pts: S.inner, ls: 'solid', w: 'p9', space: sp, grp: gid, gname: '공간', spaceArea: +S.area.toFixed(1)});
+    (S.caps || []).forEach(c => doc.ops.push({id: doc.seq++, t: 'free', pts: c, ls: 'solid', w: 'p9', space: sp, grp: gid, gname: '공간', spaceArea: 0}));   // 끊긴 끝 막음
     changed(); drawPre(); status();
-    flash(open ? '공간 — 열린 선(양 끝을 막았습니다)' : `공간 — 닫힘 · 면적 약 ${fmt(Math.round(S.area))}㎡`);
+    flash(open ? '공간 — 열린 선(끊긴 양 끝을 직각 선으로 막았습니다)' : `공간 — 닫힘 · 면적 약 ${fmt(Math.round(S.area))}㎡`);
 }
 function spacePreSvg(extra) {
     const o = spaceOpts(), h = hover, w = h && (h.w || h);
@@ -4830,6 +4833,7 @@ function spacePreSvg(extra) {
     const S = spaceShape(cl && o.mode !== 'box' ? A.slice(0, -1) : A, o.mode, o, !cl); if (!S) return raw;
     const sw = fmt(0.12 * U);
     return raw + `<path d="${spD(S.outer)}" fill="none" stroke="${RED}" stroke-width="${sw}"/>` + (S.inner ? `<path d="${spD(S.inner)}" fill="none" stroke="${RED}" stroke-width="${sw}"/>` : '')
+        + (S.caps || []).map(c => `<path d="${spD(c)}" fill="none" stroke="${RED}" stroke-width="${sw}"/>`).join('')
         + (cl && o.mode === 'pts' ? `<circle cx="${fmt(f[0])}" cy="${fmt(f[1])}" r="${fmt(0.8 * U)}" fill="none" stroke="#2ea043" stroke-width="${fmt(0.15 * U)}"/>` : '');
 }
 function spaceHint() {
