@@ -1702,10 +1702,18 @@ function guideEdges() {
 const clampT = (t, e) => Math.max(e.lo, Math.min(e.hi, t));
 // 자에 대고 긋기(대표님 — 동선 화살표·프리드로잉): 손으로 긋다가 자의 변 곁(화면 7px)에 닿거나 자 몸통 쪽으로 밀면
 // 펜이 변에 걸려 변을 따라간다 — 그 자리를 변 위로 옮긴다. 스케일자는 긋는 자가 아니라 뺀다
-function rulerPin(w) {
+var pinPh = [0, 0, 0];
+function rulerPin(w, start) {                           // start — 긋기 시작(구불거림 무늬를 새로 정한다)
+    if (start) pinPh = [Math.random() * 6.283, Math.random() * 6.283, Math.random() * 6.283];
     const e = nearestEdge(w, 16, x => !x.sr); if (!e) return w;
     const t = clampT((w.x - e.ax) * e.dx + (w.y - e.ay) * e.dy, e), p = {x: e.ax + e.dx * t, y: e.ay + e.dy * t};
-    return Math.hypot(p.x - w.x, p.y - w.y) * pxPer() <= 7 || covered(w) ? p : w;
+    if (!(Math.hypot(p.x - w.x, p.y - w.y) * pxPer() <= 7 || covered(w))) return w;
+    // 자에 대고 그어도 손 선처럼 조금 구불구불하게(대표님) — 자에서 종이 쪽으로만 0~0.3mm 떨어졌다 붙었다 한다(자 몸통 안으로는 안 들어간다)
+    const k = scaleDenom() / 1000, nx = -e.dy, ny = e.dx, eps = 0.05 * k;
+    const sg = covered({x: p.x + nx * eps, y: p.y + ny * eps}) ? -1 : 1;
+    const f = 0.5 + 0.5 * (0.5 * Math.sin(t / (7 * k) + pinPh[0]) + 0.3 * Math.sin(t / (2.9 * k) + pinPh[1]) + 0.2 * Math.sin(t / (17 * k) + pinPh[2]));
+    const off = sg * (0.04 + 0.26 * f) * k;
+    return {x: p.x + nx * off, y: p.y + ny * off, pin: true};
 }
 function nearestEdge(w, px, only) {
     let best = null, bd = px;
@@ -7146,11 +7154,11 @@ svg.addEventListener('pointerdown', e => {
         }
         if (awChain && e.button === 2) { drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; awChainEnd(); return; }
         if (e.button === 0 && !arrowV.length && $('fawM') && $('fawM').value === 'edge') {
-            const wp = rulerPin(w); let st = [[wp.x, wp.y]];
+            const wp = rulerPin(w, true); let st = [[wp.x, wp.y]];
             if (awChain) { const l = awChain.pts[awChain.pts.length - 1]; st = Math.hypot(wp.x - l[0], wp.y - l[1]) * pxPer() > 20 ? [l, [wp.x, wp.y]] : [l]; }   // 늘 끝난 점에서 이어진다(멀면 거기까지 곧게)
             drag = {kind: 'awfree', edge: true, pts: st, sx: e.clientX, sy: e.clientY}; return;
         }
-        if (e.button === 0 && !arrowV.length && $('fawM') && $('fawM').value === 'free') { const wp = rulerPin(w); drag = {kind: 'awfree', pts: [[wp.x, wp.y]], sx: e.clientX, sy: e.clientY}; return; }
+        if (e.button === 0 && !arrowV.length && $('fawM') && $('fawM').value === 'free') { const wp = rulerPin(w, true); drag = {kind: 'awfree', pts: [[wp.x, wp.y]], sx: e.clientX, sy: e.clientY}; return; }
         drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true};
         if (e.button === 2) { arrowFinish(); return; }
         const q = snapXY(w), l = arrowV[arrowV.length - 1];
@@ -7223,7 +7231,7 @@ svg.addEventListener('pointerdown', e => {
         if (c('#cadTpl .tpl-body')) { startTplDrag(e, w); return; }
         if (c('#cadSr .sr-body')) { startSrDrag(e, w); return; }
         if (c('#cadBar .bar-body')) { drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return; }
-        { const q = tool === 'shrub' ? w : rulerPin(w); drag = {kind: tool === 'shrub' ? 'shrub' : 'free', pts: [[q.x, q.y]], sx: e.clientX, sy: e.clientY}; }
+        { const q = tool === 'shrub' ? w : rulerPin(w, true); drag = {kind: tool === 'shrub' ? 'shrub' : 'free', pts: [[q.x, q.y]], sx: e.clientX, sy: e.clientY}; }
         if (tool === 'shrub' && shrubCh) {             // 이어 긋기 — 늘 끝난 점에서 시작한다. 멀리서 누르면 거기까지 곧게 이은 뒤 끈다(사슬이 끊기지 않게)
             const E = shrubCh.raws[shrubCh.raws.length - 1], far = Math.hypot(w.x - E[0], w.y - E[1]) * pxPer() > 20;
             drag.pts = far ? [[E[0], E[1]], [w.x, w.y]] : [[E[0], E[1]]]; drag.cont = true;
@@ -7428,7 +7436,7 @@ svg.addEventListener('pointermove', e => {
         return;
     }
     if (drag && drag.kind === 'free') {             // 2px 넘게 움직일 때마다 한 점(자에 대면 변을 따라간다)
-        w = rulerPin(w);
+        w = rulerPin(w); if (w.pin) drag.pin = true;
         const l = drag.pts[drag.pts.length - 1];
         if (Math.hypot(w.x - l[0], w.y - l[1]) * pxPer() >= 2) drag.pts.push([w.x, w.y]);
         const ss = {ls: $('ffLs').value, w: $('ffW').value};
@@ -7601,7 +7609,8 @@ function endPtr(e) {
         const runs = []; let cur = [];
         d.pts.forEach(q => { if (covered({x: q[0], y: q[1]})) { if (cur.length > 1) runs.push(cur); cur = []; } else cur.push(q); });
         if (cur.length > 1) runs.push(cur);
-        const sm = FF_SMOOTH[+SET.ffsm || 0], tol = sm.tol / pxPer(), ls = $('ffLs').value, wv = $('ffW').value;   // 다듬기 세기(사용자) — 평균 내기 몇 번 + 떨림 거르기
+        // 자에 댄 획은 구불거림이 거르기에 지워지지 않게(평균 내기 1번까지, 거르기는 종이 0.02mm)
+        const sm0 = FF_SMOOTH[+SET.ffsm || 0], sm = d.pin ? {pass: Math.min(sm0.pass, 1), tol: sm0.tol} : sm0, tol = d.pin ? Math.min(sm.tol / pxPer(), 0.02 * scaleDenom() / 1000) : sm.tol / pxPer(), ls = $('ffLs').value, wv = $('ffW').value;   // 다듬기 세기(사용자) — 평균 내기 몇 번 + 떨림 거르기
         const ops = runs.map(pts => simpFree(smoothPts(pts, sm.pass), tol).map(q => [+q[0].toFixed(3), +q[1].toFixed(3)])).filter(pts => pts.length > 1 && Math.hypot(pts[pts.length - 1][0] - pts[0][0], pts[pts.length - 1][1] - pts[0][1]) + pts.length > 2);
         if (!ops.length) { if (runs.length === 0 && d.pts.length > 1) flash('자 위로는 그어지지 않습니다'); return; }
         snapHist();
