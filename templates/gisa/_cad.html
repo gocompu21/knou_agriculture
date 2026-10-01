@@ -5128,7 +5128,7 @@ function carSvg(pts, a, color, self) {
     const col = color || INK, sw = fmt(0.35 * k), swh = fmt(0.2 * k), id = 'cm' + (self ? self.id : 'p') + '_' + ((a.seed || 1) % 100000 | 0);
     const big = `<rect x="-100000" y="-100000" width="200000" height="200000" fill="white"/>`;
     const defs = (mE || mH) ? `<defs>${mE ? `<mask id="${id}e" maskUnits="userSpaceOnUse" x="-100000" y="-100000" width="200000" height="200000">${big}${mE}</mask>` : ''}${mH ? `<mask id="${id}h" maskUnits="userSpaceOnUse" x="-100000" y="-100000" width="200000" height="200000">${big}${mH}</mask>` : ''}</defs>` : '';
-    return defs + `<path d="${ht}" fill="none" stroke="${col}" stroke-width="${swh}" stroke-linecap="round"${mH ? ` mask="url(#${id}h)"` : ''}/>`
+    return defs + `<path d="${ht}" fill="none" stroke="${col}" stroke-width="${fmt(0.16 * k)}" stroke-opacity="0.5" stroke-linecap="round"${mH ? ` mask="url(#${id}h)"` : ''}/>`   // 빗금은 연하게(대표님) — 진한 두 줄·변이 도드라진다
         + (dk ? `<path d="${dk}" fill="none" stroke="${col}" stroke-width="${fmt(0.35 * k)}" stroke-linecap="round"${mH ? ` mask="url(#${id}h)"` : ''}/>` : '') + hd
         + `<path d="${ed}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"${mE ? ` mask="url(#${id}e)"` : ''}/>`;
 }
