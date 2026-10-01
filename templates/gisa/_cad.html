@@ -8611,7 +8611,7 @@ function awSync() {                                    // 띠 폭 칸은 '가운
     $('fawPedRow').hidden = !ARROW_KINDS[$('fawK').value].band || $('fawM').value !== 'pts';
     if ($('fawNoL')) $('fawNoL').hidden = $('fawK').value !== 'carb';   // 폭은 점 찍기일 때만 고른다 — 한쪽 변·자유곡선은 그린 모양에서 읽는다
 }
-if ($('fawK')) $('fawK').addEventListener('change', () => { if ($('fawK').value === 'carb') { $('fawB').checked = false; $('fawM').value = 'box'; }   // 차량동선도 네모가 기본(대표님) else if ($('fawK').value === 'ped') { $('fawB').checked = true; $('fawM').value = 'edge'; } else if ($('fawK').value === 'link') $('fawM').value = 'box';   // 연계동선은 네모 그리기가 기본(대표님)
+if ($('fawK')) $('fawK').addEventListener('change', () => { if ($('fawK').value === 'carb') { $('fawB').checked = false; $('fawM').value = 'box'; }   // 차량동선도 네모가 기본(대표님) else if ($('fawK').value === 'ped') { $('fawB').checked = true; $('fawM').value = 'box'; }   // 보행동선도 네모가 기본(대표님 — 처음엔 한쪽 변) else if ($('fawK').value === 'link') $('fawM').value = 'box';   // 연계동선은 네모 그리기가 기본(대표님)
      else if ($('fawM').value === 'edge') $('fawM').value = 'free'; awEdge = null; awChain = null; awSync(); drawPre(); status(); });
 if ($('fawM')) $('fawM').addEventListener('change', () => { arrowV = []; awEdge = null; awChain = null; awSync(); drawPre(); status(); });
 ['feK', 'feS', 'feB', 'feJ', 'feW'].forEach(id => $(id).addEventListener('change', shrubEditApply));   // 관목 고치기
