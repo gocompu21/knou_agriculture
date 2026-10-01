@@ -4389,28 +4389,30 @@ function leadFinish(w) {
 // 보조선이 없던 예전 지시선에 글자 윗선·밑선 보조선을 넣는다(대표님) — 열 때 한 번. 글꼴을 다 읽은 뒤 재야 폭이 맞는다
 function leadGuideMigrate() {
     if (RP) return;
-    const gids = [...new Set(doc.ops.filter(o => o.lead && o.grp != null).map(o => o.grp))]
-        .filter(g => !doc.ops.some(o => o.lead && o.grp === g && o.leadGuide));
-    if (!gids.length) return;
+    const gids = [...new Set(doc.ops.filter(o => o.lead && o.grp != null).map(o => o.grp))];
     let n = 0;
     gids.forEach(gid => {
         const lines = doc.ops.filter(o => o.lead && o.grp === gid), ids = leadSet(lines[0]); if (!ids) return;
-        const texts = doc.ops.filter(o => ids.has(o.id) && o.t === 'text');
-        if (!texts.length) return;
+        const guides = lines.filter(o => o.leadGuide), texts = doc.ops.filter(o => ids.has(o.id) && o.t === 'text');
         const add = [];
         texts.forEach(t => {
             if (t.leadOf == null) t.leadOf = gid;          // 예전 글도 묶음 표시를 단다
+            const has = guides.some(g => { const q = P(g.a); return q && Math.abs(q.y - t.y) < 1e-3; });
+            if (has) return;                              // 이 글은 이미 보조선이 있다
             const sz = +t.size || 1, w = leadMeasure(t.s, sz, t.font || 'gothic'), x0 = t.x - sz * 0.15, x1 = t.x + w + sz * 0.15;
             [t.y, t.y - sz].forEach(yy => {
-                const a = addPt(x0, yy), b = addPt(x1, yy);
-                add.push({id: doc.seq++, t: 'line', a, b, ls: 'aux', w: 'p5', grp: gid, gname: '지시선', lead: true, leadTxt: lines[0].leadTxt, leadGuide: true,
-                    tl: {bar: null, tri: null, tpl: null, sr: null, ftri: null, ...toolsForLine(P(a), P(b))}});
+                const pa = addPt(x0, yy), pb = addPt(x1, yy);
+                add.push({id: doc.seq++, t: 'line', a: pa, b: pb, ls: 'aux', w: 'p5', grp: gid, gname: '지시선', lead: true, leadTxt: lines[0].leadTxt, leadGuide: true,
+                    tl: {bar: null, tri: null, tpl: null, sr: null, ftri: null, ...toolsForLine(P(pa), P(pb))}});
             });
         });
+        const txt = texts.slice().sort((p, q) => p.y - q.y).map(t => t.s).join(' / ');   // 글을 고쳤으면 작도 순서 글도 맞춘다
+        if (txt && txt !== lines[0].leadTxt) lines.forEach(o => { o.leadTxt = txt; }), n += add.length ? 0 : 1;
+        if (!add.length) return;
         const at = doc.ops.indexOf(lines[lines.length - 1]) + 1;   // 지시선 선 바로 뒤, 글 앞에
         doc.ops.splice(at, 0, ...add); n++;
     });
-    if (n) { dirty = true; savedLabel(); renderAll(); saveDraft(); flash(`예전 지시선 ${n}개에 글자 보조선을 넣었습니다 — 저장해 주세요`); }
+    if (n) { dirty = true; savedLabel(); renderAll(); saveDraft(); flash(`예전 지시선 ${n}개를 손봤습니다(글자 보조선) — 저장해 주세요`); }
 }
 function leadHint() {
     if (!leadS) return ' · 수목을 이은 다각선의 끝점을 누르세요';
@@ -4692,7 +4694,7 @@ function commit(t) {
     if (op.t === 'sym') doc.syms[op.sym] = {name: symOf(op.sym).name, items: clone(symOf(op.sym).items)};
     if (editing) {
         const i = doc.ops.findIndex(o => o.id === editing);
-        if (i >= 0) { op.id = editing; doc.ops[i] = op; }
+        if (i >= 0) { op.id = editing; if (doc.ops[i].leadOf != null && op.t === 'text') op.leadOf = doc.ops[i].leadOf; doc.ops[i] = op; }   // 지시선 글을 고쳐도 그 지시선에 남는다
         endEdit();
     } else {
         op.id = doc.seq++;
@@ -5114,6 +5116,13 @@ function leadSet(op) {
     doc.ops.forEach(o => { if (o.t === 'text' && o.leadOf === gid) ids.add(o.id); });
     const last = doc.ops.indexOf(lines[lines.length - 1]), parts = String(lines[0].leadTxt || '').split(' / ');
     for (let i = last + 1; i < Math.min(doc.ops.length, last + 3); i++) { const o = doc.ops[i]; if (o.t === 'text' && o.leadOf == null && parts.includes(o.s)) ids.add(o.id); }
+    // 글을 고쳐 내용이 바뀐 예전 것 — 지시선 가로선 위·아래에 붙은 글(묶음 표시 없음)을 자리로 찾는다
+    const hz = lines.filter(o => !o.leadGuide).map(o => [P(o.a), P(o.b)]).find(([a, b]) => a && b && Math.abs(a.y - b.y) < 1e-3);
+    if (hz) {
+        const [a, b] = hz, x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), ly = a.y;
+        doc.ops.forEach(o => { if (o.t === 'text' && o.leadOf == null && o.x != null) { const sz = +o.size || 1;
+            if (o.x >= x0 - sz && o.x <= x1 && o.y >= ly - sz * 1.2 && o.y <= ly + sz * 2.2) ids.add(o.id); } });
+    }
     return ids;
 }
 function withLeads(ids) {                              // 고른 것 가운데 지시선의 선이나 글이 있으면 그 지시선 한 벌 전체를 더한다
