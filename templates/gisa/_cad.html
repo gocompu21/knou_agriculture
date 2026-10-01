@@ -4753,7 +4753,7 @@ var arrowV = [];
 const ARROW_KINDS = {main: {name: '주동선', ls: 'solid', w: 'p9', mm: 1.2, head: 7}, sub: {name: '부동선', ls: 'dash', w: 'p5', mm: 0.3, dash: [2, 1.2], head: 4}, car: {name: '차량동선', ls: 'chain', w: 'p9', mm: 0.6, dash: [7, 1.2, 0.5, 1.2], head: 5.5},
     ped: {name: '보행동선', ls: 'solid', w: 'p9', mm: 0.35, head: 0, band: true},
     carb: {name: '차량동선', ls: 'solid', w: 'p9', mm: 0.35, head: 0, band: true},
-    link: {name: '연계동선', ls: 'solid', w: 'p5', mm: 0.45, head: 4, dots: true}};   // 연계동선 — 동그라미 셋 + 손그림 화살촉 ○○○▶(linkSvg)   // 차량동선 — 빗금 띠, 이어 그리면 만나는 자리가 한 길로(carSvg)   // 보행동선 — 두 줄 띠 + 사다리 가로대 + 빈 화살촉(pedSvg)
+    link: {name: '연계동선', ls: 'solid', w: 'p5', mm: 0.45, head: 2.4, dots: true}};   // 연계동선 — 동그라미 셋 + 손그림 화살촉 ○○○▶(linkSvg)   // 차량동선 — 빗금 띠, 이어 그리면 만나는 자리가 한 길로(carSvg)   // 보행동선 — 두 줄 띠 + 사다리 가로대 + 빈 화살촉(pedSvg)
 function arrowAttr(kind, color) {
     const K = ARROW_KINDS[kind] || ARROW_KINDS.main, k = scaleDenom() / 1000;
     return `fill="none" stroke="${color || INK}" stroke-width="${fmt(K.mm * k)}" stroke-linecap="round" stroke-linejoin="round"` + (K.dash ? ` stroke-dasharray="${K.dash.map(v => fmt(v * k)).join(' ')}"` : '');
@@ -4793,7 +4793,7 @@ function linkSvg(pts, both, color) {
         c += `<ellipse cx="${fmt(q.p[0] + (rnd() - 0.5) * 0.15 * k)}" cy="${fmt(q.p[1] + (rnd() - 0.5) * 0.15 * k)}" rx="${fmt(rr)}" ry="${fmt(rr * (0.9 + rnd() * 0.1))}" transform="rotate(${fmt(rnd() * 180)} ${fmt(q.p[0])} ${fmt(q.p[1])})"/>`;
     }
     const head = (s, dir) => {                           // 손으로 칠한 삼각형 — 꼭짓점을 조금씩 흔들고, 세 변을 살짝 지나치게 긋는다
-        const q = at(s), t = [q.t[0] * dir, q.t[1] * dir], n = [-t[1], t[0]], J = () => (rnd() - 0.5) * 0.3 * k, w = H * 0.43;   // 높이(촉 너비)를 3/5 로(대표님)
+        const q = at(s), t = [q.t[0] * dir, q.t[1] * dir], n = [-t[1], t[0]], J = () => (rnd() - 0.5) * 0.2 * k, w = 3.2 * k;   // 밑변 3.2mm — 동그라미 지름(2.6mm)보다 조금 크게(대표님)
         const tip = [q.p[0] + J(), q.p[1] + J()];
         const base = [q.p[0] - t[0] * H, q.p[1] - t[1] * H];
         const T = [tip[0], tip[1]], A = [base[0] + n[0] * w / 2 + J(), base[1] + n[1] * w / 2 + J()], B = [base[0] - n[0] * w / 2 + J(), base[1] - n[1] * w / 2 + J()];
