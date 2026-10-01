@@ -285,7 +285,7 @@
                     <h4>동선 화살표</h4>
                     <p class="cad-help">점을 찍어 가며 긋고 <b>더블클릭·Enter·오른쪽 버튼</b>으로 끝내면 끝에 화살촉이 달립니다. '곡선'을 켜면 찍은 점들을 매끄럽게 잇습니다. Backspace 한 점 되돌리기 · Esc 취소.</p>
                     <div class="cad-row"><label>종류<select id="fawK"><option value="main">주동선 (굵은 실선)</option><option value="sub">부동선 (가는 파선)</option><option value="car">차량동선 (일점쇄선)</option><option value="ped">보행동선 (두 줄 · 사다리)</option></select></label></div>
-                    <div class="cad-row"><label>그리기<select id="fawM"><option value="edge">한쪽 변 그리기 (보행동선)</option><option value="free" selected>자유곡선 (끌기 · 보행동선은 윤곽을 대충)</option><option value="pts">점 찍기</option></select></label></div>
+                    <div class="cad-row"><label>그리기<select id="fawM"><option value="edge">한쪽 변 그리기 (보행동선)</option><option value="free" selected>자유곡선 (끌기 · 보행동선은 윤곽을 대충)</option><option value="box">네모 그리기 (끌기)</option><option value="pts">점 찍기</option></select></label></div>
                     <div class="cad-row"><label class="cad-chk"><input type="checkbox" id="fawC" checked> 곡선</label>
                         <label class="cad-chk"><input type="checkbox" id="fawB"> 양방향</label></div>
                     <div class="cad-row" id="fawPedRow" hidden><label>띠 폭<select id="fawPW"><option value="8">8mm</option><option value="10">10mm</option><option value="13" selected>13mm</option><option value="16">16mm</option></select></label>
@@ -4962,6 +4962,14 @@ function pedFromOutline(R) {
     if (C.length > 4) { const b0 = back(false), b1 = back(true); C.unshift(ext(C[0], b0)); C.push(ext(C[C.length - 1], b1)); }
     return {pts: C.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]), W};
 }
+// 네모 그리기(대표님): 한 모서리에서 맞은편 모서리까지 끌면 긴 쪽이 진행 방향 — 첫 모서리 쪽에서 둘째 모서리 쪽으로 화살표가 간다.
+// 보행동선은 짧은 쪽이 띠 폭(설정 칸이 아니다)
+function awBoxPts(A, B) {
+    const k = scaleDenom() / 1000, dx = Math.abs(B.x - A.x), dy = Math.abs(B.y - A.y);
+    if (Math.max(dx, dy) * pxPer() < 8) return null;
+    const pts = dx >= dy ? [[A.x, (A.y + B.y) / 2], [B.x, (A.y + B.y) / 2]] : [[(A.x + B.x) / 2, A.y], [(A.x + B.x) / 2, B.y]];
+    return {pts: pts.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]), W: Math.max(2 * k, Math.min(40 * k, Math.min(dx, dy)))};
+}
 function arrowFinish() {
     const V = arrowV.slice(); arrowV = [];
     if (V.length < 2) { drawPre(); status(); if (V.length) flash('화살표는 점을 둘 이상 찍어야 합니다'); return; }
@@ -5002,6 +5010,7 @@ function arrowPreSvg() {
 function arrowHint() {
     if (awEdge) return ' · 띠가 놓일 쪽으로 마우스를 옮겨 맞은편 변 자리를 누르세요(그 거리가 띠 폭) · 오른쪽 버튼·Esc 취소';
     if (awChain) return ' · 끝난 점에서 이어 그으세요 · 더블클릭·Enter·오른쪽 버튼으로 변 끝내기 · Backspace 한 조각 되돌리기 · Esc 취소';
+    if (!arrowV.length && $('fawM') && $('fawM').value === 'box') return ' · 한 모서리에서 맞은편 모서리까지 끄세요 — 긴 쪽이 진행 방향(끈 쪽으로 화살표), 보행동선은 짧은 쪽이 띠 폭';
     if (!arrowV.length && $('fawM') && $('fawM').value === 'edge') return ' · 보행동선의 한쪽 변을 누른 채 그으세요 — 놓은 뒤 맞은편 변 자리를 누르면 두 줄·가로대·화살표가 붙습니다';
     if (!arrowV.length && $('fawM') && $('fawM').value === 'free' && $('fawK').value === 'ped') return ' · 보행동선 띠의 윤곽을 대충 둘러 그리세요(닫힌 모양) — 놓으면 그 모양대로 두 줄·가로대·화살표로 다시 그립니다';
     if (!arrowV.length && $('fawM') && $('fawM').value === 'free') return ' · 누른 채 손 가는 대로 그으세요 — 놓으면 그 선을 따라 화살표가 됩니다';
@@ -7158,6 +7167,7 @@ svg.addEventListener('pointerdown', e => {
             if (awChain) { const l = awChain.pts[awChain.pts.length - 1]; st = Math.hypot(wp.x - l[0], wp.y - l[1]) * pxPer() > 20 ? [l, [wp.x, wp.y]] : [l]; }   // 늘 끝난 점에서 이어진다(멀면 거기까지 곧게)
             drag = {kind: 'awfree', edge: true, pts: st, sx: e.clientX, sy: e.clientY}; return;
         }
+        if (e.button === 0 && !arrowV.length && $('fawM') && $('fawM').value === 'box') { drag = {kind: 'awbox', a: boxSnap(w), b: null}; return; }
         if (e.button === 0 && !arrowV.length && $('fawM') && $('fawM').value === 'free') { const wp = rulerPin(w, true); drag = {kind: 'awfree', pts: [[wp.x, wp.y]], sx: e.clientX, sy: e.clientY}; return; }
         drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true};
         if (e.button === 2) { arrowFinish(); return; }
@@ -7309,7 +7319,7 @@ svg.addEventListener('pointerdown', e => {
             moved: false, target: e.target, w0: w, shift: e.shiftKey || e.ctrlKey || e.metaKey};
 });
 // 긋다가 화면 끝(36px 안)에 닿으면 화면이 저절로 그쪽으로 흘러가며 계속 긋는다(사용자) — 샤프·프리드로잉·박스
-const AUTO_KINDS = ['pencil', 'free', 'box', 'shrub', 'spbox', 'spfree', 'boxdraw', 'awfree'];
+const AUTO_KINDS = ['pencil', 'free', 'box', 'shrub', 'spbox', 'spfree', 'boxdraw', 'awfree', 'awbox'];
 // 시설 및 수목(기호)을 넣을 때는 누르지 않고 커서만 끝으로 가져가도 화면이 흘러간다(대표님) — 여러 그루를 이어 심다 화면 끝에 닿았을 때
 const autoOk = () => drag ? AUTO_KINDS.includes(drag.kind) : !RP;   // 누르지 않아도 어느 도구든(대표님) — 끝에 0.25초 머물러야 흐른다(도구 줄·목록으로 지나갈 때 튀지 않게)
 let autoPan = null;
@@ -7405,6 +7415,11 @@ svg.addEventListener('pointermove', e => {
             hover = {x: q.x, y: q.y, pt: null}; status();
         }
         return;
+    }
+    if (drag && drag.kind === 'awbox') {           // 동선 화살표 — 네모(긴 쪽이 진행 방향, 보행동선은 짧은 쪽이 폭)
+        const A = drag.a, B = drag.b = boxSnap(w), r = awBoxPts(A, B), o = arrowOpts(), K = ARROW_KINDS[o.kind];
+        const box = `<path d="M${fmt(A.x)} ${fmt(A.y)}H${fmt(B.x)}V${fmt(B.y)}H${fmt(A.x)}Z" fill="none" stroke="${RED}" stroke-width="${fmt(0.08 * U)}" stroke-dasharray="${fmt(0.5 * U)} ${fmt(0.3 * U)}"/>`;
+        gPre.innerHTML = box + (r ? (K.band ? pedSvg(r.pts, {kind: o.kind, both: o.both, wmm: r.W / (scaleDenom() / 1000), seed: 7}, RED) : arrowShapeSvg(r.pts, RED)) : ''); return;
     }
     if (drag && drag.kind === 'spbox') {           // 공간 — 네모
         const A = drag.a, B = drag.b = boxSnap(w);
@@ -7581,6 +7596,8 @@ function endPtr(e) {
     if (e.type === 'pointercancel') return;
     if (d.kind === 'trirot') { rotateTri(); return; }
     if (d.kind === 'boxdraw') { gPre.innerHTML = ''; if (d.b) makeBox(d.a, d.b); return; }
+    if (d.kind === 'awbox') { gPre.innerHTML = ''; const r = d.b && awBoxPts(d.a, d.b); if (!r) { flash('조금 더 크게 끄세요'); return; }
+        arrowCommit(r.pts, ARROW_KINDS[arrowOpts().kind].band ? r.W / (scaleDenom() / 1000) : 0); status(); return; }
     if (d.kind === 'spbox') { gPre.innerHTML = ''; if (d.b && Math.abs(d.b.x - d.a.x) > 1e-6 && Math.abs(d.b.y - d.a.y) > 1e-6) spaceFinish([[d.a.x, d.a.y], [d.b.x, d.a.y], [d.b.x, d.b.y], [d.a.x, d.b.y]], 'box', true); return; }
     if (d.kind === 'awfree') { gPre.innerHTML = ''; const P = arrowFreePts(d.pts); let L = 0; for (let i = 1; i < P.length; i++) L += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
         if (d.edge) {                                  // 한쪽 변 — 관목처럼 이어 긋는다(누르기만 한 것은 무시: 더블클릭의 첫 누름)
