@@ -1825,8 +1825,8 @@ function changed() {
     const n = doc.ops.length, grew = n > opsSeen; opsSeen = n;
     if (grew && !RP) { const pane = $('cadOpList').closest('.cad-pane'); if (pane) pane.scrollTop = pane.scrollHeight; }   // 창 전체가 아니라 목록 칸만 내린다
 }
-function undo() { if (!hist.length) return; redoS.push(JSON.stringify(doc)); doc = JSON.parse(hist.pop()); afterLoad(false); dirty = true; saveDraft(); }
-function redo() { if (!redoS.length) return; hist.push(JSON.stringify(doc)); doc = JSON.parse(redoS.pop()); afterLoad(false); dirty = true; saveDraft(); }
+function undo() { if (!hist.length) return; redoS.push(JSON.stringify(doc)); doc = JSON.parse(hist.pop()); afterLoad(false, true); dirty = true; saveDraft(); }
+function redo() { if (!redoS.length) return; hist.push(JSON.stringify(doc)); doc = JSON.parse(redoS.pop()); afterLoad(false, true); dirty = true; saveDraft(); }
 
 // ── SVG 조각 ────────────────────────────────────────────────────────────
 // 쇄선 맞추기 — 선 길이에 맞춰 무늬를 조금 늘이거나 줄여 **시작과 끝이 긴 선분**이 되게 한다(끝 근처에 점이 오지 않게, 사용자).
@@ -6870,7 +6870,7 @@ function buildFrame(src, N, opt) {
     return {doc: {v: 1, sheet: `a2-${N}`, pts: outPts, ops, syms, seq: id}, warn};
 }
 // ── 틀 끝 ──
-function afterLoad(refit) {
+function afterLoad(refit, keepUnder) {          // keepUnder — 되돌리기·다시 하기: 밑그림을 다시 받지 않는다(받는 동안 사라졌다 돌아왔다, 대표님)
     if (RP) rpEnd();
     doc.ops.forEach(o => { if (o.t !== 'step' && !('tl' in o)) o.tl = 0; });
     doc.ops = doc.ops.filter(o => !(o.t === 'fill' && o.cuts && o.cuts.length && fillLeft(o) < 0.01));   // 지우개로 다 지운 채 남은 칠(예전 도면) — 재생 때 헛손질만 했다
@@ -6884,7 +6884,8 @@ function afterLoad(refit) {
     });   // 기록 전에 그린 것 — 도구 자리를 모른다(0)
     selOps.clear(); selPts.clear(); selPt = null; endEdit();
     Object.keys(doc.syms || {}).forEach(ensureSymOption);
-    setSheet(doc.sheet); renderAll(); regInfo(); underLoad();
+    setSheet(doc.sheet); renderAll(); regInfo();
+    if (keepUnder) { underShown = ''; underRender(); } else underLoad();
     if (refit) fit();
 }
 
