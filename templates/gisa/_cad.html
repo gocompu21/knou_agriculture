@@ -381,6 +381,18 @@
 .cad-b { border: 1px solid #cfd8d3; background: #fff; color: #1b4332; border-radius: 6px; padding: 6px 10px;
     font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .cad-b:hover { background: #f1f6f3; }
+/* 위 줄 단추를 입체로(대표님) — 오른쪽 위 확대 단추와 같은 결: 위가 밝은 그라데이션 · 아래 테두리 짙게 · 누르면 들어간다 */
+.cad-b { background: linear-gradient(#fff, #e9efeb); border-color: #c3cec8 #b3c0b9 #9fb0a7; box-shadow: 0 2px 0 #b9c6bf, 0 3px 6px rgba(0,0,0,.12); transition: transform .06s, box-shadow .06s; }
+.cad-b:hover { background: linear-gradient(#fff, #dfe9e3); }
+.cad-b:active { transform: translateY(2px); box-shadow: 0 0 0 #b9c6bf, inset 0 2px 4px rgba(0,0,0,.18); background: linear-gradient(#dde6e1, #eef2ef); }
+.cad-b.pri { background: linear-gradient(#3f8a65, #2d6a4f); border-color: #2d6a4f #245a42 #1b4332; box-shadow: 0 2px 0 #1b4332, 0 3px 6px rgba(0,0,0,.2); }
+.cad-b.pri:hover { background: linear-gradient(#478f6b, #245a42); }
+.cad-b.pri:active { box-shadow: 0 0 0 #1b4332, inset 0 2px 4px rgba(0,0,0,.35); background: linear-gradient(#245a42, #2d6a4f); }
+/* 저장 알림 — 아래 상태줄 글은 놓치기 쉬워 도면 가운데 위에 띄운다 */
+.cad-toast { position: absolute; left: 50%; top: 64px; transform: translate(-50%, -8px); background: #1b4332; color: #fff; padding: 10px 22px; border-radius: 22px;
+    font-weight: 700; font-size: 15px; box-shadow: 0 6px 18px rgba(0,0,0,.25); opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; z-index: 60; }
+.cad-toast.on { opacity: 1; transform: translate(-50%, 0); }
+.cad-toast.bad { background: #c62828; }
 .cad-b.pri { background: #2d6a4f; color: #fff; border-color: #2d6a4f; }
 .cad-b.pri:hover { background: #1b4332; }
 .cad-open { position: absolute; right: 10px; top: 44px; z-index: 30; background: #fff; border: 1px solid #cfd8d3;
@@ -5669,7 +5681,7 @@ function save() {
     $('cadTitle').value = body.title;
     post(API + 'save/', body).then(j => {
         if (!j.ok) { alert('저장하지 못했습니다 — ' + (j.error || '서버가 거절했습니다') + '\n\n작업은 이 브라우저에 그대로 남아 있습니다. 다른 도면을 열지 말고 알려 주세요.'); return; }   // 토스트는 놓치기 쉽다 — 저장 실패를 모르고 다른 도면을 열어 작업이 날아갈 뻔했다
-        cur.id = j.id; dirty = false; saveDraft(); savedLabel(); flash('저장했습니다');
+        cur.id = j.id; dirty = false; saveDraft(); savedLabel(); flash('저장되었습니다'); toast('✓ 저장되었습니다');
     });
 }
 function openList() {
@@ -6163,6 +6175,12 @@ function copyDesc() {
     }
 }
 let flashT;
+function toast(msg, bad) {                            // 도면 위 가운데에 잠깐 띄우는 알림
+    let el = $('cadToast');
+    if (!el) { el = document.createElement('div'); el.id = 'cadToast'; el.className = 'cad-toast'; root.appendChild(el); }
+    el.textContent = msg; el.classList.toggle('bad', !!bad); el.classList.add('on');
+    clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 1800);
+}
 function flash(msg) {
     const el = $('cadHint'); clearTimeout(flashT);
     el.textContent = ' · ' + msg; el.style.color = '#c0632b';
