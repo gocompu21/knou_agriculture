@@ -1700,6 +1700,13 @@ function guideEdges() {
     return E;
 }
 const clampT = (t, e) => Math.max(e.lo, Math.min(e.hi, t));
+// 자에 대고 긋기(대표님 — 동선 화살표·프리드로잉): 손으로 긋다가 자의 변 곁(화면 7px)에 닿거나 자 몸통 쪽으로 밀면
+// 펜이 변에 걸려 변을 따라간다 — 그 자리를 변 위로 옮긴다. 스케일자는 긋는 자가 아니라 뺀다
+function rulerPin(w) {
+    const e = nearestEdge(w, 16, x => !x.sr); if (!e) return w;
+    const t = clampT((w.x - e.ax) * e.dx + (w.y - e.ay) * e.dy, e), p = {x: e.ax + e.dx * t, y: e.ay + e.dy * t};
+    return Math.hypot(p.x - w.x, p.y - w.y) * pxPer() <= 7 || covered(w) ? p : w;
+}
 function nearestEdge(w, px, only) {
     let best = null, bd = px;
     const k = pxPer();
@@ -7139,11 +7146,11 @@ svg.addEventListener('pointerdown', e => {
         }
         if (awChain && e.button === 2) { drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; awChainEnd(); return; }
         if (e.button === 0 && !arrowV.length && $('fawM') && $('fawM').value === 'edge') {
-            let st = [[w.x, w.y]];
-            if (awChain) { const l = awChain.pts[awChain.pts.length - 1]; st = Math.hypot(w.x - l[0], w.y - l[1]) * pxPer() > 20 ? [l, [w.x, w.y]] : [l]; }   // 늘 끝난 점에서 이어진다(멀면 거기까지 곧게)
+            const wp = rulerPin(w); let st = [[wp.x, wp.y]];
+            if (awChain) { const l = awChain.pts[awChain.pts.length - 1]; st = Math.hypot(wp.x - l[0], wp.y - l[1]) * pxPer() > 20 ? [l, [wp.x, wp.y]] : [l]; }   // 늘 끝난 점에서 이어진다(멀면 거기까지 곧게)
             drag = {kind: 'awfree', edge: true, pts: st, sx: e.clientX, sy: e.clientY}; return;
         }
-        if (e.button === 0 && !arrowV.length && $('fawM') && $('fawM').value === 'free') { drag = {kind: 'awfree', pts: [[w.x, w.y]], sx: e.clientX, sy: e.clientY}; return; }
+        if (e.button === 0 && !arrowV.length && $('fawM') && $('fawM').value === 'free') { const wp = rulerPin(w); drag = {kind: 'awfree', pts: [[wp.x, wp.y]], sx: e.clientX, sy: e.clientY}; return; }
         drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true};
         if (e.button === 2) { arrowFinish(); return; }
         const q = snapXY(w), l = arrowV[arrowV.length - 1];
@@ -7216,7 +7223,7 @@ svg.addEventListener('pointerdown', e => {
         if (c('#cadTpl .tpl-body')) { startTplDrag(e, w); return; }
         if (c('#cadSr .sr-body')) { startSrDrag(e, w); return; }
         if (c('#cadBar .bar-body')) { drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return; }
-        drag = {kind: tool === 'shrub' ? 'shrub' : 'free', pts: [[w.x, w.y]], sx: e.clientX, sy: e.clientY};
+        { const q = tool === 'shrub' ? w : rulerPin(w); drag = {kind: tool === 'shrub' ? 'shrub' : 'free', pts: [[q.x, q.y]], sx: e.clientX, sy: e.clientY}; }
         if (tool === 'shrub' && shrubCh) {             // 이어 긋기 — 늘 끝난 점에서 시작한다. 멀리서 누르면 거기까지 곧게 이은 뒤 끈다(사슬이 끊기지 않게)
             const E = shrubCh.raws[shrubCh.raws.length - 1], far = Math.hypot(w.x - E[0], w.y - E[1]) * pxPer() > 20;
             drag.pts = far ? [[E[0], E[1]], [w.x, w.y]] : [[E[0], E[1]]]; drag.cont = true;
@@ -7328,7 +7335,7 @@ svg.addEventListener('pointermove', e => {
         if (pinchD) { const c = toWorld({clientX: (a.x + b.x) / 2, clientY: (a.y + b.y) / 2}); zoomAt(d / pinchD, c.x, c.y); }
         pinchD = d; return;
     }
-    const w = toWorld(e);
+    let w = toWorld(e);   // let — 자에 대고 긋기(rulerPin)가 바꾼다
     if (tool.startsWith('pen')) penLean(w);
     if (drag && (drag.kind === 'click' || drag.kind === 'pan' || drag.kind === 'right')) {
         if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 5) drag.moved = true;
@@ -7395,7 +7402,8 @@ svg.addEventListener('pointermove', e => {
         const A = drag.a, B = drag.b = boxSnap(w);
         gPre.innerHTML = spacePreSvg([[A.x, A.y], [B.x, A.y], [B.x, B.y], [A.x, B.y]]); return;
     }
-    if (drag && drag.kind === 'awfree') {          // 동선 화살표 — 자유곡선(그은 선을 따라 화살표·두 줄 띠를 미리 보인다)
+    if (drag && drag.kind === 'awfree') {          // 동선 화살표 — 자유곡선(그은 선을 따라 화살표·두 줄 띠를 미리 보인다). 자에 대면 변을 따라간다
+        w = rulerPin(w);
         const l = drag.pts[drag.pts.length - 1];
         if (Math.hypot(w.x - l[0], w.y - l[1]) * pxPer() >= 2) drag.pts.push([w.x, w.y]);
         gPre.innerHTML = drag.pts.length > 3 ? (drag.edge || ARROW_KINDS[arrowOpts().kind].band ? `<path d="${freeD((awChain ? awChain.pts : []).concat(drag.pts))}" fill="none" stroke="${RED}" stroke-width="${fmt(0.35 * scaleDenom() / 1000)}"/>` : arrowShapeSvg(arrowFreePts(drag.pts), RED)) : ''; return;
@@ -7419,7 +7427,8 @@ svg.addEventListener('pointermove', e => {
             + (cl ? `<circle cx="${fmt(s0[0])}" cy="${fmt(s0[1])}" r="${fmt(Math.max(st.size, 0.8 * U))}" fill="none" stroke="#2ea043" stroke-width="${fmt(0.15 * U)}"/>` : '');
         return;
     }
-    if (drag && drag.kind === 'free') {             // 2px 넘게 움직일 때마다 한 점
+    if (drag && drag.kind === 'free') {             // 2px 넘게 움직일 때마다 한 점(자에 대면 변을 따라간다)
+        w = rulerPin(w);
         const l = drag.pts[drag.pts.length - 1];
         if (Math.hypot(w.x - l[0], w.y - l[1]) * pxPer() >= 2) drag.pts.push([w.x, w.y]);
         const ss = {ls: $('ffLs').value, w: $('ffW').value};
