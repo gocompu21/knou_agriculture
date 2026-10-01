@@ -5020,7 +5020,7 @@ const CAR_HEAD = {lin: 0.22, th: 0.22}, CAR_HL = 0.63;   // 대표님: 두께·�
 function carCenter(pts, a) {                             // 중심선 — 꺾인 자리를 폭만큼 둥글린 촘촘한 점들
     const k = scaleDenom() / 1000, W = (a.wmm || 13) * k;
     let R = pts; if (a.closed && R.length > 2) { const f = R[0], l = R[R.length - 1]; if (Math.hypot(f[0] - l[0], f[1] - l[1]) < 1e-6) R = R.slice(0, -1); }
-    if (R.length > 2) R = spRound(R, W * 0.9, !a.closed);
+    if (R.length > 2) R = spRound(R, W * 0.35, !a.closed);   // 꺾인 자리 둥글기 — 0.9W 는 너무 둥글었다(대표님)
     return spDense(R, 0.25 * k, !!a.closed);
 }
 // 다른 길에 닿은 끝은 그 길 너머 변까지 늘인다(대표님 — 꺾이는 바깥 모서리에서 변이 끊기지 않게).
@@ -5125,7 +5125,7 @@ function carNetwork(extra) {
     rings.forEach(r => { cx.beginPath(); const pl = A => { cx.moveTo(A[0][0], A[0][1]); A.forEach(q => cx.lineTo(q[0], q[1])); cx.closePath(); };
         pl(r.A); if (r.B) pl(r.B); cx.fill(r.cl ? 'evenodd' : 'nonzero'); });
     const cv2 = document.createElement('canvas'); cv2.width = nx; cv2.height = ny;
-    const c2 = cv2.getContext('2d'); c2.filter = `blur(${(0.22 * Wm / c).toFixed(2)}px)`; c2.drawImage(cv, 0, 0);   // 흐림 = 구석 둥글기
+    const c2 = cv2.getContext('2d'); c2.filter = `blur(${(0.1 * Wm / c).toFixed(2)}px)`; c2.drawImage(cv, 0, 0);   // 흐림 = 구석 둥글기
     const im = c2.getImageData(0, 0, nx, ny).data, v = (i, j) => (i < 0 || j < 0 || i >= nx || j >= ny) ? 0 : im[(j * nx + i) * 4 + 3] / 255;
     // marching squares — 칸마다 0.5 문턱이 지나는 변 둘을 잇고, 같은 변을 공유하는 조각끼리 꿰어 고리로 만든다
     const segs = new Map(), T = 0.5;
