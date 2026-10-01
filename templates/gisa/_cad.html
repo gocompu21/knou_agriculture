@@ -112,7 +112,7 @@
             <div class="cad-set-row"><label class="cad-chk"><input type="checkbox" id="cadRulerNums"> 자 위치 숫자 보이기 <small class="cad-set-note">(I자 Y · 삼각자 X)</small></label></div>
             <div class="cad-set-row"><span class="cad-set-lb">밑그림</span><select id="cadUnderSel" class="cad-set-ls" title="다른 도면을 옅게 깔아 놓고 그 위에 그린다(트레이싱지처럼). 밑그림은 저장·재생·지우기에 들어가지 않는다"><option value="">없음</option></select>
                 <select id="cadUnderOp" class="cad-set-ls" title="밑그림 진하기"><option value="0.15">15%</option><option value="0.25">25%</option><option value="0.35">35%</option><option value="0.5">50%</option><option value="0.7">70%</option></select>
-                <label class="cad-chk" title="밑그림의 점에 붙는다"><input type="checkbox" id="cadUnderSnap" checked> 점에 붙기</label></div>
+                <label class="cad-chk" title="밑그림의 점에 붙을지 — 도면마다 따로 기억한다(배식도는 켜고, 설계구상도는 끄는 식)"><input type="checkbox" id="cadUnderSnap" checked> 점에 붙기 <small class="cad-set-note">(이 도면)</small></label></div>
             <div class="cad-set-row"><label class="cad-chk"><input type="checkbox" id="cadRpMarkOn"> 재생 — 형광 동그라미 <small class="cad-set-note">(다음에 그을 자리)</small></label></div>
             <div class="cad-set-row"><label class="cad-chk"><input type="checkbox" id="cadRpPtsOn"> 재생 — 점·번호 보이기</label></div>
             <div class="cad-set-row"><label class="cad-chk" title="I자(평행자) — 몸통을 끌어 위아래로(↑↓ 키로 한 칸씩). 투명 날을 따라 끌면 수평선이 그어집니다"><input type="checkbox" id="cadBarOn"> I자(평행자) 펴기</label></div>
@@ -4061,7 +4061,7 @@ function underFetch(key) {
 function underLoad() { underDocs = {}; underShown = ''; underRender(); }   // 도면을 열 때 — 밑그림 도면을 새로 받는다(그 사이 고쳤을 수 있다)
 function underSnap(w) {                                  // 밑그림의 점 — 화면 10px 안
     const u = underState(), ud = u && u.id && underDocs[String(u.id)];
-    if (!ud || !$('cadUnderSnap') || !$('cadUnderSnap').checked) return null;
+    if (!ud || doc.underSnap === false) return null;     // 도면마다 따로(doc.underSnap, 없으면 켬)
     let best = null, bd = 10 / pxPer();
     ud.pts.forEach(p => { const d = Math.hypot(p.x - w.x, p.y - w.y); if (d < bd) { bd = d; best = p; } });
     return best ? {x: best.x, y: best.y} : null;
@@ -4075,6 +4075,7 @@ function underFill() {                                   // 설정 창의 고르
         sel.value = cur0; if (sel.value !== cur0 && cur0) sel.insertAdjacentHTML('beforeend', `<option value="${cur0}" selected>${esc(u.name || '도면 ' + cur0)}</option>`);
         $('cadUnderOp').value = String(u && u.op || 0.35);
     }).catch(() => {});
+    if ($('cadUnderSnap')) $('cadUnderSnap').checked = doc.underSnap !== false;
 }
 // ── 밑그림 끝 ──
 function snapXY(w) {
@@ -6886,6 +6887,7 @@ function afterLoad(refit, keepUnder) {          // keepUnder — 되돌리기·�
     Object.keys(doc.syms || {}).forEach(ensureSymOption);
     setSheet(doc.sheet); renderAll(); regInfo();
     if (keepUnder) { underShown = ''; underRender(); } else underLoad();
+    if ($('cadUnderSnap')) $('cadUnderSnap').checked = doc.underSnap !== false;
     if (refit) fit();
 }
 
@@ -8258,6 +8260,10 @@ $('cadUnderSel').addEventListener('change', () => {   // 깔고 걷는 것을 �
     doc.ops.push({id: doc.seq++, t: 'under', under: v ? {id: +v, op: +$('cadUnderOp').value || 0.35, name} : null});
     changed(); underRender();
     flash(v ? `밑그림을 깔았습니다 — ${name} (작도 순서에 한 줄)` : '밑그림을 걷었습니다 (작도 순서에 한 줄)');
+});
+$('cadUnderSnap').addEventListener('change', () => {   // 밑그림 점에 붙기 — 이 도면에 기억한다(대표님: 배식도는 도움, 설계구상도는 방해)
+    doc.underSnap = $('cadUnderSnap').checked; dirty = true; savedLabel(); saveDraft();
+    flash(doc.underSnap ? '이 도면은 밑그림의 점에 붙습니다' : '이 도면은 밑그림의 점에 붙지 않습니다');
 });
 $('cadUnderOp').addEventListener('change', () => {     // 진하기는 지금 깔린 밑그림 줄의 값을 고친다
     const L = [...doc.ops].reverse().find(o => o.t === 'under');
