@@ -289,7 +289,7 @@
                     <div class="cad-row"><label class="cad-chk"><input type="checkbox" id="fawC" checked> 곡선</label>
                         <label class="cad-chk"><input type="checkbox" id="fawB"> 양방향</label></div>
                     <div class="cad-row" id="fawPedRow" hidden><label>띠 폭<select id="fawPW"><option value="8">8mm</option><option value="10">10mm</option><option value="13" selected>13mm</option><option value="16">16mm</option></select></label>
-                        <span class="cad-help" style="margin:0">종이 위 폭 · 가로대 간격은 폭의 1.6배</span></div>
+                        <span class="cad-help" style="margin:0">종이 위 폭 · 가로대 간격은 폭의 2배</span></div>
                 </div>
                 <div data-form="hedge">
                     <h4>경계식재</h4>
@@ -4821,7 +4821,7 @@ function pedSvg(pts, a, color) {
         const L = []; for (let s = s0; s < s1; s += 0.8 * k) L.push(side(sg, s)); L.push(side(sg, s1));
         d += 'M' + L.map(f2).join('L');
     }
-    const gap = W * 1.6;
+    const gap = W * 2;   // 가로대 두 줄 묶음 간격 — 폭의 2배(대표님: 1.6배에서 조금 넓게)
     for (let s = s0 + gap * (0.45 + rnd() * 0.2); s < s1 - gap * 0.35; s += gap * (0.85 + rnd() * 0.3)) {
         const tilt = (rnd() - 0.5) * 0.05 * W, A = side(1, s + tilt), B = side(-1, s - tilt);
         d += pedRung(A, B, rnd, k, W, f2);
@@ -4908,7 +4908,7 @@ function pedEdgeSvg(pts, a, color) {
     const st = 0.8 * k, Ls = []; for (let s = 0; s < Lt; s += st) Ls.push(O(s)); Ls.push(O(Lt));
     const DL = deLoop(Ls, 80), L = DL.pts;   // 안쪽 모서리에서 맞은편 변이 매듭지지 않게
     d += 'M' + L.map(f2).join('L');
-    const gap = W * 1.6;
+    const gap = W * 2;   // 가로대 두 줄 묶음 간격 — 폭의 2배(대표님: 1.6배에서 조금 넓게)
     for (let s = gap * (0.45 + rnd() * 0.2); s < Lt - gap * 0.35; s += gap * (0.85 + rnd() * 0.3)) {
         const tilt = (rnd() - 0.5) * 0.05 * W, A = E(s + tilt), B = O(s - tilt);
         if (DL.cut[Math.min(DL.cut.length - 1, Math.round((s - tilt) / st))]) continue;   // 잘린 매듭 자리의 가로대는 긋지 않는다
