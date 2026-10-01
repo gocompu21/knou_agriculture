@@ -4763,10 +4763,11 @@ function pedRung(A, B, rnd, k, W, f2) {
     const g = Math.max(0.45 * k, W * 0.07);           // 두 줄 사이 반 간격
     let d = '';
     for (const sgn of [-1, 1]) {
-        const o = sgn * g * (0.8 + rnd() * 0.4), ta = (rnd() - 0.5) * 0.5 * k, tb = (rnd() - 0.5) * 0.5 * k;
-        const ea = (0.5 + rnd() * 0.8) * k, eb = (0.5 + rnd() * 0.8) * k;   // 띠 선을 지나가는 길이
+        // 두 줄은 거의 곧고 나란하게, 띠 선은 띠 폭에 비례해 살짝만 지나간다(대표님 — 폭 13mm 면 0.6~1.1mm)
+        const o = sgn * g * (0.95 + rnd() * 0.1), ta = (rnd() - 0.5) * 0.06 * k, tb = (rnd() - 0.5) * 0.06 * k;
+        const ea = W * (0.045 + rnd() * 0.04), eb = W * (0.045 + rnd() * 0.04);   // 띠 선을 지나가는 길이
         const A2 = [A[0] + px * (o + ta) - ux * ea, A[1] + py * (o + ta) - uy * ea], B2 = [B[0] + px * (o + tb) + ux * eb, B[1] + py * (o + tb) + uy * eb];
-        const bow = (rnd() - 0.5) * 0.6 * k, M = [(A2[0] + B2[0]) / 2 + px * bow, (A2[1] + B2[1]) / 2 + py * bow];
+        const bow = (rnd() - 0.5) * 0.12 * k, M = [(A2[0] + B2[0]) / 2 + px * bow, (A2[1] + B2[1]) / 2 + py * bow];
         d += `M${f2(A2)}Q${f2(M)} ${f2(B2)}`;
     }
     return d;
@@ -4810,9 +4811,9 @@ function pedSvg(pts, a, color) {
     };
     let HL = W * PED_HL, HW = W * 0.92; const heads = a.both ? 2 : 1;
     if (Lt < heads * HL + W) { const f = Lt / (heads * HL + W); HL *= f; HW *= Math.max(f, 0.6); }
-    const s0 = a.both ? HL : 0, s1 = Lt - HL, amp = 0.26 * k;
+    const s0 = a.both ? HL : 0, s1 = Lt - HL, amp = 0.12 * k;   // 구불거림은 약하게(대표님)
     const nL = pedWob(rnd, Lt, k), nR = pedWob(rnd, Lt, k), nG = spNoise(rnd, Lt, false, [[31 * k, 0.7], [77 * k, 0.3]]);
-    const side = (sg, s) => { const q = at(s), off = sg * W / 2 * (1 + 0.07 * nG(s)) + amp * (sg > 0 ? nL(s) : nR(s)); return [q.p[0] + q.n[0] * off, q.p[1] + q.n[1] * off]; };
+    const side = (sg, s) => { const q = at(s), off = sg * W / 2 * (1 + 0.03 * nG(s)) + amp * (sg > 0 ? nL(s) : nR(s)); return [q.p[0] + q.n[0] * off, q.p[1] + q.n[1] * off]; };
     const J = v => v + (rnd() - 0.5) * 2 * 0.25 * k;
     const f2 = q => `${fmt(q[0])} ${fmt(q[1])}`;
     let d = '';
@@ -4822,7 +4823,7 @@ function pedSvg(pts, a, color) {
     }
     const gap = W * 1.6;
     for (let s = s0 + gap * (0.45 + rnd() * 0.2); s < s1 - gap * 0.35; s += gap * (0.85 + rnd() * 0.3)) {
-        const tilt = (rnd() - 0.5) * 0.12 * W, A = side(1, s + tilt), B = side(-1, s - tilt);
+        const tilt = (rnd() - 0.5) * 0.05 * W, A = side(1, s + tilt), B = side(-1, s - tilt);
         d += pedRung(A, B, rnd, k, W, f2);
     }
     const head = (sb, tipS) => {
@@ -4898,10 +4899,10 @@ function deLoop(A, win) {                               // 꺾은선의 제 몸 
 function pedEdgeSvg(pts, a, color) {
     const k = scaleDenom() / 1000, G = pedEdgeGeom(pts); if (!G) return '';
     const W = (a.wmm || 13) * k, sg = a.edge > 0 ? 1 : -1, rnd = spRng(a.seed || 1), Lt = G.L, at = G.at;
-    const HL = W * 0.62, HW = W * 0.92, amp = 0.26 * k;
+    const HL = W * 0.62, HW = W * 0.92, amp = 0.12 * k;
     const nO = pedWob(rnd, Lt, k), nG = spNoise(rnd, Lt, false, [[31 * k, 0.7], [77 * k, 0.3]]);
     const E = s => at(s).p;
-    const O = s => { const q = at(s), off = sg * (W * (1 + 0.07 * nG(s)) + amp * nO(s)); return [q.p[0] + q.n[0] * off, q.p[1] + q.n[1] * off]; };
+    const O = s => { const q = at(s), off = sg * (W * (1 + 0.03 * nG(s)) + amp * nO(s)); return [q.p[0] + q.n[0] * off, q.p[1] + q.n[1] * off]; };
     const J = v => v + (rnd() - 0.5) * 2 * 0.25 * k, f2 = q => `${fmt(q[0])} ${fmt(q[1])}`;
     let d = 'M' + pts.map(f2).join('L');               // 그은 변은 그은 그대로
     const st = 0.8 * k, Ls = []; for (let s = 0; s < Lt; s += st) Ls.push(O(s)); Ls.push(O(Lt));
@@ -4909,7 +4910,7 @@ function pedEdgeSvg(pts, a, color) {
     d += 'M' + L.map(f2).join('L');
     const gap = W * 1.6;
     for (let s = gap * (0.45 + rnd() * 0.2); s < Lt - gap * 0.35; s += gap * (0.85 + rnd() * 0.3)) {
-        const tilt = (rnd() - 0.5) * 0.12 * W, A = E(s + tilt), B = O(s - tilt);
+        const tilt = (rnd() - 0.5) * 0.05 * W, A = E(s + tilt), B = O(s - tilt);
         if (DL.cut[Math.min(DL.cut.length - 1, Math.round((s - tilt) / st))]) continue;   // 잘린 매듭 자리의 가로대는 긋지 않는다
         d += pedRung(A, B, rnd, k, W, f2);
     }
