@@ -4284,7 +4284,7 @@ function leadType() { try { const t = localStorage.getItem('cadLeadType'); if (L
 function leadIcon(t) {
     const d = {ur: 'M4 16L9 6H18', ul: 'M16 16L11 6H2', r: 'M3 10H17', l: 'M17 10H3', dr: 'M4 4L9 14H18', dl: 'M16 4L11 14H2'}[t];
     const s = {ur: [4, 16], ul: [16, 16], r: [3, 10], l: [17, 10], dr: [4, 4], dl: [16, 4]}[t];
-    return `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="${d}"/><circle cx="${s[0]}" cy="${s[1]}" r="1.6" class="f"/></svg>`;
+    return `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="${d}"/><circle cx="${s[0]}" cy="${s[1]}" r="2.6" class="f"/></svg>`;   // 시작점 — 크게(대표님)
 }
 function leadTypeDraw() {
     const t = leadType(), box = $('fdTypes'); if (!box) return;
