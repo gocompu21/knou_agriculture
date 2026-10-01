@@ -650,8 +650,8 @@
 .cad-lead-types { display: inline-flex; gap: 3px; flex-wrap: wrap; }
 .cad-lead-types button { width: 30px; height: 28px; padding: 3px; border: 1px solid #cfd8d2; border-radius: 6px; background: #fff; cursor: pointer; }
 .cad-lead-types button.on { background: #2d6a4f; border-color: #2d6a4f; }
-.cad-lead-types button svg { width: 20px; height: 20px; fill: none; stroke: #2d6a4f; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.cad-lead-types button svg .f { fill: #2d6a4f; stroke: none; }
+.cad-lead-types button svg { width: 20px; height: 20px; fill: none; stroke: #111; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.cad-lead-types button svg .f { fill: #111; stroke: none; }
 .cad-lead-types button.on svg { stroke: #fff; } .cad-lead-types button.on svg .f { fill: #fff; }
 /* 끌어 옮기기 — 놓일 자리에 녹색 줄(사용자) */
 .cad-op[draggable="true"] { cursor: grab; }
@@ -4283,8 +4283,8 @@ var leadS = null;                                     // {n: 시작 점 번호, 
 const LEAD_TYPES = [['ur', '위 → 오른쪽'], ['ul', '위 → 왼쪽'], ['r', '오른쪽'], ['l', '왼쪽'], ['dr', '아래 → 오른쪽'], ['dl', '아래 → 왼쪽']];
 function leadType() { try { const t = localStorage.getItem('cadLeadType'); if (LEAD_TYPES.some(x => x[0] === t)) return t; } catch (e) {} return 'ur'; }
 function leadIcon(t) {
-    const d = {ur: 'M4 16L9 6H18', ul: 'M16 16L11 6H2', r: 'M3 10H17', l: 'M17 10H3', dr: 'M4 4L9 14H18', dl: 'M16 4L11 14H2'}[t];
-    const s = {ur: [4, 16], ul: [16, 16], r: [3, 10], l: [17, 10], dr: [4, 4], dl: [16, 4]}[t];
+    const d = {ur: 'M5 16V6H18', ul: 'M15 16V6H2', r: 'M3 10H17', l: 'M17 10H3', dr: 'M5 4V14H18', dl: 'M15 4V14H2'}[t];   // 꺾는 형은 직각으로(대표님)
+    const s = {ur: [5, 16], ul: [15, 16], r: [3, 10], l: [17, 10], dr: [5, 4], dl: [15, 4]}[t];
     return `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="${d}"/><circle cx="${s[0]}" cy="${s[1]}" r="2.6" class="f"/></svg>`;   // 시작점 — 크게(대표님)
 }
 function leadTypeDraw() {
