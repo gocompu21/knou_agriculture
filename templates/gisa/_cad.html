@@ -5023,8 +5023,35 @@ function carCenter(pts, a) {                             // 중심선 — 꺾인
     if (R.length > 2) R = spRound(R, W * 0.9, !a.closed);
     return spDense(R, 0.25 * k, !!a.closed);
 }
+// 다른 길에 닿은 끝은 그 길 너머 변까지 늘인다(대표님 — 꺾이는 바깥 모서리에서 변이 끊기지 않게).
+// ㄱ자(상대도 거기서 끝남)는 상대의 먼 변까지 꽉 채워 바깥 모서리를 닫고, T자(상대는 계속 감)는 먼 변 바로 앞에서 멈춘다 — 먼 변에 내 변 끝이 비쳐 보이지 않게.
+// forMask — 가리기용 면은 늘 먼 변 앞에서 멈춘다(먼 변을 지우지 않게)
+function carPtsX(pts, a, self, forMask) {
+    if (a.closed || !pts || pts.length < 2) return pts;
+    const k = scaleDenom() / 1000, W = (a.wmm || 13) * k;
+    const oc = (doc.ops || []).filter(o => o.t === 'free' && o.arrow && o.arrow.kind === 'carb' && o !== self && o.pts && o.pts.length > 1)
+        .map(o => ({o, P: carCenter(o.pts, o.arrow).P, h: (o.arrow.wmm || 13) * k / 2}));
+    if (!oc.length) return pts;
+    const ext = (q, r) => {
+        const dx = q[0] - r[0], dy = q[1] - r[1], l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
+        const dist = (o, p) => Math.min(...o.P.map(c => Math.hypot(c[0] - p[0], c[1] - p[1])));
+        let best = null, bd = Infinity; oc.forEach(o => { const d = dist(o, q); if (d < o.h + W * 0.1 && d < bd) { bd = d; best = o; } });
+        if (!best) return q;
+        let d = 0; const st = best.h * 0.04;
+        while (d < best.h * 3 && dist(best, [q[0] + ux * d, q[1] + uy * d]) < best.h) d += st;
+        const ends = best.o.arrow.closed ? [] : [best.o.pts[0], best.o.pts[best.o.pts.length - 1]];
+        const corner = ends.some(e => Math.hypot(e[0] - q[0], e[1] - q[1]) < best.h * 2.4);
+        const mine = self ? doc.ops.indexOf(self) : doc.ops.length, own = corner && mine < doc.ops.indexOf(best.o);   // ㄱ자 모서리는 먼저 그린 길이 차지한다(둘 다 채우면 변이 겹쳐 두 줄)
+        const e = own ? d : d - (corner ? 0.35 : 0.14) * best.h;   // 모서리를 차지한 길은 가리기 면도 끝까지(그 끝막음이 바깥 모서리 변), 진 쪽은 일찍 멈춰 그 안에 숨는다
+        return e > 0 ? [q[0] + ux * e, q[1] + uy * e] : q;
+    };
+    const P = pts.slice(), n = P.length, s0 = ext(P[0], P[1]), s1 = ext(P[n - 1], P[n - 2]);
+    if (s0 !== P[0]) P.unshift(s0);
+    if (s1 !== pts[n - 1]) P.push(s1);
+    return P;
+}
 function carPoly(op, grow, ext) {                       // 띠의 면(가리기용) — grow: 반폭에 더할 몫(음수면 줄임), ext: 열린 끝을 늘일 길이
-    const a = op.arrow, k = scaleDenom() / 1000, W = (a.wmm || 13) * k, D = carCenter(op.pts, a); if (D.P.length < 2) return '';
+    const a = op.arrow, k = scaleDenom() / 1000, W = (a.wmm || 13) * k, D = carCenter(carPtsX(op.pts, a, op, true), a); if (D.P.length < 2) return '';
     let P = D.P; const cl = !!a.closed;
     if (!cl && ext) {
         const ex = (q, r, e) => { const dx = q[0] - r[0], dy = q[1] - r[1], l = Math.hypot(dx, dy) || 1; return [q[0] + dx / l * e, q[1] + dy / l * e]; };
@@ -5045,6 +5072,7 @@ function carSvg(pts, a, color, self) {
         const touch = q => others.some(o => { const ow = (o.arrow.wmm || 13) * k; return carCenter(o.pts, o.arrow).P.some(c => Math.hypot(c[0] - q[0], c[1] - q[1]) < ow / 2 + W * 0.6); });
         if (touch(pts[pts.length - 1]) && !touch(pts[0])) pts = pts.slice().reverse();
     }
+    pts = carPtsX(pts, a, self, false);                  // 다른 길에 닿은 끝은 그 길 너머 변까지
     const D = carCenter(pts, a); if (D.P.length < 2 || D.L < W * 0.5) return '';
     const P = D.P, S = D.S, Lt = D.L, N = spNormals(P, cl), n = P.length;
     const at = s => {
@@ -5119,14 +5147,6 @@ function carSvg(pts, a, color, self) {
     others.forEach(o => {
         mE += `<path d="${carPoly(o, -0.06 * W, null)}" fill="black" fill-rule="evenodd"/>`;
         if (doc.ops.indexOf(o) < idx) mH += `<path d="${carPoly(o, 0, null)}" fill="black" fill-rule="evenodd"/>`;
-    });
-    // 남이 내 쪽으로 붙어 들어온 자리 — 그 띠 끝이 내 띠에 닿아 있으면, 그 끝을 내 띠 안까지 늘인 면으로 내 변을 지운다(길목이 트이게)
-    others.forEach(o => {
-        if (o.arrow.closed) return;
-        const ow = (o.arrow.wmm || 13) * k, ends = [o.pts[0], o.pts[o.pts.length - 1]];
-        const me = {arrow: a, pts};
-        const ext = ends.map(q => { const near = carCenter(pts, a).P.some(c => Math.hypot(c[0] - q[0], c[1] - q[1]) < W / 2 + ow * 0.6); return near && !carInPoly(q, me) ? W * 0.7 : (near ? W * 0.2 : 0); });
-        if (ext[0] || ext[1]) mE += `<path d="${carPoly(o, -0.06 * ow, ext)}" fill="black" fill-rule="evenodd"/>`;
     });
     const col = color || INK, sw = fmt(0.35 * k), swh = fmt(0.2 * k), id = 'cm' + (self ? self.id : 'p') + '_' + ((a.seed || 1) % 100000 | 0);
     const big = `<rect x="-100000" y="-100000" width="200000" height="200000" fill="white"/>`;
