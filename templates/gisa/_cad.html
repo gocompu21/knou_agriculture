@@ -4737,6 +4737,38 @@ function arrowHeadSvg(pts, kind, both) {               // 화살촉 — 끝(양�
 // 보행동선(대표님 — 답안지 Ⅰ 범례 '보행동선'): 두 줄 띠에 일정 간격 가로대(사다리), 양 끝은 속이 빈 화살촉.
 // 사람이 그린 것처럼 — 두 줄이 따로 조금씩 구불거리고 폭이 살짝 들쭉날쭉, 가로대는 간격·기울기·길이가 조금씩 다르다.
 // 저장은 중심선(pts) + arrow:{kind:'ped', both, wmm, seed} 하나, 모양은 그릴 때 seed 로 늘 같게 만든다
+// 보행동선 손그림 조각(대표님 스케치) — 가로대는 두 줄씩, 띠 선을 조금 지나가게 / 화살촉은 '⌂' 꼴: 밑변 짧은 선이 띠 선을
+// 가로질러 바깥으로 나가고, 두 빗변은 촉에서 서로 조금 지나쳐 엇갈린다
+function pedWob(rnd, L, k) {                           // 띠 선의 불규칙한 구불거림 — 파장 넷을 seed 로 흔들어 섞는다(고른 물결처럼 보이지 않게)
+    const lams = [[5, 0.18], [11, 0.32], [23, 0.45], [53, 0.5]].map(([l, w]) => [l * k * (0.7 + rnd() * 0.6), w * (0.6 + rnd() * 0.8)]);
+    return spNoise(rnd, L, false, lams);
+}
+function pedRung(A, B, rnd, k, W, f2) {
+    const dx = B[0] - A[0], dy = B[1] - A[1], l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l, px = -uy, py = ux;
+    const g = Math.max(0.45 * k, W * 0.07);           // 두 줄 사이 반 간격
+    let d = '';
+    for (const sgn of [-1, 1]) {
+        const o = sgn * g * (0.8 + rnd() * 0.4), ta = (rnd() - 0.5) * 0.5 * k, tb = (rnd() - 0.5) * 0.5 * k;
+        const ea = (0.5 + rnd() * 0.8) * k, eb = (0.5 + rnd() * 0.8) * k;   // 띠 선을 지나가는 길이
+        const A2 = [A[0] + px * (o + ta) - ux * ea, A[1] + py * (o + ta) - uy * ea], B2 = [B[0] + px * (o + tb) + ux * eb, B[1] + py * (o + tb) + uy * eb];
+        const bow = (rnd() - 0.5) * 0.6 * k, M = [(A2[0] + B2[0]) / 2 + px * bow, (A2[1] + B2[1]) / 2 + py * bow];
+        d += `M${f2(A2)}Q${f2(M)} ${f2(B2)}`;
+    }
+    return d;
+}
+function pedHead(Lb, Rb, oL, oR, tip, rnd, k, f2) {
+    const seg = (a, b, over0, over1, bowAmp) => {      // a→b 를 양 끝 조금씩 지나치게, 살짝 휘게
+        const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
+        const A2 = [a[0] - ux * over0, a[1] - uy * over0], B2 = [b[0] + ux * over1, b[1] + uy * over1];
+        const bw = (rnd() - 0.5) * bowAmp, M = [(A2[0] + B2[0]) / 2 - uy * bw, (A2[1] + B2[1]) / 2 + ux * bw];
+        return `M${f2(A2)}Q${f2(M)} ${f2(B2)}`;
+    };
+    const cr = () => (0.7 + rnd() * 0.7) * k, ov = () => (0.3 + rnd() * 0.6) * k;
+    const mx = (Lb[0] + Rb[0]) / 2, my = (Lb[1] + Rb[1]) / 2, tl = Math.hypot(tip[0] - mx, tip[1] - my) || 1, tx = (tip[0] - mx) / tl, ty = (tip[1] - my) / tl;
+    const pass = q => { const e = (0.4 + rnd() * 0.6) * k; return `M${f2(q)}L${f2([q[0] + tx * e, q[1] + ty * e])}`; };   // 띠 선이 밑변을 조금 지나간다
+    return pass(Lb) + pass(Rb) + seg(Lb, oL, cr(), 0.1 * k, 0.4 * k) + seg(Rb, oR, cr(), 0.1 * k, 0.4 * k)   // 밑변 — 띠 선 안쪽에서 시작해 가로지른다
+        + seg(oL, tip, 0.15 * k, ov(), 0.8 * k) + seg(oR, tip, 0.15 * k, ov(), 0.8 * k); // 두 빗변 — 촉에서 엇갈린다
+}
 function pedSvg(pts, a, color) {
     const k = scaleDenom() / 1000, W = (a.wmm || 13) * k, rnd = spRng(a.seed || 1);
     const D = spDense(pts, 0.6 * k, false); if (D.P.length < 2 || D.L < W) return '';
@@ -4749,8 +4781,8 @@ function pedSvg(pts, a, color) {
     };
     let HL = W * 0.7, HW = W * 0.85; const heads = a.both ? 2 : 1;
     if (Lt < heads * HL + W) { const f = Lt / (heads * HL + W); HL *= f; HW *= Math.max(f, 0.6); }
-    const s0 = a.both ? HL : 0, s1 = Lt - HL, amp = 0.22 * k;
-    const nL = spNoise(rnd, Lt, false, [[17 * k, 0.6], [43 * k, 0.4]]), nR = spNoise(rnd, Lt, false, [[15 * k, 0.6], [39 * k, 0.4]]), nG = spNoise(rnd, Lt, false, [[31 * k, 0.7], [77 * k, 0.3]]);
+    const s0 = a.both ? HL : 0, s1 = Lt - HL, amp = 0.26 * k;
+    const nL = pedWob(rnd, Lt, k), nR = pedWob(rnd, Lt, k), nG = spNoise(rnd, Lt, false, [[31 * k, 0.7], [77 * k, 0.3]]);
     const side = (sg, s) => { const q = at(s), off = sg * W / 2 * (1 + 0.07 * nG(s)) + amp * (sg > 0 ? nL(s) : nR(s)); return [q.p[0] + q.n[0] * off, q.p[1] + q.n[1] * off]; };
     const J = v => v + (rnd() - 0.5) * 2 * 0.25 * k;
     const f2 = q => `${fmt(q[0])} ${fmt(q[1])}`;
@@ -4762,16 +4794,12 @@ function pedSvg(pts, a, color) {
     const gap = W * 1.6;
     for (let s = s0 + gap * (0.45 + rnd() * 0.2); s < s1 - gap * 0.35; s += gap * (0.85 + rnd() * 0.3)) {
         const tilt = (rnd() - 0.5) * 0.12 * W, A = side(1, s + tilt), B = side(-1, s - tilt);
-        const dx = B[0] - A[0], dy = B[1] - A[1], l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
-        const ea = (rnd() * 0.9 - 0.35) * k, eb = (rnd() * 0.9 - 0.35) * k;
-        const A2 = [A[0] - ux * ea, A[1] - uy * ea], B2 = [B[0] + ux * eb, B[1] + uy * eb];
-        const bow = (rnd() - 0.5) * 0.5 * k, M = [(A2[0] + B2[0]) / 2 - uy * bow, (A2[1] + B2[1]) / 2 + ux * bow];
-        d += `M${f2(A2)}Q${f2(M)} ${f2(B2)}`;
+        d += pedRung(A, B, rnd, k, W, f2);
     }
     const head = (sb, tipS) => {
         const c = at(sb), tip = at(tipS).p, Lb = side(1, sb), Rb = side(-1, sb), hw = HW * (0.95 + rnd() * 0.1);
         const oL = [J(c.p[0] + c.n[0] * hw), J(c.p[1] + c.n[1] * hw)], oR = [J(c.p[0] - c.n[0] * hw), J(c.p[1] - c.n[1] * hw)];
-        return `M${f2(Lb)}L${f2(oL)}L${f2([J(tip[0]), J(tip[1])])}L${f2(oR)}L${f2(Rb)}`;
+        return pedHead(Lb, Rb, oL, oR, [J(tip[0]), J(tip[1])], rnd, k, f2);
     };
     d += head(s1, Lt);
     if (a.both) d += head(s0, 0);
@@ -4842,8 +4870,8 @@ function deLoop(A, win) {                               // 꺾은선의 제 몸 
 function pedEdgeSvg(pts, a, color) {
     const k = scaleDenom() / 1000, G = pedEdgeGeom(pts); if (!G) return '';
     const W = (a.wmm || 13) * k, sg = a.edge > 0 ? 1 : -1, rnd = spRng(a.seed || 1), Lt = G.L, at = G.at;
-    const HL = W * 0.7, HW = W * 0.85, amp = 0.22 * k;
-    const nO = spNoise(rnd, Lt, false, [[17 * k, 0.6], [43 * k, 0.4]]), nG = spNoise(rnd, Lt, false, [[31 * k, 0.7], [77 * k, 0.3]]);
+    const HL = W * 0.7, HW = W * 0.85, amp = 0.26 * k;
+    const nO = pedWob(rnd, Lt, k), nG = spNoise(rnd, Lt, false, [[31 * k, 0.7], [77 * k, 0.3]]);
     const E = s => at(s).p;
     const O = s => { const q = at(s), off = sg * (W * (1 + 0.07 * nG(s)) + amp * nO(s)); return [q.p[0] + q.n[0] * off, q.p[1] + q.n[1] * off]; };
     const J = v => v + (rnd() - 0.5) * 2 * 0.25 * k, f2 = q => `${fmt(q[0])} ${fmt(q[1])}`;
@@ -4855,17 +4883,13 @@ function pedEdgeSvg(pts, a, color) {
     for (let s = gap * (0.45 + rnd() * 0.2); s < Lt - gap * 0.35; s += gap * (0.85 + rnd() * 0.3)) {
         const tilt = (rnd() - 0.5) * 0.12 * W, A = E(s + tilt), B = O(s - tilt);
         if (DL.cut[Math.min(DL.cut.length - 1, Math.round((s - tilt) / st))]) continue;   // 잘린 매듭 자리의 가로대는 긋지 않는다
-        const dx = B[0] - A[0], dy = B[1] - A[1], l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
-        const ea = (rnd() * 0.9 - 0.35) * k, eb = (rnd() * 0.9 - 0.35) * k;
-        const A2 = [A[0] - ux * ea, A[1] - uy * ea], B2 = [B[0] + ux * eb, B[1] + uy * eb];
-        const bow = (rnd() - 0.5) * 0.5 * k, M = [(A2[0] + B2[0]) / 2 - uy * bow, (A2[1] + B2[1]) / 2 + ux * bow];
-        d += `M${f2(A2)}Q${f2(M)} ${f2(B2)}`;
+        d += pedRung(A, B, rnd, k, W, f2);
     }
     const head = (s, dir) => {                          // 띠 끝 너머로 빈 화살촉(그은 변은 건드리지 않는다)
         const q = at(s), n = q.n, t = [n[1] * dir, -n[0] * dir], c = [q.p[0] + n[0] * sg * W / 2, q.p[1] + n[1] * sg * W / 2], hw = HW * (0.95 + rnd() * 0.1);
         const bE = [J(c[0] - n[0] * sg * hw), J(c[1] - n[1] * sg * hw)], bO = [J(c[0] + n[0] * sg * hw), J(c[1] + n[1] * sg * hw)];
         const tip = [J(c[0] + t[0] * HL), J(c[1] + t[1] * HL)];
-        return `M${f2(E(s))}L${f2(bE)}L${f2(tip)}L${f2(bO)}L${f2(O(s))}`;
+        return pedHead(E(s), O(s), bE, bO, tip, rnd, k, f2);
     };
     d += head(Lt, 1);
     if (a.both) d += head(0, -1);
