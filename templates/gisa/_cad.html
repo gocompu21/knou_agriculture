@@ -308,7 +308,8 @@
                     <p class="cad-help">설계구상도의 공간 설명. ① 가리킬 <b>공간 자리</b>를 누르고 ② 글 상자의 <b>모서리 자리</b>를 누르세요.
                        공간이름 위·아래에 실선, 글자마다 윗선·밑선 보조선, 그 아래 설명은 줄마다 <b>글머리표(•)</b>가 붙습니다. 우클릭·Esc 취소.</p>
                     <div class="cad-row"><label>공간이름<input type="text" id="fsnName" style="width:10em" placeholder="완충식재"></label></div>
-                    <div class="cad-row"><label style="align-items:flex-start">설명<textarea id="fsnDesc" rows="3" style="width:16em" placeholder="한 줄에 하나씩 — 글머리표가 붙습니다"></textarea></label></div>
+                    <div class="cad-row" style="align-items:flex-start"><span style="padding-top:5px">설명</span><div id="fsnDescBox" class="fsn-desc"></div></div>
+                    <div class="cad-row"><button type="button" id="fsnDescAdd" class="cad-mini">＋ 설명 추가</button><span class="cad-help" style="margin:0">항목마다 글머리표(•) · 12자가 넘으면 아래 줄로</span></div>
                     <div class="cad-row"><label>이름 글자<select id="fsnTmm"><option value="3">3mm</option><option value="4" selected>4mm</option><option value="5">5mm</option><option value="6">6mm</option></select></label>
                         <label>설명 글자<select id="fsnBmm"><option value="2">2mm</option><option value="2.5">2.5mm</option><option value="3" selected>3mm</option><option value="4">4mm</option></select></label></div>
                     </div>
@@ -713,6 +714,10 @@
 .cad-shrub-edit[hidden] { display: none; }
 #fawPedRow[hidden], #fawNoL[hidden] { display: none; }
 .cad-lead-types { display: inline-flex; gap: 3px; flex-wrap: wrap; }
+.fsn-desc { display: flex; flex-direction: column; gap: 4px; }
+.fsn-desc .fsn-d { display: flex; gap: 4px; align-items: center; }
+.fsn-desc .fsn-d input { width: 14em; }
+.fsn-desc .fsn-d button { border: 0; background: none; color: #999; cursor: pointer; font-size: 14px; }
 .cad-lead-tabs { display: flex; gap: 0; margin: 2px 0 8px; border: 1px solid #2d6a4f; border-radius: 8px; overflow: hidden; }
 .cad-lead-tabs button { flex: 1; padding: 6px 0; border: 0; background: #fff; color: #2d6a4f; font-weight: 600; cursor: pointer; }
 .cad-lead-tabs button.on { background: #2d6a4f; color: #fff; }
@@ -4544,7 +4549,7 @@ function polyHint() {
 var leadS = null;                                     // {n: 시작 점 번호, key: 기호 키} — 도구를 바꾸면 버린다
 const LEAD_TYPES = [['ur', '위 → 오른쪽'], ['ul', '위 → 왼쪽'], ['r', '오른쪽'], ['l', '왼쪽'], ['dr', '아래 → 오른쪽'], ['dl', '아래 → 왼쪽']];
 function leadFree() { try { return localStorage.getItem('cadLeadFree') === '1'; } catch (e) { return false; } }
-function leadType() { try { const t = localStorage.getItem('cadLeadType'); if (LEAD_TYPES.some(x => x[0] === t)) return t; } catch (e) {} return 'ur'; }
+function leadType() { try { const t = localStorage.getItem('cadLeadType'); if (LEAD_TYPES.some(x => x[0] === t) || (t === 'n' && leadKind() === 'space')) return t; } catch (e) {} return 'ur'; }
 function leadIcon(t) {
     const d = {ur: 'M5 16V6H18', ul: 'M15 16V6H2', r: 'M3 10H17', l: 'M17 10H3', dr: 'M5 4V14H18', dl: 'M15 4V14H2'}[t];   // 꺾는 형은 직각으로(대표님)
     const s = {ur: [5, 16], ul: [15, 16], r: [3, 10], l: [17, 10], dr: [5, 4], dl: [15, 4]}[t];
@@ -4555,14 +4560,15 @@ function leadKind() { try { return localStorage.getItem('cadLeadKind') === 'plan
 function spLeadIcon(t) {
     const r = t === 'ur' || t === 'dr' || t === 'r', bx = r ? 7 : 1, ex = r ? 19 : 13, cx = r ? 7 : 13;
     const blk = `M${bx} 8H${ex}M${bx} 12H${ex}M${bx + 2} 15H${ex - 1}`;
-    const ld = {ur: 'M7 8V2', ul: 'M13 8V2', dr: 'M7 8V19', dl: 'M13 8V19', r: 'M1 10H7', l: 'M19 10H13'}[t];
+    if (t === 'n') return `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8H17M3 12H17M5 15H16"/></svg>`;   // 지시선 없음 — 공간에 바로
+    const ld = {ur: 'M7 10V2', ul: 'M13 10V2', dr: 'M7 10V19', dl: 'M13 10V19', r: 'M1 10H7', l: 'M19 10H13'}[t];
     const s = {ur: [7, 2], ul: [13, 2], dr: [7, 19], dl: [13, 19], r: [1.6, 10], l: [18.4, 10]}[t];
     return `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="${blk}"/><path d="${ld}"/><circle cx="${s[0]}" cy="${s[1]}" r="2.2" class="f"/></svg>`;
 }
 function leadTypeDraw() {
     const t = leadType(), box = $('fdTypes'); if (!box) return;
     const sp = leadKind() === 'space';
-    box.innerHTML = LEAD_TYPES.map(([v, n]) => `<button type="button" data-lt="${v}" title="${n}"${v === t ? ' class="on"' : ''}>${sp ? spLeadIcon(v) : leadIcon(v)}</button>`).join('');
+    box.innerHTML = (sp ? [...LEAD_TYPES, ['n', '지시선 없음 — 공간에 바로']] : LEAD_TYPES).map(([v, n]) => `<button type="button" data-lt="${v}" title="${n}"${v === t ? ' class="on"' : ''}>${sp ? spLeadIcon(v) : leadIcon(v)}</button>`).join('');
     document.querySelectorAll('#fdKind [data-lk]').forEach(b => b.classList.toggle('on', b.dataset.lk === leadKind()));
     $('fdSpaceBox').hidden = !sp; $('fdPlantBox').hidden = sp; $('fdPlantBox2').hidden = sp;
     document.querySelectorAll('.fd-plant-only').forEach(el => { el.hidden = sp; });
@@ -4571,23 +4577,38 @@ function leadTypeDraw() {
 // 설명은 줄마다 글머리표(•). 형 6가지: ur 위(지시선이 위로)·오른쪽 상자 · ul 위·왼쪽 상자 · dr 아래 · dl · r 옆(왼쪽에서) · l
 function spLeadTexts() {
     const nm = String($('fsnName').value || '').trim();
-    const bl = String($('fsnDesc').value || '').split(/\r?\n/).map(x => x.trim().replace(/^[•·\-*]\s*/, '')).filter(Boolean);
+    const bl = [...document.querySelectorAll('#fsnDescBox input')].map(x => String(x.value || '').trim().replace(/^[•·\-*]\s*/, '')).filter(Boolean);
     return {nm, bl};
 }
+// 설명 한 항목을 12자 안팎으로 끊는다(대표님) — 12자 안의 마지막 띄어쓰기에서, 없으면 12자에서
+const SPL_WRAP = 12;
+function spLeadWrap(t) {
+    const out = []; let r = String(t).trim();
+    while (r.length > SPL_WRAP) {
+        let k = r.lastIndexOf(' ', SPL_WRAP);
+        if (k <= 0) k = SPL_WRAP;
+        out.push(r.slice(0, k).trim()); r = r.slice(k).trim();
+    }
+    if (r) out.push(r);
+    return out;
+}
 function spLeadGeom(w) {
-    if (!leadS || !w) return null;
-    const S = leadS.n != null ? P(leadS.n) : {x: leadS.x, y: leadS.y}; if (!S) return null;
-    const t = leadType(), right = t === 'ur' || t === 'dr' || t === 'r', k = scaleDenom() / 1000, font = $('ftFont').value;
+    const t = leadType();
+    if (!w || (!leadS && t !== 'n')) return null;
+    const S = t === 'n' ? w : leadS.n != null ? P(leadS.n) : {x: leadS.x, y: leadS.y}; if (!S) return null;
+    const right = t === 'ur' || t === 'dr' || t === 'r' || t === 'n', k = scaleDenom() / 1000, font = $('ftFont').value;
     const Ts = +(+$('fsnTmm').value * k).toFixed(4), Bs = +(+$('fsnBmm').value * k).toFixed(4);
     const tx = spLeadTexts(), nm = tx.nm || ' ', bl = tx.bl.map(x => '• ' + x);
-    const pad = Ts * 0.4, ind = Ts * 0.4;
-    const wT = leadMeasure(nm, Ts, font), wB = bl.reduce((m, x) => Math.max(m, leadMeasure(x, Bs, font)), 0);
+    const pad = Ts * 0.4, ind = Ts * 0.4, bw = leadMeasure('• ', Bs, font);
+    const ln = []; bl.forEach(t => spLeadWrap(t).forEach((x, j) => ln.push(j ? {s: x, dx: bw} : {s: '• ' + x, dx: 0})));   // 이어지는 줄은 글머리표 뒤 글자 자리에서
+    const wT = leadMeasure(nm, Ts, font), wB = ln.reduce((m, x) => Math.max(m, x.dx + leadMeasure(x.s, Bs, font)), 0);
     const W = Math.max(wT + 2 * ind, wB + 2 * ind, Ts * 4);
     const tb0 = pad + Ts, y1o = tb0 + pad;                // 이름 밑선(상자 윗선에서 잰 거리)
-    const H = y1o + (bl.length ? Bs * 0.6 + bl.length * Bs * 1.7 : 0);
+    const H = y1o + (ln.length ? Bs * 0.6 + ln.length * Bs * 1.7 : 0);
     const mn = Ts * 1.5;
     let cx, cy, L = null;                                 // 상자 모서리(윗선의 지시선 쪽 끝)
-    if (t === 'r' || t === 'l') {
+    if (t === 'n') { cx = w.x; cy = w.y; }            // 지시선 없음 — 누른 자리가 상자 왼쪽 위
+    else if (t === 'r' || t === 'l') {
         cx = right ? Math.max(w.x, S.x + mn) : Math.min(w.x, S.x - mn);
         const my = leadFree() ? w.y : S.y; cy = my - y1o / 2;
         L = {x: cx, y: my};
@@ -4595,24 +4616,23 @@ function spLeadGeom(w) {
         const up = t[0] === 'u';
         cy = up ? Math.max(w.y, S.y + mn) : Math.min(w.y, S.y - H - mn);
         cx = leadFree() ? w.x : S.x;
-        L = up ? {x: cx, y: cy} : {x: cx, y: cy + H};   // 아래 형은 상자 왼쪽 변을 따라 내려간다
+        L = {x: cx, y: cy + y1o / 2};                    // 지시선은 공간이름 글자의 가운데 높이에 닿는다(대표님)
     }
     cx = rnd(cx); cy = rnd(cy);
     const x0 = right ? cx : cx - W, x1 = right ? cx + W : cx;
-    const rows = bl.map((s, i) => ({s, y: rnd(cy + y1o + Bs * 0.6 + Bs + i * Bs * 1.7)}));
-    return {S, t, right, Ts, Bs, font, W, H, x0: rnd(x0), x1: rnd(x1), cy, y1: rnd(cy + y1o), tb: rnd(cy + tb0), tx: rnd(x0 + ind), nm: tx.nm, rows,
-        C: {x: cx, y: cy}, L: {x: rnd(L.x), y: rnd(L.y)}};
+    const rows = ln.map((r, i) => ({s: r.s, x: rnd(x0 + ind + r.dx), y: rnd(cy + y1o + Bs * 0.6 + Bs + i * Bs * 1.7)}));
+    return {S, t, right, Ts, Bs, font, W, H, nb: bl.length, x0: rnd(x0), x1: rnd(x1), cy, y1: rnd(cy + y1o), tb: rnd(cy + tb0), tx: rnd(x0 + ind), nm: tx.nm, rows,
+        C: {x: cx, y: cy}, L: L ? {x: rnd(L.x), y: rnd(L.y)} : null};
 }
 function spLeadPreSvg() {
     const h = hover, w = h && snapXY(h.w || h);
-    if (!leadS) return w ? `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(0.9 * U)}" fill="rgba(255,245,0,.45)" stroke="${RED}" stroke-width="${fmt(0.14 * U)}"/>` : '';
+    if (!leadS && leadType() !== 'n') return w ? `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(0.9 * U)}" fill="rgba(255,245,0,.45)" stroke="${RED}" stroke-width="${fmt(0.14 * U)}"/>` : '';
     const G = spLeadGeom(w); if (!G) return '';
     const sw = fmt(0.1 * U), ln = (a, b, x) => `<path d="M${fmt(a.x)} ${fmt(a.y)}L${fmt(b.x)} ${fmt(b.y)}" stroke="${RED}" stroke-width="${sw}" fill="none"${x || ''}/>`;
-    let o = ln(G.S, G.L) + ln({x: G.x0, y: G.cy}, {x: G.x1, y: G.cy}) + ln({x: G.x0, y: G.y1}, {x: G.x1, y: G.y1});
-    if (G.t[0] === 'd') o += ln(G.C, G.L);
+    let o = (G.L ? ln(G.S, G.L) : '') + ln({x: G.x0, y: G.cy}, {x: G.x1, y: G.cy}) + ln({x: G.x0, y: G.y1}, {x: G.x1, y: G.y1});
     if (G.nm) o += textSvg(G.tx, G.tb, G.nm, G.Ts, 0, 'corner', G.font, 'h');
-    G.rows.forEach(r => { o += textSvg(G.tx, r.y, r.s, G.Bs, 0, 'corner', G.font, 'h'); });
-    return o + `<circle cx="${fmt(G.S.x)}" cy="${fmt(G.S.y)}" r="${fmt(0.45 * U)}" fill="${RED}"/>`;
+    G.rows.forEach(r => { o += textSvg(r.x, r.y, r.s, G.Bs, 0, 'corner', G.font, 'h'); });
+    return o + (G.L ? `<circle cx="${fmt(G.S.x)}" cy="${fmt(G.S.y)}" r="${fmt(0.45 * U)}" fill="${RED}"/>` : '');
 }
 function spLeadStart(w) {
     const hp = hitPoint(w), q = hp || snapXY(w);
@@ -4624,23 +4644,25 @@ function spLeadFinish(w) {
     const G = spLeadGeom(w); if (!G) { leadS = null; return; }
     if (!G.nm) { flash('공간이름을 오른쪽 칸에 적어 주세요'); $('fsnName').focus(); return; }
     snapHist();
-    const gid = doc.seq, pen = ($('fdW') && $('fdW').value) || 'p5', lbl = G.nm + (G.rows.length ? ` · ${G.rows.length}줄` : '');
+    const gid = doc.seq, pen = ($('fdW') && $('fdW').value) || 'p5', lbl = G.nm + (G.nb ? ` · 설명 ${G.nb}` : '');
     const line = (A, B, extra) => { const a = addPt(A.x, A.y), b = addPt(B.x, B.y); if (a === b) return;
         doc.ops.push({id: doc.seq++, t: 'line', a, b, ls: 'solid', w: pen, grp: gid, gname: '공간지시선', lead: true, spLead: true, leadTxt: lbl, ...(extra || {}), tl: {...toolState(), ...toolsForLine(P(a), P(b))}}); };
+    if (G.L) {
     const sn = leadS.n != null ? +leadS.n : addPt(G.S.x, G.S.y);
-    // 지시선 — 아래 형은 상자 왼쪽(오른쪽) 변을 따라 모서리까지 한 줄로
-    const tip = G.t[0] === 'd' ? G.C : G.L;
+    // 지시선 — 공간 자리에서 공간이름 글자의 가운데 높이까지 한 줄로(대표님)
+    const tip = G.L;
     { const a = sn, b = addPt(tip.x, tip.y); if (a !== b) doc.ops.push({id: doc.seq++, t: 'line', a, b, ls: 'solid', w: pen, grp: gid, gname: '공간지시선', lead: true, spLead: true, leadTxt: lbl, tl: {...toolState(), ...toolsForLine(P(a), P(b))}}); }
+    }
     line({x: G.x0, y: G.cy}, {x: G.x1, y: G.cy});         // 이름 윗선
     line({x: G.x0, y: G.y1}, {x: G.x1, y: G.y1});         // 이름 밑선
     // 글자 보조선 — 이름·설명 줄마다 윗선·밑선
-    const guide = (txt, by, sz) => { const wd = leadMeasure(txt, sz, G.font), xa = G.tx - sz * 0.15, xb = G.tx + wd + sz * 0.15;
+    const guide = (txt, by, sz, tx) => { const wd = leadMeasure(txt, sz, G.font), xa = tx - sz * 0.15, xb = tx + wd + sz * 0.15;
         [by, by - sz].forEach(yy => { const a = addPt(xa, yy), b = addPt(xb, yy);
             doc.ops.push({id: doc.seq++, t: 'line', a, b, ls: 'aux', w: 'p5', grp: gid, gname: '공간지시선', lead: true, spLead: true, leadTxt: lbl, leadGuide: true, tl: {...toolState(), ...toolsForLine(P(a), P(b))}}); }); };
-    guide(G.nm, G.tb, G.Ts);
-    G.rows.forEach(r => guide(r.s, r.y, G.Bs));
+    guide(G.nm, G.tb, G.Ts, G.tx);
+    G.rows.forEach(r => guide(r.s, r.y, G.Bs, r.x));
     doc.ops.push({id: doc.seq++, t: 'text', x: G.tx, y: G.tb, s: G.nm, size: G.Ts, rot: 0, font: G.font, dir: 'h', leadOf: gid});
-    G.rows.forEach(r => doc.ops.push({id: doc.seq++, t: 'text', x: G.tx, y: r.y, s: r.s, size: G.Bs, rot: 0, font: G.font, dir: 'h', leadOf: gid}));
+    G.rows.forEach(r => doc.ops.push({id: doc.seq++, t: 'text', x: r.x, y: r.y, s: r.s, size: G.Bs, rot: 0, font: G.font, dir: 'h', leadOf: gid}));
     leadS = null; changed(); drawPre(); status();
     flash(`공간지시선 — ${G.nm}`);
 }
@@ -4770,6 +4792,7 @@ function leadGuideMigrate() {
     if (n) { dirty = true; savedLabel(); renderAll(); saveDraft(); flash(`예전 지시선 ${n}개를 손봤습니다(글자 보조선) — 저장해 주세요`); }
 }
 function leadHint() {
+    if (leadKind() === 'space' && leadType() === 'n') return ' · 공간이름을 둘 자리(상자 왼쪽 위)를 누르세요 — 지시선 없이 공간에 바로';
     if (leadKind() === 'space') return !leadS ? ' · 공간지시선 — 가리킬 공간 자리를 누르세요' : ' · 글 상자 모서리 자리를 누르세요' + (leadFree() ? '(자유각도)' : '') + ' · 우클릭·Esc 취소';
     if (!leadS) return ' · 수목을 이은 다각선의 끝점을 누르세요';
     const t = leadType();
@@ -7773,7 +7796,7 @@ svg.addEventListener('pointerdown', e => {
         }
         drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true};
         if (e.button === 2) { if (leadS) { leadS = null; drawPre(); status(); flash('지시선을 취소했습니다'); } return; }
-        if (leadKind() === 'space') { if (!leadS) spLeadStart(w); else spLeadFinish(snapXY(w)); return; }
+        if (leadKind() === 'space') { if (leadType() === 'n') spLeadFinish(snapXY(w)); else if (!leadS) spLeadStart(w); else spLeadFinish(snapXY(w)); return; }
         if (!leadS) { const p = polyNear(w); if (!p) { flash('다각선 끝점 가까이를 누르세요'); return; } leadStart(p); }
         else leadFinish(snapXY(w));
         return;
@@ -8796,7 +8819,21 @@ $('fdFree').checked = leadFree();
 $('fdFree').addEventListener('change', () => { try { localStorage.setItem('cadLeadFree', $('fdFree').checked ? '1' : '0'); } catch (e) {} drawPre(); status(); });
 $('fdTypes').addEventListener('click', e => { const b = e.target.closest('[data-lt]'); if (!b) return; try { localStorage.setItem('cadLeadType', b.dataset.lt); } catch (er) {} leadTypeDraw(); drawPre(); status(); });
 $('fdName').addEventListener('change', () => { const q = cnTree($('fdName').value); if (q) $('fdSpec').value = q.spec; drawPre(); });
-['fdCnt', 'fdSpec', 'fdMm', 'fsnName', 'fsnDesc', 'fsnTmm', 'fsnBmm'].forEach(id => $(id).addEventListener('input', () => drawPre()));
+['fdCnt', 'fdSpec', 'fdMm', 'fsnName', 'fsnTmm', 'fsnBmm'].forEach(id => $(id).addEventListener('input', () => drawPre()));
+// 공간지시선 설명 칸 — 항목마다 칸 하나, ＋ 로 늘리고 ✕ 로 뺀다. Enter 는 다음 칸(없으면 새 칸)
+function fsnDescAdd(v, focus) {
+    const box = $('fsnDescBox'), d = document.createElement('div'); d.className = 'fsn-d';
+    d.innerHTML = '<span>•</span><input type="text"><button type="button" title="빼기">✕</button>';
+    d.querySelector('input').value = v || ''; box.appendChild(d);
+    if (focus) d.querySelector('input').focus();
+}
+fsnDescAdd(''); fsnDescAdd('');
+$('fsnDescAdd').addEventListener('click', () => fsnDescAdd('', true));
+$('fsnDescBox').addEventListener('input', () => drawPre());
+$('fsnDescBox').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
+    const d = b.closest('.fsn-d'); if ($('fsnDescBox').children.length > 1) d.remove(); else d.querySelector('input').value = ''; drawPre(); });
+$('fsnDescBox').addEventListener('keydown', e => { if (e.key !== 'Enter' || e.isComposing) return; e.preventDefault();
+    const d = e.target.closest('.fsn-d'); const nx = d && d.nextElementSibling; if (nx) nx.querySelector('input').focus(); else fsnDescAdd('', true); });
 $('fdKind').addEventListener('click', e => { const b = e.target.closest('[data-lk]'); if (!b) return; try { localStorage.setItem('cadLeadKind', b.dataset.lk); } catch (er) {} leadS = null; leadTypeDraw(); drawPre(); status(); });
 document.addEventListener('keydown', e => {           // 공간(점) — Enter 닫기 · Backspace 한 점 · Esc 취소
     if (tool !== 'space' || !spaceV.length || RP) return;
