@@ -3111,7 +3111,7 @@ function listOps() {
         const grp = op.grp != null ? grpOps(op.id) : null;
         const canRev = (op.t === 'line' && !op.box) || op.t === 'arc' || (op.t === 'free' && !op.mark);   // 긋는 방향 바꾸기(사용자) — 선·호·프리드로잉
         const bt = `<span class="bt">${canRev ? btn('rev', '긋는 방향 바꾸기', '⇄') : ''}${btn('edit', '고치기', '✎')}${btn('up', '위로', '↑')}${btn('down', '아래로', '↓')}${btn('del', '지우기', '✕')}</span>`;
-        if (op.t === 'step') { k++; i = 0;
+        if (op.t === 'step') { k++;   // 번호는 단계가 바뀌어도 이어 센다(대표님) — 단계마다 1 부터 다시 세면 번호로 줄을 가리킬 때 헷갈렸다
             return `<div class="cad-op step" draggable="true" data-id="${op.id}"><span class="no">(${k})</span><span class="tx">${esc(op.title)}</span>${bt}</div>`; }
         i++;
         const kind = op.mark ? ' mk' : isAux(op) ? ' ax' : '';   // 마킹은 녹색, 보조선은 빨강으로 구별(사용자)
@@ -3137,7 +3137,7 @@ function describeAll() {
     lines.push('', '■ 작도 순서');
     let k = 0, i = 0;
     doc.ops.forEach((op, j) => {
-        if (op.t === 'step') { k++; i = 0; lines.push(`(${k}) ${op.title}`); return; }
+        if (op.t === 'step') { k++; lines.push(`(${k}) ${op.title}`); return; }
         if (op.grp != null && j > 0 && doc.ops[j - 1].grp === op.grp) return;
         i++; const tl = tlText(op.tl), d = op.grp != null ? grpDesc(grpOps(op.id), true) : desc(op, true);
         lines.push(`  ${circ(i)} ${d}${tl ? `  [${tl}]` : ''}`);
@@ -3970,7 +3970,7 @@ function rpInfo() {
     const n = doc.ops.length, op = doc.ops[RP.k - 1];
     RP.tk = performance.now(); rpClock();                // 막대는 시간 기준(사용자) — rpClock 이 막대와 시간 글자를 함께 맞춘다
     let step = '', no = 0, i = 0;
-    for (let j = 0; j < RP.k; j++) { const o = doc.ops[j]; if (o.t === 'step') { step = o.title; no++; i = 0; } else if (!(o.grp != null && j > 0 && doc.ops[j - 1].grp === o.grp)) i++; }
+    for (let j = 0; j < RP.k; j++) { const o = doc.ops[j]; if (o.t === 'step') { step = o.title; no++; } else if (!(o.grp != null && j > 0 && doc.ops[j - 1].grp === o.grp)) i++; }
     $('cadRpNo').textContent = `${RP.k} / ${n}`;
     $('cadRpTx').innerHTML = !op ? '처음 — ▶ 재생을 누르면 작도 순서대로 그려 보입니다'
         : (step ? `<b>(${no}) ${esc(step)}</b>` : '') + (op.t === 'step' ? '' : `${step ? ' — ' : ''}${circH(i)} ${esc(op.grp != null ? grpDesc(grpOps(op.id)) : desc(op))}`);   // 도구 자리는 속에만 둔다(사용자)
