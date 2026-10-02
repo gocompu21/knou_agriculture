@@ -7121,6 +7121,7 @@ function buildFrame(src, N, opt) {
     if (T1) {                                         // Ⅰ — 줄마다 줄 위에서 0.55·1.55 에 표 전체 폭 보조선 둘(대표님 'A2 트레이싱지 1:400 도면' 대로), 기호 칸 가운데 세로 보조선, 두 칸 경계 실선
         for (let i = 0; i < n; i++) { const top = TOP + i * RH; [top + 0.55, top + 1.55].forEach(y => rowAux.push(line(np(X0, y), np(X1, y), 'p5', 'aux'))); }
         rowAux.push(line(np((X0 + XM) / 2, TOP + 0.2), np((X0 + XM) / 2, BOT - 0.2), 'p5', 'aux'));   // 머리글 글자를 지나지 않게 줄 안에서만
+        [47.25, 51.5].forEach(x => rowAux.push(line(np(x, TOP), np(x, BOT), 'p5', 'aux')));   // 기호 칸 양옆 세로 보조선(대표님 도면 7 대로 — 기호 폭 맞춤)
         rowLines.push(line(np(XM, TOP - 0.9), np(XM, BOT), 'p9', 'solid'));
     } else for (let i = 0; i < n; i++) [0.2, 0.8].forEach(d => rowAux.push(line(np(X0, TOP + i + d), np(X1, TOP + i + d), 'p5', 'aux')));
     const B = frameBar(N), BX = v => 48.65 + v * k, bar = [], xe = BX(B[B.length - 1]);
