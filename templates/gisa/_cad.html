@@ -1716,10 +1716,15 @@ function toggleSr() {
         const k = srK(), g = barStep(), zx = Math.round((vb.x + vb.w / 2 - SR_L * k / 2 + SR_Z * k) / g) * g, zy = Math.round((vb.y + vb.h / 2) / g) * g;
         sr = {x: +(zx - SR_Z * k).toFixed(4), y: +zy.toFixed(4), rot: 0, roll: 2};
     }
+    // 도면 축척과 같은 자를 기본으로(대표님) — 1/100~1/600 이면 삼각 스케일을 그 면이 크게 보이게 굴려 놓고, 그 밖(1:800·1:430 …)이면 1:N 자
+    if (sr) {
+        const den = Math.round(scaleDenom()), ci = den % 100 === 0 ? den / 100 - 1 : -1;
+        if (ci >= 0 && ci < 6) { const [r, w] = SR_CYCLE[ci]; sr.roll = r; sr.swap = !!w; sr.custom = null; }
+        else if (den > 0) { sr.custom = den; if (!srCustom.includes(den)) { srCustom.push(den); try { localStorage.setItem('cadSrCustom', JSON.stringify(srCustom)); } catch (e) {} } }
+        srKindFill();
+    }
     saveSr(); drawSr();
-    if (sr && $('cadSrKind').value !== 'tri' && +$('cadSrKind').value > 0) sr.custom = +$('cadSrKind').value;   // 고른 종류로 놓는다
-    saveSr(); drawSr();
-    flash(sr ? `스케일자를 놓았습니다 — 종이에 닿는 눈금 1/${srView().top} · 1/${srView().bot}. 오른쪽 끝 손잡이로 굴리면 다른 축척이 닿고, 위 손잡이로 돌리며, 몸통을 끌어 옮깁니다` : '스케일자를 치웠습니다');
+    flash(sr ? `스케일자를 놓았습니다 — 도면 축척과 같은 1/${sr.custom ? fmt(sr.custom) : srMain()} 눈금이 크게 보입니다. 오른쪽 끝 손잡이로 굴리면 다른 축척이 닿고, 위 손잡이로 돌리며, 몸통을 끌어 옮깁니다` : '스케일자를 치웠습니다');
 }
 function startSrDrag(e, w) {                           // 0 눈금(윗변)을 눈금에 붙여 옮긴다
     const z = srMap(SR_Z, 0);
