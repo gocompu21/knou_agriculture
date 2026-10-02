@@ -307,9 +307,10 @@
                     <div id="fdSpaceBox">
                     <p class="cad-help">설계구상도의 공간 설명. ① 가리킬 <b>공간 자리</b>를 누르고 ② 글 상자의 <b>모서리 자리</b>를 누르세요.
                        공간이름 위·아래에 실선, 글자마다 윗선·밑선 보조선, 그 아래 설명은 줄마다 <b>글머리표(•)</b>가 붙습니다. 우클릭·Esc 취소.</p>
-                    <div class="cad-row"><label>공간이름<input type="text" id="fsnName" style="width:10em" placeholder="완충식재"></label></div>
-                    <div class="cad-row" style="align-items:flex-start"><span style="padding-top:5px">설명</span><div id="fsnDescBox" class="fsn-desc"></div></div>
-                    <div class="cad-row"><button type="button" id="fsnDescAdd" class="cad-mini">＋ 설명 추가</button><span class="cad-help" style="margin:0">항목마다 글머리표(•) · 12자가 넘으면 아래 줄로</span></div>
+                    <div class="cad-row"><label>공간이름<input type="text" id="fsnName" placeholder="완충식재"></label></div>
+                    <div class="fsn-wrap"><div class="fsn-head"><span>설명</span><em>항목마다 글머리표 · 12자 넘으면 다음 줄</em></div>
+                        <div id="fsnDescBox" class="fsn-desc"></div>
+                        <button type="button" id="fsnDescAdd" class="fsn-add">＋ 설명 추가</button></div>
                     <div class="cad-row"><label>이름 글자<select id="fsnTmm"><option value="3">3mm</option><option value="4" selected>4mm</option><option value="5">5mm</option><option value="6">6mm</option></select></label>
                         <label>설명 글자<select id="fsnBmm"><option value="2">2mm</option><option value="2.5">2.5mm</option><option value="3" selected>3mm</option><option value="4">4mm</option></select></label></div>
                     </div>
@@ -714,10 +715,24 @@
 .cad-shrub-edit[hidden] { display: none; }
 #fawPedRow[hidden], #fawNoL[hidden] { display: none; }
 .cad-lead-types { display: inline-flex; gap: 3px; flex-wrap: wrap; }
-.fsn-desc { display: flex; flex-direction: column; gap: 4px; }
-.fsn-desc .fsn-d { display: flex; gap: 4px; align-items: center; }
-.fsn-desc .fsn-d input { width: 14em; }
-.fsn-desc .fsn-d button { border: 0; background: none; color: #999; cursor: pointer; font-size: 14px; }
+/* 공간지시선 설명 — 한 덩어리 카드 안에 항목 칸을 쌓는다. 글머리표는 칸 안 왼쪽, 빼기는 칸 안 오른쪽(마우스를 올리면) */
+.fsn-wrap { margin-bottom: 8px; }
+.fsn-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; margin-bottom: 3px; }
+.fsn-head span { font-size: 0.74rem; color: #66736d; }
+.fsn-head em { font-style: normal; font-size: 0.68rem; color: #a3aca7; }
+.fsn-desc { display: flex; flex-direction: column; border: 1px solid #cfd8d3; border-radius: 6px; overflow: hidden; background: #fff; }
+.fsn-desc .fsn-d { position: relative; border-top: 1px solid #edf1ee; }
+.fsn-desc .fsn-d:first-child { border-top: 0; }
+.fsn-desc .fsn-d::before { content: ''; position: absolute; left: 10px; top: 50%; width: 5px; height: 5px; margin-top: -2.5px; border-radius: 50%; background: #2d6a4f; }
+.fsn-desc .fsn-d input { display: block; width: 100%; box-sizing: border-box; border: 0; outline: 0; padding: 7px 28px 7px 24px; font-size: 0.86rem; background: transparent; }
+.fsn-desc .fsn-d:focus-within { background: #f3f8f5; }
+.fsn-desc .fsn-d button { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; border: 0; border-radius: 50%;
+    background: none; color: #b5bdb9; cursor: pointer; font-size: 11px; line-height: 20px; padding: 0; opacity: 0; transition: opacity .12s; }
+.fsn-desc .fsn-d:hover button, .fsn-desc .fsn-d:focus-within button { opacity: 1; }
+.fsn-desc .fsn-d button:hover { background: #fde8e7; color: #d93025; }
+.fsn-add { display: block; width: 100%; margin-top: 5px; padding: 5px 0; border: 1px dashed #b8c7bf; border-radius: 6px; background: none;
+    color: #2d6a4f; font-size: 0.78rem; cursor: pointer; }
+.fsn-add:hover { background: #f3f8f5; border-color: #2d6a4f; }
 .cad-lead-tabs { display: flex; gap: 0; margin: 2px 0 8px; border: 1px solid #2d6a4f; border-radius: 8px; overflow: hidden; }
 .cad-lead-tabs button { flex: 1; padding: 6px 0; border: 0; background: #fff; color: #2d6a4f; font-weight: 600; cursor: pointer; }
 .cad-lead-tabs button.on { background: #2d6a4f; color: #fff; }
@@ -8825,7 +8840,7 @@ $('fdName').addEventListener('change', () => { const q = cnTree($('fdName').valu
 // 공간지시선 설명 칸 — 항목마다 칸 하나, ＋ 로 늘리고 ✕ 로 뺀다. Enter 는 다음 칸(없으면 새 칸)
 function fsnDescAdd(v, focus) {
     const box = $('fsnDescBox'), d = document.createElement('div'); d.className = 'fsn-d';
-    d.innerHTML = '<span>•</span><input type="text"><button type="button" title="빼기">✕</button>';
+    d.innerHTML = '<input type="text" placeholder="설명을 적으세요"><button type="button" title="이 항목 빼기">✕</button>';
     d.querySelector('input').value = v || ''; box.appendChild(d);
     if (focus) d.querySelector('input').focus();
 }
