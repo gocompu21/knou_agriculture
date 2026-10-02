@@ -5335,7 +5335,7 @@ function carJoint(pts, atEnd, W, k, self, others) {
 }
 function carGeom(pts, a, self) {                        // 한 띠의 뼈대 — 화살촉 쪽 정하기·닿은 끝 늘이기·중심선·몸통 범위(s0~s1)
     const k = scaleDenom() / 1000, W = (a.wmm || 13) * k, cl = !!a.closed;
-    const others = (doc.ops || []).filter(o => o.t === 'free' && o.arrow && o.arrow.kind === 'carb' && o !== self && o.pts && o.pts.length > 1);
+    const others = (doc.ops || []).filter((o, i) => (!RP || i < RP.k) && o.t === 'free' && o.arrow && o.arrow.kind === 'carb' && o !== self && o.pts && o.pts.length > 1);   // 재생 중이면 그 칸까지 그린 것만
     if (!cl && !a.none && !a.both && others.length) {   // 화살촉은 다른 길에 닿지 않은 끝(입구·출구)에 — 어느 쪽으로 그었든
         const touch = q => others.some(o => { const ow = (o.arrow.wmm || 13) * k; return carCenter(o.pts, o.arrow).P.some(c => Math.hypot(c[0] - q[0], c[1] - q[1]) < ow / 2 + W * 0.6); });
         if (touch(pts[pts.length - 1]) && !touch(pts[0])) pts = pts.slice().reverse();
@@ -5374,7 +5374,9 @@ function carGeom(pts, a, self) {                        // 한 띠의 뼈대 —
 // 모든 띠 몸통을 한 장에 칠해 합친 다음 살짝 흐려서 구석을 둥글리고, 0.5 문턱에서 등고선을 딴다(marching squares).
 // 화살촉 밑변 자리는 몸통을 화살촉 안으로 조금 더 늘려 칠하고 그 앞을 가려 — 띠 변이 화살촉 안쪽 빗변까지 곧게 닿게 한다
 function carNetwork(extra) {
-    const ops = (doc.ops || []).filter(o => o.t === 'free' && o.arrow && o.arrow.kind === 'carb' && o.pts && o.pts.length > 1);
+    // 재생 중이면 그 칸까지 그린 차량동선만 — 맨 먼저 그린 차량동선(범례 기호 등)이 외곽선을 그리므로, 아직 안 그린 길의 외곽선이 미리 나타났다(대표님)
+    const lim = RP ? RP.k : Infinity;
+    const ops = (doc.ops || []).filter((o, i) => i < lim && o.t === 'free' && o.arrow && o.arrow.kind === 'carb' && o.pts && o.pts.length > 1);
     if (extra) ops.push(extra);
     if (!ops.length) return null;
     const k = scaleDenom() / 1000, key = JSON.stringify([k, ops.map(o => [o.pts, o.arrow.wmm, o.arrow.closed, o.arrow.none, o.arrow.both])]);
