@@ -1387,7 +1387,7 @@ const SR_FINE_MM = 10, SR_FINE = {300: 0.1, 400: 0.1, 500: 0.1, 600: 0.1};
 function srGrad(S) {
     if (SRG[S]) return SRG[S];
     const perM = 1000 / S, mn = niceStep(1 / perM), lb = niceStep(12 / perM);
-    return [mn, lb / 2, 0, lb];
+    return [mn, 0, lb / 2, lb];   // 숫자 사이 중간(5m 등)은 '긴 중간' 눈금으로 — 1m 눈금과 길이가 확실히 갈리게(대표님)
 }
 // 눈금 길이(mm) — 삼각 스케일은 300mm(30·60·90… 로 딱 떨어진다). 사용자 지정 1:N 은 300mm 가 129m 처럼 끝수가 남아
 // 반대쪽 눈금의 0 이 어긋난다(위 20 ↔ 아래 110 이 비껴 선다 — 사용자). 숫자 간격의 배수로 끊어(1:430 → 120m, 약 279mm)
@@ -1506,7 +1506,7 @@ function srMark(edge, w) {
     const r0 = (l.u - edge.srU0) * edge.srDu / perM, pxR = perM * scaleDenom() / 1000 * pxPer();   // 자 1m 가 화면 몇 px
     let r = Math.round(r0 / stepR) * stepR;
     // 숫자 눈금·중간 눈금은 끌어당긴다 — 숫자를 겨냥해 누르면 그 숫자에 찍혀야 한다(화면 8px · 5px 안)
-    for (const [g, px] of [[srGrad(edge.srS)[3], 8], [srGrad(edge.srS)[1], 5]]) { const q = Math.round(r0 / g) * g; if (g > 0 && Math.abs(q - r0) * pxR <= px) { r = q; break; } }
+    for (const [g, px] of [[srGrad(edge.srS)[3], 8], [srGrad(edge.srS)[1] || srGrad(edge.srS)[2], 5]]) { const q = Math.round(r0 / g) * g; if (g > 0 && Math.abs(q - r0) * pxR <= px) { r = q; break; } }
     r = +Math.max(0, Math.min(tot, r)).toFixed(4);
     const u = edge.srU0 + edge.srDu * r * perM, p = srMap(u, edge.srv), q = srMap(u, edge.srv + edge.srOut * SR_MARK);
     snapHist();
@@ -1639,7 +1639,7 @@ function drawSr() {
         //   작은 눈금 1.2 · 0.5 눈금 2.5 · 1m 사이 긴 중간 3.2 · 숫자 눈금 3.9 · 작은 숫자 가운데 3.7(글자 높이 1.4) · 큰 숫자 가운데 6.1(높이 2.2)
         // 숫자 눈금은 작은 숫자 두 자리 **사이**를 지난다(2│9) — 글자를 눈금 양옆으로 갈라 놓아 닿지 않게 한다. 한 자리면 눈금 오른쪽(읽는 방향)
         // 글자는 세로를 0.72 로 덜 눌러 또렷하게 하고(흐리다는 지적), 그만큼 크기를 줄여 사진의 글자 높이 비율에 맞춘다
-        const D = {tl: 5.6, tm2: 5.0, tm: 4.5, tn: 3.0, sm: 4.0, smh: 1.4, mn: 7.15, mnh: 2.5, lb: 4.0, lbh: 2.1, mu: 1.35, muh: 1.3};   // 사진 픽셀 실측(면 10.8mm = 60px): 작은 눈금 3.0 · 0.5 눈금 4.5 · 숫자 눈금 5.6 · 작은 숫자 3.6~5.3 · 큰 숫자 5.9~8.4
+        const D = {tl: 5.6, tm2: 5.0, tm: 3.7, tn: 3.0, sm: 4.0, smh: 1.4, mn: 7.15, mnh: 2.5, lb: 4.0, lbh: 2.1, mu: 1.35, muh: 1.3};   // 사진 픽셀 실측(면 10.8mm = 60px): 작은 눈금 3.0 · 0.5 눈금 4.5 · 숫자 눈금 5.6 · 작은 숫자 3.6~5.3 · 큰 숫자 5.9~8.4
         const Ts = paper ? () => 0.72 : Sy;
         const fsz = (hMM, d) => hMM / 0.72 * (paper ? Math.max(Sy(d), 0.36) / 0.72 : 1);   // 글자 높이(면 mm) → font-size. 종이 쪽 눈금은 아랫면(1/3)에서도 읽히게 하한
         const rd = first ? 1 : -1, gap = 0.12;   // 작은 숫자와 수직 눈금 사이(0.3 → 0.15 → 0.06 → 0.12, 사용자 조정)                       // 읽는 방향(u), 눈금과 글자 사이
