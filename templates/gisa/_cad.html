@@ -813,6 +813,12 @@ const tree = (r, ever) => {
         it.push({t: 'line', x1: Math.cos(a) * r * 0.55, y1: Math.sin(a) * r * 0.55, x2: Math.cos(a) * r, y2: Math.sin(a) * r, w: 'thin'}); }
     else it.push({t: 'circle', cx: 0, cy: 0, r: r * 0.72, w: 'thin', ls: 'dot'});
     return it; };
+// 요점식재(대표님 그림) — 속 빈 막대 넷이 가운데에서 엇갈린 별(＊). 막대마다 두 줄 + 양 끝에 조금 더 넓은 마구리
+const focal = R => { const it = [], b = R * 0.075, c = R * 0.16;
+    for (let i = 0; i < 4; i++) { const a = i * Math.PI / 4, ux = Math.cos(a), uy = Math.sin(a), nx = -uy, ny = ux;
+        for (const sg of [1, -1]) it.push({t: 'line', x1: -ux * R + nx * b * sg, y1: -uy * R + ny * b * sg, x2: ux * R + nx * b * sg, y2: uy * R + ny * b * sg, w: 'thin'});
+        for (const e of [1, -1]) it.push({t: 'line', x1: ux * R * e + nx * c, y1: uy * R * e + ny * c, x2: ux * R * e - nx * c, y2: uy * R * e - ny * c, w: 'thin'}); }
+    return it; };
 const BUILTIN = [
     {id: 'b:pergola3', name: '퍼걸러 3×3', items: pergola(3)},
     {id: 'b:pergola4', name: '퍼걸러 4×4', items: pergola(4)},
@@ -841,6 +847,8 @@ const BUILTIN = [
     {id: 'b:tree3', name: '낙엽교목 ⌀3', items: tree(1.5, false)},
     {id: 'b:ever4', name: '상록교목 ⌀4', items: tree(2, true)},
     {id: 'b:ever3', name: '상록교목 ⌀3', items: tree(1.5, true)},
+    {id: 'b:focal4', name: '요점식재 ⌀4', cat: '식재', items: focal(2)},
+    {id: 'b:focal3', name: '요점식재 ⌀3', cat: '식재', items: focal(1.5)},
     {id: 'b:shrub', name: '관목 ⌀1', items: [{t: 'circle', cx: 0, cy: 0, r: 0.5, w: 'thin'}]},
     {id: 'b:elev', name: '계획고 표시', items: [
         {t: 'circle', cx: 0, cy: 0, r: 0.45, fill: '#fff', w: 'thin'},
