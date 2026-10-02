@@ -6891,7 +6891,12 @@ function symBBox(items) {
 function symThumb(s) {
     const saveU = U; U = 0.25;
     const b = symBBox(s.items), pad = Math.max(b.width, b.height) * 0.12 + 0.1;
-    const o = `<svg viewBox="${fmt(b.x - pad)} ${fmt(b.y - pad)} ${fmt(b.width + 2 * pad)} ${fmt(b.height + 2 * pad)}" preserveAspectRatio="xMidYMid meet">${s.items.map(itemSvg).join('')}</svg>`;
+    // 선 굵기는 도면의 샤프 굵기(m)라 칸에 줄여 넣으면 큰 기호일수록 선이 가늘어 보인다(대표님: 요점식재 ⌀6·⌀5 가 ⌀3 보다 가늘다).
+    // 미리보기만 3m 보다 큰 기호의 굵기를 크기에 비례해 키워 같은 굵기로 보이게 한다 — 도면에 넣을 때는 그대로 샤프 굵기
+    const k = Math.max(1, Math.max(b.width, b.height) / 3);
+    let body = s.items.map(itemSvg).join('');
+    if (k > 1) body = body.replace(/stroke-width="([\d.]+)"/g, (m, v) => `stroke-width="${+(v * k).toFixed(5)}"`);
+    const o = `<svg viewBox="${fmt(b.x - pad)} ${fmt(b.y - pad)} ${fmt(b.width + 2 * pad)} ${fmt(b.height + 2 * pad)}" preserveAspectRatio="xMidYMid meet">${body}</svg>`;
     U = saveU; return o;
 }
 function fillSymSelect() {
