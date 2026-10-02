@@ -4669,6 +4669,10 @@ function spLeadFinish(w) {
     // 지시선 — 공간 자리에서 (꺾는 점을 거쳐) 공간이름 글자의 가운데 높이까지(대표님)
     const ns = [sn]; if (G.B) ns.push(addPt(G.B.x, G.B.y)); ns.push(addPt(G.L.x, G.L.y));
     for (let i = 0; i + 1 < ns.length; i++) { const a = ns[i], b = ns[i + 1]; if (a !== b) doc.ops.push({id: doc.seq++, t: 'line', a, b, ls: 'solid', w: pen, grp: gid, gname: '공간지시선', lead: true, spLead: true, leadTxt: lbl, tl: {...toolState(), ...toolsForLine(P(a), P(b))}}); }
+    // 시작 자리에 채운 점(대표님) — 종이 위 지름 1.2mm. 축척마다 크기가 달라 키에 축척을 붙인다
+    const den = scaleDenom(), dk = 'spdot-' + den;
+    doc.syms[dk] = {name: '공간지시선 시작점', items: [{t: 'circle', cx: 0, cy: 0, r: +(0.6 * den / 1000).toFixed(4), fill: INK, w: 'thin'}]};
+    doc.ops.push({id: doc.seq++, t: 'sym', p: sn, rot: 0, sym: dk, leadOf: gid, tl: {...toolState(), bar: null, tri: null, tpl: null, sr: null, ftri: null}});
     }
     line({x: G.x0, y: G.cy}, {x: G.x1, y: G.cy});         // 이름 윗선
     line({x: G.x0, y: G.y1}, {x: G.x1, y: G.y1});         // 이름 밑선
@@ -6449,7 +6453,7 @@ function leadSet(op) {
     const gid = op.lead ? op.grp : op.leadOf; if (gid == null) return null;
     const lines = doc.ops.filter(o => o.lead && o.grp === gid); if (!lines.length) return null;
     const ids = new Set(lines.map(o => o.id));
-    doc.ops.forEach(o => { if (o.t === 'text' && o.leadOf === gid) ids.add(o.id); });
+    doc.ops.forEach(o => { if (o.leadOf === gid) ids.add(o.id); });   // 글 · 공간지시선 시작점 표시
     const last = doc.ops.indexOf(lines[lines.length - 1]), parts = String(lines[0].leadTxt || '').split(' / ');
     for (let i = last + 1; i < Math.min(doc.ops.length, last + 3); i++) { const o = doc.ops[i]; if (o.t === 'text' && o.leadOf == null && parts.includes(o.s)) ids.add(o.id); }
     // 글을 고쳐 내용이 바뀐 예전 것 — 지시선 가로선 위·아래에 붙은 글(묶음 표시 없음)을 자리로 찾는다
