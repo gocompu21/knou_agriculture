@@ -813,10 +813,11 @@ const tree = (r, ever) => {
         it.push({t: 'line', x1: Math.cos(a) * r * 0.55, y1: Math.sin(a) * r * 0.55, x2: Math.cos(a) * r, y2: Math.sin(a) * r, w: 'thin'}); }
     else it.push({t: 'circle', cx: 0, cy: 0, r: r * 0.72, w: 'thin', ls: 'dot'});
     return it; };
-// 요점식재(대표님 그림) — 속 빈 막대 넷이 가운데에서 엇갈린 별(＊). 막대마다 두 줄 + 양 끝에 조금 더 넓은 마구리
-const focal = R => { const it = [], b = R * 0.075, c = R * 0.16;
+// 요점식재(대표님 그림) — 막대 넷이 가운데에서 엇갈린 별(＊). 막대마다 두 줄 + 가운데 줄 + 양 끝에 조금 더 넓은 마구리
+const focal = R => { const it = [], b = R * 0.11, c = R * 0.2;   // 막대 폭을 넓히고(0.075 → 0.11R) 가운데 줄을 긋는다(대표님)
     for (let i = 0; i < 4; i++) { const a = i * Math.PI / 4, ux = Math.cos(a), uy = Math.sin(a), nx = -uy, ny = ux;
-        for (const sg of [1, -1]) it.push({t: 'line', x1: -ux * R + nx * b * sg, y1: -uy * R + ny * b * sg, x2: ux * R + nx * b * sg, y2: uy * R + ny * b * sg, w: 'thin'});
+        it.push({t: 'line', x1: -ux * R, y1: -uy * R, x2: ux * R, y2: uy * R, w: 'thick'});   // 가운데 줄 — 굵은 샤프
+        for (const sg of [1, -1]) it.push({t: 'line', x1: -ux * R + nx * b * sg, y1: -uy * R + ny * b * sg, x2: ux * R + nx * b * sg, y2: uy * R + ny * b * sg, w: 'thin'});   // 외곽 — 얇은 샤프(샤프가 둘뿐이라 가운데보다 한 단계 가늘게)
         for (const e of [1, -1]) it.push({t: 'line', x1: ux * R * e + nx * c, y1: uy * R * e + ny * c, x2: ux * R * e - nx * c, y2: uy * R * e - ny * c, w: 'thin'}); }
     return it; };
 const BUILTIN = [
