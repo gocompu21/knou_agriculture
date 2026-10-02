@@ -80,7 +80,7 @@
         <button type="button" id="cadTri60" class="cad-bar-btn" aria-label="60°" title="60° 삼각자(30°·60°) — I자 윗날에 얹혀 있습니다. 손으로 끌어 좌우로 밀고, 샤프로 세로 변·빗변을 따라 긋습니다"><svg class="real" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="it60a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset=".5" stop-color="#dfeaf2" stop-opacity=".55"/><stop offset="1" stop-color="#b9cddc" stop-opacity=".75"/></linearGradient></defs><path d="M7.5 17.5H17.5V1Z" fill="url(#it60a)" stroke="#5f7f99" stroke-width=".7" stroke-linejoin="round"/><path d="M7.5 17.5H17.5V1Z" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width=".35" transform="translate(.45 -.45) scale(.955)" transform-origin="17.5 17.5"/><path d="M17.5 16h-.9M17.5 13.5h-.6M17.5 11h-.9M17.5 8.5h-.6M17.5 6h-.9" stroke="#4a6378" stroke-width=".35"/></svg></button>
         <button type="button" id="cadTriFlip" class="cad-bar-btn" title="삼각자 좌우 뒤집기" aria-label="뒤집기" hidden>⇆</button>
         <button type="button" id="cadTriRot" class="cad-bar-btn" title="60° 삼각자 눕히기 — 빗변 60° ↔ 30°" hidden>빗변 30°</button>
-        <button type="button" id="cadFtriBtn" class="cad-bar-btn" aria-label="회전 삼각자" title="회전 삼각자 45° 12cm — I자와 따로 놓이고 자유롭게 돌린다. 몸통을 끌어 옮기고, 빗변 바깥 손잡이를 끌어 돌린다(Shift 15°). 샤프로 세 변을 따라 긋는다"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16L16 16L4 4Z" transform="rotate(-20 10 10)"/><path d="M13 3a6 6 0 0 1 4 4" /><path d="M17 3v4h-4"/></svg></button>
+        <button type="button" id="cadFtriBtn" class="cad-bar-btn" aria-label="회전 삼각자" title="회전 삼각자 45°(크기는 설정 ⚙ — 기본 24cm) — I자와 따로 놓이고 자유롭게 돌린다. 몸통을 끌어 옮기고, 빗변 바깥 손잡이를 끌어 돌린다(Shift 15°). 샤프로 세 변을 따라 긋는다"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16L16 16L4 4Z" transform="rotate(-20 10 10)"/><path d="M13 3a6 6 0 0 1 4 4" /><path d="M17 3v4h-4"/></svg></button>
         <button type="button" id="cadTplBtn" class="cad-bar-btn" aria-label="원형 템플릿" title="원형 템플릿 — 몸통을 끌어 옮기고, 샤프로 구멍 안을 따라 돌리면 원(돌린 만큼 호)이 그려집니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="4.5" width="17" height="11" rx="1.5" fill="#f2c230" stroke="#b08a10" stroke-width="1"/><circle cx="5.5" cy="10" r="2.6" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="11" cy="10" r="1.9" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="15.3" cy="10" r="1.2" fill="#fff" stroke="#b08a10" stroke-width=".7"/></svg></button>
         <button type="button" id="cadTplGeo" class="cad-bar-btn" aria-label="도형 템플릿" title="도형 템플릿(원·삼각형·사각형·육각형) — 몸통을 끌어 옮기고, 샤프로 구멍 안을 따라 돌리면 그 도형이 그려집니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="4.5" width="17" height="11" rx="1.5" fill="#f2c230" stroke="#b08a10" stroke-width="1"/><path d="M5 7.4L7.4 12.4H2.6Z" fill="#fff" stroke="#b08a10" stroke-width=".7" stroke-linejoin="round"/><rect x="8.4" y="7.8" width="4" height="4" fill="#fff" stroke="#b08a10" stroke-width=".7"/><path d="M15.3 7.6l1.85 1.1v2.2l-1.85 1.1-1.85-1.1v-2.2Z" fill="#fff" stroke="#b08a10" stroke-width=".7" stroke-linejoin="round"/></svg></button>
         <select id="cadTplKind" hidden class="cad-txt" title="템플릿 종류"><option value="circle">원형</option><option value="geo">도형</option></select>
@@ -119,6 +119,8 @@
             <div class="cad-set-row"><span class="cad-set-lb">45° 삼각자 <small class="cad-set-note" style="margin:0">(종이 높이 대비)</small></span>
                 <select id="cadTriSize" title="45° 삼각자 크기 — 직각을 낀 변의 길이를 종이 높이에 대한 비율로"><option value="30">30%</option><option value="40">40%</option><option value="50" selected>50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option><option value="100">100%</option><option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option><option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option></select>
                 <span class="cad-set-note" id="cadTriSizeNote"></span></div>
+            <div class="cad-set-row"><span class="cad-set-lb">회전 삼각자 <small class="cad-set-note" style="margin:0">(직각변, 종이 위)</small></span>
+                <select id="cadFtriCm" title="회전 삼각자(45°) 크기 — 직각을 낀 변의 종이 위 길이"><option value="12">12cm</option><option value="18">18cm</option><option value="24">24cm</option><option value="30">30cm</option><option value="36">36cm</option></select></div>
             <div class="cad-set-row"><span class="cad-set-lb">60° 삼각자</span>
                 <select id="cadTri60Size" hidden title="60° 삼각자 크기 — 직각을 낀 긴 변의 길이를 종이 높이에 대한 비율로"><option value="40">40%</option><option value="50">50%</option><option value="60">60%</option><option value="70" selected>70%</option><option value="80">80%</option><option value="90">90%</option><option value="100">100%</option><option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option><option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option></select>
                 <span class="cad-set-note" id="cadTri60SizeNote"></span></div>
@@ -937,7 +939,7 @@ try { Object.assign(SET, JSON.parse(localStorage.getItem('cadSet') || '{}')); } 
 // 샤프 기본 굵기를 0.7·0.4 → 0.5·0.25mm 로 낮췄다(2026-09, 선이 뭉쳐 보였다). 설정은 통째로 저장되므로 옛 기본값 그대로인 사람만 한 번 옮긴다
 if (!SET.lw2) { if (SET.p9 === 0.7) SET.p9 = 0.5; if (SET.p5 === 0.4) SET.p5 = 0.25; SET.lw2 = 1; }
 function saveSet() {
-    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.ptSize = +$('cadPtSize').value || 1; SET.ptNum = +$('cadPtNum').value || 1; SET.triPct45 = +$('cadTriSize').value || 50; SET.triPct60 = +$('cadTri60Size').value || 70; SET.font = $('ftFont').value; SET.ls9 = $('cadLs9').value || SET.ls9; SET.ls5 = $('cadLs5').value || SET.ls5; SET.fillType = $('cadFillType').value || SET.fillType; SET.fillColor = $('cadFillColor').value || SET.fillColor; SET.fillOp = +$('cadFillOp').value || SET.fillOp; SET.rulerNums = $('cadRulerNums').checked; SET.rpMark = $('cadRpMarkOn').checked; SET.rpPts = $('cadRpPtsOn').checked; SET.auxOn = $('cadAuxOn').checked; SET.auxColor = $('cadAuxColor').value || SET.auxColor; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
+    SET.snap = $('cadSnap').checked; SET.step = $('cadSnapStep').value; SET.pts = $('cadShowPts').checked; SET.ptSize = +$('cadPtSize').value || 1; SET.ptNum = +$('cadPtNum').value || 1; SET.triPct45 = +$('cadTriSize').value || 50; SET.ftriCm = +$('cadFtriCm').value || 24; SET.triPct60 = +$('cadTri60Size').value || 70; SET.font = $('ftFont').value; SET.ls9 = $('cadLs9').value || SET.ls9; SET.ls5 = $('cadLs5').value || SET.ls5; SET.fillType = $('cadFillType').value || SET.fillType; SET.fillColor = $('cadFillColor').value || SET.fillColor; SET.fillOp = +$('cadFillOp').value || SET.fillOp; SET.rulerNums = $('cadRulerNums').checked; SET.rpMark = $('cadRpMarkOn').checked; SET.rpPts = $('cadRpPtsOn').checked; SET.auxOn = $('cadAuxOn').checked; SET.auxColor = $('cadAuxColor').value || SET.auxColor; SET.p9 = +$('cadP9').value || SET.p9; SET.p5 = +$('cadP5').value || SET.p5; SET.dir = $('ftDir').value;
     try { localStorage.setItem('cadSet', JSON.stringify(SET)); } catch (e) {}
 }
 let barOn = false, barY = null;
@@ -3035,9 +3037,9 @@ function toolsForLine(a, b) {
             } else {                                     // 다른 각도 — 회전 삼각자의 한 변(직각 모서리 → 오른쪽 변)을 선에 맞춘다(사용자: 재생 때 회전 삼각자가 안 보였다)
                 // 선의 가운데를 자 변의 가운데에 댄다 — 직각 모서리(끝)에 대고 짧은 빗금을 그으면 부자연스럽다(사용자).
                 // 변(12cm)보다 긴 선이면 모서리부터 댄다
-                const rot = Math.atan2(dy, dx) * 180 / Math.PI, Lg = 120 * scaleDenom() / 1000, ux = dx / L, uy = dy / L;
+                const rot = Math.atan2(dy, dx) * 180 / Math.PI, Lg = (SET.ftriCm || 24) * 10 * scaleDenom() / 1000, ux = dx / L, uy = dy / L;
                 const back = L >= Lg ? 0 : (Lg - L) / 2;
-                out = {...base, bar: null, tri: null, tpl: null, sr: null, ftri: {...(ftri || {}), x: rnd3(a.x - ux * back), y: rnd3(a.y - uy * back), rot: +rot.toFixed(2)}};   // 회전 삼각자만 — I자·삼각자는 치운다
+                out = {...base, bar: null, tri: null, tpl: null, sr: null, ftri: {...(ftri || {}), x: rnd3(a.x - ux * back), y: rnd3(a.y - uy * back), rot: +rot.toFixed(2), cm: SET.ftriCm || 24}};   // 회전 삼각자만 — I자·삼각자는 치운다
             }
         }
     } finally { tri = keep.tri; barY = keep.barY; barOn = keep.barOn; }
@@ -3184,6 +3186,7 @@ function toolState() {
     // 자의 실제 크기(m·축척)도 적는다 — %·종이 mm 만 적으면 종이나 축척이 다른 도면으로 옮겼을 때 자가 선과 어긋난다
     if (s.tri && s.tri.len == null && sheet) { const t0 = tri; tri = s.tri; const G = triGeom(); tri = t0; if (G) s.tri.len = rnd3(Math.max(G.base, G.h)); }
     ['tpl', 'sr', 'ftri'].forEach(k => { if (s[k] && s[k].den == null) s[k].den = scaleDenom(); });
+    if (s.ftri && !s.ftri.cm) s.ftri.cm = SET.ftriCm || 24;   // 회전 삼각자 크기도 적는다
     ['tpl', 'sr'].forEach(k => { if (s[k]) { s[k].x = rnd3(s[k].x); s[k].y = rnd3(s[k].y); } });
     return s;
 }
@@ -4523,12 +4526,12 @@ function polyTools(a, b, others) {                    // 그 변을 회전 삼�
         const inB = O.filter(q => side(q) < -1e-6).length, outB = O.filter(q => side(q) > 1e-6).length;
         if (inB > outB) { ux = -ux; uy = -uy; s0 = b; }
     }
-    const rot = Math.atan2(uy, ux) * 180 / Math.PI, Lg = 120 * scaleDenom() / 1000, back = L >= Lg ? 0 : (Lg - L) / 2;
+    const rot = Math.atan2(uy, ux) * 180 / Math.PI, Lg = (SET.ftriCm || 24) * 10 * scaleDenom() / 1000, back = L >= Lg ? 0 : (Lg - L) / 2;
     // 자의 변을 선 바로 곁에 댄다 — 변을 선 위에 겹쳐 두면 샤프 끝이 자 안으로 들어가 보였다(사용자). 몸통 쪽(ftriGeom 의 B 방향 (uy, −ux))으로
     // 종이 위 0.4mm 물린다 — 샤프심 반지름쯤이라 선은 자의 경계 바로 바깥에 그어진다
     const gap = 0.4 * scaleDenom() / 1000;
     return {...base, bar: null, tri: null, tpl: null, sr: null,
-        ftri: {...(ftri || {}), den: scaleDenom(), x: rnd3(s0.x - ux * back + uy * gap), y: rnd3(s0.y - uy * back - ux * gap), rot: +rot.toFixed(2)}};
+        ftri: {...(ftri || {}), den: scaleDenom(), cm: SET.ftriCm || 24, x: rnd3(s0.x - ux * back + uy * gap), y: rnd3(s0.y - uy * back - ux * gap), rot: +rot.toFixed(2)}};
 }
 function polyOthers(op) {                             // 같은 다각선 묶음의 점들 — 자를 어느 쪽에 둘지 가른다
     const g = op.grp != null ? doc.ops.filter(o => o.grp === op.grp && o.poly) : [op], seen = new Set(), out = [];
@@ -7711,14 +7714,16 @@ function startPencil(e, w, edge, right) {
     drag = {kind: 'pencil', right, btn: e.button, sx: e.clientX, sy: e.clientY, moved: false, target: e.target, w0: {x: w.x, y: w.y}, cands, ...pencilOn(edge, w)};
 }
 
-// ── 회전 삼각자(45°, 12cm) — I자와 따로 도면 어디든 놓고 자유롭게 돌린다(사용자). ftri = {x, y: 직각 모서리, rot: 도}
-// 긴 변(직각을 낀 두 변) = 종이 위 12cm. 세 변은 자의 변(guideEdges)이라 샤프로 대고 긋고, 판은 자처럼 가린다
+// ── 회전 삼각자(45°, 크기는 설정 — 기본 24cm) — I자와 따로 도면 어디든 놓고 자유롭게 돌린다(사용자). ftri = {x, y: 직각 모서리, rot: 도}
+// 긴 변(직각을 낀 두 변) = 종이 위 설정 크기(기본 24cm). 세 변은 자의 변(guideEdges)이라 샤프로 대고 긋고, 판은 자처럼 가린다
 var ftri = null;   // var — 초기화 중 drawBar 가 먼저 불려도 TDZ 가 안 나게
 try { ftri = JSON.parse(localStorage.getItem('cadFtri') || 'null'); } catch (e) {}
 function saveFtri() { try { localStorage.setItem('cadFtri', JSON.stringify(ftri)); } catch (e) {} }
+// 회전 삼각자 크기(종이 위 mm) — 설정(기본 24cm, 대표님: 12cm 는 너무 작다). 기록된 자는 그때 크기(cm), 크기 기록이 없는 옛 기록은 12cm
+function ftriMM(f) { return f && f.cm ? f.cm * 10 : f && f.den ? 120 : (SET.ftriCm || 24) * 10; }
 function ftriGeom() {
     if (!ftri || !sheet) return null;
-    const L = 120 * (ftri.den || scaleDenom()) / 1000, a = (+ftri.rot || 0) * Math.PI / 180, ux = Math.cos(a), uy = Math.sin(a);
+    const L = ftriMM(ftri) * (ftri.den || scaleDenom()) / 1000, a = (+ftri.rot || 0) * Math.PI / 180, ux = Math.cos(a), uy = Math.sin(a);
     const R = {x: ftri.x, y: ftri.y}, A = {x: R.x + L * ux, y: R.y + L * uy}, B = {x: R.x + L * uy, y: R.y - L * ux};   // A: 오른쪽 변, B: 위 변(돌리기 전)
     const s2 = Math.SQRT2, I = {x: (s2 * R.x + A.x + B.x) / (2 + s2), y: (s2 * R.y + A.y + B.y) / (2 + s2)};
     const hole = [R, A, B].map(q => ({x: I.x + (q.x - I.x) * 0.3, y: I.y + (q.y - I.y) * 0.3}));
@@ -7749,11 +7754,11 @@ function drawFtri() {
 function toggleFtri() {
     if (ftri) ftri = null;
     else {
-        const L = 120 * scaleDenom() / 1000, g = barStep(), cx = vb.x + vb.w / 2, cy = vb.y + vb.h / 2;
+        const L = ftriMM(null) * scaleDenom() / 1000, g = barStep(), cx = vb.x + vb.w / 2, cy = vb.y + vb.h / 2;
         ftri = {x: +(Math.round((cx - L / 3) / g) * g).toFixed(3), y: +(Math.round((cy + L / 3) / g) * g).toFixed(3), rot: 0};
     }
     saveFtri(); drawBar();
-    flash(ftri ? '회전 삼각자(45°, 12cm)를 화면 가운데에 놓았습니다 — 몸통을 끌어 옮기고, 빗변 바깥 손잡이로 돌립니다' : '회전 삼각자를 치웠습니다');
+    flash(ftri ? `회전 삼각자(45°, ${ftriMM(null) / 10}cm)를 화면 가운데에 놓았습니다 — 몸통을 끌어 옮기고, 빗변 바깥 손잡이로 돌립니다` : '회전 삼각자를 치웠습니다');
 }
 function startFtriDrag(e, w) {
     drag = {kind: 'ftri', sx: e.clientX, sy: e.clientY, ox: w.x - ftri.x, oy: w.y - ftri.y, moved: false};
@@ -8861,6 +8866,7 @@ $('cadRulerHome').addEventListener('click', () => {
     drawBar(); flash(tri ? 'I자와 삼각자를 화면 가운데로 가져왔습니다' : 'I자를 화면 가운데로 가져왔습니다');
 });
 ['cadTriSize', 'cadTri60Size'].forEach(id => $(id).addEventListener('change', () => { saveSet(); if (tri) drawTri(); triSizeNote(); }));
+$('cadFtriCm').addEventListener('change', () => { saveSet(); if (ftri) { delete ftri.cm; delete ftri.den; drawFtri(); } flash(`회전 삼각자 — 직각변 ${$('cadFtriCm').value}cm`); });
 function triSizeNote() {                // 종이 위 길이 — 도면 축척으로 환산한 값을 함께 보인다
     const el = $('cadTriSizeNote'); if (!el || !sheet) return;
     const H = sheet.y1 - sheet.y0, d = scaleDenom(), cm = m => d ? ` · 종이 위 ${fmt(m / d * 100)}cm` : '';
@@ -9062,6 +9068,7 @@ document.addEventListener('pointerdown', e => {   // 창 밖을 누르면 닫는
 });
 $('cadSnap').checked = SET.snap !== false; $('cadShowPts').checked = SET.pts !== false;
 $('cadTriSize').value = String(SET.triPct45 || 50);
+$('cadFtriCm').value = String(SET.ftriCm || 24);
 $('cadTri60Size').value = String(SET.triPct60 || 70);
 // 뒤집기는 그 자리에서 — 차지한 폭은 그대로 두고 직각 모서리를 반대쪽 끝(예전 밑변 끝)으로 옮긴다. 직각 모서리는 눈금에 붙인다
 $('cadTriFlip').addEventListener('click', () => { if (!tri) return; const G = triGeom(); if (G) { const g = barStep(); tri.x = +(Math.round(G.B.x / g) * g).toFixed(3); } tri.flip = !tri.flip; saveTri(); drawTri(); });
