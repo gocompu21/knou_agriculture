@@ -752,6 +752,9 @@
 #cadOps .cad-hit, #cadOps .cad-hit * { stroke: transparent !important; fill: none !important; stroke-width: 12px !important;
     vector-effect: non-scaling-stroke; stroke-dasharray: none !important; pointer-events: stroke; }
 #cadOps .cad-hit text { pointer-events: all; }
+#cadOps .cad-hit .hit-fill { pointer-events: none; stroke-width: 0 !important; }
+.cad-tool-select #cadOps .cad-hit .hit-fill { pointer-events: fill; }   /* 칠한 면 — 선택 도구에서만 면 안을 눌러 고른다 */
+#cadOps g.on > .cad-hit .hit-fill { fill: rgba(217, 48, 37, .22) !important; }   /* 고른 칠한 면은 붉게 덮어 보인다 */
 .cad-tool-select #cadOps > g { cursor: pointer; }
 .cad.full { position: fixed; inset: 0; z-index: 2000; border-radius: 0; display: flex; flex-direction: column; }
 .cad.full .cad-body { flex: 1; min-height: 0; }
@@ -2554,7 +2557,8 @@ function drawOps() {
           rest = ops.filter(o => !isAux(o) && !o.mark && o.t !== 'fill');
     gOps.innerHTML = [...fills, ...aux, ...marks, ...rest].map(op => {   // 칠한 면이 맨 아래
         const s = opSvg(op), cl = [isAux(op) ? 'aux' : '', op.mark ? 'mark' : '', (!RP && !listSel && selOps.has(op.id)) || (flashRed.ids && flashRed.ids.includes(op.id)) ? 'on' : '', RP && RP.cur === op.id ? 'rp-cur' : ''].filter(Boolean).join(' ');
-        return s ? `<g data-op="${op.id}"${cl ? ` class="${cl}"` : ''}>${s}<g class="cad-hit">${s}</g></g>` : '';
+        const hit = op.t === 'fill' && op.d ? `<path class="hit-fill" d="${op.d}" fill-rule="evenodd"/>` : s;   // 칠한 면은 면 전체로 고른다(선택 도구) — 선만 잡히면 안을 눌러도 안 골라졌다(대표님)
+        return s ? `<g data-op="${op.id}"${cl ? ` class="${cl}"` : ''}>${s}<g class="cad-hit">${hit}</g></g>` : '';
     }).join('');
 }
 function activePts() {
