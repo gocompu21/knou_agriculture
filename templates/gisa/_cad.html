@@ -2281,6 +2281,26 @@ function paveSvg(op) {
         + `<path d="${op.d}" fill="none" stroke="none" fill-rule="evenodd"/><g clip-path="url(#${id})">` + (q ? `<g clip-path="url(#${id}p)">${inner}</g>` : inner) + '</g>';
 }
 // 두 줄 빗금 + 돌·점 — 상자 [x0,y0,x1,y1] 을 덮는 무늬. g = 간격(m). 빗금은 ／ 방향 두 줄 한 쌍, 쌍 사이 띠에 찌그러진 원과 점을 흩는다(늘 같은 모양)
+// 자갈(대표님) — 빗금 없이 돌은 드문드문, 점은 곳곳에 아무렇게나. 칸마다 자리를 흔들어 줄 무늬가 생기지 않게(늘 같은 무늬)
+function gvScatter(x0, y0, x1, y1, g) {
+    const R = i => ((Math.sin(i * 12.9898 + 78.233) * 43758.5453) % 1 + 1) % 1, c = g * 2.6, f = v => fmt(v);
+    let stones = '', dots = '', n = 0;
+    for (let y = y0 - c, iy = 0; y < y1 + c; y += c, iy++) for (let x = x0 - c, ix = 0; x < x1 + c; x += c, ix++, n++) {
+        const h = ix * 7919 + iy * 104729;
+        if (R(h * 1.7) < 0.32) {                     // 돌 — 셋 칸에 하나꼴
+            const sx = x + R(h * 2.3) * c, sy = y + R(h * 3.1) * c, rr = g * (0.3 + 0.22 * R(h * 5.3)), m = 8, q = [];
+            for (let j = 0; j < m; j++) { const a = j / m * 2 * Math.PI + R(h + j) * 0.3, rj = rr * (0.78 + 0.36 * R(h * 11 + j)); q.push([sx + rj * Math.cos(a), sy + rj * Math.sin(a) * 0.85]); }
+            const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], s0 = mid(q[m - 1], q[0]);
+            stones += `M${f(s0[0])} ${f(s0[1])}` + q.map((p, j) => { const e = mid(p, q[(j + 1) % m]); return `Q${f(p[0])} ${f(p[1])} ${f(e[0])} ${f(e[1])}`; }).join('') + 'Z';
+        }
+        const k = 1 + Math.floor(R(h * 4.1) * 3);    // 점 한~세 개 — 칸 안 아무 데나
+        for (let j = 0; j < k; j++) {
+            const dx = x + R(h * 13 + j * 7.1) * c, dy = y + R(h * 17 + j * 3.7) * c, rd = g * (0.035 + 0.03 * R(h + j * 3));
+            dots += `M${f(dx - rd)} ${f(dy)}a${f(rd)} ${f(rd)} 0 1 0 ${f(2 * rd)} 0a${f(rd)} ${f(rd)} 0 1 0 ${f(-2 * rd)} 0Z`;
+        }
+    }
+    return {stones, dots};
+}
 function rbGravel(x0, y0, x1, y1, g) {
     const R = i => ((Math.sin(i * 12.9898 + 78.233) * 43758.5453) % 1 + 1) % 1, S = g * 3, w = g * 0.18, r2 = Math.SQRT2;
     let lines = '', stones = '', dots = '', n = 0;
@@ -2371,8 +2391,8 @@ function opSvg(op) {
                     }
                 return clip + `<path d="${dd}" clip-path="url(#${id})" stroke="${op.color}" stroke-opacity="${po}" stroke-width="${fmt(Math.min(0.1 * U, g * 0.07))}" stroke-linecap="round" fill="none"/>`;
             }
-            if (k === 'gv') {                                // 자갈 — 두 줄 빗금·자갈에서 빗금만 뺀 것(대표님)
-                const b = rbGravel(x0, y0, x1, y1, g);
+            if (k === 'gv') {                                // 자갈 — 빗금 없이 돌은 드문드문, 점은 아무렇게나(대표님)
+                const b = gvScatter(x0, y0, x1, y1, g);
                 return clip + `<g clip-path="url(#${id})"><path d="${b.stones}" stroke="${op.color}" stroke-opacity="${po}" stroke-width="${fmt(Math.min(0.09 * U, g * 0.06))}" stroke-linejoin="round" fill="none"/>`
                     + `<path d="${b.dots}" fill="${op.color}" fill-opacity="${po}" stroke="none"/></g>`;
             }
@@ -8590,7 +8610,7 @@ function fillSwatch(k) {
     if (k === 'd' || k === 'x') for (let c2 = 5 + 4.2; c2 < 35; c2 += 4.2) d += `M${c2 - 17.5} 17.5L${c2 - 2.5} 2.5`;
     if (k === 'x') for (let c2 = -15 + 4.2; c2 < 15; c2 += 4.2) d += `M2.5 ${2.5 + c2}L17.5 ${17.5 + c2}`;
     let dots = '';
-    if (k === 'gv') { const b = rbGravel(2.5, 2.5, 17.5, 17.5, 3.2);
+    if (k === 'gv') { const b = gvScatter(2.5, 2.5, 17.5, 17.5, 3.2);
         return `<svg viewBox="0 0 20 20"><clipPath id="fpc${k}"><rect x="2.5" y="2.5" width="15" height="15"/></clipPath><g clip-path="url(#fpc${k})">`
             + `<path d="${b.stones}" stroke="#6a9a3a" stroke-width=".45" fill="none"/><path d="${b.dots}" fill="#6a9a3a"/></g>${box}</svg>`; }
     if (k === 'dg') { const b = rbGravel(2.5, 2.5, 17.5, 17.5, 3.2);
