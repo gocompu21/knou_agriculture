@@ -6683,6 +6683,7 @@ function eraseAt(C, r) {
 
 // ── 선택·고치기 ─────────────────────────────────────────────────────────
 function selectOp(id, add) {
+    shrubEditOn = false;
     if (add) { selOps.has(id) ? selOps.delete(id) : selOps.add(id); }
     else { selOps = new Set([id]); }
     renderAll(); regInfo();
@@ -6743,8 +6744,11 @@ function shrubCenter(ops) {                             // 중심선 — 저장�
 function shrubEditOpts() {
     return {kind: $('feK').value, mm: +$('feS').value || 2, bulge: +$('feB').value || 1, jit: +$('feJ').value, w: $('feW').value};
 }
+// '관목 고치기' 칸은 ✎ 를 눌렀을 때만 연다(대표님) — 작도 순서 줄을 누를 때마다 칸이 열렸다 닫혀 목록이 흔들렸다
+var shrubEditOn = false;
 function shrubEditSync() {                              // 고른 것이 관목이면 고치기 칸을 그 관목 값으로 채워 보인다
     const box = $('fsShrub'); if (!box) return;
+    if (!shrubEditOn) { box.hidden = true; return; }
     const ops = [...selOps].map(id => doc.ops.find(o => o.id === id)).filter(o => o && o.shrub);
     const grps = new Set(ops.map(o => o.grp != null ? 'g' + o.grp : 'o' + o.id));
     if (!ops.length || grps.size !== 1 || ops.length !== [...selOps].filter(id => doc.ops.some(o => o.id === id)).length) { box.hidden = true; return; }
@@ -6794,6 +6798,7 @@ function segHitsRect(a, b, r) {   // 선분이 상자에 닿는가(끝점이 안
     return c.some((u, i) => cr(a, b, u, c[(i + 1) % 4]));
 }
 function boxSelect(r, crossing, add) {
+    shrubEditOn = false;
     if (!add) { selOps.clear(); selPts.clear(); selPt = null; }
     const inside = q => q.x >= r.x0 && q.x <= r.x1 && q.y >= r.y0 && q.y <= r.y1;
     gOps.querySelectorAll(':scope > g[data-op]').forEach(g => {
@@ -6836,7 +6841,7 @@ function editOp(id) {
         snapHist(); op.color = SET.fillColor; op.op = SET.fillOp; if (op.bb) op.kind = SET.fillType || 'solid'; changed(); flash('설정의 채우기 색으로 다시 칠했습니다'); return;
     }
     if (op.t === 'free' && op.shrub) {              // 관목 — 선택 칸의 '관목 고치기'로(모양·파형 크기·볼록함…)
-        setTool('select'); selOps = new Set(shrubSet(op).map(x => x.id)); renderAll(); selInfo(); flash('오른쪽 「관목 고치기」에서 바꾸세요'); return;
+        setTool('select'); selOps = new Set(shrubSet(op).map(x => x.id)); shrubEditOn = true; renderAll(); selInfo(); flash('오른쪽 「관목 고치기」에서 바꾸세요'); return;
     }
     setTool(op.t, true);
     editing = id;
@@ -6849,7 +6854,7 @@ function editOp(id) {
     if (op.t === 'text') { const q = textPos(op) || {}; $('ftX').value = fmt(q.x); $('ftY').value = fmt(q.y); $('ftDir').value = op.dir || 'h'; $('ftS').value = op.s; ftMmFrom(op.size); $('ftRot').value = op.rot || 0; $('ftFont').value = op.font || 'gothic'; }
     $('cadEditing').hidden = false; $('cadEditName').textContent = desc(op);
     document.querySelectorAll('#cadForm .cad-go').forEach(b => { b.dataset.l = b.dataset.l || b.textContent; b.textContent = '고치기'; });
-    selOps = new Set([id]); pickIdx = 0; renderAll();
+    selOps = new Set([id]); pickIdx = 0; shrubEditOn = false; renderAll();
 }
 function endEdit() {
     if (!editing) return;
@@ -8633,6 +8638,7 @@ $('cadOpList').addEventListener('click', e => {
     { const i = doc.ops.findIndex(o => o.id === id), op = doc.ops.slice(i).find(o => o.t !== 'step'); if (op && (!row.classList.contains('step') || op !== doc.ops[i])) { rpMark(op, 900); rpHilite(op.grp != null ? grpOps(op.id) : op, 250); } }
     if (row.classList.contains('step')) return;
     listSel = true;
+    shrubEditOn = false;
     { const g = grpOps(id); if (g.length > 1) { const add = e.shiftKey || e.ctrlKey || e.metaKey; if (!add) selOps = new Set(); g.forEach(o => selOps.add(o.id)); renderAll(); regInfo(); flashRed(g.map(o => o.id)); return; } }
     selectOp(id, e.shiftKey || e.ctrlKey || e.metaKey);
     flashRed([id]);
