@@ -4558,11 +4558,11 @@ function leadIcon(t) {
 function leadKind() { try { return localStorage.getItem('cadLeadKind') === 'plant' ? 'plant' : 'space'; } catch (e) { return 'space'; } }
 // 공간지시선 형 그림 — 글 상자(이름 위·아래 실선 + 설명 줄)와 지시선
 function spLeadIcon(t) {
-    const r = t === 'ur' || t === 'dr' || t === 'r', bx = r ? 7 : 1, ex = r ? 19 : 13, cx = r ? 7 : 13;
+    const r = t === 'ur' || t === 'dr' || t === 'r', bx = r ? 8 : 1, ex = r ? 19 : 12, cx = r ? 7 : 13;
     const blk = `M${bx} 8H${ex}M${bx} 12H${ex}M${bx + 2} 15H${ex - 1}`;
     if (t === 'n') return `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8H17M3 12H17M5 15H16"/></svg>`;   // 지시선 없음 — 공간에 바로
-    const ld = {ur: 'M7 10V2', ul: 'M13 10V2', dr: 'M7 10V19', dl: 'M13 10V19', r: 'M1 10H7', l: 'M19 10H13'}[t];
-    const s = {ur: [7, 2], ul: [13, 2], dr: [7, 19], dl: [13, 19], r: [1.6, 10], l: [18.4, 10]}[t];
+    const ld = {ur: 'M5 10V2M5 10H8', ul: 'M15 10V2M15 10H12', dr: 'M5 10V19M5 10H8', dl: 'M15 10V19M15 10H12', r: 'M1 10H8', l: 'M19 10H12'}[t];
+    const s = {ur: [5, 2.4], ul: [15, 2.4], dr: [5, 18.6], dl: [15, 18.6], r: [1.6, 10], l: [18.4, 10]}[t];
     return `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="${blk}"/><path d="${ld}"/><circle cx="${s[0]}" cy="${s[1]}" r="2.2" class="f"/></svg>`;
 }
 function leadTypeDraw() {
@@ -4598,7 +4598,7 @@ function spLeadGeom(w) {
     const S = t === 'n' ? w : leadS.n != null ? P(leadS.n) : {x: leadS.x, y: leadS.y}; if (!S) return null;
     const right = t === 'ur' || t === 'dr' || t === 'r' || t === 'n', k = scaleDenom() / 1000, font = $('ftFont').value;
     const Ts = +(+$('fsnTmm').value * k).toFixed(4), Bs = +(+$('fsnBmm').value * k).toFixed(4);
-    const tx = spLeadTexts(), nm = tx.nm || ' ', bl = tx.bl.map(x => '• ' + x);
+    const tx = spLeadTexts(), nm = tx.nm || ' ', bl = tx.bl;
     const pad = Ts * 0.4, ind = Ts * 0.4, bw = leadMeasure('• ', Bs, font);
     const ln = []; bl.forEach(t => spLeadWrap(t).forEach((x, j) => ln.push(j ? {s: x, dx: bw} : {s: '• ' + x, dx: 0})));   // 이어지는 줄은 글머리표 뒤 글자 자리에서
     const wT = leadMeasure(nm, Ts, font), wB = ln.reduce((m, x) => Math.max(m, x.dx + leadMeasure(x.s, Bs, font)), 0);
@@ -4606,7 +4606,7 @@ function spLeadGeom(w) {
     const tb0 = pad + Ts, y1o = tb0 + pad;                // 이름 밑선(상자 윗선에서 잰 거리)
     const H = y1o + (ln.length ? Bs * 0.6 + ln.length * Bs * 1.7 : 0);
     const mn = Ts * 1.5;
-    let cx, cy, L = null;                                 // 상자 모서리(윗선의 지시선 쪽 끝)
+    let cx, cy, L = null, B = null;                       // 상자 모서리(윗선의 지시선 쪽 끝) · 꺾는 점
     if (t === 'n') { cx = w.x; cy = w.y; }            // 지시선 없음 — 누른 자리가 상자 왼쪽 위
     else if (t === 'r' || t === 'l') {
         cx = right ? Math.max(w.x, S.x + mn) : Math.min(w.x, S.x - mn);
@@ -4615,21 +4615,23 @@ function spLeadGeom(w) {
     } else {
         const up = t[0] === 'u';
         cy = up ? Math.max(w.y, S.y + mn) : Math.min(w.y, S.y - H - mn);
-        cx = leadFree() ? w.x : S.x;
-        L = {x: cx, y: cy + y1o / 2};                    // 지시선은 공간이름 글자의 가운데 높이에 닿는다(대표님)
+        const bx = leadFree() ? w.x : S.x, gap = Ts * 0.8;
+        B = {x: bx, y: cy + y1o / 2};                    // 꺾는 점 — 공간이름 글자의 가운데 높이
+        cx = right ? bx + gap : bx - gap;                // 상자는 꺾는 점에서 조금 떨어져 시작한다
+        L = {x: cx, y: B.y};                             // 가로로 들어가 이름 가운데를 향한다
     }
     cx = rnd(cx); cy = rnd(cy);
     const x0 = right ? cx : cx - W, x1 = right ? cx + W : cx;
     const rows = ln.map((r, i) => ({s: r.s, x: rnd(x0 + ind + r.dx), y: rnd(cy + y1o + Bs * 0.6 + Bs + i * Bs * 1.7)}));
     return {S, t, right, Ts, Bs, font, W, H, nb: bl.length, x0: rnd(x0), x1: rnd(x1), cy, y1: rnd(cy + y1o), tb: rnd(cy + tb0), tx: rnd(x0 + ind), nm: tx.nm, rows,
-        C: {x: cx, y: cy}, L: L ? {x: rnd(L.x), y: rnd(L.y)} : null};
+        C: {x: cx, y: cy}, L: L ? {x: rnd(L.x), y: rnd(L.y)} : null, B: B ? {x: rnd(B.x), y: rnd(B.y)} : null};
 }
 function spLeadPreSvg() {
     const h = hover, w = h && snapXY(h.w || h);
     if (!leadS && leadType() !== 'n') return w ? `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(0.9 * U)}" fill="rgba(255,245,0,.45)" stroke="${RED}" stroke-width="${fmt(0.14 * U)}"/>` : '';
     const G = spLeadGeom(w); if (!G) return '';
     const sw = fmt(0.1 * U), ln = (a, b, x) => `<path d="M${fmt(a.x)} ${fmt(a.y)}L${fmt(b.x)} ${fmt(b.y)}" stroke="${RED}" stroke-width="${sw}" fill="none"${x || ''}/>`;
-    let o = (G.L ? ln(G.S, G.L) : '') + ln({x: G.x0, y: G.cy}, {x: G.x1, y: G.cy}) + ln({x: G.x0, y: G.y1}, {x: G.x1, y: G.y1});
+    let o = (G.L ? (G.B ? ln(G.S, G.B) + ln(G.B, G.L) : ln(G.S, G.L)) : '') + ln({x: G.x0, y: G.cy}, {x: G.x1, y: G.cy}) + ln({x: G.x0, y: G.y1}, {x: G.x1, y: G.y1});
     if (G.nm) o += textSvg(G.tx, G.tb, G.nm, G.Ts, 0, 'corner', G.font, 'h');
     G.rows.forEach(r => { o += textSvg(r.x, r.y, r.s, G.Bs, 0, 'corner', G.font, 'h'); });
     return o + (G.L ? `<circle cx="${fmt(G.S.x)}" cy="${fmt(G.S.y)}" r="${fmt(0.45 * U)}" fill="${RED}"/>` : '');
@@ -4649,9 +4651,9 @@ function spLeadFinish(w) {
         doc.ops.push({id: doc.seq++, t: 'line', a, b, ls: 'solid', w: pen, grp: gid, gname: '공간지시선', lead: true, spLead: true, leadTxt: lbl, ...(extra || {}), tl: {...toolState(), ...toolsForLine(P(a), P(b))}}); };
     if (G.L) {
     const sn = leadS.n != null ? +leadS.n : addPt(G.S.x, G.S.y);
-    // 지시선 — 공간 자리에서 공간이름 글자의 가운데 높이까지 한 줄로(대표님)
-    const tip = G.L;
-    { const a = sn, b = addPt(tip.x, tip.y); if (a !== b) doc.ops.push({id: doc.seq++, t: 'line', a, b, ls: 'solid', w: pen, grp: gid, gname: '공간지시선', lead: true, spLead: true, leadTxt: lbl, tl: {...toolState(), ...toolsForLine(P(a), P(b))}}); }
+    // 지시선 — 공간 자리에서 (꺾는 점을 거쳐) 공간이름 글자의 가운데 높이까지(대표님)
+    const ns = [sn]; if (G.B) ns.push(addPt(G.B.x, G.B.y)); ns.push(addPt(G.L.x, G.L.y));
+    for (let i = 0; i + 1 < ns.length; i++) { const a = ns[i], b = ns[i + 1]; if (a !== b) doc.ops.push({id: doc.seq++, t: 'line', a, b, ls: 'solid', w: pen, grp: gid, gname: '공간지시선', lead: true, spLead: true, leadTxt: lbl, tl: {...toolState(), ...toolsForLine(P(a), P(b))}}); }
     }
     line({x: G.x0, y: G.cy}, {x: G.x1, y: G.cy});         // 이름 윗선
     line({x: G.x0, y: G.y1}, {x: G.x1, y: G.y1});         // 이름 밑선
