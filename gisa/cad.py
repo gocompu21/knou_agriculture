@@ -97,11 +97,17 @@ def drawing_list(request, cert_id):
          'updated': _when(d)} for d in rows]})
 
 
+def _stamp(d):
+    # 도면 판 — 화면이 받아 간 판과 저장하려는 판이 같은지 본다. 화면 밖(관리자·안부장)에서 고친 것을
+    # 열어 둔 화면이 모르고 덮어쓰지 않게(대표님: 순서를 바꿔 달라 했는데 저장하면 도로 돌아간다)
+    return d.updated_at.isoformat()
+
+
 @_staff_only
 def drawing_get(request, cert_id, pk):
     d = get_object_or_404(CadDrawing, pk=pk, certification_id=cert_id, owner=request.user)
     return JsonResponse({'ok': True, 'id': d.pk, 'title': d.title, 'sheet': d.sheet,
-                         'data': d.data})
+                         'data': d.data, 'stamp': _stamp(d)})
 
 
 @_staff_only
@@ -139,13 +145,16 @@ def drawing_save(request, cert_id):
         return _err('도면이 너무 큽니다.')
     if body.get('id'):
         d = get_object_or_404(CadDrawing, pk=body['id'], certification=cert, owner=request.user)
+        base = body.get('base')
+        if base and not body.get('force') and base != _stamp(d):
+            return JsonResponse({'ok': False, 'conflict': True, 'error': '서버의 도면이 이 화면이 연 뒤에 바뀌었습니다.'}, status=409)
         d.title, d.sheet, d.data = title, sheet, data
         d.save()
     else:
         d = CadDrawing.objects.create(certification=cert, owner=request.user,
                                       title=title, sheet=sheet, data=data)
     return JsonResponse({'ok': True, 'id': d.pk,
-                         'updated': _when(d)})
+                         'updated': _when(d), 'stamp': _stamp(d)})
 
 
 @_staff_only

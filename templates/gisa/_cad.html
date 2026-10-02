@@ -7011,19 +7011,24 @@ const DRAFT = 'cadDraft:' + CERT;
 const PLAY = +(new URLSearchParams(location.search).get('play') || 0);
 function saveDraft() {
     if (PLAY) return;
-    try { localStorage.setItem(DRAFT, JSON.stringify({id: cur.id, title: $('cadTitle').value, doc, dirty})); } catch (e) {}
+    try { localStorage.setItem(DRAFT, JSON.stringify({id: cur.id, stamp: cur.stamp || null, title: $('cadTitle').value, doc, dirty})); } catch (e) {}
 }
 function savedLabel() {
     const el = $('cadSaved');
     el.textContent = dirty ? '● 저장 안 됨' : (cur.id ? '저장됨' : '');
     el.classList.toggle('dirty', dirty);
 }
-function save() {
-    const body = {id: cur.id, title: $('cadTitle').value.trim() || sheet.title + ' 도면', sheet: doc.sheet, data: doc};
+function save(force) {   // 단추에 그대로 걸려 있어 force 자리에 event 가 들어온다 — true 일 때만 덮어쓰기
+    const body = {id: cur.id, base: cur.id ? cur.stamp || null : null, force: force === true, title: $('cadTitle').value.trim() || sheet.title + ' 도면', sheet: doc.sheet, data: doc};
     $('cadTitle').value = body.title;
     post(API + 'save/', body).then(j => {
+        if (j.conflict) {   // 이 화면이 연 뒤에 서버 도면이 바뀌었다(안부장이 순서를 바꿨거나 다른 창에서 저장) — 모르고 덮어쓰지 않게 묻는다
+            if (confirm('서버의 이 도면이 이 화면에서 연 뒤에 바뀌었습니다.\n(안부장이 작도 순서를 바꿨거나 다른 창에서 저장한 경우)\n\n[확인] 지금 화면 것으로 덮어쓰기 — 서버에서 바뀐 것은 사라집니다\n[취소] 저장하지 않기 — 상단 \'열기\'로 서버 판을 다시 불러오세요')) save(true);
+            else flash('저장하지 않았습니다 — \'열기\'로 서버 판을 불러오세요');
+            return;
+        }
         if (!j.ok) { alert('저장하지 못했습니다 — ' + (j.error || '서버가 거절했습니다') + '\n\n작업은 이 브라우저에 그대로 남아 있습니다. 다른 도면을 열지 말고 알려 주세요.'); return; }   // 토스트는 놓치기 쉽다 — 저장 실패를 모르고 다른 도면을 열어 작업이 날아갈 뻔했다
-        cur.id = j.id; dirty = false; saveDraft(); savedLabel(); flash('저장되었습니다'); toast('✓ 저장되었습니다');
+        cur.id = j.id; cur.stamp = j.stamp || null; dirty = false; saveDraft(); savedLabel(); flash('저장되었습니다'); toast('✓ 저장되었습니다');
     });
 }
 function openList() {
@@ -7040,7 +7045,7 @@ function openDrawing(id) {
     fetch(`${API}${id}/`, {credentials: 'same-origin'}).then(r => r.json()).then(j => {
         if (!j.ok) { flash('열지 못했습니다'); return; }
         doc = Object.assign(blankDoc(j.sheet), j.data || {});
-        cur.id = j.id; $('cadTitle').value = j.title; hist = []; redoS = []; dirty = false;
+        cur.id = j.id; cur.stamp = j.stamp || null; $('cadTitle').value = j.title; hist = []; redoS = []; dirty = false;
         $('cadOpen').hidden = true; afterLoad(true); saveDraft();
     });
 }
@@ -9069,9 +9074,19 @@ let draft = null;
 try { draft = JSON.parse(localStorage.getItem(DRAFT) || 'null'); } catch (e) {}
 if (draft && draft.doc && draft.doc.pts) {
     doc = Object.assign(blankDoc(draft.doc.sheet || '401'), draft.doc);
-    cur.id = draft.id || null; $('cadTitle').value = draft.title || ''; dirty = !!draft.dirty;
+    cur.id = draft.id || null; cur.stamp = draft.stamp || null; $('cadTitle').value = draft.title || ''; dirty = !!draft.dirty;
 } else doc = blankDoc(SHEETS.some(s => s.key === '401') ? '401' : SHEETS[0].key);
 afterLoad(false);
+// 새로 고침하면 이 브라우저의 초안이 아니라 서버 판을 연다 — 화면 밖에서 고친 것(안부장의 순서 바꾸기 등)이
+// 초안에 가려 안 보이다가 저장하면 덮어써졌다(대표님). 저장하지 않은 작업이 있으면 초안을 그대로 두고 알리기만 한다
+if (!PLAY && cur.id) fetch(`${API}${cur.id}/`, {credentials: 'same-origin'}).then(r => r.json()).then(j => {
+    if (!j.ok || (cur.stamp && j.stamp === cur.stamp)) return;
+    if (dirty) { flash('서버의 이 도면이 바뀌었습니다 — 저장하지 않은 작업이 있어 그대로 둡니다. 저장하면 덮어쓸지 묻습니다'); return; }
+    if (RP) return;
+    doc = Object.assign(blankDoc(j.sheet), j.data || {});
+    cur.stamp = j.stamp || null; $('cadTitle').value = j.title; hist = []; redoS = []; dirty = false;
+    afterLoad(false); saveDraft(); savedLabel(); flash('서버에서 바뀐 도면을 불러왔습니다');
+}).catch(() => {});
 setTool('select');
 if (root.offsetParent) setFull(true);                // ?tab=cad 로 들어와도 전체 화면으로
 renderLib();
