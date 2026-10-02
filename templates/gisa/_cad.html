@@ -3127,7 +3127,7 @@ function listOps() {
         if (op.grp != null && j > 0 && doc.ops[j - 1].grp === op.grp) return '';   // 묶음의 둘째 줄부터는 첫 줄에 합친다
         const grp = op.grp != null ? grpOps(op.id) : null;
         const canRev = (op.t === 'line' && !op.box) || op.t === 'arc' || (op.t === 'free' && !op.mark);   // 긋는 방향 바꾸기(사용자) — 선·호·프리드로잉
-        const bt = `<span class="bt">${canRev ? btn('rev', '긋는 방향 바꾸기', '⇄') : ''}${btn('ins', '여기 뒤에 이어 그리기 — 새로 그리는 것이 이 줄 뒤에 차례로 들어갑니다', '📍')}${btn('edit', '고치기', '✎')}${btn('up', '위로', '↑')}${btn('down', '아래로', '↓')}${btn('del', '지우기', '✕')}</span>`;
+        const bt = `<span class="bt">${canRev ? btn('rev', '긋는 방향 바꾸기', '⇄') : ''}${btn('ins', '여기 뒤에 이어 그리기 — 새로 그리는 것이 이 줄 뒤에 차례로 들어갑니다', '📍')}${btn('edit', '고치기', '✎')}${btn('del', '지우기', '✕')}</span>`;
         if (op.t === 'step') { k++;   // 번호는 단계가 바뀌어도 이어 센다(대표님) — 단계마다 1 부터 다시 세면 번호로 줄을 가리킬 때 헷갈렸다
             return `<div class="cad-op step${insAfter === op.id ? ' ins' : ''}" draggable="true" data-id="${op.id}"><span class="no">(${k})</span><span class="tx">${esc(op.title)}</span>${bt}</div>`; }
         i++;
