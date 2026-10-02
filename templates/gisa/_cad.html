@@ -7118,8 +7118,8 @@ function buildFrame(src, N, opt) {
     // 새로 그을 것 — 수량표 줄(마킹·실선·보조선), 막대 축척
     const rowMarks = [], rowLines = [], rowAux = [];
     for (let i = 1; i <= n; i++) { const y = TOP + i * RH, m = mark(X0, y, 0.3, 0, y - 1.2); rowMarks.push(m.op); rowLines.push(line(m.p, np(X1, y), 'p9', 'solid')); }
-    if (T1) {                                         // Ⅰ — 표시 칸에만 글자 윗선·밑선, 기호 칸 가운데 세로 보조선, 두 칸 경계 실선
-        for (let i = 0; i < n; i++) { const mid = TOP + i * RH + RH / 2; [mid - 0.2, mid + 0.2].forEach(y => rowAux.push(line(np(XM, y), np(X1, y), 'p5', 'aux'))); }
+    if (T1) {                                         // Ⅰ — 줄마다 줄 위에서 0.55·1.55 에 표 전체 폭 보조선 둘(대표님 'A2 트레이싱지 1:400 도면' 대로), 기호 칸 가운데 세로 보조선, 두 칸 경계 실선
+        for (let i = 0; i < n; i++) { const top = TOP + i * RH; [top + 0.55, top + 1.55].forEach(y => rowAux.push(line(np(X0, y), np(X1, y), 'p5', 'aux'))); }
         rowAux.push(line(np((X0 + XM) / 2, TOP + 0.2), np((X0 + XM) / 2, BOT - 0.2), 'p5', 'aux'));   // 머리글 글자를 지나지 않게 줄 안에서만
         rowLines.push(line(np(XM, TOP - 0.9), np(XM, BOT), 'p9', 'solid'));
     } else for (let i = 0; i < n; i++) [0.2, 0.8].forEach(d => rowAux.push(line(np(X0, TOP + i + d), np(X1, TOP + i + d), 'p5', 'aux')));
