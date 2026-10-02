@@ -240,6 +240,8 @@
                         <label class="wide">기호<select id="fsSym"></select></label></div>
                     <div class="cad-row"><label class="wide">회전 <b id="fsRotV">0°</b><input type="range" id="fsRotR" min="0" max="360" step="5" value="0"></label>
                         <label>각도<input type="number" id="fsRot" min="0" max="360" step="any" value="0"></label></div>
+                    <div class="cad-row"><label class="cad-chk" title="수량표·범례 칸에 넣을 때 — 기호 세로를 종이 위 이 크기로(가로가 칸을 넘으면 칸에 맞춰 줄인다)"><input type="checkbox" id="fsFit"> 표제칸에 맞춤</label>
+                        <label>세로<select id="fsFitMm"><option value="3">3mm</option><option value="4" selected>4mm</option><option value="5">5mm</option><option value="6">6mm</option></select></label></div>
                     <div class="cad-row"><span class="cad-help">도면을 누를 때마다 그 자리에 넣습니다</span>
                         <button type="button" class="cad-go" id="fsGo">넣기</button></div>
                 </div>
@@ -2718,7 +2720,7 @@ function drawPre() {
             const v = parseFloat($('fcV').value), rr = fcTyped && v > 0 ? ($('fcMode').value === 'd' ? v / 2 : v) : Math.hypot(x - A.x, y - A.y);
             o += `<circle cx="${fmt(A.x)}" cy="${fmt(A.y)}" r="${fmt(rr)}" ${pre}/>`;
         }
-        if (tool === 'sym') { const d = symOf($('fsSym').value);
+        if (tool === 'sym') { const sp = symPlaced($('fsSym').value), d = sp && sp.d;
             if (d) o += `<g opacity="0.45" transform="translate(${fmt(x)} ${fmt(y)}) rotate(${fmt(+$('fsRot').value || 0)})">${d.items.map(itemSvg).join('')}</g>`; }
         if (hp) o += `<circle cx="${fmt(x)}" cy="${fmt(y)}" r="${fmt(0.9 * U)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.14 * U)}"/>`;
         else o += `<path d="M${fmt(x - k)} ${fmt(y)}H${fmt(x + k)}M${fmt(x)} ${fmt(y - k)}V${fmt(y + k)}" stroke="${RED}" stroke-width="${fmt(0.1 * U)}"/>`;
@@ -6040,10 +6042,10 @@ function commit(t) {
         if (!(v > 0)) { flash('반지름(지름) 값을 넣거나, 도면을 한 번 더 눌러 크기를 정하세요'); pickIdx = 1; markAwait(); return; }
         op = {t, c, mode: $('fcMode').value, v, ls: $('fcLs').value, w: $('fcW').value};
     } else if (t === 'sym') {
-        const p = num('fsP'), id = $('fsSym').value, d = symOf(id);
+        const p = num('fsP'), sp = symPlaced($('fsSym').value);
         if (!p) { flash('기준점 번호를 넣거나 도면을 누르세요'); return; }
-        if (!d) { flash('기호를 고르세요'); return; }
-        op = {t, p, sym: id, rot: +$('fsRot').value || 0};
+        if (!sp) { flash('기호를 고르세요'); return; }
+        op = {t, p, sym: sp.key, rot: +$('fsRot').value || 0}; op._d = sp.d;
     } else if (t === 'text') {
         const x = parseFloat($('ftX').value), y = parseFloat($('ftY').value), s = $('ftS').value.trim();
         if (!isFinite(x) || !isFinite(y)) { flash('X·Y 좌표를 넣거나 도면을 누르세요'); return; }
@@ -6052,7 +6054,7 @@ function commit(t) {
     }
     if (!op) return;
     snapHist();
-    if (op.t === 'sym') doc.syms[op.sym] = {name: symOf(op.sym).name, items: clone(symOf(op.sym).items)};
+    if (op.t === 'sym') { const d = op._d || symOf(op.sym); delete op._d; doc.syms[op.sym] = {name: d.name, items: clone(d.items)}; }
     if (editing) {
         const i = doc.ops.findIndex(o => o.id === editing);
         if (i >= 0) { op.id = editing; if (doc.ops[i].leadOf != null && op.t === 'text') op.leadOf = doc.ops[i].leadOf; doc.ops[i] = op; }   // 지시선 글을 고쳐도 그 지시선에 남는다
@@ -6911,6 +6913,19 @@ function ensureSymOption(id) {
 }
 
 // ── 라이브러리 ──────────────────────────────────────────────────────────
+// 표제칸에 맞춤(대표님) — 수량표·범례 칸에 넣는 기호는 실제 크기면 너무 작다. 세로를 종이 위 N mm 로 키우고,
+// 가로가 칸(종이 20mm)의 85% 를 넘으면 그만큼 줄인다. 크기를 바꾼 복사본을 도면에 따로 둔다(키 '<기호>@<배율>')
+function symPlaced(id) {
+    const d = symOf(id); if (!d) return null;
+    if (!$('fsFit') || !$('fsFit').checked) return {key: id, d};
+    const b = symBBox(d.items), mmPerM = 1000 / scaleDenom(), hmm = +$('fsFitMm').value || 4;
+    if (!(b.height > 0)) return {key: id, d};
+    let f = hmm / (b.height * mmPerM);
+    if (b.width * mmPerM * f > 17) f = 17 / (b.width * mmPerM);
+    f = +f.toFixed(4);
+    if (Math.abs(f - 1) < 1e-3) return {key: id, d};
+    return {key: id + '@' + f, d: {name: d.name, items: d.items.map(it => frameScaleItem(it, f))}};
+}
 function symBBox(items) {
     const m = $('cadMeasure');
     m.innerHTML = `<g>${items.map(itemSvg).join('')}</g>`;
@@ -8516,6 +8531,7 @@ function setRot(v) { v = ((+v % 360) + 360) % 360; $('fsRot').value = fmt(v); $(
 $('fsRotR').addEventListener('input', () => setRot($('fsRotR').value));
 $('fsRot').addEventListener('input', () => setRot($('fsRot').value));
 $('fsSym').addEventListener('change', () => { renderLib(); drawPre(); });
+['fsFit', 'fsFitMm'].forEach(id => $(id).addEventListener('change', () => drawPre()));
 document.querySelectorAll('#cadForm .pk').forEach(inp => inp.addEventListener('focus', () => {
     const f = picksOf(tool) || []; const i = f.indexOf(inp.id); if (i >= 0) { pickIdx = i; markAwait(); status(); }
 }));
