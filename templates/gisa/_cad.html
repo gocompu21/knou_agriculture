@@ -815,10 +815,21 @@ const tree = (r, ever) => {
     return it; };
 // 요점식재(대표님 그림) — 막대 넷이 가운데에서 엇갈린 별(＊). 막대마다 두 줄 + 가운데 줄 + 양 끝에 조금 더 넓은 마구리
 const focal = R => { const it = [], b = R * 0.11, c = R * 0.2;   // 막대 폭을 넓히고(0.075 → 0.11R) 가운데 줄을 긋는다(대표님)
+    // 손으로 그은 듯 — 선마다 아주 살짝 구불거리고 양 끝이 조금씩 어긋난다(대표님). 무늬는 늘 같다
+    let sd = Math.round(R * 1000) + 7; const rnd = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
+    const hand = (x1, y1, x2, y2, w) => {
+        const L = Math.hypot(x2 - x1, y2 - y1) || 1, ux = (x2 - x1) / L, uy = (y2 - y1) / L, A = R * 0.012, n = Math.max(4, Math.round(L / (R * 0.18)));
+        const p1 = rnd() * 6.28, p2 = rnd() * 6.28, f1 = 1 + rnd(), f2 = 2.5 + rnd() * 2, e0 = (rnd() - 0.5) * R * 0.03, e1 = (rnd() - 0.5) * R * 0.03, pts = [];
+        for (let i = 0; i <= n; i++) {
+            const t = i / n, s0 = -e0 + (L + e0 + e1) * t, off = A * (Math.sin(t * Math.PI * f1 + p1) * 0.7 + Math.sin(t * Math.PI * f2 + p2) * 0.3);
+            pts.push([+(x1 + ux * s0 - uy * off).toFixed(4), +(y1 + uy * s0 + ux * off).toFixed(4)]);
+        }
+        it.push({t: 'free', pts, w});
+    };
     for (let i = 0; i < 4; i++) { const a = i * Math.PI / 4, ux = Math.cos(a), uy = Math.sin(a), nx = -uy, ny = ux;
-        it.push({t: 'line', x1: -ux * R, y1: -uy * R, x2: ux * R, y2: uy * R, w: 'thick'});   // 가운데 줄 — 굵은 샤프
-        for (const sg of [1, -1]) it.push({t: 'line', x1: -ux * R + nx * b * sg, y1: -uy * R + ny * b * sg, x2: ux * R + nx * b * sg, y2: uy * R + ny * b * sg, w: 'thin'});   // 외곽 — 얇은 샤프(샤프가 둘뿐이라 가운데보다 한 단계 가늘게)
-        for (const e of [1, -1]) it.push({t: 'line', x1: ux * R * e + nx * c, y1: uy * R * e + ny * c, x2: ux * R * e - nx * c, y2: uy * R * e - ny * c, w: 'thin'}); }
+        hand(-ux * R, -uy * R, ux * R, uy * R, 'thick');   // 가운데 줄 — 굵은 샤프
+        for (const sg of [1, -1]) hand(-ux * R + nx * b * sg, -uy * R + ny * b * sg, ux * R + nx * b * sg, uy * R + ny * b * sg, 'thin');   // 외곽 — 얇은 샤프(샤프가 둘뿐이라 가운데보다 한 단계 가늘게)
+        for (const e of [1, -1]) hand(ux * R * e + nx * c, uy * R * e + ny * c, ux * R * e - nx * c, uy * R * e - ny * c, 'thin'); }
     return it; };
 const BUILTIN = [
     {id: 'b:pergola3', name: '퍼걸러 3×3', items: pergola(3)},
