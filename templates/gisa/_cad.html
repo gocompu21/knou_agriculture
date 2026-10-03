@@ -965,15 +965,27 @@ function strokeStyle() {
                                   : {ls: $('flLs').value, w: $('flW').value};
 }
 function barStep() { return $('cadSnap').checked ? +$('cadSnapStep').value : PREC; }
-function setBarY(y) {
+function setBarY(y, exact) {                           // exact — 점에 맞춘 높이 그대로(눈금에 반올림하지 않는다)
     const g = barStep();
     // 제도판 위 틀 밑 ~ 판 아래 끝까지 오르내린다(종이 범위로 막았더니 900×600 판에서 종이 아래로 못 내려갔다 — 사용자)
     const B = boardGeom(), lo = B.by0 + 1.1 * B.u, hi = B.by1 - 0.4 * B.u - barW(), old = barY, att = sr && srOnBar(sr, old, 0.02);
-    barY = +(Math.max(lo, Math.min(hi, Math.round(y / g) * g))).toFixed(3);
+    barY = +(Math.max(lo, Math.min(hi, exact ? y : Math.round(y / g) * g))).toFixed(3);
     if (att && old != null) { sr.y = +(sr.y + barY - old).toFixed(4); if (typeof saveSr === 'function') saveSr(); }   // 날에 붙은 스케일자는 I자와 함께 오르내린다
     drawBar();
 }
 // 자의 폭 — 윗날에서 아랫날까지. 눈금의 배수로 잡아, 윗날이 눈금 위면 아랫날도 눈금 위에 온다
+// 자를 점에 맞춘다(대표님 — 템플릿 귀로 만든 호 끝 점처럼 눈금 밖에 있는 점에서 직선을 내리면 호에 안 붙었다).
+// 실제 제도처럼 자의 변을 점에 갖다 댄다 — 화면 8px 안이면 그 점의 좌표로(눈금보다 먼저)
+function ptSnapX(x, y0, y1) {                          // 삼각자 수직변 — 변이 지나는 높이(y0~y1) 곁의 점
+    const tol = 8 / pxPer(); let best = null, bd = tol;
+    doc.pts.forEach(p => { if (p.y < y0 - tol || p.y > y1 + tol) return; const d = Math.abs(p.x - x); if (d < bd) { bd = d; best = p; } });
+    return best && {x: best.x, n: best.n};
+}
+function ptSnapY(y) {                                  // I자 — 윗날·아랫날 어느 쪽이든 점에 닿으면 윗날 높이를 돌려준다
+    const tol = 8 / pxPer(), w = barW(); let best = null, bd = tol;
+    doc.pts.forEach(p => { [[p.y, 0], [p.y - w, 1]].forEach(([yy]) => { const d = Math.abs(yy - y); if (d < bd) { bd = d; best = {y: +yy.toFixed(4), n: p.n}; } }); });
+    return best;
+}
 function barW() { const mi = sheet.step / 5; return Math.max(4 * mi, Math.round(8 * U / mi) * mi); }   // 401 은 8m(종이 위 약 1.9cm)
 // ── 삼각자 ── I자 윗날에 얹혀 좌우로만 민다(I자를 옮기면 함께 따라온다). 긋는 변은 세로 변과 빗변
 let tri = null;                   // {kind: '45'|'60', x: 직각 꼭짓점 x, flip: 빗변이 오른쪽, alt: 60° 자를 눕혀 빗변 30°}
@@ -8397,15 +8409,20 @@ svg.addEventListener('pointermove', e => {
         if (!drag.moved && Math.abs(e.clientX - drag.sx) > 4) { drag.moved = true; root.classList.add('bar-drag'); }
         if (drag.moved) {
             const g = barStep(), G = triGeom();
-            tri.x = +(Math.round(Math.max(sheet.x0 - G.base, Math.min(sheet.x1 + G.base, w.x - drag.off)) / g) * g).toFixed(3);
+            const rx = w.x - drag.off, pp = ptSnapX(rx, barY - G.h, barY);
+            tri.x = pp ? pp.x : +(Math.round(Math.max(sheet.x0 - G.base, Math.min(sheet.x1 + G.base, rx)) / g) * g).toFixed(3);
             drawTri(); hover = null; drawPre(); status();
-            $('cadXY').textContent = `삼각자 수직변 X ${fmt1(tri.x)}`;
+            $('cadXY').textContent = `삼각자 수직변 X ${fmt1(tri.x)}` + (pp ? ` · P${pp.n} 에 맞춤` : '');
         }
         return;
     }
     if (drag && drag.kind === 'bar') {
         if (!drag.moved && Math.abs(e.clientY - drag.sy) > 4) { drag.moved = true; root.classList.add('bar-drag'); }
-        if (drag.moved) { setBarY(w.y - drag.off); hover = null; drawPre(); status(); $('cadXY').textContent = `I자 윗날 Y ${fmt1(barY)}`; }
+        if (drag.moved) {
+            const ry = w.y - drag.off, pp = ptSnapY(ry);
+            setBarY(pp ? pp.y : ry, !!pp); hover = null; drawPre(); status();
+            $('cadXY').textContent = `I자 윗날 Y ${fmt1(barY)}` + (pp ? ` · P${pp.n} 에 맞춤` : '');
+        }
         return;
     }
     if (drag && drag.kind === 'box') {
