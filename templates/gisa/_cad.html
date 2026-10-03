@@ -701,6 +701,12 @@
 .cad-rp-title { position: absolute; left: 50%; top: 14%; transform: translateX(-50%); z-index: 20; pointer-events: none; opacity: 0;
     background: rgba(27,67,50,.88); color: #fff; font-weight: 800; font-size: 1.35rem; padding: 10px 22px; border-radius: 12px; box-shadow: 0 8px 28px rgba(0,0,0,.2); white-space: nowrap; }
 .cad-rp-title.show { animation: cadRpTitle 1.3s ease both; }
+/* 커멘트를 도면 위에(대표님) — 줄을 고르거나 재생으로 그 줄에 오면 아래쪽 가운데에 잠시 띄운다 */
+.cad-note-ov { position: absolute; left: 50%; bottom: 7%; transform: translateX(-50%); z-index: 21; pointer-events: none; opacity: 0; max-width: 70%;
+    background: #fff1b8; border: 1px solid #f0c94a; border-left: 5px solid #e0a800; color: #4a3800; font-size: 1rem; line-height: 1.5;
+    padding: 9px 16px 9px 34px; border-radius: 10px; box-shadow: 0 8px 26px rgba(0,0,0,.18); white-space: pre-line; transition: opacity .35s ease; }
+.cad-note-ov::before { content: '✔'; position: absolute; left: 12px; top: 9px; color: #c48a00; }
+.cad-note-ov.show { opacity: 1; }
 @keyframes cadRpTitle { 0% { opacity: 0; transform: translate(-50%, 8px); } 15%, 75% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -6px); } }
 .cad-rp-time { display: flex; justify-content: space-between; font-size: 0.74rem; font-variant-numeric: tabular-nums; opacity: .85; margin: -2px 2px 2px; }
 .cad-rp input[type=range] { width: 100%; margin: 6px 0 2px; accent-color: #f4c542; }
@@ -3349,6 +3355,15 @@ function rpFollow(ops, spd) {
     requestAnimationFrame(frame);
 }
 // ④ 단계에 들어서면 제목을 도면 위에 크게 띄웠다가 지운다
+function noteShow(text, ms) {
+    const host = svg.parentNode; if (!host) return;
+    let el = $('cadNoteOv');
+    if (!el) { el = document.createElement('div'); el.id = 'cadNoteOv'; el.className = 'cad-note-ov'; host.appendChild(el); }
+    clearTimeout(noteShow.t);
+    if (!text) { el.classList.remove('show'); return; }
+    el.textContent = text; el.classList.add('show');
+    noteShow.t = setTimeout(() => el.classList.remove('show'), ms || 4000);
+}
 function rpTitle(title, spd) {
     const host = svg.parentNode; if (!host || !title) return;
     let el = $('cadRpTitle');
@@ -4110,6 +4125,7 @@ function rpGo(k, anim, cb) {
     const target = rpToolsFor(rpStateAt(k), nx);
     if (fwd && op && op.t !== 'step') { rpFollow(blk, spd); rpMark(blk[0], Math.max(700, spd * 0.75), true); }
     if (fwd && op && op.t === 'step') rpTitle(op.title, spd);
+    { const no = op && (op.t === 'step' ? op : blk[0]); noteShow(no && no.note, Math.max(2500, spd * 3)); }   // 커멘트가 있으면 도면 위에
     const show = () => {
         if (!RP) return;
         drawOps(); drawPts(); rpInfo();
@@ -8765,6 +8781,7 @@ $('cadOpList').addEventListener('click', e => {
     if (RP) { rpStop(); const i = doc.ops.findIndex(o => o.id === +row.dataset.id); if (i >= 0) { rpGo(i + 1, false); const op = doc.ops.slice(i).find(o => o.t !== 'step'); if (op) { rpMark(op, 900); rpHilite(op, 250); } } return; }
     // 누른 줄이 도면의 어디인지 — 재생 때처럼 시작점에 동그라미를 조여 들게 한다(단계 줄이면 그 단계의 첫 작도)
     { const i = doc.ops.findIndex(o => o.id === id), op = doc.ops.slice(i).find(o => o.t !== 'step'); if (op && (!row.classList.contains('step') || op !== doc.ops[i])) { rpMark(op, 900); rpHilite(op.grp != null ? grpOps(op.id) : op, 250); } }
+    { const o = doc.ops.find(x => x.id === id); noteShow(o && o.note); }   // 커멘트가 있으면 도면 위에 잠시(대표님)
     if (row.classList.contains('step')) return;
     listSel = true;
     shrubEditOn = false;
