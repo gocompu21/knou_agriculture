@@ -147,6 +147,7 @@
             <svg id="cadSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
                 <g id="cadBoard" pointer-events="none"></g><g id="cadGrid"></g><g id="cadUnder" pointer-events="none"></g><g id="cadHl" pointer-events="none" style="mix-blend-mode:multiply"></g><g id="cadOps"></g><g id="cadPts"></g><g id="cadSr"></g><g id="cadPtsTop" pointer-events="none"></g><g id="cadBar"></g><g id="cadTri"></g><g id="cadFtri"></g><g id="cadTpl"></g><g id="cadPre"></g>
             </svg>
+            <div id="cadEdge" aria-hidden="true"><i class="t"></i><i class="b"></i><i class="l"></i><i class="r"></i></div>
             <div class="cad-zoom">
                 <button type="button" id="cadZfit" title="종이에 맞추기">맞춤</button>
                 <button type="button" id="cadZwin" title="창 확대 (Z) — 끌어서 네모로 잡은 곳을 화면 가득 봅니다"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="10" height="8" stroke-dasharray="2 1.5"/><circle cx="12.5" cy="12" r="3.6"/><path d="M15.2 14.7l3 3"/></svg></button>
@@ -599,6 +600,22 @@
 .cad-chk { display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem; color: #444; cursor: pointer; white-space: nowrap; }
 .cad-body { display: flex; }
 .cad-stage { flex: 1; min-width: 0; position: relative; background: #eef1f4; }
+/* 화면 가장자리 띠 — 커서를 올리면 그쪽으로 화면이 흘러간다(대표님). 그리기는 그대로 되도록 누름을 가로채지 않는다 */
+#cadEdge { position: absolute; pointer-events: none; z-index: 2; }
+#cadEdge i { position: absolute; display: flex; align-items: center; justify-content: center; color: rgba(27,67,50,.35); font-style: normal; font-size: 13px; transition: background .15s, color .15s; }
+#cadEdge .t, #cadEdge .b { left: 36px; right: 36px; height: 36px; }
+#cadEdge .l, #cadEdge .r { top: 36px; bottom: 36px; width: 36px; }
+#cadEdge .t { top: 0; background: linear-gradient(to bottom, rgba(27,67,50,.09), rgba(27,67,50,0)); }
+#cadEdge .b { bottom: 0; background: linear-gradient(to top, rgba(27,67,50,.09), rgba(27,67,50,0)); }
+#cadEdge .l { left: 0; background: linear-gradient(to right, rgba(27,67,50,.09), rgba(27,67,50,0)); }
+#cadEdge .r { right: 0; background: linear-gradient(to left, rgba(27,67,50,.09), rgba(27,67,50,0)); }
+#cadEdge .t::before { content: '▲'; } #cadEdge .b::before { content: '▼'; } #cadEdge .l::before { content: '◀'; } #cadEdge .r::before { content: '▶'; }
+#cadEdge i.on { color: #1b4332; }
+#cadEdge .t.on { background: linear-gradient(to bottom, rgba(45,106,79,.32), rgba(45,106,79,0)); }
+#cadEdge .b.on { background: linear-gradient(to top, rgba(45,106,79,.32), rgba(45,106,79,0)); }
+#cadEdge .l.on { background: linear-gradient(to right, rgba(45,106,79,.32), rgba(45,106,79,0)); }
+#cadEdge .r.on { background: linear-gradient(to left, rgba(45,106,79,.32), rgba(45,106,79,0)); }
+.cad.replaying #cadEdge { display: none; }
 #cadSvg { display: block; width: 100%; height: 72vh; touch-action: none; user-select: none; cursor: crosshair; }
 .cad-tool-select #cadSvg { cursor: default; }
 .cad-zoom button.on { background: #1b4332; color: #fff; border-color: #1b4332; }
@@ -8155,21 +8172,44 @@ const AUTO_KINDS = ['pencil', 'free', 'box', 'shrub', 'spbox', 'spfree', 'boxdra
 // 시설 및 수목(기호)을 넣을 때는 누르지 않고 커서만 끝으로 가져가도 화면이 흘러간다(대표님) — 여러 그루를 이어 심다 화면 끝에 닿았을 때
 const autoOk = () => drag ? AUTO_KINDS.includes(drag.kind) : !RP;   // 누르지 않아도 어느 도구든(대표님) — 끝에 0.25초 머물러야 흐른다(도구 줄·목록으로 지나갈 때 튀지 않게)
 let autoPan = null;
+// 가장자리 띠를 그리는 칸(svg)에 맞추고, 흐르는 쪽을 진하게
+// 그리는 칸에서 실제로 보이는 곳 — svg 아래쪽은 상태줄에 가리고 창 밖으로 나가기도 한다(띠를 거기 두면 커서가 못 닿는다)
+function edgeRect() {
+    const a = svg.getBoundingClientRect(), st = root.querySelector('.cad-status'), sr = st && st.getBoundingClientRect();
+    let bottom = Math.min(a.bottom, window.innerHeight);
+    if (sr && sr.height && sr.top < bottom && sr.bottom > a.top + 50) bottom = sr.top;
+    const top = Math.max(a.top, 0);
+    return {left: a.left, right: Math.min(a.right, window.innerWidth), top, bottom};
+}
+function edgeFit() {
+    const E = $('cadEdge'); if (!E) return;
+    const a = edgeRect(), b = E.parentNode.getBoundingClientRect();
+    Object.assign(E.style, {left: (a.left - b.left) + 'px', top: (a.top - b.top) + 'px', width: (a.right - a.left) + 'px', height: Math.max(0, a.bottom - a.top) + 'px'});
+}
+window.addEventListener('resize', edgeFit); window.addEventListener('scroll', edgeFit, true);
+try { new ResizeObserver(edgeFit).observe(svg); } catch (e) {}
+edgeFit();
+function edgeOn(dx, dy) {
+    const E = $('cadEdge'); if (!E) return;
+    E.querySelector('.l').classList.toggle('on', dx < 0); E.querySelector('.r').classList.toggle('on', dx > 0);
+    E.querySelector('.t').classList.toggle('on', dy < 0); E.querySelector('.b').classList.toggle('on', dy > 0);
+}
 function autoPanCheck(e) {
-    const r = svg.getBoundingClientRect(), m = 36;
+    const r = edgeRect(), m = 36;
     const dx = e.clientX < r.left + m ? -1 : e.clientX > r.right - m ? 1 : 0, dy = e.clientY < r.top + m ? -1 : e.clientY > r.bottom - m ? 1 : 0;
-    if (!autoOk() || (!dx && !dy)) { autoPan = null; return; }
+    if (!autoOk() || (!dx && !dy)) { autoPan = null; edgeOn(0, 0); return; }
+    edgeOn(dx, dy);
     const fresh = !autoPan;
     autoPan = {dx, dy, t0: fresh ? performance.now() : autoPan.t0, hov: !drag, ev: {clientX: e.clientX, clientY: e.clientY, pointerId: e.pointerId, button: e.button, buttons: e.buttons, target: e.target}};
     if (!fresh) return;
     const step = () => {
-        if (!autoPan || !autoOk()) { autoPan = null; return; }
+        if (!autoPan || !autoOk()) { autoPan = null; edgeOn(0, 0); return; }
         if (autoPan.hov && performance.now() - autoPan.t0 < 250) { requestAnimationFrame(step); return; }
         const k = pxPer(), mg = 0.08 * Math.max(sheet.x1 - sheet.x0, sheet.y1 - sheet.y0);   // 종이(+여백) 밖으로는 더 흘러가지 않는다
         let mx = autoPan.dx * 9 / k, my = autoPan.dy * 9 / k;
         if ((mx > 0 && vb.x + vb.w >= sheet.x1 + mg) || (mx < 0 && vb.x <= sheet.x0 - mg)) mx = 0;
         if ((my > 0 && vb.y + vb.h >= sheet.y1 + mg) || (my < 0 && vb.y <= sheet.y0 - mg)) my = 0;
-        if (!mx && !my) { autoPan = null; return; }
+        if (!mx && !my) { autoPan = null; edgeOn(0, 0); return; }
         vb.x += mx; vb.y += my; setVB();
         const ev = new PointerEvent('pointermove', {clientX: autoPan.ev.clientX, clientY: autoPan.ev.clientY, pointerId: autoPan.ev.pointerId, buttons: autoPan.ev.buttons, bubbles: true});
         ev._auto = true; svg.dispatchEvent(ev);
@@ -8594,7 +8634,7 @@ function endPtr(e) {
 }
 svg.addEventListener('pointerup', endPtr);
 svg.addEventListener('pointercancel', endPtr);
-svg.addEventListener('pointerleave', () => { if (!drag) { autoPan = null; hover = null; drawPre(); status(); } });
+svg.addEventListener('pointerleave', () => { if (!drag) { autoPan = null; edgeOn(0, 0); hover = null; drawPre(); status(); } });
 svg.addEventListener('contextmenu', e => e.preventDefault());
 svg.addEventListener('wheel', e => {
     e.preventDefault();
