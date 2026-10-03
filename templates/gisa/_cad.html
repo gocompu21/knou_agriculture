@@ -1163,18 +1163,18 @@ function tplCorner(i) {
     const a0 = (180 + 90 * i) * Math.PI / 180 + tplRot();
     return {i, c, R, a0, a1: a0 + Math.PI / 2, P0, du, dv, lu: D.w, lv: D.h};
 }
-// 샤프를 댄 자리가 어느 귀의 호 곁인가 — 호에서 화면 10px 안, 호 각도 범위(앞뒤 25° 여유) 안
+// 샤프를 댄 자리가 어느 귀 곁인가 — 귀 꼭짓점에서 (반지름 1.5배 + 화면 25px) 안. 귀가 화면에서 몇 px 밖에 안 되어
+// 호 위를 정확히 짚기 어렵고, 실제로는 곧은 변에서 대고 귀를 돌아 나간다(대표님 — 호 곁만 받았더니 안 그려졌다)
 function tplCornerAt(w) {
-    if (!tpl || !sheet) return null;
-    const tol = 10 / pxPer();
+    if (!tpl || !sheet || tplHoleAt(w)) return null;
+    const px = pxPer();
+    let best = null, bd = Infinity;
     for (let i = 0; i < 4; i++) {
-        const K = tplCorner(i), d = Math.hypot(w.x - K.c.x, w.y - K.c.y);
-        if (Math.abs(d - K.R) > tol) continue;
-        let a = Math.atan2(w.y - K.c.y, w.x - K.c.x) - (K.a0 + Math.PI / 4);
-        a = Math.atan2(Math.sin(a), Math.cos(a));
-        if (Math.abs(a) <= Math.PI / 4 + 25 * Math.PI / 180) return K;
+        const K = tplCorner(i), d = Math.hypot(w.x - K.P0.x, w.y - K.P0.y), lim = K.R * 1.5 + 25 / px;
+        const sc = d - (tpl.corner === i ? 6 / px : 0);   // 고른 귀를 먼저
+        if (d <= lim && sc < bd) { bd = sc; best = K; }
     }
-    return null;
+    return best;
 }
 // 모서리 맞춤 — 고른 귀의 가로 변·세로 변을 도면의 선(나란한 것)·점에 붙인다. 없으면 판이 반듯할 때 눈금에.
 // 가로 변은 dv 쪽으로, 세로 변은 du 쪽으로 옮긴다. 돌려주는 것: {dx, dy, what: [가로 변 글, 세로 변 글]}
