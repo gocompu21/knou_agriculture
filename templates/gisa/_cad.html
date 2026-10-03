@@ -711,7 +711,8 @@
 @keyframes cadRpTitle { 0% { opacity: 0; transform: translate(-50%, 8px); } 15%, 75% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -6px); } }
 .cad-rp-time { display: flex; justify-content: space-between; font-size: 0.74rem; font-variant-numeric: tabular-nums; opacity: .85; margin: -2px 2px 2px; }
 .cad-rp input[type=range] { width: 100%; margin: 6px 0 2px; accent-color: #f4c542; }
-.cad-rp-tx { min-height: 1.3em; line-height: 1.45; word-break: keep-all; }
+.cad-rp-tx { height: 1.45em; line-height: 1.45; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* 한 줄 고정 — 길면 … (설명 길이에 따라 플레이어 높이가 바뀌어 도면이 흔들렸다, 대표님). 전체 글은 title */
+.cad-rp-tx .cad-rp-nt { display: inline !important; margin-left: 6px; }
 .cad-rp-tx .tl { color: #b7e4c7; font-size: 0.76rem; }
 .cad.replaying #cadSvg, .cad.replaying #cadSvg * { cursor: default !important; }
 /* 재생에서 지금 긋는 선은 제 색 그대로 — 빨강으로 긋고 다음 칸에서 검정으로 덧칠되던 것을 뺐다(사용자). 어디인지는 동그라미·샤프가 알린다 */
@@ -4114,6 +4115,7 @@ function rpInfo() {
     $('cadRpNo').textContent = `${RP.k} / ${n}`;
     $('cadRpTx').innerHTML = !op ? '처음 — ▶ 재생을 누르면 작도 순서대로 그려 보입니다'
         : (step ? `<b>(${no}) ${esc(step)}</b>` : '') + (op.t === 'step' ? '' : `${step ? ' — ' : ''}${circH(i)} ${esc(op.grp != null ? grpDesc(grpOps(op.id)) : desc(op))}`) + (op && op.note ? `<span class="cad-rp-nt">💬 ${esc(op.note)}</span>` : '');   // 도구 자리는 속에만 둔다(사용자)
+    $('cadRpTx').title = $('cadRpTx').textContent;
     const hid = op ? (op.grp != null ? grpOps(op.id)[0].id : op.id) : null;
     document.querySelectorAll('#cadOpList .cad-op').forEach(r => r.classList.toggle('rp', +r.dataset.id === hid));
     const cur = hid != null && document.querySelector(`#cadOpList .cad-op[data-id="${hid}"]`);
