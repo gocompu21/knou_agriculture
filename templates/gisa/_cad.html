@@ -8650,6 +8650,14 @@ document.addEventListener('keydown', e => {
 let opDrag = null;                                     // {id, group: 묶음 이동인가}
 // ── 작도 순서 옮기기 도우미(대표님, 2026-10) — ① Shift 로 여러 줄 골라 통째로 끌기 ③ Ctrl+X / Ctrl+V ④ 여기 뒤에 이어 그리기
 var opClip = null, insAfter = null, opAnchor = null, seqSeen = 0;
+// 재생 중에도 순서를 바꾼다(대표님) — 재생을 잠깐 끝내고 옮긴 뒤, 보던 줄에서 다시 재생 화면을 연다(멈춘 채)
+function rpKeep(fn) {
+    if (!RP) return fn();
+    const cur = RP.k > 0 && doc.ops[RP.k - 1] ? doc.ops[RP.k - 1].id : null;
+    rpEnd(); const r = fn();
+    rpStart(); if (RP) { const i = cur != null ? doc.ops.findIndex(o => o.id === cur) : -1; rpGo(i >= 0 ? i + 1 : 0, false); }
+    return r;
+}
 function opIdsFull(ids) {                              // 고른 줄들 — 묶음은 묶음째, 원래 차례대로
     const set = new Set();
     ids.forEach(id => { const i = doc.ops.findIndex(o => o.id === id); if (i < 0) return; const [a, b] = grpSpan(i); doc.ops.slice(a, b).forEach(o => set.add(o.id)); });
@@ -8681,7 +8689,7 @@ function opPaste() {
     if (opPick == null) { flash('넣을 자리의 줄을 누른 뒤 Ctrl+V'); return; }
     if (opClip.includes(opPick)) { flash('잘라 둔 줄 안에는 넣을 수 없습니다 — 다른 줄을 누르세요'); return; }
     const at = opAfterIdx(opPick); if (at < 0) return;
-    const n = moveOpsAt(opClip, at); opClip = null; listOps();
+    const n = rpKeep(() => moveOpsAt(opClip, at)); opClip = null; listOps();
     flash(n ? `${n}줄을 옮겼습니다 — Ctrl+Z 로 되돌림` : '제자리입니다');
 }
 // 커멘트(대표님) — 💬 를 누르면 그 줄 아래에 입력칸. Enter 저장(Shift+Enter 줄바꿈) · Esc 취소 · 비우면 지운다
@@ -8731,7 +8739,7 @@ $('cadOpPrev').addEventListener('click', () => opStep(-1));
 $('cadOpNext').addEventListener('click', () => opStep(1));
 $('cadInsOff').addEventListener('click', () => { insAfter = null; listOps(); flash('이어 그리기 자리를 풀었습니다 — 새로 그리는 것은 맨 끝에'); });
 $('cadOpList').addEventListener('dragstart', e => {
-    const row = e.target.closest('.cad-op'); if (!row || RP) { e.preventDefault(); return; }
+    const row = e.target.closest('.cad-op'); if (!row) { e.preventDefault(); return; }
     opDrag = {id: +row.dataset.id, group: row.classList.contains('step') && !e.altKey};
     // 고른 줄(Shift·Ctrl 로 여럿) 안의 줄을 끌면 고른 것 전부를 함께 옮긴다
     if (!opDrag.group && selOps.has(opDrag.id)) { const ids = opIdsFull([...selOps]); if (ids.length > grpOps(opDrag.id).length) opDrag.multi = ids; }
@@ -8754,6 +8762,10 @@ $('cadOpList').addEventListener('drop', e => {
     if (!opDrag) return;
     e.preventDefault();
     const d = opDropAt(e); opDropClear(); if (!d) return;
+    if (RP) { const dd = opDrag; rpKeep(() => { opDrag = dd; opDropDo(d); }); return; }
+    opDropDo(d);
+});
+function opDropDo(d) {
     if (opDrag.multi) { const n = moveOpsAt(opDrag.multi, d.at); if (n) flash(`${n}줄을 옮겼습니다 — Ctrl+Z 로 되돌림`); return; }
     const i = doc.ops.findIndex(o => o.id === opDrag.id); if (i < 0) return;
     const [s, t] = opDrag.group ? opGroupOf(i) : grpSpan(i);   // 작도 줄이 템플릿 묶음이면 묶음째
@@ -8763,7 +8775,7 @@ $('cadOpList').addEventListener('drop', e => {
     doc.ops.splice(at, 0, ...moved);
     opsSeen = doc.ops.length;                          // 줄 수는 그대로 — 목록을 맨 아래로 내리지 않는다
     changed();
-});
+}
 var listSel = false;                                   // 작도 순서 줄을 눌러 고른 것 — 도면에서는 빨갛게 칠하지 않는다(사용자). 형광펜·동그라미가 대신 알린다
 svg.addEventListener('pointerdown', () => { if (listSel) { listSel = false; drawOps(); } }, true);   // 도면을 만지면 평소 선택 표시로
 let opPick = null;                                     // 작도 순서에서 마지막으로 누른 줄 — '+ 단계' 가 그 위에 넣는다
@@ -8773,7 +8785,7 @@ $('cadOpList').addEventListener('click', e => {
     const id = +row.dataset.id, act = e.target.closest('[data-act]');
     if (act) {
         const a = act.dataset.act;
-        if (RP) rpEnd();                               // 재생 중이어도 ✕·✎·↑↓ 는 듣는다 — 재생을 끝내고 한다(재생 처리가 먼저 가로채 아무 일도 안 했다)
+        if (RP && a !== 'ins' && a !== 'note') rpEnd();   // 재생 중이어도 ✕·✎·↑↓ 는 듣는다 — 재생을 끝내고 한다(재생 처리가 먼저 가로채 아무 일도 안 했다)
         if (a === 'del') { snapHist(); [...withLeads(new Set(grpOps(id).map(o => o.id)))].forEach(x => { delOpClean(x); selOps.delete(x); }); pruneSyms(); changed(); }   // 지시선이면 글까지
         if (a === 'rev') revOp(id);
         if (a === 'up') moveOp(id, -1);
@@ -8787,7 +8799,7 @@ $('cadOpList').addEventListener('click', e => {
         }
         return;
     }
-    if (RP) { rpStop(); const i = doc.ops.findIndex(o => o.id === +row.dataset.id); if (i >= 0) { rpGo(i + 1, false); const op = doc.ops.slice(i).find(o => o.t !== 'step'); if (op) { rpMark(op, 900); rpHilite(op, 250); } } return; }
+    if (RP && !e.shiftKey && !e.ctrlKey && !e.metaKey) { rpStop(); const i = doc.ops.findIndex(o => o.id === +row.dataset.id); if (i >= 0) { rpGo(i + 1, false); const op = doc.ops.slice(i).find(o => o.t !== 'step'); if (op) { rpMark(op, 900); rpHilite(op, 250); } } return; }
     // 누른 줄이 도면의 어디인지 — 재생 때처럼 시작점에 동그라미를 조여 들게 한다(단계 줄이면 그 단계의 첫 작도)
     { const i = doc.ops.findIndex(o => o.id === id), op = doc.ops.slice(i).find(o => o.t !== 'step'); if (op && (!row.classList.contains('step') || op !== doc.ops[i])) { rpMark(op, 900); rpHilite(op.grp != null ? grpOps(op.id) : op, 250); } }
     { const o = doc.ops.find(x => x.id === id); noteShow(o && o.note); }   // 커멘트가 있으면 도면 위에 잠시(대표님)
@@ -9188,7 +9200,7 @@ document.addEventListener('keydown', e => {
     if (mod && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
     if (mod && k === 'y') { e.preventDefault(); redo(); return; }
     if (mod && k === 'x') { e.preventDefault();       // 고른 줄을 잘라 둔다 — 넣을 줄을 누르고 Ctrl+V
-        const ids = opIdsFull([...selOps]); if (!ids.length) { flash('잘라 둘 줄을 먼저 고르세요(작도 순서에서 Shift 로 여럿)'); return; }
+        const ids = opIdsFull(selOps.size ? [...selOps] : RP && opPick != null ? [opPick] : []); if (!ids.length) { flash('잘라 둘 줄을 먼저 고르세요(작도 순서에서 Shift 로 여럿)'); return; }
         opClip = ids; listOps(); flash(`${ids.length}줄을 잘라 두었습니다 — 넣을 자리의 줄을 누르고 Ctrl+V (그 줄 뒤에 들어갑니다)`); return; }
     if (mod && k === 'v') { e.preventDefault(); opPaste(); return; }
     if (mod) return;
