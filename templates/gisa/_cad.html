@@ -4176,7 +4176,8 @@ function rpHilite(op, delay) {
     lay.innerHTML = '';
     const list = Array.isArray(op) ? op : [op]; op = list[0];
     const s = list.map(o => opSvg({...o, _raw: true})).join(''); if (!s) return;
-    const k = pxPer(), bw = 11 / k, NS = 'http://www.w3.org/2000/svg';
+    // 굵기는 종이 위 2mm(척도에 따라 — 확대하면 굵어지고 줄이면 가늘어진다) · 화면 6~14px 안(대표님 2026-10 — 화면 11px 고정은 너무 굵었다)
+    const k = pxPer(), bw = Math.min(14 / k, Math.max(6 / k, 2 * scaleDenom() / 1000)), NS = 'http://www.w3.org/2000/svg';
     const tmp = document.createElementNS(NS, 'g'); tmp.innerHTML = s; lay.appendChild(tmp);
     const geo = [...tmp.querySelectorAll('line,path,circle,rect,polyline,polygon,ellipse')].filter(el => el.closest('clipPath,mask') == null);
     const strokes = [], boxes = [];
@@ -4187,12 +4188,12 @@ function rpHilite(op, delay) {
         if (!bb || !(bb.width + bb.height > 0)) return;
         const m = 6 / k, r = document.createElementNS(NS, 'rect');
         [['x', bb.x - m], ['y', bb.y - m], ['width', bb.width + 2 * m], ['height', bb.height + 2 * m], ['rx', 4 / k]].forEach(([a, v]) => r.setAttribute(a, fmt(v)));
-        r.setAttribute('fill', 'rgba(255,0,200,.3)'); r.setAttribute('stroke', 'rgba(0,0,0,.6)'); r.setAttribute('stroke-width', fmt(1.5 / k));
+        r.setAttribute('fill', 'rgba(0,200,255,.3)'); r.setAttribute('stroke', 'rgba(0,0,0,.6)'); r.setAttribute('stroke-width', fmt(1.5 / k));
         lay.appendChild(r); boxes.push(r);
     } else {
         geo.forEach(el => { if (!strokes.includes(el)) el.remove(); });
         tmp.querySelectorAll('text,image,use').forEach(el => el.remove());
-        strokes.forEach(el => { el.setAttribute('fill', 'none'); el.setAttribute('stroke', 'rgba(255,0,200,.7)'); el.setAttribute('stroke-width', fmt(bw));   // 형광펜 마젠타·폭 11px — 노랑은 흰 종이에서 묻혔다(대표님 2026-10). 도면에 안 쓰는 색 — 층에 multiply 를 걸어 모눈이 비친다
+        strokes.forEach(el => { el.setAttribute('fill', 'none'); el.setAttribute('stroke', 'rgba(0,200,255,.75)'); el.setAttribute('stroke-width', fmt(bw));   // 형광펜 하늘 — 노랑은 흰 종이에서 묻혔고, 마젠타를 거쳐 하늘로(대표님 2026-10). 도면에 안 쓰는 색 — 층에 multiply 를 걸어 모눈이 비친다
             el.setAttribute('stroke-linecap', 'round'); el.setAttribute('stroke-linejoin', 'round'); el.removeAttribute('stroke-dasharray'); el.removeAttribute('clip-path'); el.removeAttribute('mask'); });
     }
     const els = strokes.length && boxes.length === 0 ? strokes.map(el => { let L = 0; try { L = el.getTotalLength(); } catch (e) {} return {el, L}; }).filter(e => e.L > 0) : [];
@@ -4238,7 +4239,7 @@ function rpMark(op, dur, noPan) {
         if (t < 0.45) { const e = 1 - Math.pow(1 - t / 0.45, 3); r = 60 - 46 * e; a = e; }
         else if (t < 0.7) { const e = (t - 0.45) / 0.25; r = 14 + 4 * Math.sin(e * Math.PI); a = 1; }
         else { r = 14; a = 1 - (t - 0.7) / 0.3; }
-        g.innerHTML = `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(r / k)}" fill="rgba(255,0,200,${(0.5 * a).toFixed(3)})" stroke="rgba(0,0,0,${(0.6 * a).toFixed(3)})" stroke-width="${fmt(1.5 / k)}"/>`   // 테두리는 가늘고 옅게(1.5px · 60%) — 삼각자(노랑) 위에서도 보이되 무겁지 않게
+        g.innerHTML = `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(r / k)}" fill="rgba(0,200,255,${(0.5 * a).toFixed(3)})" stroke="rgba(0,0,0,${(0.6 * a).toFixed(3)})" stroke-width="${fmt(1.5 / k)}"/>`   // 테두리는 가늘고 옅게(1.5px · 60%) — 삼각자(노랑) 위에서도 보이되 무겁지 않게
             + `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(2.2 / k)}" fill="rgba(0,0,0,${(0.9 * a).toFixed(3)})"/>`;
         if (t < 1) requestAnimationFrame(frame); else g.innerHTML = '';
     };
