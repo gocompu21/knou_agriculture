@@ -379,9 +379,10 @@
                     <button type="button" data-rp="end" class="x" title="재생 끝내기(Esc)">✕</button>
                 </div>
                 <div class="cad-rp-spd" title="재생 배속"><span class="lb">배속</span><span class="seg" id="cadRpSpdBtns"><button type="button" data-spd="2200">0.5X</button><button type="button" data-spd="1100" class="on">1X</button><button type="button" data-spd="733">1.5X</button><button type="button" data-spd="550">2X</button><button type="button" data-spd="367">3X</button><button type="button" data-spd="220">5X</button><button type="button" data-spd="110">10X</button></span></div>
-                <input type="range" id="cadRpBar" min="0" value="0" step="1">
+                <div class="cad-rp-barw"><input type="range" id="cadRpBar" min="0" value="0" step="1"><div class="cad-rp-ticks" id="cadRpTicks"></div></div>
                 <div class="cad-rp-time"><span id="cadRpCur">0:00</span><span id="cadRpDur">0:00</span></div>
                 <div class="cad-rp-tx" id="cadRpTx"></div>
+                <div class="cad-rp-bm" id="cadRpBm" hidden></div>
             </div>
             <div class="cad-tabs">
                 <button type="button" class="on" data-ptab="ops">작도 순서 <em id="cadOpsN"></em></button>
@@ -707,6 +708,18 @@
 .cad-rp button.pl { min-width: 64px; font-weight: 700; background: #f4c542; color: #1b4332; border-color: #f4c542; }
 .cad-rp button.x { margin-left: auto; }
 .cad-rp select { height: 28px; border-radius: 6px; border: 0; font-size: 0.78rem; }
+.cad-rp-barw { position: relative; }
+.cad-rp-barw input { width: 100%; }
+.cad-rp-ticks { position: absolute; left: 8px; right: 8px; top: -3px; height: 6px; pointer-events: none; }
+.cad-rp-ticks i { position: absolute; top: 0; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid #ff9f43; transform: translateX(-4px); }
+/* 북마크 줄 — 한 줄 고정, 넘치면 옆으로 민다(플레이어 높이가 바뀌지 않게) */
+.cad-rp-bm { display: flex; gap: 4px; margin-top: 5px; overflow-x: auto; white-space: nowrap; scrollbar-width: thin; }
+.cad-rp-bm[hidden] { display: none; }
+.cad-rp .cad-rp-bm button { flex: none; height: 22px; font-size: 0.72rem; background: rgba(255,159,67,.18); border-color: rgba(255,159,67,.7); max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+.cad-rp .cad-rp-bm button.cur { background: #ff9f43; color: #1b4332; border-color: #ff9f43; font-weight: 700; }
+.cad-op.bm { box-shadow: inset 3px 0 0 #ff9f43; }
+.cad-op .bt button.bm-on { opacity: 1; filter: none; }
+.cad-op .bt button[data-act="bm"]:not(.bm-on) { opacity: .35; filter: grayscale(1); }
 .cad-rp-spd { display: flex; align-items: center; gap: 8px; margin: 8px 0 3px; padding-top: 7px; border-top: 1px dashed rgba(255,255,255,.25); }   /* 배속(사용자 — 콤보 대신 단추) */
 .cad-rp-spd .lb { font-size: 0.72rem; color: #b7e4c7; letter-spacing: .05em; }
 /* 위 재생 단추와 헷갈리지 않게 한 덩어리 분절 단추로 — 어두운 홈 안에 붙어 있고, 고른 것만 흰 바탕(사용자) */
@@ -3257,14 +3270,14 @@ function listOps() {
         if (op.grp != null && j > 0 && doc.ops[j - 1].grp === op.grp) return '';   // 묶음의 둘째 줄부터는 첫 줄에 합친다
         const grp = op.grp != null ? grpOps(op.id) : null;
         const canRev = (op.t === 'line' && !op.box) || op.t === 'arc' || (op.t === 'free' && !op.mark);   // 긋는 방향 바꾸기(사용자) — 선·호·프리드로잉
-        const bt = `<span class="bt">${canRev ? btn('rev', '긋는 방향 바꾸기', '⇄') : ''}${btn('ins', '여기 뒤에 이어 그리기 — 새로 그리는 것이 이 줄 뒤에 차례로 들어갑니다', '📍')}${btn('note', '커멘트 — 이 줄 아래에 메모를 적습니다', '💬')}${btn('edit', '고치기', '✎')}${btn('del', '지우기', '✕')}</span>`;
+        const bt = `<span class="bt">${canRev ? btn('rev', '긋는 방향 바꾸기', '⇄') : ''}${btn('ins', '여기 뒤에 이어 그리기 — 새로 그리는 것이 이 줄 뒤에 차례로 들어갑니다', '📍')}${btn('note', '커멘트 — 이 줄 아래에 메모를 적습니다', '💬')}${op.bm ? '<button type="button" data-act="bm" class="bm-on" title="북마크 빼기">🔖</button>' : btn('bm', '북마크 — 재생할 때 여기부터 바로 재생합니다', '🔖')}${btn('edit', '고치기', '✎')}${btn('del', '지우기', '✕')}</span>`;
         const nt = op.note ? `<span class="nt">${esc(op.note).replace(/\n/g, '<br>')}</span>` : '';   // 커멘트(대표님) — 번호 아래에
         if (op.t === 'step') { k++;   // 번호는 단계가 바뀌어도 이어 센다(대표님) — 단계마다 1 부터 다시 세면 번호로 줄을 가리킬 때 헷갈렸다
-            return `<div class="cad-op step${insAfter === op.id ? ' ins' : ''}" draggable="true" data-id="${op.id}"><span class="no">(${k})</span><span class="tx">${esc(op.title)}${nt}</span>${bt}</div>`; }
+            return `<div class="cad-op step${insAfter === op.id ? ' ins' : ''}${op.bm ? ' bm' : ''}" draggable="true" data-id="${op.id}"><span class="no">(${k})</span><span class="tx">${esc(op.title)}${nt}</span>${bt}</div>`; }
         i++;
         const kind = op.mark ? ' mk' : isAux(op) ? ' ax' : '';   // 마킹은 녹색, 보조선은 빨강으로 구별(사용자)
         const last = grp ? grp[grp.length - 1].id : op.id;
-        return `<div class="cad-op${kind}${(grp || [op]).some(o => selOps.has(o.id)) ? ' on' : ''}${RP && RP.cur === op.id ? ' rp' : ''}${opClip && opClip.includes(op.id) ? ' cut' : ''}${insAfter === last ? ' ins' : ''}" draggable="true" data-id="${op.id}"><span class="no"><i>${i}</i></span><span class="tx">${esc(grp ? grpDesc(grp) : desc(op))}${nt}</span>${bt}</div>`;
+        return `<div class="cad-op${kind}${(grp || [op]).some(o => selOps.has(o.id)) ? ' on' : ''}${RP && RP.cur === op.id ? ' rp' : ''}${opClip && opClip.includes(op.id) ? ' cut' : ''}${insAfter === last ? ' ins' : ''}${op.bm ? ' bm' : ''}" draggable="true" data-id="${op.id}"><span class="no"><i>${i}</i></span><span class="tx">${esc(grp ? grpDesc(grp) : desc(op))}${nt}</span>${bt}</div>`;
     });
     $('cadOpList').innerHTML = rows.join('') || '<p class="cad-empty">아직 그린 것이 없습니다. 위에서 도구를 고르고 도면을 눌러 보세요.<br>단계 이름을 먼저 넣어 두면 작도 순서가 (1)(2)… 로 묶입니다.</p>';
     $('cadOpsN').textContent = doc.ops.filter(o => o.t !== 'step').length || '';
@@ -4145,6 +4158,7 @@ function rpInfo() {
     $('cadRpTx').innerHTML = !op ? '처음 — ▶ 재생을 누르면 작도 순서대로 그려 보입니다'
         : (step ? `<b>(${no}) ${esc(step)}</b>` : '') + (op.t === 'step' ? '' : `${step ? ' — ' : ''}${circH(i)} ${esc(op.grp != null ? grpDesc(grpOps(op.id)) : desc(op))}`) + (op && op.note ? `<span class="cad-rp-nt">💬 ${esc(op.note)}</span>` : '');   // 도구 자리는 속에만 둔다(사용자)
     $('cadRpTx').title = $('cadRpTx').textContent;
+    rpBmDraw();
     const hid = op ? (op.grp != null ? grpOps(op.id)[0].id : op.id) : null;
     document.querySelectorAll('#cadOpList .cad-op').forEach(r => r.classList.toggle('rp', +r.dataset.id === hid));
     const cur = hid != null && document.querySelector(`#cadOpList .cad-op[data-id="${hid}"]`);
@@ -4267,6 +4281,25 @@ function rpGo(k, anim, cb) {
     else { RP.anim = null; rpApply(target); drawBar(); show(); }
 }
 function rpStop() { if (!RP) return; RP.playing = false; clearTimeout(RP.timer); rpInfo(); }
+// 북마크(대표님) — 그 줄 바로 앞까지 그려 두고 거기부터 재생한다
+const rpBms = () => doc.ops.map((o, j) => o.bm ? j : -1).filter(j => j >= 0);
+function rpFromBm(j) {
+    if (!RP || j == null || j < 0) return;
+    rpStop(); rpGo(j, false); rpPlay();
+    flash(`🔖 북마크부터 재생합니다`);
+}
+function rpBmDraw() {
+    const box = $('cadRpBm'), tk = $('cadRpTicks'); if (!box || !RP) return;
+    const B = rpBms(), T = RP.T || (RP.T = rpTimes()), tot = T[T.length - 1] || 1;
+    box.hidden = !B.length;
+    // 지금 칸이 어느 북마크 구간에 있는가 — 그 단추를 진하게
+    let cur = -1; B.forEach(j => { if (RP.k > j) cur = j; });
+    let no = 0, i = 0; const lab = {};
+    doc.ops.forEach((o, j) => { if (o.t === 'step') no++; else if (!(o.grp != null && j > 0 && doc.ops[j - 1].grp === o.grp)) i++; if (o.bm) lab[j] = o.t === 'step' ? `(${no}) ${o.title}` : `${i} ${o.grp != null ? grpDesc(grpOps(o.id)) : desc(o)}`; });
+    const html = B.map(j => `<button type="button" data-bm="${j}" class="${j === cur ? 'cur' : ''}" title="${esc(lab[j])}">🔖 ${esc(lab[j])}</button>`).join('');
+    if (box.innerHTML !== html) box.innerHTML = html;
+    tk.innerHTML = B.map(j => `<i style="left:${(T[j] / tot * 100).toFixed(2)}%" title="${esc(lab[j])}"></i>`).join('');
+}
 function rpPlay() {
     if (!RP) return;
     if (RP.playing) { rpStop(); return; }
@@ -8796,6 +8829,7 @@ function playLeave() {
     if (back) history.back(); else location.href = location.pathname + '?tab=tasks';
 }
 $('cadRp').addEventListener('click', e => {
+    const m = e.target.closest('[data-bm]'); if (m && RP) { rpFromBm(+m.dataset.bm); return; }
     const b = e.target.closest('[data-rp]'); if (!b || !RP) return;
     const a = b.dataset.rp;
     if (a === 'play') { rpPlay(); return; }
@@ -8823,6 +8857,8 @@ document.addEventListener('keydown', e => {
     else if (k === ' ') go(rpPlay);
     else if (k === 'ArrowRight') go(() => { rpStop(); rpGo(RP.k + 1, true); });
     else if (k === 'ArrowLeft') go(() => { rpStop(); rpGo(RP.k - 1, false); });
+    else if (k === 'b' || k === 'B') go(() => { const B = rpBms(); if (!B.length) { flash('북마크가 없습니다 — 작도 순서 줄의 🔖 로 다세요'); return; }
+        const nx = k === 'B' ? [...B].reverse().find(j => j < RP.k - 1) : B.find(j => j >= RP.k); rpFromBm(nx != null ? nx : B[0]); });
     else if (k === 'Home') go(() => { rpStop(); rpGo(0, false); });
     else if (k === 'End') go(() => { rpStop(); rpGo(doc.ops.length, false); });
     else if (!e.ctrlKey && !e.metaKey) e.stopImmediatePropagation();   // 재생 중 단축키(도구 바꾸기·I자 옮기기)는 막는다
@@ -8968,13 +9004,18 @@ $('cadOpList').addEventListener('click', e => {
     const id = +row.dataset.id, act = e.target.closest('[data-act]');
     if (act) {
         const a = act.dataset.act;
-        if (RP && a !== 'ins' && a !== 'note') rpEnd();   // 재생 중이어도 ✕·✎·↑↓ 는 듣는다 — 재생을 끝내고 한다(재생 처리가 먼저 가로채 아무 일도 안 했다)
+        if (RP && a !== 'ins' && a !== 'note' && a !== 'bm') rpEnd();   // 재생 중이어도 ✕·✎·↑↓ 는 듣는다 — 재생을 끝내고 한다(재생 처리가 먼저 가로채 아무 일도 안 했다)
         if (a === 'del') { snapHist(); [...withLeads(new Set(grpOps(id).map(o => o.id)))].forEach(x => { delOpClean(x); selOps.delete(x); }); pruneSyms(); changed(); }   // 지시선이면 글까지
         if (a === 'rev') revOp(id);
         if (a === 'up') moveOp(id, -1);
         if (a === 'down') moveOp(id, 1);
         if (a === 'edit') editOp(id);
         if (a === 'note') noteEdit(row, id);
+        if (a === 'bm') {                              // 🔖 북마크 — 묶음은 첫 줄에 단다. 도면과 함께 저장된다
+            const o = doc.ops.find(x => x.id === (grpOps(id)[0] || {}).id) || doc.ops.find(x => x.id === id);
+            if (o) { snapHist(); if (o.bm) delete o.bm; else o.bm = 1; changed(); if (RP) rpInfo();
+                flash(o.bm ? '북마크를 달았습니다 — 재생 막대의 🔖 를 누르면 여기부터 재생합니다' : '북마크를 뺐습니다'); }
+        }
         if (a === 'ins') {                             // 📍 — 다시 누르면 해제
             const i = doc.ops.findIndex(o => o.id === id), last = i >= 0 && doc.ops[i].t !== 'step' ? doc.ops[grpSpan(i)[1] - 1].id : id;
             insAfter = insAfter === last ? null : last; listOps();
