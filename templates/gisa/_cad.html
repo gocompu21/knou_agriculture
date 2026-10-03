@@ -4188,12 +4188,12 @@ function rpHilite(op, delay) {
         if (!bb || !(bb.width + bb.height > 0)) return;
         const m = 6 / k, r = document.createElementNS(NS, 'rect');
         [['x', bb.x - m], ['y', bb.y - m], ['width', bb.width + 2 * m], ['height', bb.height + 2 * m], ['rx', 4 / k]].forEach(([a, v]) => r.setAttribute(a, fmt(v)));
-        r.setAttribute('fill', 'rgba(0,200,255,.3)'); r.setAttribute('stroke', 'rgba(0,0,0,.6)'); r.setAttribute('stroke-width', fmt(1.5 / k));
+        r.setAttribute('fill', 'rgba(255,214,0,.35)'); r.setAttribute('stroke', 'rgba(0,0,0,.6)'); r.setAttribute('stroke-width', fmt(1.5 / k));
         lay.appendChild(r); boxes.push(r);
     } else {
         geo.forEach(el => { if (!strokes.includes(el)) el.remove(); });
         tmp.querySelectorAll('text,image,use').forEach(el => el.remove());
-        strokes.forEach(el => { el.setAttribute('fill', 'none'); el.setAttribute('stroke', 'rgba(0,200,255,.75)'); el.setAttribute('stroke-width', fmt(bw));   // 형광펜 하늘 — 노랑은 흰 종이에서 묻혔고, 마젠타를 거쳐 하늘로(대표님 2026-10). 도면에 안 쓰는 색 — 층에 multiply 를 걸어 모눈이 비친다
+        strokes.forEach(el => { el.setAttribute('fill', 'none'); el.setAttribute('stroke', 'rgba(40,220,80,.75)'); el.setAttribute('stroke-width', fmt(bw));   // 줄이 나가는 형광펜은 초록(대표님 2026-10 — 노랑 → 마젠타 → 하늘 → 초록). 반짝이는 동그라미·상자는 노랑 — 층에 multiply 를 걸어 모눈이 비친다
             el.setAttribute('stroke-linecap', 'round'); el.setAttribute('stroke-linejoin', 'round'); el.removeAttribute('stroke-dasharray'); el.removeAttribute('clip-path'); el.removeAttribute('mask'); });
     }
     const els = strokes.length && boxes.length === 0 ? strokes.map(el => { let L = 0; try { L = el.getTotalLength(); } catch (e) {} return {el, L}; }).filter(e => e.L > 0) : [];
@@ -4239,7 +4239,7 @@ function rpMark(op, dur, noPan) {
         if (t < 0.45) { const e = 1 - Math.pow(1 - t / 0.45, 3); r = 60 - 46 * e; a = e; }
         else if (t < 0.7) { const e = (t - 0.45) / 0.25; r = 14 + 4 * Math.sin(e * Math.PI); a = 1; }
         else { r = 14; a = 1 - (t - 0.7) / 0.3; }
-        g.innerHTML = `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(r / k)}" fill="rgba(0,200,255,${(0.5 * a).toFixed(3)})" stroke="rgba(0,0,0,${(0.6 * a).toFixed(3)})" stroke-width="${fmt(1.5 / k)}"/>`   // 테두리는 가늘고 옅게(1.5px · 60%) — 삼각자(노랑) 위에서도 보이되 무겁지 않게
+        g.innerHTML = `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(r / k)}" fill="rgba(255,245,0,${(0.5 * a).toFixed(3)})" stroke="rgba(0,0,0,${(0.6 * a).toFixed(3)})" stroke-width="${fmt(1.5 / k)}"/>`   // 테두리는 가늘고 옅게(1.5px · 60%) — 삼각자(노랑) 위에서도 보이되 무겁지 않게
             + `<circle cx="${fmt(w.x)}" cy="${fmt(w.y)}" r="${fmt(2.2 / k)}" fill="rgba(0,0,0,${(0.9 * a).toFixed(3)})"/>`;
         if (t < 1) requestAnimationFrame(frame); else g.innerHTML = '';
     };
