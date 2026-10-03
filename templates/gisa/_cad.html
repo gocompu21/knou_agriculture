@@ -1915,7 +1915,8 @@ function edgeCross(e, w) {
 }
 function onEdge(e, w) {           // 변 위의 자리 — 가파른 변은 y 를, 누운 변은 x 를 눈금에 맞춘다
     const hp = hitPoint(w);
-    if (hp && Math.abs((hp.x - e.ax) * e.dy - (hp.y - e.ay) * e.dx) < 1e-3) return {x: hp.x, y: hp.y};
+    // 점이 변 위(화면 3px 안)면 그 점에 — 템플릿 귀로 만든 점처럼 자에 1mm 남짓 비껴 있어도 이어지게(대표님)
+    if (hp && Math.abs((hp.x - e.ax) * e.dy - (hp.y - e.ay) * e.dx) < Math.max(1e-3, 3 / pxPer())) return {x: hp.x, y: hp.y};
     const X = edgeCross(e, w); if (X) return X;             // 기존 선과 만나는 자리가 가까우면 거기에 붙는다
     let t = clampT((w.x - e.ax) * e.dx + (w.y - e.ay) * e.dy, e);
     const g = $('cadSnap').checked ? +$('cadSnapStep').value : PREC;
@@ -8084,6 +8085,9 @@ svg.addEventListener('pointerdown', e => {
             if ((hp && hp.n === selPt) || near) { ctxMenu(e, selPt); drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return; }
         }
         // 템플릿 귀 — 둥근 귀에 대고 돌리면 그 귀의 1/4 원(대표님)
+        // 자의 변 곁에서 점을 짚으면 선 긋기가 먼저다 — 귀로 만든 점은 템플릿 판 가장자리에 있어, 이어 그으려 하면
+        // 귀 긋기나 템플릿 옮기기로 잡혔다(대표님)
+        { const ep = hitPoint(w) && nearestEdge(w, 14, x => !x.sr); if (ep) { startPencil(e, w, ep, true); return; } }
         const tc = !c('#cadTpl .tpl-cn') && tplCornerAt(w);
         if (tc) { const a = Math.atan2(w.y - tc.c.y, w.x - tc.c.x); drag = {kind: 'tplCorner', K: tc, btn: e.button, sx: e.clientX, sy: e.clientY, moved: false, a0: a, last: a, sweep: 0}; return; }
         // 템플릿 — 구멍 안에서 누르면 구멍 가장자리를 따라 돌린다(어느 버튼이든), 판을 왼쪽으로 누르면 옮긴다
