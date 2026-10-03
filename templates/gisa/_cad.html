@@ -4176,8 +4176,8 @@ function rpHilite(op, delay) {
     lay.innerHTML = '';
     const list = Array.isArray(op) ? op : [op]; op = list[0];
     const s = list.map(o => opSvg({...o, _raw: true})).join(''); if (!s) return;
-    // 굵기는 종이 위 2mm(척도에 따라 — 확대하면 굵어지고 줄이면 가늘어진다) · 화면 6~14px 안(대표님 2026-10 — 화면 11px 고정은 너무 굵었다)
-    const k = pxPer(), bw = Math.min(14 / k, Math.max(6 / k, 2 * scaleDenom() / 1000)), NS = 'http://www.w3.org/2000/svg';
+    // 굵기는 종이 위 1.2mm(척도에 따라 — 확대하면 굵어지고 줄이면 가늘어진다) · 화면 4~9px 안(대표님 2026-10 — 화면 11px 고정은 너무 굵었다)
+    const k = pxPer(), bw = Math.min(9 / k, Math.max(4 / k, 1.2 * scaleDenom() / 1000)), NS = 'http://www.w3.org/2000/svg';
     const tmp = document.createElementNS(NS, 'g'); tmp.innerHTML = s; lay.appendChild(tmp);
     const geo = [...tmp.querySelectorAll('line,path,circle,rect,polyline,polygon,ellipse')].filter(el => el.closest('clipPath,mask') == null);
     const strokes = [], boxes = [];
