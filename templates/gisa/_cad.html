@@ -4020,6 +4020,15 @@ function paneScroll(el) {
     if (r.top < q.top) p.scrollTop -= q.top - r.top + 4;
     else if (r.bottom > q.bottom) p.scrollTop += r.bottom - q.bottom + 4;
 }
+// ◀▶ 로 옮긴 줄이 목록 맨 아래쪽(또는 위로 가려짐)이면 그 줄을 맨 위로 올린다(대표님) — 다음 줄들이 보이게. 위에 붙은 단계 칸 바로 아래로
+function paneTop(el) {
+    let p = el.parentElement;
+    while (p && !(p.scrollHeight > p.clientHeight + 2 && /(auto|scroll)/.test(getComputedStyle(p).overflowY))) p = p.parentElement;
+    if (!p || p === document.body || p === document.documentElement) return;
+    const r = el.getBoundingClientRect(), q = p.getBoundingClientRect(), st = p.querySelector('.cad-steprow');
+    const top = st ? Math.max(q.top, st.getBoundingClientRect().bottom) : q.top;
+    if (r.top < top || r.bottom > q.bottom - r.height * 1.5) p.scrollTop += r.top - top - 4;
+}
 function rpInfo() {
     const n = doc.ops.length, op = doc.ops[RP.k - 1];
     RP.tk = performance.now(); rpClock();                // 막대는 시간 기준(사용자) — rpClock 이 막대와 시간 글자를 함께 맞춘다
@@ -8716,7 +8725,7 @@ function opStep(d) {
     const rows = [...$('cadOpList').querySelectorAll('.cad-op:not(.step)')]; if (!rows.length) return;
     let i = rows.findIndex(r => +r.dataset.id === opPick);
     i = i < 0 ? (d > 0 ? 0 : rows.length - 1) : Math.max(0, Math.min(rows.length - 1, i + d));
-    const r = rows[i]; r.click(); const r2 = $('cadOpList').querySelector(`.cad-op[data-id="${r.dataset.id}"]`); if (r2) paneScroll(r2);
+    const r = rows[i]; r.click(); const r2 = $('cadOpList').querySelector(`.cad-op[data-id="${r.dataset.id}"]`); if (r2) paneTop(r2);
 }
 $('cadOpPrev').addEventListener('click', () => opStep(-1));
 $('cadOpNext').addEventListener('click', () => opStep(1));
