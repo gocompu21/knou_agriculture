@@ -512,6 +512,7 @@
 .cad-tool-text #cadSvg { cursor: url("data:image/svg+xml,<svg%20xmlns='http://www.w3.org/2000/svg'%20width='28'%20height='28'%20viewBox='0%200%2028%2028'><path%20d='M3%2025V5M3%2025h9'%20stroke='white'%20stroke-width='3.4'%20stroke-linecap='round'%20fill='none'/><path%20d='M3%2025V5M3%2025h9'%20stroke='%23c62828'%20stroke-width='1.6'%20stroke-linecap='round'%20fill='none'/><circle%20cx='3'%20cy='25'%20r='2.2'%20fill='%23c62828'%20stroke='white'%20stroke-width='1'/><text%20x='7'%20y='20'%20font-size='13'%20font-family='sans-serif'%20font-weight='700'%20fill='%23333'%20stroke='white'%20stroke-width='2.4'%20paint-order='stroke'>가</text></svg>") 3 25, text; }
 #cadPre { pointer-events: none; }
 #cadTpl .tpl-rot, #cadSr .sr-rot, #cadFtri .ftri-rot { cursor: grab; }
+#cadTpl .tpl-cn { cursor: pointer; }
 #cadSr .sr-roll { cursor: pointer; }
 .cad.bar-drag #cadSr .sr-rot { cursor: grabbing; }
 .cad.bar-drag #cadTpl .tpl-rot { cursor: grabbing; }
@@ -1094,7 +1095,8 @@ const TPL_KINDS = (() => {
     };
 })();
 const SHAPE_NAME = {c: '원', s: '정사각형', t: '정삼각형', h: '정육각형'}, SHAPE_MARK = {c: '⌀', s: '□', t: '△', h: '⬡'};
-let tpl = null;                                        // {kind, x, y} 템플릿 왼쪽 위(도면 m)
+let tpl = null;                                        // {kind, x, y, rot, corner} 템플릿 왼쪽 위(도면 m) · corner = 모서리 맞춤을 쓰는 귀(0~3)
+const TPL_CR = 2;                                      // 판 네 귀의 둥근 반지름(종이 mm) — 대표님 사진의 템플릿을 재어(1cm = 255px, 귀 약 50px)
 try { tpl = JSON.parse(localStorage.getItem('cadTpl') || 'null'); if (tpl && !TPL_KINDS[tpl.kind]) tpl.kind = 'circle'; } catch (e) {}
 function saveTpl() { try { localStorage.setItem('cadTpl', JSON.stringify(tpl)); } catch (e) {} }
 const tplK = () => ((tpl && tpl.den) || scaleDenom()) / 1000;   // 재생은 그을 때의 축척(tpl.den)               // 종이 위 1mm → 도면 m
@@ -1144,7 +1146,66 @@ function inPoly(p, v) {                                // 볼록 다각형 안
 }
 const inHole = (h, p) => h.s === 'c' ? Math.hypot(p.x - h.c.x, p.y - h.c.y) < (h.d + 0.5) / 2 * tplK() : inPoly(p, h.hv);
 function tplHoleAt(p) { return tplHoles().find(h => inHole(h, p)) || null; }
-function inTplBox(p) { if (!tpl || !sheet) return false; const D = tplDef(), l = tplLocal(p); return l.u >= 0 && l.u <= D.w && l.v >= 0 && l.v <= D.h; }
+function inTplBox(p) {
+    if (!tpl || !sheet) return false;
+    const D = tplDef(), l = tplLocal(p), r = TPL_CR;
+    if (!(l.u >= 0 && l.u <= D.w && l.v >= 0 && l.v <= D.h)) return false;
+    const cu = Math.min(Math.max(l.u, r), D.w - r), cv = Math.min(Math.max(l.v, r), D.h - r);   // 네 귀는 둥글다
+    return Math.hypot(l.u - cu, l.v - cv) <= r + 1e-9;
+}
+// ── 템플릿 모서리 ── 판의 네 귀는 반지름 TPL_CR(mm)로 둥글다. 실물처럼 그 귀에 샤프를 대고 돌리면 1/4 원(모서리 라운드)이 그어진다(대표님).
+// i: 0 왼위 · 1 오른위 · 2 오른아래 · 3 왼아래(돌리기 전). 귀의 호는 판 위 각도 180+90i° ~ +90°
+function tplCorner(i) {
+    const D = tplDef(), k = tplK(), r = TPL_CR, R = r * k, right = i === 1 || i === 2, low = i >= 2;
+    const c = tplMap(right ? D.w - r : r, low ? D.h - r : r), P0 = tplMap(right ? D.w : 0, low ? D.h : 0);
+    const unit = q => { const n = Math.hypot(q.x - P0.x, q.y - P0.y); return {x: (q.x - P0.x) / n, y: (q.y - P0.y) / n}; };
+    const du = unit(tplMap(right ? D.w - 10 : 10, low ? D.h : 0)), dv = unit(tplMap(right ? D.w : 0, low ? D.h - 10 : 10));   // 꼭짓점에서 판 안쪽으로 뻗는 가로 변·세로 변
+    const a0 = (180 + 90 * i) * Math.PI / 180 + tplRot();
+    return {i, c, R, a0, a1: a0 + Math.PI / 2, P0, du, dv, lu: D.w, lv: D.h};
+}
+// 샤프를 댄 자리가 어느 귀의 호 곁인가 — 호에서 화면 10px 안, 호 각도 범위(앞뒤 25° 여유) 안
+function tplCornerAt(w) {
+    if (!tpl || !sheet) return null;
+    const tol = 10 / pxPer();
+    for (let i = 0; i < 4; i++) {
+        const K = tplCorner(i), d = Math.hypot(w.x - K.c.x, w.y - K.c.y);
+        if (Math.abs(d - K.R) > tol) continue;
+        let a = Math.atan2(w.y - K.c.y, w.x - K.c.x) - (K.a0 + Math.PI / 4);
+        a = Math.atan2(Math.sin(a), Math.cos(a));
+        if (Math.abs(a) <= Math.PI / 4 + 25 * Math.PI / 180) return K;
+    }
+    return null;
+}
+// 모서리 맞춤 — 고른 귀의 가로 변·세로 변을 도면의 선(나란한 것)·점에 붙인다. 없으면 판이 반듯할 때 눈금에.
+// 가로 변은 dv 쪽으로, 세로 변은 du 쪽으로 옮긴다. 돌려주는 것: {dx, dy, what: [가로 변 글, 세로 변 글]}
+function tplCornerPin(K, g) {
+    const tol = 12 / pxPer(), L = [];
+    doc.ops.forEach(op => {
+        if (auxHidden(op) || (op.t !== 'line' && op.t !== 'rect')) return;
+        const a = P(op.a), b = P(op.b); if (!a || !b) return;
+        const q = op.t === 'rect' ? [a, {x: b.x, y: a.y}, b, {x: a.x, y: b.y}] : [a, b];
+        for (let j = 0; j < (op.t === 'rect' ? 4 : 1); j++) L.push({a: q[j], b: q[(j + 1) % q.length], aux: isAux(op)});
+    });
+    const fit = (e, n, len) => {                       // e: 변 방향(꼭짓점 → 판 안쪽), n: 변을 옮길 쪽(법선), len: 변 길이(mm)
+        let best = null, bd = tol;
+        const ext = len * tplK(), sm = 3 * tplK();     // 변 곁(변 길이 + 귀 앞 3mm)에 걸친 것만
+        const along = p => (p.x - K.P0.x) * e.x + (p.y - K.P0.y) * e.y, off = p => (p.x - K.P0.x) * n.x + (p.y - K.P0.y) * n.y;
+        L.forEach(l => {
+            const dx = l.b.x - l.a.x, dy = l.b.y - l.a.y, m = Math.hypot(dx, dy); if (m < 1e-9) return;
+            if (Math.abs(dx / m * n.x + dy / m * n.y) > 0.01) return;   // 변과 나란한 선만
+            const t0 = along(l.a), t1 = along(l.b); if (Math.max(t0, t1) < -sm || Math.min(t0, t1) > ext) return;
+            const o = off(l.a); if (Math.abs(o) < bd) { bd = Math.abs(o); best = {s: o, what: l.aux ? '보조선' : '선'}; }
+        });
+        doc.pts.forEach(p => { const t = along(p); if (t < -sm || t > ext) return; const o = off(p); if (Math.abs(o) < bd) { bd = Math.abs(o); best = {s: o, what: `P${p.n}`}; } });
+        if (best) return best;
+        if (Math.abs(n.x) < 1e-9 || Math.abs(n.y) < 1e-9) {   // 판이 반듯하면 눈금
+            const v = K.P0.x * n.x + K.P0.y * n.y; return {s: Math.round(v / g) * g - v, what: '눈금'};
+        }
+        return {s: 0, what: ''};
+    };
+    const a = fit(K.du, K.dv, K.lu), b = fit(K.dv, K.du, K.lv);
+    return {dx: K.dv.x * a.s + K.du.x * b.s, dy: K.dv.y * a.s + K.du.y * b.s, what: [a.what, b.what]};
+}
 function onTpl(p) { return inTplBox(p) && !tplHoleAt(p); }     // 템플릿 판 위(구멍은 종이)
 function holeLabel(h) { return `${SHAPE_MARK[h.s]}${h.d}mm`; }
 function drawTpl() {
@@ -1157,7 +1218,8 @@ function drawTpl() {
     const M = (u, v) => { const q = tplMap(u, v); return `${f(q.x)} ${f(q.y)}`; };
     const moving = drag && drag.kind === 'tpl' && drag.moved;
     // 판 — 바깥 사각형 + 구멍(evenodd). 구멍은 판이 아니라 누르면 종이다
-    let d = `M${M(0, 0)}L${M(D.w, 0)}L${M(D.w, D.h)}L${M(0, D.h)}Z`;
+    const cr = TPL_CR, A = `A${f(cr * k)} ${f(cr * k)} 0 0 1 `;   // 네 귀는 둥글다 — 실물처럼 귀로 모서리 라운드를 긋는다
+    let d = `M${M(cr, 0)}L${M(D.w - cr, 0)}${A}${M(D.w, cr)}L${M(D.w, D.h - cr)}${A}${M(D.w - cr, D.h)}L${M(cr, D.h)}${A}${M(0, D.h - cr)}L${M(0, cr)}${A}${M(cr, 0)}Z`;
     H.forEach(h => {
         if (h.s === 'c') { const e = (h.d + 0.5) / 2 * k; d += `M${f(h.c.x - e)} ${f(h.c.y)}a${f(e)} ${f(e)} 0 1 0 ${f(2 * e)} 0a${f(e)} ${f(e)} 0 1 0 ${f(-2 * e)} 0Z`; }
         else d += 'M' + h.hv.map(q => `${f(q.x)} ${f(q.y)}`).join('L') + 'Z';
@@ -1199,7 +1261,21 @@ function drawTpl() {
             + `<path d="M0 ${f(-rr)}A${f(rr)} ${f(rr)} 0 1 1 ${f(-rr)} 0" fill="none" stroke="#6b4c00" stroke-width="${f(0.35 * k)}" stroke-linecap="round"/>`
             + `<path d="M${f(-rr - 0.7 * k)} ${f(0.05 * k)}L${f(-rr + 0.7 * k)} ${f(0.05 * k)}L${f(-rr)} ${f(-0.9 * k)}Z" fill="#6b4c00"/></g>`;
     }
-    if (moving && drag.hole) {                          // 끄는 동안 잡은 구멍의 중심 좌표
+    for (let i = 0; i < 4; i++) {                       // 모서리 표시 — 누르면 그 귀의 두 변을 도면에 맞춘다(다시 누르면 끔)
+        const on = tpl.corner === i, su = i === 1 || i === 2 ? 1 : -1, sv = i >= 2 ? 1 : -1;
+        const mu = (su < 0 ? 0 : D.w) - su * (TPL_CR + 3.6), mv = (sv < 0 ? 0 : D.h) - sv * (TPL_CR + 3.6), m = tplMap(mu, mv);
+        const g1 = tplMap(mu + su * 1.2, mv - sv * 1.1), g2 = tplMap(mu + su * 1.2, mv + sv * 1.2), g3 = tplMap(mu - su * 1.1, mv + sv * 1.2);
+        o += `<g class="tpl-cn${on ? ' on' : ''}" data-i="${i}"><title>${on ? '모서리 맞춤 끄기' : '이 모서리로 호 긋기 — 두 변을 도면에 맞춤'}</title>`
+           + `<circle cx="${f(m.x)}" cy="${f(m.y)}" r="${f(2.2 * k)}" fill="${on ? '#c62828' : 'rgba(255,255,255,.6)'}" stroke="${on ? '#8e0000' : '#8a6410'}" stroke-width="${f(0.14 * k)}"/>`
+           + `<path d="M${f(g1.x)} ${f(g1.y)}Q${f(g2.x)} ${f(g2.y)} ${f(g3.x)} ${f(g3.y)}" fill="none" stroke="${on ? '#fff' : '#6b4c00'}" stroke-width="${f(0.32 * k)}" stroke-linecap="round" pointer-events="none"/></g>`;
+    }
+    if (tpl.corner != null) {                           // 고른 귀 — 호를 붉게, 옮기는 동안은 두 변을 길게 내어 보인다
+        const K = tplCorner(tpl.corner), p0 = {x: K.c.x + K.R * Math.cos(K.a0), y: K.c.y + K.R * Math.sin(K.a0)}, p1 = {x: K.c.x + K.R * Math.cos(K.a1), y: K.c.y + K.R * Math.sin(K.a1)};
+        o += `<path d="M${f(p0.x)} ${f(p0.y)}A${f(K.R)} ${f(K.R)} 0 0 1 ${f(p1.x)} ${f(p1.y)}" fill="none" stroke="#c62828" stroke-width="${f(0.35 * k)}" pointer-events="none"/>`;
+        if (moving) { const Lg = Math.max(sheet.x1 - sheet.x0, sheet.y1 - sheet.y0);
+            o += `<path d="M${f(K.P0.x - K.du.x * Lg)} ${f(K.P0.y - K.du.y * Lg)}L${f(K.P0.x + K.du.x * Lg)} ${f(K.P0.y + K.du.y * Lg)}M${f(K.P0.x - K.dv.x * Lg)} ${f(K.P0.y - K.dv.y * Lg)}L${f(K.P0.x + K.dv.x * Lg)} ${f(K.P0.y + K.dv.y * Lg)}" stroke="#c62828" stroke-width="${f(0.06 * U)}" stroke-dasharray="${f(0.5 * U)} ${f(0.35 * U)}" pointer-events="none"/>`; }
+    }
+    if (moving && drag.hole && tpl.corner == null) {    // 끄는 동안 잡은 구멍의 중심 좌표
         const hk = drag.pin || drag.hole, h = H.find(q => q.s === hk.s && q.d === hk.d), fs = 1.4 * U, lb = `${holeLabel(h)}  X ${fmt1(h.c.x)} · Y ${fmt1(h.c.y)}`, tw = lb.length * fs * 0.55;
         o += `<g pointer-events="none"><path d="M${f(h.c.x)} ${f(sheet.y0)}V${f(sheet.y1)}M${f(sheet.x0)} ${f(h.c.y)}H${f(sheet.x1)}" stroke="#c62828" stroke-width="${f(0.06 * U)}" stroke-dasharray="${f(0.5 * U)} ${f(0.35 * U)}"/>`
            + `<rect x="${f(h.c.x + h.hr + 0.6 * U)}" y="${f(h.c.y - h.hr - 2.2 * U)}" width="${f(tw)}" height="${f(fs * 1.5)}" rx="${f(0.3 * U)}" fill="#c62828"/>`
@@ -7819,6 +7895,13 @@ svg.addEventListener('pointerdown', e => {
         drag = {kind: 'ftrirot', c: G.C, a0: Math.atan2(w.y - G.C.y, w.x - G.C.x), r0: ftri.rot || 0, R0: {x: ftri.x, y: ftri.y}, sx: e.clientX, sy: e.clientY, moved: false};
         root.classList.add('bar-drag'); return;
     }
+    if (e.button === 0 && e.target.closest && e.target.closest('#cadTpl .tpl-cn')) {    // 템플릿 모서리 표시 — 그 귀의 모서리 맞춤 켜기·끄기
+        const i = +e.target.closest('#cadTpl .tpl-cn').dataset.i;
+        tpl.corner = tpl.corner === i ? null : i; saveTpl(); drawTpl();
+        flash(tpl.corner == null ? '모서리 맞춤을 껐습니다 — 판을 옮기면 구멍 중심이 맞춰집니다'
+            : '모서리 맞춤 — 판을 끌면 이 귀의 가로 변·세로 변이 도면의 선·점에 붙습니다. 샤프를 붉은 귀에 대고 돌리면 1/4 원이 그어집니다');
+        drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return;
+    }
     if (e.button === 0 && e.target.closest && e.target.closest('#cadTpl .tpl-rot')) {   // 템플릿 회전 핸들
         const c = tplCenter(), w = toWorld(e);
         drag = {kind: 'tplrotd', c, a0: Math.atan2(w.y - c.y, w.x - c.x), r0: tpl.rot || 0, sx: e.clientX, sy: e.clientY, moved: false};
@@ -8000,6 +8083,9 @@ svg.addEventListener('pointerdown', e => {
             const sp = P(selPt), near = sp && Math.hypot(sp.x - w.x, sp.y - w.y) * pxPer() <= 11;   // 겹친 점이면 hitPoint 가 다른 점을 줄 수 있다
             if ((hp && hp.n === selPt) || near) { ctxMenu(e, selPt); drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return; }
         }
+        // 템플릿 귀 — 둥근 귀에 대고 돌리면 그 귀의 1/4 원(대표님)
+        const tc = !c('#cadTpl .tpl-cn') && tplCornerAt(w);
+        if (tc) { const a = Math.atan2(w.y - tc.c.y, w.x - tc.c.x); drag = {kind: 'tplCorner', K: tc, btn: e.button, sx: e.clientX, sy: e.clientY, moved: false, a0: a, last: a, sweep: 0}; return; }
         // 템플릿 — 구멍 안에서 누르면 구멍 가장자리를 따라 돌린다(어느 버튼이든), 판을 왼쪽으로 누르면 옮긴다
         const hole = tplHoleAt(w);
         if (hole) {
@@ -8233,6 +8319,16 @@ svg.addEventListener('pointermove', e => {
             // 스냅을 끄면 0.001m 로 자유롭게 — barStep() 은 스냅이 꺼지면 PREC(종이 눈금 ÷ 50)라 A2 1:400 에서 0.08m 칸에 묶여
             // 0.05 자리(네모 가운데 등)에 끝내 못 갔다(사용자)
             const g = $('cadSnap').checked ? barStep() : 0.001, raw = {x: w.x - drag.gx, y: w.y - drag.gy};
+            if (tpl.corner != null) {                  // 모서리 맞춤 — 고른 귀의 두 변을 선·점(없으면 눈금)에 붙인다. Alt 는 자유롭게
+                tpl.x = raw.x - drag.ox; tpl.y = raw.y - drag.oy;
+                const q = e.altKey ? {dx: 0, dy: 0, what: ['', '']} : tplCornerPin(tplCorner(tpl.corner), g);
+                tpl.x = +(tpl.x + q.dx).toFixed(4); tpl.y = +(tpl.y + q.dy).toFixed(4);
+                drag.pin = null; drawTpl(); hover = null; drawPre();
+                const K2 = tplCorner(tpl.corner);
+                $('cadXY').textContent = `템플릿 모서리 X ${fmt1(+K2.P0.x.toFixed(3))} · Y ${fmt1(+K2.P0.y.toFixed(3))}`
+                    + (q.what[0] ? ` · 가로 변: ${q.what[0]}` : '') + (q.what[1] ? ` · 세로 변: ${q.what[1]}` : '');
+                return;
+            }
             let cx = Math.round(raw.x / g) * g, cy = Math.round(raw.y / g) * g, tan = null, pin = e.altKey ? null : tplPin(raw, g);
             // 점·선에 맞춤(`tplPin`) → 선에 접하기 → 눈금. Alt 를 누르면 눈금만
             if (pin) { cx = raw.x + pin.t.x - pin.h.c.x; cy = raw.y + pin.t.y - pin.h.c.y; }   // 잡은 구멍의 중심 자리(그만큼 판을 옮긴다)
@@ -8243,6 +8339,18 @@ svg.addEventListener('pointermove', e => {
             $('cadXY').textContent = pin ? `템플릿 ${holeLabel(pin.h)} 중심을 ${pin.what}에 맞춤 · X ${fmt1(+pin.t.x.toFixed(3))} · Y ${fmt1(+pin.t.y.toFixed(3))}`
                 : `템플릿 ${holeLabel(drag.hole)} 중심 X ${fmt1(+cx.toFixed(3))} · Y ${fmt1(+cy.toFixed(3))}` + (tan ? ` · 선 ${tan.n}개에 접함` : '');
         }
+        return;
+    }
+    if (drag && drag.kind === 'tplCorner') {           // 귀를 따라 돌린 각도 — 귀의 1/4 원 안에서만 그어진다
+        const K = drag.K, a = Math.atan2(w.y - K.c.y, w.x - K.c.x);
+        let da = a - drag.last; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
+        drag.last = a; drag.sweep += da;
+        if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 4) drag.moved = true;
+        const mid = K.a0 + Math.PI / 4, nz = x => { let t = x - mid; t = Math.atan2(Math.sin(t), Math.cos(t)); return mid + Math.max(-Math.PI / 4, Math.min(Math.PI / 4, t)); };
+        const s0 = nz(drag.a0), s1 = nz(drag.a0 + drag.sweep), ss = strokeStyle(), st = stAttr(ss.ls, ss.w), R = K.R;
+        const p0 = {x: K.c.x + R * Math.cos(s0), y: K.c.y + R * Math.sin(s0)}, p1 = {x: K.c.x + R * Math.cos(s1), y: K.c.y + R * Math.sin(s1)};
+        gPre.innerHTML = Math.abs(s1 - s0) > 0.02 ? `<path d="${arcD(p0.x, p0.y, p1.x, p1.y, R, s1 > s0, false)}" ${st}/>` : '';
+        $('cadXY').textContent = `템플릿 모서리 호 — 반지름 ${fmt(R)}m (종이 ${TPL_CR}mm) · 떼면 1/4 원`;
         return;
     }
     if (drag && drag.kind === 'tplTrace') {            // 구멍을 따라 돌린 각도를 모은다 — 돈 만큼 호, 한 바퀴면 원
@@ -8382,6 +8490,18 @@ function endPtr(e) {
     if (d.kind === 'sr') { root.classList.remove('bar-drag'); if (d.moved) saveSr(); drawSr(); return; }
     if (d.kind === 'tplrotd') { if (d.moved) saveTpl(); else flash('회전 핸들을 끌어서 돌리세요 (Shift 를 누르면 15° 씩)'); drawTpl(); return; }
     if (d.kind === 'tpl') { root.classList.remove('bar-drag'); if (d.moved) saveTpl(); drawTpl(); return; }
+    if (d.kind === 'tplCorner') {                      // 조금이라도 돌렸으면 그 귀의 1/4 원을 정확히 긋는다(돈 방향으로)
+        gPre.innerHTML = '';
+        if (!d.moved || Math.abs(d.sweep) < 0.17) { if (!d.moved && d.btn === 0) penDot(toWorld(e), true); return; }
+        snapHist();
+        const K = d.K, R = K.R, pa = {x: K.c.x + R * Math.cos(K.a0), y: K.c.y + R * Math.sin(K.a0)}, pb = {x: K.c.x + R * Math.cos(K.a1), y: K.c.y + R * Math.sin(K.a1)};
+        const cw = d.sweep > 0, p1 = cw ? pa : pb, p2 = cw ? pb : pa, a = addPt(p1.x, p1.y), b = addPt(p2.x, p2.y);
+        const arcOp = {id: doc.seq++, t: 'arc', a, b, dir: cw ? 'cw' : 'ccw', r: +R.toFixed(3), big: false, ...strokeStyle()};
+        doc.ops.push(arcOp);
+        const jn = arcJoin(arcOp, 12 / pxPer());
+        changed(); flash(`템플릿 모서리로 1/4 원을 그었습니다 — 반지름 ${fmt(R)}m (종이 ${TPL_CR}mm)` + (jn ? ` · 선 ${jn}개 끝을 호에 맞췄습니다` : ''));
+        return;
+    }
     if (d.kind === 'tplTrace') {
         gPre.innerHTML = '';
         const h = d.hole, sw = traceSweep(d), r = h.r;
