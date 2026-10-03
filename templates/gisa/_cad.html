@@ -2763,7 +2763,8 @@ function setSheet(key) {
     // 트레이싱지는 눈금이 없으니 그 축척의 스케일자 눈금에 맞춘다(사용자) — 스냅으로 찍은 점을 늘 자 눈금으로 다시 잴 수 있게.
     // 1:400 이면 0.25(시설 치수, 자 작은 눈금의 절반) · 0.5 · 1 · 5 · 10m. 모눈종이는 인쇄된 눈금(1cm → 1/5 → 1/10)을 따른다
     const G = srGrad(scaleDenom()), trace = sheet.paper === 'trace';
-    const steps = trace ? [G[0] / 2, G[0], G[1], G[2], G[3]].filter(v => v > 0)
+    // 1m 눈금 자(1:300·1:400·1:500)는 0.5m 도 둔다(대표님 — 1:400 에서 0.5m 단위로 잡을 일이 많다)
+    const steps = trace ? [G[0] / 2, G[0], ...(G[1] >= 1 ? [G[1] / 2] : []), G[1], G[2], G[3]].filter(v => v > 0)
                         : [...(scaleDenom() <= 100 ? [0.05] : []), 0.1, 0.2, mi / 2, mi, sheet.step];
     sel.innerHTML = [...new Set(steps.map(v => +v.toFixed(3)))].sort((x, y) => x - y).map(v => `<option value="${v}">${fmt(v)}m</option>`).join('');
     sel.value = [...sel.options].some(o => o.value === keep) ? keep : String(trace ? +G[0].toFixed(3) : mi);
