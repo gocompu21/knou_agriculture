@@ -1004,9 +1004,10 @@ function drawTri() {
     const g = $('cadTri'), G = triGeom();
     $('cadTri45').classList.toggle('on', !!G && tri.kind === '45');
     $('cadTri60').classList.toggle('on', !!G && tri.kind === '60');
-    $('cadTriFlip').hidden = !G;
+    // 재생 중에는 감춘다(대표님) — 삼각자가 나타날 때마다 단추가 늘어 도구 줄이 두 줄로 넘어가며 도면이 위아래로 흔들렸다
+    $('cadTriFlip').hidden = !G || !!RP;
     triSizeNote();
-    $('cadTriRot').hidden = !G || tri.kind !== '60';
+    $('cadTriRot').hidden = !G || tri.kind !== '60' || !!RP;
     if (G) $('cadTriRot').textContent = tri.alt ? '빗변 60°' : '빗변 30°';
     if (!G) { g.innerHTML = ''; return; }
     const {R, T, B} = G, f = v => fmt(v), cx = (R.x + T.x + B.x) / 3, cy = (R.y + T.y + B.y) / 3;
