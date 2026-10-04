@@ -54,6 +54,7 @@
         <button type="button" data-tool="arrow" title="동선 화살표 (A) — 점을 찍어 가며 긋고 끝에 화살촉. 주동선·부동선·차량동선" aria-label="동선 화살표"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 15C6 15 7 6 13.5 6"/><path d="M12 2.6 17.5 6 12 9.4Z" class="f"/></svg></button>
         <button type="button" data-tool="hedge" title="경계식재 (H) — 벽 선을 차례로 누르고 띠를 둘 쪽을 누르면 벽을 따라 폭 1m 식재 띠(파인 홈 + 빗금)" aria-label="경계식재"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 15H18"/><path d="M2 8H5.5a1.5 1.5 0 0 0 3 0H11.5a1.5 1.5 0 0 0 3 0H18"/><path d="M4 14.5 7 8.6M9.5 14.5 12 9.2M15 14.5 17 10.5" stroke-width="1"/></svg></button>
         <button type="button" data-tool="lead" title="지시선 (L) — 수목을 이은 다각선 끝점 → 꺾는 자리. 위에 '갯수-수종', 아래에 규격" aria-label="지시선"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16L8 7H18"/><circle cx="3" cy="16" r="1.6" class="f"/><path d="M10 5H16M10 10H15" stroke-width="1.2"/></svg></button>
+        <button type="button" data-tool="dim" title="치수선 (N) — 재려는 두 점을 차례로 누르고, 치수선을 둘 자리를 누릅니다. 치수는 따로 된 레이어" aria-label="치수선"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4v10M17 4v10" stroke-width="1.1"/><path d="M3 11H17"/><path d="M3 11l3-1.6v3.2ZM17 11l-3-1.6v3.2Z" class="f"/><path d="M8 7.5h4" stroke-width="1.1"/></svg></button>
         <button type="button" data-tool="free" title="프리드로잉 (D) — 누른 채 끌면 손 가는 대로 선이 그어집니다(자 위로는 그어지지 않습니다)" aria-label="프리드로잉"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 15.5c2-3.5 3.6-4.6 5-3.4 1.3 1.1-.4 3.2 1 3.9 1.6.8 3.2-3.6 5-6.2 1.2-1.7 2.4-2.4 4-2.2"/><path d="m14.2 3.2 2.6 2.6-1.6 1.6-2.6-2.6Z" class="f"/></svg></button>
         <select id="cadFfSm" class="cad-txt" style="width:46px" title="프리드로잉 다듬기 세기 — 셀수록 손떨림을 펴서 크게 흐르는 곡선이 됩니다"><option value="0">약</option><option value="1">중</option><option value="2">강</option></select><button type="button" id="cadFfTidy" class="cad-b" style="padding:2px 7px;font-size:0.76rem" title="고른 프리드로잉을 한 단계 더 매끈하게 (누를 때마다, Ctrl+Z 로 되돌리기)">다듬기</button>
         <select id="cadFfW" class="cad-txt" style="width:62px" title="프리드로잉 선 두께"><option value="p5">얇은</option><option value="p9">굵은</option><option value="thin">가늘게</option><option value="mid">보통</option><option value="thick">굵게</option></select>
@@ -71,6 +72,7 @@
         <label class="cad-chk" title="점과 점 번호 보이기·감추기"><input type="checkbox" id="cadShowPts" checked> 점</label>
         <label class="cad-chk" title="보조선 레이어 보이기·감추기 — 색은 설정(⚙)에서"><input type="checkbox" id="cadAuxChk" checked> 보조선</label>
         <label class="cad-chk" title="스케일자 마킹 보이기·감추기"><input type="checkbox" id="cadMarkChk" checked> 마킹</label>
+        <label class="cad-chk" title="치수 레이어 보이기·감추기 — 색은 설정(⚙)에서"><input type="checkbox" id="cadDimChk" checked> 치수</label>
         <label class="cad-chk" title="스냅 켜기·끄기 (F9)"><input type="checkbox" id="cadSnap" checked> 스냅</label>
         <select id="cadSnapStep" class="cad-txt" title="스냅 간격"></select>
         <span class="cad-sep"></span>
@@ -139,6 +141,9 @@
                 <label class="cad-chk"><input type="checkbox" id="cadMarkOn" checked> 보이기</label>
                 <label class="cad-set-sub">색 <input type="color" id="cadMarkColor" class="cad-set-color"></label>
                 <button type="button" id="cadMarkClear" class="cad-bar-btn" title="마킹 표시와, 다른 선이 쓰지 않는 마킹 점을 모두 지웁니다 (Ctrl+Z 로 되돌림)">모두 지우기</button></div>
+            <div class="cad-set-row"><span class="cad-set-lb" title="치수선 도구(N)로 넣은 치수">치수 레이어</span>
+                <label class="cad-chk"><input type="checkbox" id="cadDimOn" checked> 보이기</label>
+                <label class="cad-set-sub">색 <input type="color" id="cadDimColor" class="cad-set-color"></label></div>
             <p class="cad-set-note">설정은 이 브라우저에 남습니다.</p>
         </div>
     </div>
@@ -272,6 +277,17 @@
                        네 변은 한 묶음(작도 순서 한 줄)이고, 재생 때는 가로변은 I자로, 세로변은 I자에 얹은 삼각자로 아래에서 위로 긋습니다.</p>
                     <div class="cad-row"><label>샤프<select id="fbW"><option value="p9">굵은 샤프</option><option value="p5">얇은 샤프</option></select></label>
                         <span class="cad-help">선 종류는 설정의 그 샤프 선 종류</span></div>
+                </div>
+                <div data-form="dim">
+                    <h4>치수선</h4>
+                    <p class="cad-help">① 재려는 첫 점 ② 둘째 점을 누르고 ③ 치수선을 둘 자리를 누릅니다. 점 곁이면 그 점에, 아니면 눈금에 붙습니다.<br>
+                       '자동'이면 커서를 위아래로 빼면 가로 치수, 옆으로 빼면 세로 치수입니다. 우클릭·Esc 취소, Backspace 한 단계 되돌리기.<br>
+                       치수는 <b>따로 된 레이어</b>라 도구 줄 '치수' 체크로 감출 수 있고, 지우개·채우기·자 붙기에 끼지 않습니다. 작도 순서의 ✎ 로 글자를 바꿉니다.</p>
+                    <div class="cad-row"><label>방향<select id="fdmMode"><option value="auto">자동(가로·세로)</option><option value="h">가로</option><option value="v">세로</option><option value="al">두 점 나란히</option></select></label>
+                        <label>단위<select id="fdmUnit"><option value="m">m (12.5)</option><option value="mm">mm (12,500)</option></select></label></div>
+                    <div class="cad-row"><label>끝<select id="fdmEnd"><option value="arrow">화살촉</option><option value="tick">사선(／)</option><option value="dot">점</option></select></label>
+                        <label>글자<select id="fdmMm"><option value="2">2mm</option><option value="2.5">2.5mm</option><option value="3" selected>3mm</option><option value="4">4mm</option></select></label></div>
+                    <div class="cad-row"><label>글자 바꾸기<input id="fdmTxt" class="cad-txt" placeholder="비우면 길이" style="width:110px"></label><span></span></div>
                 </div>
                 <div data-form="poly">
                     <h4>다각선</h4>
@@ -560,6 +576,7 @@
 /* 보조선 레이어 — 끄면 화면에서 감추고, 지우개·영역 선택도 건드리지 않는다 */
 .cad.aux-off #cadOps g.aux { display: none; }
 .cad.mark-off #cadOps g.mark, .cad.mark-off #cadOps .sym-mark { display: none; }
+.cad.dim-off #cadOps g.dim { display: none; }
 .cad-ctx { position: fixed; z-index: 60; min-width: 170px; background: #fff; border: 1px solid #c9ced3; border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,.18); padding: 4px 0; font-size: 13px; }
 .cad-ctx[hidden] { display: none; }
 .cad-ctx .ch { padding: 4px 12px 5px; color: #6b7076; font-size: 12px; border-bottom: 1px solid #eef0f2; margin-bottom: 2px; }
@@ -2575,6 +2592,7 @@ function hedgeMaskSvg(op) {
         + hit.map(Q => `<path d="M${Q.map(q => `${fmt(q[0])} ${fmt(q[1])}`).join('L')}Z" fill="#000"/>`).join('') + '</mask>'};
 }
 function opSvg(op) {
+    if (op.t === 'dim') return dimSvg(op);
     if (!op._hm && ((op.t === 'free' && op.hedge && op.pts && op.pts.length > 1) || (op.t === 'fill' && op.hedgeFill))) {
         const mk = hedgeMaskSvg(op), inner = opSvg({...op, _hm: true});
         return mk && inner ? mk.svg + `<g mask="url(#${mk.id})">${inner}</g>` : inner;
@@ -2793,7 +2811,7 @@ function ftMmFrom(size) {            // 도면 m → 종이 mm. 목록에 없는
 }
 function renderAll() { drawBar(); drawOps(); drawPts(); drawPre(); listOps(); listPts(); markAwait(); savedLabel(); selInfo(); }
 const isAux = op => op.ls === 'aux';
-const auxHidden = op => (isAux(op) && !SET.auxOn) || (!!op.mark && SET.markOn === false);   // 꺼진 보조선·마킹 — 지우개·선택이 건드리지 않는다
+const auxHidden = op => (isAux(op) && !SET.auxOn) || (!!op.mark && SET.markOn === false) || (op.t === 'dim' && SET.dimOn === false);   // 치수 레이어도   // 꺼진 보조선·마킹 — 지우개·선택이 건드리지 않는다
 function setAux(on) {
     SET.auxOn = on; $('cadAuxOn').checked = on; $('cadAuxChk').checked = on; $('cadAuxBtn').classList.toggle('on', on);
     root.classList.toggle('aux-off', !on);
@@ -2807,7 +2825,7 @@ function drawOps() {
     const ops = (RP ? doc.ops.slice(0, RP.k) : doc.ops).filter(o => o.t !== 'step'), fills = ops.filter(o => o.t === 'fill'), aux = ops.filter(isAux), marks = ops.filter(o => o.mark && !isAux(o)),
           rest = ops.filter(o => !isAux(o) && !o.mark && o.t !== 'fill');
     gOps.innerHTML = [...fills, ...aux, ...marks, ...rest].map(op => {   // 칠한 면이 맨 아래
-        const s = opSvg(op), cl = [isAux(op) ? 'aux' : '', op.mark ? 'mark' : '', (!RP && !listSel && selOps.has(op.id)) || (flashRed.ids && flashRed.ids.includes(op.id)) ? 'on' : '', RP && RP.cur === op.id ? 'rp-cur' : ''].filter(Boolean).join(' ');
+        const s = opSvg(op), cl = [isAux(op) ? 'aux' : '', op.mark ? 'mark' : '', op.t === 'dim' ? 'dim' : '', (!RP && !listSel && selOps.has(op.id)) || (flashRed.ids && flashRed.ids.includes(op.id)) ? 'on' : '', RP && RP.cur === op.id ? 'rp-cur' : ''].filter(Boolean).join(' ');
         const hit = op.t === 'fill' && op.d ? `<path class="hit-fill" d="${op.d}" fill-rule="evenodd"/>` : s;   // 칠한 면은 면 전체로 고른다(선택 도구) — 선만 잡히면 안을 눌러도 안 골라졌다(대표님)
         return s ? `<g data-op="${op.id}"${cl ? ` class="${cl}"` : ''}>${s}<g class="cad-hit">${hit}</g></g>` : '';
     }).join('');
@@ -2837,6 +2855,7 @@ function drawPts() {
 function drawPre() {
     if (RP) { gPre.innerHTML = ''; return; }
     if (tool === 'poly') { gPre.innerHTML = polyPreSvg(); return; }
+    if (tool === 'dim') { gPre.innerHTML = dimPreSvg(); return; }
     if (tool === 'lead') { gPre.innerHTML = leadPreSvg(); return; }
     if (tool === 'hedge') { gPre.innerHTML = hedgePreSvg(); return; }
     if (tool === 'arrow') { gPre.innerHTML = arrowPreSvg(); return; }
@@ -2892,6 +2911,7 @@ function lsTxtFull(op) {
 function desc(op, full) {
     const ptxt = full ? ptxtFull : (n => `P${n}`), lsTxt = full ? lsTxtFull : (o => (LS[o.ls] || LS.solid).name);   // 목록에는 굵기(굵은 샤프 등)를 안 보인다(사용자)
     switch (op.t) {
+        case 'dim': { const g = dimGeom(op); return `치수${op.mode === 'v' ? '(세로)' : op.mode === 'al' ? '(나란히)' : ''} ${ptxt(op.a)} – ${ptxt(op.b)}${g ? ' · ' + dimText(op, g.L) + (op.txt ? '' : op.unit === 'mm' ? 'mm' : 'm') : ''}`; }
         case 'under': return op.under ? `밑그림 깔기 — ${op.under.name || '도면 ' + op.under.id}` : '밑그림 걷기';
         case 'free': if (op.arrow) { const a = op.pts || []; let L = 0; for (let i = 1; i < a.length; i++) L += Math.hypot(a[i][0] - a[i - 1][0], a[i][1] - a[i - 1][1]);
                 return `${(ARROW_KINDS[op.arrow.kind] || ARROW_KINDS.main).name} 화살표${op.arrow.both ? '(양방향)' : ''} · ${fmt(+L.toFixed(1))}m`; }
@@ -4698,6 +4718,114 @@ function makeBox(A, B) {
 }
 // ── 다각선(사용자) — 있는 점만 차례로 누르며 잇는다(새 점을 만들지 않는다). 변마다 선 하나, 모두 한 묶음(poly).
 // 변마다 도구 자리는 **회전 삼각자**(자유 삼각자) — 가로·세로·45° 도 I자·삼각자가 아니라 회전 삼각자의 한 변을 그 변에 댄다
+// ── 치수선(대표님 2026-10) ── 두 점(점 번호)을 재고 치수선 자리(at)를 둔다. 따로 된 레이어(class dim) — 도구 줄 '치수'·설정에서 켜고 끈다.
+// op = {t:'dim', a, b, mode:'h'|'v'|'al', at, unit:'m'|'mm', end:'arrow'|'tick'|'dot', tmm, txt?}
+// at — 가로 치수면 치수선의 y, 세로면 x, 나란히면 두 점을 이은 선에서 띄운 거리(왼쪽 법선 +). 점을 옮기면 치수가 따라간다.
+// 크기는 모두 종이 위 mm(축척을 따라 늘 같게 보인다). 지우개·채우기 벽·자 붙기·템플릿 맞춤에 끼지 않는다(allSegs 에 없다)
+var dimV = [];                                        // 지금 고른 점 번호들(0~2)
+const DIM_COLOR = '#1f5fa8';
+const dmm = v => v * scaleDenom() / 1000;               // 종이 mm → 도면 m
+function dimOpts() { return {mode: $('fdmMode').value, unit: $('fdmUnit').value, end: $('fdmEnd').value, tmm: +$('fdmMm').value || 3, txt: $('fdmTxt').value.trim()}; }
+function dimAuto(a, b, w) {                           // 자동 — 커서를 두 점의 가로 범위 밖(옆)으로 빼면 세로, 아니면 가로
+    if (Math.abs(a.y - b.y) < 1e-6) return 'h';
+    if (Math.abs(a.x - b.x) < 1e-6) return 'v';
+    const ox = Math.max(0, Math.min(a.x, b.x) - w.x, w.x - Math.max(a.x, b.x)), oy = Math.max(0, Math.min(a.y, b.y) - w.y, w.y - Math.max(a.y, b.y));
+    return ox > oy ? 'v' : 'h';
+}
+function dimAt(mode, a, b, w) {                       // 커서 자리 → at
+    if (mode === 'h') return w.y;
+    if (mode === 'v') return w.x;
+    const L = Math.hypot(b.x - a.x, b.y - a.y) || 1, nx = -(b.y - a.y) / L, ny = (b.x - a.x) / L;
+    return (w.x - a.x) * nx + (w.y - a.y) * ny;
+}
+function dimGeom(op) {                                // 치수선 양 끝(A2·B2), 재는 길이 L, 방향 u
+    const a = P(op.a), b = P(op.b); if (!a || !b) return null;
+    let A2, B2;
+    if (op.mode === 'h') { A2 = {x: a.x, y: op.at}; B2 = {x: b.x, y: op.at}; }
+    else if (op.mode === 'v') { A2 = {x: op.at, y: a.y}; B2 = {x: op.at, y: b.y}; }
+    else { const L = Math.hypot(b.x - a.x, b.y - a.y) || 1, nx = -(b.y - a.y) / L, ny = (b.x - a.x) / L;
+        A2 = {x: a.x + nx * op.at, y: a.y + ny * op.at}; B2 = {x: b.x + nx * op.at, y: b.y + ny * op.at}; }
+    const L = Math.hypot(B2.x - A2.x, B2.y - A2.y);
+    return {a, b, A2, B2, L, u: L > 1e-9 ? {x: (B2.x - A2.x) / L, y: (B2.y - A2.y) / L} : {x: 1, y: 0}};
+}
+function dimText(op, L) {
+    if (op.txt) return op.txt;
+    if (op.unit === 'mm') return Math.round(L * 1000).toLocaleString('en-US');
+    return String(+L.toFixed(2));
+}
+function dimSvg(op, color) {
+    const g = dimGeom(op); if (!g || g.L < 1e-6) return '';
+    const col = color || SET.dimColor || DIM_COLOR, lw = dmm(0.15), gap = dmm(1), over = dmm(1.5), f = fmt;
+    let o = '';
+    [[g.a, g.A2], [g.b, g.B2]].forEach(([p, q]) => {      // 연장선 — 점에서 1mm 띄우고, 치수선을 1.5mm 넘긴다
+        const dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy); if (d < gap) return;
+        const ux = dx / d, uy = dy / d;
+        o += `<path d="M${f(p.x + ux * gap)} ${f(p.y + uy * gap)}L${f(q.x + ux * over)} ${f(q.y + uy * over)}"/>`;
+    });
+    const {A2, B2, u} = g, ah = dmm(2.2), aw = dmm(0.55);
+    const tight = op.end !== 'tick' && op.end !== 'dot' && g.L < ah * 2.4;   // 좁으면 화살촉을 바깥에서 안으로
+    o += tight ? `<path d="M${f(A2.x - u.x * ah * 1.6)} ${f(A2.y - u.y * ah * 1.6)}L${f(B2.x + u.x * ah * 1.6)} ${f(B2.y + u.y * ah * 1.6)}"/>`
+               : `<path d="M${f(A2.x)} ${f(A2.y)}L${f(B2.x)} ${f(B2.y)}"/>`;
+    const end = (P0, s) => {                           // s = +1 이면 A 끝 — 화살촉 몸이 +u 쪽(안쪽)
+        if (op.end === 'tick') { const t = dmm(1.2), c = Math.SQRT1_2, tx = (u.x - u.y) * c, ty = (u.y + u.x) * c;
+            return `<path d="M${f(P0.x - tx * t)} ${f(P0.y - ty * t)}L${f(P0.x + tx * t)} ${f(P0.y + ty * t)}" stroke-width="${f(lw * 2.2)}"/>`; }
+        if (op.end === 'dot') return `<circle cx="${f(P0.x)}" cy="${f(P0.y)}" r="${f(dmm(0.5))}" fill="${col}" stroke="none"/>`;
+        const k = tight ? -s : s, bx = P0.x + u.x * k * ah, by = P0.y + u.y * k * ah;
+        return `<path d="M${f(P0.x)} ${f(P0.y)}L${f(bx - u.y * aw)} ${f(by + u.x * aw)}L${f(bx + u.y * aw)} ${f(by - u.x * aw)}Z" fill="${col}" stroke="none"/>`;
+    };
+    o += end(A2, 1) + end(B2, -1);
+    // 글자 — 치수선 가운데 위(읽는 쪽이 위가 되게 각도를 -90°~90° 로)
+    let ang = Math.atan2(u.y, u.x) * 180 / Math.PI; if (ang > 90.01) ang -= 180; if (ang <= -90.01) ang += 180;
+    const rad = ang * Math.PI / 180, upx = Math.sin(rad), upy = -Math.cos(rad), th = dmm(op.tmm || 3), m = {x: (A2.x + B2.x) / 2 + upx * dmm(0.8), y: (A2.y + B2.y) / 2 + upy * dmm(0.8)};
+    o += `<text x="${f(m.x)}" y="${f(m.y)}" font-size="${f(th)}" text-anchor="middle" fill="${col}" stroke="none" font-family="${FONTS.gothic.replace(/"/g, "'")}"${Math.abs(ang) > 0.01 ? ` transform="rotate(${f(+ang.toFixed(3))} ${f(m.x)} ${f(m.y)})"` : ''}>${esc(dimText(op, g.L))}</text>`;
+    return `<g class="dimg" stroke="${col}" stroke-width="${f(lw)}" fill="none" stroke-linecap="round">${o}</g>`;
+}
+function dimTouch(op, C, r) {                         // 지우개 — 치수선·연장선에 닿았나
+    const g = dimGeom(op); if (!g) return false;
+    return segDist(C, g.A2, g.B2) < r || segDist(C, g.a, g.A2) < r || segDist(C, g.b, g.B2) < r;
+}
+function dimPick(w) {
+    if (dimV.length < 2) {                             // 점 곁(11px)이면 그 점, 아니면 눈금에 새 점
+        const h = hitPoint(w);
+        if (h) { if (dimV.length === 1 && h.n === dimV[0]) return; dimV.push(h.n); drawPre(); status(); return; }
+        const q = snapXY(w), same = doc.pts.find(p => Math.abs(p.x - q.x) < 1e-6 && Math.abs(p.y - q.y) < 1e-6);
+        if (same) { if (dimV.length === 1 && same.n === dimV[0]) return; dimV.push(same.n); drawPre(); status(); return; }
+        snapHist(); dimV.push(addPt(q.x, q.y)); changed(); drawPre(); status(); return;
+    }
+    const a = P(dimV[0]), b = P(dimV[1]); if (!a || !b) { dimV = []; drawPre(); return; }
+    const o = dimOpts(), q = snapXY(w), mode = o.mode === 'auto' ? dimAuto(a, b, q) : o.mode;
+    if ((mode === 'h' && Math.abs(a.x - b.x) < 1e-6) || (mode === 'v' && Math.abs(a.y - b.y) < 1e-6)) { flash(mode === 'h' ? '두 점의 가로 거리가 0 입니다 — 세로나 나란히로' : '두 점의 세로 거리가 0 입니다 — 가로나 나란히로'); return; }
+    snapHist();
+    const op = {id: doc.seq++, t: 'dim', a: dimV[0], b: dimV[1], mode, at: +dimAt(mode, a, b, q).toFixed(3), unit: o.unit, end: o.end, tmm: o.tmm, tl: 0};
+    if (o.txt) op.txt = o.txt;
+    doc.ops.push(op); dimV = [];
+    if (SET.dimOn === false) setDim(true);
+    const g = dimGeom(op); changed(); flash(`치수 ${dimText(op, g.L)}${op.txt ? '' : op.unit === 'mm' ? 'mm' : 'm'}`); drawPre(); status();
+}
+function setDim(on) {
+    SET.dimOn = on; $('cadDimOn').checked = on; $('cadDimChk').checked = on;
+    root.classList.toggle('dim-off', !on);
+    [...selOps].forEach(id => { const o = doc.ops.find(x => x.id === id); if (o && auxHidden(o)) selOps.delete(id); });
+    saveSet(); drawOps(); selInfo();
+}
+function dimPreSvg() {
+    const h = hover, w = h && (h.w || h); let o = '';
+    const pts = dimV.map(P).filter(Boolean); pts.forEach(q => { o += `<circle cx="${fmt(q.x)}" cy="${fmt(q.y)}" r="${fmt(0.45 * U)}" fill="${RED}"/>`; });
+    if (!w) return o;
+    if (pts.length < 2) {
+        const hp = hitPoint(w), q = hp || snapXY(w);
+        if (pts.length === 1) o += `<path d="M${fmt(pts[0].x)} ${fmt(pts[0].y)}L${fmt(q.x)} ${fmt(q.y)}" stroke="${RED}" stroke-width="${fmt(0.1 * U)}" fill="none" stroke-dasharray="${fmt(0.5 * U)} ${fmt(0.3 * U)}"/>`;
+        o += `<circle cx="${fmt(q.x)}" cy="${fmt(q.y)}" r="${fmt(0.9 * U)}" fill="rgba(255,245,0,.45)" stroke="${RED}" stroke-width="${fmt(0.14 * U)}"/>`;
+        return o;
+    }
+    const a = pts[0], b = pts[1], opt = dimOpts(), q = snapXY(w), mode = opt.mode === 'auto' ? dimAuto(a, b, q) : opt.mode;
+    return o + dimSvg({t: 'dim', a: dimV[0], b: dimV[1], mode, at: dimAt(mode, a, b, q), unit: opt.unit, end: opt.end, tmm: opt.tmm, txt: opt.txt}, RED);
+}
+function dimHint() {
+    if (!dimV.length) return ' · 치수선: 재려는 첫 점을 누르세요(점 곁이면 그 점에 붙습니다)';
+    if (dimV.length === 1) return ` · P${dimV[0]} 에서 — 둘째 점을 누르세요 · 우클릭·Esc 취소`;
+    return ' · 치수선을 둘 자리를 누르세요 — 위아래로 빼면 가로, 옆으로 빼면 세로(자동) · Backspace 되돌리기 · Esc 취소';
+}
 var polyV = [];                                       // 지금 잇는 점 번호들 — setTool 이 도구를 바꾸면 비운다(var: 초기화 전에 불려도 되게)
 function polyStyle() { return {w: ($('fpyW') && $('fpyW').value) || 'p9', ls: ($('fpyLs') && $('fpyLs').value) || 'solid'}; }
 function polyNear(w) {                                // 커서 곁의 점 — 11px 안(hitPoint), 없으면 30px 안에서 가장 가까운 점
@@ -6124,6 +6252,7 @@ function status() {
 }
 function hintText() {
     if (tool === 'poly') return polyHint();
+    if (tool === 'dim') return dimHint();
     if (tool === 'lead') return leadHint();
     if (tool === 'hedge') return hedgeHint();
     if (tool === 'arrow') return arrowHint();
@@ -6154,7 +6283,7 @@ function setArcMode(m) {
 const FORM_OF = {line: 'fl', rect: 'fr', circle: 'fc', arc: 'fa'};
 function setTool(t, keepEdit) {
     root.classList.remove('in-hole');
-    if (t !== tool) { closeTextBox(true); polyV = []; shrubCh = null; leadS = null; hedgeW = []; arrowV = []; awEdge = null; awChain = null; spaceV = []; shrubV = []; }
+    if (t !== tool) { closeTextBox(true); polyV = []; dimV = []; shrubCh = null; leadS = null; hedgeW = []; arrowV = []; awEdge = null; awChain = null; spaceV = []; shrubV = []; }
     if (t === 'lead') { cnLoadTrees(); leadTypeDraw(); }   // 이어 긋던 다각선·관목 군식은 버린다
     tool = t;
     if (!keepEdit) endEdit();
@@ -6893,6 +7022,7 @@ function eraseAt(C, r) {
         else if (op.t === 'line') { pcs = cutLine(op, C, r); if (pcs && op.lead) { (leadGone = leadGone || new Set()).add(op.id); pcs = [op]; } }   // 지시선은 조각내지 않고 한 벌 통째로(아래에서)
         else if (op.t === 'circle' || op.t === 'arc') pcs = cutArc(op, C, r);
         else if ((op.t === 'sym' || op.t === 'text') && !covered(C) && touchBox(op, C, r)) pcs = [];
+        else if (op.t === 'dim' && !covered(C) && dimTouch(op, C, r)) pcs = [];
         if (pcs) { hit = true; out.push(...pcs); } else out.push(op);
     });
     if (hit) { doc.ops = shGone ? out.filter(o => !(o.shrub && shGone.has(o.grp))) : out; pruneSyms(); }
@@ -7121,6 +7251,11 @@ function editOp(id) {
     }
     if (op.t === 'fill') {                           // 채운 면 — 지금 설정의 색·진하기로 다시 칠한다
         snapHist(); op.color = SET.fillColor; op.op = SET.fillOp; if (op.bb) op.kind = SET.fillType || 'solid'; changed(); flash('설정의 채우기 색으로 다시 칠했습니다'); return;
+    }
+    if (op.t === 'dim') {                            // 치수 — 글자만 바꾼다(비우면 길이)
+        const t = prompt('치수 글자 — 비우면 잰 길이를 씁니다', op.txt || '');
+        if (t === null) return;
+        snapHist(); if (t.trim()) op.txt = t.trim(); else delete op.txt; changed(); return;
     }
     if (op.t === 'free' && op.shrub) {              // 관목 — 선택 칸의 '관목 고치기'로(모양·파형 크기·볼록함…)
         setTool('select'); selOps = new Set(shrubSet(op).map(x => x.id)); shrubEditOn = true; renderAll(); selInfo(); flash('오른쪽 「관목 고치기」에서 바꾸세요'); return;
@@ -8145,6 +8280,19 @@ svg.addEventListener('pointerdown', e => {
         if (!leadS) { const p = polyNear(w); if (!p) { flash('다각선 끝점 가까이를 누르세요'); return; } leadStart(p); }
         else leadFinish(snapXY(w));
         return;
+    }
+    if (tool === 'dim' && (e.button === 0 || e.button === 2)) {    // 치수선 — 첫 점 · 둘째 점 · 치수선 자리
+        const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
+        if (e.button === 0) {
+            if (c('#cadTri .tri-body')) { startTriDrag(e, w); return; }
+            if (c('#cadFtri .tri-body')) { startFtriDrag(e, w); return; }
+            if (c('#cadTpl .tpl-body')) { startTplDrag(e, w); return; }
+            if (c('#cadSr .sr-body')) { startSrDrag(e, w); return; }
+            if (c('#cadBar .bar-body')) { drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return; }
+        }
+        drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true};
+        if (e.button === 2) { if (dimV.length) { dimV = []; drawPre(); status(); flash('치수선을 취소했습니다'); } return; }
+        dimPick(w); return;
     }
     if (tool === 'poly' && (e.button === 0 || e.button === 2)) {   // 다각선 — 누를 때마다 가까운 점, 더블클릭·오른쪽 버튼이면 끝
         const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
@@ -9407,6 +9555,11 @@ $('cadMarkOn').addEventListener('change', () => setMark($('cadMarkOn').checked))
 $('cadMarkClear').addEventListener('click', clearMarks);
 $('cadAuxColor').addEventListener('input', () => { SET.auxColor = $('cadAuxColor').value; saveSet(); drawOps(); drawPre(); });
 $('cadMarkColor').value = SET.markColor || '#f76707';
+$('cadDimChk').checked = $('cadDimOn').checked = SET.dimOn !== false; root.classList.toggle('dim-off', SET.dimOn === false);
+$('cadDimChk').addEventListener('change', () => setDim($('cadDimChk').checked));
+$('cadDimOn').addEventListener('change', () => setDim($('cadDimOn').checked));
+$('cadDimColor').value = SET.dimColor || DIM_COLOR;
+$('cadDimColor').addEventListener('input', () => { SET.dimColor = $('cadDimColor').value; saveSet(); drawOps(); });
 $('cadMarkColor').addEventListener('input', () => { SET.markColor = $('cadMarkColor').value; saveSet(); drawOps(); drawPts(); });
 // 다시 그릴 때마다 마킹의 화면 최소 크기를 다시 입힌다
 { const o1 = drawOps, o2 = drawPts; drawOps = function () { const r = o1.apply(this, arguments); markMin(); return r; }; drawPts = function () { const r = o2.apply(this, arguments); markMin(); return r; }; }
@@ -9512,7 +9665,7 @@ document.addEventListener('keydown', e => {
     if (barOn && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         e.preventDefault(); setBarY(barY + (e.key === 'ArrowUp' ? -1 : 1) * barStep() * (e.shiftKey ? 5 : 1)); saveBar(); return;
     }
-    const map = {v: 'select', t: 'text', f: 'fill', d: 'free', x: 'box', q: 'poly', g: 'shrub', l: 'lead', h: 'hedge', a: 'arrow', k: 'space', b: 'sym', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
+    const map = {v: 'select', t: 'text', f: 'fill', d: 'free', x: 'box', q: 'poly', g: 'shrub', l: 'lead', h: 'hedge', a: 'arrow', k: 'space', b: 'sym', n: 'dim', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
     if (map[k]) setTool(map[k]);
     if (k === '+' || k === '=') zoomCenter(1.4);
     if (k === '-') zoomCenter(1 / 1.4);
@@ -9525,6 +9678,12 @@ document.addEventListener('keydown', e => {           // 관목 군식을 이어
     if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); shrubFinish(false); }
     else if (e.key === 'Backspace') { e.preventDefault(); e.stopImmediatePropagation(); shrubUndo(); }
     else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); shrubCh = null; drawPre(); status(); flash('관목 군식을 취소했습니다'); }
+}, true);
+document.addEventListener('keydown', e => {
+    if (tool !== 'dim' || !dimV.length || RP) return;
+    const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+    if (e.key === 'Backspace') { e.preventDefault(); e.stopImmediatePropagation(); dimV.pop(); drawPre(); status(); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); dimV = []; drawPre(); status(); flash('치수선을 취소했습니다'); }
 }, true);
 document.addEventListener('keydown', e => {
     if (tool !== 'poly' || !polyV.length || RP) return;
