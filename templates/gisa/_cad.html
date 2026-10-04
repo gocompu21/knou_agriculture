@@ -8427,6 +8427,11 @@ svg.addEventListener('pointerdown', e => {
         }
         return;
     }
+    // 치수선은 선택 도구로 눌러 끌면 치수선 자리(at)가 옮겨진다(대표님) — 끌지 않고 떼면 평소처럼 고르기
+    if (tool === 'select' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+        const g = e.target.closest && e.target.closest('#cadOps [data-op]'), op = g && doc.ops.find(o => o.id === +g.dataset.op);
+        if (op && op.t === 'dim') { drag = {kind: 'dimmove', id: op.id, at0: op.at, sx: e.clientX, sy: e.clientY, moved: false, target: e.target}; return; }
+    }
     // 선택 도구로 빈 곳을 끌면 화면 이동(pan) — 영역 선택은 Shift 를 누른 채 끈다
     drag = {kind: tool === 'select' && e.shiftKey ? 'box' : 'click', sx: e.clientX, sy: e.clientY, lx: e.clientX, ly: e.clientY,
             moved: false, target: e.target, w0: w, shift: e.shiftKey || e.ctrlKey || e.metaKey};
@@ -8577,6 +8582,14 @@ svg.addEventListener('pointermove', e => {
         const l = drag.pts[drag.pts.length - 1];
         if (Math.hypot(w.x - l[0], w.y - l[1]) * pxPer() >= 2) drag.pts.push([w.x, w.y]);
         gPre.innerHTML = drag.pts.length > 1 ? `<path d="${freeD(drag.pts)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : ''; return;
+    }
+    if (drag && drag.kind === 'dimmove') {             // 치수선 옮기기 — 커서 자리(눈금에 붙음)로 at 을 다시 잰다
+        const op = doc.ops.find(o => o.id === drag.id), a = op && P(op.a), b = op && P(op.b);
+        if (!op || !a || !b) return;
+        if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 4) return;
+        if (!drag.moved) { snapHist(); drag.moved = true; selOps = new Set([op.id]); }
+        op.at = +dimAt(op.mode, a, b, snapXY(w)).toFixed(3);
+        drawOps(); status(); return;
     }
     if (drag && drag.kind === 'boxdraw') {
         const A = drag.a, B = drag.b = boxSnap(w), st = boxStyle();
@@ -8765,6 +8778,7 @@ function endPtr(e) {
     if (e.type === 'pointercancel') return;
     if (d.kind === 'trirot') { rotateTri(); return; }
     if (d.kind === 'boxdraw') { gPre.innerHTML = ''; if (d.b) makeBox(d.a, d.b); return; }
+    if (d.kind === 'dimmove') { if (d.moved) { changed(); selInfo(); flash('치수선을 옮겼습니다 (Ctrl+Z 로 되돌림)'); } else selectOp(d.id, false); return; }
     if (d.kind === 'shbox') {                     // 관목 네모형 — 이어 긋기와 같은 끝내기(교목 뒤로 끊기 포함)로 넣는다
         gPre.innerHTML = ''; const st = shrubStyle(), raw = d.b && shrubBoxRaw(d.a, d.b, st.size);
         if (!raw) { flash('조금 더 크게 끄세요'); return; }
