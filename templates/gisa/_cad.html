@@ -2685,7 +2685,7 @@ function dotSvg(p, ring, mk) {   // mk — 마킹 점은 마킹 색으로(큰 �
     const tx = p.lp != null ? (() => { const b = lblBox(p, p.lp); return `x="${fmt(b.x0)}" y="${fmt((b.y0 + b.y1) / 2)}" dominant-baseline="central"`; })()
                             : `x="${fmt(p.x + r + fn * 0.22)}" y="${fmt(p.y - r - fn * 0.12)}"`;
     return `<circle${mk ? ` class="mk-dot" data-r="${fmt(r)}"` : ''} cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r)}" fill="${mk ? (SET.markColor || '#f76707') : INK}"/>`
-        + `<text ${tx} font-size="${fmt(fn)}" fill="${BLUE}" font-weight="700">${p.n}</text>`
+        + `<text ${tx} font-size="${fmt(fn)}" fill="${p.dot ? RED : BLUE}" font-weight="700">${p.n}</text>`
         + (ring ? `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r * 2.6)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : '');
 }
 // ── 제도판 ── 사용자가 보여 준 탁상 제도판(평면)을 종이 둘레에 그린다: 흰 판, 좌우 알루미늄 레일(왼쪽에 눈금),
@@ -7905,6 +7905,7 @@ function penDot(w, free) {
     if (covered(q)) { flash('자가 덮은 곳에는 점을 찍을 수 없습니다'); return; }
     snapHist();
     const n = addPt(q.x, q.y); selPt = n;
+    { const pp = doc.pts.find(p => p.n === n); if (pp) pp.dot = 1; }   // 샤프로 찍은 점 — 번호를 빨갛게(대표님 2026-10)
     changed(); flash(`점 P${n} (${fmt(q.x)}, ${fmt(q.y)}) 을 찍었습니다`);
 }
 function pencilOn(edge, w) {                         // 그 변으로 긋기 시작할 때의 자리·삼각자 막힘
