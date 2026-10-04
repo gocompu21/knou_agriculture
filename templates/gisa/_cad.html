@@ -280,7 +280,7 @@
                 </div>
                 <div data-form="dim">
                     <h4>치수선</h4>
-                    <p class="cad-help">① 재려는 첫 점 ② 둘째 점을 누르고 ③ 치수선을 둘 자리를 누릅니다. 점 곁이면 그 점에, 아니면 눈금에 붙습니다.<br>
+                    <p class="cad-help">① 재려는 첫 점 ② 둘째 점을 누르고 ③ 치수선을 둘 자리를 누릅니다. 끝은 <b>있는 점이나 선의 교점</b>에만 붙고 새 점은 만들지 않습니다(교점은 노란 동그라미에 ✕).<br>
                        '자동'이면 커서를 위아래로 빼면 가로 치수, 옆으로 빼면 세로 치수입니다. 우클릭·Esc 취소, Backspace 한 단계 되돌리기.<br>
                        치수는 <b>따로 된 레이어</b>라 도구 줄 '치수' 체크로 감출 수 있고, 지우개·채우기·자 붙기에 끼지 않습니다. 치수를 <b>두 번 누르면</b> 그 자리에서 글자를 고칩니다(선택 도구로 끌면 치수선 자리 옮기기).</p>
                     <div class="cad-row"><label>방향<select id="fdmMode"><option value="auto">자동(가로·세로)</option><option value="h">가로</option><option value="v">세로</option><option value="al">두 점 나란히</option></select></label>
@@ -2689,7 +2689,7 @@ function opSvg(op) {
 }
 // 글자는 점을 쓰지 않고 좌표(x, y)를 직접 가진다 — 누른 자리가 글의 시작(가로는 왼쪽, 세로는 위). 옛 글자(p)는 가운데 맞춤
 const textPos = op => op.p != null ? P(op.p) : {x: op.x, y: op.y};
-const ptsOf = op => op.t === 'circle' ? [op.c] : op.t === 'sym' || (op.t === 'text' && op.p != null) || (op.mark && op.p != null) ? [op.p] : op.t === 'text' ? [] : (op.a != null ? [op.a, op.b] : []);   // 마킹은 그 점(op.p)을 쓴다 — 작도 순서대로 번호가 매겨지게
+const ptsOf = op => op.t === 'dim' ? [op.a, op.b].filter(n => n != null) : op.t === 'circle' ? [op.c] : op.t === 'sym' || (op.t === 'text' && op.p != null) || (op.mark && op.p != null) ? [op.p] : op.t === 'text' ? [] : (op.a != null ? [op.a, op.b] : []);   // 마킹은 그 점(op.p)을 쓴다 — 작도 순서대로 번호가 매겨지게
 // 점 번호 자리 — 여덟 곳(0 오른위 · 1 왼위 · 2 오른아래 · 3 왼아래 · 4 오른 · 5 왼 · 6 위 · 7 아래). p.lp 에 적어 두고(번호 다시 매기기가 고른다),
 // 없으면 예전 자리(오른위)다. 상자는 숫자 폭 0.6em · 높이 0.8em 으로 어림한다
 const lblSize = () => ({r: 0.32 * U * (SET.ptSize || 1), fn: 1.25 * U * (SET.ptNum || 1)});
@@ -2912,7 +2912,7 @@ function lsTxtFull(op) {
 function desc(op, full) {
     const ptxt = full ? ptxtFull : (n => `P${n}`), lsTxt = full ? lsTxtFull : (o => (LS[o.ls] || LS.solid).name);   // 목록에는 굵기(굵은 샤프 등)를 안 보인다(사용자)
     switch (op.t) {
-        case 'dim': { const g = dimGeom(op); return `치수${op.mode === 'v' ? '(세로)' : op.mode === 'al' ? '(나란히)' : ''} ${ptxt(op.a)} – ${ptxt(op.b)}${g ? ' · ' + dimText(op, g.L) + (op.txt ? '' : op.unit === 'mm' ? 'mm' : 'm') : ''}`; }
+        case 'dim': { const g = dimGeom(op); return `치수${op.mode === 'v' ? '(세로)' : op.mode === 'al' ? '(나란히)' : ''} ${op.a != null ? ptxt(op.a) : '교점'} – ${op.b != null ? ptxt(op.b) : '교점'}${g ? ' · ' + dimText(op, g.L) + (op.txt ? '' : op.unit === 'mm' ? 'mm' : 'm') : ''}`; }
         case 'under': return op.under ? `밑그림 깔기 — ${op.under.name || '도면 ' + op.under.id}` : '밑그림 걷기';
         case 'free': if (op.arrow) { const a = op.pts || []; let L = 0; for (let i = 1; i < a.length; i++) L += Math.hypot(a[i][0] - a[i - 1][0], a[i][1] - a[i - 1][1]);
                 return `${(ARROW_KINDS[op.arrow.kind] || ARROW_KINDS.main).name} 화살표${op.arrow.both ? '(양방향)' : ''} · ${fmt(+L.toFixed(1))}m`; }
@@ -4252,6 +4252,7 @@ function rpHilite(op, delay) {
     requestAnimationFrame(frame);
 }
 function rpStartPt(op) {
+    if (op.t === 'dim') return dimEnd(op, 'a');
     const n = ptsOf(op)[0];
     if (n != null && P(n)) return P(n);
     if (op.pts && op.pts.length) return {x: op.pts[0][0], y: op.pts[0][1]};
@@ -4746,7 +4747,7 @@ function dimAt(mode, a, b, w) {                       // 커서 자리 → at
     return (w.x - a.x) * nx + (w.y - a.y) * ny;
 }
 function dimGeom(op) {                                // 치수선 양 끝(A2·B2), 재는 길이 L, 방향 u
-    const a = P(op.a), b = P(op.b); if (!a || !b) return null;
+    const a = dimEnd(op, 'a'), b = dimEnd(op, 'b'); if (!a || !b) return null;
     let A2, B2;
     if (op.mode === 'h') { A2 = {x: a.x, y: op.at}; B2 = {x: b.x, y: op.at}; }
     else if (op.mode === 'v') { A2 = {x: op.at, y: a.y}; B2 = {x: op.at, y: b.y}; }
@@ -4791,19 +4792,43 @@ function dimTouch(op, C, r) {                         // 지우개 — 치수선
     const g = dimGeom(op); if (!g) return false;
     return segDist(C, g.A2, g.B2) < r || segDist(C, g.a, g.A2) < r || segDist(C, g.b, g.B2) < r;
 }
-function dimPick(w) {
-    if (dimV.length < 2) {                             // 점 곁(11px)이면 그 점, 아니면 눈금에 새 점
-        const h = hitPoint(w);
-        if (h) { if (dimV.length === 1 && h.n === dimV[0]) return; dimV.push(h.n); drawPre(); status(); return; }
-        const q = snapXY(w), same = doc.pts.find(p => Math.abs(p.x - q.x) < 1e-6 && Math.abs(p.y - q.y) < 1e-6);
-        if (same) { if (dimV.length === 1 && same.n === dimV[0]) return; dimV.push(same.n); drawPre(); status(); return; }
-        snapHist(); dimV.push(addPt(q.x, q.y)); changed(); drawPre(); status(); return;
+// 치수 끝은 **있는 점이나 교점에만** 붙는다(대표님) — 새 점을 만들지 않는다. 교점은 점 번호가 없어 좌표(pa·pb)로 둔다
+function dimEnd(op, k) { const n = op[k]; if (n != null) return P(n) || null; const q = op['p' + k]; return q ? {x: q[0], y: q[1]} : null; }
+function dimSnapPt(w) {                               // {n, x, y} 점 · {x, y, cross} 교점 · null
+    const h = hitPoint(w); if (h) return {n: h.n, x: h.x, y: h.y};
+    const tol = 12 / pxPer(), near = allSegs().filter(g => segDist(w, g.a, g.b) < tol);
+    let best = null, bd = tol;
+    const take = q => { const d = Math.hypot(q.x - w.x, q.y - w.y); if (d < bd) { bd = d; best = {x: q.x, y: q.y, cross: true}; } };
+    const onSeg = (q, g) => { const L = Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y), t = ((q.x - g.a.x) * (g.b.x - g.a.x) + (q.y - g.a.y) * (g.b.y - g.a.y)) / (L * L || 1); return t > -1e-6 && t < 1 + 1e-6; };
+    for (let i = 0; i < near.length; i++) for (let j = i + 1; j < near.length; j++) {
+        if (near[i].op === near[j].op && near[i].op.t === 'free') continue;   // 한 획 안의 이웃 조각끼리는 교점이 아니다
+        const q = lineX(near[i].a, near[i].b, near[j].a, near[j].b);
+        if (q && onSeg(q, near[i]) && onSeg(q, near[j])) take(q);
     }
-    const a = P(dimV[0]), b = P(dimV[1]); if (!a || !b) { dimV = []; drawPre(); return; }
+    allCircles().filter(c => Math.abs(Math.hypot(w.x - c.cx, w.y - c.cy) - c.R) < tol).forEach(c => near.forEach(g => {
+        const L = Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y); if (L < 1e-9) return;
+        const ux = (g.b.x - g.a.x) / L, uy = (g.b.y - g.a.y) / L;
+        lineCircleTs(g.a.x, g.a.y, ux, uy, c).forEach(t => { if (t > -1e-6 && t < L + 1e-6) take({x: g.a.x + ux * t, y: g.a.y + uy * t}); });
+    }));
+    // 교점에 점이 이미 있으면 그 점으로
+    if (best) { const e = doc.pts.find(p => Math.abs(p.x - best.x) < 2e-3 && Math.abs(p.y - best.y) < 2e-3); if (e) return {n: e.n, x: e.x, y: e.y}; }
+    return best;
+}
+const dimSame = (u, v) => u && v && (u.n != null && v.n != null ? u.n === v.n : Math.hypot(u.x - v.x, u.y - v.y) < 1e-6);
+function dimPick(w) {
+    if (dimV.length < 2) {
+        const q = dimSnapPt(w);
+        if (!q) { flash('점이나 선의 교점 가까이를 누르세요 — 치수선은 새 점을 만들지 않습니다'); return; }
+        if (dimV.length === 1 && dimSame(dimV[0], q)) return;
+        dimV.push(q); drawPre(); status(); return;
+    }
+    const a = dimV[0], b = dimV[1];
     const o = dimOpts(), q = snapXY(w), mode = o.mode === 'auto' ? dimAuto(a, b, q) : o.mode;
     if ((mode === 'h' && Math.abs(a.x - b.x) < 1e-6) || (mode === 'v' && Math.abs(a.y - b.y) < 1e-6)) { flash(mode === 'h' ? '두 점의 가로 거리가 0 입니다 — 세로나 나란히로' : '두 점의 세로 거리가 0 입니다 — 가로나 나란히로'); return; }
     snapHist();
-    const op = {id: doc.seq++, t: 'dim', a: dimV[0], b: dimV[1], mode, at: +dimAt(mode, a, b, q).toFixed(3), unit: o.unit, end: o.end, tmm: o.tmm, tl: 0};
+    const r3 = v => +(+v).toFixed(3), op = {id: doc.seq++, t: 'dim', a: a.n != null ? a.n : null, b: b.n != null ? b.n : null, mode, at: r3(dimAt(mode, a, b, q)), unit: o.unit, end: o.end, tmm: o.tmm, tl: 0};
+    if (a.n == null) op.pa = [r3(a.x), r3(a.y)];
+    if (b.n == null) op.pb = [r3(b.x), r3(b.y)];
     if (o.txt) op.txt = o.txt;
     doc.ops.push(op); dimV = [];
     if (SET.dimOn === false) setDim(true);
@@ -4817,20 +4842,24 @@ function setDim(on) {
 }
 function dimPreSvg() {
     const h = hover, w = h && (h.w || h); let o = '';
-    const pts = dimV.map(P).filter(Boolean); pts.forEach(q => { o += `<circle cx="${fmt(q.x)}" cy="${fmt(q.y)}" r="${fmt(0.45 * U)}" fill="${RED}"/>`; });
+    dimV.forEach(q => { o += `<circle cx="${fmt(q.x)}" cy="${fmt(q.y)}" r="${fmt(0.45 * U)}" fill="${RED}"/>`; });
     if (!w) return o;
-    if (pts.length < 2) {
-        const hp = hitPoint(w), q = hp || snapXY(w);
-        if (pts.length === 1) o += `<path d="M${fmt(pts[0].x)} ${fmt(pts[0].y)}L${fmt(q.x)} ${fmt(q.y)}" stroke="${RED}" stroke-width="${fmt(0.1 * U)}" fill="none" stroke-dasharray="${fmt(0.5 * U)} ${fmt(0.3 * U)}"/>`;
-        o += `<circle cx="${fmt(q.x)}" cy="${fmt(q.y)}" r="${fmt(0.9 * U)}" fill="rgba(255,245,0,.45)" stroke="${RED}" stroke-width="${fmt(0.14 * U)}"/>`;
+    if (dimV.length < 2) {
+        const q = dimSnapPt(w); if (!q) return o;      // 붙을 곳이 없으면 표시도 없다
+        if (dimV.length === 1) o += `<path d="M${fmt(dimV[0].x)} ${fmt(dimV[0].y)}L${fmt(q.x)} ${fmt(q.y)}" stroke="${RED}" stroke-width="${fmt(0.1 * U)}" fill="none" stroke-dasharray="${fmt(0.5 * U)} ${fmt(0.3 * U)}"/>`;
+        o += q.cross ? `<path d="M${fmt(q.x - 0.8 * U)} ${fmt(q.y - 0.8 * U)}L${fmt(q.x + 0.8 * U)} ${fmt(q.y + 0.8 * U)}M${fmt(q.x - 0.8 * U)} ${fmt(q.y + 0.8 * U)}L${fmt(q.x + 0.8 * U)} ${fmt(q.y - 0.8 * U)}" stroke="${RED}" stroke-width="${fmt(0.16 * U)}"/>`
+                     + `<circle cx="${fmt(q.x)}" cy="${fmt(q.y)}" r="${fmt(0.9 * U)}" fill="rgba(255,245,0,.45)" stroke="${RED}" stroke-width="${fmt(0.1 * U)}"/>`
+                     : `<circle cx="${fmt(q.x)}" cy="${fmt(q.y)}" r="${fmt(0.9 * U)}" fill="rgba(255,245,0,.45)" stroke="${RED}" stroke-width="${fmt(0.14 * U)}"/>`;
         return o;
     }
-    const a = pts[0], b = pts[1], opt = dimOpts(), q = snapXY(w), mode = opt.mode === 'auto' ? dimAuto(a, b, q) : opt.mode;
-    return o + dimSvg({t: 'dim', a: dimV[0], b: dimV[1], mode, at: dimAt(mode, a, b, q), unit: opt.unit, end: opt.end, tmm: opt.tmm, txt: opt.txt}, RED);
+    const a = dimV[0], b = dimV[1], opt = dimOpts(), q = snapXY(w), mode = opt.mode === 'auto' ? dimAuto(a, b, q) : opt.mode;
+    const tmp = {t: 'dim', a: a.n != null ? a.n : null, b: b.n != null ? b.n : null, pa: [a.x, a.y], pb: [b.x, b.y], mode, at: dimAt(mode, a, b, q), unit: opt.unit, end: opt.end, tmm: opt.tmm, txt: opt.txt};
+    return o + dimSvg(tmp, RED);
 }
 function dimHint() {
-    if (!dimV.length) return ' · 치수선: 재려는 첫 점을 누르세요(점 곁이면 그 점에 붙습니다)';
-    if (dimV.length === 1) return ` · P${dimV[0]} 에서 — 둘째 점을 누르세요 · 우클릭·Esc 취소`;
+    const lb = q => q.n != null ? `P${q.n}` : '교점';
+    if (!dimV.length) { const q = hover && dimSnapPt(hover.w || hover); return ` · 치수선: 재려는 첫 점을 누르세요 — 점·교점에만 붙습니다${q ? ` (${lb(q)})` : ''}`; }
+    if (dimV.length === 1) return ` · ${lb(dimV[0])} 에서 — 둘째 점(점·교점)을 누르세요 · 우클릭·Esc 취소`;
     return ' · 치수선을 둘 자리를 누르세요 — 위아래로 빼면 가로, 옆으로 빼면 세로(자동) · Backspace 되돌리기 · Esc 취소';
 }
 var polyV = [];                                       // 지금 잇는 점 번호들 — setTool 이 도구를 바꾸면 비운다(var: 초기화 전에 불려도 되게)
@@ -7088,6 +7117,7 @@ function moveSelected(dx, dy) {
     moving.forEach(o => {
         REF_KEYS.forEach(k => { if (typeof o[k] === 'number') o[k] = movePt(o[k]); });
         if (Array.isArray(o.pts)) o.pts = o.pts.map(([x, y]) => [r3(x + dx), r3(y + dy)]);
+        ['pa', 'pb'].forEach(k => { if (Array.isArray(o[k])) o[k] = [r3(o[k][0] + dx), r3(o[k][1] + dy)]; });   // 치수 끝 — 교점 좌표
         if (o.t === 'text' && o.p == null && o.x != null) { o.x = r3(o.x + dx); o.y = r3(o.y + dy); }
         if (o.t === 'fill') {
             if (o.d) o.d = pathShift(o.d, dx, dy);
@@ -8588,7 +8618,7 @@ svg.addEventListener('pointermove', e => {
         gPre.innerHTML = drag.pts.length > 1 ? `<path d="${freeD(drag.pts)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : ''; return;
     }
     if (drag && drag.kind === 'dimmove') {             // 치수선 옮기기 — 커서 자리(눈금에 붙음)로 at 을 다시 잰다
-        const op = doc.ops.find(o => o.id === drag.id), a = op && P(op.a), b = op && P(op.b);
+        const op = doc.ops.find(o => o.id === drag.id), a = op && dimEnd(op, 'a'), b = op && dimEnd(op, 'b');
         if (!op || !a || !b) return;
         if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 4) return;
         if (!drag.moved) { snapHist(); drag.moved = true; selOps = new Set([op.id]); }
