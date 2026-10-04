@@ -4137,9 +4137,11 @@ function paneScroll(el) {
     let p = el.parentElement;
     while (p && !(p.scrollHeight > p.clientHeight + 2 && /(auto|scroll)/.test(getComputedStyle(p).overflowY))) p = p.parentElement;
     if (!p || p === document.body || p === document.documentElement) return;
-    const r = el.getBoundingClientRect(), q = p.getBoundingClientRect();
-    if (r.top < q.top) p.scrollTop -= q.top - r.top + 4;
-    else if (r.bottom > q.bottom) p.scrollTop += r.bottom - q.bottom + 4;
+    // 위에 붙어 있는 단계 칸(sticky)에 가리지 않게 — 그 아래를 위 끝으로 본다(대표님 — 도면에서 고른 줄이 단계 칸 밑에 숨었다)
+    const r = el.getBoundingClientRect(), q = p.getBoundingClientRect(), st = p.querySelector('.cad-steprow');
+    const top = st ? Math.max(q.top, st.getBoundingClientRect().bottom) : q.top;
+    if (r.top < top + 4) p.scrollTop -= top - r.top + 12;
+    else if (r.bottom > q.bottom - 4) p.scrollTop += r.bottom - q.bottom + 12;
 }
 // ◀▶ 로 옮긴 줄이 목록 맨 아래쪽(또는 위로 가려짐)이면 그 줄을 맨 위로 올린다(대표님) — 다음 줄들이 보이게. 위에 붙은 단계 칸 바로 아래로
 function paneTop(el) {
