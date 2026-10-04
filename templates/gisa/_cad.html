@@ -2060,6 +2060,17 @@ const rnd = v => +(Math.round(v / PREC) * PREC).toFixed(3);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const clone = o => JSON.parse(JSON.stringify(o));
 
+// 마킹 표시는 좌표(op.pts)로 그려지고 마킹 점은 번호(op.p)라, 점만 옮기면(치수 숫자로 당기기·점 목록 고치기·고른 것 옮기기 떼어 내기 …)
+// 표시가 옛 자리에 남았다(대표님). 그릴 때마다 표시를 점 자리로 함께 옮긴다 — 방향·길이는 그대로
+function syncMarks() {
+    doc.ops.forEach(o => {
+        if (!o.mark || o.p == null || !o.pts || !o.pts.length) return;
+        const q = P(o.p); if (!q) return;
+        const dx = q.x - o.pts[0][0], dy = q.y - o.pts[0][1];
+        if (Math.abs(dx) < 1e-6 && Math.abs(dy) < 1e-6) return;
+        o.pts = o.pts.map(([x, y]) => [+(x + dx).toFixed(3), +(y + dy).toFixed(3)]);
+    });
+}
 function snapHist() { hist.push(JSON.stringify(doc)); if (hist.length > 200) hist.shift(); redoS = []; }
 // 도면에서 새로 그리면 작도 순서를 맨 아래로 내려 방금 더한 줄이 보이게 한다(사용자). 지우기·고치기처럼 줄이 늘지 않으면 그대로 둔다
 let opsSeen = 0;
@@ -2074,6 +2085,7 @@ function changed() {
         }
     }
     seqSeen = doc.seq || 0;
+    syncMarks();
     renderAll(); saveDraft();
     const n = doc.ops.length, grew = n > opsSeen; opsSeen = n;
     if (grew && !RP) { const pane = $('cadOpList').closest('.cad-pane'); if (pane) pane.scrollTop = pane.scrollHeight; }   // 창 전체가 아니라 목록 칸만 내린다
@@ -7967,6 +7979,7 @@ function afterLoad(refit, keepUnder) {          // keepUnder — 되돌리기·�
     // 기본 기호(b:…)는 코드가 원본이다 — 도면에 넣어 둔 옛 모양을 지금 모양으로 바꾼다(대표님: 요점식재 ⌀5·⌀6 이 옛 모양으로 남았다)
     if (doc.syms) Object.keys(doc.syms).forEach(k => { const b = BUILTIN.find(x => x.id === k); if (b) doc.syms[k] = {...doc.syms[k], name: b.name, items: clone(b.items)}; });
     groupTplOps();
+    syncMarks();
     doc.seq = Math.max(doc.seq || 1, ...doc.ops.map(o => (o.id || 0) + 1));   // id 가 겹치면 한 줄을 지울 때 다른 줄도 지워진다
     seqSeen = doc.seq;
     doc.ops.forEach(o => {                              // 예전 마킹 — 점을 가리키지 않았다. 그 자리의 점을 찾아 잇는다
