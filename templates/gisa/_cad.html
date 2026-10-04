@@ -1968,8 +1968,9 @@ function edgeCross(e, w) {
 }
 function onEdge(e, w) {           // 변 위의 자리 — 가파른 변은 y 를, 누운 변은 x 를 눈금에 맞춘다
     const hp = hitPoint(w);
-    // 점이 변 위(화면 3px 안)면 그 점에 — 템플릿 귀로 만든 점처럼 자에 1mm 남짓 비껴 있어도 이어지게(대표님)
-    if (hp && Math.abs((hp.x - e.ax) * e.dy - (hp.y - e.ay) * e.dx) < Math.max(1e-3, 3 / pxPer())) return {x: hp.x, y: hp.y};
+    // 점이 변 위에 정확히 있을 때만 그 점에 붙는다. 한때 화면 3px 안이면 붙였더니, 자 바깥 0.2m 에 찍히는 스케일자 마킹 점에
+    // 선 끝이 붙어 가로선이 비스듬해졌다(대표님 2026-10 — 밑선이 두 줄로 보였다). 비껴 있는 점은 자를 그 점에 맞춰(ptSnapX·Y) 긋는다
+    if (hp && Math.abs((hp.x - e.ax) * e.dy - (hp.y - e.ay) * e.dx) < 1e-3) return {x: hp.x, y: hp.y};
     const X = edgeCross(e, w); if (X) return X;             // 기존 선과 만나는 자리가 가까우면 거기에 붙는다
     let t = clampT((w.x - e.ax) * e.dx + (w.y - e.ay) * e.dy, e);
     const g = $('cadSnap').checked ? +$('cadSnapStep').value : PREC;
