@@ -847,6 +847,11 @@
    글자를 덮는 빨간 덩어리가 됐다(사용자). 글자는 글자색만 바꾼다 */
 #cadOps g.on > :not(.cad-hit):not(text)[stroke]:not([stroke="none"]), #cadOps g.on > :not(.cad-hit) [stroke]:not([stroke="none"]):not(text) { stroke: #d93025; }
 #cadOps g.on > :not(.cad-hit) text, #cadOps g.on > text { fill: #d93025; stroke: none; }
+/* 보조선은 원래 빨강이라 고른 것을 파랑으로(대표님 2026-10 — 빨강끼리라 골랐는지 알 수 없었다) */
+#cadOps g.on.aux > :not(.cad-hit):not(text)[stroke]:not([stroke="none"]), #cadOps g.on.aux > :not(.cad-hit) [stroke]:not([stroke="none"]):not(text) { stroke: #1565c0; }
+/* 고르는 순간 한 번 깜박인다 — 눈이 어디를 골랐는지 바로 찾게 */
+@keyframes cadSelBlink { 0%, 100% { opacity: 1; } 35% { opacity: .08; } 70% { opacity: 1; } }
+#cadOps g.on.blink { animation: cadSelBlink .55s ease-in-out 1; }
 #cadOps .cad-hit, #cadOps .cad-hit * { stroke: transparent !important; fill: none !important; stroke-width: 12px !important;
     vector-effect: non-scaling-stroke; stroke-dasharray: none !important; pointer-events: stroke; }
 #cadOps .cad-hit text { pointer-events: all; }
@@ -6896,11 +6901,14 @@ function eraseAt(C, r) {
 }
 
 // ── 선택·고치기 ─────────────────────────────────────────────────────────
+function selBlink() {                                  // 고른 것을 한 번 깜박인다(대표님)
+    gOps.querySelectorAll(':scope > g.on').forEach(g => { g.classList.remove('blink'); void g.getBBox; g.classList.add('blink'); });
+}
 function selectOp(id, add) {
     shrubEditOn = false;
     if (add) { selOps.has(id) ? selOps.delete(id) : selOps.add(id); }
     else { selOps = new Set([id]); }
-    renderAll(); regInfo();
+    renderAll(); regInfo(); selBlink();
     const row = $('cadOpList').querySelector(`[data-id="${id}"]`);
     if (row) paneScroll(row);
 }
@@ -7092,7 +7100,7 @@ function boxSelect(r, crossing, add) {
         if (hit) selOps.add(id);
     });
     doc.pts.forEach(p => { if (inside(p)) selPts.add(p.n); });
-    renderAll(); regInfo();
+    renderAll(); regInfo(); selBlink();
     const n = selOps.size, m = selPts.size;
     flash(n || m ? `객체 ${n}개 · 점 ${m}개를 골랐습니다 — Delete 로 지웁니다` : '상자 안에 고를 것이 없습니다');
 }
