@@ -168,6 +168,10 @@
                        영역으로 고르려면 <b>Shift 를 누른 채 끕니다</b> — → 오른쪽으로 끌면 <b>상자 안에 다 들어간 것만</b>(파란 실선), ← 왼쪽으로 끌면 <b>상자에 걸친 것까지</b>(초록 점선).</p>
                     <div class="cad-row"><span class="cad-help" id="cadSelInfo">고른 것 없음</span>
                         <button type="button" class="cad-go" id="cadSelDel" title="Delete">고른 것 지우기</button></div>
+                    <div class="cad-row cad-move"><span class="cad-help">옮기기</span>
+                        <label>→ X <input type="number" id="cadMvX" step="0.1" value="0" class="cad-txt"> m</label>
+                        <label>↓ Y <input type="number" id="cadMvY" step="0.1" value="0" class="cad-txt"> m</label>
+                        <button type="button" class="cad-go" id="cadMvGo" title="고른 것을 X·Y 만큼 옮깁니다 (오른쪽·아래가 +)">옮기기</button></div>
                     <div class="cad-shrub-edit" id="fsShrub" hidden>
                         <h4>관목 고치기</h4>
                         <p class="cad-help">바꾸면 그 자리에서 다시 그립니다(Ctrl+Z 로 되돌림).</p>
@@ -507,6 +511,7 @@
 /* 지우개는 서 있다가 누르는 동안(.erasing) 기울어진다 — 빨간 원도 누르는 동안만 보인다 */
 .cad.erasing.cad-tool-erase5 #cadSvg, .cad.erasing.cad-tool-erase5 #cadSvg * { cursor: url("data:image/png;base64,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") 3 51, crosshair !important; }
 .cad.erasing.cad-tool-erase #cadSvg, .cad.erasing.cad-tool-erase #cadSvg * { cursor: url("data:image/png;base64,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") 5 45, crosshair !important; }
+.cad-move input { width: 64px; }
 .cad-tools select { border: 1px solid #d5ddd9; border-radius: 5px; padding: 2px 4px; font-size: 0.74rem; }
 .cad-tools .cad-bar-btn { display: inline-flex; align-items: center; justify-content: center; gap: 3px; padding: 2px 4px; height: 26px; min-width: 30px; }   /* 그림만 — 이름은 title 로 */
 .cad-bar-btn svg:not(.real) { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
@@ -6899,6 +6904,64 @@ function selectOp(id, add) {
     const row = $('cadOpList').querySelector(`[data-id="${id}"]`);
     if (row) paneScroll(row);
 }
+// ── 고른 것 옮기기(상대 이동, 대표님 2026-10) ── X·Y 만큼. 고르지 않은 것이 함께 쓰는 점은 복사해 떼어 내고(그 선은 제자리), 아무도 안 쓰는 점은 그대로 옮긴다
+function pathShift(d, dx, dy) {                        // SVG 경로의 절대 좌표만 옮긴다(소문자 상대 명령은 그대로, 맨 처음 m 만 절대)
+    const toks = d.match(/[a-zA-Z]|-?\d*\.?\d+(?:e[-+]?\d+)?/g) || [];
+    let out = [], cmd = '', i = 0, first = true;
+    const num = () => +toks[i++], f = v => +(+v).toFixed(3);
+    while (i < toks.length) {
+        if (/[a-zA-Z]/.test(toks[i])) { cmd = toks[i++]; out.push(cmd); if (cmd === 'Z' || cmd === 'z') continue; }
+        const C = cmd.toUpperCase(), abs = cmd === C || (cmd === 'm' && first);
+        const n = {M: 2, L: 2, T: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, A: 7}[C] || 2;
+        const v = []; for (let k = 0; k < n && i < toks.length && !/[a-zA-Z]/.test(toks[i]); k++) v.push(num());
+        if (abs) {
+            if (C === 'H') v[0] += dx; else if (C === 'V') v[0] += dy;
+            else if (C === 'A') { v[5] += dx; v[6] += dy; }
+            else for (let k = 0; k + 1 < v.length; k += 2) { v[k] += dx; v[k + 1] += dy; }
+        }
+        out.push(v.map(f).join(' ')); first = false;
+    }
+    return out.join(' ').replace(/ ([a-zA-Z])/g, '$1').replace(/([a-zA-Z]) /g, '$1');
+}
+function moveSelected(dx, dy) {
+    if (!(Math.abs(dx) > 1e-9 || Math.abs(dy) > 1e-9)) { flash('옮길 거리(X·Y)를 넣으세요 — 오른쪽·아래가 +, 왼쪽·위는 −'); return; }
+    const ids = new Set();
+    [...selOps].forEach(id => { const o = doc.ops.find(x => x.id === id); if (o) (o.grp != null ? grpOps(id) : [o]).forEach(x => ids.add(x.id)); });
+    if (!ids.size && !selPts.size) { flash('먼저 옮길 것을 고르세요'); return; }
+    snapHist();
+    const moving = doc.ops.filter(o => ids.has(o.id)), r3 = v => +(+v).toFixed(3);
+    const usedElse = new Set(); doc.ops.forEach(o => { if (!ids.has(o.id)) ptsOf(o).forEach(n => usedElse.add(+n)); });
+    const remap = new Map(), movedPts = new Set();
+    const movePt = n => {                              // 떼어 내기 — 남이 쓰는 점은 복사본을 옮겨 쓴다
+        if (remap.has(n)) return remap.get(n);
+        const p = doc.pts.find(q => q.n === n); if (!p) return n;
+        if (usedElse.has(n)) { const nn = Math.max(0, ...doc.pts.map(q => q.n)) + 1; doc.pts.push({n: nn, x: r3(p.x + dx), y: r3(p.y + dy)}); remap.set(n, nn); return nn; }
+        p.x = r3(p.x + dx); p.y = r3(p.y + dy); remap.set(n, n); movedPts.add(n); return n;
+    };
+    moving.forEach(o => {
+        REF_KEYS.forEach(k => { if (typeof o[k] === 'number') o[k] = movePt(o[k]); });
+        if (Array.isArray(o.pts)) o.pts = o.pts.map(([x, y]) => [r3(x + dx), r3(y + dy)]);
+        if (o.t === 'text' && o.p == null && o.x != null) { o.x = r3(o.x + dx); o.y = r3(o.y + dy); }
+        if (o.t === 'fill') {
+            if (o.d) o.d = pathShift(o.d, dx, dy);
+            if (o.bb) o.bb = [o.bb[0] + dx, o.bb[1] + dy, o.bb[2] + dx, o.bb[3] + dy].map(r3);
+            if (o.cuts) o.cuts = o.cuts.map(([x, y, r]) => [r3(x + dx), r3(y + dy), r]);
+            if (o.holes) o.holes = o.holes.map(Q => Q.map(([x, y]) => [r3(x + dx), r3(y + dy)]));
+            if (o.part) o.part = {...o.part, x: r3(o.part.x + dx), y: r3(o.part.y + dy)};
+        }
+        if (o.shrub && Array.isArray(o.shrub.raw)) o.shrub.raw = o.shrub.raw.map(([x, y]) => [r3(x + dx), r3(y + dy)]);
+        if (o.tl && typeof o.tl === 'object') {        // 그을 때의 자 자리도 함께 — 재생 때 자가 선에 맞게
+            const t = o.tl = JSON.parse(JSON.stringify(o.tl));
+            if (t.bar != null) t.bar = r3(t.bar + dy);
+            if (t.tri && t.tri.x != null) t.tri.x = r3(t.tri.x + dx);
+            ['tpl', 'sr', 'ftri'].forEach(k => { if (t[k] && t[k].x != null) { t[k].x = r3(t[k].x + dx); t[k].y = r3(t[k].y + dy); } });
+        }
+    });
+    selPts.forEach(n => { if (!remap.has(+n)) { const p = doc.pts.find(q => q.n === +n); if (p) { p.x = r3(p.x + dx); p.y = r3(p.y + dy); } } });
+    changed();
+    const cut = [...remap].filter(([a, b]) => a !== b).length;
+    flash(`${moving.length}개를 → ${fmt(dx)}m · ↓ ${fmt(dy)}m 옮겼습니다` + (cut ? ` — 다른 선과 함께 쓰던 점 ${cut}개는 떼어 냈습니다` : '') + ' (Ctrl+Z 로 되돌림)');
+}
 function deleteSelected() {
     if (!selOps.size && !selPts.size) { flash('지울 것을 먼저 고르세요'); return; }
     snapHist();
@@ -9378,6 +9441,8 @@ $('cadTriFlip').addEventListener('click', () => { if (!tri) return; const G = tr
 $('cadTriRot').addEventListener('click', () => { if (!tri) return; tri.alt = !tri.alt; saveTri(); drawTri(); });
 $('cadBarOn').addEventListener('change', () => { barOn = $('cadBarOn').checked; drawBar(); saveBar(); flash(barOn ? 'I자를 폈습니다 — 끌어서 위아래로, ↑↓ 키로 한 칸씩' : 'I자를 치웠습니다'); });
 $('cadSelDel').addEventListener('click', deleteSelected);
+$('cadMvGo').addEventListener('click', () => moveSelected(+$('cadMvX').value || 0, +$('cadMvY').value || 0));
+['cadMvX', 'cadMvY'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('cadMvGo').click(); } }));
 $('cadPtList').addEventListener('click', e => {
     const row = e.target.closest('.cad-pt'); if (!row || row.classList.contains('head')) return;
     const n = +row.dataset.n;
