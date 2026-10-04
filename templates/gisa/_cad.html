@@ -2685,7 +2685,7 @@ function dotSvg(p, ring, mk) {   // mk — 마킹 점은 마킹 색으로(큰 �
     const tx = p.lp != null ? (() => { const b = lblBox(p, p.lp); return `x="${fmt(b.x0)}" y="${fmt((b.y0 + b.y1) / 2)}" dominant-baseline="central"`; })()
                             : `x="${fmt(p.x + r + fn * 0.22)}" y="${fmt(p.y - r - fn * 0.12)}"`;
     return `<circle${mk ? ` class="mk-dot" data-r="${fmt(r)}"` : ''} cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r)}" fill="${mk ? (SET.markColor || '#f76707') : INK}"/>`
-        + `<text ${tx} font-size="${fmt(fn)}" fill="${p.dot ? RED : BLUE}" font-weight="700">${p.n}</text>`
+        + `<text ${tx} font-size="${fmt(fn)}" fill="${ring ? RED : BLUE}" font-weight="700">${p.n}</text>`   // 고른 점(샤프로 짚은 점)은 번호도 빨강(대표님 2026-10 — 겹친 번호 가운데 어느 것인지 보이게)
         + (ring ? `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r * 2.6)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : '');
 }
 // ── 제도판 ── 사용자가 보여 준 탁상 제도판(평면)을 종이 둘레에 그린다: 흰 판, 좌우 알루미늄 레일(왼쪽에 눈금),
@@ -2830,7 +2830,8 @@ function drawPts() {
     }
     // 마킹 점은 스케일자 모서리 위에 있어 자 밑에 가려진다 — 도구보다 위 층(#cadPtsTop)에 그린다(사용자: "마킹점도 점으로, 번호가 보여야")
     const on = activePts(), mk = markPtSet();
-    gPts.innerHTML = doc.pts.filter(p => !mk.has(+p.n)).map(p => dotSvg(p, on.has(p.n))).join('');
+    const lastOn = (a, b) => (on.has(a.n) ? 1 : 0) - (on.has(b.n) ? 1 : 0);   // 고른 점은 맨 위에 — 겹친 번호에 가리지 않게
+    gPts.innerHTML = doc.pts.filter(p => !mk.has(+p.n)).sort(lastOn).map(p => dotSvg(p, on.has(p.n))).join('');
     $('cadPtsTop').innerHTML = doc.pts.filter(p => mk.has(+p.n)).map(p => dotSvg(p, on.has(p.n), true)).join('');
 }
 function drawPre() {
@@ -7905,7 +7906,6 @@ function penDot(w, free) {
     if (covered(q)) { flash('자가 덮은 곳에는 점을 찍을 수 없습니다'); return; }
     snapHist();
     const n = addPt(q.x, q.y); selPt = n;
-    { const pp = doc.pts.find(p => p.n === n); if (pp) pp.dot = 1; }   // 샤프로 찍은 점 — 번호를 빨갛게(대표님 2026-10)
     changed(); flash(`점 P${n} (${fmt(q.x)}, ${fmt(q.y)}) 을 찍었습니다`);
 }
 function pencilOn(edge, w) {                         // 그 변으로 긋기 시작할 때의 자리·삼각자 막힘
