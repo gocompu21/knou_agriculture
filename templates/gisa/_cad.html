@@ -4797,7 +4797,12 @@ function dimSvg(op, color) {
     o += end(A2, 1) + end(B2, -1);
     // 글자 — 치수선 가운데 위(읽는 쪽이 위가 되게 각도를 -90°~90° 로)
     let ang = Math.atan2(u.y, u.x) * 180 / Math.PI; if (ang > 90.01) ang -= 180; if (ang <= -90.01) ang += 180;
-    const rad = ang * Math.PI / 180, upx = Math.sin(rad), upy = -Math.cos(rad), th = dmm(op.tmm || 3), m = {x: (A2.x + B2.x) / 2 + upx * dmm(0.8), y: (A2.y + B2.y) / 2 + upy * dmm(0.8)};
+    const rad = ang * Math.PI / 180, upx = Math.sin(rad), upy = -Math.cos(rad), th = dmm(op.tmm || 3);
+    // 세로 치수는 글자를 **뽑은 쪽(바깥)**에 둔다(대표님) — 왼쪽으로 뽑으면 치수선 왼쪽, 오른쪽이면 오른쪽. 글자의 위쪽(up)이 바깥을 향하지 않으면
+    // 치수선 너머로 글자 높이(숫자 약 0.75em)만큼 더 밀어 놓는다(글자 방향은 그대로 — 아래에서 위로 읽힌다)
+    let off = dmm(0.8);
+    if (op.mode === 'v') { const ox = A2.x - g.a.x || B2.x - g.b.x; if (ox * upx < 0) off = -(dmm(0.8) + th * 0.75); }
+    const m = {x: (A2.x + B2.x) / 2 + upx * off, y: (A2.y + B2.y) / 2 + upy * off};
     o += `<text x="${f(m.x)}" y="${f(m.y)}" font-size="${f(th)}" text-anchor="middle" fill="${col}" stroke="none" font-family="${FONTS.gothic.replace(/"/g, "'")}"${Math.abs(ang) > 0.01 ? ` transform="rotate(${f(+ang.toFixed(3))} ${f(m.x)} ${f(m.y)})"` : ''}>${esc(dimText(op, g.L))}</text>`;
     return `<g class="dimg" stroke="${col}" stroke-width="${f(lw)}" fill="none" stroke-linecap="round">${o}</g>`;
 }
