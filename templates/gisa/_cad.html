@@ -282,7 +282,7 @@
                     <h4>치수선</h4>
                     <p class="cad-help">① 재려는 첫 점 ② 둘째 점을 누르고 ③ 치수선을 둘 자리를 누릅니다. 끝은 <b>있는 점이나 선의 교점</b>에만 붙고 새 점은 만들지 않습니다(교점은 노란 동그라미에 ✕).<br>
                        '자동'이면 커서를 위아래로 빼면 가로 치수, 옆으로 빼면 세로 치수입니다. 우클릭·Esc 취소, Backspace 한 단계 되돌리기.<br>
-                       치수는 <b>따로 된 레이어</b>라 도구 줄 '치수' 체크로 감출 수 있고, 지우개·채우기·자 붙기에 끼지 않습니다. 치수를 <b>두 번 누르면</b> 그 자리에서 글자를 고칩니다(선택 도구로 끌면 치수선 자리 옮기기).</p>
+                       치수는 <b>따로 된 레이어</b>라 도구 줄 '치수' 체크로 감출 수 있고, 지우개·채우기·자 붙기에 끼지 않습니다. 치수를 <b>두 번 누르면</b> 그 자리에서 고칩니다 — 숫자를 넣으면 둘째 점을 당겨 그 길이로 맞추고, 글자를 넣으면 글자만 바뀝니다(선택 도구로 끌면 치수선 자리 옮기기).</p>
                     <div class="cad-row"><label>방향<select id="fdmMode"><option value="auto">자동(가로·세로)</option><option value="h">가로</option><option value="v">세로</option><option value="al">두 점 나란히</option></select></label>
                         <label>단위<select id="fdmUnit"><option value="m">m (12.5)</option><option value="mm">mm (12,500)</option></select></label></div>
                     <div class="cad-row"><label>끝<select id="fdmEnd"><option value="arrow">화살촉</option><option value="tick">사선(／)</option><option value="dot">점</option></select></label>
@@ -9734,13 +9734,32 @@ function dimAtClient(cx, cy) {
     }
     return null;
 }
+// 치수에 숫자를 넣으면 **둘째 점**을 치수 방향으로 밀거나 당겨 그 길이로 맞춘다(대표님) — 가로 치수면 x 만, 세로면 y 만, 나란히면 두 점 선을 따라.
+// 둘째 끝이 교점(점 아님)이면 첫 점을 반대쪽으로 옮기고, 둘 다 교점이면 글자만 바꾼다. 그 점에 이어진 선·사각형도 함께 늘거나 준다
+function dimSetLen(op, L) {
+    if (!(L > 0)) { flash('길이는 0 보다 커야 합니다'); return true; }
+    const g = dimGeom(op); if (!g) return false;
+    const mv = op.b != null ? 'b' : op.a != null ? 'a' : null;
+    if (!mv) { flash('두 끝이 모두 교점이라 점을 옮길 수 없습니다 — 글자만 바꿉니다'); return false; }
+    const fix = dimEnd(op, mv === 'b' ? 'a' : 'b'), pt = P(op[mv]); if (!fix || !pt) return false;
+    const r3 = v => +(+v).toFixed(3);
+    let nx = pt.x, ny = pt.y;
+    if (op.mode === 'h') nx = fix.x + Math.sign(pt.x - fix.x || 1) * L;
+    else if (op.mode === 'v') ny = fix.y + Math.sign(pt.y - fix.y || 1) * L;
+    else { const d = Math.hypot(pt.x - fix.x, pt.y - fix.y) || 1; nx = fix.x + (pt.x - fix.x) / d * L; ny = fix.y + (pt.y - fix.y) / d * L; }
+    if (Math.abs(nx - pt.x) < 1e-6 && Math.abs(ny - pt.y) < 1e-6) { if (op.txt) { snapHist(); delete op.txt; changed(); } return true; }
+    snapHist();
+    pt.x = r3(nx); pt.y = r3(ny); delete op.txt;
+    changed(); flash(`P${pt.n} 를 옮겨 ${fmt(L)}m 로 맞췄습니다 (Ctrl+Z 로 되돌림)`);
+    return true;
+}
 function dimTextEdit(op) {
     const g = dimGeom(op), te = gOps.querySelector(`[data-op="${op.id}"] > .dimg text`); if (!g || !te) return;
     const old = document.getElementById('cadDimEd'); if (old) old.remove();
     const r = te.getBoundingClientRect(), auto = dimText({...op, txt: ''}, g.L);
     const inp = document.createElement('input');
     inp.id = 'cadDimEd'; inp.className = 'cad-dim-ed'; inp.value = op.txt || auto; inp.placeholder = auto;
-    inp.title = 'Enter 저장 · Esc 취소 · 비우면 잰 길이';
+    inp.title = '숫자를 넣으면 둘째 점을 당겨 그 길이로 맞춥니다 · 글자를 넣으면 글자만 · 비우면 잰 길이 · Enter 저장 · Esc 취소';
     const w = Math.max(90, r.width + 40);
     inp.style.left = `${Math.round(r.left + r.width / 2 - w / 2)}px`; inp.style.top = `${Math.round(r.top + r.height / 2 - 15)}px`; inp.style.width = `${Math.round(w)}px`;
     root.appendChild(inp); inp.focus(); inp.select();   // body 에 붙이면 전체 화면(.cad.full, z-index 높음) 밑에 깔려 안 보였다
@@ -9749,6 +9768,7 @@ function dimTextEdit(op) {
         if (done) return; done = true; inp.remove();
         if (!save) return;
         const v = inp.value.trim(), nv = v && v !== auto ? v : null;
+        if (nv && /^[\d,]*\.?\d+$/.test(nv) && dimSetLen(op, op.unit === 'mm' ? +nv.replace(/,/g, '') / 1000 : +nv.replace(/,/g, ''))) return;   // 숫자면 점을 당겨 길이를 맞춘다
         if ((op.txt || null) === nv) return;
         snapHist(); if (nv) op.txt = nv; else delete op.txt; changed();
         flash(nv ? `치수 글자를 '${nv}' 로 바꿨습니다` : `치수 글자를 잰 길이(${auto})로 되돌렸습니다`);
