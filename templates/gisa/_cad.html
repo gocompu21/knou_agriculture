@@ -282,7 +282,7 @@
                     <h4>치수선</h4>
                     <p class="cad-help">① 재려는 첫 점 ② 둘째 점을 누르고 ③ 치수선을 둘 자리를 누릅니다. 점 곁이면 그 점에, 아니면 눈금에 붙습니다.<br>
                        '자동'이면 커서를 위아래로 빼면 가로 치수, 옆으로 빼면 세로 치수입니다. 우클릭·Esc 취소, Backspace 한 단계 되돌리기.<br>
-                       치수는 <b>따로 된 레이어</b>라 도구 줄 '치수' 체크로 감출 수 있고, 지우개·채우기·자 붙기에 끼지 않습니다. 작도 순서의 ✎ 로 글자를 바꿉니다.</p>
+                       치수는 <b>따로 된 레이어</b>라 도구 줄 '치수' 체크로 감출 수 있고, 지우개·채우기·자 붙기에 끼지 않습니다. 치수를 <b>두 번 누르면</b> 그 자리에서 글자를 고칩니다(선택 도구로 끌면 치수선 자리 옮기기).</p>
                     <div class="cad-row"><label>방향<select id="fdmMode"><option value="auto">자동(가로·세로)</option><option value="h">가로</option><option value="v">세로</option><option value="al">두 점 나란히</option></select></label>
                         <label>단위<select id="fdmUnit"><option value="m">m (12.5)</option><option value="mm">mm (12,500)</option></select></label></div>
                     <div class="cad-row"><label>끝<select id="fdmEnd"><option value="arrow">화살촉</option><option value="tick">사선(／)</option><option value="dot">점</option></select></label>
@@ -577,6 +577,7 @@
 .cad.aux-off #cadOps g.aux { display: none; }
 .cad.mark-off #cadOps g.mark, .cad.mark-off #cadOps .sym-mark { display: none; }
 .cad.dim-off #cadOps g.dim { display: none; }
+.cad-dim-ed { position: fixed; z-index: 9999; height: 30px; padding: 2px 8px; font-size: 15px; text-align: center; border: 2px solid #1f5fa8; border-radius: 5px; background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.2); outline: none; }
 .cad-ctx { position: fixed; z-index: 60; min-width: 170px; background: #fff; border: 1px solid #c9ced3; border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,.18); padding: 4px 0; font-size: 13px; }
 .cad-ctx[hidden] { display: none; }
 .cad-ctx .ch { padding: 4px 12px 5px; color: #6b7076; font-size: 12px; border-bottom: 1px solid #eef0f2; margin-bottom: 2px; }
@@ -8298,6 +8299,8 @@ svg.addEventListener('pointerdown', e => {
         }
         drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true};
         if (e.button === 2) { if (dimV.length) { dimV = []; drawPre(); status(); flash('치수선을 취소했습니다'); } return; }
+        { const dop = !dimV.length && !hitPoint(w) && dimAtClient(e.clientX, e.clientY);   // 치수 위 — 두 번 눌러 글자 고치기(첫 점이 생기지 않게)
+          if (dop) { if (dimDouble(e, dop)) setTimeout(() => dimTextEdit(dop), 0); return; } }
         dimPick(w); return;
     }
     if (tool === 'poly' && (e.button === 0 || e.button === 2)) {   // 다각선 — 누를 때마다 가까운 점, 더블클릭·오른쪽 버튼이면 끝
@@ -8430,6 +8433,7 @@ svg.addEventListener('pointerdown', e => {
     // 치수선은 선택 도구로 눌러 끌면 치수선 자리(at)가 옮겨진다(대표님) — 끌지 않고 떼면 평소처럼 고르기
     if (tool === 'select' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
         const g = e.target.closest && e.target.closest('#cadOps [data-op]'), op = g && doc.ops.find(o => o.id === +g.dataset.op);
+        if (op && op.t === 'dim' && dimDouble(e, op)) { drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; setTimeout(() => dimTextEdit(op), 0); return; }
         if (op && op.t === 'dim') { drag = {kind: 'dimmove', id: op.id, at0: op.at, sx: e.clientX, sy: e.clientY, moved: false, target: e.target}; return; }
     }
     // 선택 도구로 빈 곳을 끌면 화면 이동(pan) — 영역 선택은 Shift 를 누른 채 끈다
@@ -9691,7 +9695,46 @@ document.addEventListener('keydown', e => {
     if (k === '-') zoomCenter(1 / 1.4);
 });
 document.addEventListener('keyup', e => { if (e.key === ' ') spaceDown = false; });
-svg.addEventListener('dblclick', () => { if (tool === 'shrub' && shrubV.length >= 2 && !RP) { shrubPtsFinish(false); return; } if (tool === 'arrow' && awChain && !RP) { awChainEnd(); return; } if (tool === 'space' && spaceV.length >= 2 && !RP) { const V = spaceV.map(q => [q.x, q.y]); spaceV = []; spaceFinish(V, 'pts', false); } if (tool === 'arrow' && arrowV.length && !RP) arrowFinish(); if (tool === 'poly' && polyV.length && !RP) polyFinish(); if (tool === 'shrub' && shrubCh && !RP) shrubFinish(false); });
+// 치수 글자를 치수선 위에서 바로 고친다(대표님) — 선택·치수선 도구에서 치수를 두 번 누르면 그 자리에 입력칸.
+// 한 번 누를 때 다시 그려져 dblclick 의 target 이 바뀌므로 누른 자리의 요소들(elementsFromPoint)에서 치수를 찾는다
+function dimAtClient(cx, cy) {
+    for (const el of document.elementsFromPoint(cx, cy)) {
+        const g = el.closest && el.closest('#cadOps [data-op]'); if (!g) continue;
+        const op = doc.ops.find(o => o.id === +g.dataset.op); if (op && op.t === 'dim') return op;
+    }
+    return null;
+}
+function dimTextEdit(op) {
+    const g = dimGeom(op), te = gOps.querySelector(`[data-op="${op.id}"] > .dimg text`); if (!g || !te) return;
+    const old = document.getElementById('cadDimEd'); if (old) old.remove();
+    const r = te.getBoundingClientRect(), auto = dimText({...op, txt: ''}, g.L);
+    const inp = document.createElement('input');
+    inp.id = 'cadDimEd'; inp.className = 'cad-dim-ed'; inp.value = op.txt || auto; inp.placeholder = auto;
+    inp.title = 'Enter 저장 · Esc 취소 · 비우면 잰 길이';
+    const w = Math.max(90, r.width + 40);
+    inp.style.left = `${Math.round(r.left + r.width / 2 - w / 2)}px`; inp.style.top = `${Math.round(r.top + r.height / 2 - 15)}px`; inp.style.width = `${Math.round(w)}px`;
+    root.appendChild(inp); inp.focus(); inp.select();   // body 에 붙이면 전체 화면(.cad.full, z-index 높음) 밑에 깔려 안 보였다
+    let done = false;
+    const finish = save => {
+        if (done) return; done = true; inp.remove();
+        if (!save) return;
+        const v = inp.value.trim(), nv = v && v !== auto ? v : null;
+        if ((op.txt || null) === nv) return;
+        snapHist(); if (nv) op.txt = nv; else delete op.txt; changed();
+        flash(nv ? `치수 글자를 '${nv}' 로 바꿨습니다` : `치수 글자를 잰 길이(${auto})로 되돌렸습니다`);
+    };
+    inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); finish(true); } else if (e.key === 'Escape') { e.preventDefault(); finish(false); } });
+    inp.addEventListener('blur', () => finish(true));
+}
+let dimTap = null;                                     // 치수 두 번 누르기 — 직접 잰다
+function dimDouble(e, op) {
+    const t = performance.now(), d = dimTap;
+    dimTap = {id: op.id, t, x: e.clientX, y: e.clientY};
+    if (d && d.id === op.id && t - d.t < 450 && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 8) { dimTap = null; return true; }
+    return false;
+}
+svg.addEventListener('dblclick', () => {
+ if (tool === 'shrub' && shrubV.length >= 2 && !RP) { shrubPtsFinish(false); return; } if (tool === 'arrow' && awChain && !RP) { awChainEnd(); return; } if (tool === 'space' && spaceV.length >= 2 && !RP) { const V = spaceV.map(q => [q.x, q.y]); spaceV = []; spaceFinish(V, 'pts', false); } if (tool === 'arrow' && arrowV.length && !RP) arrowFinish(); if (tool === 'poly' && polyV.length && !RP) polyFinish(); if (tool === 'shrub' && shrubCh && !RP) shrubFinish(false); });
 document.addEventListener('keydown', e => {           // 관목 군식을 이어 긋는 중 — Enter 열린 채 끝 · Backspace 한 조각 · Esc 취소(도구는 그대로)
     if (tool !== 'shrub' || !shrubCh || RP) return;
     const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
