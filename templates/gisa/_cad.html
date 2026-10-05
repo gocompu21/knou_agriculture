@@ -151,7 +151,7 @@
     <div class="cad-body">
         <div class="cad-stage">
             <svg id="cadSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-                <g id="cadBoard" pointer-events="none"></g><g id="cadGrid"></g><g id="cadUnder" pointer-events="none"></g><g id="cadHl" pointer-events="none" style="mix-blend-mode:multiply"></g><g id="cadOps"></g><g id="cadPts"></g><g id="cadSr"></g><g id="cadPtsTop" pointer-events="none"></g><g id="cadBar"></g><g id="cadTri"></g><g id="cadFtri"></g><g id="cadTpl"></g><g id="cadPre"></g>
+                <g id="cadBoard" pointer-events="none"></g><g id="cadGrid"></g><g id="cadUnder" pointer-events="none"></g><g id="cadHl" pointer-events="none" style="mix-blend-mode:multiply"></g><g id="cadOps"></g><g id="cadPts"></g><g id="cadSr"></g><g id="cadPtsTop" pointer-events="none"></g><g id="cadBar"></g><g id="cadTri"></g><g id="cadFtri"></g><g id="cadTpl"></g><g id="cadPre"></g><g id="cadHdl"></g>
             </svg>
             <div id="cadEdge" aria-hidden="true"><i class="t"></i><i class="b"></i><i class="l"></i><i class="r"></i></div>
             <div class="cad-zoom">
@@ -542,6 +542,7 @@
 /* 글자 도구 커서 — 찍히는 점(붉은 점)이 첫 글자의 왼쪽 아래 모서리다. 세로선=글자 높이 쪽, 가로선=써 나갈 쪽 */
 .cad-tool-text #cadSvg { cursor: url("data:image/svg+xml,<svg%20xmlns='http://www.w3.org/2000/svg'%20width='28'%20height='28'%20viewBox='0%200%2028%2028'><path%20d='M3%2025V5M3%2025h9'%20stroke='white'%20stroke-width='3.4'%20stroke-linecap='round'%20fill='none'/><path%20d='M3%2025V5M3%2025h9'%20stroke='%23c62828'%20stroke-width='1.6'%20stroke-linecap='round'%20fill='none'/><circle%20cx='3'%20cy='25'%20r='2.2'%20fill='%23c62828'%20stroke='white'%20stroke-width='1'/><text%20x='7'%20y='20'%20font-size='13'%20font-family='sans-serif'%20font-weight='700'%20fill='%23333'%20stroke='white'%20stroke-width='2.4'%20paint-order='stroke'>가</text></svg>") 3 25, text; }
 #cadPre { pointer-events: none; }
+#cadHdl circle { cursor: move; }
 #cadTpl .tpl-rot, #cadSr .sr-rot, #cadFtri .ftri-rot { cursor: grab; }
 #cadTpl .tpl-cn { cursor: pointer; }
 #cadSr .sr-roll { cursor: pointer; }
@@ -2515,6 +2516,30 @@ function walkPair(C, W) {
     };
     return [side(1), side(-1)];
 }
+// ── 프리드로잉 핸들(대표님 2026-10) ── 선택 도구로 프리드로잉 하나를 고르면 선을 따라 고른 간격(종이 8mm)으로 핸들이 놓이고,
+// 핸들을 끌면 그 둘레(앞뒤 핸들 사이)만 코사인 무게로 부드럽게 휜다. 끌기 시작할 때 선을 촘촘히 다시 찍어 둔다(성긴 점이면 휨이 각진다)
+function hdlOp() {
+    if (tool !== 'select' || RP || selOps.size !== 1) return null;
+    const o = doc.ops.find(x => selOps.has(x.id)); return freePlain(o) ? o : null;
+}
+function hdlGeom(o) {
+    const a = o.pts, cum = [0]; for (let i = 1; i < a.length; i++) cum.push(cum[i - 1] + Math.hypot(a[i][0] - a[i - 1][0], a[i][1] - a[i - 1][1]));
+    const L = cum[cum.length - 1], n = Math.max(3, Math.min(30, Math.round(L / (8 * scaleDenom() / 1000)) + 1)), sp = L / (n - 1);
+    const at = d => { let i = 1; while (i < a.length - 1 && cum[i] < d) i++; const t = (d - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1); return [a[i - 1][0] + (a[i][0] - a[i - 1][0]) * t, a[i - 1][1] + (a[i][1] - a[i - 1][1]) * t]; };
+    return {cum, L, sp, H: Array.from({length: n}, (_, k) => ({s: k * sp, p: at(k * sp)}))};
+}
+function drawHandles() {
+    const g = $('cadHdl'); if (!g) return;
+    const o = hdlOp(); if (!o || o.pts.length < 2) { if (g.innerHTML) g.innerHTML = ''; return; }
+    const G = hdlGeom(o), r = 5 / pxPer(), f = fmt;
+    g.innerHTML = G.H.map((h, k) => `<circle data-hdl="${k}" cx="${f(h.p[0])}" cy="${f(h.p[1])}" r="${f(r)}" fill="#fff" stroke="#1565c0" stroke-width="${f(1.6 / pxPer())}"/>`).join('');
+}
+function hdlDense(o, step) {                           // 끌기 전에 고르게 촘촘히 — 휨이 매끈하게
+    const a = o.pts, out = [a[0]];
+    for (let i = 1; i < a.length; i++) { const p0 = out[out.length - 1], q = a[i], n = Math.max(1, Math.ceil(Math.hypot(q[0] - p0[0], q[1] - p0[1]) / step));
+        for (let t = 1; t <= n; t++) out.push([p0[0] + (q[0] - p0[0]) * t / n, p0[1] + (q[1] - p0[1]) * t / n]); }
+    o.pts = out;
+}
 const freePlain = o => o && o.t === 'free' && !o.walk && !o.shrub && !o.arrow && !o.mark && !o.space && !o.hedge && !o.lead && o.pts && o.pts.length > 1;
 function freeJoin(N) {
     let made = 0, only = null;                          // 둘째 바퀴는 새 획의 남은 끝(이은 획의 마지막 점)만 본다 — 먼저 그은 획의 다른 끝까지 엉뚱하게 잇지 않게
@@ -2954,7 +2979,7 @@ function ftMmFrom(size) {            // 도면 m → 종이 mm. 목록에 없는
     }
     sel.value = [...sel.options].find(o => +o.value === mm).value; $('ftSize').value = size;
 }
-function renderAll() { drawBar(); drawOps(); drawPts(); drawPre(); listOps(); listPts(); markAwait(); savedLabel(); selInfo(); if (tool === 'dim') dimTargetInfo(); }
+function renderAll() { drawBar(); drawOps(); drawPts(); drawPre(); drawHandles(); listOps(); listPts(); markAwait(); savedLabel(); selInfo(); if (tool === 'dim') dimTargetInfo(); }
 const isAux = op => op.ls === 'aux';
 const auxHidden = op => (isAux(op) && !SET.auxOn) || (!!op.mark && SET.markOn === false) || (op.t === 'dim' && SET.dimOn === false);   // 치수 레이어도   // 꺼진 보조선·마킹 — 지우개·선택이 건드리지 않는다
 function setAux(on) {
@@ -3000,6 +3025,7 @@ function drawPts() {
     $('cadPtsTop').innerHTML = doc.pts.filter(p => mk.has(+p.n)).map(p => dotSvg(p, on.has(p.n), true, co[p.n])).join('');
 }
 function drawPre() {
+    drawHandles();
     if (RP) { gPre.innerHTML = ''; return; }
     if (tool === 'poly') { gPre.innerHTML = polyPreSvg(); return; }
     if (tool === 'dim') { gPre.innerHTML = dimPreSvg(); return; }
@@ -8765,6 +8791,10 @@ svg.addEventListener('pointerdown', e => {
         }
         return;
     }
+    if (tool === 'select' && e.target.closest && e.target.closest('#cadHdl [data-hdl]')) {   // 프리드로잉 핸들 끌기
+        const o = hdlOp(); if (o) { const k = +e.target.closest('[data-hdl]').dataset.hdl, G = hdlGeom(o);
+            drag = {kind: 'hdl', id: o.id, s0: G.H[k].s, R: G.sp * 1.6, n: G.H.length, k, w0: w, sx: e.clientX, sy: e.clientY, moved: false}; return; }
+    }
     // 치수선은 선택 도구로 눌러 끌면 치수선 자리(at)가 옮겨진다(대표님) — 끌지 않고 떼면 평소처럼 고르기
     if (tool === 'select' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
         const g = e.target.closest && e.target.closest('#cadOps [data-op]'), op = g && doc.ops.find(o => o.id === +g.dataset.op);
@@ -8921,6 +8951,14 @@ svg.addEventListener('pointermove', e => {
         const l = drag.pts[drag.pts.length - 1];
         if (Math.hypot(w.x - l[0], w.y - l[1]) * pxPer() >= 2) drag.pts.push([w.x, w.y]);
         gPre.innerHTML = drag.pts.length > 1 ? `<path d="${freeD(drag.pts)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : ''; return;
+    }
+    if (drag && drag.kind === 'hdl') {                 // 핸들을 끄는 만큼 둘레만 휜다 — 끝 핸들은 끝점째 움직인다
+        const o = doc.ops.find(x => x.id === drag.id); if (!o) return;
+        if (!drag.moved) { if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 3) return; snapHist(); drag.moved = true; hdlDense(o, drag.R / 12); drag.orig = o.pts.map(q => q.slice());
+            const c = [0]; for (let i = 1; i < drag.orig.length; i++) c.push(c[i - 1] + Math.hypot(drag.orig[i][0] - drag.orig[i - 1][0], drag.orig[i][1] - drag.orig[i - 1][1])); drag.cum = c; }
+        const dx = w.x - drag.w0.x, dy = w.y - drag.w0.y, R = drag.R, s0 = drag.s0;
+        o.pts = drag.orig.map((q, i) => { const d = Math.abs(drag.cum[i] - s0); if (d >= R) return q; const wt = 0.5 * (1 + Math.cos(Math.PI * d / R)); return [+(q[0] + dx * wt).toFixed(3), +(q[1] + dy * wt).toFixed(3)]; });
+        drawOps(); drawHandles(); return;
     }
     if (drag && drag.kind === 'dimmove') {             // 치수선 옮기기 — 커서 자리(눈금에 붙음)로 at 을 다시 잰다
         const op = doc.ops.find(o => o.id === drag.id), a = op && dimEnd(op, 'a'), b = op && dimEnd(op, 'b');
@@ -9117,6 +9155,7 @@ function endPtr(e) {
     if (e.type === 'pointercancel') return;
     if (d.kind === 'trirot') { rotateTri(); return; }
     if (d.kind === 'boxdraw') { gPre.innerHTML = ''; if (d.b) makeBox(d.a, d.b); return; }
+    if (d.kind === 'hdl') { if (d.moved) { changed(); flash('프리드로잉을 휘었습니다 (Ctrl+Z 로 되돌림)'); } return; }
     if (d.kind === 'dimmove') { if (d.moved) { changed(); selInfo(); flash('치수선을 옮겼습니다 (Ctrl+Z 로 되돌림)'); } else selectOp(d.id, false); return; }
     if (d.kind === 'shbox') {                     // 관목 네모형 — 이어 긋기와 같은 끝내기(교목 뒤로 끊기 포함)로 넣는다
         gPre.innerHTML = ''; const st = shrubStyle(), raw = d.b && shrubBoxRaw(d.a, d.b, st.size);
