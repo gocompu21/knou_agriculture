@@ -74,6 +74,7 @@
         <label class="cad-chk" title="보조선 레이어 보이기·감추기 — 색은 설정(⚙)에서"><input type="checkbox" id="cadAuxChk" checked> 보조선</label>
         <label class="cad-chk" title="스케일자 마킹 보이기·감추기"><input type="checkbox" id="cadMarkChk" checked> 마킹</label>
         <label class="cad-chk" title="치수 레이어 보이기·감추기 — 색은 설정(⚙)에서"><input type="checkbox" id="cadDimChk" checked> 치수</label>
+        <label class="cad-chk" title="연필 느낌 — 선을 손으로 그은 듯 아주 조금 흔들고 흑연 결을 입힙니다(화면만, 도면 값은 그대로)"><input type="checkbox" id="cadPencil"> 연필</label>
         <label class="cad-chk" title="스냅 켜기·끄기 (F9)"><input type="checkbox" id="cadSnap" checked> 스냅</label>
         <select id="cadSnapStep" class="cad-txt" title="스냅 간격"></select>
         <span class="cad-sep"></span>
@@ -152,7 +153,7 @@
     <div class="cad-body">
         <div class="cad-stage">
             <svg id="cadSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-                <g id="cadBoard" pointer-events="none"></g><g id="cadGrid"></g><g id="cadUnder" pointer-events="none"></g><g id="cadHl" pointer-events="none" style="mix-blend-mode:multiply"></g><g id="cadOps"></g><g id="cadPts"></g><g id="cadSr"></g><g id="cadPtsTop" pointer-events="none"></g><g id="cadBar"></g><g id="cadTri"></g><g id="cadFtri"></g><g id="cadTpl"></g><g id="cadPre"></g><g id="cadHdl"></g>
+                <defs id="cadFxDefs"></defs><g id="cadBoard" pointer-events="none"></g><g id="cadGrid"></g><g id="cadUnder" pointer-events="none"></g><g id="cadHl" pointer-events="none" style="mix-blend-mode:multiply"></g><g id="cadOps"></g><g id="cadPts"></g><g id="cadSr"></g><g id="cadPtsTop" pointer-events="none"></g><g id="cadBar"></g><g id="cadTri"></g><g id="cadFtri"></g><g id="cadTpl"></g><g id="cadPre"></g><g id="cadHdl"></g>
             </svg>
             <div id="cadEdge" aria-hidden="true"><i class="t"></i><i class="b"></i><i class="l"></i><i class="r"></i></div>
             <div class="cad-zoom">
@@ -593,6 +594,7 @@
 .cad.aux-off #cadOps g.aux { display: none; }
 .cad.mark-off #cadOps g.mark, .cad.mark-off #cadOps .sym-mark { display: none; }
 .cad.dim-off #cadOps g.dim { display: none; }
+.cad.pencil #cadOps { filter: url(#cadPencilFx); }
 #cadOps g.dim-pop > .dimg { animation: cadDimPop 1.2s ease-in-out 1; }
 #cadOps g.dim-pop .dimtx { animation: cadDimScale 1.2s ease-in-out 1; transform-box: fill-box; transform-origin: center; }
 @keyframes cadDimScale { 0%, 100% { transform: scale(1); } 40%, 55% { transform: scale(2.2); } }
@@ -3003,6 +3005,7 @@ function setSheet(key) {
     PREC = +(mi / 10).toPrecision(3);
     $('cadBoard').innerHTML = boardSvg(sheet);
     gGrid.innerHTML = gridSvg(sheet, 'cg');
+    pencilFx();
     const sel = $('cadSnapStep'), keep = sel.value || String(SET.step || '');
     // 0.1m·0.2m 는 늘 둔다 — 시설 치수(평의자 0.45m 등)를 잡을 때 쓴다
     // 1:100 이하(큰 축척) 종이는 0.05m 도 둔다 — 종이 위 0.5mm(사용자)
@@ -3026,6 +3029,20 @@ function ftMmFrom(size) {            // 도면 m → 종이 mm. 목록에 없는
     }
     sel.value = [...sel.options].find(o => +o.value === mm).value; $('ftSize').value = size;
 }
+// 연필 느낌(대표님 2026-10) — 그린 것(#cadOps) 위에만 SVG 필터: ① 아주 조금 흔들기(종이 0.12mm, 결 2.5mm) ② 아주 살짝 번짐 ③ 흑연 알갱이(옅은 구멍).
+// 크기는 모두 종이 mm 를 축척으로 바꾼다. 화면 표시만 바뀌고 저장·SVG 내보내기·재생 값은 그대로
+function pencilFx() {
+    const D = $('cadFxDefs'); if (!D || !sheet) return;
+    const k = scaleDenom() / 1000, f = v => +v.toPrecision(4), m = 5 * U, x0 = sheet.x0 - m, y0 = sheet.y0 - m, W = sheet.x1 - sheet.x0 + 2 * m, H = sheet.y1 - sheet.y0 + 2 * m;
+    D.innerHTML = `<filter id="cadPencilFx" filterUnits="userSpaceOnUse" x="${f(x0)}" y="${f(y0)}" width="${f(W)}" height="${f(H)}" color-interpolation-filters="sRGB">`
+        + `<feTurbulence type="fractalNoise" baseFrequency="${f(1 / (2.5 * k))}" numOctaves="2" seed="4" result="wob"/>`
+        + `<feDisplacementMap in="SourceGraphic" in2="wob" scale="${f(0.12 * k)}" xChannelSelector="R" yChannelSelector="G" result="dis"/>`
+        + `<feGaussianBlur in="dis" stdDeviation="${f(0.025 * k)}" result="soft"/>`
+        + `<feTurbulence type="fractalNoise" baseFrequency="${f(1 / (0.12 * k))}" numOctaves="1" seed="9" result="grn"/>`
+        + `<feColorMatrix in="grn" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.9 0 0 0 1.25" result="ga"/>`
+        + `<feComposite in="soft" in2="ga" operator="in"/></filter>`;
+}
+function setPencil(on) { SET.pencil = on; $('cadPencil').checked = on; root.classList.toggle('pencil', on); saveSet(); }
 function renderAll() { drawBar(); drawOps(); drawPts(); drawPre(); drawHandles(); listOps(); listPts(); markAwait(); savedLabel(); selInfo(); if (tool === 'dim') dimTargetInfo(); }
 const isAux = op => op.ls === 'aux';
 const auxHidden = op => (isAux(op) && !SET.auxOn) || (!!op.mark && SET.markOn === false) || (op.t === 'dim' && SET.dimOn === false);   // 치수 레이어도   // 꺼진 보조선·마킹 — 지우개·선택이 건드리지 않는다
@@ -10355,6 +10372,8 @@ $('fdmMm').addEventListener('change', () => dimApplyOpt('tmm', +$('fdmMm').value
 $('fdmUnit').addEventListener('change', () => dimApplyOpt('unit', $('fdmUnit').value));
 svg.addEventListener('pointerdown', e => { lastDown = {clientX: e.clientX, clientY: e.clientY}; }, true);
 $('fsnStyle').addEventListener('change', () => { fsnStyleSync(); drawPre(); });
+$('cadPencil').checked = !!SET.pencil; root.classList.toggle('pencil', !!SET.pencil);
+$('cadPencil').addEventListener('change', () => setPencil($('cadPencil').checked));
 let dimTap = null;                                     // 치수 두 번 누르기 — 직접 잰다
 function dimDouble(e, op) {
     const t = performance.now(), d = dimTap;
