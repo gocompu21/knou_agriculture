@@ -181,7 +181,7 @@
                     <div class="cad-shrub-edit" id="fsShrub" hidden>
                         <h4>관목 고치기</h4>
                         <p class="cad-help">바꾸면 그 자리에서 다시 그립니다(Ctrl+Z 로 되돌림).</p>
-                        <div class="cad-row"><label>모양<select id="feK"><option value="round">둥근 파형</option><option value="spike">뾰족형</option></select></label>
+                        <div class="cad-row"><label>모양<select id="feK"><option value="round">둥근 파형</option><option value="spike">뾰족형</option><option value="contour">등고선(점선)</option></select></label>
                             <label>샤프<select id="feW"><option value="p9">굵은 샤프</option><option value="p5">얇은 샤프</option></select></label></div>
                         <div class="cad-row"><label>파형 크기<select id="feS"><option value="1.5">1.5mm</option><option value="2">2mm</option><option value="3">3mm</option><option value="4">4mm</option></select></label></div>
                         <div class="cad-row"><label>볼록함<select id="feB"><option value="0.6">완만하게</option><option value="1">둥글게</option><option value="1.3">아주 둥글게</option></select></label>
@@ -362,7 +362,7 @@
                     <div class="cad-row"><label>그리기<select id="fshM"><option value="free" selected>자유곡선 (끌기·이어 긋기)</option><option value="box">네모 (끌기)</option><option value="pts">점 찍기</option></select></label></div>
                     <div class="cad-row"><label>샤프<select id="fshW"><option value="p9">굵은 샤프</option><option value="p5">얇은 샤프</option></select></label>
                         <label>파형 크기<select id="fshS"><option value="1.5">1.5mm</option><option value="2" selected>2mm</option><option value="3">3mm</option><option value="4">4mm</option></select></label></div>
-                    <div class="cad-row"><label>모양<select id="fshK"><option value="round" selected>둥근 파형</option><option value="spike">뾰족형</option></select></label></div>
+                    <div class="cad-row"><label>모양<select id="fshK"><option value="round" selected>둥근 파형</option><option value="spike">뾰족형</option><option value="contour">등고선(점선)</option></select></label></div>
                     <div class="cad-row"><label>볼록함<select id="fshB"><option value="0.6">완만하게</option><option value="1" selected>둥글게</option><option value="1.3">아주 둥글게</option></select></label>
                         <label>고르기<select id="fshJ"><option value="0.05">고르게</option><option value="0.2" selected>보통</option><option value="0.35">들쭉날쭉</option></select></label></div>
                 </div>
@@ -2166,6 +2166,14 @@ function shrubScallop(raw, size, seed, closed, bulge, jit, kind) {
     if (closed) P.push([P[0][0], P[0][1]]);
     const cum = [0]; for (let i = 1; i < P.length; i++) cum.push(cum[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
     const L = cum[cum.length - 1]; if (L < size * (closed ? 3 : 1.2)) return null;
+    if (kind === 'contour') {                          // 등고선(대표님) — 파형 없이 그은 선을 둥글게 이어 점선으로. 파형 크기 간격으로 고르게 다시 찍고 모서리를 두 번 깎는다
+        const st = Math.max(size * 1.2, L / 300), Q = [];
+        for (let d = 0, i = 1; d <= L + 1e-9; d += st) { while (i < cum.length - 1 && cum[i] < d) i++;
+            const t = (d - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1); Q.push([P[i - 1][0] + (P[i][0] - P[i - 1][0]) * t, P[i - 1][1] + (P[i][1] - P[i - 1][1]) * t]); }
+        const E = P[P.length - 1]; if (Math.hypot(Q[Q.length - 1][0] - E[0], Q[Q.length - 1][1] - E[1]) > 1e-6) Q.push([E[0], E[1]]);
+        let R = chaikin(chaikin(Q)); if (closed) R[R.length - 1] = [R[0][0], R[0][1]];
+        return {pts: R.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]), closed: !!closed, side: 1};
+    }
     const steps = []; let acc = 0;                     // 파형 폭을 ±20% 흔들고 전체 길이에 맞춘다
     for (let i = 0; acc < L - size * 0.5 || steps.length < (closed ? 3 : 1); i++) { const s = size * (1 - jit + 2 * jit * shrubRnd(seed + i * 7.13)); steps.push(s); acc += s; }
     const at = d => { let i = 1; while (i < cum.length - 1 && cum[i] < d) i++;
@@ -2248,7 +2256,7 @@ function shrubObstacleShapes(ex) {                   // ex — 빼고 볼 op id 
         if (auxHidden(op) || op.ls === 'aux' || (ex && ex.has(op.id))) return;
         if (op.t === 'circle') { const c = P(op.c), r = radiusOf(op); if (c && r > 0) { const Q = []; for (let k = 0; k < 32; k++) { const t = k * Math.PI / 16; Q.push([c.x + r * Math.cos(t), c.y + r * Math.sin(t)]); } out.push(Q); } }
         else if (op.t === 'sym') { const H = shrubHull(shrubSymPts(op)); if (H.length > 2) out.push(H); }
-        else if (op.t === 'free' && op.shrub && op.pts) {
+        else if (op.t === 'free' && op.shrub && op.pts && op.shrub.kind !== 'contour') {   // 등고선은 땅 모양이라 무엇도 가리지 않는다
             if (op.shrub.closed) out.push(op.pts);
             else if (op.shrub.cc) { const k = op.grp != null ? 'g' + op.grp : 'o' + op.id; (rings[k] = rings[k] || []).push(...op.pts); }
         }
@@ -2357,14 +2365,14 @@ function shrubFinish(closed) {
     snapHist();
     if (cut) {                                         // 가린 곳을 뺀 조각들 — 한 묶음(조각이 하나면 묶지 않는다)
         const gid = doc.seq, many = cut.length > 1;
-        cut.forEach(q => doc.ops.push({id: doc.seq++, t: 'free', pts: q, ls: 'solid', w: c.w, shrub: {...sh, closed: false, cc: r.closed}, ...(many ? {grp: gid, gname: '관목 군식'} : {})}));
+        cut.forEach(q => doc.ops.push({id: doc.seq++, t: 'free', pts: q, ls: c.kind === 'contour' ? 'dot' : 'solid', w: c.w, shrub: {...sh, closed: false, cc: r.closed}, ...(many ? {grp: gid, gname: '관목 군식'} : {})}));
         changed(); drawPre(); status();
         flash(`관목 군식 — 먼저 그린 교목·관목 뒤로 지나가게 끊어 그렸습니다(${cut.length}조각)` + (r.closed ? ` · 면적 약 ${fmt(Math.round(shrubArea(r.pts)))}㎡` : ''));
         return;
     }
-    doc.ops.push({id: doc.seq++, t: 'free', pts: r.pts, ls: 'solid', w: c.w, shrub: sh});
+    doc.ops.push({id: doc.seq++, t: 'free', pts: r.pts, ls: c.kind === 'contour' ? 'dot' : 'solid', w: c.w, shrub: sh});
     changed(); drawPre(); status();
-    flash(r.closed ? `관목 군식 — 닫힘 · 면적 약 ${fmt(Math.round(shrubArea(r.pts)))}㎡ (안은 채우기 도구로)` : '관목 군식 — 열린 선으로 끝냈습니다');
+    flash(c.kind === 'contour' ? `등고선 — ${r.closed ? '닫힘' : '열린 선'}` : r.closed ? `관목 군식 — 닫힘 · 면적 약 ${fmt(Math.round(shrubArea(r.pts)))}㎡ (안은 채우기 도구로)` : '관목 군식 — 열린 선으로 끝냈습니다');
 }
 // 네모형(대표님): 한 모서리에서 맞은편 모서리까지 끌면 그 네모가 바깥 경계인 닫힌 관목 — 모서리는 파형 크기만큼 둥글린다
 function shrubBoxRaw(A, B, size) {
@@ -2975,6 +2983,7 @@ function desc(op, full) {
         case 'free': if (op.arrow) { const a = op.pts || []; let L = 0; for (let i = 1; i < a.length; i++) L += Math.hypot(a[i][0] - a[i - 1][0], a[i][1] - a[i - 1][1]);
                 return `${(ARROW_KINDS[op.arrow.kind] || ARROW_KINDS.main).name} 화살표${op.arrow.both ? '(양방향)' : ''} · ${fmt(+L.toFixed(1))}m`; }
             if (op.shrub) { const a = op.pts || []; let L = 0; for (let i = 1; i < a.length; i++) L += Math.hypot(a[i][0] - a[i - 1][0], a[i][1] - a[i - 1][1]);
+                if (op.shrub.kind === 'contour') return `등고선 · ${op.shrub.closed ? '폐곡' : '열린 선'} · ${fmt(+L.toFixed(1))}m`;
                 return op.shrub.closed ? `관목 군식 · 폐곡 · 면적 약 ${fmt(Math.round(shrubArea(a)))}㎡` : `관목 군식 · 열린 선 · ${fmt(L)}m`; }
             return op.mark ? `마킹${op.p != null ? ' ' + ptxt(op.p) : ''} · ${full ? `1/${op.mark.s} ` : ''}${fmt(op.mark.r)}m` : `프리드로잉 · 점 ${op.pts ? op.pts.length : 0}개 · ${lsTxt(op)}`;
         case 'fill': if (isPave(op.kind)) return `${op.tile ? op.tile.name : paveName(op.kind)}${op.part ? '(부분 표현)' : ''} · 면적 약 ${fmt(+(op.area || 0).toFixed(1))}㎡`;
@@ -6644,7 +6653,7 @@ function closeTextBox(keep) {
 function shrubRingAt(x, y) {
     const rings = {}, out = [];
     doc.ops.forEach(op => {
-        if (op.t !== 'free' || !op.shrub || !op.pts || auxHidden(op)) return;
+        if (op.t !== 'free' || !op.shrub || !op.pts || auxHidden(op) || op.shrub.kind === 'contour') return;
         if (op.shrub.closed) out.push(op.pts);
         else if (op.shrub.cc) { const k = op.grp != null ? 'g' + op.grp : 'o' + op.id; (rings[k] = rings[k] || []).push(...op.pts); }
     });
@@ -7369,8 +7378,8 @@ function shrubEditApply() {
     const at = doc.ops.findIndex(x => ids.has(x.id)), sh = {size: +size.toFixed(3), mm: o.mm, seed, bulge: o.bulge, jit: o.jit, kind: o.kind, closed: r.closed, raw: C.raw};
     const made = [];
     if (cut) { const gid = doc.seq, many = cut.length > 1;
-        cut.forEach(q => made.push({id: doc.seq++, t: 'free', pts: q, ls: 'solid', w: o.w, shrub: {...sh, closed: false, cc: r.closed}, ...(many ? {grp: gid, gname: '관목 군식'} : {})})); }
-    else made.push({id: doc.seq++, t: 'free', pts: r.pts, ls: 'solid', w: o.w, shrub: sh});
+        cut.forEach(q => made.push({id: doc.seq++, t: 'free', pts: q, ls: o.kind === 'contour' ? 'dot' : 'solid', w: o.w, shrub: {...sh, closed: false, cc: r.closed}, ...(many ? {grp: gid, gname: '관목 군식'} : {})})); }
+    else made.push({id: doc.seq++, t: 'free', pts: r.pts, ls: o.kind === 'contour' ? 'dot' : 'solid', w: o.w, shrub: sh});
     doc.ops = doc.ops.filter(x => !ids.has(x.id)); doc.ops.splice(Math.min(at, doc.ops.length), 0, ...made);
     selOps = new Set(made.map(x => x.id)); changed(); shrubEditSync();
     flash('관목을 다시 만들었습니다 — Ctrl+Z 로 되돌림');
