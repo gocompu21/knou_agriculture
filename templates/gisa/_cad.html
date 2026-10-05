@@ -133,7 +133,8 @@
                 <input type="number" id="cadP9" class="cad-set-num" step="0.05" min="0.05" max="3"><span class="cad-set-sub">mm</span></div>
             <div class="cad-set-row cad-set-in"><span class="cad-set-sub cad-set-pen">얇은 샤프</span><select id="cadLs5" class="cad-set-ls"></select>
                 <input type="number" id="cadP5" class="cad-set-num" step="0.05" min="0.05" max="3"><span class="cad-set-sub">mm</span></div>
-            <div class="cad-set-row"><span class="cad-set-lb">글자 글꼴</span><select id="ftFont" class="cad-set-ls" title="글자 도구의 글꼴"><option value="gothic">고딕</option><option value="myeongjo">명조</option><option value="hand">손글씨</option></select></div>
+            <div class="cad-set-row"><span class="cad-set-lb">글자 글꼴</span><select id="ftFont" class="cad-set-ls" title="글자 도구의 글꼴"><option value="gothic">고딕</option><option value="myeongjo">명조</option><option value="hand">손글씨</option></select>
+                <button type="button" id="cadFontAll" class="cad-bar-btn" title="이 도면에 이미 쓴 글자도 모두 이 글꼴로 바꿉니다 (Ctrl+Z 로 되돌림)">도면 글자 모두</button></div>
             <div class="cad-set-row"><span class="cad-set-lb">채우기 색</span>
                 <input type="color" id="cadFillColor" class="cad-set-color"><label class="cad-set-sub">진하기 <input type="range" id="cadFillOp" min="0.15" max="1" step="0.05" style="width:90px"></label></div>
             <div class="cad-set-row"><span class="cad-set-lb">보조선 레이어</span>
@@ -2343,7 +2344,7 @@ function contourSvg(op) {
         + `<rect x="${f(x0 - m)}" y="${f(y0 - m)}" width="${f(x1 - x0 + 2 * m)}" height="${f(y1 - y0 + 2 * m)}" fill="#fff"/>`
         + `<rect x="${f(mx - w / 2)}" y="${f(my - h / 2)}" width="${f(w)}" height="${f(h)}" fill="#000" transform="${rot}"/></mask>`
         + `<path d="${freeD(a)}" ${freeAttr(op.ls, op.w)} mask="url(#${id})"/>`
-        + `<text x="${f(mx)}" y="${f(my)}" font-size="${f(th)}" text-anchor="middle" dominant-baseline="central" fill="${INK}" stroke="none" font-family="${FONTS.gothic.replace(/"/g, "'")}" transform="${rot}">${esc(txt)}</text>`;
+        + `<text x="${f(mx)}" y="${f(my)}" font-size="${f(th * annoK())}" text-anchor="middle" dominant-baseline="central" fill="${INK}" stroke="none" font-family="${annoFont()}" transform="${rot}">${esc(txt)}</text>`;
 }
 function freeAttr(ls, w) {
     const a = stAttr(ls, w);
@@ -5030,6 +5031,9 @@ function dimText(op, L) {
     if (op.unit === 'mm') return Math.round(L * 1000).toLocaleString('en-US');
     return String(+L.toFixed(2));
 }
+// 치수 숫자·등고선 표고도 설정의 글자 글꼴을 따른다(대표님 — 손글씨). 나눔 손글씨는 작게 그려져 1.35배
+const annoFont = () => (FONTS[SET.font] || FONTS.gothic).replace(/"/g, "'");
+const annoK = () => SET.font === 'hand' ? 1.35 : 1;
 function dimSvg(op, color) {
     const g = dimGeom(op); if (!g || g.L < 1e-6) return '';
     const col = color || SET.dimColor || DIM_COLOR, lw = dmm(0.15), gap = dmm(1), over = dmm(1.5), f = fmt;
@@ -5059,7 +5063,7 @@ function dimSvg(op, color) {
     let off = dmm(0.8);
     if (op.mode === 'v') { const ox = A2.x - g.a.x || B2.x - g.b.x; if (ox * upx < 0) off = -(dmm(0.8) + th * 0.75); }
     const m = {x: (A2.x + B2.x) / 2 + upx * off, y: (A2.y + B2.y) / 2 + upy * off};
-    o += `<g class="dimtx"><text x="${f(m.x)}" y="${f(m.y)}" font-size="${f(th)}" text-anchor="middle" fill="${col}" stroke="none" font-family="${FONTS.gothic.replace(/"/g, "'")}"${Math.abs(ang) > 0.01 ? ` transform="rotate(${f(+ang.toFixed(3))} ${f(m.x)} ${f(m.y)})"` : ''}>${esc(dimText(op, g.L))}</text></g>`;   // 글자를 g 로 감싼다 — 재생에서 크게 했다 되돌릴 때 CSS transform 이 글자의 rotate 를 덮지 않게
+    o += `<g class="dimtx"><text x="${f(m.x)}" y="${f(m.y)}" font-size="${f(th * annoK())}" text-anchor="middle" fill="${col}" stroke="none" font-family="${annoFont()}"${Math.abs(ang) > 0.01 ? ` transform="rotate(${f(+ang.toFixed(3))} ${f(m.x)} ${f(m.y)})"` : ''}>${esc(dimText(op, g.L))}</text></g>`;   // 글자를 g 로 감싼다 — 재생에서 크게 했다 되돌릴 때 CSS transform 이 글자의 rotate 를 덮지 않게
     return `<g class="dimg" stroke="${col}" stroke-width="${f(lw)}" fill="none" stroke-linecap="round">${o}</g>`;
 }
 function dimTouch(op, C, r) {                         // 지우개 — 치수선·연장선에 닿았나
@@ -10023,7 +10027,14 @@ function triSizeNote() {                // 종이 위 길이 — 도면 축척�
     const e6 = $('cadTri60SizeNote'); if (e6) e6.textContent = `45° 자 빗변에 맞춤(× 1.414) — 긴 변 = 도면 ${fmt(L60)}m${cm(L60)}`;
 }
 ['cadSnap', 'cadSnapStep', 'cadShowPts', 'ftFont', 'ftDir'].forEach(id => $(id).addEventListener('change', saveSet));
+if (!SET.fontHand) { SET.font = 'hand'; SET.fontHand = 1; try { localStorage.setItem('cadSet', JSON.stringify(SET)); } catch (e) {} }   // 손글씨를 기본으로(대표님 2026-10) — 한 번만
 if (SET.font) $('ftFont').value = SET.font;
+$('cadFontAll').addEventListener('click', () => {      // 도면의 글자를 모두 지금 글꼴로
+    const fnt = $('ftFont').value, T = doc.ops.filter(o => o.t === 'text' && (o.font || 'gothic') !== fnt);
+    if (!T.length) { flash('바꿀 글자가 없습니다'); return; }
+    snapHist(); T.forEach(o => { o.font = fnt; }); changed(); flash(`글자 ${T.length}개를 ${({gothic: '고딕', myeongjo: '명조', hand: '손글씨'})[fnt]}로 바꿨습니다 (Ctrl+Z 로 되돌림)`);
+});
+$('ftFont').addEventListener('change', () => { SET.font = $('ftFont').value; drawOps(); });   // 치수·등고선 글자도 따라 바뀐다
 ['ftFont', 'ftDir', 'ftMm'].forEach(id => $(id).addEventListener('input', () => { if (txtBox) { drawTextPre(); } }));
 // 글자 각도 — 도구 줄에서 0 · +45(시계) · −45(반시계)를 고르면 글자 칸의 '회전'에 넣는다(사용자). SVG 는 +각이 시계 방향이다
 $('ftAng').addEventListener('change', () => { $('ftRot').value = $('ftAng').value; SET.ang = +$('ftAng').value; saveSet(); if (txtBox) drawTextPre(); });
