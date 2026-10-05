@@ -342,8 +342,9 @@
                     <div id="fdSpaceBox">
                     <p class="cad-help">설계구상도의 공간 설명. ① 가리킬 <b>공간 자리</b>를 누르고 ② 글 상자의 <b>모서리 자리</b>를 누르세요.
                        공간이름 위·아래에 실선, 글자마다 윗선·밑선 보조선, 그 아래 설명은 줄마다 <b>글머리표(•)</b>가 붙습니다. 우클릭·Esc 취소.</p>
-                    <div class="cad-row"><label>공간이름<input type="text" id="fsnName" placeholder="완충식재"></label></div>
-                    <div class="fsn-wrap"><div class="fsn-head"><span>설명</span><em>항목마다 글머리표 · 12자 넘으면 다음 줄</em></div>
+                    <div class="cad-row"><label>공간이름<input type="text" id="fsnName" placeholder="완충식재"></label>
+                        <label>모양<select id="fsnStyle" title="박스 — 공간이름만 네모 상자에 넣는다(설명 없음)"><option value="line">윗·밑선 + 설명</option><option value="box">박스(설명 없음)</option></select></label></div>
+                    <div class="fsn-wrap" id="fsnDescWrap"><div class="fsn-head"><span>설명</span><em>항목마다 글머리표 · 12자 넘으면 다음 줄</em></div>
                         <div id="fsnDescBox" class="fsn-desc"></div>
                         <button type="button" id="fsnDescAdd" class="fsn-add">＋ 설명 추가</button></div>
                     <div class="cad-row"><label>이름 글자<select id="fsnTmm"><option value="3">3mm</option><option value="4">4mm</option><option value="5">5mm</option><option value="6" selected>6mm</option><option value="8">8mm</option></select></label>
@@ -816,6 +817,7 @@
 .cad-lead-types { display: inline-flex; gap: 3px; flex-wrap: wrap; }
 /* 공간지시선 설명 — 한 덩어리 카드 안에 항목 칸을 쌓는다. 글머리표는 칸 안 왼쪽, 빼기는 칸 안 오른쪽(마우스를 올리면) */
 .fsn-wrap { margin-bottom: 8px; }
+#fsnDescWrap[hidden], .cad-row label[hidden] { display: none; }
 .fsn-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; margin-bottom: 3px; }
 .fsn-head span { font-size: 0.74rem; color: #66736d; }
 .fsn-head em { font-style: normal; font-size: 0.68rem; color: #a3aca7; }
@@ -5294,6 +5296,7 @@ function leadTypeDraw() {
 }
 // ── 공간지시선(대표님, 2026-10 — 설계구상도) — 공간 자리 → 글 상자 모서리. 이름 위·아래 실선, 이름·설명 글자마다 윗선·밑선 보조선,
 // 설명은 줄마다 글머리표(•). 형 6가지: ur 위(지시선이 위로)·오른쪽 상자 · ul 위·왼쪽 상자 · dr 아래 · dl · r 옆(왼쪽에서) · l
+function fsnStyleSync() { const b = $('fsnStyle') && $('fsnStyle').value === 'box'; if ($('fsnDescWrap')) $('fsnDescWrap').hidden = b; if ($('fsnBmm')) $('fsnBmm').closest('label').hidden = b; }
 function spLeadTexts() {
     const nm = String($('fsnName').value || '').trim();
     const bl = [...document.querySelectorAll('#fsnDescBox input')].map(x => String(x.value || '').trim().replace(/^[•·\-*]\s*/, '')).filter(Boolean);
@@ -5317,7 +5320,7 @@ function spLeadGeom(w) {
     const S = t === 'n' ? w : leadS.n != null ? P(leadS.n) : {x: leadS.x, y: leadS.y}; if (!S) return null;
     const right = t === 'ur' || t === 'dr' || t === 'r' || t === 'n', k = scaleDenom() / 1000, font = $('ftFont').value;
     const Ts = +(+$('fsnTmm').value * k).toFixed(4), Bs = +(+$('fsnBmm').value * k).toFixed(4);
-    const tx = spLeadTexts(), nm = tx.nm || ' ', bl = tx.bl;
+    const tx = spLeadTexts(), nm = tx.nm || ' ', box = $('fsnStyle') && $('fsnStyle').value === 'box', bl = box ? [] : tx.bl;   // 박스형(대표님) — 설명 없이 이름만 네모에
     const pad = Ts * 0.4, ind = Ts * 0.4, bw = leadMeasure('• ', Bs, font);
     const ln = []; bl.forEach(t => spLeadWrap(t).forEach((x, j) => ln.push(j ? {s: x, dx: bw} : {s: '• ' + x, dx: 0})));   // 이어지는 줄은 글머리표 뒤 글자 자리에서
     const wT = leadMeasure(nm, Ts, font), wB = ln.reduce((m, x) => Math.max(m, x.dx + leadMeasure(x.s, Bs, font)), 0);
@@ -5342,7 +5345,7 @@ function spLeadGeom(w) {
     cx = rnd(cx); cy = rnd(cy);
     const x0 = right ? cx : cx - W, x1 = right ? cx + W : cx;
     const rows = ln.map((r, i) => ({s: r.s, x: rnd(x0 + ind + r.dx), y: rnd(cy + y1o + Bs * 0.6 + Bs + i * Bs * 1.7)}));
-    return {S, t, right, Ts, Bs, font, W, H, nb: bl.length, x0: rnd(x0), x1: rnd(x1), cy, y1: rnd(cy + y1o), tb: rnd(cy + tb0), tx: rnd(x0 + ind), nm: tx.nm, rows,
+    return {S, t, right, Ts, Bs, font, W, H, box, nb: bl.length, x0: rnd(x0), x1: rnd(x1), cy, y1: rnd(cy + y1o), tb: rnd(cy + tb0), tx: rnd(x0 + ind), nm: tx.nm, rows,
         C: {x: cx, y: cy}, L: L ? {x: rnd(L.x), y: rnd(L.y)} : null, B: B ? {x: rnd(B.x), y: rnd(B.y)} : null};
 }
 function spLeadPreSvg() {
@@ -5351,6 +5354,7 @@ function spLeadPreSvg() {
     const G = spLeadGeom(w); if (!G) return '';
     const sw = fmt(0.1 * U), ln = (a, b, x) => `<path d="M${fmt(a.x)} ${fmt(a.y)}L${fmt(b.x)} ${fmt(b.y)}" stroke="${RED}" stroke-width="${sw}" fill="none"${x || ''}/>`;
     let o = (G.L ? (G.B ? ln(G.S, G.B) + ln(G.B, G.L) : ln(G.S, G.L)) : '') + ln({x: G.x0, y: G.cy}, {x: G.x1, y: G.cy}) + ln({x: G.x0, y: G.y1}, {x: G.x1, y: G.y1});
+    if (G.box) o += ln({x: G.x0, y: G.cy}, {x: G.x0, y: G.y1}) + ln({x: G.x1, y: G.cy}, {x: G.x1, y: G.y1});
     if (G.nm) o += textSvg(G.tx, G.tb, G.nm, G.Ts, 0, 'corner', G.font, 'h');
     G.rows.forEach(r => { o += textSvg(r.x, r.y, r.s, G.Bs, 0, 'corner', G.font, 'h'); });
     return o + (G.L ? `<circle cx="${fmt(G.S.x)}" cy="${fmt(G.S.y)}" r="${fmt(0.45 * U)}" fill="${RED}"/>` : '');
@@ -5380,6 +5384,7 @@ function spLeadFinish(w) {
     }
     line({x: G.x0, y: G.cy}, {x: G.x1, y: G.cy});         // 이름 윗선
     line({x: G.x0, y: G.y1}, {x: G.x1, y: G.y1});         // 이름 밑선
+    if (G.box) { line({x: G.x0, y: G.cy}, {x: G.x0, y: G.y1}); line({x: G.x1, y: G.cy}, {x: G.x1, y: G.y1}); }   // 박스형 — 양옆 세로선
     // 글자 보조선 — 이름·설명 줄마다 윗선·밑선
     const guide = (txt, by, sz, tx) => { const wd = leadMeasure(txt, sz, G.font), xa = tx - sz * 0.15, xb = tx + wd + sz * 0.15;
         [by, by - sz].forEach(yy => { const a = addPt(xa, yy), b = addPt(xb, yy);
@@ -10330,6 +10335,7 @@ $('fdmEnd').addEventListener('change', () => dimApplyOpt('end', $('fdmEnd').valu
 $('fdmMm').addEventListener('change', () => dimApplyOpt('tmm', +$('fdmMm').value || 3));
 $('fdmUnit').addEventListener('change', () => dimApplyOpt('unit', $('fdmUnit').value));
 svg.addEventListener('pointerdown', e => { lastDown = {clientX: e.clientX, clientY: e.clientY}; }, true);
+$('fsnStyle').addEventListener('change', () => { fsnStyleSync(); drawPre(); });
 let dimTap = null;                                     // 치수 두 번 누르기 — 직접 잰다
 function dimDouble(e, op) {
     const t = performance.now(), d = dimTap;
