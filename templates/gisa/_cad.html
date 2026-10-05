@@ -2587,7 +2587,7 @@ const freePlain = o => o && o.t === 'free' && !o.walk && !o.shrub && !o.arrow &&
 function freeJoin(N) {
     let made = 0, only = null;                          // 둘째 바퀴는 새 획의 남은 끝(이은 획의 마지막 점)만 본다 — 먼저 그은 획의 다른 끝까지 엉뚱하게 잇지 않게
     for (let round = 0; round < 2; round++) {
-        const tol = Math.max(12 / pxPer(), 1.5 * scaleDenom() / 1000), Q = N.pts, ends = [Q[0], Q[Q.length - 1]];
+        const tol = Math.min(12 / pxPer(), 1.5 * scaleDenom() / 1000), Q = N.pts, ends = [Q[0], Q[Q.length - 1]];   // 작은 쪽 — 축소한 화면의 12px 는 몇 m 라 나란히 그은 두 줄의 끝끼리 이어졌다
         let best = null;
         doc.ops.forEach(M => {
             if (M === N || !freePlain(M) || M.ls !== N.ls || auxHidden(M)) return;
@@ -2888,19 +2888,21 @@ function lblBox(p, k, n) {
 // 몰린 점의 번호는 지시선으로 빼서 세로로 늘어놓는다(대표님 2026-10 — 번호가 겹쳐 '61896…' 처럼 읽을 수 없었다).
 // 번호 글자 높이(fn) 안으로 붙은 점들을 한 무리로 묶고, 무리 오른쪽 위에 번호를 차례로 쌓은 뒤 점마다 가는 지시선을 긋는다. {번호: {x, y}}
 function ptCallouts(list) {
-    const {fn} = lblSize(), thr = fn * 1.1, out = {}, cell = new Map(), key = (x, y) => `${Math.floor(x / thr)},${Math.floor(y / thr)}`;
+    // 무리는 **사슬로 잇지 않는다** — 처음엔 union-find 로 이웃의 이웃까지 묶어, 촘촘한 도면에서 번호 수십 개가 한 기둥으로 솟았다(대표님 화면).
+    // 아직 묶이지 않은 점마다 그 점에서 thr 안에 든 점들만 한 무리로(최대 8개), 가까운 차례로
+    const {fn} = lblSize(), thr = fn * 0.4, out = {}, cell = new Map(), key = (x, y) => `${Math.floor(x / thr)},${Math.floor(y / thr)}`;
     list.forEach((p, i) => { const k = key(p.x, p.y); (cell.get(k) || cell.set(k, []).get(k)).push(i); });
-    const par = list.map((_, i) => i), find = i => par[i] === i ? i : (par[i] = find(par[i]));
-    list.forEach((p, i) => { const cx = Math.floor(p.x / thr), cy = Math.floor(p.y / thr);
+    const used = new Uint8Array(list.length), order = list.map((_, i) => i).sort((i, j) => list[i].n - list[j].n);
+    order.forEach(i => {
+        if (used[i]) return;
+        const p = list[i], cx = Math.floor(p.x / thr), cy = Math.floor(p.y / thr), near = [];
         for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) (cell.get(`${cx + dx},${cy + dy}`) || []).forEach(j => {
-            if (j > i && Math.hypot(list[j].x - p.x, list[j].y - p.y) < thr) par[find(j)] = find(i); }); });
-    const groups = new Map(); list.forEach((p, i) => { const r = find(i); (groups.get(r) || groups.set(r, []).get(r)).push(p); });
-    groups.forEach(g => {
-        if (g.length < 2) return;
-        g.sort((a, b) => a.n - b.n);
-        const cx = g.reduce((t, p) => t + p.x, 0) / g.length, cy = g.reduce((t, p) => t + p.y, 0) / g.length, top = Math.min(...g.map(p => p.y));
-        const step = fn * 1.05, x = Math.max(...g.map(p => p.x)) + fn * 1.8, y0 = top - fn * 1.6 - (g.length - 1) * step;
-        g.forEach((p, i) => { out[p.n] = {x, y: y0 + i * step}; });
+            if (j !== i && !used[j] && Math.hypot(list[j].x - p.x, list[j].y - p.y) < thr) near.push(j); });
+        if (!near.length) return;
+        near.sort((a, b) => Math.hypot(list[a].x - p.x, list[a].y - p.y) - Math.hypot(list[b].x - p.x, list[b].y - p.y));
+        const g = [i, ...near.slice(0, 7)].map(j => { used[j] = 1; return list[j]; }).sort((a, b) => a.n - b.n);
+        const top = Math.min(...g.map(q => q.y)), step = fn * 1.05, x = Math.max(...g.map(q => q.x)) + fn * 1.8, y0 = top - fn * 1.6 - (g.length - 1) * step;
+        g.forEach((q, k) => { out[q.n] = {x, y: y0 + k * step}; });
     });
     return out;
 }
@@ -7085,6 +7087,16 @@ function trimCrossPath(Q, self) {
             if (t >= -1e-9 && t <= L + 1e-9 && v >= -1e-9 && v <= 1 + 1e-9) out.push(acc + t); });
         circs.forEach(c => lineCircleTs(a.x, a.y, ux, uy, c).forEach(t => { if (t >= -1e-9 && t <= L + 1e-9) out.push(acc + t); }));
         acc += L;
+    }
+    // 제 몸과 만나는 곳도(대표님 — 끝이 이어 붙어 한 획이 된 선이 제 몸을 가로지르면, 그 교차를 몰라 획 전체가 지워졌다)
+    if (Q.length > 3) {
+        const cum = [0]; for (let i = 1; i < Q.length; i++) cum.push(cum[i - 1] + Math.hypot(Q[i].x - Q[i - 1].x, Q[i].y - Q[i - 1].y));
+        for (let i = 0; i + 1 < Q.length; i++) for (let j = i + 2; j + 1 < Q.length; j++) {
+            const a = Q[i], b = Q[i + 1], c = Q[j], d = Q[j + 1], X = lineX(a, b, c, d); if (!X) continue;
+            const L1 = cum[i + 1] - cum[i], L2 = cum[j + 1] - cum[j]; if (L1 < 1e-12 || L2 < 1e-12) continue;
+            const t = ((X.x - a.x) * (b.x - a.x) + (X.y - a.y) * (b.y - a.y)) / (L1 * L1), u = ((X.x - c.x) * (d.x - c.x) + (X.y - c.y) * (d.y - c.y)) / (L2 * L2);
+            if (t > 1e-9 && t < 1 - 1e-9 && u > 1e-9 && u < 1 - 1e-9) out.push(cum[i] + t * L1, cum[j] + u * L2);
+        }
     }
     return {cross: out, L: acc};
 }
