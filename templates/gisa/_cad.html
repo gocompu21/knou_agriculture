@@ -7006,7 +7006,7 @@ function onCanvasClick(w, e, tgt) {
         if (rc) { $('faC').value = ''; commitFillet(rc); return; }
         flash('두 선이 만나는 모서리 점을 누르세요'); return;
     }
-    const n = pointAt(w);
+    const n = tool === 'sym' && !$('cadSnap').checked ? (() => { const x = +w.x.toFixed(3), y = +w.y.toFixed(3), same = doc.pts.find(p => p.x === x && p.y === y); return same ? same.n : newPoint(x, y); })() : pointAt(w);   // 스냅을 끄면 기호는 누른 자리 그대로
     $(f[pickIdx]).value = n;
     if (tool === 'sym' || tool === 'text') { commit(tool); return; }
     pickIdx++;
@@ -9331,7 +9331,8 @@ svg.addEventListener('pointermove', e => {
         }
         return;
     }
-    const hp = hitPoint(w), s = snapXY(w);
+    const symFree = tool === 'sym' && !$('cadSnap').checked;   // 스냅을 끄면 기호는 커서 자리 그대로(대표님) — 점·자의 변·눈금에 끌리지 않게
+    const hp = symFree ? null : hitPoint(w), s = symFree ? {x: +w.x.toFixed(3), y: +w.y.toFixed(3)} : snapXY(w);
     hover = {x: s.x, y: s.y, pt: hp ? hp.n : null, w: {x: w.x, y: w.y}};
     if (tool === 'circle' && pickIdx === 1 && !fcTyped) liveRadius();
     drawPre(); status();
