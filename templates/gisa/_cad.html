@@ -118,7 +118,8 @@
             <div class="cad-set-row"><label class="cad-chk"><input type="checkbox" id="cadRulerNums"> 자 위치 숫자 보이기 <small class="cad-set-note">(I자 Y · 삼각자 X)</small></label></div>
             <div class="cad-set-row"><span class="cad-set-lb">밑그림</span><select id="cadUnderSel" class="cad-set-ls" title="다른 도면을 옅게 깔아 놓고 그 위에 그린다(트레이싱지처럼). 밑그림은 저장·재생·지우기에 들어가지 않는다"><option value="">없음</option></select>
                 <select id="cadUnderOp" class="cad-set-ls" title="밑그림 진하기"><option value="0.15">15%</option><option value="0.25">25%</option><option value="0.35">35%</option><option value="0.5">50%</option><option value="0.7">70%</option></select>
-                <label class="cad-chk" title="밑그림의 점에 붙을지 — 도면마다 따로 기억한다(배식도는 켜고, 설계구상도는 끄는 식)"><input type="checkbox" id="cadUnderSnap" checked> 점에 붙기 <small class="cad-set-note">(이 도면)</small></label></div>
+                <label class="cad-chk" title="밑그림의 점에 붙을지 — 도면마다 따로 기억한다(배식도는 켜고, 설계구상도는 끄는 식)"><input type="checkbox" id="cadUnderSnap" checked> 점에 붙기 <small class="cad-set-note">(이 도면)</small></label>
+                <button type="button" id="cadUnderCopy" class="cad-bar-btn" title="밑그림 도면의 내용을 이 도면에 그대로 베낍니다 — 도면 틀과 지시선은 빼고(Ctrl+Z 로 되돌림)">베끼기</button></div>
             <div class="cad-set-row"><label class="cad-chk"><input type="checkbox" id="cadRpMarkOn"> 재생 — 형광 동그라미 <small class="cad-set-note">(다음에 그을 자리)</small></label></div>
             <div class="cad-set-row"><label class="cad-chk"><input type="checkbox" id="cadRpPtsOn"> 재생 — 점·번호 보이기</label></div>
             </div>
@@ -4705,6 +4706,35 @@ function underFill() {                                   // 설정 창의 고르
         $('cadUnderOp').value = String(u && u.op || 0.35);
     }).catch(() => {});
     if ($('cadUnderSnap')) $('cadUnderSnap').checked = doc.underSnap !== false;
+}
+// 밑그림 베끼기(대표님 2026-10) — 밑그림 도면의 작도를 이 도면 끝에 그대로 옮긴다. 빼는 것: '도면 틀' 단계(틀은 이 도면에 이미 있다)·
+// 지시선(선·글자·보조선·시작점)·밑그림 줄. 점은 같은 자리의 점이 있으면 그 점을 쓰고 없으면 새로 만든다. 단계·묶음·기호 모양도 함께
+function underCopy() {
+    const u = underState(), ud = u && u.id && underDocs[String(u.id)];
+    if (!ud) { flash(u && u.id ? '밑그림 도면을 받는 중입니다 — 잠시 뒤 다시 누르세요' : '먼저 밑그림 도면을 고르세요'); return; }
+    let inFrame = false; const pick = [];
+    ud.ops.forEach(o => {
+        if (o.t === 'step') { inFrame = /도면\s*틀/.test(o.title || ''); if (!inFrame) pick.push(o); return; }
+        if (inFrame || o.t === 'under') return;
+        if (o.lead || o.spLead || o.leadGuide || o.leadOf != null) return;   // 지시선은 베끼지 않는다
+        pick.push(o);
+    });
+    while (pick.length && pick[pick.length - 1].t === 'step') pick.pop();   // 내용 없는 단계 꼬리는 버린다
+    if (!pick.some(o => o.t !== 'step')) { flash('베낄 작도가 없습니다'); return; }
+    snapHist();
+    const UP = {}; ud.pts.forEach(p => { UP[p.n] = p; });
+    const pmap = {}, mp = n => { if (n == null) return n; if (pmap[n] == null) { const q = UP[n]; pmap[n] = q ? addPt(q.x, q.y) : n; } return pmap[n]; };
+    const gmap = {}, gid = g => { if (gmap[g] == null) gmap[g] = doc.seq++; return gmap[g]; };
+    let n = 0;
+    pick.forEach(o => {
+        const c = clone(o); c.id = doc.seq++;
+        REF_KEYS.forEach(k => { if (typeof c[k] === 'number') c[k] = mp(c[k]); });
+        if (c.grp != null) c.grp = gid(o.grp);
+        delete c.bm; delete c.note;
+        if (c.t === 'sym' && c.sym && !doc.syms[c.sym] && ud.syms && ud.syms[c.sym]) doc.syms[c.sym] = clone(ud.syms[c.sym]);
+        doc.ops.push(c); if (c.t !== 'step') n++;
+    });
+    changed(); flash(`밑그림의 작도 ${n}개를 베꼈습니다 — 도면 틀·지시선은 뺐습니다 (Ctrl+Z 로 되돌림)`);
 }
 // ── 밑그림 끝 ──
 function snapXY(w) {
@@ -10391,6 +10421,7 @@ $('cadSetTabs').addEventListener('click', e => {      // 설정 탭 — 마지�
     try { localStorage.setItem('cadSetTab', b.dataset.st); } catch (er) {}
 });
 try { const t = localStorage.getItem('cadSetTab'); const b = t && document.querySelector(`#cadSetTabs [data-st="${t}"]`); if (b) b.click(); } catch (er) {}
+$('cadUnderCopy').addEventListener('click', underCopy);
 let dimTap = null;                                     // 치수 두 번 누르기 — 직접 잰다
 function dimDouble(e, op) {
     const t = performance.now(), d = dimTap;
