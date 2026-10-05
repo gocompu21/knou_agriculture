@@ -8376,6 +8376,13 @@ svg.addEventListener('pointerdown', e => {
     ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY});
     if (ptrs.size === 2) { drag = {kind: 'pinch'}; pinchD = 0; return; }
     if (zwin && e.button === 0) { drag = {kind: 'zwin', w0: toWorld(e), sx: e.clientX, sy: e.clientY, moved: false}; return; }
+    // 점 번호(또는 고른 점)에서 오른쪽 버튼 — 그 점을 고르고 점 메뉴(합치기·연장·줄이기·호 끝 맞추기·삭제)를 연다(대표님).
+    // 샤프에서 고른 점을 오른쪽으로 누를 때만 나왔는데, 번호를 눌러 고른 점은 번호가 점에서 떨어져 있어(지시선) 메뉴로 갈 길이 없었다
+    if (e.button === 2 && !RP && ['select', 'pen9', 'pen5', 'dim'].includes(tool)) {
+        const lb = e.target.closest && e.target.closest('[data-pn]'), w = toWorld(e), sp = selPt && P(selPt);
+        const n = lb ? +lb.dataset.pn : (tool === 'select' && sp && Math.hypot(sp.x - w.x, sp.y - w.y) * pxPer() <= 11 ? selPt : null);
+        if (n && P(n)) { selPt = n; renderAll(); ctxMenu(e, n); drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return; }
+    }
     // 점 번호를 누르면 그 점을 고른다(대표님) — 점·번호·지시선이 반전된다. 치수선 도구면 그 점을 치수 끝으로
     if (e.button === 0 && !RP && e.target.closest && e.target.closest('[data-pn]') && ['select', 'pen9', 'pen5', 'dim'].includes(tool)) {
         const q = P(+e.target.closest('[data-pn]').dataset.pn);
