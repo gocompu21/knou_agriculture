@@ -81,6 +81,7 @@
         <button type="button" id="cadTri45" class="cad-bar-btn" aria-label="45°" title="45° 삼각자 — I자 윗날에 얹혀 있습니다. 손으로 끌어 좌우로 밀고, 샤프로 세로 변·빗변을 따라 긋습니다"><svg class="real" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="it45a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset=".5" stop-color="#dfeaf2" stop-opacity=".55"/><stop offset="1" stop-color="#b9cddc" stop-opacity=".75"/></linearGradient></defs><path d="M2.5 17.5H17.5V2.5Z" fill="url(#it45a)" stroke="#5f7f99" stroke-width=".7" stroke-linejoin="round"/><path d="M2.5 17.5H17.5V2.5Z" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width=".35" transform="translate(.45 -.45) scale(.955)" transform-origin="17.5 17.5"/><path d="M17.5 16h-.9M17.5 13.5h-.6M17.5 11h-.9M17.5 8.5h-.6M17.5 6h-.9" stroke="#4a6378" stroke-width=".35"/></svg></button>
         <button type="button" id="cadTri60" class="cad-bar-btn" aria-label="60°" title="60° 삼각자(30°·60°) — I자 윗날에 얹혀 있습니다. 손으로 끌어 좌우로 밀고, 샤프로 세로 변·빗변을 따라 긋습니다"><svg class="real" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="it60a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset=".5" stop-color="#dfeaf2" stop-opacity=".55"/><stop offset="1" stop-color="#b9cddc" stop-opacity=".75"/></linearGradient></defs><path d="M7.5 17.5H17.5V1Z" fill="url(#it60a)" stroke="#5f7f99" stroke-width=".7" stroke-linejoin="round"/><path d="M7.5 17.5H17.5V1Z" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width=".35" transform="translate(.45 -.45) scale(.955)" transform-origin="17.5 17.5"/><path d="M17.5 16h-.9M17.5 13.5h-.6M17.5 11h-.9M17.5 8.5h-.6M17.5 6h-.9" stroke="#4a6378" stroke-width=".35"/></svg></button>
         <button type="button" id="cadTriFlip" class="cad-bar-btn" title="삼각자 좌우 뒤집기" aria-label="뒤집기" hidden>⇆</button>
+        <button type="button" id="cadTriDown" class="cad-bar-btn" title="삼각자를 I자 위(윗날)·아래(아랫날)로 옮겨 놓기" aria-label="위아래" hidden>⇅</button>
         <button type="button" id="cadTriRot" class="cad-bar-btn" title="60° 삼각자 눕히기 — 빗변 60° ↔ 30°" hidden>빗변 30°</button>
         <button type="button" id="cadFtriBtn" class="cad-bar-btn" aria-label="회전 삼각자" title="회전 삼각자 45°(크기는 설정 ⚙ — 기본 24cm) — I자와 따로 놓이고 자유롭게 돌린다. 몸통을 끌어 옮기고, 빗변 바깥 손잡이를 끌어 돌린다(Shift 15°). 샤프로 세 변을 따라 긋는다"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16L16 16L4 4Z" transform="rotate(-20 10 10)"/><path d="M13 3a6 6 0 0 1 4 4" /><path d="M17 3v4h-4"/></svg></button>
         <button type="button" id="cadTplBtn" class="cad-bar-btn" aria-label="원형 템플릿" title="원형 템플릿 — 몸통을 끌어 옮기고, 샤프로 구멍 안을 따라 돌리면 원(돌린 만큼 호)이 그려집니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="4.5" width="17" height="11" rx="1.5" fill="#f2c230" stroke="#b08a10" stroke-width="1"/><circle cx="5.5" cy="10" r="2.6" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="11" cy="10" r="1.9" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="15.3" cy="10" r="1.2" fill="#fff" stroke="#b08a10" stroke-width=".7"/></svg></button>
@@ -1085,18 +1086,20 @@ function triGeom() {
     else L = leg45(tri.pct || SET.triPct45 || 50) * Math.SQRT2;
     if (tri.len) L = tri.len;   // 재생 — 그을 때의 실제 길이(m). 종이·축척이 바뀌어도 자가 선과 맞는다
     const base = is45 ? L : (tri.alt ? L : L / r3), h = is45 ? L : (tri.alt ? L / r3 : L);
-    const sg = tri.flip ? 1 : -1, R = {x: tri.x, y: barY}, T = {x: tri.x, y: barY - h}, B = {x: tri.x + sg * base, y: barY};
+    // tri.down — I자 **아랫날**에 대어 아래로 놓는다(대표님). 윗날에 얹으면 위로(종전)
+    const y0 = tri.down ? barY + barW() : barY, vy = tri.down ? 1 : -1;
+    const sg = tri.flip ? 1 : -1, R = {x: tri.x, y: y0}, T = {x: tri.x, y: y0 + vy * h}, B = {x: tri.x + sg * base, y: y0};
     const hl = Math.hypot(base, h), ang = Math.round(Math.atan2(h, base) * 180 / Math.PI);
     // 가운데 삼각형 구멍 — 내심 I 를 중심으로 세 변에서 **같은 거리(내접원 반지름의 70%)** 만큼 안으로 들인 닮은꼴.
     // 띠 폭이 세 변 모두 같아 균형이 맞는다. 구멍의 세 변도 자의 변처럼 대고 그을 수 있다
     const la = Math.hypot(T.x - B.x, T.y - B.y), lb = base, lc = h, per = la + lb + lc;
     const I = {x: (la * R.x + lb * T.x + lc * B.x) / per, y: (la * R.y + lb * T.y + lc * B.y) / per}, rin = base * h / per;
     const k = 0.3, hv = [R, T, B].map(q => ({x: I.x + (q.x - I.x) * k, y: I.y + (q.y - I.y) * k}));
-    const [hR, hT, hB] = hv, hh = hR.y - hT.y, hbL = Math.abs(hB.x - hR.x), hhl = Math.hypot(hbL, hh);
+    const [hR, hT, hB] = hv, hh = Math.abs(hR.y - hT.y), hbL = Math.abs(hB.x - hR.x), hhl = Math.hypot(hbL, hh);
     return {R, T, B, base, h, ang, I, rin, hole: hv, edges: [
-        {ax: R.x, ay: R.y, dx: 0, dy: -1, lo: 0, hi: h, name: '삼각자 세로 변'},
+        {ax: R.x, ay: R.y, dx: 0, dy: vy, lo: 0, hi: h, name: '삼각자 세로 변'},
         {ax: B.x, ay: B.y, dx: (T.x - B.x) / hl, dy: (T.y - B.y) / hl, lo: 0, hi: hl, name: `삼각자 빗변(${ang}°)`},
-        {ax: hR.x, ay: hR.y, dx: 0, dy: -1, lo: 0, hi: hh, name: '삼각자 구멍 세로 변'},
+        {ax: hR.x, ay: hR.y, dx: 0, dy: vy, lo: 0, hi: hh, name: '삼각자 구멍 세로 변'},
         {ax: hB.x, ay: hB.y, dx: (hT.x - hB.x) / hhl, dy: (hT.y - hB.y) / hhl, lo: 0, hi: hhl, name: `삼각자 구멍 빗변(${ang}°)`},
         {ax: hR.x, ay: hR.y, dx: sg, dy: 0, lo: 0, hi: hbL, name: '삼각자 구멍 밑변'}]};
 }
@@ -1105,7 +1108,7 @@ function drawTri() {
     $('cadTri45').classList.toggle('on', !!G && tri.kind === '45');
     $('cadTri60').classList.toggle('on', !!G && tri.kind === '60');
     // 재생 중에는 감춘다(대표님) — 삼각자가 나타날 때마다 단추가 늘어 도구 줄이 두 줄로 넘어가며 도면이 위아래로 흔들렸다
-    $('cadTriFlip').hidden = !G || !!RP;
+    $('cadTriFlip').hidden = !G || !!RP; $('cadTriDown').hidden = !G || !!RP; $('cadTriDown').classList.toggle('on', !!(G && tri.down));
     triSizeNote();
     $('cadTriRot').hidden = !G || tri.kind !== '60' || !!RP;
     if (G) $('cadTriRot').textContent = tri.alt ? '빗변 60°' : '빗변 30°';
@@ -1137,7 +1140,7 @@ function drawTri() {
     o += `</g>`;                                        // 각도 글자(45°·60°)는 뺐다(사용자)
     // 수직변의 X — 삼각자 바깥쪽, 직각 모서리 곁(꼭대기는 종이 밖으로 나가기 쉽다). 끄는 동안에는 크게·붉은 바탕으로 실시간 표시
     const out = B.x > R.x ? -1 : 1, moving = drag && drag.kind === 'tri' && drag.moved, fs = (moving ? 1.9 : 1.5) * U;
-    const xl = `X ${fmt1(R.x)}`, tw = xl.length * fs * 0.62 + 0.8 * U, tx = R.x + out * (0.5 * U + tw / 2), ty = R.y - fs * 0.75 - 0.4 * U;   // 직각 모서리 바로 위, I자 날 곁
+    const xl = `X ${fmt1(R.x)}`, tw = xl.length * fs * 0.62 + 0.8 * U, tx = R.x + out * (0.5 * U + tw / 2), ty = R.y + (T.y < R.y ? -1 : 1) * (fs * 0.75 + 0.4 * U);   // 직각 모서리 바로 위, I자 날 곁
     o += `<g class="tri-x" pointer-events="none"><rect x="${f(tx - tw / 2)}" y="${f(ty - fs * 0.75)}" width="${f(tw)}" height="${f(fs * 1.5)}" rx="${f(0.3 * U)}" `
        + `fill="${moving ? '#c62828' : 'rgba(255,255,255,.85)'}" stroke="${moving ? 'none' : '#c9a24a'}" stroke-width="${f(0.05 * U)}"/>`
        + `<text x="${f(tx)}" y="${f(ty)}" font-size="${f(fs)}" fill="${moving ? '#fff' : '#3d2a00'}" font-weight="700" text-anchor="middle" dominant-baseline="central">${xl}</text></g>`;
@@ -3223,7 +3226,7 @@ function toolsForLine(a, b) {
             const kind = near(90) || near(45) ? (near(45) ? '45' : (tri ? tri.kind : '45')) : near(60) || near(30) ? '60' : null;
             if (kind) {
                 barOn = true; barY = yLow;
-                const upRight = dx * dy < 0, t = {...(tri || {}), kind, x: 0, flip: near(90) ? !!(tri && tri.flip) : !upRight, alt: kind === '60' && near(30)};
+                const upRight = dx * dy < 0, t = {...(tri || {}), kind, x: 0, down: false, flip: near(90) ? !!(tri && tri.flip) : !upRight, alt: kind === '60' && near(30)};
                 tri = t; const G = triGeom();
                 if (G) {
                     const xLow = a.y >= b.y ? a.x : b.x;           // 선의 아래 끝 — I자 윗날에 닿는 자리
@@ -3486,7 +3489,7 @@ function rpToolsFor(s, op) {
         const deg = Math.atan2(dy, dx) * 180 / Math.PI, near = v => Math.abs(deg - v) < 1.5;
         if (near(90) || near(45) || near(60) || near(30)) {
             if (!s.tri && s.ftri) return {...none, ftri: s.ftri};                  // 회전 삼각자로 그은 것
-            if (!s.tri || s.bar == null || Math.max(a.y, b.y) > s.bar + tolY || !rpTriFits(s, a, b, tolY)) return ideal();
+            if (!s.tri || s.bar == null || (s.tri.down ? Math.min(a.y, b.y) < s.bar + barW() - tolY : Math.max(a.y, b.y) > s.bar + tolY) || !rpTriFits(s, a, b, tolY)) return ideal();
             return {...none, bar: s.bar, tri: s.tri};
         }
         return s.ftri ? {...none, ftri: s.ftri} : ideal();
@@ -8185,7 +8188,7 @@ let drag = null, pinchD = 0, spaceDown = false;
 // 삼각자가 I자 윗날에 얹혀 있으면 그 밑변 구간은 연필이 지나갈 수 없다 — [왼쪽 x, 오른쪽 x]
 function triBlock(edge) {
     const G = triGeom();
-    if (!G || !edge.bar || Math.abs(edge.ay - barY) > 1e-6) return null;
+    if (!G || !edge.bar || Math.abs(edge.ay - G.R.y) > 1e-6) return null;   // 삼각자가 얹힌 날(아래로 놓았으면 아랫날)에서만 걸린다
     return [Math.min(G.B.x, G.R.x), Math.max(G.B.x, G.R.x)];
 }
 // 샤프는 자의 반대쪽으로 기울여 쥔다 — 자에 대고 그으면 몸통이 자 밖으로 누운다(실물처럼).
@@ -9809,6 +9812,7 @@ $('cadTriSize').value = String(SET.triPct45 || 50);
 $('cadFtriCm').value = String(SET.ftriCm || 24);
 $('cadTri60Size').value = String(SET.triPct60 || 70);
 // 뒤집기는 그 자리에서 — 차지한 폭은 그대로 두고 직각 모서리를 반대쪽 끝(예전 밑변 끝)으로 옮긴다. 직각 모서리는 눈금에 붙인다
+$('cadTriDown').addEventListener('click', () => { if (!tri) return; tri.down = !tri.down; saveTri(); drawTri(); drawPre(); flash(tri.down ? '삼각자를 I자 아랫날에 대어 아래로 놓았습니다' : '삼각자를 I자 윗날에 얹었습니다'); });
 $('cadTriFlip').addEventListener('click', () => { if (!tri) return; const G = triGeom(); if (G) { const g = barStep(); tri.x = +(Math.round(G.B.x / g) * g).toFixed(3); } tri.flip = !tri.flip; saveTri(); drawTri(); });
 $('cadTriRot').addEventListener('click', () => { if (!tri) return; tri.alt = !tri.alt; saveTri(); drawTri(); });
 $('cadBarOn').addEventListener('change', () => { barOn = $('cadBarOn').checked; drawBar(); saveBar(); flash(barOn ? 'I자를 폈습니다 — 끌어서 위아래로, ↑↓ 키로 한 칸씩' : 'I자를 치웠습니다'); });
