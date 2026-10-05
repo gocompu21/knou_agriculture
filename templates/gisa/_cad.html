@@ -4672,19 +4672,26 @@ document.addEventListener('pointerdown', e => { const m = $('cadCtx'); if (m && 
 document.addEventListener('keydown', e => { const m = $('cadCtx'); if (e.key === 'Escape' && m && !m.hidden) m.hidden = true; });
 // ── 호 끝 맞추기(사용자: 템플릿으로 그은 호의 끝과 선 끝이 조금씩 어긋난다) — 호(원)는 그대로 두고, 끝 가까이(tol) 있는 선을 **제 방향 그대로**
 // 늘이거나 줄여 원과 만나는 점에서 끝나게 한다. 그 점을 호의 끝으로 삼아 둘이 같은 점 하나가 된다. focus 를 주면 그 자리에 가까운 끝만
-function arcJoin(arc, tol, focus) {
+function arcJoin(arc, tol, focus, maxMove) {
     const A0 = P(arc.a), B0 = P(arc.b); if (!A0 || !B0) return 0;
     const G = arcGeom(A0, B0, arc.r, arc.dir === 'cw', arc.big); if (!G) return 0;
     const circ = {cx: G.cx, cy: G.cy, R: G.R, on: () => true};
-    let made = 0; const drop = [];
-    ['a', 'b'].forEach(key => {
+    let made = 0; const drop = [], usedEnd = new Set();
+    // 선 끝 하나는 호 끝 하나에만 — 두 끝이 같은 선 끝으로 몰리면 호의 두 점이 한 자리가 되어 호가 사라졌다(대표님: "수평선을 그리면 템플릿 호가 지워짐").
+    // 포커스가 있으면 그 곁에서 더 가까운 호 끝 하나만 본다
+    let keys = ['a', 'b'];
+    if (focus) keys = keys.filter(k => P(arc[k]) && Math.hypot(P(arc[k]).x - focus.x, P(arc[k]).y - focus.y) <= tol)
+                          .sort((k1, k2) => Math.hypot(P(arc[k1]).x - focus.x, P(arc[k1]).y - focus.y) - Math.hypot(P(arc[k2]).x - focus.x, P(arc[k2]).y - focus.y)).slice(0, 1);
+    keys.forEach(key => {
         const E = P(arc[key]); if (!E) return;
-        if (focus && Math.hypot(E.x - focus.x, E.y - focus.y) > tol) return;
+        const Oth = P(arc[key === 'a' ? 'b' : 'a']);
+        // 옮긴 뒤에도 호가 성립해야 한다 — 두 끝 사이(현)가 지름보다 길거나 두 끝이 겹치면 버린다. maxMove 가 있으면 그보다 멀리는 안 옮긴다
+        const okX = X => { const c = Oth ? Math.hypot(X.x - Oth.x, X.y - Oth.y) : 1; if (c < 1e-6 || c > 2 * G.R - 1e-6) return false; return !(maxMove != null && Math.hypot(X.x - E.x, X.y - E.y) > maxMove); };
         let best = null;
         doc.ops.forEach(op => {
             if (op.t !== 'line' || auxHidden(op)) return;
             ['a', 'b'].forEach(k => {
-                if (+op[k] === +arc[key]) return;
+                if (+op[k] === +arc[key] || usedEnd.has(op.id + k)) return;
                 const N = P(op[k]), O = P(op[k === 'a' ? 'b' : 'a']); if (!N || !O) return;
                 const dNE = Math.hypot(N.x - E.x, N.y - E.y); if (dNE > tol) return;
                 const L = Math.hypot(N.x - O.x, N.y - O.y); if (L < 1e-9) return;
@@ -4694,13 +4701,13 @@ function arcJoin(arc, tol, focus) {
                 const tf = (G.cx - O.x) * ux + (G.cy - O.y) * uy, F = {x: O.x + ux * tf, y: O.y + uy * tf}, dF = Math.hypot(F.x - G.cx, F.y - G.cy);
                 if (tf > 1e-6 && Math.abs(dF - G.R) <= Math.max(tol, 0.12 * G.R)) {
                     const dx = Math.hypot(F.x - E.x, F.y - E.y);
-                    if (dx <= 2 * tol && (!best || dx < best.dx)) best = {op, k, X: F, dx, old: +op[k]};
+                    if (dx <= 2 * tol && okX(F) && (!best || dx < best.dx)) best = {op, k, X: F, dx, old: +op[k]};
                     return;
                 }
                 lineCircleTs(O.x, O.y, ux, uy, circ).forEach(t => {
                     if (t <= 1e-6) return;                       // 선의 뒤쪽(반대 끝 너머)은 아니다
                     const X = {x: O.x + ux * t, y: O.y + uy * t}, dx = Math.hypot(X.x - E.x, X.y - E.y);
-                    if (dx <= 2 * tol && (!best || dx < best.dx)) best = {op, k, X, dx, old: +op[k]};
+                    if (dx <= 2 * tol && okX(X) && (!best || dx < best.dx)) best = {op, k, X, dx, old: +op[k]};
                 });
             });
         });
@@ -4708,7 +4715,7 @@ function arcJoin(arc, tol, focus) {
         let pn = +arc[key];
         if (usedBy(pn) > 1) pn = addPt(best.X.x, best.X.y);   // 호 끝 점을 다른 것도 쓰면 새 점
         else { const q = doc.pts.find(p => p.n === pn); q.x = +best.X.x.toFixed(3); q.y = +best.X.y.toFixed(3); }
-        arc[key] = pn; best.op[best.k] = pn; drop.push(best.old); made++;
+        arc[key] = pn; best.op[best.k] = pn; drop.push(best.old); usedEnd.add(best.op.id + best.k); made++;
     });
     if (made) { const gone = drop.filter(n => !usedBy(n)); if (gone.length) { doc.pts = doc.pts.filter(p => !gone.includes(p.n)); compactPts(); } }
     return made;
@@ -8158,7 +8165,7 @@ function pencilCommit(d) {
     // 먼저 그은 호(템플릿 귀·구멍)의 끝 곁에서 선이 끝나면 호에 맞춘다(대표님) — 호를 나중에 그을 때만 맞췄더니, 호 먼저·선 나중이면 붙지 않았다.
     // 선은 방향 그대로 늘이거나 줄여 접점(또는 교점)에서 끝나고, 호 끝 점이 그 자리로 온다
     let jn = 0; { const tol = Math.max(12 / pxPer(), 0.3), A = P(a), B = P(b);
-        doc.ops.filter(o => o.t === 'arc' && !auxHidden(o)).forEach(o => { [A, B].forEach(F => { if (F) jn += arcJoin(o, tol, F); }); }); }
+        doc.ops.filter(o => o.t === 'arc' && !auxHidden(o)).forEach(o => { [A, B].forEach(F => { if (F) jn += arcJoin(o, tol, F, Math.max(0.3 * (o.r || 0), 0.05)); }); }); }   // 호를 크게 비틀지 않는다(반지름의 30% 안)
     changed();
     flash(d.len != null && d.over ? `자 끝까지만 그었습니다 — ${fmt(L)}m (입력 ${d.len}m). 자를 옮겨 이어 그으세요`
                                   : `${d.edge.name}을(를) 따라 ${fmt(L)}m 를 그었습니다` + (jn ? ' · 끝을 호에 붙였습니다' : ''));
