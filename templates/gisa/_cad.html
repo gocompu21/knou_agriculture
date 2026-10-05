@@ -586,8 +586,8 @@
 #cadHl .dim-hl-line { fill: none; stroke: rgba(255, 196, 0, .8); stroke-width: 5px; stroke-linecap: round; }
 @keyframes cadDimHl { 0% { opacity: 0; } 35%, 60% { opacity: 1; } 100% { opacity: 0; } }
 #cadOps g.dim-pop > .dimg text { animation: cadDimPopT 1.2s ease-in-out 1; }
-@keyframes cadDimPop { 0%, 100% { filter: none; } 45% { stroke: #e8590c; filter: drop-shadow(0 0 3px #ffb300) drop-shadow(0 0 7px #ffb300); } }
-@keyframes cadDimPopT { 0%, 100% { filter: none; } 45% { fill: #e8590c; filter: drop-shadow(0 0 3px #ffd43b) drop-shadow(0 0 7px #ffb300); } }
+@keyframes cadDimPop { 0%, 100% { } 45% { stroke: #d93025; } }
+@keyframes cadDimPopT { 0%, 100% { } 10%, 90% { fill: #d93025; font-weight: 700; } }   /* 커질 때 빨간 볼드(대표님) */
 .cad-dim-ed { position: fixed; z-index: 9999; height: 30px; padding: 2px 8px; font-size: 15px; text-align: center; border: 2px solid #1f5fa8; border-radius: 5px; background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.2); outline: none; }
 .cad-ctx { position: fixed; z-index: 60; min-width: 170px; background: #fff; border: 1px solid #c9ced3; border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,.18); padding: 4px 0; font-size: 13px; }
 .cad-ctx[hidden] { display: none; }
