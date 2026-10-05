@@ -4850,7 +4850,8 @@ function dimTouch(op, C, r) {                         // 지우개 — 치수선
 // 치수 끝은 **있는 점이나 교점에만** 붙는다(대표님) — 새 점을 만들지 않는다. 교점은 점 번호가 없어 좌표(pa·pb)로 둔다
 function dimEnd(op, k) { const n = op[k]; if (n != null) return P(n) || null; const q = op['p' + k]; return q ? {x: q[0], y: q[1]} : null; }
 function dimSnapPt(w) {                               // {n, x, y} 점 · {x, y, cross} 교점 · null
-    const h = hitPoint(w); if (h) return {n: h.n, x: h.x, y: h.y};
+    // 있는 점이 먼저다(대표님) — 점 곁 16px 면 그 점. 교점은 그 밖에서만
+    { let h = null, bd = 16 / pxPer(); doc.pts.forEach(p => { const d = Math.hypot(p.x - w.x, p.y - w.y); if (d < bd) { bd = d; h = p; } }); if (h) return {n: h.n, x: h.x, y: h.y}; }
     const tol = 12 / pxPer(), near = allSegs().filter(g => segDist(w, g.a, g.b) < tol);
     let best = null, bd = tol;
     const take = q => { const d = Math.hypot(q.x - w.x, q.y - w.y); if (d < bd) { bd = d; best = {x: q.x, y: q.y, cross: true}; } };
@@ -4866,7 +4867,8 @@ function dimSnapPt(w) {                               // {n, x, y} 점 · {x, y,
         lineCircleTs(g.a.x, g.a.y, ux, uy, c).forEach(t => { if (t > -1e-6 && t < L + 1e-6) take({x: g.a.x + ux * t, y: g.a.y + uy * t}); });
     }));
     // 교점에 점이 이미 있으면 그 점으로
-    if (best) { const e = doc.pts.find(p => Math.abs(p.x - best.x) < 2e-3 && Math.abs(p.y - best.y) < 2e-3); if (e) return {n: e.n, x: e.x, y: e.y}; }
+    // 교점 곁(화면 8px 또는 0.05m)에 점이 있으면 그 점으로 — 마킹 점처럼 교점에서 몇 cm 비낀 점도 새 자리로 따로 잡지 않는다
+    if (best) { const r = Math.max(8 / pxPer(), 0.05); let e = null, ed = r; doc.pts.forEach(p => { const d = Math.hypot(p.x - best.x, p.y - best.y); if (d < ed) { ed = d; e = p; } }); if (e) return {n: e.n, x: e.x, y: e.y}; }
     return best;
 }
 const dimSame = (u, v) => u && v && (u.n != null && v.n != null ? u.n === v.n : Math.hypot(u.x - v.x, u.y - v.y) < 1e-6);
