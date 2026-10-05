@@ -2518,21 +2518,58 @@ function walkPair(C, W) {
 }
 // ── 프리드로잉 핸들(대표님 2026-10) ── 선택 도구로 프리드로잉 하나를 고르면 선을 따라 고른 간격(종이 8mm)으로 핸들이 놓이고,
 // 핸들을 끌면 그 둘레(앞뒤 핸들 사이)만 코사인 무게로 부드럽게 휜다. 끌기 시작할 때 선을 촘촘히 다시 찍어 둔다(성긴 점이면 휨이 각진다)
-function hdlOp() {
-    if (tool !== 'select' || RP || selOps.size !== 1) return null;
-    const o = doc.ops.find(x => selOps.has(x.id)); return freePlain(o) ? o : null;
+// 핸들을 달 것 — 보통 프리드로잉·동선 화살표(pts 가 곧 중심선), 관목·등고선(중심선 shrub.raw 를 휘고 다시 만든다), 산책로 두 줄(두 줄을 함께 휜다)
+function hdlTarget() {
+    if (tool !== 'select' || RP || !selOps.size) return null;
+    const sel = doc.ops.filter(x => selOps.has(x.id)); if (!sel.length) return null;
+    const o = sel[0];
+    if (sel.length === 1 && (freePlain(o) || (o.t === 'free' && o.arrow && o.pts && o.pts.length > 1))) return {type: 'plain', ops: [o], base: o.pts, closed: false};
+    if (o.t === 'free' && o.shrub) {
+        const set = shrubSet(o); if (!sel.every(x => set.includes(x))) return null;   // 묶음 가운데 하나만 골라도 묶음째
+        const sh = o.shrub, closed = set.length > 1 ? !!sh.cc : !!sh.closed;
+        const raw = sh.raw && sh.raw.length > 1 ? sh.raw : (shrubCenter(set) || {}).raw; if (!raw || raw.length < 2) return null;
+        return {type: 'shrub', ops: set, base: raw, closed};
+    }
+    if (o.t === 'free' && o.walk && o.grp != null) {
+        const set = doc.ops.filter(x => x.walk && x.grp === o.grp); if (!sel.every(x => set.includes(x))) return null;
+        return {type: 'walk', ops: set, base: set[0].pts, closed: false};
+    }
+    return null;
 }
-function hdlGeom(o) {
-    const a = o.pts, cum = [0]; for (let i = 1; i < a.length; i++) cum.push(cum[i - 1] + Math.hypot(a[i][0] - a[i - 1][0], a[i][1] - a[i - 1][1]));
-    const L = cum[cum.length - 1], n = Math.max(3, Math.min(30, Math.round(L / (8 * scaleDenom() / 1000)) + 1)), sp = L / (n - 1);
+function hdlGeom(a, closed) {
+    const cum = [0]; for (let i = 1; i < a.length; i++) cum.push(cum[i - 1] + Math.hypot(a[i][0] - a[i - 1][0], a[i][1] - a[i - 1][1]));
+    const L = cum[cum.length - 1], n = Math.max(3, Math.min(30, Math.round(L / (8 * scaleDenom() / 1000)) + 1)), sp = L / (closed ? n : n - 1);
     const at = d => { let i = 1; while (i < a.length - 1 && cum[i] < d) i++; const t = (d - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1); return [a[i - 1][0] + (a[i][0] - a[i - 1][0]) * t, a[i - 1][1] + (a[i][1] - a[i - 1][1]) * t]; };
     return {cum, L, sp, H: Array.from({length: n}, (_, k) => ({s: k * sp, p: at(k * sp)}))};
 }
 function drawHandles() {
     const g = $('cadHdl'); if (!g) return;
-    const o = hdlOp(); if (!o || o.pts.length < 2) { if (g.innerHTML) g.innerHTML = ''; return; }
-    const G = hdlGeom(o), r = 5 / pxPer(), f = fmt;
+    const T = hdlTarget(); if (!T || T.base.length < 2) { if (g.innerHTML) g.innerHTML = ''; return; }
+    const G = hdlGeom(T.base, T.closed), r = 5 / pxPer(), f = fmt;
     g.innerHTML = G.H.map((h, k) => `<circle data-hdl="${k}" cx="${f(h.p[0])}" cy="${f(h.p[1])}" r="${f(r)}" fill="#fff" stroke="#1565c0" stroke-width="${f(1.6 / pxPer())}"/>`).join('');
+}
+function hdlDenseArr(a, step) {
+    const out = [a[0]];
+    for (let i = 1; i < a.length; i++) { const p0 = out[out.length - 1], q = a[i], n = Math.max(1, Math.ceil(Math.hypot(q[0] - p0[0], q[1] - p0[1]) / step));
+        for (let t = 1; t <= n; t++) out.push([p0[0] + (q[0] - p0[0]) * t / n, p0[1] + (q[1] - p0[1]) * t / n]); }
+    return out;
+}
+const hdlCum = a => { const c = [0]; for (let i = 1; i < a.length; i++) c.push(c[i - 1] + Math.hypot(a[i][0] - a[i - 1][0], a[i][1] - a[i - 1][1])); return c; };
+function hdlBend(orig, cum, s0, R, dx, dy, closed) {   // 코사인 무게 — 닫힌 것은 둘레를 돌아 잰다
+    const L = cum[cum.length - 1];
+    return orig.map((q, i) => { let d = Math.abs(cum[i] - s0); if (closed) d = Math.min(d, L - d); if (d >= R) return q; const wt = 0.5 * (1 + Math.cos(Math.PI * d / R)); return [+(q[0] + dx * wt).toFixed(3), +(q[1] + dy * wt).toFixed(3)]; });
+}
+function hdlShrubRebuild(ops, raw, closed, cut) {     // 휜 중심선으로 관목(등고선)을 다시 만든다 — cut 이면 교목 뒤로 끊기까지(끝낼 때)
+    const first = ops[0], sh = first.shrub, size = sh.size || 1, r = shrubScallop(raw, size, sh.seed != null ? sh.seed : 1, closed, sh.bulge, sh.jit, sh.kind); if (!r) return ops;
+    const ids = new Set(ops.map(x => x.id)), nsh = {...sh, closed: r.closed, raw: raw.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)])}; delete nsh.cc;
+    const pieces = cut ? shrubCut(r.pts, r.closed, shrubObstacles(ids), size) : null;
+    const at = doc.ops.findIndex(x => ids.has(x.id)), made = [], ls = first.ls, w = first.w;
+    if (pieces && pieces.length) { const gid = doc.seq, many = pieces.length > 1;
+        pieces.forEach(q => made.push({id: doc.seq++, t: 'free', pts: q, ls, w, shrub: {...nsh, closed: false, cc: r.closed}, ...(many ? {grp: gid, gname: '관목 군식'} : {})})); }
+    else made.push({id: cut ? doc.seq++ : first.id, t: 'free', pts: r.pts, ls, w, shrub: nsh});
+    doc.ops = doc.ops.filter(x => !ids.has(x.id)); doc.ops.splice(Math.min(at, doc.ops.length), 0, ...made);
+    selOps = new Set(made.map(x => x.id));
+    return made;
 }
 function hdlDense(o, step) {                           // 끌기 전에 고르게 촘촘히 — 휨이 매끈하게
     const a = o.pts, out = [a[0]];
@@ -8792,8 +8829,8 @@ svg.addEventListener('pointerdown', e => {
         return;
     }
     if (tool === 'select' && e.target.closest && e.target.closest('#cadHdl [data-hdl]')) {   // 프리드로잉 핸들 끌기
-        const o = hdlOp(); if (o) { const k = +e.target.closest('[data-hdl]').dataset.hdl, G = hdlGeom(o);
-            drag = {kind: 'hdl', id: o.id, s0: G.H[k].s, R: G.sp * 1.6, n: G.H.length, k, w0: w, sx: e.clientX, sy: e.clientY, moved: false}; return; }
+        const T = hdlTarget(); if (T) { const k = +e.target.closest('[data-hdl]').dataset.hdl, G = hdlGeom(T.base, T.closed);
+            drag = {kind: 'hdl', T, s0: G.H[k].s, L0: G.L, R: G.sp * 1.6, k, w0: w, sx: e.clientX, sy: e.clientY, moved: false}; return; }
     }
     // 치수선은 선택 도구로 눌러 끌면 치수선 자리(at)가 옮겨진다(대표님) — 끌지 않고 떼면 평소처럼 고르기
     if (tool === 'select' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
@@ -8953,11 +8990,20 @@ svg.addEventListener('pointermove', e => {
         gPre.innerHTML = drag.pts.length > 1 ? `<path d="${freeD(drag.pts)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : ''; return;
     }
     if (drag && drag.kind === 'hdl') {                 // 핸들을 끄는 만큼 둘레만 휜다 — 끝 핸들은 끝점째 움직인다
-        const o = doc.ops.find(x => x.id === drag.id); if (!o) return;
-        if (!drag.moved) { if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 3) return; snapHist(); drag.moved = true; hdlDense(o, drag.R / 12); drag.orig = o.pts.map(q => q.slice());
-            const c = [0]; for (let i = 1; i < drag.orig.length; i++) c.push(c[i - 1] + Math.hypot(drag.orig[i][0] - drag.orig[i - 1][0], drag.orig[i][1] - drag.orig[i - 1][1])); drag.cum = c; }
-        const dx = w.x - drag.w0.x, dy = w.y - drag.w0.y, R = drag.R, s0 = drag.s0;
-        o.pts = drag.orig.map((q, i) => { const d = Math.abs(drag.cum[i] - s0); if (d >= R) return q; const wt = 0.5 * (1 + Math.cos(Math.PI * d / R)); return [+(q[0] + dx * wt).toFixed(3), +(q[1] + dy * wt).toFixed(3)]; });
+        const T = drag.T;
+        if (!drag.moved) {
+            if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 3) return; snapHist(); drag.moved = true;
+            const src = T.type === 'shrub' ? [T.base] : T.ops.map(o => o.pts);
+            drag.orig = src.map(a => { const d = hdlDenseArr(a, drag.R / 12); return {a: d, cum: hdlCum(d)}; });
+        }
+        const dx = w.x - drag.w0.x, dy = w.y - drag.w0.y;
+        if (T.type === 'shrub') {
+            const O = drag.orig[0], raw = hdlBend(O.a, O.cum, drag.s0, drag.R, dx, dy, T.closed);
+            T.ops = hdlShrubRebuild(T.ops, raw, T.closed, false);
+        } else {
+            T.ops.forEach((o, j) => { const O = drag.orig[j], k = O.cum[O.cum.length - 1] / (drag.L0 || 1);   // 산책로 두 줄 — 길이 비율로 같은 자리를 휜다
+                o.pts = hdlBend(O.a, O.cum, drag.s0 * k, drag.R * k, dx, dy, false); });
+        }
         drawOps(); drawHandles(); return;
     }
     if (drag && drag.kind === 'dimmove') {             // 치수선 옮기기 — 커서 자리(눈금에 붙음)로 at 을 다시 잰다
@@ -9155,7 +9201,13 @@ function endPtr(e) {
     if (e.type === 'pointercancel') return;
     if (d.kind === 'trirot') { rotateTri(); return; }
     if (d.kind === 'boxdraw') { gPre.innerHTML = ''; if (d.b) makeBox(d.a, d.b); return; }
-    if (d.kind === 'hdl') { if (d.moved) { changed(); flash('프리드로잉을 휘었습니다 (Ctrl+Z 로 되돌림)'); } return; }
+    if (d.kind === 'hdl') {
+        if (d.moved) {
+            if (d.T.type === 'shrub') { const sh = d.T.ops[0].shrub; hdlShrubRebuild(d.T.ops, sh.raw, d.T.closed, true); }   // 끝낼 때 교목 뒤로 끊기
+            changed(); flash(`${({shrub: '관목', walk: '산책로'})[d.T.type] || '선'}을 휘었습니다 (Ctrl+Z 로 되돌림)`);
+        }
+        return;
+    }
     if (d.kind === 'dimmove') { if (d.moved) { changed(); selInfo(); flash('치수선을 옮겼습니다 (Ctrl+Z 로 되돌림)'); } else selectOp(d.id, false); return; }
     if (d.kind === 'shbox') {                     // 관목 네모형 — 이어 긋기와 같은 끝내기(교목 뒤로 끊기 포함)로 넣는다
         gPre.innerHTML = ''; const st = shrubStyle(), raw = d.b && shrubBoxRaw(d.a, d.b, st.size);
