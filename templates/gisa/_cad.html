@@ -4349,12 +4349,11 @@ function rpGo(k, anim, cb) {
     if (fwd) { const d = rpMoveDist(toolState(), target); rpTween(target, d < 1 ? 0 : spd * (0.12 + 0.18 * Math.min(1, d / 400)), show); }   // 가까우면 짧게, 멀어도 0.3 칸 안(사용자)
     else { RP.anim = null; rpApply(target); drawBar(); show(); }
 }
-function dimPop(op) {                                  // 치수선을 따라 형광 띠 + 글자에 형광 상자(연장선·도형은 덮지 않는다)
+function dimPop(op) {                                  // 숫자에 형광 상자 + 숫자 키우기(연장선·도형은 덮지 않는다)
     const g = gOps.querySelector(`[data-op="${op.id}"] > .dimg`), G = dimGeom(op); if (!g || !G) return;
     g.parentNode.classList.add('dim-pop');
     const hl = $('cadHl'), NS = 'http://www.w3.org/2000/svg', made = [];
-    const line = document.createElementNS(NS, 'path');
-    line.setAttribute('d', `M${fmt(G.A2.x)} ${fmt(G.A2.y)}L${fmt(G.B2.x)} ${fmt(G.B2.y)}`); line.setAttribute('class', 'dim-hl dim-hl-line'); made.push(line);
+    // 치수선을 따라 깔던 노란 띠는 뺐다(대표님) — 숫자 상자와 숫자 키우기만
     const te = g.querySelector('text');
     if (te) { let b; try { b = te.getBBox(); } catch (e) { b = null; }
         if (b) { const pad = Math.max(3 / pxPer(), b.height * 0.25), r = document.createElementNS(NS, 'rect');
