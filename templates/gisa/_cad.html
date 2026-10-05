@@ -7392,6 +7392,26 @@ function boxSelect(r, crossing, add) {
     const n = selOps.size, m = selPts.size;
     flash(n || m ? `객체 ${n}개 · 점 ${m}개를 골랐습니다 — Delete 로 지웁니다` : '상자 안에 고를 것이 없습니다');
 }
+function lineStyleMenu(id) {                         // 선·사각형·호·원의 선 종류와 샤프를 그 자리에서 바꾼다(묶음이면 묶음째)
+    const ops = grpOps(id).filter(o => ['line', 'rect', 'arc', 'circle'].includes(o.t)); if (!ops.length) return;
+    let m = $('cadCtx');
+    if (!m) { m = document.createElement('div'); m.id = 'cadCtx'; m.className = 'cad-ctx'; m.hidden = true; root.appendChild(m); }
+    const cur = ops[0], row = $('cadOpList').querySelector(`[data-id="${id}"]`), r = row ? row.getBoundingClientRect() : {left: innerWidth / 2, bottom: innerHeight / 2};
+    const on = (k, v) => cur[k] === v ? ' style="font-weight:700;background:#e8f3ec"' : '';
+    m.innerHTML = `<div class="ch">선 종류</div>` + Object.entries(LS).map(([k, v]) => `<button type="button" data-ls="${k}"${on('ls', k)}>${v.name}</button>`).join('')
+        + `<div class="ch" style="border-top:1px solid #eef0f2;margin-top:2px">샤프</div>` + ['p9', 'p5'].map(k => `<button type="button" data-w="${k}"${on('w', k)}>${WD[k].name}</button>`).join('');
+    m.hidden = false;
+    const W = m.offsetWidth, Hh = m.offsetHeight;
+    m.style.left = Math.max(6, Math.min(r.left, innerWidth - W - 6)) + 'px'; m.style.top = Math.max(6, Math.min(r.bottom + 2, innerHeight - Hh - 6)) + 'px';
+    m.onmouseover = null;
+    m.onclick = ev => {
+        const b = ev.target.closest('button[data-ls], button[data-w]'); if (!b) return;
+        m.hidden = true; snapHist();
+        ops.forEach(o => { if (b.dataset.ls) o.ls = b.dataset.ls; else o.w = b.dataset.w; });
+        if (b.dataset.ls === 'aux' && !SET.auxOn) setAux(true);
+        changed(); flash(b.dataset.ls ? `${LS[b.dataset.ls].name}(으)로 바꿨습니다` : `${WD[b.dataset.w].name}(으)로 바꿨습니다`);
+    };
+}
 function editOp(id) {
     const op = doc.ops.find(o => o.id === id);
     if (!op) return;
@@ -7416,6 +7436,7 @@ function editOp(id) {
     if (op.t === 'free' && op.shrub) {              // 관목 — 선택 칸의 '관목 고치기'로(모양·파형 크기·볼록함…)
         setTool('select'); selOps = new Set(shrubSet(op).map(x => x.id)); shrubEditOn = true; renderAll(); selInfo(); flash('오른쪽 「관목 고치기」에서 바꾸세요'); return;
     }
+    if (['line', 'rect', 'arc', 'circle'].includes(op.t)) { lineStyleMenu(id); return; }   // 선 ✎ — 숨긴 선 도구로 들어가면 고른 점에서 커서까지 붉은 점선(새 선 긋기 미리보기)이 따라다녔다(대표님). 선 종류·샤프만 바꾼다
     setTool(op.t, true);
     editing = id;
     const f = FORM_OF[op.t];
