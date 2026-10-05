@@ -579,6 +579,13 @@
 .cad.aux-off #cadOps g.aux { display: none; }
 .cad.mark-off #cadOps g.mark, .cad.mark-off #cadOps .sym-mark { display: none; }
 .cad.dim-off #cadOps g.dim { display: none; }
+#cadOps g.dim-pop > .dimg { animation: cadDimPop 1.2s ease-in-out 2; }
+#cadHl .dim-hl { fill: rgba(255, 212, 59, .6); stroke: #f59f00; stroke-width: 2px; vector-effect: non-scaling-stroke; animation: cadDimHl 1.2s ease-in-out 2; opacity: 0; }
+#cadHl .dim-hl-line { fill: none; stroke: rgba(255, 196, 0, .8); stroke-width: 12px; stroke-linecap: round; }
+@keyframes cadDimHl { 0% { opacity: 0; } 35%, 60% { opacity: 1; } 100% { opacity: 0; } }
+#cadOps g.dim-pop > .dimg text { animation: cadDimPopT 1.2s ease-in-out 2; }
+@keyframes cadDimPop { 0%, 100% { filter: none; } 45% { stroke: #e8590c; filter: drop-shadow(0 0 3px #ffb300) drop-shadow(0 0 7px #ffb300); } }
+@keyframes cadDimPopT { 0%, 100% { filter: none; } 45% { fill: #e8590c; filter: drop-shadow(0 0 3px #ffd43b) drop-shadow(0 0 7px #ffb300); } }
 .cad-dim-ed { position: fixed; z-index: 9999; height: 30px; padding: 2px 8px; font-size: 15px; text-align: center; border: 2px solid #1f5fa8; border-radius: 5px; background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.2); outline: none; }
 .cad-ctx { position: fixed; z-index: 60; min-width: 170px; background: #fff; border: 1px solid #c9ced3; border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,.18); padding: 4px 0; font-size: 13px; }
 .cad-ctx[hidden] { display: none; }
@@ -4319,6 +4326,7 @@ function rpGo(k, anim, cb) {
     const show = () => {
         if (!RP) return;
         drawOps(); drawPts(); rpInfo();
+        if (fwd && op && op.t === 'dim') dimPop(op);   // 치수는 가늘고 작아 재생에서 안 보였다(대표님) — 형광 상자로 감싸 두 번 반짝인다
         if (fwd && op && op.t === 'sym') { rpSymPlay(op, spd, () => { if (cb && RP) RP.timer = setTimeout(cb, spd * 0.15); }); return; }   // 기호 — 선·원마다 도구를 옮겨 가며
         if (fwd && op && op.t === 'fill') { rpFillPlay(op, spd, () => { if (cb && RP) RP.timer = setTimeout(cb, spd * 0.15); }); return; }   // 채우기 — 자를 옮겨 가며 샤프로 긋는다
         if (fwd && blk.length > 1 && (blk[0].box || blk[0].poly || blk[0].lead)) {   // 다각선도 변마다 회전 삼각자를 옮겨 가며        // 박스 — 변마다 I자·삼각자를 옮겨 놓고 긋는다(사용자)
@@ -4338,6 +4346,19 @@ function rpGo(k, anim, cb) {
     };
     if (fwd) { const d = rpMoveDist(toolState(), target); rpTween(target, d < 1 ? 0 : spd * (0.12 + 0.18 * Math.min(1, d / 400)), show); }   // 가까우면 짧게, 멀어도 0.3 칸 안(사용자)
     else { RP.anim = null; rpApply(target); drawBar(); show(); }
+}
+function dimPop(op) {                                  // 치수선을 따라 형광 띠 + 글자에 형광 상자(연장선·도형은 덮지 않는다)
+    const g = gOps.querySelector(`[data-op="${op.id}"] > .dimg`), G = dimGeom(op); if (!g || !G) return;
+    g.parentNode.classList.add('dim-pop');
+    const hl = $('cadHl'), NS = 'http://www.w3.org/2000/svg', made = [];
+    const line = document.createElementNS(NS, 'path');
+    line.setAttribute('d', `M${fmt(G.A2.x)} ${fmt(G.A2.y)}L${fmt(G.B2.x)} ${fmt(G.B2.y)}`); line.setAttribute('class', 'dim-hl dim-hl-line'); made.push(line);
+    const te = g.querySelector('text');
+    if (te) { let b; try { b = te.getBBox(); } catch (e) { b = null; }
+        if (b) { const pad = Math.max(3 / pxPer(), b.height * 0.25), r = document.createElementNS(NS, 'rect');
+            r.setAttribute('x', fmt(b.x - pad)); r.setAttribute('y', fmt(b.y - pad)); r.setAttribute('width', fmt(b.width + 2 * pad)); r.setAttribute('height', fmt(b.height + 2 * pad));
+            r.setAttribute('rx', fmt(pad)); r.setAttribute('class', 'dim-hl'); if (te.getAttribute('transform')) r.setAttribute('transform', te.getAttribute('transform')); made.push(r); } }
+    made.forEach(el => hl.appendChild(el)); setTimeout(() => made.forEach(el => el.remove()), 2600);
 }
 function rpStop() { if (!RP) return; RP.playing = false; clearTimeout(RP.timer); rpInfo(); }
 // 북마크(대표님) — 그 줄 바로 앞까지 그려 두고 거기부터 재생한다
