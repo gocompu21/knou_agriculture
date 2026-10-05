@@ -2891,7 +2891,8 @@ function activePts() {
     const on = new Set(selPts); if (selPt) on.add(selPt);
     const f = picksOf(tool) || [];
     f.forEach(id => { const v = +$(id).value; if (v) on.add(v); });
-    if (tool === 'dim') { dimV.forEach(q => { if (q.n != null) on.add(q.n); }); if (dimHot) on.add(dimHot); }   // 치수선 — 고른 점·메뉴에서 가리킨 점은 번호를 빨강으로
+    if (tool === 'dim') { dimV.forEach(q => { if (q.n != null) on.add(q.n); }); if (dimHot) on.add(dimHot); }
+    if (selOps.size && !RP) doc.ops.forEach(op => { if (selOps.has(op.id)) ptsOf(op).forEach(n => { if (n != null) on.add(+n); }); });   // 고른 선·호·치수에 이어진 점도 반전(대표님)   // 치수선 — 고른 점·메뉴에서 가리킨 점은 번호를 빨강으로
     return on;
 }
 function markPtSet(k) { const s = new Set(); (k == null ? doc.ops : doc.ops.slice(0, k)).forEach(o => { if (o.mark && o.p != null && !auxHidden(o)) s.add(+o.p); }); return s; }
