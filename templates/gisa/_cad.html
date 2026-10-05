@@ -579,11 +579,13 @@
 .cad.aux-off #cadOps g.aux { display: none; }
 .cad.mark-off #cadOps g.mark, .cad.mark-off #cadOps .sym-mark { display: none; }
 .cad.dim-off #cadOps g.dim { display: none; }
-#cadOps g.dim-pop > .dimg { animation: cadDimPop 1.2s ease-in-out 2; }
-#cadHl .dim-hl { fill: rgba(255, 212, 59, .6); stroke: #f59f00; stroke-width: 2px; vector-effect: non-scaling-stroke; animation: cadDimHl 1.2s ease-in-out 2; opacity: 0; }
-#cadHl .dim-hl-line { fill: none; stroke: rgba(255, 196, 0, .8); stroke-width: 12px; stroke-linecap: round; }
+#cadOps g.dim-pop > .dimg { animation: cadDimPop 1.2s ease-in-out 1; }
+#cadOps g.dim-pop .dimtx { animation: cadDimScale 1.2s ease-in-out 1; transform-box: fill-box; transform-origin: center; }
+@keyframes cadDimScale { 0%, 100% { transform: scale(1); } 40%, 55% { transform: scale(2.2); } }
+#cadHl .dim-hl { fill: rgba(255, 212, 59, .6); stroke: #f59f00; stroke-width: 2px; vector-effect: non-scaling-stroke; animation: cadDimHl 1.2s ease-in-out 1; opacity: 0; }
+#cadHl .dim-hl-line { fill: none; stroke: rgba(255, 196, 0, .8); stroke-width: 5px; stroke-linecap: round; }
 @keyframes cadDimHl { 0% { opacity: 0; } 35%, 60% { opacity: 1; } 100% { opacity: 0; } }
-#cadOps g.dim-pop > .dimg text { animation: cadDimPopT 1.2s ease-in-out 2; }
+#cadOps g.dim-pop > .dimg text { animation: cadDimPopT 1.2s ease-in-out 1; }
 @keyframes cadDimPop { 0%, 100% { filter: none; } 45% { stroke: #e8590c; filter: drop-shadow(0 0 3px #ffb300) drop-shadow(0 0 7px #ffb300); } }
 @keyframes cadDimPopT { 0%, 100% { filter: none; } 45% { fill: #e8590c; filter: drop-shadow(0 0 3px #ffd43b) drop-shadow(0 0 7px #ffb300); } }
 .cad-dim-ed { position: fixed; z-index: 9999; height: 30px; padding: 2px 8px; font-size: 15px; text-align: center; border: 2px solid #1f5fa8; border-radius: 5px; background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.2); outline: none; }
@@ -4358,7 +4360,7 @@ function dimPop(op) {                                  // 치수선을 따라 �
         if (b) { const pad = Math.max(3 / pxPer(), b.height * 0.25), r = document.createElementNS(NS, 'rect');
             r.setAttribute('x', fmt(b.x - pad)); r.setAttribute('y', fmt(b.y - pad)); r.setAttribute('width', fmt(b.width + 2 * pad)); r.setAttribute('height', fmt(b.height + 2 * pad));
             r.setAttribute('rx', fmt(pad)); r.setAttribute('class', 'dim-hl'); if (te.getAttribute('transform')) r.setAttribute('transform', te.getAttribute('transform')); made.push(r); } }
-    made.forEach(el => hl.appendChild(el)); setTimeout(() => made.forEach(el => el.remove()), 2600);
+    made.forEach(el => hl.appendChild(el)); setTimeout(() => made.forEach(el => el.remove()), 1400);
 }
 function rpStop() { if (!RP) return; RP.playing = false; clearTimeout(RP.timer); rpInfo(); }
 // 북마크(대표님) — 그 줄 바로 앞까지 그려 두고 거기부터 재생한다
@@ -4861,7 +4863,7 @@ function dimSvg(op, color) {
     let off = dmm(0.8);
     if (op.mode === 'v') { const ox = A2.x - g.a.x || B2.x - g.b.x; if (ox * upx < 0) off = -(dmm(0.8) + th * 0.75); }
     const m = {x: (A2.x + B2.x) / 2 + upx * off, y: (A2.y + B2.y) / 2 + upy * off};
-    o += `<text x="${f(m.x)}" y="${f(m.y)}" font-size="${f(th)}" text-anchor="middle" fill="${col}" stroke="none" font-family="${FONTS.gothic.replace(/"/g, "'")}"${Math.abs(ang) > 0.01 ? ` transform="rotate(${f(+ang.toFixed(3))} ${f(m.x)} ${f(m.y)})"` : ''}>${esc(dimText(op, g.L))}</text>`;
+    o += `<g class="dimtx"><text x="${f(m.x)}" y="${f(m.y)}" font-size="${f(th)}" text-anchor="middle" fill="${col}" stroke="none" font-family="${FONTS.gothic.replace(/"/g, "'")}"${Math.abs(ang) > 0.01 ? ` transform="rotate(${f(+ang.toFixed(3))} ${f(m.x)} ${f(m.y)})"` : ''}>${esc(dimText(op, g.L))}</text></g>`;   // 글자를 g 로 감싼다 — 재생에서 크게 했다 되돌릴 때 CSS transform 이 글자의 rotate 를 덮지 않게
     return `<g class="dimg" stroke="${col}" stroke-width="${f(lw)}" fill="none" stroke-linecap="round">${o}</g>`;
 }
 function dimTouch(op, C, r) {                         // 지우개 — 치수선·연장선에 닿았나
