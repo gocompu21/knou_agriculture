@@ -4905,12 +4905,22 @@ function ptPickMenu(e, stack, title, onPick) {
     let m = $('cadCtx');
     if (!m) { m = document.createElement('div'); m.id = 'cadCtx'; m.className = 'cad-ctx'; m.hidden = true; root.appendChild(m); }
     m.innerHTML = `<div class="ch">${esc(title)}</div>`
-        + stack.map((p, i) => `<button type="button" data-pk="${i}">P${p.n}<small>${esc(ptUseText(p.n))} · X ${fmt(p.x)} · Y ${fmt(p.y)}</small></button>`).join('');
+        + stack.map((p, i) => `<button type="button" data-pk="${i}">P${p.n}<small>${esc(ptUseText(p.n))} · X ${fmt(p.x)} · Y ${fmt(p.y)}</small></button>`).join('')
+        + `<div class="ch" style="border-top:1px solid #eef0f2;margin-top:2px">정리</div><button type="button" data-mg="1">${stack.length}개를 한 점으로 합치기<small>선이 가장 많이 걸린 점으로 모은다</small></button>`;
     m.hidden = false;
     const W = m.offsetWidth, Hh = m.offsetHeight;
     m.style.left = Math.min(e.clientX + 4, innerWidth - W - 6) + 'px'; m.style.top = Math.max(6, Math.min(e.clientY + 4, innerHeight - Hh - 6)) + 'px';
     m.onmouseover = ev => { const b = ev.target.closest('button[data-pk]'); dimHot = b ? stack[+b.dataset.pk].n : null; drawPts(); };
-    m.onclick = ev => { const b = ev.target.closest('button[data-pk]'); if (!b) return; m.hidden = true; dimHot = null; onPick(stack[+b.dataset.pk]); };
+    m.onclick = ev => {
+        if (ev.target.closest('button[data-mg]')) {     // 겹친 점 합치기 — 고르기 메뉴에서 바로(대표님: 고르기 메뉴가 뜬 뒤로 합치기 메뉴로 갈 길이 없었다)
+            m.hidden = true; dimHot = null;
+            const uses = f => doc.ops.filter(op => op.t !== 'step' && ptsOf(op).map(Number).includes(f)).length;
+            const keep = stack.map(p => p.n).sort((a, b) => uses(b) - uses(a))[0];
+            if (tool === 'dim') dimV = dimV.filter(q => q.n == null || !stack.some(p => p.n === q.n));
+            mergePts(stack.map(p => p.n).filter(n => n !== keep), keep); return;
+        }
+        const b = ev.target.closest('button[data-pk]'); if (!b) return; m.hidden = true; dimHot = null; onPick(stack[+b.dataset.pk]);
+    };
 }
 function dimPickMenu(e, stack) {
     ptPickMenu(e, stack, `겹친 점 ${stack.length}개 — 어느 점에 치수를 걸까요?`, p => {
@@ -8531,6 +8541,10 @@ svg.addEventListener('pointerdown', e => {
             const hp = hitPoint(w);
             const sp = P(selPt), near = sp && Math.hypot(sp.x - w.x, sp.y - w.y) * pxPer() <= 11;   // 겹친 점이면 hitPoint 가 다른 점을 줄 수 있다
             if ((hp && hp.n === selPt) || near) { ctxMenu(e, selPt); drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return; }
+        }
+        if (e.button === 2) {                          // 겹친 점에서 오른쪽 버튼 — 고르지 않았어도 합치기 메뉴(겹친 점 합치기가 맨 위)
+            const hp = hitPoint(w);
+            if (hp && dimStack(hp).length > 1) { ctxMenu(e, hp.n); drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return; }
         }
         // 템플릿 귀 — 둥근 귀에 대고 돌리면 그 귀의 1/4 원(대표님)
         // 자의 변 곁에서 점을 짚으면 선 긋기가 먼저다 — 귀로 만든 점은 템플릿 판 가장자리에 있어, 이어 그으려 하면
