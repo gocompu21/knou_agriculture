@@ -4900,24 +4900,26 @@ function ptUseText(n) {                               // 그 점을 쓰는 것 �
     const t = Object.entries(c).map(([k, v]) => v > 1 ? `${k} ${v}` : k).join(' · ');
     return t || '쓰는 것 없음';
 }
-function dimPickMenu(e, stack) {
+// 겹친 점 고르기 메뉴(대표님) — 치수선·샤프로 점 짚기에서 함께 쓴다. 줄에 마우스를 올리면 그 점 번호가 빨강(dimHot)
+function ptPickMenu(e, stack, title, onPick) {
     let m = $('cadCtx');
     if (!m) { m = document.createElement('div'); m.id = 'cadCtx'; m.className = 'cad-ctx'; m.hidden = true; root.appendChild(m); }
-    m.innerHTML = `<div class="ch">겹친 점 ${stack.length}개 — 어느 점에 치수를 걸까요?</div>`
+    m.innerHTML = `<div class="ch">${esc(title)}</div>`
         + stack.map((p, i) => `<button type="button" data-pk="${i}">P${p.n}<small>${esc(ptUseText(p.n))} · X ${fmt(p.x)} · Y ${fmt(p.y)}</small></button>`).join('');
     m.hidden = false;
     const W = m.offsetWidth, Hh = m.offsetHeight;
     m.style.left = Math.min(e.clientX + 4, innerWidth - W - 6) + 'px'; m.style.top = Math.max(6, Math.min(e.clientY + 4, innerHeight - Hh - 6)) + 'px';
     m.onmouseover = ev => { const b = ev.target.closest('button[data-pk]'); dimHot = b ? stack[+b.dataset.pk].n : null; drawPts(); };
-    m.onclick = ev => {
-        const b = ev.target.closest('button[data-pk]'); if (!b) return;
-        m.hidden = true; dimHot = null;
-        const p = stack[+b.dataset.pk];
+    m.onclick = ev => { const b = ev.target.closest('button[data-pk]'); if (!b) return; m.hidden = true; dimHot = null; onPick(stack[+b.dataset.pk]); };
+}
+function dimPickMenu(e, stack) {
+    ptPickMenu(e, stack, `겹친 점 ${stack.length}개 — 어느 점에 치수를 걸까요?`, p => {
         if (dimV.length === 1 && dimV[0].n === p.n) { drawPts(); return; }
         if (dimV.length < 2) dimV.push({n: p.n, x: p.x, y: p.y});
         drawPts(); drawPre(); status(); flash(`P${p.n} 을(를) 골랐습니다`);
-    };
+    });
 }
+let lastDown = null;                                   // 마지막 누른 화면 자리 — 겹친 점 메뉴를 띄울 곳
 var dimHot = null;                                    // 겹친 점 메뉴에서 마우스를 올린 점 — 빨갛게
 function dimPick(w, e) {
     if (dimV.length < 2) {
@@ -8181,8 +8183,14 @@ function penLean(w) {
 }
 // 샤프로 누르면 점을 찍는다 — 자의 변 곁이면 변 위에, 아니면 스냅 자리에. 자가 덮은 곳(몸통·삼각자 안)에는 못 찍는다
 function penDot(w, free) {
-    const hp = free ? hitPoint(w) : null, q = hp ? {x: hp.x, y: hp.y} : free ? snapXY(w) : w;
-    if (hp) { selPt = hp.n; renderAll(); flash(`P${hp.n} (${fmt(hp.x)}, ${fmt(hp.y)}) — 이미 있는 점입니다`); return; }
+    let hp = free ? hitPoint(w) : null; const q = hp ? {x: hp.x, y: hp.y} : free ? snapXY(w) : w;
+    if (!hp) { const rx = +q.x.toFixed(3), ry = +q.y.toFixed(3); hp = doc.pts.find(p => Math.abs(p.x - rx) < 1e-9 && Math.abs(p.y - ry) < 1e-9) || null; }   // 자의 변 위에서 짚은 자리에 이미 점이 있으면 그 점(겹친 점 고르기도)
+    if (hp) {
+        const st = dimStack(hp);                       // 겹친 점이면 골라 쓴다(대표님)
+        const pick = p => { selPt = p.n; renderAll(); flash(`P${p.n} (${fmt(p.x)}, ${fmt(p.y)}) — 이미 있는 점입니다`); };
+        if (st.length > 1 && lastDown) { ptPickMenu(lastDown, st, `겹친 점 ${st.length}개 — 어느 점을 고를까요?`, pick); return; }
+        pick(hp); return;
+    }
     if (covered(q)) { flash('자가 덮은 곳에는 점을 찍을 수 없습니다'); return; }
     snapHist();
     const n = addPt(q.x, q.y); selPt = n;
@@ -9894,6 +9902,7 @@ $('fdmTxt').addEventListener('focus', dimTargetInfo);
 $('fdmEnd').addEventListener('change', () => dimApplyOpt('end', $('fdmEnd').value));
 $('fdmMm').addEventListener('change', () => dimApplyOpt('tmm', +$('fdmMm').value || 3));
 $('fdmUnit').addEventListener('change', () => dimApplyOpt('unit', $('fdmUnit').value));
+svg.addEventListener('pointerdown', e => { lastDown = {clientX: e.clientX, clientY: e.clientY}; }, true);
 let dimTap = null;                                     // 치수 두 번 누르기 — 직접 잰다
 function dimDouble(e, op) {
     const t = performance.now(), d = dimTap;
