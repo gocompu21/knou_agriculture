@@ -7545,12 +7545,12 @@ function pathShift(d, dx, dy) {                        // SVG 경로의 절대 �
     }
     return out.join(' ').replace(/ ([a-zA-Z])/g, '$1').replace(/([a-zA-Z]) /g, '$1');
 }
-function moveSelected(dx, dy) {
-    if (!(Math.abs(dx) > 1e-9 || Math.abs(dy) > 1e-9)) { flash('옮길 거리(X·Y)를 넣으세요 — 오른쪽·아래가 +, 왼쪽·위는 −'); return; }
+function moveSelected(dx, dy, live) {                 // live — Ctrl+끌기 중(되돌리기 칸은 끌기 시작에 한 번, 다 끝나고 changed)
+    if (!(Math.abs(dx) > 1e-9 || Math.abs(dy) > 1e-9)) { if (!live) flash('옮길 거리(X·Y)를 넣으세요 — 오른쪽·아래가 +, 왼쪽·위는 −'); return; }
     const ids = new Set();
     [...selOps].forEach(id => { const o = doc.ops.find(x => x.id === id); if (o) (o.grp != null ? grpOps(id) : [o]).forEach(x => ids.add(x.id)); });
     if (!ids.size && !selPts.size) { flash('먼저 옮길 것을 고르세요'); return; }
-    snapHist();
+    if (!live) snapHist();
     const moving = doc.ops.filter(o => ids.has(o.id)), r3 = v => +(+v).toFixed(3);
     const usedElse = new Set(); doc.ops.forEach(o => { if (!ids.has(o.id)) ptsOf(o).forEach(n => usedElse.add(+n)); });
     const remap = new Map(), movedPts = new Set();
@@ -7581,6 +7581,7 @@ function moveSelected(dx, dy) {
         }
     });
     selPts.forEach(n => { if (!remap.has(+n)) { const p = doc.pts.find(q => q.n === +n); if (p) { p.x = r3(p.x + dx); p.y = r3(p.y + dy); } } });
+    if (live) { syncMarks(); drawOps(); drawPts(); drawHandles(); return; }
     changed();
     const cut = [...remap].filter(([a, b]) => a !== b).length;
     flash(`${moving.length}개를 → ${fmt(dx)}m · ↓ ${fmt(dy)}m 옮겼습니다` + (cut ? ` — 다른 선과 함께 쓰던 점 ${cut}개는 떼어 냈습니다` : '') + ' (Ctrl+Z 로 되돌림)');
@@ -8719,6 +8720,10 @@ svg.addEventListener('pointerdown', e => {
     }
     if (e.button === 1 || spaceDown) { drag = {kind: 'pan', lx: e.clientX, ly: e.clientY, moved: true}; e.preventDefault(); return; }
     // Ctrl(맥은 ⌘)을 누른 채 끌면 어느 도구든 화면 이동 — 선택 도구는 끌지 않고 떼면 종전처럼 Ctrl+누르기(더해 고르기)
+    if (e.button === 0 && (e.ctrlKey || e.metaKey) && tool === 'select' && !RP && (selOps.size || selPts.size)) {   // 고른 것을 Ctrl+끌기 — 옮긴다(대표님). 끌지 않고 떼면 종전처럼 더해 고르기
+        const w0 = toWorld(e); drag = {kind: 'selmove', w0, b0: $('cadSnap').checked ? snapXY(w0) : w0, done: {x: 0, y: 0}, sx: e.clientX, sy: e.clientY, moved: false, target: e.target};
+        e.preventDefault(); return;
+    }
     if (e.button === 0 && (e.ctrlKey || e.metaKey)) {
         drag = tool === 'select' ? {kind: 'click', sx: e.clientX, sy: e.clientY, lx: e.clientX, ly: e.clientY, moved: false, target: e.target, w0: toWorld(e), shift: true}
                                  : {kind: 'pan', lx: e.clientX, ly: e.clientY, moved: true};
@@ -9135,6 +9140,14 @@ svg.addEventListener('pointermove', e => {
         if (Math.hypot(w.x - l[0], w.y - l[1]) * pxPer() >= 2) drag.pts.push([w.x, w.y]);
         gPre.innerHTML = drag.pts.length > 1 ? `<path d="${freeD(drag.pts)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : ''; return;
     }
+    if (drag && drag.kind === 'selmove') {             // Ctrl+끌기로 고른 것 옮기기 — 스냅이 켜져 있으면 눈금 칸만큼씩
+        if (!drag.moved) { if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 4) return; snapHist(); drag.moved = true; }
+        const q = $('cadSnap').checked ? snapXY(w) : w, tx = +(q.x - drag.b0.x).toFixed(3), ty = +(q.y - drag.b0.y).toFixed(3);
+        const dx = +(tx - drag.done.x).toFixed(3), dy = +(ty - drag.done.y).toFixed(3);
+        if (Math.abs(dx) > 1e-9 || Math.abs(dy) > 1e-9) { moveSelected(dx, dy, true); drag.done = {x: tx, y: ty}; }
+        $('cadHint').textContent = ` · 옮기는 중 → ${fmt(drag.done.x)}m · ↓ ${fmt(drag.done.y)}m`;
+        return;
+    }
     if (drag && drag.kind === 'hdl') {                 // 핸들을 끄는 만큼 둘레만 휜다 — 끝 핸들은 끝점째 움직인다
         const T = drag.T;
         if (!drag.moved) {
@@ -9348,6 +9361,11 @@ function endPtr(e) {
     if (e.type === 'pointercancel') return;
     if (d.kind === 'trirot') { rotateTri(); return; }
     if (d.kind === 'boxdraw') { gPre.innerHTML = ''; if (d.b) makeBox(d.a, d.b); return; }
+    if (d.kind === 'selmove') {
+        if (d.moved) { changed(); flash(`고른 것을 → ${fmt(d.done.x)}m · ↓ ${fmt(d.done.y)}m 옮겼습니다 (Ctrl+Z 로 되돌림)`); }
+        else onCanvasClick(toWorld(e), {shiftKey: true, ctrlKey: true, target: d.target}, d.target);   // 끌지 않았으면 더해 고르기
+        return;
+    }
     if (d.kind === 'hdl') {
         if (d.moved) {
             if (d.T.type === 'shrub') { const sh = d.T.ops[0].shrub; hdlShrubRebuild(d.T.ops, sh.raw, d.T.closed, true); }   // 끝낼 때 교목 뒤로 끊기
