@@ -1405,7 +1405,7 @@ function tanLines() {
         if (op.t === 'line') add(a, b);
         else if (op.t === 'rect') { const q = [a, {x: b.x, y: a.y}, b, {x: a.x, y: b.y}]; q.forEach((p, i) => add(p, q[(i + 1) % 4])); }
     });
-    guideEdges().forEach(e => L.push({a: {x: e.ax, y: e.ay}, d: {x: e.dx, y: e.dy}, lo: e.lo, hi: e.hi}));
+    guideEdges().filter(e => !e.tpl).forEach(e => L.push({a: {x: e.ax, y: e.ay}, d: {x: e.dx, y: e.dy}, lo: e.lo, hi: e.hi}));   // 템플릿 제 변에는 맞추지 않는다
     return L;
 }
 const sdist = (l, p) => (p.x - l.a.x) * -l.d.y + (p.y - l.a.y) * l.d.x;   // 왼쪽 법선 방향의 부호 있는 거리
@@ -1958,6 +1958,16 @@ function guideEdges() {
     const G = triGeom(); if (G) E.push(...G.edges);
     const F = ftriGeom(); if (F) E.push(...F.edges);        // 회전 삼각자의 세 변·구멍 변
     E.push(...srEdges());
+    E.push(...tplEdges());                              // 템플릿 판의 네 곧은 변(대표님) — 자처럼 대고 긋는다
+    return E;
+}
+function tplEdges() {                                 // 둥근 귀를 뺀 네 변. 판 위 mm → 도면 m(회전 포함)
+    if (!tpl || !sheet) return [];
+    const D = tplDef(), cr = TPL_CR, E = [];
+    [[[cr, 0], [D.w - cr, 0], '윗변'], [[D.w, cr], [D.w, D.h - cr], '오른쪽 변'], [[D.w - cr, D.h], [cr, D.h], '아랫변'], [[0, D.h - cr], [0, cr], '왼쪽 변']].forEach(([a, b, nm]) => {
+        const A = tplMap(a[0], a[1]), B = tplMap(b[0], b[1]), L = Math.hypot(B.x - A.x, B.y - A.y); if (L < 1e-9) return;
+        E.push({ax: A.x, ay: A.y, dx: (B.x - A.x) / L, dy: (B.y - A.y) / L, lo: 0, hi: L, tpl: true, name: `템플릿 ${nm}`});
+    });
     return E;
 }
 const clampT = (t, e) => Math.max(e.lo, Math.min(e.hi, t));
@@ -3515,6 +3525,12 @@ function rpNoSr(s) { return s && s.sr ? {...s, sr: null} : s; }
 // ① 그 칸에 쓰는 도구만 — 가로선 I자 · 세로·45°·60°·30° I자+삼각자 · 그 밖의 각도 회전 삼각자 · 원·호·템플릿 도형 템플릿 · 마킹 스케일자 · 나머지는 없음
 // 기록된 삼각자의 변이 그 선 위에 정말 놓였는가 — 기록 없는 칸은 앞뒤 기록을 빌려 오므로 삼각자가 엉뚱한 곳에 있을 수 있다.
 // 빗변이 선에서 떨어진 채 45° 선이 그어졌다(도면 틀을 옮긴 주차공원444, 사용자). 변과 나란하고 선의 두 끝이 변 위(tol 안)여야 맞다
+function rpTplFits(s, a, b, tol) {                    // 기록된 템플릿의 곧은 변 위에 그 선이 놓였나
+    const keep = tpl; let ok = false;
+    try { tpl = s.tpl; ok = tplEdges().some(e => [a, b].every(p => { const t = (p.x - e.ax) * e.dx + (p.y - e.ay) * e.dy; return t > -tol && t < e.hi + tol && Math.abs((p.x - e.ax) * e.dy - (p.y - e.ay) * e.dx) <= tol; })); }
+    catch (e) { ok = false; } finally { tpl = keep; }
+    return ok;
+}
 function rpTriFits(s, a, b, tol) {
     const keep = {tri, barY, barOn}; let ok = false;
     try {
@@ -3535,6 +3551,7 @@ function rpToolsFor(s, op) {
     if (op.grp != null && op.t === 'line' && !op.lead) return {...none, tpl: rpTplFit(s.tpl, grpOps(op.id))};   // 템플릿으로 돌려 그린 도형 — 구멍이 도형 자리에 없으면 다시 놓는다
     if (op.t === 'line') {
         const a = P(op.a), b = P(op.b); if (!a || !b) return none;
+        if (s.tpl && rpTplFits(s, a, b, Math.max(0.05, 0.3 * U))) return {...none, tpl: s.tpl};   // 템플릿 변에 대고 그은 선 — 템플릿만
         const dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y), tolY = Math.max(0.05, 0.3 * U);
         // 기록된 도구 자리로는 그을 수 없는 선이면(I자·삼각자 없이 그었거나, I자가 선을 가로지른다) 그 선을 그을 자리를 새로 잡는다.
         // 세로선이 I자 몸통을 뚫고 지나가며 그어졌다(사용자) — 삼각자로 긋는 선은 늘 I자 윗날 **위**에 있다
@@ -8656,7 +8673,11 @@ svg.addEventListener('pointerdown', e => {
             drag = {kind: 'tplTrace', hole, cands, btn: e.button, sx: e.clientX, sy: e.clientY, moved: false, a0: cands ? snapAng(a, cands, hole.r) : a, sweep: 0};
             drag.last = a; return;
         }
-        if (c('#cadTpl .tpl-body')) { if (e.button === 0) startTplDrag(e, w); else drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return; }
+        if (c('#cadTpl .tpl-body')) {
+            const te = e.button === 2 && nearestEdge(w, 14, x => x.tpl);   // 판 변 곁 오른쪽 버튼 — 그 변을 따라 긋는다(대표님)
+            if (te) { startPencil(e, w, te, true); return; }
+            if (e.button === 0) startTplDrag(e, w); else drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return;
+        }
         if (c('#cadSr .sr-body')) {                       // 스케일자 — 왼쪽은 옮기기, 오른쪽은 눈금 변을 따라 긋기
             // 스케일자는 긋는 자가 아니다(사용자) — 눈금 모서리 곁을 누르면 마킹(끌어도 선은 안 생긴다), 그 밖의 몸통은 왼쪽으로 끌어 옮긴다
             if (srMarkEdge(w)) drag = {kind: 'srmark', edge: srEdge(w), w0: w, sx: e.clientX, sy: e.clientY, moved: false};
