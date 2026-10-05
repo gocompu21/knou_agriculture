@@ -1262,7 +1262,7 @@ function tplCornerPin(K, g) {
     });
     const fit = (e, n, len) => {                       // e: 변 방향(꼭짓점 → 판 안쪽), n: 변을 옮길 쪽(법선), len: 변 길이(mm)
         let best = null, bd = tol;
-        const ext = len * tplK(), sm = 3 * tplK();     // 변 곁(변 길이 + 귀 앞 3mm)에 걸친 것만
+        const ext = len * tplK(), sm = 30 * tplK();    // 변 곁(변 길이 + 귀 앞 30mm)에 걸친 것만 — 귀 앞 3mm 였을 때는 귀 위쪽에서 끝난 실선(그 선의 연장에 맞추려는 것)에 붙지 않았다(대표님)
         const along = p => (p.x - K.P0.x) * e.x + (p.y - K.P0.y) * e.y, off = p => (p.x - K.P0.x) * n.x + (p.y - K.P0.y) * n.y;
         L.forEach(l => {
             const dx = l.b.x - l.a.x, dy = l.b.y - l.a.y, m = Math.hypot(dx, dy); if (m < 1e-9) return;
