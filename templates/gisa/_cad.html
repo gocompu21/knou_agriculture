@@ -2748,19 +2748,20 @@ function ptCallouts(list) {
     });
     return out;
 }
-function dotSvg(p, ring, mk, co) {   // co — 지시선으로 뺀 번호 자리 {x, y}   // mk — 마킹 점은 마킹 색으로(큰 도면에서 검은 점과 가려 보이게, 사용자)           // 점·번호 크기는 설정(SET.ptSize·ptNum, 배율)
-    const {r, fn} = lblSize();
-    if (co) {                                          // 몰린 점 — 번호를 빼고 가는 지시선
-        return `<circle${mk ? ` class="mk-dot" data-r="${fmt(r)}"` : ''} cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r)}" fill="${mk ? (SET.markColor || '#f76707') : INK}"/>`
-            + `<path d="M${fmt(p.x)} ${fmt(p.y)}L${fmt(co.x - fn * 0.15)} ${fmt(co.y)}" stroke="${ring ? RED : BLUE}" stroke-opacity=".55" stroke-width="${fmt(0.035 * U)}" fill="none"/>`
-            + `<text x="${fmt(co.x)}" y="${fmt(co.y)}" dominant-baseline="central" font-size="${fmt(fn)}" fill="${ring ? RED : BLUE}" font-weight="700">${p.n}</text>`
-            + (ring ? `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r * 2.6)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : '');
-    }
-    const tx = p.lp != null ? (() => { const b = lblBox(p, p.lp); return `x="${fmt(b.x0)}" y="${fmt((b.y0 + b.y1) / 2)}" dominant-baseline="central"`; })()
-                            : `x="${fmt(p.x + r + fn * 0.22)}" y="${fmt(p.y - r - fn * 0.12)}"`;
-    return `<circle${mk ? ` class="mk-dot" data-r="${fmt(r)}"` : ''} cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r)}" fill="${mk ? (SET.markColor || '#f76707') : INK}"/>`
-        + `<text ${tx} font-size="${fmt(fn)}" fill="${ring ? RED : BLUE}" font-weight="700">${p.n}</text>`   // 고른 점(샤프로 짚은 점)은 번호도 빨강(대표님 2026-10 — 겹친 번호 가운데 어느 것인지 보이게)
-        + (ring ? `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r * 2.6)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : '');
+function dotSvg(p, ring, mk, co) {   // co — 지시선으로 뺀 번호 자리 {x, y}. ring — 고른 점: 점·번호·지시선을 반전(빨간 바탕 흰 글씨, 대표님 2026-10)
+    const {r, fn} = lblSize(), f = fmt;
+    const dot = `<circle${mk ? ` class="mk-dot" data-r="${f(r)}"` : ''} cx="${f(p.x)}" cy="${f(p.y)}" r="${f(r)}" fill="${mk ? (SET.markColor || '#f76707') : INK}"/>`;
+    // 번호 글자 자리(왼쪽 x, 가운데 y) — 지시선 / 고른 자리(lp) / 예전 자리(오른위)
+    let tx, ty;
+    if (co) { tx = co.x; ty = co.y; }
+    else if (p.lp != null) { const bx = lblBox(p, p.lp); tx = bx.x0; ty = (bx.y0 + bx.y1) / 2; }
+    else { tx = p.x + r + fn * 0.22; ty = p.y - r - fn * 0.12 - fn * 0.35; }
+    const w = String(p.n).length * 0.6 * fn, pad = fn * 0.14;
+    const lead = co ? `<path d="M${f(p.x)} ${f(p.y)}L${f(co.x - fn * 0.15)} ${f(co.y)}" stroke="${ring ? RED : BLUE}" stroke-opacity="${ring ? 1 : .55}" stroke-width="${f((ring ? 0.1 : 0.035) * U)}" fill="none"/>` : '';
+    const bg = ring ? `<rect x="${f(tx - pad)}" y="${f(ty - fn * 0.5)}" width="${f(w + 2 * pad)}" height="${f(fn)}" rx="${f(fn * 0.18)}" fill="${RED}"/>` : '';
+    const txt = `<text class="pn" data-pn="${p.n}" style="pointer-events:all;cursor:pointer" x="${f(tx)}" y="${f(ty)}" dominant-baseline="central" font-size="${f(fn)}" fill="${ring ? '#fff' : BLUE}" font-weight="700">${p.n}</text>`;
+    const ringC = ring ? `<circle cx="${f(p.x)}" cy="${f(p.y)}" r="${f(r * 2.6)}" fill="none" stroke="${RED}" stroke-width="${f(0.12 * U)}"/><circle cx="${f(p.x)}" cy="${f(p.y)}" r="${f(r * 1.1)}" fill="${RED}"/>` : '';
+    return dot + lead + bg + txt + ringC;
 }
 // ── 제도판 ── 사용자가 보여 준 탁상 제도판(평면)을 종이 둘레에 그린다: 흰 판, 좌우 알루미늄 레일(왼쪽에 눈금),
 // 위쪽 얇은 틀, 아래 펜 받침(알루미늄 홈), 네 모서리 검은 마개, 종이 네 귀의 마스킹 테이프. I자 양 끝 블록이 좌우 레일에 걸린다
@@ -8375,6 +8376,16 @@ svg.addEventListener('pointerdown', e => {
     ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY});
     if (ptrs.size === 2) { drag = {kind: 'pinch'}; pinchD = 0; return; }
     if (zwin && e.button === 0) { drag = {kind: 'zwin', w0: toWorld(e), sx: e.clientX, sy: e.clientY, moved: false}; return; }
+    // 점 번호를 누르면 그 점을 고른다(대표님) — 점·번호·지시선이 반전된다. 치수선 도구면 그 점을 치수 끝으로
+    if (e.button === 0 && !RP && e.target.closest && e.target.closest('[data-pn]') && ['select', 'pen9', 'pen5', 'dim'].includes(tool)) {
+        const q = P(+e.target.closest('[data-pn]').dataset.pn);
+        drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true};
+        if (q) {
+            if (tool === 'dim') { if (dimV.length < 2 && !(dimV.length === 1 && dimV[0].n === q.n)) { dimV.push({n: q.n, x: q.x, y: q.y}); drawPts(); drawPre(); status(); flash(`P${q.n} 을(를) 골랐습니다`); } }
+            else { selPt = q.n; renderAll(); flash(`P${q.n} (${fmt(q.x)}, ${fmt(q.y)})`); }
+        }
+        return;
+    }
     if (e.button === 0 && e.target.closest && e.target.closest('#cadSr .sr-roll')) {    // 스케일자 굴림 손잡이
         rollSr(e.shiftKey); drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; return;
     }
