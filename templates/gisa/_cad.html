@@ -2729,8 +2729,33 @@ function lblBox(p, k, n) {
                [p.x + g, p.y - h / 2], [p.x - g - w, p.y - h / 2], [p.x - w / 2, p.y - g - h], [p.x - w / 2, p.y + g]][k] || [p.x + d, p.y - d - h];
     return {x0: B[0], y0: B[1], x1: B[0] + w, y1: B[1] + h};
 }
-function dotSvg(p, ring, mk) {   // mk — 마킹 점은 마킹 색으로(큰 도면에서 검은 점과 가려 보이게, 사용자)           // 점·번호 크기는 설정(SET.ptSize·ptNum, 배율)
+// 몰린 점의 번호는 지시선으로 빼서 세로로 늘어놓는다(대표님 2026-10 — 번호가 겹쳐 '61896…' 처럼 읽을 수 없었다).
+// 번호 글자 높이(fn) 안으로 붙은 점들을 한 무리로 묶고, 무리 오른쪽 위에 번호를 차례로 쌓은 뒤 점마다 가는 지시선을 긋는다. {번호: {x, y}}
+function ptCallouts(list) {
+    const {fn} = lblSize(), thr = fn * 1.1, out = {}, cell = new Map(), key = (x, y) => `${Math.floor(x / thr)},${Math.floor(y / thr)}`;
+    list.forEach((p, i) => { const k = key(p.x, p.y); (cell.get(k) || cell.set(k, []).get(k)).push(i); });
+    const par = list.map((_, i) => i), find = i => par[i] === i ? i : (par[i] = find(par[i]));
+    list.forEach((p, i) => { const cx = Math.floor(p.x / thr), cy = Math.floor(p.y / thr);
+        for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) (cell.get(`${cx + dx},${cy + dy}`) || []).forEach(j => {
+            if (j > i && Math.hypot(list[j].x - p.x, list[j].y - p.y) < thr) par[find(j)] = find(i); }); });
+    const groups = new Map(); list.forEach((p, i) => { const r = find(i); (groups.get(r) || groups.set(r, []).get(r)).push(p); });
+    groups.forEach(g => {
+        if (g.length < 2) return;
+        g.sort((a, b) => a.n - b.n);
+        const cx = g.reduce((t, p) => t + p.x, 0) / g.length, cy = g.reduce((t, p) => t + p.y, 0) / g.length, top = Math.min(...g.map(p => p.y));
+        const step = fn * 1.05, x = Math.max(...g.map(p => p.x)) + fn * 1.8, y0 = top - fn * 1.6 - (g.length - 1) * step;
+        g.forEach((p, i) => { out[p.n] = {x, y: y0 + i * step}; });
+    });
+    return out;
+}
+function dotSvg(p, ring, mk, co) {   // co — 지시선으로 뺀 번호 자리 {x, y}   // mk — 마킹 점은 마킹 색으로(큰 도면에서 검은 점과 가려 보이게, 사용자)           // 점·번호 크기는 설정(SET.ptSize·ptNum, 배율)
     const {r, fn} = lblSize();
+    if (co) {                                          // 몰린 점 — 번호를 빼고 가는 지시선
+        return `<circle${mk ? ` class="mk-dot" data-r="${fmt(r)}"` : ''} cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r)}" fill="${mk ? (SET.markColor || '#f76707') : INK}"/>`
+            + `<path d="M${fmt(p.x)} ${fmt(p.y)}L${fmt(co.x - fn * 0.15)} ${fmt(co.y)}" stroke="${ring ? RED : BLUE}" stroke-opacity=".55" stroke-width="${fmt(0.035 * U)}" fill="none"/>`
+            + `<text x="${fmt(co.x)}" y="${fmt(co.y)}" dominant-baseline="central" font-size="${fmt(fn)}" fill="${ring ? RED : BLUE}" font-weight="700">${p.n}</text>`
+            + (ring ? `<circle cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r * 2.6)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : '');
+    }
     const tx = p.lp != null ? (() => { const b = lblBox(p, p.lp); return `x="${fmt(b.x0)}" y="${fmt((b.y0 + b.y1) / 2)}" dominant-baseline="central"`; })()
                             : `x="${fmt(p.x + r + fn * 0.22)}" y="${fmt(p.y - r - fn * 0.12)}"`;
     return `<circle${mk ? ` class="mk-dot" data-r="${fmt(r)}"` : ''} cx="${fmt(p.x)}" cy="${fmt(p.y)}" r="${fmt(r)}" fill="${mk ? (SET.markColor || '#f76707') : INK}"/>`
@@ -2879,10 +2904,10 @@ function drawPts() {
         $('cadPtsTop').innerHTML = sh.filter(p => mk.has(+p.n)).map(p => dotSvg(p, false, true)).join(''); return;
     }
     // 마킹 점은 스케일자 모서리 위에 있어 자 밑에 가려진다 — 도구보다 위 층(#cadPtsTop)에 그린다(사용자: "마킹점도 점으로, 번호가 보여야")
-    const on = activePts(), mk = markPtSet();
+    const on = activePts(), mk = markPtSet(), co = ptCallouts(doc.pts);
     const lastOn = (a, b) => (on.has(a.n) ? 1 : 0) - (on.has(b.n) ? 1 : 0);   // 고른 점은 맨 위에 — 겹친 번호에 가리지 않게
-    gPts.innerHTML = doc.pts.filter(p => !mk.has(+p.n)).sort(lastOn).map(p => dotSvg(p, on.has(p.n))).join('');
-    $('cadPtsTop').innerHTML = doc.pts.filter(p => mk.has(+p.n)).map(p => dotSvg(p, on.has(p.n), true)).join('');
+    gPts.innerHTML = doc.pts.filter(p => !mk.has(+p.n)).sort(lastOn).map(p => dotSvg(p, on.has(p.n), false, co[p.n])).join('');
+    $('cadPtsTop').innerHTML = doc.pts.filter(p => mk.has(+p.n)).map(p => dotSvg(p, on.has(p.n), true, co[p.n])).join('');
 }
 function drawPre() {
     if (RP) { gPre.innerHTML = ''; return; }
