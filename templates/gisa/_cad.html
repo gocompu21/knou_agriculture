@@ -287,7 +287,9 @@
                         <label>단위<select id="fdmUnit"><option value="m">m (12.5)</option><option value="mm">mm (12,500)</option></select></label></div>
                     <div class="cad-row"><label>끝<select id="fdmEnd"><option value="arrow">화살촉</option><option value="tick">사선(／)</option><option value="dot">점</option></select></label>
                         <label>글자<select id="fdmMm"><option value="2">2mm</option><option value="2.5">2.5mm</option><option value="3" selected>3mm</option><option value="4">4mm</option></select></label></div>
-                    <div class="cad-row"><label>글자 바꾸기<input id="fdmTxt" class="cad-txt" placeholder="비우면 길이" style="width:110px"></label><span></span></div>
+                    <div class="cad-row"><label>치수 고치기<input id="fdmTxt" class="cad-txt" placeholder="숫자 또는 글자" style="width:110px"></label>
+                        <button type="button" id="fdmGo" class="cad-b" style="align-self:end">적용</button></div>
+                    <p class="cad-help" id="fdmTarget" style="margin-top:2px"></p>
                 </div>
                 <div data-form="poly">
                     <h4>다각선</h4>
@@ -2823,7 +2825,7 @@ function ftMmFrom(size) {            // 도면 m → 종이 mm. 목록에 없는
     }
     sel.value = [...sel.options].find(o => +o.value === mm).value; $('ftSize').value = size;
 }
-function renderAll() { drawBar(); drawOps(); drawPts(); drawPre(); listOps(); listPts(); markAwait(); savedLabel(); selInfo(); }
+function renderAll() { drawBar(); drawOps(); drawPts(); drawPre(); listOps(); listPts(); markAwait(); savedLabel(); selInfo(); if (tool === 'dim') dimTargetInfo(); }
 const isAux = op => op.ls === 'aux';
 const auxHidden = op => (isAux(op) && !SET.auxOn) || (!!op.mark && SET.markOn === false) || (op.t === 'dim' && SET.dimOn === false);   // 치수 레이어도   // 꺼진 보조선·마킹 — 지우개·선택이 건드리지 않는다
 function setAux(on) {
@@ -4746,7 +4748,35 @@ function makeBox(A, B) {
 var dimV = [];                                        // 지금 고른 점 번호들(0~2)
 const DIM_COLOR = '#1f5fa8';
 const dmm = v => v * scaleDenom() / 1000;               // 종이 mm → 도면 m
-function dimOpts() { return {mode: $('fdmMode').value, unit: $('fdmUnit').value, end: $('fdmEnd').value, tmm: +$('fdmMm').value || 3, txt: $('fdmTxt').value.trim()}; }
+function dimOpts() { return {mode: $('fdmMode').value, unit: $('fdmUnit').value, end: $('fdmEnd').value, tmm: +$('fdmMm').value || 3, txt: ''}; }
+// 오른쪽 칸의 '치수 고치기'(대표님) — 고른 치수(없으면 방금 그린 치수)에 적용한다. 숫자면 점을 당겨 길이, 글자면 글자만, 비우면 잰 길이로.
+// 처음엔 '다음에 그릴 치수의 글자'였는데 확인 단추도 없고 무엇에 적용되는지 알 수 없었다
+var dimLast = null;
+function dimTargets() {
+    const sel = doc.ops.filter(o => o.t === 'dim' && selOps.has(o.id));
+    if (sel.length) return sel;
+    const l = dimLast != null && doc.ops.find(o => o.id === dimLast && o.t === 'dim');
+    return l ? [l] : [];
+}
+function dimTargetInfo() {
+    const el = $('fdmTarget'); if (!el) return;
+    const T = dimTargets();
+    el.textContent = T.length ? `고칠 치수: ${T.map(o => { const g = dimGeom(o); return g ? dimText(o, g.L) : '?'; }).join(', ')}${T.length > 1 ? ` (${T.length}개)` : ''}${doc.ops.some(o => o.t === 'dim' && selOps.has(o.id)) ? ' — 고른 치수라 끝·글자 크기·단위를 바꾸면 함께 바뀝니다' : ' (방금 그린 치수)'} · Enter 또는 적용` : '고칠 치수가 없습니다 — 치수를 그리거나 선택 도구로 고르세요(치수를 두 번 눌러도 고칩니다)';
+}
+function dimApplyTxt() {
+    const T = dimTargets(); if (!T.length) { flash('고칠 치수가 없습니다 — 치수를 그리거나 선택 도구로 고르세요'); return; }
+    const v = $('fdmTxt').value.trim();
+    if (v && /^[\d,]*\.?\d+$/.test(v)) {
+        if (T.length > 1) { flash('길이 맞추기는 치수 하나씩 합니다'); return; }
+        const op = T[0]; if (dimSetLen(op, op.unit === 'mm' ? +v.replace(/,/g, '') / 1000 : +v.replace(/,/g, ''))) { $('fdmTxt').value = ''; dimTargetInfo(); return; }
+    }
+    snapHist(); T.forEach(o => { if (v) o.txt = v; else delete o.txt; }); changed();
+    $('fdmTxt').value = ''; dimTargetInfo(); flash(v ? `치수 글자를 '${v}' 로 바꿨습니다` : '치수 글자를 잰 길이로 되돌렸습니다');
+}
+function dimApplyOpt(k, v) {                          // 끝·글자 크기·단위를 고른 치수에도
+    const T = doc.ops.filter(o => o.t === 'dim' && selOps.has(o.id)); if (!T.length) return;
+    snapHist(); T.forEach(o => { o[k] = v; }); changed(); dimTargetInfo();
+}
 function dimAuto(a, b, w) {                           // 자동 — 커서를 두 점의 가로 범위 밖(옆)으로 빼면 세로, 아니면 가로
     if (Math.abs(a.y - b.y) < 1e-6) return 'h';
     if (Math.abs(a.x - b.x) < 1e-6) return 'v';
@@ -4847,8 +4877,7 @@ function dimPick(w) {
     const r3 = v => +(+v).toFixed(3), op = {id: doc.seq++, t: 'dim', a: a.n != null ? a.n : null, b: b.n != null ? b.n : null, mode, at: r3(dimAt(mode, a, b, q)), unit: o.unit, end: o.end, tmm: o.tmm, tl: 0};
     if (a.n == null) op.pa = [r3(a.x), r3(a.y)];
     if (b.n == null) op.pb = [r3(b.x), r3(b.y)];
-    if (o.txt) op.txt = o.txt;
-    doc.ops.push(op); dimV = [];
+    doc.ops.push(op); dimV = []; dimLast = op.id;
     if (SET.dimOn === false) setDim(true);
     const g = dimGeom(op); changed(); flash(`치수 ${dimText(op, g.L)}${op.txt ? '' : op.unit === 'mm' ? 'mm' : 'm'}`); drawPre(); status();
 }
@@ -9795,6 +9824,12 @@ function dimTextEdit(op) {
     inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); finish(true); } else if (e.key === 'Escape') { e.preventDefault(); finish(false); } });
     inp.addEventListener('blur', () => finish(true));
 }
+$('fdmGo').addEventListener('click', dimApplyTxt);
+$('fdmTxt').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); dimApplyTxt(); } });
+$('fdmTxt').addEventListener('focus', dimTargetInfo);
+$('fdmEnd').addEventListener('change', () => dimApplyOpt('end', $('fdmEnd').value));
+$('fdmMm').addEventListener('change', () => dimApplyOpt('tmm', +$('fdmMm').value || 3));
+$('fdmUnit').addEventListener('change', () => dimApplyOpt('unit', $('fdmUnit').value));
 let dimTap = null;                                     // 치수 두 번 누르기 — 직접 잰다
 function dimDouble(e, op) {
     const t = performance.now(), d = dimTap;
