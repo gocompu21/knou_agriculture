@@ -1068,7 +1068,8 @@ function strokeStyle() {
     return tool.startsWith('pen') ? {ls: SET[tool === 'pen9' ? 'ls9' : 'ls5'] || 'solid', w: tool === 'pen9' ? 'p9' : 'p5'}
                                   : {ls: $('flLs').value, w: $('flW').value};
 }
-function barStep() { return $('cadSnap').checked ? +$('cadSnapStep').value : PREC; }
+// 스냅을 끄면 자(I자·삼각자·템플릿·스케일자)는 0.001m 로 자유롭게 옮긴다(대표님 2026-10 — 꺼도 PREC 칸·점에 탁탁 걸렸다)
+function barStep() { return $('cadSnap').checked ? +$('cadSnapStep').value : 0.001; }
 function setBarY(y, exact) {                           // exact — 점에 맞춘 높이 그대로(눈금에 반올림하지 않는다)
     const g = barStep();
     // 제도판 위 틀 밑 ~ 판 아래 끝까지 오르내린다(종이 범위로 막았더니 900×600 판에서 종이 아래로 못 내려갔다 — 사용자)
@@ -1081,11 +1082,13 @@ function setBarY(y, exact) {                           // exact — 점에 맞�
 // 자를 점에 맞춘다(대표님 — 템플릿 귀로 만든 호 끝 점처럼 눈금 밖에 있는 점에서 직선을 내리면 호에 안 붙었다).
 // 실제 제도처럼 자의 변을 점에 갖다 댄다 — 화면 8px 안이면 그 점의 좌표로(눈금보다 먼저)
 function ptSnapX(x, y0, y1) {                          // 삼각자 수직변 — 변이 지나는 높이(y0~y1) 곁의 점
+    if (!$('cadSnap').checked) return null;           // 스냅을 끄면 점에도 붙지 않는다
     const tol = 8 / pxPer(); let best = null, bd = tol;
     doc.pts.forEach(p => { if (p.y < y0 - tol || p.y > y1 + tol) return; const d = Math.abs(p.x - x); if (d < bd) { bd = d; best = p; } });
     return best && {x: best.x, n: best.n};
 }
 function ptSnapY(y) {                                  // I자 — 윗날·아랫날 어느 쪽이든 점에 닿으면 윗날 높이를 돌려준다
+    if (!$('cadSnap').checked) return null;           // 스냅을 끄면 점에도 붙지 않는다
     const tol = 8 / pxPer(), w = barW(); let best = null, bd = tol;
     doc.pts.forEach(p => { [[p.y, 0], [p.y - w, 1]].forEach(([yy]) => { const d = Math.abs(yy - y); if (d < bd) { bd = d; best = {y: +yy.toFixed(4), n: p.n}; } }); });
     return best;
@@ -10478,7 +10481,7 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteSelected(); return; }
     if (e.key === ' ') { e.preventDefault(); spaceDown = true; return; }
     if (barOn && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-        e.preventDefault(); setBarY(barY + (e.key === 'ArrowUp' ? -1 : 1) * barStep() * (e.shiftKey ? 5 : 1)); saveBar(); return;
+        e.preventDefault(); setBarY(barY + (e.key === 'ArrowUp' ? -1 : 1) * ($('cadSnap').checked ? barStep() : PREC) * (e.shiftKey ? 5 : 1)); saveBar(); return;
     }
     const map = {v: 'select', t: 'text', f: 'fill', d: 'free', x: 'box', q: 'poly', g: 'shrub', l: 'lead', h: 'hedge', a: 'arrow', k: 'space', b: 'sym', n: 'dim', c: 'trim', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
     if (map[k]) setTool(map[k]);
