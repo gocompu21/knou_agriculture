@@ -28,7 +28,12 @@ This file provides guidance when working with code in this repository.
 - **대표님 화면 그대로 재현해 확인한다.** 확대한 상태에서만 시험하면 놓친다 — 템플릿 귀 긋기는
   확대해서는 됐는데, 맞춤 배율(귀가 화면 3px)에서 곧은 변부터 대고 돌면 안 그어졌다. 아래쪽 가장자리
   띠는 svg 사각형 그대로 두었더니 상태줄에 가려 커서가 닿지 않았다
-- 고치면 묻지 않고 커밋 → main → 서버 배포까지 한다
+- 고치면 묻지 않고 커밋 → main → 서버 배포까지 한다 — **`bash tools/ship.sh "커밋 제목"`** 한 줄로
+  (바뀐 템플릿 JS 검사 → 커밋(Co-Authored-By) → rebase·push → 서버 pull·gunicorn 재시작. 문서만이면 `--no-restart`,
+  서버만 맞추려면 `--deploy`). 서버 마이그레이션은 하지 않으니 필요하면 따로
+- **템플릿(.html)을 Edit/Write 하면 훅이 그 안의 JS 를 저절로 `node --check` 한다**(사용자 설정 `~/.claude/settings.json`
+  의 PostToolUse → `~/.claude/hooks/jscheck_template.py`). 오류면 바로 알려 오니 그 자리에서 고친다.
+  워크트리의 `.claude/` 는 git 밖이라 프로젝트 설정이 아니라 사용자 설정에 두었다
 
 ## 프로젝트 개요
 
