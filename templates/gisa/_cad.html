@@ -2881,9 +2881,9 @@ function opSvg(op) {
                 return clip + `<path d="${dd}" clip-path="url(#${id})" stroke="${op.color}" stroke-opacity="${po}" stroke-width="${fmt(Math.min(0.1 * U, g * 0.07))}" stroke-linecap="round" fill="none"/>`;
             }
             if (k === 'gv') {                                // 자갈 — 빗금 없이 돌은 드문드문, 점은 아무렇게나(대표님)
-                const b = gvScatter(x0, y0, x1, y1, g);
-                return clip + `<g clip-path="url(#${id})"><path d="${b.stones}" stroke="${op.color}" stroke-opacity="${po}" stroke-width="${fmt(Math.min(0.09 * U, g * 0.06))}" stroke-linejoin="round" fill="none"/>`
-                    + `<path d="${b.dots}" fill="${op.color}" fill-opacity="${po}" stroke="none"/></g>`;
+                const b = gvScatter(x0, y0, x1, y1, g), gp = Math.min(0.75, po * 1.6);   // 다른 해칭보다 진하게(대표님 2026-10 — 성겨서 흐려 보였다)
+                return clip + `<g clip-path="url(#${id})"><path d="${b.stones}" stroke="${op.color}" stroke-opacity="${gp}" stroke-width="${fmt(Math.min(0.12 * U, g * 0.08))}" stroke-linejoin="round" fill="none"/>`
+                    + `<path d="${b.dots}" fill="${op.color}" fill-opacity="${gp}" stroke="none"/></g>`;
             }
             if (k === 'dg') {                                // 두 줄 빗금 + 사이에 불규칙한 돌(원)과 점(대표님 — 지반·잡석 단면처럼)
                 const b = rbGravel(x0, y0, x1, y1, g);
