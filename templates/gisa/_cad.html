@@ -189,6 +189,13 @@
                         <label>→ X <input type="number" id="cadMvX" step="0.1" value="0" class="cad-txt"> m</label>
                         <label>↓ Y <input type="number" id="cadMvY" step="0.1" value="0" class="cad-txt"> m</label>
                         <button type="button" class="cad-go" id="cadMvGo" title="고른 것을 X·Y 만큼 옮깁니다 (오른쪽·아래가 +)">옮기기</button></div>
+                    <div class="cad-shrub-edit" id="fsLead" hidden>
+                        <h4>식재지시선 고치기</h4>
+                        <div class="cad-row"><label>갯수<input id="fleCnt" class="cad-txt" style="width:46px"></label>
+                            <label>수종<input id="fleName" class="cad-txt" style="width:9em" list="cnTreeList"></label></div>
+                        <div class="cad-row"><label>규격<input id="fleSpec" class="cad-txt" style="width:11em"></label>
+                            <button type="button" class="cad-go" id="fleGo" title="Enter">고치기</button></div>
+                    </div>
                     <div class="cad-shrub-edit" id="fsShrub" hidden>
                         <h4>수목 군식 고치기</h4>
                         <p class="cad-help">바꾸면 그 자리에서 다시 그립니다(Ctrl+Z 로 되돌림).</p>
@@ -7758,7 +7765,66 @@ function shrubEditApply() {
 function selInfo() {
     const n = [...selOps].filter(id => doc.ops.some(o => o.id === id)).length, m = selPts.size;
     $('cadSelInfo').textContent = n || m ? `객체 ${n}개 · 점 ${m}개 고름` : '고른 것 없음';
-    shrubEditSync();
+    shrubEditSync(); leadEditSync();
+}
+// ── 식재지시선 고치기(대표님 2026-10) — 지시선을 누르면 선택 칸에 갯수·수종·규격이 뜨고, 고치면 글·글자 보조선·가로선 길이를 그 자리에서 맞춘다 ──
+function leadEditTarget() {
+    const ids = [...selOps].filter(id => doc.ops.some(o => o.id === id)); if (!ids.length) return null;
+    const first = doc.ops.find(o => o.id === ids[0]), L = first && leadSet(first); if (!L) return null;
+    if (ids.some(id => !L.has(id))) return null;
+    const lines = doc.ops.filter(o => o.lead && L.has(o.id) && o.t === 'line'); if (!lines.length || lines[0].spLead) return null;
+    const texts = doc.ops.filter(o => L.has(o.id) && o.t === 'text' && o.x != null).sort((a, b) => a.y - b.y); if (!texts.length) return null;
+    return {L, lines, top: texts[0], bot: texts[1] || null};
+}
+function leadEditSync() {
+    const box = $('fsLead'); if (!box) return;
+    const T = leadEditTarget(); if (!T) { box.hidden = true; box.dataset.k = ''; return; }
+    const key = [...T.L].join(','); if (!box.hidden && box.dataset.k === key) return;   // 고르는 동안 적던 것을 덮지 않는다
+    const m = /^\s*(\d+)\s*-\s*(.*)$/.exec(String(T.top.s));
+    $('fleCnt').value = m ? m[1] : ''; $('fleName').value = m ? m[2].trim() : String(T.top.s).trim(); $('fleSpec').value = T.bot ? String(T.bot.s).trim() : '';
+    box.dataset.k = key; box.hidden = false; cnLoadTrees();
+}
+function leadEditApply() {
+    const T = leadEditTarget(); if (!T) return;
+    const c = String($('fleCnt').value || '').trim(), nm = String($('fleName').value || '').trim(), spec = String($('fleSpec').value || '').trim();
+    if (!nm && !c) { flash('갯수나 수종을 적어 주세요'); return; }
+    const top = c && nm ? `${c} - ${nm}` : nm || c, pre = c && nm ? `${c} - ` : '';
+    const sz = +T.top.size || 1, font = T.top.font || 'gothic', pad = sz * 0.5, meas = t => leadMeasure(t || ' ', sz, font);
+    const oldW = Math.max(meas(T.top.s), T.bot ? (T.bot.x - T.top.x) + meas(T.bot.s) : 0);
+    // 가로선 — 글 아래 지시선 선 가운데 수평인 것. 다른 지시선 선과 이어진 끝이 안쪽, 남은 끝이 바깥쪽(E)
+    const main = T.lines.filter(o => !o.leadGuide), hz = main.find(o => { const a = P(o.a), b = P(o.b); return a && b && Math.abs(a.y - b.y) < 1e-3; });
+    if (!hz) { flash('이 지시선의 가로선을 찾지 못했습니다'); return; }
+    const shared = k => main.some(o => o !== hz && (+o.a === +hz[k] || +o.b === +hz[k]));
+    let eK = shared('a') ? 'b' : shared('b') ? 'a' : (P(hz.a).x < P(hz.b).x ? (T.top.x > P(hz.a).x ? 'b' : 'a') : (T.top.x > P(hz.b).x ? 'a' : 'b'));
+    const iK = eK === 'a' ? 'b' : 'a', right = P(hz[eK]).x > P(hz[iK]).x;
+    snapHist();
+    const off = pre ? meas(pre) : 0, W = Math.max(meas(top), spec ? off + meas(spec) : 0);
+    const tx = right ? T.top.x : T.top.x + oldW - W;      // 오른쪽 형은 글 시작을, 왼쪽 형은 글 끝(가로선 안쪽)을 지킨다
+    T.top.s = top; T.top.x = +tx.toFixed(3);
+    let bot = T.bot;
+    if (spec) { if (!bot) { bot = {id: doc.seq++, t: 'text', x: 0, y: +(T.top.y + sz * 1.65).toFixed(3), s: '', size: sz, rot: 0, font, dir: 'h', leadOf: T.top.leadOf != null ? T.top.leadOf : hz.grp};
+            doc.ops.splice(doc.ops.indexOf(T.top) + 1, 0, bot); }
+        bot.s = spec; bot.x = +(tx + off).toFixed(3); }
+    else if (bot) doc.ops = doc.ops.filter(o => o !== bot), bot = null;
+    // 가로선 끝(E)을 글 폭에 맞춘다 — 그 점을 다른 것이 쓰면 새 점으로
+    const E = P(hz[eK]), ex = +(right ? tx + W + pad : tx - pad).toFixed(3);
+    if (doc.ops.some(o => o !== hz && ptsOf(o).map(Number).includes(+hz[eK]))) hz[eK] = addPt(ex, E.y); else E.x = ex;
+    // 글자 보조선 — 지우고 글마다 다시
+    const gid = hz.grp, lbl = `${top}${spec ? ' / ' + spec : ''}`, cand = new Set();
+    T.lines.filter(o => o.leadGuide).forEach(o => { cand.add(+o.a); cand.add(+o.b); });
+    const gIdx = doc.ops.findIndex(o => o.leadGuide && T.L.has(o.id));
+    doc.ops = doc.ops.filter(o => !(o.leadGuide && T.L.has(o.id)));
+    const add = [];
+    [T.top, bot].filter(Boolean).forEach(t => { const w = meas(t.s), x0 = t.x - sz * 0.15, x1 = t.x + w + sz * 0.15;
+        [t.y, t.y - sz].forEach(yy => { const a = addPt(x0, yy), b = addPt(x1, yy);
+            add.push({id: doc.seq++, t: 'line', a, b, ls: 'aux', w: 'p5', grp: gid, gname: '지시선', lead: true, leadTxt: lbl, leadGuide: true, tl: {...toolState(), ...toolsForLine(P(a), P(b))}}); }); });
+    doc.ops.splice(gIdx < 0 ? doc.ops.indexOf(T.top) : gIdx, 0, ...add);
+    doc.ops.forEach(o => { if (o.lead && o.grp === gid) o.leadTxt = lbl; });
+    doc.pts = doc.pts.filter(p => !cand.has(+p.n) || usedBy(p.n));
+    const key = hz.grp != null ? hz.grp : null;
+    if (nm) { const sym = doc.ops.find(o => o.t === 'sym' && o.p != null && main.some(l => +l.a === +o.p || +l.b === +o.p)); if (sym) { doc.treeInfo = doc.treeInfo || {}; doc.treeInfo[sym.sym] = {name: nm, spec}; } }
+    selOps = new Set([...withLeads(new Set([hz.id]))]); $('fsLead').dataset.k = '';
+    changed(); flash(`지시선 — ${lbl}`);
 }
 // ── 영역 선택 ── AutoCAD 처럼 끄는 방향으로 가른다: → 는 '안에 다 든 것', ← 는 '걸친 것까지'
 function segHitsRect(a, b, r) {   // 선분이 상자에 닿는가(끝점이 안에 있거나 변과 교차)
@@ -9731,6 +9797,9 @@ document.addEventListener('keydown', e => {                // Z 창 확대 · Sh
 }, true);
 $('cadNew').addEventListener('click', newDrawing);
 $('cadTblEdit').addEventListener('click', tblOpen);
+$('fleGo').addEventListener('click', leadEditApply);
+['fleCnt', 'fleName', 'fleSpec'].forEach(id => $(id).addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); leadEditApply(); } }));
+$('fleName').addEventListener('change', () => { const q = cnTree($('fleName').value), sp = $('fleSpec'); if (q && (!sp.value.trim() || sp.dataset.auto === sp.value)) sp.value = sp.dataset.auto = q.spec; });   // 손으로 적은 규격은 덮지 않는다
 $('cnSheet').addEventListener('change', cnSync);
 $('cnFrame').addEventListener('change', cnSync);
 $('cnGo').addEventListener('click', cnGo);
