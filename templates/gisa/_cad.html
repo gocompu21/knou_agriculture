@@ -5576,6 +5576,26 @@ function leadGuideMigrate() {
     });
     if (n) { dirty = true; savedLabel(); renderAll(); saveDraft(); flash(`예전 지시선 ${n}개를 손봤습니다(글자 보조선) — 저장해 주세요`); }
 }
+// 예전 식재지시선 — 규격을 위 줄의 수종 시작 자리로 옮긴다(대표님 2026-10). 자리가 이미 맞으면 손대지 않으므로 열 때마다 돌아도 된다
+function leadSpecAlign() {
+    if (RP) return;
+    const gids = [...new Set(doc.ops.filter(o => o.lead && !o.spLead && o.grp != null).map(o => o.grp))];
+    let n = 0;
+    gids.forEach(gid => {
+        const lines = doc.ops.filter(o => o.lead && o.grp === gid), ids = leadSet(lines[0]); if (!ids) return;
+        const texts = doc.ops.filter(o => ids.has(o.id) && o.t === 'text' && o.x != null).sort((a, b) => a.y - b.y);
+        if (texts.length !== 2) return;
+        const [top, bot] = texts, m = String(top.s).match(/^\s*\d+\s*-\s*/); if (!m) return;
+        const sz = +top.size || 1, x = +(top.x + leadMeasure(m[0], sz, top.font || 'gothic')).toFixed(3), dx = x - bot.x;
+        if (Math.abs(dx) < 0.01 * sz) return;
+        const ys = [bot.y, bot.y - (+bot.size || sz)], mv = new Set();
+        lines.filter(o => o.leadGuide).forEach(g => { const a = P(g.a), b = P(g.b);
+            if (a && b && ys.some(yy => Math.abs(a.y - yy) < 1e-3)) [g.a, g.b].forEach(k => mv.add(+k)); });
+        mv.forEach(k => { const q = doc.pts.find(p => +p.n === k); if (q) q.x = +(q.x + dx).toFixed(3); });
+        bot.x = x; n++;
+    });
+    if (n) { dirty = true; savedLabel(); renderAll(); saveDraft(); flash(`식재지시선 ${n}개의 규격을 수종 자리에 맞췄습니다 — 저장해 주세요`); }
+}
 function leadHint() {
     if (leadKind() === 'space' && leadType() === 'n') return ' · 공간이름을 둘 자리(상자 왼쪽 위)를 누르세요 — 지시선 없이 공간에 바로';
     if (leadKind() === 'space') return !leadS ? ' · 공간지시선 — 가리킬 공간 자리를 누르세요' : ' · 글 상자 모서리 자리를 누르세요' + (leadFree() ? '(자유각도)' : '') + ' · 우클릭·Esc 취소';
@@ -8506,6 +8526,10 @@ function afterLoad(refit, keepUnder) {          // keepUnder — 되돌리기·�
     if (keepUnder) { underShown = ''; underRender(); } else underLoad();
     if ($('cadUnderSnap')) $('cadUnderSnap').checked = doc.underSnap !== false;
     if (refit) fit();
+    if (!keepUnder && doc.ops.some(o => o.lead && !o.spLead)) {   // 글꼴을 다 읽은 뒤 재야 폭이 맞는다
+        const d0 = doc, fs = document.fonts && document.fonts.load ? Promise.race([Promise.all(Object.values(FONTS).map(f => document.fonts.load(`400 40px ${f}`).catch(() => {}))), new Promise(r => setTimeout(r, 2000))]) : Promise.resolve();
+        fs.then(() => { if (doc === d0) leadSpecAlign(); });
+    }
 }
 
 // ── 내보내기 — 작업형 화면의 단계 재생과 같은 꼴 ─────────────────────────
