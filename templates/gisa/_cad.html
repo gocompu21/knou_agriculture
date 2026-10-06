@@ -4584,12 +4584,23 @@ function rpEdgeLen(o, s) {                               // 이 선을 그을 �
 function rpSplitPlan(o, s) {
     if (!o || o.t !== 'line' || o.mark) return null;
     const a = P(o.a), b = P(o.b); if (!a || !b) return null;
-    const L = Math.hypot(b.x - a.x, b.y - a.y), Lr = rpEdgeLen(o, s);
+    let L = Math.hypot(b.x - a.x, b.y - a.y), Lr = rpEdgeLen(o, s);
     if (!(Lr > 0) || L <= Lr * 0.98) return null;
-    const n = Math.ceil(L / (Lr * 0.85)), lerp = t => ({x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t});
+    // 세로선은 45° 자 대신 60° 자의 긴 변(45° 자 빗변 = 직각변 × √2)으로 긋는다(대표님) — A2 에서 두 번 안에 끝난다
+    const vert = !!s.tri && Math.abs(b.x - a.x) < Math.max(1e-3, Math.abs(b.y - a.y) * 0.02);
+    let t60 = null;
+    if (vert) {
+        const t = {...s.tri}, k45 = t.kind !== '60';
+        t.kind = '60'; t.alt = false;
+        if (k45) { if (t.pct != null) t.p45 = 1; if (t.len) t.len *= Math.SQRT2; }
+        t60 = t; const L60 = rpEdgeLen(o, {...s, tri: t});
+        if (L60 > Lr) Lr = L60;
+    }
+    const n = L <= Lr * 0.98 ? 1 : Math.ceil(L / (Lr * 0.85)), lerp = q => ({x: a.x + (b.x - a.x) * q, y: a.y + (b.y - a.y) * q});
     const none = {...s, bar: null, tri: null, tpl: null, sr: null, ftri: null};
     return Array.from({length: n}, (_, i) => {
         const pa = lerp(i / n), pb = lerp((i + 1) / n), t = toolsForLine(pa, pb);
+        if (t60 && t.tri) return {f0: i / n, f1: (i + 1) / n, tools: {...none, bar: t.bar, tri: {...t60, x: t.tri.x, flip: t.tri.flip, down: false}}};
         return {f0: i / n, f1: (i + 1) / n, tools: t.ftri ? {...none, ftri: t.ftri} : {...none, bar: t.bar, tri: t.tri}};
     });
 }
