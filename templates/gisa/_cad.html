@@ -368,15 +368,16 @@
                         <label>설명 글자<select id="fsnBmm"><option value="2">2mm</option><option value="2.5">2.5mm</option><option value="3">3mm</option><option value="4" selected>4mm</option><option value="5">5mm</option></select></label></div>
                     </div>
                     <div id="fdPlantBox">
-                    <p class="cad-help">① 수목을 이은 <b>다각선의 끝점</b>을 누르면 그 다각선에 이어진 수목 기호를 세어 <b>갯수</b>를 채우고, 수종·규격을 채웁니다(처음 보는 기호는 수종을 적어 주면 다음부터 기억합니다).<br>
-                       ② 꺾는 형은 <b>꺾는 자리</b>를, 오른쪽·왼쪽 형은 <b>글을 시작할 자리</b>를 누르세요. 가로선 위에 '갯수-수종', 아래에 규격이 들어갑니다. 우클릭·Esc 취소.</p>
+                    <ol class="fd-steps"><li><b>다각선 끝점</b>을 누르면 이어진 수목을 세어 갯수·수종·규격을 채웁니다</li>
+                        <li><b>꺾는 자리</b>(옆 형은 글 시작 자리)를 누르면 끝 — 우클릭·Esc 취소</li></ol>
                     </div>
-                    <div class="cad-row"><span class="cad-lead-types" id="fdTypes"></span><label class="cad-lead-free" title="켜면 꺾는 선을 누른 자리 그대로 비스듬히, 끄면 곧게 위·아래(90°)·옆(180°)으로만"><input type="checkbox" id="fdFree"> 자유각도</label></div>
+                    <div class="fd-sec"><div class="fd-cap">형</div><span class="cad-lead-types fd-types" id="fdTypes"></span></div>
+                    <div class="fd-opts"><label class="fd-ck" title="켜면 꺾는 선을 누른 자리 그대로 비스듬히, 끄면 곧게 위·아래(90°)·옆(180°)으로만"><input type="checkbox" id="fdFree"> 자유각도</label>
+                        <label class="fd-ck fd-plant-only" title="수생식물·지피처럼 면적으로 심는 것 — 위 줄이 '수종 - 밀도/㎡', 시작점은 아무 데나(심는 면 안)"><input type="checkbox" id="fdArea"> 면적형(/㎡)</label></div>
                     <div id="fdPlantBox2">
-                    <div class="cad-row"><label class="cad-lead-free" title="수생식물·지피처럼 면적으로 심는 것 — 위 줄이 '수종 - 밀도/㎡', 시작점은 아무 데나(심는 면 안)"><input type="checkbox" id="fdArea"> 면적형(/㎡)</label></div>
-                    <div class="cad-row"><label><span id="fdCntLb">갯수</span><input type="text" id="fdCnt" style="width:3.5em"></label>
-                        <label>수종<input type="text" id="fdName" list="cnTreeList" style="width:8em"></label></div>
-                    <div class="cad-row"><label>규격<input type="text" id="fdSpec" style="width:11em"></label></div>
+                    <div class="cad-row fle-line"><label style="flex:none;min-width:0"><span id="fdCntLb">갯수</span><input type="text" id="fdCnt" style="width:3.2em"></label>
+                        <label style="flex:1.35">수종<input type="text" id="fdName" list="cnTreeList" style="width:100%"></label>
+                        <label style="flex:1">규격<input type="text" id="fdSpec" style="width:100%"></label></div>
                     </div>
                     <div class="cad-row"><label class="fd-plant-only">글자<select id="fdMm"><option value="2">2mm</option><option value="2.5">2.5mm</option><option value="3" selected>3mm</option><option value="4">4mm</option></select></label>
                         <label>샤프<select id="fdW"><option value="p5">얇은 샤프</option><option value="p9">굵은 샤프</option></select></label></div>
@@ -871,6 +872,16 @@
 .cad-lead-tabs button.on { background: #2d6a4f; color: #fff; }
 #fdSpaceBox[hidden], #fdPlantBox[hidden], #fdPlantBox2[hidden], .fd-plant-only[hidden] { display: none; }
 .cad-lead-free { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; white-space: nowrap; }
+/* 지시선 칸 — 촘촘하게(대표님 2026-10: 퍼져 있어 읽기 어렵다) */
+.fd-steps { margin: 4px 0 8px; padding: 6px 8px 6px 24px; background: #f4f8f5; border-radius: 6px; font-size: 0.74rem; color: #55625b; line-height: 1.45; }
+.fd-steps li { margin: 1px 0; }
+.fd-sec { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.fd-cap { font-size: 0.74rem; color: #66736d; flex: none; width: 2.2em; }
+.fd-types { flex-wrap: nowrap; }
+.fd-opts { display: flex; gap: 14px; margin: 0 0 8px 2.2em; padding-left: 8px; font-size: 0.8rem; color: #33413a; }
+.fd-ck { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; cursor: pointer; }
+.fd-ck input { margin: 0; }
+.fd-ck[hidden] { display: none; }
 .cad-lead-types button { width: 30px; height: 28px; padding: 3px; border: 1px solid #cfd8d2; border-radius: 6px; background: #fff; cursor: pointer; }
 .cad-lead-types button.on { background: #2d6a4f; border-color: #2d6a4f; }
 .cad-shrub-edit .cad-lead-types button { border-color: #e3c690; } .cad-shrub-edit .cad-lead-types button.on { background: #c97a0a; border-color: #a86200; }
@@ -10437,7 +10448,7 @@ if ($('fawM')) $('fawM').addEventListener('change', () => { arrowV = []; awEdge 
 $('fdFree').checked = leadFree();
 $('fdFree').addEventListener('change', () => { try { localStorage.setItem('cadLeadFree', $('fdFree').checked ? '1' : '0'); } catch (e) {} drawPre(); status(); });
 $('fdTypes').addEventListener('click', e => { const b = e.target.closest('[data-lt]'); if (!b) return; try { localStorage.setItem('cadLeadType', b.dataset.lt); } catch (er) {} leadTypeDraw(); drawPre(); status(); });
-$('fdName').addEventListener('change', () => { const q = cnTree($('fdName').value); if (q) $('fdSpec').value = q.spec; drawPre(); });
+$('fdName').addEventListener('change', () => { const q = cnTree($('fdName').value), sp = $('fdSpec'); if (q && (!sp.value.trim() || sp.dataset.auto === sp.value || leadS)) sp.value = sp.dataset.auto = q.spec; drawPre(); });   // 손으로 적은 규격은 덮지 않는다
 ['fdCnt', 'fdSpec', 'fdMm', 'fsnName', 'fsnTmm', 'fsnBmm'].forEach(id => $(id).addEventListener('input', () => drawPre()));
 // 공간지시선 설명 칸 — 항목마다 칸 하나, ＋ 로 늘리고 ✕ 로 뺀다. Enter 는 다음 칸(없으면 새 칸)
 function fsnDescAdd(v, focus) {
