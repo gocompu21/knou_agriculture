@@ -191,11 +191,10 @@
                         <button type="button" class="cad-go" id="cadMvGo" title="고른 것을 X·Y 만큼 옮깁니다 (오른쪽·아래가 +)">옮기기</button></div>
                     <div class="cad-shrub-edit" id="fsLead" hidden>
                         <h4>식재지시선 수정</h4>
-                        <div class="cad-row"><span class="cad-lead-types" id="fleTypes"></span></div>
-                        <div class="cad-row"><label><span id="fleCntLb">갯수</span><input id="fleCnt" class="cad-txt" style="width:46px"></label>
-                            <label>수종<input id="fleName" class="cad-txt" style="width:9em" list="cnTreeList"></label></div>
-                        <div class="cad-row"><label>규격<input id="fleSpec" class="cad-txt" style="width:11em"></label>
-                            <button type="button" class="cad-go" id="fleGo" title="Enter">수정</button></div>
+                        <div class="cad-row fle-line"><span class="cad-lead-types" id="fleTypes"></span><button type="button" class="cad-go" id="fleGo" title="Enter">수정</button></div>
+                        <div class="cad-row fle-line"><label><span id="fleCntLb">갯수</span><input id="fleCnt" class="cad-txt" style="width:2.8em"></label>
+                            <label style="flex:1.35">수종<input id="fleName" class="cad-txt" style="width:100%" list="cnTreeList"></label>
+                            <label style="flex:1">규격<input id="fleSpec" class="cad-txt" style="width:100%"></label></div>
                     </div>
                     <div class="cad-shrub-edit" id="fsShrub" hidden>
                         <h4>수목 군식 고치기</h4>
@@ -836,6 +835,7 @@
 .cad-dbl-pick .gap input { width: 64px; padding: 3px 4px; border: 1px solid #cfd8d3; border-radius: 5px; font-size: 0.82rem; }
 #cadDblBtns { display: inline-flex; gap: 4px; }
 .cad-zoom button[hidden] { display: none !important; }   /* 이전 화면·확대·축소 단추는 뺐다(대표님) — 휠·Shift+Z·+/− 키로 한다 */
+.fle-line { flex-wrap: nowrap; gap: 4px; } .fle-line label { white-space: nowrap; gap: 2px; } .fle-line .cad-go { flex: none; margin-left: auto; } .fle-line input { font-size: 0.78rem; padding-left: 3px; padding-right: 3px; min-width: 0; } .fle-line label { min-width: 0; }
 .cad-shrub-edit { margin-top: 10px; padding-top: 8px; border-top: 1px solid #e3ebe6; }
 .cad-shrub-edit[hidden] { display: none; }
 #fawPedRow[hidden], #fawNoL[hidden] { display: none; }
