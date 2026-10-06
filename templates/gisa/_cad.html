@@ -4566,6 +4566,70 @@ function rpMark(op, dur, noPan) {
     };
     requestAnimationFrame(frame);
 }
+// ── 자보다 긴 선은 자를 옮겨 가며 여러 번 긋는다(대표님 2026-10) — 삼각자 세로 변·빗변, 회전 삼각자 변은 길이가 정해져 있다.
+// 선이 그 변보다 길면 선을 몇 토막으로 나눠, 토막마다 자를 그 토막 자리로 옮기고(toolsForLine) 그만큼만 긋는다.
+// I자(가로선)는 제도판 폭이라 나누지 않는다. 템플릿·스케일자·프리드로잉도 그대로
+function rpEdgeLen(o, s) {                               // 이 선을 그을 자 변의 길이(m) — 나눌 일이 없으면 null
+    const a = P(o.a), b = P(o.b); if (!a || !b || !s) return null;
+    if (s.tri && s.bar != null) {
+        const keep = {tri, barY, barOn}; let G = null;
+        try { tri = {...s.tri}; barY = s.bar; barOn = true; G = triGeom(); } finally { tri = keep.tri; barY = keep.barY; barOn = keep.barOn; }
+        if (!G) return null;
+        const vert = Math.abs(b.x - a.x) < Math.max(1e-3, Math.abs(b.y - a.y) * 0.02);
+        return vert ? G.h : Math.hypot(G.base, G.h);
+    }
+    if (s.ftri) return ftriMM(s.ftri) * (s.ftri.den || scaleDenom()) / 1000;
+    return null;
+}
+function rpSplitPlan(o, s) {
+    if (!o || o.t !== 'line' || o.mark) return null;
+    const a = P(o.a), b = P(o.b); if (!a || !b) return null;
+    const L = Math.hypot(b.x - a.x, b.y - a.y), Lr = rpEdgeLen(o, s);
+    if (!(Lr > 0) || L <= Lr * 0.98) return null;
+    const n = Math.ceil(L / (Lr * 0.85)), lerp = t => ({x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t});
+    const none = {...s, bar: null, tri: null, tpl: null, sr: null, ftri: null};
+    return Array.from({length: n}, (_, i) => {
+        const pa = lerp(i / n), pb = lerp((i + 1) / n), t = toolsForLine(pa, pb);
+        return {f0: i / n, f1: (i + 1) / n, tools: t.ftri ? {...none, ftri: t.ftri} : {...none, bar: t.bar, tri: t.tri}};
+    });
+}
+function rpRevealPart(o, f0, f1, dur, last) {           // 선의 f0 ~ f1 구간만 샤프가 긋듯이 드러낸다(앞 구간은 이미 그어져 있다)
+    const g = gOps.querySelector(`[data-op="${o.id}"]`); if (!g) return;
+    const els = [...g.querySelectorAll('line,path')].filter(el => !el.closest('.cad-hit') && el.getAttribute('stroke') && el.getAttribute('stroke') !== 'none')
+        .map(el => { let L = 0; try { L = el.getTotalLength(); } catch (e) {} return {el, L}; }).filter(e => e.L > 0);
+    if (!els.length) return;
+    const pen = rpPenImg(o.w), lay = rpPenLayer(), t0 = performance.now(), id = RP.reveal = {};
+    const setDash = (e, d) => { e.el.style.strokeDasharray = `${e.L} ${e.L}`; e.el.style.strokeDashoffset = e.L - d; };
+    const toW = (el, q) => { const m = el.getScreenCTM(), sc = svg.getScreenCTM(); if (!m || !sc) return null;
+        const pt = svg.createSVGPoint(); pt.x = q.x; pt.y = q.y; return pt.matrixTransform(m).matrixTransform(sc.inverse()); };
+    const ez = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+    const frame = now => {
+        if (!RP || RP.reveal !== id) { els.forEach(e => { e.el.style.strokeDasharray = ''; e.el.style.strokeDashoffset = ''; }); lay.innerHTML = ''; return; }
+        const t = Math.min(1, (now - t0) / dur), f = f0 + (f1 - f0) * ez(t);
+        let tip = null, dir = null;
+        els.forEach(e => { const d = e.L * f; setDash(e, d);
+            if (!tip) try { tip = toW(e.el, e.el.getPointAtLength(d)); const q1 = toW(e.el, e.el.getPointAtLength(Math.max(0, d - e.L * 0.02))), q2 = toW(e.el, e.el.getPointAtLength(Math.min(e.L, d + e.L * 0.01))); if (q1 && q2) dir = {x: q2.x - q1.x, y: q2.y - q1.y}; } catch (x) {} });
+        if (t < 1) { if (pen && tip) lay.innerHTML = rpPenTag(pen, tip, dir); requestAnimationFrame(frame); }
+        else { lay.innerHTML = ''; if (last) els.forEach(e => { e.el.style.strokeDasharray = ''; e.el.style.strokeDashoffset = ''; }); }
+    };
+    requestAnimationFrame(frame);
+}
+// 선 하나를 긋는다 — 자보다 길면 토막마다 자를 옮겨 가며. done 은 다 그은 뒤
+function rpLineDraw(o, tools, spd, dur, done) {
+    const plan = rpSplitPlan(o, tools);
+    if (!plan) { rpTween(tools, spd * 0.3, () => { if (!RP) return; const g = gOps.querySelector(`[data-op="${o.id}"]`); if (g) g.style.visibility = ''; rpReveal(o, dur); RP.timer = setTimeout(done, dur + spd * 0.05); }); return; }
+    const g = gOps.querySelector(`[data-op="${o.id}"]`);
+    if (g) { g.style.visibility = ''; g.querySelectorAll('line,path').forEach(el => { let L = 0; try { L = el.getTotalLength(); } catch (e) {} if (L > 0) { el.style.strokeDasharray = `${L} ${L}`; el.style.strokeDashoffset = L; } }); }
+    const per = Math.max(dur / plan.length * 1.2, spd * 0.35);
+    let i = 0;
+    const one = () => {
+        if (!RP) return;
+        if (i >= plan.length) { done(); return; }
+        const p = plan[i++];
+        rpTween(p.tools, spd * 0.3, () => { if (!RP) return; rpRevealPart(o, p.f0, p.f1, per, i === plan.length); RP.timer = setTimeout(one, per + spd * 0.05); });
+    };
+    one();
+}
 function rpGo(k, anim, cb) {
     if (!RP) return;
     RP.reveal = null;                                  // 긋던 중이면 멈춘다(다음 프레임에 샤프도 치운다)
@@ -4579,7 +4643,9 @@ function rpGo(k, anim, cb) {
     RP.k = k; RP.gs = gs; RP.cur = op && op.t !== 'step' ? blk[0].id : null;
     // 그 칸에 쓰는 도구만 보인다(사용자). 단계 줄에서는 **다음에 그을 것**의 규칙으로 — 앞 칸의 도구가 모두 떠 있었다
     const nx = op && op.t === 'step' ? doc.ops.slice(k).find(o => o.t !== 'step') : (blk[0] || op);
-    const target = rpToolsFor(rpStateAt(k), nx);
+    let target = rpToolsFor(rpStateAt(k), nx);
+    const split = fwd && op && op.t === 'line' && blk.length === 1 && !op.mark ? rpSplitPlan(op, target) : null;   // 자보다 긴 선 — 첫 토막 자리로 먼저 간다
+    if (split) target = split[0].tools;
     if (fwd && op && op.t !== 'step') { rpFollow(blk, spd); rpMark(blk[0], Math.max(700, spd * 0.75), true); }
     if (fwd && op && op.t === 'step') rpTitle(op.title, spd);
     { const no = op && (op.t === 'step' ? op : blk[0]); noteShow(no && no.note, Math.max(2500, spd * 3)); }   // 커멘트가 있으면 도면 위에
@@ -4597,10 +4663,11 @@ function rpGo(k, anim, cb) {
                 if (!RP) return;
                 if (i >= blk.length) { if (cb) RP.timer = setTimeout(cb, spd * 0.15); return; }
                 const o = blk[i++];
-                rpTween(rpNoSr(o.poly || o.lead ? rpToolsFor(o.tl || toolState(), o) : (o.tl || null)), spd * 0.3, () => { if (!RP) return; const g = gOf(o); if (g) g.style.visibility = ''; rpReveal(o, spd * 0.55); RP.timer = setTimeout(one, spd * 0.6); });
+                rpLineDraw(o, rpNoSr(o.poly || o.lead ? rpToolsFor(o.tl || toolState(), o) : (o.tl || null)), spd, spd * 0.55, () => { if (RP) RP.timer = setTimeout(one, spd * 0.05); });   // 자보다 긴 변은 자를 옮겨 가며
             };
             one(); return;
         }
+        if (split) { rpLineDraw(op, split[0].tools, spd, spd * 0.75, () => { if (cb && RP) RP.timer = setTimeout(cb, spd * 0.15); }); return; }
         if (fwd && op && op.t !== 'step') { const rv = op.mark ? 0.22 : 0.75, rest = op.mark ? 0.5 : 0.15; rpReveal(blk.length > 1 ? blk : op, spd * rv * (blk.length > 1 ? 1.4 : 1)); if (cb) RP.timer = setTimeout(cb, spd * (rv * (blk.length > 1 ? 1.4 : 1) + rest)); }   // 마킹은 빨리 긋되 다음으로는 넉넉히 쉬었다 넘어간다(사용자)
         else if (cb) RP.timer = setTimeout(cb, op && op.t === 'step' ? spd * 0.8 : spd * 0.2);
     };
