@@ -19,13 +19,14 @@
         <span class="cad-sp"></span>
         <button type="button" class="cad-b" id="cadNew">새 도면</button>
         <button type="button" class="cad-b" id="cadOpenBtn">열기</button>
+        <button type="button" class="cad-b" id="cadTblEdit" hidden title="답안지 틀의 수량표(시설물·수목·범례) 줄을 고치고 더하고 뺀다">수량표 고치기</button>
         <button type="button" class="cad-b pri" id="cadSave" title="Ctrl+S">저장</button>
         <button type="button" class="cad-b" id="cadExport">SVG 내려받기</button>
         <button type="button" class="cad-b" id="cadCopy">작도 순서 복사</button>
         <button type="button" class="cad-b" id="cadFull" title="전체 화면"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 7V2h5M18 7V2h-5M2 13v5h5M18 13v5h-5"/></svg></button>
         <div class="cad-open" id="cadOpen" hidden></div>
         <div class="cad-set cad-newbox" id="cadNewBox" hidden>
-            <h4>새 도면</h4>
+            <h4 id="cnTitle">새 도면</h4>
             <div class="cn-f"><label for="cnSheet">종이</label><div class="cn-c"><select id="cnSheet"></select></div></div>
             <div class="cn-f" id="cnFrameRow"><label for="cnFrame">틀</label><div class="cn-c"><select id="cnFrame"><option value="">틀 없음</option><option value="answer2">답안지 Ⅱ 틀</option><option value="answer3">답안지 Ⅲ 틀 (배식)</option><option value="answer1">답안지 Ⅰ 틀 (설계구상)</option></select></div></div>
             <div id="cnOpts">
@@ -8071,6 +8072,7 @@ function newDrawing() {
     const box = $('cadNewBox');
     if (!box.hidden) { box.hidden = true; return; }
     if (dirty && !confirm('저장하지 않은 작업이 있습니다. 버리고 새로 시작할까요?')) return;
+    cnEditOff();
     $('cnSheet').innerHTML = $('cadSheet').innerHTML; $('cnSheet').value = $('cadSheet').value || '401';
     // 마지막에 고른 종이·틀로 연다(사용자: 틀의 마지막 상태를 저장) — 줄 내용은 틀마다 따로 이미 남는다
     try { const L = JSON.parse(localStorage.getItem('cadNewLast') || 'null');
@@ -8086,7 +8088,7 @@ const CN_DEF = {answer2: {name: '시설물배치도', unit: '개', label: '시�
                 answer1: {name: '설계구상도', unit: '', label: '범례', done: '답안지 Ⅰ 틀(설계구상)로 시작합니다'}};
 // 답안지 Ⅰ 범례의 처음 줄 — 시험 답안의 설계구상도에 흔히 쓰는 것(대표님이 보여 준 답안 차례)
 const CN_A1 = ['공 간', '차 량 동 선', '보 행 동 선', '연 계 동 선', '차 폐 식 재', '완 충 식 재', '녹 음 식 재', '경 관 식 재', '요 점 식 재'];
-let cnSt = {}, cnCur = '', cnData = [], cnTrees = null;
+let cnSt = {}, cnCur = '', cnData = [], cnTrees = null, cnEdit = null;   // cnEdit — 이미 만든 도면의 수량표를 고치는 중(tblOpen)
 const cnBlank = fr => fr === 'answer1' ? {name: ''} : fr === 'answer3' ? {form: '', name: '', spec: '', unit: '주', qty: '', auto: {unit: '주'}} : {sym: '', name: '', spec: '', unit: '개', qty: ''};
 function cnState(fr) {
     if (!cnSt[fr]) {
@@ -8096,13 +8098,13 @@ function cnState(fr) {
     }
     return cnSt[fr];
 }
-function cnStash() { if (!cnCur) return; const s = cnState(cnCur); s.name = $('cnName').value; s.north = $('cnNorth').value; s.n = $('cnRows').value; }
+function cnStash() { if (!cnCur || cnEdit) return; const s = cnState(cnCur); s.name = $('cnName').value; s.north = $('cnNorth').value; s.n = $('cnRows').value; }
 function cnSwitch(fr) {                              // 틀을 바꾸면 적어 둔 것을 그 틀 것으로 갈아 끼운다
     cnStash(); cnCur = fr; if (!fr) return;
     const s = cnState(fr); $('cnName').value = s.name; $('cnNorth').value = s.north; $('cnRows').value = s.n; cnData = s.rows;
 }
 function cnSave() {
-    if (!cnCur) return; cnStash();
+    if (!cnCur || cnEdit) return; cnStash();
     try { localStorage.setItem(CN_KEYS[cnCur], JSON.stringify(cnState(cnCur))); } catch (e) {}
 }
 const cnCount = () => Math.max(1, Math.min(cnCur === 'answer1' ? 12 : 20, Math.round(+$('cnRows').value || 7)));   // Ⅰ 범례는 한 줄이 두 칸 높이라 12줄까지(도면명 칸 위)
@@ -8194,6 +8196,7 @@ function startNew(key, d) {
     hist = []; redoS = []; dirty = false; afterLoad(true); saveDraft();
 }
 function cnGo() {
+    if (cnEdit) { tblApply(); return; }
     const key = $('cnSheet').value, fr = $('cnFrame').value;
     $('cadNewBox').hidden = true;
     if (!fr) { startNew(key); return; }
@@ -8504,6 +8507,103 @@ function buildFrame(src, N, opt) {
     return {doc: {v: 1, sheet: `a2-${N}`, pts: outPts, ops, syms, seq: id}, warn};
 }
 // ── 틀 끝 ──
+// ── 수량표 고치기(대표님 2026-10) — 이미 만든 도면의 답안지 틀 수량표(Ⅱ 시설물 · Ⅲ 수목 · Ⅰ 범례)를 새 도면 창의 줄 편집기로 고친다.
+// 표의 글자·줄 선·줄 보조선·자 마킹·세로 칸줄은 buildFrame 으로 새로 만들어 갈아 끼우고(새 도면과 똑같은 꼴),
+// 표 안에 손으로 그려 둔 것(기호 칸의 기호 등)은 제 줄을 따라 옮긴다 — 지운 줄의 것은 지운다
+const TBL = {X0: 46.4, X1: 58.4, XM: 52.4, TOP: 5.2, E: 0.02};
+function tblDetect() {
+    const m = /^a2-(\d+)$/.exec(doc.sheet || ''); if (!m) return null;
+    const N = +m[1], f = N / 100, {X0, X1, TOP, E} = TBL;
+    const head = doc.ops.find(o => o.t === 'text' && o.x != null && o.x / f > X0 - 0.2 && o.x / f < X1 && o.y / f < TOP && o.y / f > 2 && /^(수목수량표|범례|시설물수량표)$/.test(String(o.s).replace(/\s/g, '')));
+    if (!head) return null;
+    const hs = String(head.s).replace(/\s/g, ''), kind = hs === '수목수량표' ? 'answer3' : hs === '범례' ? 'answer1' : 'answer2', RH = kind === 'answer1' ? 2 : 1;
+    const hy = new Set();                              // 표 전체 폭의 가로 실선(줄 선) — 몇째 줄 밑인가
+    doc.ops.forEach(o => { if (o.t !== 'line' || o.ls === 'aux') return; const a = P(o.a), b = P(o.b);
+        if (a && b && Math.abs(a.y - b.y) < E * f && Math.min(a.x, b.x) / f <= X0 + E && Math.max(a.x, b.x) / f >= X1 - E) hy.add(Math.round((a.y / f - TOP) / RH * 1000) / 1000); });
+    let n = 0; while (hy.has(n + 1)) n++;
+    if (!n) return null;
+    return {N, f, kind, RH, n, BOT: TOP + n * RH};
+}
+const tblCols = kind => kind === 'answer1' ? [[TBL.X0, TBL.XM], [TBL.XM, TBL.X1]] : [[46.4, 48.4], [48.4, 51.8], [51.8, 54.9], [54.9, 56.4], [56.4, 58.4]];
+// 표가 만든 것인가 — 글자·줄 선·줄 보조선·자 마킹·세로 칸줄(1:100 자리로 견준다)
+function tblIsGen(o, T, Pf) {
+    const {X0, X1, TOP, E} = TBL, f = T.f, BOT = T.BOT;
+    if (o.t === 'text' && o.x != null) { const x = o.x / f, y = o.y / f; return x > X0 - 0.1 && x < X1 + 0.1 && y > TOP + 0.05 && y <= BOT + 0.05; }
+    if (o.mark && o.pts) { const x = o.pts[0][0] / f, y = o.pts[0][1] / f; return Math.abs(x - X0) < E && y > TOP + E && y <= BOT + E && o.pts[1][0] > o.pts[0][0]; }
+    if (o.t !== 'line') return false;
+    const a = Pf(o.a), b = Pf(o.b); if (!a || !b) return false;
+    const ax = a.x / f, ay = a.y / f, bx = b.x / f, by = b.y / f;
+    if (Math.abs(ay - by) < E) return Math.min(ax, bx) <= X0 + E && Math.max(ax, bx) >= X1 - E && ay > TOP + E && ay <= BOT + E;
+    if (Math.abs(ax - bx) < E) return ax > X0 + E && ax < X1 - E && Math.min(ay, by) >= TOP - 1.0 - E && Math.max(ay, by) > TOP + E && Math.max(ay, by) <= BOT + E;
+    return false;
+}
+function tblUnspread(s) {                               // 칸에 맞춰 벌려 둔 글자를 되돌린다 — 가장 짧은 빈칸이 글자 사이, 그 두 배 이상이 낱말 사이
+    s = String(s || '').trim(); const runs = s.match(/ +/g); if (!runs) return s;
+    const m = Math.min(...runs.map(r => r.length)), mixed = runs.some(r => r.length !== m);
+    return s.replace(/ +/g, r => mixed && r.length >= 2 * m ? ' ' : '');
+}
+function tblRead(T) {
+    const cols = tblCols(T.kind), rows = Array.from({length: T.n}, (_, i) => ({_o: i, cells: cols.map(() => [])}));
+    doc.ops.forEach(o => { if (o.t !== 'text' || o.x == null || !tblIsGen(o, T, P)) return;
+        const y = o.y / T.f, i = Math.floor((y - TBL.TOP - 1e-6) / T.RH), x = o.x / T.f, c = cols.findIndex(([c0, c1]) => x >= c0 - 0.05 && x < c1);
+        if (i >= 0 && i < T.n && c >= 0) rows[i].cells[c].push(o.s); });
+    return rows.map(r => { const g = c => r.cells[c].join(' ').trim();
+        if (T.kind === 'answer1') return {_o: r._o, name: tblUnspread(g(1))};
+        if (T.kind === 'answer3') return {_o: r._o, form: g(0).replace(/\s/g, ''), name: tblUnspread(g(1)), spec: g(2), unit: g(3), qty: g(4), auto: {}};
+        return {_o: r._o, sym: '', name: tblUnspread(g(1)), spec: g(2), unit: g(3), qty: g(4)}; });
+}
+function cnEditOff() {
+    if (!cnEdit) return;
+    cnEdit = null; cnCur = '';
+    $('cnTitle').textContent = '새 도면'; $('cnGo').textContent = '만들기';
+    $('cadNewBox').querySelectorAll('[data-edhide]').forEach(el => { el.hidden = false; el.removeAttribute('data-edhide'); });
+}
+function tblOpen() {
+    const T = tblDetect(); if (!T) { flash('이 도면에는 답안지 틀의 수량표가 없습니다'); return; }
+    const box = $('cadNewBox'); if (!box.hidden && cnEdit) { box.hidden = true; cnEditOff(); return; }
+    cnStash(); cnEdit = T; cnCur = T.kind; cnData = tblRead(T);
+    if (T.kind === 'answer3') cnLoadTrees();
+    [$('cnSheet'), $('cnFrameRow'), $('cnName'), $('cnNorth')].forEach(el => { const r = el.closest('.cn-f') || el; if (!r.hidden) { r.hidden = true; r.setAttribute('data-edhide', '1'); } });
+    $('cnOpts').hidden = false; box.classList.add('wide');
+    $('cnTitle').textContent = `${CN_DEF[T.kind].label} 고치기`; $('cnGo').textContent = '고치기';
+    $('cnRows').value = T.n; $('cnNote').textContent = '줄을 끼우고(＋)·지우고(✕)·고친 뒤 「고치기」 — 표 안에 그려 둔 기호는 제 줄을 따라 옮겨집니다.';
+    $('cadOpen').hidden = true; box.hidden = false; cnRender();
+}
+function tblApply() {
+    const T = cnEdit; if (!T) return;
+    const n = cnCount(), rows = cnData.slice(0, n), N = T.N, f = T.f;
+    const font = document.fonts && document.fonts.load ? Promise.race([document.fonts.load('600 40px "Nanum Gothic"'), new Promise(r => setTimeout(r, 1500))]).catch(() => {}) : Promise.resolve();
+    const src = frameSrc ? Promise.resolve(frameSrc) : fetch(root.dataset.frameapi, {credentials: 'same-origin'}).then(r => r.json()).then(j => { if (!j.ok) throw new Error(j.error || ''); frameSrc = j.data; return frameSrc; });
+    Promise.all([src, font]).then(([S]) => {
+        const B = buildFrame(S, N, {kind: T.kind, name: 'x', north: 0, n, rows: rows.map(r => ({form: r.form, name: r.name, spec: r.spec, unit: r.unit, qty: r.qty, sym: null})), measure: cnMeasure, symBox: cnSymBox});
+        const bd = B.doc, bP = q => bd.pts.find(p => p.n === +q), T2 = {...T, n, BOT: TBL.TOP + n * T.RH};
+        snapHist();
+        // ① 표 안에 그려 둔 것 — 줄을 따라 옮기거나(지운 줄이면) 지운다
+        const gen = new Set(doc.ops.filter(o => tblIsGen(o, T, P)).map(o => o.id)), moveBy = new Map(), drop = new Set();
+        doc.ops.forEach(o => { if (gen.has(o.id) || o.t === 'step') return;
+            const b = rpBBox([o]); if (!b) return; const cx = (b.x0 + b.x1) / 2 / f, cy = (b.y0 + b.y1) / 2 / f;
+            if (cx < TBL.X0 || cx > TBL.X1 || cy <= TBL.TOP || cy >= T.BOT) return;
+            const i = Math.floor((cy - TBL.TOP) / T.RH), j = rows.findIndex(r => r._o === i);
+            if (j < 0) drop.add(o.id); else if (j !== i) { const dy = +((j - i) * T.RH * f).toFixed(3); if (!moveBy.has(dy)) moveBy.set(dy, []); moveBy.get(dy).push(o.id); }
+        });
+        const keepSel = selOps;
+        moveBy.forEach((ids, dy) => { selOps = new Set(ids); moveSelected(0, dy, true); });
+        selOps = new Set([...keepSel].filter(id => !gen.has(id) && !drop.has(id)));
+        // ② 표가 만든 것을 걷어 내고 새로 만든 것을 그 자리에 끼운다
+        const at = doc.ops.findIndex(o => gen.has(o.id)), cand = new Set();
+        doc.ops.filter(o => gen.has(o.id) || drop.has(o.id)).forEach(o => ptsOf(o).forEach(q => cand.add(+q)));
+        doc.ops = doc.ops.filter(o => !gen.has(o.id) && !drop.has(o.id));
+        const made = bd.ops.filter(o => o.t !== 'step' && tblIsGen(o, T2, bP)).map(o0 => {
+            const o = JSON.parse(JSON.stringify(o0)); o.id = doc.seq++; o.tl = 0;
+            ['a', 'b', 'c', 'p', 'fr'].forEach(k => { if (o[k] != null) { const q = bP(o[k]); if (q) o[k] = addPt(q.x, q.y); } });
+            return o; });
+        doc.ops.splice(at < 0 ? doc.ops.length : Math.min(at, doc.ops.length), 0, ...made);
+        doc.pts = doc.pts.filter(p => !cand.has(+p.n) || usedBy(p.n));
+        $('cadNewBox').hidden = true; cnEditOff(); pruneSyms(); changed();
+        flash(`${CN_DEF[T.kind].label}를 ${n}줄로 고쳤습니다` + (drop.size ? ` — 지운 줄의 기호 ${drop.size}개도 지웠습니다` : '') + (B.warn ? ' — ' + B.warn : '') + ' (Ctrl+Z 로 되돌림)');
+    }).catch(e => flash((e && e.message) || '틀을 받지 못했습니다'));
+}
+
 function afterLoad(refit, keepUnder) {          // keepUnder — 되돌리기·다시 하기: 밑그림을 다시 받지 않는다(받는 동안 사라졌다 돌아왔다, 대표님)
     if (RP) rpEnd();
     doc.ops.forEach(o => { if (o.t !== 'step' && !('tl' in o)) o.tl = 0; });
@@ -8526,6 +8626,7 @@ function afterLoad(refit, keepUnder) {          // keepUnder — 되돌리기·�
     if (keepUnder) { underShown = ''; underRender(); } else underLoad();
     if ($('cadUnderSnap')) $('cadUnderSnap').checked = doc.underSnap !== false;
     if (refit) fit();
+    $('cadTblEdit').hidden = !tblDetect();
     if (!keepUnder && doc.ops.some(o => o.lead && !o.spLead)) {   // 글꼴을 다 읽은 뒤 재야 폭이 맞는다
         const d0 = doc, fs = document.fonts && document.fonts.load ? Promise.race([Promise.all(Object.values(FONTS).map(f => document.fonts.load(`400 40px ${f}`).catch(() => {}))), new Promise(r => setTimeout(r, 2000))]) : Promise.resolve();
         fs.then(() => { if (doc === d0) leadSpecAlign(); });
@@ -9626,6 +9727,7 @@ document.addEventListener('keydown', e => {                // Z 창 확대 · Sh
     if (e.code === 'KeyZ') { e.preventDefault(); e.stopImmediatePropagation(); if (e.shiftKey) zoomPrev(); else zwinOn(!zwin); }
 }, true);
 $('cadNew').addEventListener('click', newDrawing);
+$('cadTblEdit').addEventListener('click', tblOpen);
 $('cnSheet').addEventListener('change', cnSync);
 $('cnFrame').addEventListener('change', cnSync);
 $('cnGo').addEventListener('click', cnGo);
@@ -9647,6 +9749,7 @@ $('cnAddRow').addEventListener('click', () => {
 });
 $('cnClear').addEventListener('click', () => {
     if (!cnCur || !confirm(`${CN_DEF[cnCur].label}에 적어 둔 것을 모두 지울까요? (도면명·방위도 처음 값으로)`)) return;
+    if (cnEdit) { cnData.length = 0; cnRender(); return; }
     cnData.length = 0; $('cnName').value = CN_DEF[cnCur].name; $('cnNorth').value = 0;
     const s = cnState(cnCur); s.rows = cnData; cnRender(); cnSave(); flash('비웠습니다');
 });
@@ -9667,7 +9770,7 @@ $('cnClear').addEventListener('click', () => {
 }));
 $('cnCancel').addEventListener('click', () => { $('cadNewBox').hidden = true; });
 $('cadNewBox').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && !e.isComposing && !e.target.closest('#cnRowList')) cnGo(); else if (e.key === 'Escape') $('cadNewBox').hidden = true; });
-document.addEventListener('click', e => { if (e.target.isConnected && !e.target.closest('#cadNewBox, #cadNew')) $('cadNewBox').hidden = true; });   // 다시 그려져 떨어진 요소는 바깥 누름이 아니다
+document.addEventListener('click', e => { if (e.target.isConnected && !e.target.closest('#cadNewBox, #cadNew, #cadTblEdit')) $('cadNewBox').hidden = true; });   // 다시 그려져 떨어진 요소는 바깥 누름이 아니다
 $('cadSave').addEventListener('click', save);
 $('cadExport').addEventListener('click', download);
 $('cadCopy').addEventListener('click', copyDesc);
