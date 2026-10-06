@@ -7573,8 +7573,9 @@ function selBlink() {                                  // 고른 것을 한 번 
 }
 function selectOp(id, add) {
     shrubEditOn = false;
-    if (add) { selOps.has(id) ? selOps.delete(id) : selOps.add(id); }
-    else { selOps = new Set([id]); }
+    const set = withLeads(new Set([id]));               // 지시선은 선 하나만 눌러도 한 벌(선·글·글자 보조선) 전체를 고른다(대표님)
+    if (add) { const off = selOps.has(id); set.forEach(x => off ? selOps.delete(x) : selOps.add(x)); }
+    else { selOps = set; }
     renderAll(); regInfo(); selBlink();
     const row = $('cadOpList').querySelector(`[data-id="${id}"]`);
     if (row) paneScroll(row);
@@ -9942,7 +9943,7 @@ $('cadOpList').addEventListener('click', e => {
         }
     }
     opAnchor = id;
-    { const g = grpOps(id); if (g.length > 1) { const add = e.ctrlKey || e.metaKey; if (!add) selOps = new Set(); g.forEach(o => selOps.add(o.id)); renderAll(); regInfo(); flashRed(g.map(o => o.id)); return; } }
+    { const g = [...withLeads(new Set(grpOps(id).map(o => o.id)))]; if (g.length > 1) { const add = e.ctrlKey || e.metaKey; if (!add) selOps = new Set(); g.forEach(x => selOps.add(x)); renderAll(); regInfo(); flashRed(g); return; } }
     selectOp(id, e.ctrlKey || e.metaKey);
     flashRed([id]);
 });
