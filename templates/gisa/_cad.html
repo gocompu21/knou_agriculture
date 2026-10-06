@@ -190,7 +190,8 @@
                         <label>↓ Y <input type="number" id="cadMvY" step="0.1" value="0" class="cad-txt"> m</label>
                         <button type="button" class="cad-go" id="cadMvGo" title="고른 것을 X·Y 만큼 옮깁니다 (오른쪽·아래가 +)">옮기기</button></div>
                     <div class="cad-shrub-edit" id="fsLead" hidden>
-                        <h4>식재지시선 고치기</h4>
+                        <h4>식재지시선 수정</h4>
+                        <div class="cad-row"><span class="cad-lead-types" id="fleTypes"></span></div>
                         <div class="cad-row"><label><span id="fleCntLb">갯수</span><input id="fleCnt" class="cad-txt" style="width:46px"></label>
                             <label>수종<input id="fleName" class="cad-txt" style="width:9em" list="cnTreeList"></label></div>
                         <div class="cad-row"><label>규격<input id="fleSpec" class="cad-txt" style="width:11em"></label>
@@ -5509,9 +5510,10 @@ function leadSize() { return +(+($('fdMm') && $('fdMm').value || 3) * scaleDenom
 // 두 번째로 누른 자리 w → 선의 꼭짓점들과 글자 자리
 function leadGeom(w) {
     const S = leadS && (leadS.n != null ? P(leadS.n) : {x: leadS.x, y: leadS.y}); if (!S || !w) return null;
-    const t = leadType(), right = t === 'ur' || t === 'dr' || t === 'r', size = leadSize(), font = $('ftFont').value;
+    const O = leadOv;                                    // 지시선 고치기에서 형을 바꿀 때 — 형·글·크기·글꼴을 고치기 칸에서 받는다
+    const t = O ? O.t : leadType(), right = t === 'ur' || t === 'dr' || t === 'r', size = O ? O.size : leadSize(), font = O ? O.font : $('ftFont').value;
     // 규격은 위 줄의 수종이 시작되는 자리에서 시작한다(대표님) — '9 - ' 폭만큼 들인다
-    const tx = leadTexts(), off = tx.pre ? leadMeasure(tx.pre, size, font) : 0;
+    const tx = O ? O.texts : leadTexts(), off = tx.pre ? leadMeasure(tx.pre, size, font) : 0;
     const W = Math.max(leadMeasure(tx.top || ' ', size, font), off + leadMeasure(tx.bot || ' ', size, font)), pad = size * 0.5;
     let B = null, y = S.y, x0;
     if (t === 'r' || t === 'l') x0 = right ? Math.max(w.x, S.x + pad) + size * 1.5 : Math.min(w.x, S.x - pad) - size * 1.5;   // 글을 시작할 자리 — 누른 점에서 글자 1.5칸 띄운다(대표님: 붙어 보였다 → 0.8칸도 가깝다)
@@ -5520,7 +5522,7 @@ function leadGeom(w) {
         const mn = size * 1.5;                           // 형과 반대쪽으로는 넘어가지 않는다(대표님) — 거울로 뒤집지 않고 최소 길이에서 멈춘다
         if (up ? by > S.y - mn : by < S.y + mn) by = up ? S.y - mn : S.y + mn;
         // 꺾는 선 — '자유각도'를 켜면 누른 자리 그대로(사선), 끄면 곧게 90°(대표님)
-        B = {x: rnd(leadFree() ? w.x : S.x), y: rnd(by)}; y = B.y; x0 = right ? B.x + pad : B.x - pad;
+        B = {x: rnd((O ? O.free : leadFree()) ? w.x : S.x), y: rnd(by)}; y = B.y; x0 = right ? B.x + pad : B.x - pad;
     }
     const tx0 = right ? x0 : x0 - W, E = {x: rnd(right ? x0 + W + pad : x0 - W - pad), y: rnd(y)};
     return {S, B, E, y, size, font, W, top: tx.top, bot: tx.bot, tx: rnd(tx0), bx: rnd(tx0 + off), ty: rnd(y - size * 0.35), by: rnd(y + size * 1.3)};
@@ -5538,13 +5540,13 @@ function leadPreSvg() {
 function leadFinish(w) {
     const G = leadGeom(w); if (!G) { leadS = null; return; }
     if (!G.top && !G.bot) { flash('갯수·수종·규격을 오른쪽 칸에 적어 주세요'); $('fdName').focus(); return; }
-    snapHist();
+    if (!leadOv) snapHist();
     const key = leadS.key, nm = String($('fdName').value || '').trim();
-    if (key && nm) { doc.treeInfo = doc.treeInfo || {}; doc.treeInfo[key] = {name: nm, spec: String($('fdSpec').value || '').trim()}; }   // 같은 기호는 다음부터 저절로
+    if (!leadOv && key && nm) { doc.treeInfo = doc.treeInfo || {}; doc.treeInfo[key] = {name: nm, spec: String($('fdSpec').value || '').trim()}; }   // 같은 기호는 다음부터 저절로
     const ns = [leadS.n != null ? +leadS.n : addPt(leadS.x, leadS.y)];
     if (G.B) ns.push(addPt(G.B.x, G.B.y));
     ns.push(addPt(G.E.x, G.E.y));
-    const gid = doc.seq, st = {ls: 'solid', w: ($('fdW') && $('fdW').value) || 'p5'}, lbl = `${G.top}${G.bot ? ' / ' + G.bot : ''}`;
+    const gid = doc.seq, st = {ls: 'solid', w: leadOv ? leadOv.w : ($('fdW') && $('fdW').value) || 'p5'}, lbl = `${G.top}${G.bot ? ' / ' + G.bot : ''}`;
     for (let i = 0; i + 1 < ns.length; i++) {
         const pa = P(ns[i]), pb = P(ns[i + 1]);
         doc.ops.push({id: doc.seq++, t: 'line', a: ns[i], b: ns[i + 1], ...st, grp: gid, gname: '지시선', lead: true, leadTxt: lbl, tl: {...toolState(), ...toolsForLine(pa, pb)}});
@@ -7772,6 +7774,7 @@ function selInfo() {
     $('cadSelInfo').textContent = n || m ? `객체 ${n}개 · 점 ${m}개 고름` : '고른 것 없음';
     shrubEditSync(); leadEditSync();
 }
+var leadOv = null;
 // ── 식재지시선 고치기(대표님 2026-10) — 지시선을 누르면 선택 칸에 갯수·수종·규격이 뜨고, 고치면 글·글자 보조선·가로선 길이를 그 자리에서 맞춘다 ──
 function leadEditTarget() {
     const ids = [...selOps].filter(id => doc.ops.some(o => o.id === id)); if (!ids.length) return null;
@@ -7788,12 +7791,30 @@ function leadEditSync() {
     const m = /^\s*(\d+)\s*-\s*(.*)$/.exec(String(T.top.s)), ma = !m && /^(.*?)\s*-\s*([\d.]+)\s*\/\s*(?:㎡|m²|m2)\s*$/.exec(String(T.top.s));
     box.dataset.area = ma ? '1' : ''; $('fleCntLb').textContent = ma ? '밀도/㎡' : '갯수';
     $('fleCnt').value = m ? m[1] : ma ? ma[2] : ''; $('fleName').value = m ? m[2].trim() : ma ? ma[1].trim() : String(T.top.s).trim(); $('fleSpec').value = T.bot ? String(T.bot.s).trim() : '';
+    const cur = leadEditGeom(T); box.dataset.t = cur ? cur.t : '';
+    $('fleTypes').innerHTML = LEAD_TYPES.map(([v, n]) => `<button type="button" data-lt="${v}" title="${n}"${cur && v === cur.t ? ' class="on"' : ''}>${leadIcon(v)}</button>`).join('');
     box.dataset.k = key; box.hidden = false; cnLoadTrees();
+}
+// 지금 지시선의 생김새 — 시작점 S · 꺾는 점 B · 가로선 hz 와 바깥 끝 eK · 형 t
+function leadEditGeom(T) {
+    const main = T.lines.filter(o => !o.leadGuide), hz = main.find(o => { const a = P(o.a), b = P(o.b); return a && b && Math.abs(a.y - b.y) < 1e-3; });
+    if (!hz) return null;
+    const shared = k => main.some(o => o !== hz && (+o.a === +hz[k] || +o.b === +hz[k]));
+    const leg = main.find(o => o !== hz);
+    let eK, Sn, Bn = null;
+    if (leg) { eK = shared('a') ? 'b' : 'a'; Bn = +hz[eK === 'a' ? 'b' : 'a']; Sn = +leg.a === Bn ? +leg.b : +leg.a; }
+    else { const cx = T.top.x + leadMeasure(T.top.s, +T.top.size || 1, T.top.font || 'gothic') / 2;   // 꺾지 않은 형 — 글 가운데에서 먼 끝이 시작점
+        const sK = Math.abs(P(hz.a).x - cx) > Math.abs(P(hz.b).x - cx) ? 'a' : 'b'; Sn = +hz[sK]; eK = sK === 'a' ? 'b' : 'a'; }
+    const S = P(Sn), E = P(hz[eK]), B = Bn != null ? P(Bn) : null, right = E.x > (B || S).x;
+    const t = B ? (B.y < S.y ? 'u' : 'd') + (right ? 'r' : 'l') : right ? 'r' : 'l';
+    return {main, hz, eK, Sn, S, B, E, t, right};
 }
 function leadEditApply() {
     const T = leadEditTarget(); if (!T) return;
     const c = String($('fleCnt').value || '').trim(), nm = String($('fleName').value || '').trim(), spec = String($('fleSpec').value || '').trim();
     if (!nm && !c) { flash('갯수나 수종을 적어 주세요'); return; }
+    const nt = $('fsLead').dataset.nt, G0 = leadEditGeom(T);
+    if (nt && G0 && nt !== G0.t) { leadEditRetype(T, G0, nt); return; }
     const area = $('fsLead').dataset.area === '1', top = area ? leadAreaTop(nm, c) : c && nm ? `${c} - ${nm}` : nm || c, pre = !area && c && nm ? `${c} - ` : '';
     const sz = +T.top.size || 1, font = T.top.font || 'gothic', pad = sz * 0.5, meas = t => leadMeasure(t || ' ', sz, font);
     const oldW = Math.max(meas(T.top.s), T.bot ? (T.bot.x - T.top.x) + meas(T.bot.s) : 0);
@@ -7829,8 +7850,28 @@ function leadEditApply() {
     doc.pts = doc.pts.filter(p => !cand.has(+p.n) || usedBy(p.n));
     const key = hz.grp != null ? hz.grp : null;
     if (nm) { const sym = doc.ops.find(o => o.t === 'sym' && o.p != null && main.some(l => +l.a === +o.p || +l.b === +o.p)); if (sym) { doc.treeInfo = doc.treeInfo || {}; doc.treeInfo[sym.sym] = {name: nm, spec}; } }
-    selOps = new Set([...withLeads(new Set([hz.id]))]); $('fsLead').dataset.k = '';
+    selOps = new Set([...withLeads(new Set([hz.id]))]); $('fsLead').dataset.k = ''; $('fsLead').dataset.nt = '';
     changed(); flash(`지시선 — ${lbl}`);
+}
+// 형을 바꾼다 — 시작점은 그대로 두고, 꺾는 높이(없으면 글자 3칸)·옆 거리를 지켜 새 형으로 다시 긋는다(글은 고치기 칸 것으로)
+function leadEditRetype(T, G0, nt) {
+    const c = String($('fleCnt').value || '').trim(), nm = String($('fleName').value || '').trim(), spec = String($('fleSpec').value || '').trim();
+    const area = $('fsLead').dataset.area === '1', top = area ? leadAreaTop(nm, c) : c && nm ? `${c} - ${nm}` : nm || c, pre = !area && c && nm ? `${c} - ` : '';
+    const sz = +T.top.size || 1, S = G0.S, up = nt[0] === 'u', bent = nt.length === 2, right = nt.endsWith('r');
+    const dy = G0.B ? Math.abs(G0.B.y - S.y) : sz * 3, dx = G0.B ? Math.abs(G0.B.x - S.x) : 0;
+    const w = bent ? {x: S.x + (right ? dx : -dx), y: S.y + (up ? -dy : dy)} : {x: S.x, y: S.y};   // 옆 형은 시작점에서 글자 1.5칸 띄워 글을 시작한다
+    snapHist();
+    const at = doc.ops.findIndex(o => T.L.has(o.id)), cand = new Set();
+    doc.ops.filter(o => T.L.has(o.id)).forEach(o => ptsOf(o).forEach(q => { if (+q !== +G0.Sn) cand.add(+q); }));
+    doc.ops = doc.ops.filter(o => !T.L.has(o.id));
+    doc.pts = doc.pts.filter(p => !cand.has(+p.n) || usedBy(p.n));
+    const n0 = doc.ops.length;
+    leadS = {n: G0.Sn, key: null}; leadOv = {t: nt, size: sz, font: T.top.font || 'gothic', texts: {top, bot: spec, pre}, free: dx > 1e-3, w: G0.hz.w || 'p5'};
+    try { leadFinish(w); } finally { leadOv = null; leadS = null; }
+    const made = doc.ops.splice(n0); doc.ops.splice(Math.min(at, doc.ops.length), 0, ...made);
+    const hz = made.find(o => o.lead && !o.leadGuide);
+    selOps = new Set(made.map(o => o.id)); $('fsLead').dataset.k = ''; $('fsLead').dataset.nt = '';
+    changed(); flash(`지시선 형을 「${(LEAD_TYPES.find(x => x[0] === nt) || [])[1]}」로 바꿨습니다 (Ctrl+Z 로 되돌림)`);
 }
 // ── 영역 선택 ── AutoCAD 처럼 끄는 방향으로 가른다: → 는 '안에 다 든 것', ← 는 '걸친 것까지'
 function segHitsRect(a, b, r) {   // 선분이 상자에 닿는가(끝점이 안에 있거나 변과 교차)
@@ -9807,6 +9848,8 @@ document.addEventListener('keydown', e => {                // Z 창 확대 · Sh
 $('cadNew').addEventListener('click', newDrawing);
 $('cadTblEdit').addEventListener('click', tblOpen);
 $('fleGo').addEventListener('click', leadEditApply);
+$('fleTypes').addEventListener('click', e => { const b = e.target.closest('[data-lt]'); if (!b) return;
+    $('fsLead').dataset.nt = b.dataset.lt; $('fleTypes').querySelectorAll('[data-lt]').forEach(x => x.classList.toggle('on', x === b)); leadEditApply(); });
 function fdAreaSync() { const a = leadArea(); $('fdCntLb').textContent = a ? '밀도/㎡' : '갯수'; $('fdCnt').placeholder = a ? '25' : ''; try { localStorage.setItem('cadLeadArea', a ? '1' : ''); } catch (e) {} drawPre(); status(); }
 try { $('fdArea').checked = localStorage.getItem('cadLeadArea') === '1'; } catch (e) {}
 fdAreaSync();
