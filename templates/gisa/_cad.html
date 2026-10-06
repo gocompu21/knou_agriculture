@@ -191,7 +191,7 @@
                         <button type="button" class="cad-go" id="cadMvGo" title="고른 것을 X·Y 만큼 옮깁니다 (오른쪽·아래가 +)">옮기기</button></div>
                     <div class="cad-shrub-edit" id="fsLead" hidden>
                         <h4>식재지시선 고치기</h4>
-                        <div class="cad-row"><label>갯수<input id="fleCnt" class="cad-txt" style="width:46px"></label>
+                        <div class="cad-row"><label><span id="fleCntLb">갯수</span><input id="fleCnt" class="cad-txt" style="width:46px"></label>
                             <label>수종<input id="fleName" class="cad-txt" style="width:9em" list="cnTreeList"></label></div>
                         <div class="cad-row"><label>규격<input id="fleSpec" class="cad-txt" style="width:11em"></label>
                             <button type="button" class="cad-go" id="fleGo" title="Enter">수정</button></div>
@@ -373,7 +373,8 @@
                     </div>
                     <div class="cad-row"><span class="cad-lead-types" id="fdTypes"></span><label class="cad-lead-free" title="켜면 꺾는 선을 누른 자리 그대로 비스듬히, 끄면 곧게 위·아래(90°)·옆(180°)으로만"><input type="checkbox" id="fdFree"> 자유각도</label></div>
                     <div id="fdPlantBox2">
-                    <div class="cad-row"><label>갯수<input type="text" id="fdCnt" style="width:3.5em"></label>
+                    <div class="cad-row"><label class="cad-lead-free" title="수생식물·지피처럼 면적으로 심는 것 — 위 줄이 '수종 - 밀도/㎡', 시작점은 아무 데나(심는 면 안)"><input type="checkbox" id="fdArea"> 면적형(/㎡)</label></div>
+                    <div class="cad-row"><label><span id="fdCntLb">갯수</span><input type="text" id="fdCnt" style="width:3.5em"></label>
                         <label>수종<input type="text" id="fdName" list="cnTreeList" style="width:8em"></label></div>
                     <div class="cad-row"><label>규격<input type="text" id="fdSpec" style="width:11em"></label></div>
                     </div>
@@ -5496,14 +5497,18 @@ function leadStart(p) {
     if (!info) setTimeout(() => $('fdName').focus(), 0);
     drawPre(); status();
 }
+const leadArea = () => !!($('fdArea') && $('fdArea').checked);
+// 면적형 위 줄 — '골풀 - 25/㎡'(대표님 2026-10, 성운 401 답안 '부들 − 25/m²'). 밀도에 단위를 안 붙였으면 /㎡ 를 붙인다
+const leadAreaTop = (nm, d) => { d = String(d || '').trim(); if (d && !/[/㎡m]/.test(d)) d += '/㎡'; return nm && d ? `${nm} - ${d}` : nm || d; };
 function leadTexts() {
     const c = String($('fdCnt').value || '').trim(), nm = String($('fdName').value || '').trim();
+    if (leadArea()) return {top: leadAreaTop(nm, c), bot: String($('fdSpec').value || '').trim(), pre: ''};
     return {top: c && nm ? `${c} - ${nm}` : nm || c, bot: String($('fdSpec').value || '').trim(), pre: c && nm ? `${c} - ` : ''};
 }
 function leadSize() { return +(+($('fdMm') && $('fdMm').value || 3) * scaleDenom() / 1000).toFixed(4); }
 // 두 번째로 누른 자리 w → 선의 꼭짓점들과 글자 자리
 function leadGeom(w) {
-    const S = P(leadS && leadS.n); if (!S || !w) return null;
+    const S = leadS && (leadS.n != null ? P(leadS.n) : {x: leadS.x, y: leadS.y}); if (!S || !w) return null;
     const t = leadType(), right = t === 'ur' || t === 'dr' || t === 'r', size = leadSize(), font = $('ftFont').value;
     // 규격은 위 줄의 수종이 시작되는 자리에서 시작한다(대표님) — '9 - ' 폭만큼 들인다
     const tx = leadTexts(), off = tx.pre ? leadMeasure(tx.pre, size, font) : 0;
@@ -5536,7 +5541,7 @@ function leadFinish(w) {
     snapHist();
     const key = leadS.key, nm = String($('fdName').value || '').trim();
     if (key && nm) { doc.treeInfo = doc.treeInfo || {}; doc.treeInfo[key] = {name: nm, spec: String($('fdSpec').value || '').trim()}; }   // 같은 기호는 다음부터 저절로
-    const ns = [+leadS.n];
+    const ns = [leadS.n != null ? +leadS.n : addPt(leadS.x, leadS.y)];
     if (G.B) ns.push(addPt(G.B.x, G.B.y));
     ns.push(addPt(G.E.x, G.E.y));
     const gid = doc.seq, st = {ls: 'solid', w: ($('fdW') && $('fdW').value) || 'p5'}, lbl = `${G.top}${G.bot ? ' / ' + G.bot : ''}`;
@@ -5610,7 +5615,7 @@ function leadSpecAlign() {
 function leadHint() {
     if (leadKind() === 'space' && leadType() === 'n') return ' · 공간이름을 둘 자리(상자 왼쪽 위)를 누르세요 — 지시선 없이 공간에 바로';
     if (leadKind() === 'space') return !leadS ? ' · 공간지시선 — 가리킬 공간 자리를 누르세요' : ' · 글 상자 모서리 자리를 누르세요' + (leadFree() ? '(자유각도)' : '') + ' · 우클릭·Esc 취소';
-    if (!leadS) return ' · 수목을 이은 다각선의 끝점을 누르세요';
+    if (!leadS) return leadArea() ? ' · 면적형 — 심는 면 안(지시선이 시작할 자리)을 누르세요' : ' · 수목을 이은 다각선의 끝점을 누르세요';
     const t = leadType();
     return (t === 'r' || t === 'l' ? ' · 글을 시작할 자리를 누르세요' : (leadFree() ? ' · 꺾는 자리를 누르세요(자유각도 — 누른 자리 그대로)' : ' · 꺾을 높이를 누르세요(곧게 90°)')) + ' · 우클릭·Esc 취소';
 }
@@ -7780,15 +7785,16 @@ function leadEditSync() {
     const box = $('fsLead'); if (!box) return;
     const T = leadEditTarget(); if (!T) { box.hidden = true; box.dataset.k = ''; return; }
     const key = [...T.L].join(','); if (!box.hidden && box.dataset.k === key) return;   // 고르는 동안 적던 것을 덮지 않는다
-    const m = /^\s*(\d+)\s*-\s*(.*)$/.exec(String(T.top.s));
-    $('fleCnt').value = m ? m[1] : ''; $('fleName').value = m ? m[2].trim() : String(T.top.s).trim(); $('fleSpec').value = T.bot ? String(T.bot.s).trim() : '';
+    const m = /^\s*(\d+)\s*-\s*(.*)$/.exec(String(T.top.s)), ma = !m && /^(.*?)\s*-\s*([\d.]+)\s*\/\s*(?:㎡|m²|m2)\s*$/.exec(String(T.top.s));
+    box.dataset.area = ma ? '1' : ''; $('fleCntLb').textContent = ma ? '밀도/㎡' : '갯수';
+    $('fleCnt').value = m ? m[1] : ma ? ma[2] : ''; $('fleName').value = m ? m[2].trim() : ma ? ma[1].trim() : String(T.top.s).trim(); $('fleSpec').value = T.bot ? String(T.bot.s).trim() : '';
     box.dataset.k = key; box.hidden = false; cnLoadTrees();
 }
 function leadEditApply() {
     const T = leadEditTarget(); if (!T) return;
     const c = String($('fleCnt').value || '').trim(), nm = String($('fleName').value || '').trim(), spec = String($('fleSpec').value || '').trim();
     if (!nm && !c) { flash('갯수나 수종을 적어 주세요'); return; }
-    const top = c && nm ? `${c} - ${nm}` : nm || c, pre = c && nm ? `${c} - ` : '';
+    const area = $('fsLead').dataset.area === '1', top = area ? leadAreaTop(nm, c) : c && nm ? `${c} - ${nm}` : nm || c, pre = !area && c && nm ? `${c} - ` : '';
     const sz = +T.top.size || 1, font = T.top.font || 'gothic', pad = sz * 0.5, meas = t => leadMeasure(t || ' ', sz, font);
     const oldW = Math.max(meas(T.top.s), T.bot ? (T.bot.x - T.top.x) + meas(T.bot.s) : 0);
     // 가로선 — 글 아래 지시선 선 가운데 수평인 것. 다른 지시선 선과 이어진 끝이 안쪽, 남은 끝이 바깥쪽(E)
@@ -9065,7 +9071,10 @@ svg.addEventListener('pointerdown', e => {
         drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true};
         if (e.button === 2) { if (leadS) { leadS = null; drawPre(); status(); flash('지시선을 취소했습니다'); } return; }
         if (leadKind() === 'space') { if (leadType() === 'n') spLeadFinish(snapXY(w)); else if (!leadS) spLeadStart(w); else spLeadFinish(snapXY(w)); return; }
-        if (!leadS) { const p = polyNear(w); if (!p) { flash('다각선 끝점 가까이를 누르세요'); return; } leadStart(p); }
+        if (!leadS) {
+            if (leadArea()) { const p = hitPoint(w), q = p || snapXY(w); leadS = p ? {n: p.n, key: null} : {n: null, x: +q.x.toFixed(3), y: +q.y.toFixed(3), key: null};   // 면적형 — 심는 면 안 아무 데나
+                flash('면적형 — 수종·밀도(/㎡)·규격을 적고 꺾는 자리를 누르세요'); if (!$('fdName').value.trim()) setTimeout(() => $('fdName').focus(), 0); drawPre(); status(); return; }
+            const p = polyNear(w); if (!p) { flash('다각선 끝점 가까이를 누르세요'); return; } leadStart(p); }
         else leadFinish(snapXY(w));
         return;
     }
@@ -9798,6 +9807,11 @@ document.addEventListener('keydown', e => {                // Z 창 확대 · Sh
 $('cadNew').addEventListener('click', newDrawing);
 $('cadTblEdit').addEventListener('click', tblOpen);
 $('fleGo').addEventListener('click', leadEditApply);
+function fdAreaSync() { const a = leadArea(); $('fdCntLb').textContent = a ? '밀도/㎡' : '갯수'; $('fdCnt').placeholder = a ? '25' : ''; try { localStorage.setItem('cadLeadArea', a ? '1' : ''); } catch (e) {} drawPre(); status(); }
+try { $('fdArea').checked = localStorage.getItem('cadLeadArea') === '1'; } catch (e) {}
+fdAreaSync();
+$('fdArea').addEventListener('change', () => { leadS = null; fdAreaSync(); });
+$('fdName').addEventListener('change', () => { const q = cnTree($('fdName').value); if (q && (q.unit === '㎡') !== leadArea() && !leadS) { $('fdArea').checked = q.unit === '㎡'; fdAreaSync(); } });   // ㎡ 로 세는 수종(골풀·갈대·부들)이면 면적형으로
 ['fleCnt', 'fleName', 'fleSpec'].forEach(id => $(id).addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); leadEditApply(); } }));
 $('fleName').addEventListener('change', () => { const q = cnTree($('fleName').value), sp = $('fleSpec'); if (q && (!sp.value.trim() || sp.dataset.auto === sp.value)) sp.value = sp.dataset.auto = q.spec; });   // 손으로 적은 규격은 덮지 않는다
 $('cnSheet').addEventListener('change', cnSync);
