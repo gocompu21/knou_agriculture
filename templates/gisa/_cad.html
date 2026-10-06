@@ -836,7 +836,14 @@
 #cadDblBtns { display: inline-flex; gap: 4px; }
 .cad-zoom button[hidden] { display: none !important; }   /* 이전 화면·확대·축소 단추는 뺐다(대표님) — 휠·Shift+Z·+/− 키로 한다 */
 .fle-line { flex-wrap: nowrap; gap: 4px; } .fle-line label { white-space: nowrap; gap: 2px; } .fle-line .cad-go { flex: none; margin-left: auto; } .fle-line input { font-size: 0.78rem; padding-left: 3px; padding-right: 3px; min-width: 0; } .fle-line label { min-width: 0; }
-.cad-shrub-edit { margin-top: 10px; padding-top: 8px; border-top: 1px solid #e3ebe6; }
+/* 고치기 카드(식재지시선 수정·수목 군식 고치기) — 위 '선택' 칸과 한눈에 갈리게: 연한 앰버 바탕 카드 + 진한 머리띠(대표님 2026-10) */
+.cad-shrub-edit { margin: 14px -2px 4px; padding: 0 10px 8px; background: #fff8eb; border: 1.5px solid #e8b86a; border-radius: 9px; box-shadow: 0 2px 6px rgba(160,100,0,.12); overflow: hidden; }
+.cad-shrub-edit > h4 { margin: 0 -10px 9px; padding: 7px 10px; background: linear-gradient(#f2a93b, #d98a17); color: #fff; font-size: 0.86rem; letter-spacing: .02em; display: flex; align-items: center; gap: 6px; }
+.cad-shrub-edit > h4::before { content: '✎'; font-size: 0.95em; opacity: .9; }
+.cad-shrub-edit .cad-row > label { color: #8a5a10; }
+.cad-shrub-edit input, .cad-shrub-edit select { background: #fff; border-color: #e3c690; }
+.cad-shrub-edit .cad-go { background: #c97a0a; border-color: #a86200; }
+.cad-shrub-edit .cad-help { color: #8a6a3a; }
 .cad-shrub-edit[hidden] { display: none; }
 #fawPedRow[hidden], #fawNoL[hidden] { display: none; }
 .cad-lead-types { display: inline-flex; gap: 3px; flex-wrap: wrap; }
@@ -866,6 +873,7 @@
 .cad-lead-free { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; white-space: nowrap; }
 .cad-lead-types button { width: 30px; height: 28px; padding: 3px; border: 1px solid #cfd8d2; border-radius: 6px; background: #fff; cursor: pointer; }
 .cad-lead-types button.on { background: #2d6a4f; border-color: #2d6a4f; }
+.cad-shrub-edit .cad-lead-types button { border-color: #e3c690; } .cad-shrub-edit .cad-lead-types button.on { background: #c97a0a; border-color: #a86200; }
 .cad-lead-types button svg { width: 20px; height: 20px; fill: none; stroke: #111; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .cad-lead-types button svg .f { fill: #111; stroke: none; }
 .cad-lead-types button.on svg { stroke: #fff; } .cad-lead-types button.on svg .f { fill: #fff; }
