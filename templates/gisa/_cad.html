@@ -677,8 +677,11 @@
 /* 화면 가장자리 띠 — 커서를 올리면 그쪽으로 화면이 흘러간다(대표님). 그리기는 그대로 되도록 누름을 가로채지 않는다 */
 #cadEdge { position: absolute; pointer-events: none; z-index: 2; }
 #cadEdge i { position: absolute; display: flex; align-items: center; justify-content: center; color: rgba(27,67,50,.35); font-style: normal; font-size: 13px; transition: background .15s, color .15s; }
-#cadEdge .t, #cadEdge .b { left: 36px; right: 36px; height: 36px; }
-#cadEdge .l, #cadEdge .r { top: 36px; bottom: 36px; width: 36px; }
+/* 가운데 150px 만(대표님 2026-10) — 가장자리 전체에 두었더니 도구 줄·목록 쪽으로 커서가 지날 때마다 화면이 흘렀다. EDGE_SPAN 과 짝 */
+#cadEdge .t, #cadEdge .b { left: calc(50% - 75px); width: 150px; height: 36px; border-radius: 0 0 10px 10px; }
+#cadEdge .b { border-radius: 10px 10px 0 0; }
+#cadEdge .l, #cadEdge .r { top: calc(50% - 75px); height: 150px; width: 36px; border-radius: 0 10px 10px 0; }
+#cadEdge .r { border-radius: 10px 0 0 10px; }
 #cadEdge .t { top: 0; background: linear-gradient(to bottom, rgba(27,67,50,.09), rgba(27,67,50,0)); }
 #cadEdge .b { bottom: 0; background: linear-gradient(to top, rgba(27,67,50,.09), rgba(27,67,50,0)); }
 #cadEdge .l { left: 0; background: linear-gradient(to right, rgba(27,67,50,.09), rgba(27,67,50,0)); }
@@ -9469,9 +9472,11 @@ function edgeOn(dx, dy) {
     E.querySelector('.l').classList.toggle('on', dx < 0); E.querySelector('.r').classList.toggle('on', dx > 0);
     E.querySelector('.t').classList.toggle('on', dy < 0); E.querySelector('.b').classList.toggle('on', dy > 0);
 }
+const EDGE_SPAN = 150;   // 커서만 댈 때(누르지 않고) 흐르는 띠의 길이 — 각 변 가운데 150px(대표님 2026-10). 긋는 중에는 변 전체
 function autoPanCheck(e) {
-    const r = edgeRect(), m = 36;
-    const dx = e.clientX < r.left + m ? -1 : e.clientX > r.right - m ? 1 : 0, dy = e.clientY < r.top + m ? -1 : e.clientY > r.bottom - m ? 1 : 0;
+    const r = edgeRect(), m = 36, cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2, h = EDGE_SPAN / 2;
+    const inX = !!drag || Math.abs(e.clientX - cx) <= h, inY = !!drag || Math.abs(e.clientY - cy) <= h;
+    const dx = inY && e.clientX < r.left + m ? -1 : inY && e.clientX > r.right - m ? 1 : 0, dy = inX && e.clientY < r.top + m ? -1 : inX && e.clientY > r.bottom - m ? 1 : 0;
     if (!autoOk() || (!dx && !dy)) { autoPan = null; edgeOn(0, 0); return; }
     edgeOn(dx, dy);
     const fresh = !autoPan;
