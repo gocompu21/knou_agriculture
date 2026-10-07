@@ -5639,9 +5639,10 @@ function leadStart(p) {
 const leadArea = () => !!($('fdArea') && $('fdArea').checked);
 // 면적형 위 줄 — '골풀 - 25/㎡'(대표님 2026-10, 성운 401 답안 '부들 − 25/m²'). 밀도에 단위를 안 붙였으면 /㎡ 를 붙인다
 // 줄표 앞뒤를 띄우지 않는다 — '부들-25/㎡'(대표님 2026-10 손글씨 답안)
-const leadAreaTop = (nm, d) => { d = String(d || '').trim(); if (d && !/[/㎡m]/.test(d)) d += '/㎡'; return nm && d ? `${nm}-${d}` : nm || d; };
+// 잔디는 떼로 붙이므로 '잔디-11매/㎡'(대표님 2026-10 손글씨 답안)
+const leadAreaTop = (nm, d) => { d = String(d || '').trim(); if (d && !/[/㎡m]/.test(d)) d += (/잔디$/.test(String(nm || '').trim()) && !/매/.test(d) ? '매' : '') + '/㎡'; return nm && d ? `${nm}-${d}` : nm || d; };
 // 면적으로 심는 수종 — 수목 규격표 단위가 ㎡ 이거나 부들·갈대·골풀. 체크를 안 해도 이 수종이면 면적형으로 적는다(대표님: 갯수 25 를 넣으면 '부들-25/㎡')
-const leadAreaSp = nm => { nm = String(nm || '').trim(); if (!nm) return false; const q = typeof cnTree === 'function' ? cnTree(nm) : null; return !!(q && q.unit === '㎡') || /^(부들|갈대|골풀|애기부들|큰고랭이|물억새)$/.test(nm); };
+const leadAreaSp = nm => { nm = String(nm || '').trim(); if (!nm) return false; const q = typeof cnTree === 'function' ? cnTree(nm) : null; return !!(q && q.unit === '㎡') || /^(부들|갈대|골풀|애기부들|큰고랭이|물억새|잔디|들잔디|금잔디)$/.test(nm); };
 function leadTexts() {
     const c = String($('fdCnt').value || '').trim(), nm = String($('fdName').value || '').trim();
     if (leadArea() || leadAreaSp(nm)) return {top: leadAreaTop(nm, c), bot: String($('fdSpec').value || '').trim(), pre: ''};
@@ -7930,7 +7931,7 @@ function leadEditSync() {
     const box = $('fsLead'); if (!box) return;
     const T = leadEditTarget(); if (!T) { box.hidden = true; box.dataset.k = ''; return; }
     const key = [...T.L].join(','); if (!box.hidden && box.dataset.k === key) return;   // 고르는 동안 적던 것을 덮지 않는다
-    const m = /^\s*(\d+)\s*-\s*(.*)$/.exec(String(T.top.s)), ma = !m && /^(.*?)\s*-\s*([\d.]+)\s*\/\s*(?:㎡|m²|m2)\s*$/.exec(String(T.top.s));
+    const m = /^\s*(\d+)\s*-\s*(.*)$/.exec(String(T.top.s)), ma = !m && /^(.*?)\s*-\s*([\d.]+)\s*매?\s*\/\s*(?:㎡|m²|m2)\s*$/.exec(String(T.top.s));
     const asp = !ma && m && leadAreaSp(m[2]);           // '25 - 부들' 처럼 갯수로 적힌 면적 수종 — 고치면 '부들-25/㎡' 로
     box.dataset.area = ma || asp ? '1' : ''; $('fleCntLb').textContent = ma || asp ? '밀도/㎡' : '갯수';
     $('fleCnt').value = m ? m[1] : ma ? ma[2] : ''; $('fleName').value = m ? m[2].trim() : ma ? ma[1].trim() : String(T.top.s).trim(); $('fleSpec').value = T.bot ? String(T.bot.s).trim() : '';
@@ -10069,6 +10070,7 @@ function fdAreaSync() { const a = leadArea(); $('fdCntLb').textContent = a ? '�
 try { $('fdArea').checked = localStorage.getItem('cadLeadArea') === '1'; } catch (e) {}
 fdAreaSync();
 $('fdArea').addEventListener('change', () => { leadS = null; fdAreaSync(); });
+$('fdName').addEventListener('change', () => { if (/잔디$/.test(String($('fdName').value).trim())) { if (!String($('fdCnt').value).trim()) $('fdCnt').value = '11'; if (!String($('fdSpec').value).trim()) $('fdSpec').value = '0.3×0.3×0.03'; } });   // 잔디 — 11매/㎡ · 0.3×0.3×0.03 이 기본(대표님 2026-10)
 $('fdName').addEventListener('change', () => { const q = cnTree($('fdName').value); if (q && (q.unit === '㎡') !== leadArea()) { $('fdArea').checked = q.unit === '㎡'; fdAreaSync(); } });   // ㎡ 로 세는 수종(골풀·갈대·부들)이면 면적형으로
 ['fleCnt', 'fleName', 'fleSpec'].forEach(id => $(id).addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); leadEditApply(); } }));
 $('fleName').addEventListener('change', () => { const q = cnTree($('fleName').value), sp = $('fleSpec'); if (q && (!sp.value.trim() || sp.dataset.auto === sp.value)) sp.value = sp.dataset.auto = q.spec; });   // 손으로 적은 규격은 덮지 않는다

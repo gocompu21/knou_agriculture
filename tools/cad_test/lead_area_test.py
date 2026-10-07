@@ -13,5 +13,10 @@ with Cad(doc, ls={'cadLeadKind': 'plant', 'cadLeadType': 'ur', 'cadLeadArea': ''
     c.click(40, 50)
     t = c.texts(); print(t)
     ok &= [x[0] for x in t] == ['부들-25/㎡', '4치포트'] and abs(t[0][1] - t[1][1]) < 1e-6
+    c.key('l'); c.click(60, 60)                         # 잔디 — 밀도·규격을 비워 두면 11매/㎡ · 0.3×0.3×0.03
+    c.pg.fill('#fdCnt', ''); c.pg.fill('#fdSpec', ''); c.pg.fill('#fdName', '잔디'); c.pg.keyboard.press('Tab'); c.pg.wait_for_timeout(200)
+    c.click(60, 50)
+    t = c.texts()[2:]; print(t)
+    ok &= [x[0] for x in t] == ['잔디-11매/㎡', '0.3×0.3×0.03']
     print('페이지 오류', c.errors or '없음'); ok &= not c.errors
 print('통과' if ok else '실패'); sys.exit(0 if ok else 1)
