@@ -66,7 +66,8 @@ def server_drawing(pk, cache_dir=None):
 class Cad:
     """도면 하나를 초안으로 넣고 CAD 탭을 연 브라우저. with 로 쓰면 끝날 때 초안을 지우고 닫는다."""
 
-    def __init__(self, doc=None, port=8099, size=(1440, 900), ls=None, headless=True, wait=2500):
+    def __init__(self, doc=None, port=8099, size=(1440, 900), ls=None, headless=True, wait=2500, video=None):
+        self.video = video                         # 폴더를 주면 그 안에 녹화(webm)
         self.doc0 = doc or dict(BLANK)
         self.port, self.size, self.ls, self.headless, self.wait = port, size, ls or {}, headless, wait
         self.errors = []
@@ -77,7 +78,8 @@ class Cad:
         sid = staff_cookie()                      # Playwright 가 이벤트 루프를 열기 전에 — 그 안에서는 Django ORM 이 막힌다
         self._p = sync_playwright().start()
         self.b = self._p.chromium.launch(headless=self.headless)
-        self.ctx = self.b.new_context(viewport={'width': self.size[0], 'height': self.size[1]})
+        vo = {'record_video_dir': self.video, 'record_video_size': {'width': self.size[0], 'height': self.size[1]}} if self.video else {}
+        self.ctx = self.b.new_context(viewport={'width': self.size[0], 'height': self.size[1]}, **vo)
         self.ctx.add_cookies([{'name': 'sessionid', 'value': sid, 'domain': 'localhost', 'path': '/'}])
         self.pg = self.ctx.new_page()
         self.pg.on('pageerror', lambda e: self.errors.append(str(e)))
@@ -98,7 +100,7 @@ class Cad:
         try:
             self.pg.evaluate("localStorage.removeItem('cadDraft:%d')" % CERT)
         finally:
-            self.b.close(); self._p.stop()
+            self.ctx.close(); self.b.close(); self._p.stop()
 
     # ── 좌표 ──
     def S(self, x, y):
