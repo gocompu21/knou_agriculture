@@ -57,6 +57,7 @@
         <button type="button" data-tool="lead" title="지시선 (L) — 수목을 이은 다각선 끝점 → 꺾는 자리. 위에 '갯수-수종', 아래에 규격" aria-label="지시선"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16L8 7H18"/><circle cx="3" cy="16" r="1.6" class="f"/><path d="M10 5H16M10 10H15" stroke-width="1.2"/></svg></button>
         <button type="button" data-tool="dim" title="치수선 (N) — 재려는 두 점을 차례로 누르고, 치수선을 둘 자리를 누릅니다. 치수는 따로 된 레이어" aria-label="치수선"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4v10M17 4v10" stroke-width="1.1"/><path d="M3 11H17"/><path d="M3 11l3-1.6v3.2ZM17 11l-3-1.6v3.2Z" class="f"/><path d="M8 7.5h4" stroke-width="1.1"/></svg></button>
         <button type="button" data-tool="free" title="프리드로잉 (D) — 누른 채 끌면 손 가는 대로 선이 그어집니다(자 위로는 그어지지 않습니다)" aria-label="프리드로잉"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 15.5c2-3.5 3.6-4.6 5-3.4 1.3 1.1-.4 3.2 1 3.9 1.6.8 3.2-3.6 5-6.2 1.2-1.7 2.4-2.4 4-2.2"/><path d="m14.2 3.2 2.6 2.6-1.6 1.6-2.6-2.6Z" class="f"/></svg></button>
+        <button type="button" data-tool="grassb" title="잔디 붓 (J) — 누른 채 문지르면 지나간 자리에 손그림 풀포기가 흩뿌려집니다" aria-label="잔디 붓"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16l1.5-5M3 16l-.5-4M3 16l3-3.5M9 15l1.5-6M9 15l-1-4.5M9 15l3.2-4M15 16l1.2-5M15 16l-1-3.8M15 16l2.6-3"/></svg></button>
         <select id="cadFfSm" class="cad-txt" style="width:46px" title="프리드로잉 다듬기 세기 — 셀수록 손떨림을 펴서 크게 흐르는 곡선이 됩니다"><option value="0">약</option><option value="1">중</option><option value="2">강</option></select><button type="button" id="cadFfTidy" class="cad-b" style="padding:2px 7px;font-size:0.76rem" title="고른 프리드로잉을 한 단계 더 매끈하게 (누를 때마다, Ctrl+Z 로 되돌리기)">다듬기</button>
         <select id="cadFfW" class="cad-txt" style="width:62px" title="프리드로잉 선 두께"><option value="p5">얇은</option><option value="p9">굵은</option><option value="thin">가늘게</option><option value="mid">보통</option><option value="thick">굵게</option></select>
         <button type="button" data-tool="fill" title="도형 채우기 (F) — 선으로 둘러싸인 면의 안쪽을 누르면 설정의 색으로 칠합니다" aria-label="채우기"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.2 9.6 9.6 4.2l6 6-5.4 5.4a1.4 1.4 0 0 1-2 0l-4-4a1.4 1.4 0 0 1 0-2Z"/><path d="M4.4 10.8h11" /><path d="M16.8 12.6c.9 1.3 1.4 2.2 1.4 2.8a1.4 1.4 0 0 1-2.8 0c0-.6.5-1.5 1.4-2.8Z" class="f"/></svg></button>
@@ -393,6 +394,15 @@
                         <label class="ctr-elev">표고<input id="fshE" class="cad-txt" placeholder="예: 72.0" style="width:72px" title="등고선 위에 적을 표고 — 비우면 적지 않습니다"></label></div>
                     <div class="cad-row"><label>볼록함<select id="fshB"><option value="0.6">완만하게</option><option value="1" selected>둥글게</option><option value="1.3">아주 둥글게</option></select></label>
                         <label>고르기<select id="fshJ"><option value="0.05">고르게</option><option value="0.2" selected>보통</option><option value="0.35">들쭉날쭉</option></select></label></div>
+                </div>
+                <div data-form="grassb">
+                    <h4>잔디 붓</h4>
+                    <p class="cad-help">누른 채 문지르면 지나간 자리에 손으로 그린 듯한 풀포기가 흩뿌려집니다. 크기·기울기가 포기마다 조금씩 다릅니다.<br>
+                       한 번 문지른 것이 한 묶음(지우개로 부분만 지울 수 있음)이고 Ctrl+Z 로 되돌립니다.</p>
+                    <div class="cad-row"><label>포기 크기<select id="fgbS"><option value="1.5">1.5mm</option><option value="2">2mm</option><option value="2.5" selected>2.5mm</option><option value="3">3mm</option><option value="4">4mm</option></select></label>
+                        <label>밀도<select id="fgbD"><option value="1.8">성김</option><option value="1.1" selected>보통</option><option value="0.7">촘촘</option></select></label></div>
+                    <div class="cad-row"><label>붓 폭<select id="fgbR"><option value="0.6">좁게</option><option value="1.5" selected>보통</option><option value="2.6">넓게</option></select></label>
+                        <label>샤프<select id="fgbW"><option value="p5" selected>얇은</option><option value="p9">굵은</option></select></label></div>
                 </div>
                 <div data-form="free">
                     <h4>프리드로잉</h4>
@@ -2641,7 +2651,32 @@ function hdlDense(o, step) {                           // 끌기 전에 고르�
         for (let t = 1; t <= n; t++) out.push([p0[0] + (q[0] - p0[0]) * t / n, p0[1] + (q[1] - p0[1]) * t / n]); }
     o.pts = out;
 }
-const freePlain = o => o && o.t === 'free' && !o.walk && !o.shrub && !o.arrow && !o.mark && !o.space && !o.hedge && !o.lead && o.pts && o.pts.length > 1;
+// ── 잔디 붓(대표님 2026-10) ── 문지른 자리에 풀포기를 흩뿌린다. 포기 하나 = 꺾은선 하나(왼잎 끝 → 밑동 → 가운데 잎 끝 → 밑동 → 오른잎 끝).
+// 크기(종이 mm)·밀도(포기 간격 = 크기 × 밀도)·붓 폭(문지른 길에서 옆으로 흩는 폭 = 크기 × 붓 폭). 겹치지 않게 가까운 포기는 건너뛰고, 자가 덮은 곳은 뺀다
+function grassTuft(x, y, h) {
+    const r = Math.random, rot = (r() - 0.5) * 0.45, cs = Math.cos(rot), sn = Math.sin(rot);
+    const P2 = (dx, dy) => [+(x + dx * cs - dy * sn).toFixed(3), +(y + dx * sn + dy * cs).toFixed(3)];
+    // 좌우 잎은 길게, 밑동에서 바깥으로 휘어 벌어지게 — 짧고 붙으면 ↓ 화살표로 보인다(잔디 채우기에서 겪은 것과 같다)
+    const hm = h * (0.9 + r() * 0.25), hl = h * (0.7 + r() * 0.2), hr = h * (0.65 + r() * 0.2), wl = h * (0.5 + r() * 0.15), wr = h * (0.48 + r() * 0.15), b = h * 0.07;
+    return [P2(-wl, -hl), P2(-wl * 0.38, -hl * 0.62), P2(-b, 0), P2((r() - 0.5) * h * 0.12, -hm), P2(b, 0), P2(wr * 0.38, -hr * 0.6), P2(wr, -hr)];
+}
+function grassDab(w) {
+    const D = drag; if (!D) return;
+    const mm = +(($('fgbS') && $('fgbS').value) || 2.5), h = mm * scaleDenom() / 1000, gap = h * +(($('fgbD') && $('fgbD').value) || 1.1), R = h * +(($('fgbR') && $('fgbR').value) || 1.5);
+    if (D.last && Math.hypot(w.x - D.last.x, w.y - D.last.y) < gap * 0.6) return;
+    const dir = D.last ? Math.atan2(w.y - D.last.y, w.x - D.last.x) : 0; D.last = {x: w.x, y: w.y};
+    let n = 1 + (R > h ? 1 : 0) + (R > h * 2 ? 1 : 0);
+    for (let k = 0; k < n * 3 && D.tufts.length < 4000; k++) {
+        const off = (Math.random() - 0.5) * 2 * R, along = (Math.random() - 0.5) * gap * 0.6;
+        const x = w.x - Math.sin(dir) * off + Math.cos(dir) * along, y = w.y + Math.cos(dir) * off + Math.sin(dir) * along;
+        if (D.tufts.some(t => Math.hypot(t[2][0] - x, t[2][1] - y) < gap * 0.75) || covered({x, y})) continue;
+        D.tufts.push(grassTuft(x, y, h));
+        if (--n <= 0) break;
+    }
+    const st = stAttr('solid', ($('fgbW') && $('fgbW').value) || 'p5');
+    gPre.innerHTML = D.tufts.map(t => `<path d="M${t.map(q => `${fmt(q[0])} ${fmt(q[1])}`).join('L')}" ${st}/>`).join('');
+}
+const freePlain = o => o && o.t === 'free' && !o.grass && !o.walk && !o.shrub && !o.arrow && !o.mark && !o.space && !o.hedge && !o.lead && o.pts && o.pts.length > 1;
 function freeJoin(N) {
     let made = 0, only = null;                          // 둘째 바퀴는 새 획의 남은 끝(이은 획의 마지막 점)만 본다 — 먼저 그은 획의 다른 끝까지 엉뚱하게 잇지 않게
     for (let round = 0; round < 2; round++) {
@@ -2850,6 +2885,7 @@ function opSvg(op) {
     if (op.t === 'free' && op.arrow && op.arrow.kind === 'link') return op.pts && op.pts.length > 1 ? linkSvg(op.pts, op.arrow.both) : '';   // 연계동선 — 동그라미 줄
     if (op.t === 'free' && op.arrow) return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${arrowAttr(op.arrow.kind)}/>` + arrowHeadSvg(op.pts, op.arrow.kind, op.arrow.both) : '';   // 동선 화살표
     if (op.t === 'free' && op.shrub && op.shrub.kind === 'contour' && op.shrub.elev && op.pts && op.pts.length > 1 && (op.grp == null || op.grp === op.id)) return contourSvg(op);
+    if (op.t === 'free' && op.grass) return op.pts && op.pts.length > 1 ? `<path d="M${op.pts.map(q => `${fmt(q[0])} ${fmt(q[1])}`).join('L')}" ${stAttr('solid', op.w)}/>` : '';   // 잔디 붓 — 풀잎 끝이 뾰족하게 꺾은선 그대로
     if (op.t === 'free' && op.space) return op.pts && op.pts.length > 1 ? `<path d="${spD(op.pts)}" ${stAttr(op.ls, op.w)}/>` : '';   // 공간 — 끝 막음이 반듯하게
     if (op.t === 'free') return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${op.hedge || op.space ? stAttr(op.ls, op.w) : freeAttr(op.ls, op.w)}/>` : '';   // 경계식재 선은 엷은 프리드로잉 굵기가 아니라 샤프 선 그대로
     if (op.t === 'fill' && !op._raw && ((op.cuts && op.cuts.length) || (op.holes && op.holes.length))) {   // holes — 위에 얹힌 교목·관목 자리(경계식재)   // 지우개로 지운 자리 — 원판들을 검게 뚫은 mask 로 가린다
@@ -6822,6 +6858,7 @@ function hintText() {
     if (tool.startsWith('pen')) return ' · 누르면 점, 자의 변에서 오른쪽 버튼으로 끌면 선 · Ctrl+끌기로 화면 이동';
     if (tool === 'select') return ' · 끌면 화면 이동 · Shift+끌기로 영역 선택';
     if (tool === 'free') return ' · 누른 채 끌면 선 · Ctrl+끌기로 화면 이동';
+    if (tool === 'grassb') return ' · 누른 채 문지르면 풀포기 · Ctrl+끌기로 화면 이동';
     if (!f) return '';
     const names = {line: ['시작점', '종료점'], rect: ['모서리 1', '모서리 2'], arc: arcMode === 'fillet' ? ['모서리 점'] : ['시작점', '종료점'], circle: ['중심', '크기'], sym: ['기준점'], text: ['기준점']}[tool];
     return ` · ${names[Math.min(pickIdx, names.length - 1)]}을(를) 누르세요 · 우클릭/Esc 취소`;
@@ -6845,7 +6882,7 @@ function setTool(t, keepEdit) {
     if (t === 'lead') { cnLoadTrees(); leadTypeDraw(); }   // 이어 긋던 다각선·수목 군식은 버린다
     tool = t;
     if (!keepEdit) endEdit();
-    root.className = root.className.replace(/\bcad-tool-\S+/g, '').trim() + ' cad-tool-' + t + (t === 'free' ? ' cad-tool-' + (($('ffW') && ['p9', 'mid', 'thick'].includes($('ffW').value)) ? 'pen9' : 'pen5') : '');
+    root.className = root.className.replace(/\bcad-tool-\S+/g, '').trim() + ' cad-tool-' + t + (t === 'free' ? ' cad-tool-' + (($('ffW') && ['p9', 'mid', 'thick'].includes($('ffW').value)) ? 'pen9' : 'pen5') : '') + (t === 'grassb' ? ' cad-tool-' + ((($('fgbW') && $('fgbW').value) === 'p9') ? 'pen9' : 'pen5') : '');
     document.querySelectorAll('#cadTools [data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === t));
     const form = t.startsWith('pen') ? 'pen' : t.startsWith('erase') ? 'erase' : t;
     if (form === 'erase') $('feName').textContent = t === 'erase5' ? '미세 지우개 (지우개 연필)' : '일반 지우개';
@@ -9336,6 +9373,15 @@ svg.addEventListener('pointerdown', e => {
         drawPre(); status(); return;
     }
     if (tool === 'shrub' && e.button === 2 && shrubCh) { drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; shrubFinish(false); return; }
+    if (tool === 'grassb' && e.button === 0) {          // 잔디 붓(대표님 2026-10) — 자 몸통이면 자를 옮긴다
+        const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
+        if (c('#cadTri .tri-body')) { startTriDrag(e, w); return; }
+        if (c('#cadFtri .tri-body')) { startFtriDrag(e, w); return; }
+        if (c('#cadTpl .tpl-body')) { startTplDrag(e, w); return; }
+        if (c('#cadSr .sr-body')) { startSrDrag(e, w); return; }
+        if (c('#cadBar .bar-body')) { drag = {kind: 'bar', sx: e.clientX, sy: e.clientY, off: w.y - barY, moved: false}; return; }
+        drag = {kind: 'grassb', tufts: [], last: null, sx: e.clientX, sy: e.clientY}; grassDab(w); return;
+    }
     if ((tool === 'free' || tool === 'shrub') && e.button === 0) {
         const w = toWorld(e), c = sel => e.target.closest && e.target.closest(sel);
         if (c('#cadTri .tri-body')) { startTriDrag(e, w); return; }
@@ -9447,7 +9493,7 @@ svg.addEventListener('pointerdown', e => {
             moved: false, target: e.target, w0: w, shift: e.shiftKey || e.ctrlKey || e.metaKey};
 });
 // 긋다가 화면 끝(36px 안)에 닿으면 화면이 저절로 그쪽으로 흘러가며 계속 긋는다(사용자) — 샤프·프리드로잉·박스
-const AUTO_KINDS = ['pencil', 'free', 'box', 'shrub', 'spbox', 'spfree', 'boxdraw', 'awfree', 'awbox', 'shbox'];
+const AUTO_KINDS = ['pencil', 'free', 'grassb', 'box', 'shrub', 'spbox', 'spfree', 'boxdraw', 'awfree', 'awbox', 'shbox'];
 // 시설 및 수목(기호)을 넣을 때는 누르지 않고 커서만 끝으로 가져가도 화면이 흘러간다(대표님) — 여러 그루를 이어 심다 화면 끝에 닿았을 때
 const autoOk = () => drag ? AUTO_KINDS.includes(drag.kind) : !RP;   // 누르지 않아도 어느 도구든(대표님) — 끝에 0.25초 머물러야 흐른다(도구 줄·목록으로 지나갈 때 튀지 않게)
 let autoPan = null;
@@ -9647,6 +9693,7 @@ svg.addEventListener('pointermove', e => {
             + (cl ? `<circle cx="${fmt(s0[0])}" cy="${fmt(s0[1])}" r="${fmt(Math.max(st.size, 0.8 * U))}" fill="none" stroke="#2ea043" stroke-width="${fmt(0.15 * U)}"/>` : '');
         return;
     }
+    if (drag && drag.kind === 'grassb') { grassDab(w); return; }
     if (drag && drag.kind === 'free') {             // 2px 넘게 움직일 때마다 한 점(자에 대면 변을 따라간다)
         w = rulerPin(w); if (w.pin) drag.pin = true;
         const l = drag.pts[drag.pts.length - 1];
@@ -9865,6 +9912,12 @@ function endPtr(e) {
         const moved = Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 4 || d.pts.length > 3;
         if (!moved) { drawPre(); return; }            // 누르기만 한 것(더블클릭의 첫 누름 등)은 잇지 않는다
         shrubAdd(d.pts); return;
+    }
+    if (d.kind === 'grassb') {
+        gPre.innerHTML = ''; if (!d.tufts.length) return;
+        snapHist(); const gid = doc.seq, wv = ($('fgbW') && $('fgbW').value) || 'p5', mm = +(($('fgbS') && $('fgbS').value) || 2.5);
+        d.tufts.forEach(t => doc.ops.push({id: doc.seq++, t: 'free', pts: t, ls: 'solid', w: wv, grass: {mm}, grp: gid, gname: '잔디'}));
+        changed(); flash(`잔디 ${d.tufts.length}포기`); return;
     }
     if (d.kind === 'free') {                          // 자가 덮은 곳에서 끊어 조각마다 한 획, 떨림은 0.6px 로 거른다
         gPre.innerHTML = '';
@@ -10772,7 +10825,7 @@ document.addEventListener('keydown', e => {
     if (barOn && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         e.preventDefault(); setBarY(barY + (e.key === 'ArrowUp' ? -1 : 1) * ($('cadSnap').checked ? barStep() : PREC) * (e.shiftKey ? 5 : 1)); saveBar(); return;
     }
-    const map = {v: 'select', t: 'text', f: 'fill', d: 'free', x: 'box', q: 'poly', g: 'shrub', l: 'lead', h: 'hedge', a: 'arrow', k: 'space', b: 'sym', n: 'dim', c: 'trim', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
+    const map = {v: 'select', t: 'text', f: 'fill', d: 'free', j: 'grassb', x: 'box', q: 'poly', g: 'shrub', l: 'lead', h: 'hedge', a: 'arrow', k: 'space', b: 'sym', n: 'dim', c: 'trim', 9: 'pen9', 5: 'pen5', w: 'erase5', e: 'erase'};
     if (map[k]) setTool(map[k]);
     if (k === '+' || k === '=') zoomCenter(1.4);
     if (k === '-') zoomCenter(1 / 1.4);
