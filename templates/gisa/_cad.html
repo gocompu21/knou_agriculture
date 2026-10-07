@@ -5597,10 +5597,13 @@ function leadStart(p) {
 }
 const leadArea = () => !!($('fdArea') && $('fdArea').checked);
 // 면적형 위 줄 — '골풀 - 25/㎡'(대표님 2026-10, 성운 401 답안 '부들 − 25/m²'). 밀도에 단위를 안 붙였으면 /㎡ 를 붙인다
-const leadAreaTop = (nm, d) => { d = String(d || '').trim(); if (d && !/[/㎡m]/.test(d)) d += '/㎡'; return nm && d ? `${nm} - ${d}` : nm || d; };
+// 줄표 앞뒤를 띄우지 않는다 — '부들-25/㎡'(대표님 2026-10 손글씨 답안)
+const leadAreaTop = (nm, d) => { d = String(d || '').trim(); if (d && !/[/㎡m]/.test(d)) d += '/㎡'; return nm && d ? `${nm}-${d}` : nm || d; };
+// 면적으로 심는 수종 — 수목 규격표 단위가 ㎡ 이거나 부들·갈대·골풀. 체크를 안 해도 이 수종이면 면적형으로 적는다(대표님: 갯수 25 를 넣으면 '부들-25/㎡')
+const leadAreaSp = nm => { nm = String(nm || '').trim(); if (!nm) return false; const q = typeof cnTree === 'function' ? cnTree(nm) : null; return !!(q && q.unit === '㎡') || /^(부들|갈대|골풀|애기부들|큰고랭이|물억새)$/.test(nm); };
 function leadTexts() {
     const c = String($('fdCnt').value || '').trim(), nm = String($('fdName').value || '').trim();
-    if (leadArea()) return {top: leadAreaTop(nm, c), bot: String($('fdSpec').value || '').trim(), pre: ''};
+    if (leadArea() || leadAreaSp(nm)) return {top: leadAreaTop(nm, c), bot: String($('fdSpec').value || '').trim(), pre: ''};
     return {top: c && nm ? `${c} - ${nm}` : nm || c, bot: String($('fdSpec').value || '').trim(), pre: c && nm ? `${c} - ` : ''};
 }
 function leadSize() { return +(+($('fdMm') && $('fdMm').value || 3) * scaleDenom() / 1000).toFixed(4); }
@@ -7886,7 +7889,8 @@ function leadEditSync() {
     const T = leadEditTarget(); if (!T) { box.hidden = true; box.dataset.k = ''; return; }
     const key = [...T.L].join(','); if (!box.hidden && box.dataset.k === key) return;   // 고르는 동안 적던 것을 덮지 않는다
     const m = /^\s*(\d+)\s*-\s*(.*)$/.exec(String(T.top.s)), ma = !m && /^(.*?)\s*-\s*([\d.]+)\s*\/\s*(?:㎡|m²|m2)\s*$/.exec(String(T.top.s));
-    box.dataset.area = ma ? '1' : ''; $('fleCntLb').textContent = ma ? '밀도/㎡' : '갯수';
+    const asp = !ma && m && leadAreaSp(m[2]);           // '25 - 부들' 처럼 갯수로 적힌 면적 수종 — 고치면 '부들-25/㎡' 로
+    box.dataset.area = ma || asp ? '1' : ''; $('fleCntLb').textContent = ma || asp ? '밀도/㎡' : '갯수';
     $('fleCnt').value = m ? m[1] : ma ? ma[2] : ''; $('fleName').value = m ? m[2].trim() : ma ? ma[1].trim() : String(T.top.s).trim(); $('fleSpec').value = T.bot ? String(T.bot.s).trim() : '';
     const cur = leadEditGeom(T); box.dataset.t = cur ? cur.t : '';
     $('fleTypes').innerHTML = LEAD_TYPES.map(([v, n]) => `<button type="button" data-lt="${v}" title="${n}"${cur && v === cur.t ? ' class="on"' : ''}>${leadIcon(v)}</button>`).join('');
@@ -7912,7 +7916,7 @@ function leadEditApply() {
     if (!nm && !c) { flash('갯수나 수종을 적어 주세요'); return; }
     const nt = $('fsLead').dataset.nt, G0 = leadEditGeom(T);
     if (nt && G0 && nt !== G0.t) { leadEditRetype(T, G0, nt); return; }
-    const area = $('fsLead').dataset.area === '1', top = area ? leadAreaTop(nm, c) : c && nm ? `${c} - ${nm}` : nm || c, pre = !area && c && nm ? `${c} - ` : '';
+    const area = $('fsLead').dataset.area === '1' || leadAreaSp(nm), top = area ? leadAreaTop(nm, c) : c && nm ? `${c} - ${nm}` : nm || c, pre = !area && c && nm ? `${c} - ` : '';
     const sz = +T.top.size || 1, font = T.top.font || 'gothic', pad = sz * 0.5, meas = t => leadMeasure(t || ' ', sz, font);
     const oldW = Math.max(meas(T.top.s), T.bot ? (T.bot.x - T.top.x) + meas(T.bot.s) : 0);
     // 가로선 — 글 아래 지시선 선 가운데 수평인 것. 다른 지시선 선과 이어진 끝이 안쪽, 남은 끝이 바깥쪽(E)
@@ -8000,7 +8004,7 @@ function leadDragEnd(D) {
 // 형을 바꾼다 — 시작점은 그대로 두고, 꺾는 높이(없으면 글자 3칸)·옆 거리를 지켜 새 형으로 다시 긋는다(글은 고치기 칸 것으로)
 function leadEditRetype(T, G0, nt) {
     const c = String($('fleCnt').value || '').trim(), nm = String($('fleName').value || '').trim(), spec = String($('fleSpec').value || '').trim();
-    const area = $('fsLead').dataset.area === '1', top = area ? leadAreaTop(nm, c) : c && nm ? `${c} - ${nm}` : nm || c, pre = !area && c && nm ? `${c} - ` : '';
+    const area = $('fsLead').dataset.area === '1' || leadAreaSp(nm), top = area ? leadAreaTop(nm, c) : c && nm ? `${c} - ${nm}` : nm || c, pre = !area && c && nm ? `${c} - ` : '';
     const sz = +T.top.size || 1, S = G0.S, up = nt[0] === 'u', bent = nt.length === 2, right = nt.endsWith('r');
     const dy = G0.B ? Math.abs(G0.B.y - S.y) : sz * 3, dx = G0.B ? Math.abs(G0.B.x - S.x) : 0;
     const w = bent ? {x: S.x + (right ? dx : -dx), y: S.y + (up ? -dy : dy)} : {x: S.x, y: S.y};   // 옆 형은 시작점에서 글자 1.5칸 띄워 글을 시작한다
@@ -10005,7 +10009,7 @@ function fdAreaSync() { const a = leadArea(); $('fdCntLb').textContent = a ? '�
 try { $('fdArea').checked = localStorage.getItem('cadLeadArea') === '1'; } catch (e) {}
 fdAreaSync();
 $('fdArea').addEventListener('change', () => { leadS = null; fdAreaSync(); });
-$('fdName').addEventListener('change', () => { const q = cnTree($('fdName').value); if (q && (q.unit === '㎡') !== leadArea() && !leadS) { $('fdArea').checked = q.unit === '㎡'; fdAreaSync(); } });   // ㎡ 로 세는 수종(골풀·갈대·부들)이면 면적형으로
+$('fdName').addEventListener('change', () => { const q = cnTree($('fdName').value); if (q && (q.unit === '㎡') !== leadArea()) { $('fdArea').checked = q.unit === '㎡'; fdAreaSync(); } });   // ㎡ 로 세는 수종(골풀·갈대·부들)이면 면적형으로
 ['fleCnt', 'fleName', 'fleSpec'].forEach(id => $(id).addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); leadEditApply(); } }));
 $('fleName').addEventListener('change', () => { const q = cnTree($('fleName').value), sp = $('fleSpec'); if (q && (!sp.value.trim() || sp.dataset.auto === sp.value)) sp.value = sp.dataset.auto = q.spec; });   // 손으로 적은 규격은 덮지 않는다
 $('cnSheet').addEventListener('change', cnSync);
