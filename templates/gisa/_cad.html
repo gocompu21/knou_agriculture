@@ -2654,11 +2654,20 @@ function hdlDense(o, step) {                           // 끌기 전에 고르�
 // ── 잔디 붓(대표님 2026-10) ── 문지른 자리에 풀포기를 흩뿌린다. 포기 하나 = 꺾은선 하나(왼잎 끝 → 밑동 → 가운데 잎 끝 → 밑동 → 오른잎 끝).
 // 크기(종이 mm)·밀도(포기 간격 = 크기 × 밀도)·붓 폭(문지른 길에서 옆으로 흩는 폭 = 크기 × 붓 폭). 겹치지 않게 가까운 포기는 건너뛰고, 자가 덮은 곳은 뺀다
 function grassTuft(x, y, h) {
-    const r = Math.random, rot = (r() - 0.5) * 0.45, cs = Math.cos(rot), sn = Math.sin(rot);
+    // 잎 3~4장을 밑동을 조금씩 떼어 '\ | /' 로 벌린다 — 한 점으로 모으면 작은 크기에서 ↓ 화살표로 보였다(대표님 2026-10).
+    // pts 는 [밑동, 끝] 짝의 나열(grass.v = 2) — 잎마다 따로 긋는다
+    const r = Math.random, rot = (r() - 0.5) * 0.35, cs = Math.cos(rot), sn = Math.sin(rot), n = r() < 0.35 ? 4 : 3, out = [];
     const P2 = (dx, dy) => [+(x + dx * cs - dy * sn).toFixed(3), +(y + dx * sn + dy * cs).toFixed(3)];
-    // 좌우 잎은 길게, 밑동에서 바깥으로 휘어 벌어지게 — 짧고 붙으면 ↓ 화살표로 보인다(잔디 채우기에서 겪은 것과 같다)
-    const hm = h * (0.9 + r() * 0.25), hl = h * (0.7 + r() * 0.2), hr = h * (0.65 + r() * 0.2), wl = h * (0.5 + r() * 0.15), wr = h * (0.48 + r() * 0.15), b = h * 0.07;
-    return [P2(-wl, -hl), P2(-wl * 0.38, -hl * 0.62), P2(-b, 0), P2((r() - 0.5) * h * 0.12, -hm), P2(b, 0), P2(wr * 0.38, -hr * 0.6), P2(wr, -hr)];
+    for (let i = 0; i < n; i++) {
+        const u = n === 1 ? 0 : i / (n - 1) * 2 - 1;      // -1 … 1
+        const bx = u * h * 0.2 + (r() - 0.5) * h * 0.06, len = h * (1 - Math.abs(u) * 0.25) * (0.85 + r() * 0.3), lean = u * 0.55 + (r() - 0.5) * 0.15;
+        out.push(P2(bx, 0), P2(bx + Math.sin(lean) * len, -Math.cos(lean) * len));
+    }
+    return out;
+}
+function grassD(pts, pairs) {                           // 잔디 경로 — 새 것(v2)은 잎마다 따로, 예전 것은 꺾은선
+    if (!pairs) return 'M' + pts.map(q => `${fmt(q[0])} ${fmt(q[1])}`).join('L');
+    let d = ''; for (let i = 0; i + 1 < pts.length; i += 2) d += `M${fmt(pts[i][0])} ${fmt(pts[i][1])}L${fmt(pts[i + 1][0])} ${fmt(pts[i + 1][1])}`; return d;
 }
 function grassDab(w) {
     const D = drag; if (!D) return;
@@ -2669,12 +2678,12 @@ function grassDab(w) {
     for (let k = 0; k < n * 3 && D.tufts.length < 4000; k++) {
         const off = (Math.random() - 0.5) * 2 * R, along = (Math.random() - 0.5) * gap * 0.6;
         const x = w.x - Math.sin(dir) * off + Math.cos(dir) * along, y = w.y + Math.cos(dir) * off + Math.sin(dir) * along;
-        if (D.tufts.some(t => Math.hypot(t[2][0] - x, t[2][1] - y) < gap * 0.75) || covered({x, y})) continue;
+        if (D.tufts.some(t => Math.hypot(t[0][0] - x, t[0][1] - y) < gap * 0.75) || covered({x, y})) continue;
         D.tufts.push(grassTuft(x, y, h));
         if (--n <= 0) break;
     }
     const st = stAttr('solid', ($('fgbW') && $('fgbW').value) || 'p5');
-    gPre.innerHTML = D.tufts.map(t => `<path d="M${t.map(q => `${fmt(q[0])} ${fmt(q[1])}`).join('L')}" ${st}/>`).join('');
+    gPre.innerHTML = D.tufts.map(t => `<path d="${grassD(t, true)}" ${st}/>`).join('');
 }
 const freePlain = o => o && o.t === 'free' && !o.grass && !o.walk && !o.shrub && !o.arrow && !o.mark && !o.space && !o.hedge && !o.lead && o.pts && o.pts.length > 1;
 function freeJoin(N) {
@@ -2885,7 +2894,7 @@ function opSvg(op) {
     if (op.t === 'free' && op.arrow && op.arrow.kind === 'link') return op.pts && op.pts.length > 1 ? linkSvg(op.pts, op.arrow.both) : '';   // 연계동선 — 동그라미 줄
     if (op.t === 'free' && op.arrow) return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${arrowAttr(op.arrow.kind)}/>` + arrowHeadSvg(op.pts, op.arrow.kind, op.arrow.both) : '';   // 동선 화살표
     if (op.t === 'free' && op.shrub && op.shrub.kind === 'contour' && op.shrub.elev && op.pts && op.pts.length > 1 && (op.grp == null || op.grp === op.id)) return contourSvg(op);
-    if (op.t === 'free' && op.grass) return op.pts && op.pts.length > 1 ? `<path d="M${op.pts.map(q => `${fmt(q[0])} ${fmt(q[1])}`).join('L')}" ${stAttr('solid', op.w)}/>` : '';   // 잔디 붓 — 풀잎 끝이 뾰족하게 꺾은선 그대로
+    if (op.t === 'free' && op.grass) return op.pts && op.pts.length > 1 ? `<path d="${grassD(op.pts, op.grass.v === 2)}" ${stAttr('solid', op.w)}/>` : '';   // 잔디 붓 — 풀잎 끝이 뾰족하게 꺾은선 그대로
     if (op.t === 'free' && op.space) return op.pts && op.pts.length > 1 ? `<path d="${spD(op.pts)}" ${stAttr(op.ls, op.w)}/>` : '';   // 공간 — 끝 막음이 반듯하게
     if (op.t === 'free') return op.pts && op.pts.length > 1 ? `<path d="${freeD(op.pts)}" ${op.hedge || op.space ? stAttr(op.ls, op.w) : freeAttr(op.ls, op.w)}/>` : '';   // 경계식재 선은 엷은 프리드로잉 굵기가 아니라 샤프 선 그대로
     if (op.t === 'fill' && !op._raw && ((op.cuts && op.cuts.length) || (op.holes && op.holes.length))) {   // holes — 위에 얹힌 교목·관목 자리(경계식재)   // 지우개로 지운 자리 — 원판들을 검게 뚫은 mask 로 가린다
@@ -5644,9 +5653,10 @@ const leadAreaTop = (nm, d) => { d = String(d || '').trim(); if (d && !/[/㎡m]/
 // 면적으로 심는 수종 — 수목 규격표 단위가 ㎡ 이거나 부들·갈대·골풀. 체크를 안 해도 이 수종이면 면적형으로 적는다(대표님: 갯수 25 를 넣으면 '부들-25/㎡')
 const leadAreaSp = nm => { nm = String(nm || '').trim(); if (!nm) return false; const q = typeof cnTree === 'function' ? cnTree(nm) : null; return !!(q && q.unit === '㎡') || /^(부들|갈대|골풀|애기부들|큰고랭이|물억새|잔디|들잔디|금잔디)$/.test(nm); };
 function leadTexts() {
-    const c = String($('fdCnt').value || '').trim(), nm = String($('fdName').value || '').trim();
-    if (leadArea() || leadAreaSp(nm)) return {top: leadAreaTop(nm, c), bot: String($('fdSpec').value || '').trim(), pre: ''};
-    return {top: c && nm ? `${c} - ${nm}` : nm || c, bot: String($('fdSpec').value || '').trim(), pre: c && nm ? `${c} - ` : ''};
+    const nm = String($('fdName').value || '').trim(), turf = /잔디$/.test(nm);   // 잔디 — 비워 두면 11매/㎡ · 0.3×0.3×0.03(대표님 2026-10)
+    const c = String($('fdCnt').value || '').trim() || (turf ? '11' : ''), sp0 = String($('fdSpec').value || '').trim() || (turf ? '0.3×0.3×0.03' : '');
+    if (leadArea() || leadAreaSp(nm)) return {top: leadAreaTop(nm, c), bot: sp0, pre: ''};
+    return {top: c && nm ? `${c} - ${nm}` : nm || c, bot: sp0, pre: c && nm ? `${c} - ` : ''};
 }
 function leadSize() { return +(+($('fdMm') && $('fdMm').value || 3) * scaleDenom() / 1000).toFixed(4); }
 // 두 번째로 누른 자리 w → 선의 꼭짓점들과 글자 자리
@@ -7735,7 +7745,7 @@ function eraseAt(C, r) {
             }
             out.push(op); return;
         }
-        if (op.t === 'free') { pcs = op.shrub || op.arrow ? (cutFree(op, C, r) ? [] : null) : cutFree(op, C, r);   // 화살표도 닿으면 통째로   // 수목 군식은 닿으면 통째로(끊긴 조각 묶음이면 묶음째)
+        if (op.t === 'free') { pcs = op.shrub || op.arrow || op.grass ? (cutFree(op, C, r) ? [] : null) : cutFree(op, C, r);   // 잔디 포기도 닿으면 통째로   // 화살표도 닿으면 통째로   // 수목 군식은 닿으면 통째로(끊긴 조각 묶음이면 묶음째)
             if (op.shrub && pcs && op.grp != null) (shGone = shGone || new Set()).add(op.grp); }
         else if (op.t === 'line') { pcs = cutLine(op, C, r); if (pcs && op.lead) { (leadGone = leadGone || new Set()).add(op.id); pcs = [op]; } }   // 지시선은 조각내지 않고 한 벌 통째로(아래에서)
         else if (op.t === 'circle' || op.t === 'arc') pcs = cutArc(op, C, r);
@@ -9918,7 +9928,7 @@ function endPtr(e) {
     if (d.kind === 'grassb') {
         gPre.innerHTML = ''; if (!d.tufts.length) return;
         snapHist(); const gid = doc.seq, wv = ($('fgbW') && $('fgbW').value) || 'p5', mm = +(($('fgbS') && $('fgbS').value) || 2.5);
-        d.tufts.forEach(t => doc.ops.push({id: doc.seq++, t: 'free', pts: t, ls: 'solid', w: wv, grass: {mm}, grp: gid, gname: '잔디'}));
+        d.tufts.forEach(t => doc.ops.push({id: doc.seq++, t: 'free', pts: t, ls: 'solid', w: wv, grass: {mm, v: 2}, grp: gid, gname: '잔디'}));
         changed(); flash(`잔디 ${d.tufts.length}포기`); return;
     }
     if (d.kind === 'free') {                          // 자가 덮은 곳에서 끊어 조각마다 한 획, 떨림은 0.6px 로 거른다
