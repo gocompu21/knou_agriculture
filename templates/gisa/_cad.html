@@ -3594,6 +3594,7 @@ function grpDesc(ops, full) {                          // '정삼각형 P1 → P
     if (o.lead) return `지시선 · ${o.leadTxt || ''}`;
     if (o.space) return `공간 · ${({box: '네모', pts: '점', free: '자유곡선'})[o.space.mode] || ''} · ${o.space.open ? '열린 선' : `면적 약 ${fmt(Math.round(o.spaceArea || 0))}㎡`}`;
     if (o.hedge) return `경계식재 · 폭 ${fmt(o.hedge.W)}m · 길이 ${fmt(o.hedgeLen || 0)}m`;
+    if (o.t === 'free' && o.grass) return `잔디 · ${ops.length}포기 · 포기 ${fmt(o.grass.mm)}mm`;   // 잔디 붓 — 꺾은선이라 점 번호가 없다(전엔 'Pundefined →' 로 보였다)
     if (o.t === 'free' && o.walk) { const a = o.pts || []; let L = 0; for (let i = 1; i < a.length; i++) L += Math.hypot(a[i][0] - a[i - 1][0], a[i][1] - a[i - 1][1]);
         return `${o.gname || '산책로'} · 두 줄 · 폭 ${fmt(o.walk.w)}m · 길이 약 ${fmt(Math.round(L))}m`; }
     if (o.t === 'free' && o.shrub) {                     // 수목 군식 — 교목·관목 뒤로 지나가 끊긴 조각들

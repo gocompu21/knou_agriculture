@@ -11,6 +11,7 @@ with Cad(size=(1400, 900)) as c:
     g = [o for o in c.doc()['ops'] if o.get('grass')]
     print('포기', len(g), '묶음', {o['grp'] for o in g}, c.errors)
     ok &= len(g) > 10 and len({o['grp'] for o in g}) == 1 and not c.errors
+    lst = c.pg.locator('#cadOpList').inner_text(); print('목록', lst.strip()[:80]); ok &= 'undefined' not in lst and '잔디' in lst
     a, b = c.S(26, 42), c.S(74, 58)
     c.pg.screenshot(path=os.path.join(OUT, 'grass.png'), clip={'x': a[0], 'y': a[1], 'width': b[0] - a[0], 'height': b[1] - a[1]})
 print('통과' if ok else '실패'); sys.exit(0 if ok else 1)
