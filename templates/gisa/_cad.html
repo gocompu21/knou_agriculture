@@ -7950,6 +7950,53 @@ function leadEditApply() {
     selOps = new Set([...withLeads(new Set([hz.id]))]); $('fsLead').dataset.k = ''; $('fsLead').dataset.nt = '';
     changed(); flash(`지시선 — ${lbl}`);
 }
+// 지시선 글 끌기(대표님 2026-10) — 선택 도구로 지시선의 글(또는 선)을 잡고 끌면 시작점은 그대로, 꺾는 점·가로선·글·글자 보조선만 따라온다.
+// 곧게 90° 로 꺾은 형은 세로선 길이만(좌우로는 못 간다 — 시작점에서 곧게 올라가야 하므로), 자유각도는 위아래·좌우 모두, 옆 형(r·l)은 가로선 길이만 바뀐다.
+// 형과 반대쪽으로는 넘어가지 않는다(글자 1.5칸에서 멈춤)
+function leadDragStart(op, w) {
+    const L = leadSet(op); if (!L) return null;
+    const lines = doc.ops.filter(o => o.lead && L.has(o.id) && o.t === 'line'); if (!lines.length || lines[0].spLead) return null;
+    const texts = doc.ops.filter(o => L.has(o.id) && o.t === 'text' && o.x != null).sort((a, b) => a.y - b.y); if (!texts.length) return null;
+    const G = leadEditGeom({L, lines, top: texts[0]}); if (!G) return null;
+    const pn = new Set(); lines.forEach(o => { pn.add(+o.a); pn.add(+o.b); }); pn.delete(+G.Sn);
+    return {L, lines, texts, G, pn: [...pn], w0: snapXY(w), free: !!G.B && Math.abs(G.B.x - G.S.x) > 1e-3, size: +texts[0].size || 1};
+}
+function leadDragMove(D, w) {
+    const q = snapXY(w), G = D.G, S = G.S, mn = D.size * 1.5;
+    let dx = q.x - D.w0.x, dy = q.y - D.w0.y;
+    if (G.B) {
+        if (!D.free) dx = 0;                             // 곧은 형 — 세로선 길이만
+        const B0 = D.orig.get(+lineOther(G)) || null;
+        if (B0) { const ny = B0.y + dy; if (G.t[0] === 'u' && ny > S.y - mn) dy = S.y - mn - B0.y; if (G.t[0] === 'd' && ny < S.y + mn) dy = S.y + mn - B0.y; }
+    } else {
+        dy = 0;                                          // 옆 형 — 가로선 길이만
+        const xs = [...D.orig.values()].map(p => p.x).concat(D.tx0.map(t => t.x)), right = G.t === 'r';
+        const edge = right ? Math.min(...xs) : Math.max(...xs);
+        if (right && edge + dx < S.x + mn) dx = S.x + mn - edge; if (!right && edge + dx > S.x - mn) dx = S.x - mn - edge;
+    }
+    D.orig.forEach((p0, n) => { const pt = P(n); if (pt) { pt.x = +(p0.x + dx).toFixed(3); pt.y = +(p0.y + dy).toFixed(3); } });
+    D.texts.forEach((t, i) => { t.x = +(D.tx0[i].x + dx).toFixed(3); t.y = +(D.tx0[i].y + dy).toFixed(3); });
+    return {dx, dy};
+}
+// 꺾는 점 B 의 번호 — 시작점과 이어진 선(세로선)의 다른 끝
+function lineOther(G) { const leg = G.main.find(o => o !== G.hz && (+o.a === +G.Sn || +o.b === +G.Sn)); return leg ? (+leg.a === +G.Sn ? +leg.b : +leg.a) : null; }
+function leadDragBegin(D) {                              // 첫 움직임 — 되돌리기 칸, 다른 것이 함께 쓰는 점은 떼어 낸다
+    snapHist();
+    D.pn = D.pn.map(n => {
+        const others = doc.ops.some(o => !D.L.has(o.id) && ptsOf(o).map(Number).includes(n));
+        if (!others) return n;
+        const pt = P(n), nn = nextN(); doc.pts.push({n: nn, x: pt.x, y: pt.y});
+        D.lines.forEach(o => { if (+o.a === n) o.a = nn; if (+o.b === n) o.b = nn; });
+        return nn;
+    });
+    D.orig = new Map(D.pn.map(n => [n, {x: P(n).x, y: P(n).y}]));
+    D.tx0 = D.texts.map(t => ({x: t.x, y: t.y}));
+    selOps = new Set(D.L);
+}
+function leadDragEnd(D) {
+    D.lines.forEach(o => { const a = P(o.a), b = P(o.b); if (a && b) o.tl = {...toolState(), ...toolsForLine(a, b)}; });   // 재생 때 자 자리도 새 자리로
+    changed(); selInfo(); flash('지시선을 옮겼습니다 — 시작점은 그대로 (Ctrl+Z 로 되돌림)');
+}
 // 형을 바꾼다 — 시작점은 그대로 두고, 꺾는 높이(없으면 글자 3칸)·옆 거리를 지켜 새 형으로 다시 긋는다(글은 고치기 칸 것으로)
 function leadEditRetype(T, G0, nt) {
     const c = String($('fleCnt').value || '').trim(), nm = String($('fleName').value || '').trim(), spec = String($('fleSpec').value || '').trim();
@@ -9385,6 +9432,7 @@ svg.addEventListener('pointerdown', e => {
         const g = e.target.closest && e.target.closest('#cadOps [data-op]'), op = g && doc.ops.find(o => o.id === +g.dataset.op);
         if (op && op.t === 'dim' && dimDouble(e, op)) { drag = {kind: 'nop', sx: e.clientX, sy: e.clientY, warned: true}; setTimeout(() => dimTextEdit(op), 0); return; }
         if (op && op.t === 'dim') { drag = {kind: 'dimmove', id: op.id, at0: op.at, sx: e.clientX, sy: e.clientY, moved: false, target: e.target}; return; }
+        if (op && (op.lead || op.leadOf != null)) { const D = leadDragStart(op, w); if (D) { drag = {kind: 'leadmove', D, id: op.id, sx: e.clientX, sy: e.clientY, moved: false, target: e.target}; return; } }   // 지시선 글·선 끌기
     }
     // 선택 도구로 빈 곳을 끌면 화면 이동(pan) — 영역 선택은 Shift 를 누른 채 끈다
     drag = {kind: tool === 'select' && e.shiftKey ? 'box' : 'click', sx: e.clientX, sy: e.clientY, lx: e.clientX, ly: e.clientY,
@@ -9561,6 +9609,11 @@ svg.addEventListener('pointermove', e => {
                 o.pts = hdlBend(O.a, O.cum, drag.s0 * k, drag.R * k, dx, dy, false); });
         }
         drawOps(); drawHandles(); return;
+    }
+    if (drag && drag.kind === 'leadmove') {            // 지시선 끌기 — 시작점은 그대로
+        if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 4) return;
+        if (!drag.moved) { leadDragBegin(drag.D); drag.moved = true; }
+        leadDragMove(drag.D, w); drawOps(); drawPts(); status(); return;
     }
     if (drag && drag.kind === 'dimmove') {             // 치수선 옮기기 — 커서 자리(눈금에 붙음)로 at 을 다시 잰다
         const op = doc.ops.find(o => o.id === drag.id), a = op && dimEnd(op, 'a'), b = op && dimEnd(op, 'b');
@@ -9770,6 +9823,7 @@ function endPtr(e) {
         }
         return;
     }
+    if (d.kind === 'leadmove') { if (d.moved) leadDragEnd(d.D); else selectOp(d.id, false); return; }
     if (d.kind === 'dimmove') { if (d.moved) { changed(); selInfo(); flash('치수선을 옮겼습니다 (Ctrl+Z 로 되돌림)'); } else selectOp(d.id, false); return; }
     if (d.kind === 'shbox') {                     // 관목 네모형 — 이어 긋기와 같은 끝내기(교목 뒤로 끊기 포함)로 넣는다
         gPre.innerHTML = ''; const st = shrubStyle(), raw = d.b && shrubBoxRaw(d.a, d.b, st.size);
