@@ -399,9 +399,9 @@
                     <h4>잔디 붓</h4>
                     <p class="cad-help">누른 채 문지르면 지나간 자리에 손으로 그린 듯한 풀포기가 흩뿌려집니다. 크기·기울기가 포기마다 조금씩 다릅니다.<br>
                        한 번 문지른 것이 한 묶음(지우개로 부분만 지울 수 있음)이고 Ctrl+Z 로 되돌립니다.</p>
-                    <div class="cad-row"><label>포기 크기<select id="fgbS"><option value="1.5">1.5mm</option><option value="2">2mm</option><option value="2.5" selected>2.5mm</option><option value="3">3mm</option><option value="4">4mm</option></select></label>
-                        <label>밀도<select id="fgbD"><option value="1.8">성김</option><option value="1.1" selected>보통</option><option value="0.7">촘촘</option></select></label></div>
-                    <div class="cad-row"><label>붓 폭<select id="fgbR"><option value="0.6">좁게</option><option value="1.5" selected>보통</option><option value="2.6">넓게</option></select></label>
+                    <div class="cad-row"><label>포기 크기<select id="fgbS"><option value="1.5" selected>1.5mm</option><option value="2">2mm</option><option value="2.5">2.5mm</option><option value="3">3mm</option><option value="4">4mm</option></select></label>
+                        <label>밀도<select id="fgbD"><option value="1.8" selected>성김</option><option value="1.1">보통</option><option value="0.7">촘촘</option></select></label></div>
+                    <div class="cad-row"><label>붓 폭<select id="fgbR"><option value="0.6" selected>좁게</option><option value="1.5">보통</option><option value="2.6">넓게</option></select></label>
                         <label>샤프<select id="fgbW"><option value="p5" selected>얇은</option><option value="p9">굵은</option></select></label></div>
                 </div>
                 <div data-form="free">
@@ -2662,7 +2662,7 @@ function grassTuft(x, y, h) {
 }
 function grassDab(w) {
     const D = drag; if (!D) return;
-    const mm = +(($('fgbS') && $('fgbS').value) || 2.5), h = mm * scaleDenom() / 1000, gap = h * +(($('fgbD') && $('fgbD').value) || 1.1), R = h * +(($('fgbR') && $('fgbR').value) || 1.5);
+    const mm = +(($('fgbS') && $('fgbS').value) || 1.5), h = mm * scaleDenom() / 1000, gap = h * +(($('fgbD') && $('fgbD').value) || 1.8), R = h * +(($('fgbR') && $('fgbR').value) || 0.6);
     if (D.last && Math.hypot(w.x - D.last.x, w.y - D.last.y) < gap * 0.6) return;
     const dir = D.last ? Math.atan2(w.y - D.last.y, w.x - D.last.x) : 0; D.last = {x: w.x, y: w.y};
     let n = 1 + (R > h ? 1 : 0) + (R > h * 2 ? 1 : 0);
