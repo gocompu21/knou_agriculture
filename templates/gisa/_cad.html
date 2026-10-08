@@ -86,7 +86,7 @@
         <button type="button" id="cadTriFlip" class="cad-bar-btn" title="삼각자 좌우 뒤집기" aria-label="뒤집기" hidden>⇆</button>
         <button type="button" id="cadTriDown" class="cad-bar-btn" title="삼각자를 I자 위(윗날)·아래(아랫날)로 옮겨 놓기" aria-label="위아래" hidden>⇅</button>
         <button type="button" id="cadTriRot" class="cad-bar-btn" title="60° 삼각자 눕히기 — 빗변 60° ↔ 30°" hidden>빗변 30°</button>
-        <button type="button" id="cadFtriBtn" class="cad-bar-btn" aria-label="회전 삼각자" title="회전 삼각자 45°(크기는 설정 ⚙ — 기본 24cm) — I자와 따로 놓이고 자유롭게 돌린다. 몸통을 끌어 옮기고, 빗변 바깥 손잡이를 끌어 돌린다(Shift 15°). 샤프로 세 변을 따라 긋는다"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16L16 16L4 4Z" transform="rotate(-20 10 10)"/><path d="M13 3a6 6 0 0 1 4 4" /><path d="M17 3v4h-4"/></svg></button>
+        <button type="button" id="cadFtriBtn" class="cad-bar-btn" aria-label="회전 삼각자" title="회전 삼각자 45°(크기는 설정 ⚙ — 기본 24cm) — I자와 따로 놓이고 자유롭게 돌린다. 몸통을 끌어 옮기고(Shift 는 눈금 없이 자유롭게), 빗변 바깥 손잡이를 끌어 0.1° 단위로 돌린다(Shift 15°). 샤프로 세 변을 따라 긋는다"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16L16 16L4 4Z" transform="rotate(-20 10 10)"/><path d="M13 3a6 6 0 0 1 4 4" /><path d="M17 3v4h-4"/></svg></button>
         <button type="button" id="cadTplBtn" class="cad-bar-btn" aria-label="원형 템플릿" title="원형 템플릿 — 몸통을 끌어 옮기고, 샤프로 구멍 안을 따라 돌리면 원(돌린 만큼 호)이 그려집니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="4.5" width="17" height="11" rx="1.5" fill="#f2c230" stroke="#b08a10" stroke-width="1"/><circle cx="5.5" cy="10" r="2.6" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="11" cy="10" r="1.9" fill="#fff" stroke="#b08a10" stroke-width=".7"/><circle cx="15.3" cy="10" r="1.2" fill="#fff" stroke="#b08a10" stroke-width=".7"/></svg></button>
         <button type="button" id="cadTplGeo" class="cad-bar-btn" aria-label="도형 템플릿" title="도형 템플릿(원·삼각형·사각형·육각형) — 몸통을 끌어 옮기고, 샤프로 구멍 안을 따라 돌리면 그 도형이 그려집니다"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="4.5" width="17" height="11" rx="1.5" fill="#f2c230" stroke="#b08a10" stroke-width="1"/><path d="M5 7.4L7.4 12.4H2.6Z" fill="#fff" stroke="#b08a10" stroke-width=".7" stroke-linejoin="round"/><rect x="8.4" y="7.8" width="4" height="4" fill="#fff" stroke="#b08a10" stroke-width=".7"/><path d="M15.3 7.6l1.85 1.1v2.2l-1.85 1.1-1.85-1.1v-2.2Z" fill="#fff" stroke="#b08a10" stroke-width=".7" stroke-linejoin="round"/></svg></button>
         <select id="cadTplKind" hidden class="cad-txt" title="템플릿 종류"><option value="circle">원형</option><option value="geo">도형</option></select>
@@ -9806,17 +9806,17 @@ svg.addEventListener('pointermove', e => {
         $('cadXY').textContent = `${holeLabel(h)} = 도면 ${fmt(h.a)}m · ${Math.round(Math.abs(sw) * 180 / Math.PI)}°`;
         return;
     }
-    if (drag && drag.kind === 'ftri') {                // 회전 삼각자 옮기기 — 직각 모서리가 눈금에 붙는다
+    if (drag && drag.kind === 'ftri') {                // 회전 삼각자 옮기기 — 직각 모서리가 눈금에 붙는다. Shift 는 눈금 없이 자유롭게(비스듬한 밑그림 선에 변을 대려고)
         if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 4) { drag.moved = true; root.classList.add('bar-drag'); }
-        if (drag.moved) { const g = barStep(); ftri.x = +(Math.round((w.x - drag.ox) / g) * g).toFixed(3); ftri.y = +(Math.round((w.y - drag.oy) / g) * g).toFixed(3);
+        if (drag.moved) { const g = e.shiftKey ? 0.001 : barStep(); ftri.x = +(Math.round((w.x - drag.ox) / g) * g).toFixed(3); ftri.y = +(Math.round((w.y - drag.oy) / g) * g).toFixed(3);
             drawFtri(); hover = null; drawPre(); $('cadXY').textContent = `회전 삼각자 직각 모서리 X ${fmt1(ftri.x)} · Y ${fmt1(ftri.y)} · ${fmt(ftri.rot || 0)}°`; }
         return;
     }
-    if (drag && drag.kind === 'ftrirot') {             // 회전 — 무게중심을 축으로 정수 각도(Shift 15°)
+    if (drag && drag.kind === 'ftrirot') {             // 회전 — 무게중심을 축으로 0.1° 단위(Shift 15°). 1° 단위로는 밑그림의 비스듬한 선에 맞출 수 없었다(사용자)
         if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 3) drag.moved = true;
         if (drag.moved) {
             let r = drag.r0 + (Math.atan2(w.y - drag.c.y, w.x - drag.c.x) - drag.a0) * 180 / Math.PI;
-            r = e.shiftKey ? Math.round(r / 15) * 15 : Math.round(r); r = ((r % 360) + 360) % 360;
+            r = e.shiftKey ? Math.round(r / 15) * 15 : Math.round(r * 10) / 10; r = +(((r % 360) + 360) % 360).toFixed(1);
             const d = (r - drag.r0) * Math.PI / 180, dx = drag.R0.x - drag.c.x, dy = drag.R0.y - drag.c.y;
             ftri.rot = r; ftri.x = +(drag.c.x + dx * Math.cos(d) - dy * Math.sin(d)).toFixed(4); ftri.y = +(drag.c.y + dx * Math.sin(d) + dy * Math.cos(d)).toFixed(4);
             drawFtri(); $('cadXY').textContent = `회전 삼각자 ${fmt(r)}°`;
