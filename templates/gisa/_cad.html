@@ -6191,11 +6191,28 @@ function pedFromOutline(R) {
 }
 // 네모 그리기(대표님): 한 모서리에서 맞은편 모서리까지 끌면 긴 쪽이 진행 방향 — 첫 모서리 쪽에서 둘째 모서리 쪽으로 화살표가 간다.
 // 보행동선은 짧은 쪽이 띠 폭(설정 칸이 아니다)
-function awBoxPts(A, B) {
+// 네모를 차량동선 위(또는 변 곁)에서 끌기 시작하면 그 길에 **직각으로** 뻗는다(대표님 2026-10 — 길에서 짧게 갈라지는 길은
+// 길이가 폭보다 짧아, '긴 쪽이 진행 방향' 규칙으로는 늘 옆으로 누운 길이 됐다). Shift 를 누른 채 끌면 방향을 뒤집는다
+function carBandDirAt(p) {                               // p 곁 차량동선의 방향 — 'h' 가로로 달림 / 'v' 세로로 달림 / null
+    const k = scaleDenom() / 1000; let best = null;
+    (doc.ops || []).forEach(o => { if (o.t !== 'free' || !o.arrow || o.arrow.kind !== 'carb' || !o.pts || o.pts.length < 2) return;
+        const W = (o.arrow.wmm || 13) * k;
+        for (let i = 1; i < o.pts.length; i++) { const a = o.pts[i - 1], b = o.pts[i], vx = b[0] - a[0], vy = b[1] - a[1], L2 = vx * vx + vy * vy; if (!L2) continue;
+            const t = Math.max(0, Math.min(1, ((p.x - a[0]) * vx + (p.y - a[1]) * vy) / L2)), d = Math.hypot(a[0] + vx * t - p.x, a[1] + vy * t - p.y);
+            if (d <= W * 0.8 && (!best || d < best.d)) best = {d, W, dir: Math.abs(vx) >= Math.abs(vy) ? 'h' : 'v'}; } });
+    return best;
+}
+function awBoxPts(A, B, swap) {
     const k = scaleDenom() / 1000, dx = Math.abs(B.x - A.x), dy = Math.abs(B.y - A.y);
     if (Math.max(dx, dy) * pxPer() < 8) return null;
-    const pts = dx >= dy ? [[A.x, (A.y + B.y) / 2], [B.x, (A.y + B.y) / 2]] : [[(A.x + B.x) / 2, A.y], [(A.x + B.x) / 2, B.y]];
-    return {pts: pts.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]), W: Math.max(2 * k, Math.min(40 * k, Math.min(dx, dy)))};
+    let horiz = dx >= dy; const kind = arrowOpts().kind;
+    let par = null;
+    if (kind === 'carb') { par = carBandDirAt(A); if (par) horiz = par.dir === 'v'; }   // 세로 길에서 시작 → 가로로 뻗는다. 폭은 그 길의 폭(갈라지는 길이 같은 폭이게)
+    if (swap) horiz = !horiz;
+    const pts = horiz ? [[A.x, (A.y + B.y) / 2], [B.x, (A.y + B.y) / 2]] : [[(A.x + B.x) / 2, A.y], [(A.x + B.x) / 2, B.y]];
+    if ((horiz ? dx : dy) * pxPer() < 4) return null;
+    const Wd = par && !swap ? par.W : horiz ? dy : dx;   // 폭은 진행 방향에 직각인 변 — 길에서 갈라지면 그 길의 폭
+    return {pts: pts.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]), W: Math.max(2 * k, Math.min(40 * k, Wd))};
 }
 // ── 차량동선(대표님 — 설계구상도 범례 '차량동선'): 두 변 사이를 촘촘한 가로 빗금으로 채운 띠. 꺾이는 곳은 둥글게 돌며 빗금이 부채꼴로 퍼지고,
 // 입구·출구에는 빗금 친 화살촉. **여러 띠를 이어 그릴 수 있다** — 먼저 그린 띠와 만나는 자리는 서로의 변을 지워 한 길처럼 보이고,
@@ -9634,7 +9651,7 @@ svg.addEventListener('pointermove', e => {
         gPre.innerHTML = box + (r ? `<path d="${freeD(r.pts)}" fill="none" stroke="${RED}" stroke-width="${fmt(0.12 * U)}"/>` : ''); return;
     }
     if (drag && drag.kind === 'awbox') {           // 동선 화살표 — 네모(긴 쪽이 진행 방향, 보행동선은 짧은 쪽이 폭)
-        const A = drag.a, B = drag.b = boxSnap(w), r = awBoxPts(A, B), o = arrowOpts(), K = ARROW_KINDS[o.kind];
+        drag.swap = e.shiftKey; const A = drag.a, B = drag.b = boxSnap(w), r = awBoxPts(A, B, drag.swap), o = arrowOpts(), K = ARROW_KINDS[o.kind];
         const box = `<path d="M${fmt(A.x)} ${fmt(A.y)}H${fmt(B.x)}V${fmt(B.y)}H${fmt(A.x)}Z" fill="none" stroke="${RED}" stroke-width="${fmt(0.08 * U)}" stroke-dasharray="${fmt(0.5 * U)} ${fmt(0.3 * U)}"/>`;
         gPre.innerHTML = box + (r ? (K.band ? bandSvg(r.pts, {kind: o.kind, both: o.both, none: o.none, wmm: r.W / (scaleDenom() / 1000), seed: 7}, RED) : arrowShapeSvg(r.pts, RED)) : ''); return;
     }
@@ -9900,7 +9917,7 @@ function endPtr(e) {
         shrubCh = {raws: raw, seed: d.seed, size: st.size, mm: st.mm, w: st.w, bulge: st.bulge, jit: st.jit, kind: st.kind, n: 0, cuts: []};
         shrubFinish(true); return;
     }
-    if (d.kind === 'awbox') { gPre.innerHTML = ''; const r = d.b && awBoxPts(d.a, d.b); if (!r) { flash('조금 더 크게 끄세요'); return; }
+    if (d.kind === 'awbox') { gPre.innerHTML = ''; const r = d.b && awBoxPts(d.a, d.b, d.swap); if (!r) { flash('조금 더 크게 끄세요'); return; }
         arrowCommit(r.pts, ARROW_KINDS[arrowOpts().kind].band ? r.W / (scaleDenom() / 1000) : 0); status(); return; }
     if (d.kind === 'spbox') { gPre.innerHTML = ''; if (d.b && Math.abs(d.b.x - d.a.x) > 1e-6 && Math.abs(d.b.y - d.a.y) > 1e-6) spaceFinish([[d.a.x, d.a.y], [d.b.x, d.a.y], [d.b.x, d.b.y], [d.a.x, d.b.y]], 'box', true); return; }
     if (d.kind === 'awfree') { gPre.innerHTML = ''; const P = arrowFreePts(d.pts); let L = 0; for (let i = 1; i < P.length; i++) L += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
