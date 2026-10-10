@@ -6212,7 +6212,7 @@ function awBoxPts(A, B, swap) {
     const pts = horiz ? [[A.x, (A.y + B.y) / 2], [B.x, (A.y + B.y) / 2]] : [[(A.x + B.x) / 2, A.y], [(A.x + B.x) / 2, B.y]];
     if ((horiz ? dx : dy) * pxPer() < 4) return null;
     const Wd = par && !swap ? par.W : horiz ? dy : dx;   // 폭은 진행 방향에 직각인 변 — 길에서 갈라지면 그 길의 폭
-    return {pts: pts.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]), W: Math.max(2 * k, Math.min(40 * k, Wd))};
+    return {pts: pts.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]), W: Math.max(2 * k, Math.min(40 * k, Wd)), tee: !!par};
 }
 // ── 차량동선(대표님 — 설계구상도 범례 '차량동선'): 두 변 사이를 촘촘한 가로 빗금으로 채운 띠. 꺾이는 곳은 둥글게 돌며 빗금이 부채꼴로 퍼지고,
 // 입구·출구에는 빗금 친 화살촉. **여러 띠를 이어 그릴 수 있다** — 먼저 그린 띠와 만나는 자리는 서로의 변을 지워 한 길처럼 보이고,
@@ -6275,6 +6275,7 @@ function carInPoly(q, op) {                             // 점이 그 띠 안인
 // 내 끝(atEnd)이 다른 열린 길의 끝과 만나는가(ㄱ자 이음) — {o, C: 두 끝 방향선의 교점, O: 상대 길로 2W 들어간 점}
 function carJoint(pts, atEnd, W, k, self, others) {
     const n = pts.length; if (n < 2) return null;
+    if (!atEnd && self && self.arrow && self.arrow.tee) return null;   // 갈라진 길의 시작은 T자 — ㄱ자로 돌려 붙이지 않는다(대표님 2026-10: 길 끝 곁에서 갈라지면 한 덩이로 뭉쳤다)
     const E = atEnd ? pts[n - 1] : pts[0], F = atEnd ? pts[n - 2] : pts[1];
     let ux = E[0] - F[0], uy = E[1] - F[1]; const ul = Math.hypot(ux, uy) || 1; ux /= ul; uy /= ul;
     let best = null, bd = Infinity;
@@ -6282,6 +6283,7 @@ function carJoint(pts, atEnd, W, k, self, others) {
         if (o.arrow.closed || o.pts.length < 2) return;
         const Wo = (o.arrow.wmm || 13) * k, m = o.pts.length;
         [[o.pts[0], o.pts[1], false], [o.pts[m - 1], o.pts[m - 2], true]].forEach(([Eo, Fo, oe]) => {
+            if (!oe && o.arrow.tee) return;               // 상대가 갈라진 길이면 그 시작 끝과는 잇지 않는다
             const d = Math.hypot(Eo[0] - E[0], Eo[1] - E[1]); if (d > 0.8 * (W + Wo) || d >= bd) return;
             let vx = Eo[0] - Fo[0], vy = Eo[1] - Fo[1]; const vl = Math.hypot(vx, vy) || 1; vx /= vl; vy /= vl;
             if (ux * vx + uy * vy > 0.5) return;             // 나란히 같은 쪽을 보는 끝 — 이음이 아니다
@@ -6546,10 +6548,10 @@ function arrowFinish() {
     if (V.length < 2) { drawPre(); status(); if (V.length) flash('화살표는 점을 둘 이상 찍어야 합니다'); return; }
     const o = arrowOpts(); arrowCommit(o.kind === 'carb' ? V.map(q => [+q.x.toFixed(3), +q.y.toFixed(3)]) : arrowPath(V, o.curve));   // 차량동선은 꺾인 점 그대로(그릴 때 폭만큼 둥글린다)
 }
-function arrowCommit(pts, wmm, closed) {                // 중심선으로 화살표 하나를 넣는다(점 찍기·자유곡선 공통). wmm — 윤곽에서 읽은 띠 폭, closed — 차량동선 고리
+function arrowCommit(pts, wmm, closed, tee) {   // tee — 길에서 직각으로 갈라진 길(시작 끝이 T자 이음)                // 중심선으로 화살표 하나를 넣는다(점 찍기·자유곡선 공통). wmm — 윤곽에서 읽은 띠 폭, closed — 차량동선 고리
     const o = arrowOpts(), K = ARROW_KINDS[o.kind]; if (wmm) o.wmm = +wmm.toFixed(2);
     snapHist();
-    doc.ops.push({id: doc.seq++, t: 'free', pts, ls: K.ls, w: K.w, arrow: K.band ? {kind: o.kind, both: o.both, wmm: o.wmm, seed: (Math.random() * 1e9) | 0, ...(o.kind === 'carb' ? {none: o.none, closed: !!closed} : {})} : {kind: o.kind, both: o.both}});
+    doc.ops.push({id: doc.seq++, t: 'free', pts, ls: K.ls, w: K.w, arrow: K.band ? {kind: o.kind, both: o.both, wmm: o.wmm, seed: (Math.random() * 1e9) | 0, ...(o.kind === 'carb' ? {none: o.none, closed: !!closed, ...(tee ? {tee: true} : {})} : {})} : {kind: o.kind, both: o.both}});
     changed(); drawPre(); status();
     let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
     flash(`${K.name} 화살표 · ${fmt(+L.toFixed(1))}m`);
@@ -9918,7 +9920,7 @@ function endPtr(e) {
         shrubFinish(true); return;
     }
     if (d.kind === 'awbox') { gPre.innerHTML = ''; const r = d.b && awBoxPts(d.a, d.b, d.swap); if (!r) { flash('조금 더 크게 끄세요'); return; }
-        arrowCommit(r.pts, ARROW_KINDS[arrowOpts().kind].band ? r.W / (scaleDenom() / 1000) : 0); status(); return; }
+        arrowCommit(r.pts, ARROW_KINDS[arrowOpts().kind].band ? r.W / (scaleDenom() / 1000) : 0, false, r.tee); status(); return; }
     if (d.kind === 'spbox') { gPre.innerHTML = ''; if (d.b && Math.abs(d.b.x - d.a.x) > 1e-6 && Math.abs(d.b.y - d.a.y) > 1e-6) spaceFinish([[d.a.x, d.a.y], [d.b.x, d.a.y], [d.b.x, d.b.y], [d.a.x, d.b.y]], 'box', true); return; }
     if (d.kind === 'awfree') { gPre.innerHTML = ''; const P = arrowFreePts(d.pts); let L = 0; for (let i = 1; i < P.length; i++) L += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
         if (d.edge) {                                  // 한쪽 변 — 관목처럼 이어 긋는다(누르기만 한 것은 무시: 더블클릭의 첫 누름)
