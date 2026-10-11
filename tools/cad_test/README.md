@@ -8,6 +8,7 @@ CAD 탭(`templates/gisa/_cad.html`)을 고친 뒤 **대표님 화면 그대로 �
 | `cadkit.py` | 공통 도구 — `Cad(doc)` 로 도면을 초안으로 넣고 CAD 탭을 연다. 도면 좌표(m)로 누르기·끌기·확대, 초안 읽기, 찍기, 페이지 오류 모으기. `server_drawing(pk)` 는 운영 도면을 **읽기만** 해 온다. 직접 돌리면 JS 문법 검사 |
 | `smoke.py` | 운영 도면 하나를 그대로 열어 페이지 오류·화면을 본다 |
 | `lead_test.py` | 식재지시선 긋기 → 수정 → 형 바꾸기. 새 시험을 짤 때 본보기 |
+| `ped_stroll_test.py` | 보행동선 띠 폭 1~7m · 산책동선 · 공간 묶음 고르기(맞춤 배율) |
 
 ```bash
 ../../../venv/Scripts/python.exe tools/cad_test/cadkit.py          # JS 문법 검사(node --check)
