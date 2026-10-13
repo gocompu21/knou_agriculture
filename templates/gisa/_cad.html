@@ -338,7 +338,7 @@
                     <h4>동선 화살표</h4>
                     <p class="cad-help">점을 찍어 가며 긋고 <b>더블클릭·Enter·오른쪽 버튼</b>으로 끝내면 끝에 화살촉이 달립니다. '곡선'을 켜면 찍은 점들을 매끄럽게 잇습니다. Backspace 한 점 되돌리기 · Esc 취소.</p>
                     <div class="cad-row"><label>종류<select id="fawK"><option value="main">주동선 (굵은 실선)</option><option value="sub">부동선 (가는 파선)</option><option value="ped">보행동선 (두 줄 · 사다리)</option><option value="stroll">산책동선 (한 줄 · 사다리)</option><option value="carb">차량동선 (빗금 띠 · 이어 그리기)</option><option value="link">연계동선 (동그라미 줄)</option></select></label></div>
-                    <div class="cad-row"><label>그리기<select id="fawM"><option value="edge">한쪽 변 그리기 (보행·산책동선)</option><option value="free" selected>자유곡선 (끌기 · 보행·산책동선은 윤곽을 대충)</option><option value="box">네모 그리기 (끌기)</option><option value="pts">점 찍기</option></select></label></div>
+                    <div class="cad-row"><label>그리기<select id="fawM"><option value="edge">한쪽 변 그리기 (보행·산책동선)</option><option value="free" selected>자유곡선 (끌기 · 보행·산책동선은 윤곽을 대충)</option><option value="fpts">자유곡선 (점 찍기)</option><option value="box">네모 그리기 (끌기)</option><option value="pts">점 찍기</option></select></label></div>
                     <div class="cad-row"><label class="cad-chk"><input type="checkbox" id="fawC" checked> 곡선</label>
                         <label class="cad-chk"><input type="checkbox" id="fawB"> 양방향</label>
                         <label class="cad-chk" id="fawNoL" hidden><input type="checkbox" id="fawNo"> 화살촉 없음</label></div>
@@ -6082,6 +6082,44 @@ function arrowFreePts(R) {                              // 손으로 그은 선 
     for (let r = 0; r < 2 && n > 3; r++) Q = Q.map((q, i) => i === 0 || i === n - 1 ? q : [(Q[i - 1][0] + 2 * q[0] + Q[i + 1][0]) / 4, (Q[i - 1][1] + 2 * q[1] + Q[i + 1][1]) / 4]);
     return Q.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]);
 }
+// '자유곡선 (점 찍기)'(fawM=fpts, 대표님 2026-10): 점을 찍어 가되 결과는 손으로 그은 자유곡선처럼.
+// ① 찍은 점을 centripetal Catmull-Rom 으로 촘촘히 잇고(균일 Catmull 은 점 간격이 고르지 않으면 고리·뾰족점이 생긴다)
+// ② 종이 1.2mm 로 다시 찍어 [1,2,1] 평균을 여러 번 — 꺾인 점을 띠 폭에 맞춰 둥글린다(안쪽 변이 접히지 않게)
+// ③ 손 떨림처럼 길이 따라 완만하게 구불거린다(양 끝은 찍은 점 그대로). 무늬는 찍은 첫 점으로 정해 미리보기와 결과가 같다
+function arrowFreeFromPts(V, wmm) {
+    const k = scaleDenom() / 1000, P = V.map(q => [q.x, q.y]).filter((q, i, A) => !i || Math.hypot(q[0] - A[i - 1][0], q[1] - A[i - 1][1]) > 1e-6);
+    if (P.length < 2) return P.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]);
+    const n = P.length, G = [[2 * P[0][0] - P[1][0], 2 * P[0][1] - P[1][1]], ...P, [2 * P[n - 1][0] - P[n - 2][0], 2 * P[n - 1][1] - P[n - 2][1]]];
+    const R = [P[0]];
+    for (let i = 1; i + 2 < G.length; i++) {
+        const p0 = G[i - 1], p1 = G[i], p2 = G[i + 1], p3 = G[i + 2], tj = (a, b) => Math.max(1e-6, Math.sqrt(Math.hypot(b[0] - a[0], b[1] - a[1])));
+        const t0 = 0, t1 = tj(p0, p1), t2 = t1 + tj(p1, p2), t3 = t2 + tj(p2, p3);
+        const m = Math.max(8, Math.ceil(Math.hypot(p2[0] - p1[0], p2[1] - p1[1]) / (0.3 * k)));
+        const L = (a, b, ta, tb, t) => [a[0] * (tb - t) / (tb - ta) + b[0] * (t - ta) / (tb - ta), a[1] * (tb - t) / (tb - ta) + b[1] * (t - ta) / (tb - ta)];
+        for (let j = 1; j <= m; j++) {
+            const t = t1 + (t2 - t1) * j / m, A1 = L(p0, p1, t0, t1, t), A2 = L(p1, p2, t1, t2, t), A3 = L(p2, p3, t2, t3, t);
+            R.push(L(L(A1, A2, t0, t2, t), L(A2, A3, t1, t3, t), t1, t2, t));
+        }
+    }
+    const D = spDense(R, 1.2 * k, false); let Q = D.P; const N = Q.length;
+    if (N < 4) return Q.map(q => [+q[0].toFixed(3), +q[1].toFixed(3)]);
+    const sg = Math.max(3 * k, 0.7 * (wmm || 0) * k), it = Math.min(200, Math.round(2 * (sg / (1.2 * k)) ** 2));   // 둥글림 너비 — 띠 폭의 0.7배(안쪽 변 반지름이 띠 반폭보다 커야 안 접힌다), 외줄은 종이 3mm
+    for (let r = 0; r < it; r++) Q = Q.map((q, i) => i === 0 || i === N - 1 ? q : [(Q[i - 1][0] + 2 * q[0] + Q[i + 1][0]) / 4, (Q[i - 1][1] + 2 * q[1] + Q[i + 1][1]) / 4]);
+    const S = [0]; for (let i = 1; i < N; i++) S.push(S[i - 1] + Math.hypot(Q[i][0] - Q[i - 1][0], Q[i][1] - Q[i - 1][1]));
+    const Lt = S[N - 1], rnd = spRng(Math.abs(Math.round(P[0][0] * 131 + P[0][1] * 97)) + 3);
+    const wob = spNoise(rnd, Lt, false, [[9 * k, 0.3], [21 * k, 0.45], [47 * k, 0.6]].map(([l, w]) => [l * (0.75 + rnd() * 0.5), w])), jit = spNoise(rnd, Lt, false, [[2.6 * k, 0.5], [4.1 * k, 0.5]]);
+    const Nm = spNormals(Q, false), amp = 0.22 * k, ta = 6 * k;
+    return Q.map((q, i) => {
+        const s = S[i], f = Math.min(1, s / ta, (Lt - s) / ta), off = f * (amp * wob(s) / 1.35 + 0.05 * k * jit(s));
+        return [+(q[0] + Nm[i][0] * off).toFixed(3), +(q[1] + Nm[i][1] * off).toFixed(3)];
+    });
+}
+// 점 찍기 · 자유곡선(점 찍기)에서 찍은 점 → 중심선(미리보기·확정 공통). 차량동선은 꺾인 점 그대로(그릴 때 폭만큼 둥글린다)
+function arrowPts(V, o) {
+    if (o.kind === 'carb') return V.map(q => [+q.x.toFixed(3), +q.y.toFixed(3)]);
+    if ($('fawM') && $('fawM').value === 'fpts') return arrowFreeFromPts(V, ARROW_KINDS[o.kind].band ? o.wmm : 0);
+    return arrowPath(V, o.curve);
+}
 // 보행동선 '한쪽 변 그리기'(대표님): 띠의 한쪽 변을 손으로 그어 두면, 마우스를 옆으로 옮겨 맞은편 변 자리를 고른다 —
 // 누른 자리까지의 거리가 띠 폭(설정 칸이 아니다), 그 쪽이 띠가 놓일 쪽. 그은 변은 손으로 그은 그대로 두고
 // 맞은편 변·가로대·양 끝 빈 화살촉을 붙인다(arrow.edge = 띠가 놓인 쪽 ±1, wmm = 고른 폭)
@@ -6563,7 +6601,7 @@ function bandSvg(pts, a, color, self) { return a.kind === 'carb' ? carSvg(pts, a
 function arrowFinish() {
     const V = arrowV.slice(); arrowV = [];
     if (V.length < 2) { drawPre(); status(); if (V.length) flash('화살표는 점을 둘 이상 찍어야 합니다'); return; }
-    const o = arrowOpts(); arrowCommit(o.kind === 'carb' ? V.map(q => [+q.x.toFixed(3), +q.y.toFixed(3)]) : arrowPath(V, o.curve));   // 차량동선은 꺾인 점 그대로(그릴 때 폭만큼 둥글린다)
+    arrowCommit(arrowPts(V, arrowOpts()));   // 차량동선은 꺾인 점 그대로(그릴 때 폭만큼 둥글린다), 자유곡선(점 찍기)는 손으로 그은 듯
 }
 function arrowCommit(pts, wmm, closed, tee) {   // tee — 길에서 직각으로 갈라진 길(시작 끝이 T자 이음)                // 중심선으로 화살표 하나를 넣는다(점 찍기·자유곡선 공통). wmm — 윤곽에서 읽은 띠 폭, closed — 차량동선 고리
     const o = arrowOpts(), K = ARROW_KINDS[o.kind]; if (wmm) o.wmm = +bandWmm(o, wmm).toFixed(2);
@@ -6595,7 +6633,7 @@ function arrowPreSvg() {
         return pedEdgeSvg(awEdge, {kind: o.kind, both: o.both, wmm: Wm / (scaleDenom() / 1000), seed: 7, edge: pk.sg}, RED) + `<text x="${fmt(w.x)}" y="${fmt(w.y - 1.2 * U)}" font-size="${fmt(1.4 * U)}" fill="${RED}">폭 ${fmt(+Wm.toFixed(1))}m</text>`;
     }
     if (!arrowV.length) return '';
-    const V = w ? arrowV.concat([snapXY(w)]) : arrowV, pts = arrowPath(V, o.curve);
+    const V = w ? arrowV.concat([snapXY(w)]) : arrowV, pts = arrowPts(V, o);
     if (o.kind === 'carb') {                             // 차량동선 — 처음 점 곁이면 고리로 닫힘을 미리 보인다
         const f = arrowV[0], lq = V[V.length - 1], cl = arrowV.length >= 3 && Math.hypot(lq.x - f.x, lq.y - f.y) * pxPer() < 12;
         const P = cl ? arrowV.map(q => [q.x, q.y]) : pts;
@@ -6611,6 +6649,7 @@ function arrowHint() {
     if (!arrowV.length && $('fawM') && $('fawM').value === 'box') return ' · 한 모서리에서 맞은편 모서리까지 끄세요 — 긴 쪽이 진행 방향(끈 쪽으로 화살표), 보행·산책동선은 짧은 쪽이 띠 폭';
     if (!arrowV.length && $('fawM') && $('fawM').value === 'edge') return ` · ${ARROW_KINDS[$('fawK').value].name}의 한쪽 변을 누른 채 그으세요 — 놓은 뒤 맞은편 변 자리를 누르면 가로대·화살표가 붙습니다`;
     if (!arrowV.length && $('fawM') && $('fawM').value === 'free' && pedLike($('fawK').value)) return ` · ${ARROW_KINDS[$('fawK').value].name} 띠의 윤곽을 대충 둘러 그리세요(닫힌 모양) — 놓으면 그 모양대로 ${$('fawK').value === 'stroll' ? '한 줄' : '두 줄'}·가로대·화살표로 다시 그립니다`;
+    if ($('fawM') && $('fawM').value === 'fpts') return arrowV.length ? ` · 자유곡선(점 찍기) ${arrowV.length}점 — 손으로 그은 듯 매끄럽게 잇습니다 · 더블클릭·Enter·우클릭 끝 · Backspace 한 점 되돌리기 · Esc 취소` : ` · 길을 따라 점을 찍으세요 — 찍은 점을 손으로 그은 자유곡선처럼 잇습니다${pedLike($('fawK').value) ? '(찍은 점이 띠 가운데 선)' : ''}`;
     if (!arrowV.length && $('fawM') && $('fawM').value === 'free') return ' · 누른 채 손 가는 대로 그으세요 — 놓으면 그 선을 따라 화살표가 됩니다';
     return arrowV.length ? ` · 화살표 ${arrowV.length}점 · 더블클릭·Enter·우클릭 끝 · Backspace 한 점 되돌리기 · Esc 취소` : ' · 화살표가 시작할 자리를 누르세요(점을 찍어 가며)';
 }
@@ -10689,6 +10728,9 @@ function awSync() {                                    // 띠 폭 칸 — 보행
     if (edge && !pl) { $('fawK').value = 'ped'; }
     $('fawPedRow').hidden = !ARROW_KINDS[$('fawK').value].band || (!pedLike($('fawK').value) && $('fawM').value !== 'pts');
     if ($('fawNoL')) $('fawNoL').hidden = $('fawK').value !== 'carb';
+    const fp = $('fawM').querySelector('option[value="fpts"]'), cb = $('fawK').value === 'carb';   // 차량동선은 자유곡선(점 찍기)를 쓰지 않는다 — 꺾인 점을 폭만큼 둥글리는 제 규칙이 있다
+    if (fp) { fp.hidden = cb; fp.disabled = cb; }
+    if (cb && $('fawM').value === 'fpts') $('fawM').value = 'pts';
 }
 if ($('fawK')) $('fawK').addEventListener('change', () => {
     const kv = $('fawK').value;

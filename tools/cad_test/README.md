@@ -9,6 +9,7 @@ CAD 탭(`templates/gisa/_cad.html`)을 고친 뒤 **대표님 화면 그대로 �
 | `smoke.py` | 운영 도면 하나를 그대로 열어 페이지 오류·화면을 본다 |
 | `lead_test.py` | 식재지시선 긋기 → 수정 → 형 바꾸기. 새 시험을 짤 때 본보기 |
 | `ped_stroll_test.py` | 보행동선 띠 폭 1~7m · 산책동선 · 공간 묶음 고르기(맞춤 배율) |
+| `arrow_pts_free_test.py` | 동선 화살표 점 찍기 / 자유곡선(점 찍기) / 자유곡선(끌기) 나란히 비교(맞춤 배율) |
 
 ```bash
 ../../../venv/Scripts/python.exe tools/cad_test/cadkit.py          # JS 문법 검사(node --check)
