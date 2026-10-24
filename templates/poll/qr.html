@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>AI 모임 사전 설문 — QR</title>
+<style>
+* { box-sizing:border-box; }
+html, body { height:100%; }
+body { margin:0; background:#fff; color:#1d2433; font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif; }
+.nav { position:fixed; top:8px; right:14px; font-size:13px; color:#b4bac6; }
+.nav a { color:#b4bac6; text-decoration:none; margin-left:10px; }
+.nav a:hover { color:#5b6475; }
+.stage { min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px 16px; gap:2vh; text-align:center; }
+h1 { margin:0; font-size:clamp(28px, 5vh, 56px); letter-spacing:-1px; }
+.sub { margin:0; font-size:clamp(16px, 2.6vh, 28px); color:#5b6475; }
+.qr svg { width:min(62vh, 86vw); height:auto; display:block; }
+.url { font-size:clamp(26px, 5.2vh, 60px); font-weight:800; color:#2f5bea; letter-spacing:-0.5px; word-break:break-all; }
+.cnt { font-size:clamp(18px, 3vh, 34px); color:#1d2433; }
+.cnt b { font-size:1.5em; color:#2f5bea; }
+</style>
+</head>
+<body>
+<div class="nav"><a href="{% url 'poll:survey' %}">설문</a><a href="{% url 'poll:stats' %}">통계(관리자)</a></div>
+<div class="stage">
+  <h1>AI 모임 사전 설문</h1>
+  <p class="sub">휴대폰 카메라로 QR코드를 찍어 주세요</p>
+  <div class="qr" title="{{ url }}">{{ svg|safe }}</div>
+  <div class="url">hanulstudy.kr/poll/s</div>
+  <div class="cnt">지금까지 <b id="cnt">{{ count }}</b>명 응답</div>
+</div>
+<script>
+(function () {
+  var el = document.getElementById('cnt');
+  function tick() {
+    fetch('{% url "poll:count" %}', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { el.textContent = d.count; })
+      .catch(function () {});
+  }
+  setInterval(tick, 5000);
+})();
+</script>
+</body>
+</html>

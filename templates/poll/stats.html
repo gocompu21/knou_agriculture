@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>AI 모임 설문 통계</title>
+<style>
+:root { --ink:#1d2433; --sub:#5b6475; --line:#e3e7ee; --bg:#f4f6fa; --acc:#2f5bea; --ok:#2e7d32; --bad:#d93025; --mid:#9aa3b2; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif; font-size:15px; line-height:1.5; }
+.wrap { max-width:1100px; margin:0 auto; padding:0 16px 60px; }
+.nav { text-align:right; padding:8px 0 0; font-size:13px; }
+.nav a { color:#9aa3b2; text-decoration:none; margin-left:10px; }
+header { display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px; justify-content:space-between; padding:8px 0 12px; }
+h1 { font-size:24px; margin:0; }
+.meta { color:var(--sub); font-size:14px; }
+.btn { display:inline-block; padding:8px 14px; background:var(--acc); color:#fff; border-radius:8px; text-decoration:none; font-weight:600; font-size:14px; }
+.btn.sub { background:#fff; color:var(--acc); border:1px solid var(--acc); }
+.grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:14px; }
+.card { background:#fff; border-radius:12px; padding:16px; box-shadow:0 1px 3px rgba(20,30,60,.06); min-width:0; }
+.card.wide { grid-column:1 / -1; }
+h2 { font-size:18px; margin:28px 0 10px; }
+h3 { font-size:15px; margin:0 0 10px; }
+h3 small { color:var(--sub); font-weight:400; }
+.bar { display:grid; grid-template-columns:minmax(0, 1fr) 90px; gap:8px; align-items:center; margin:5px 0; font-size:14px; }
+.bar .lb { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bar .lb b { color:var(--sub); font-weight:500; margin-right:3px; }
+.bar .tr { grid-column:1 / -1; height:10px; background:#eef0f4; border-radius:5px; overflow:hidden; margin-top:-2px; }
+.bar .tr i { display:block; height:100%; background:var(--acc); border-radius:5px; }
+.bar .nm { text-align:right; color:var(--sub); font-variant-numeric:tabular-nums; }
+.bar.zero .lb { color:#aab1bd; }
+.others { margin-top:8px; font-size:13px; color:var(--sub); }
+.rule { font-size:13px; color:var(--sub); margin:0 0 12px; padding-left:18px; }
+.lv { display:flex; flex-wrap:wrap; gap:10px; }
+.lv > div { flex:1 1 200px; border:1px solid var(--line); border-radius:10px; padding:12px; }
+.lv .big { font-size:28px; font-weight:800; color:var(--acc); }
+.lv .people { font-size:14px; margin-top:4px; }
+.stack { display:flex; height:22px; border-radius:6px; overflow:hidden; margin:4px 0 2px; background:#eef0f4; font-size:12px; color:#fff; }
+.stack span { display:flex; align-items:center; justify-content:center; white-space:nowrap; overflow:hidden; }
+.s-ok { background:var(--ok); } .s-bad { background:var(--bad); } .s-mid { background:var(--mid); }
+.t0 { background:#d93025; } .t1 { background:#f0a500; } .t2 { background:#2e7d32; }
+.legend { font-size:12px; color:var(--sub); display:flex; gap:12px; flex-wrap:wrap; margin-bottom:8px; }
+.legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:4px; vertical-align:middle; }
+.ui-item { margin:0 0 12px; }
+.ui-item .tx { font-size:14px; }
+.ui-item .nt { font-size:12px; color:#b26a00; }
+.ui-item .nums { font-size:12px; color:var(--sub); }
+ol.rank { margin:0; padding-left:22px; }
+ol.rank li { margin:4px 0; }
+ol.rank li span { color:var(--sub); font-size:13px; }
+.texts li { margin:6px 0; }
+.texts b { color:var(--acc); }
+.tbl-wrap { overflow:auto; max-height:70vh; border-radius:10px; border:1px solid var(--line); background:#fff; }
+table { border-collapse:collapse; font-size:13px; min-width:100%; }
+th, td { border-bottom:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+th { position:sticky; top:0; background:#1d2433; color:#fff; font-weight:600; white-space:nowrap; max-width:220px; overflow:hidden; text-overflow:ellipsis; }
+td { min-width:90px; max-width:260px; }
+td.nm, th.nm { position:sticky; left:0; background:#fff; z-index:1; font-weight:700; }
+th.nm { background:#1d2433; z-index:2; }
+.empty { color:var(--sub); padding:30px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="nav"><a href="{% url 'poll:survey' %}">설문</a><a href="{% url 'poll:qr' %}">QR</a><a href="{% url 'poll:stats' %}">통계</a></div>
+<header>
+  <div>
+    <h1>AI 모임 사전 설문 통계</h1>
+    <div class="meta">응답 {{ n }}명(이름별 마지막 응답) · 전체 제출 {{ total }}건 · {{ now|date:"m월 d일 H:i" }} 기준</div>
+  </div>
+  <div>
+    <a class="btn" href="{% url 'poll:stats_csv' %}">CSV 내려받기</a>
+    <a class="btn sub" href="{% url 'poll:stats_csv' %}?all=1">전체 제출 CSV</a>
+  </div>
+</header>
+
+{% if not n %}<div class="card empty">아직 응답이 없습니다.</div>{% else %}
+
+<h2>수준 분류</h2>
+<div class="card">
+  <ul class="rule">{% for k, v in level_rule %}<li><b>{{ k }}</b> — {{ v }}</li>{% endfor %}<li>판정 순서: 활용 중 → 입문 → 써 봄</li></ul>
+  <div class="lv">
+  {% for lv in levels %}
+    <div><div>{{ lv.name }}</div><div class="big">{{ lv.n }}<small style="font-size:14px;color:var(--sub)">명 · {{ lv.pct }}%</small></div>
+    <div class="people">{% for r in lv.people %}{{ r.name }}{% if not forloop.last %}, {% endif %}{% empty %}<span style="color:#aab1bd">—</span>{% endfor %}</div></div>
+  {% endfor %}
+  </div>
+</div>
+
+<h2>배우고 싶은 것 · 걱정 · 기기</h2>
+<div class="grid">
+  <div class="card"><h3>11. 배우고 싶은 것 순위 <small>(최대 3개)</small></h3>
+    <ol class="rank">{% for d in rank11 %}<li>{{ d.label }} <span>{{ d.n }}명 · {{ d.pct }}%</span></li>{% empty %}<li>—</li>{% endfor %}</ol></div>
+  <div class="card"><h3>13. 걱정되거나 어려운 점 순위</h3>
+    <ol class="rank">{% for d in rank13 %}<li>{{ d.label }} <span>{{ d.n }}명 · {{ d.pct }}%</span></li>{% empty %}<li>—</li>{% endfor %}</ol></div>
+  <div class="card"><h3>14. 수업 때 쓰실 기기</h3>
+    {% for d in dist14 %}<div class="bar{% if not d.n %} zero{% endif %}"><span class="lb"><b>{{ d.mark }}</b>{{ d.label }}</span><span class="nm">{{ d.n }}명 {{ d.pct }}%</span><span class="tr"><i style="width:{{ d.pct }}%"></i></span></div>{% endfor %}</div>
+</div>
+
+<h2>AI 이해도</h2>
+<div class="grid">
+  <div class="card"><h3>9. 맞다/아니다 — 정답률</h3>
+    <div class="legend"><span><i class="s-ok"></i>맞음</span><span><i class="s-bad"></i>틀림</span><span><i class="s-mid"></i>모르겠다</span></div>
+    {% for u in understanding %}
+    <div class="ui-item">
+      <div class="tx"><b>{{ u.num }}</b> {{ u.text }} <span style="color:var(--sub)">(정답: {{ u.answer }})</span></div>
+      {% if u.note %}<div class="nt">※ {{ u.note }}</div>{% endif %}
+      <div class="stack">{% if u.right %}<span class="s-ok" style="width:{{ u.right_pct }}%">{{ u.right_pct }}%</span>{% endif %}{% if u.wrong %}<span class="s-bad" style="width:{{ u.wrong_pct }}%">{{ u.wrong_pct }}%</span>{% endif %}{% if u.dunno %}<span class="s-mid" style="width:{{ u.dunno_pct }}%">{{ u.dunno_pct }}%</span>{% endif %}</div>
+      <div class="nums">맞음 {{ u.right }} · 틀림 {{ u.wrong }} · 모르겠다 {{ u.dunno }} (응답 {{ u.tot }})</div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="card"><h3>10. 용어 — '처음 들음' 비율</h3>
+    <div class="legend"><span><i class="t0"></i>처음 들음</span><span><i class="t1"></i>들어 봄</span><span><i class="t2"></i>설명할 수 있음</span></div>
+    {% for t in terms %}
+    <div class="ui-item">
+      <div class="tx"><b>{{ t.text }}</b> — 처음 들음 {{ t.new_pct }}%</div>
+      <div class="stack">{% for s in t.segs %}{% if s.n %}<span class="t{{ forloop.counter0 }}" style="width:{{ s.pct }}%">{{ s.n }}</span>{% endif %}{% endfor %}</div>
+      <div class="nums">{% for s in t.segs %}{{ s.label }} {{ s.n }}{% if not forloop.last %} · {% endif %}{% endfor %} (응답 {{ t.tot }})</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<h2>문항별 분포</h2>
+<div class="grid">
+{% for c in charts %}
+  <div class="card"><h3>{{ c.q.num }}. {{ c.q.title }} <small>({% if c.q.type == 'multi' %}여러 개 · {% endif %}응답 {{ c.answered }}명)</small></h3>
+    {% for d in c.dist %}<div class="bar{% if not d.n %} zero{% endif %}"><span class="lb"><b>{{ d.mark }}</b>{{ d.label }}</span><span class="nm">{{ d.n }}명 {{ d.pct }}%</span><span class="tr"><i style="width:{{ d.pct }}%"></i></span></div>{% endfor %}
+    {% if c.others %}<div class="others">기타·내용: {{ c.others|join:" / " }}</div>{% endif %}
+  </div>
+{% endfor %}
+</div>
+
+<h2>주관식 모아 보기</h2>
+<div class="grid">
+{% for t in texts %}
+  <div class="card"><h3>{{ t.q.num }}. {{ t.q.title }} <small>({{ t.items|length }}명)</small></h3>
+    <ul class="texts">{% for name, v in t.items %}<li><b>{{ name }}</b> — {{ v|linebreaksbr }}</li>{% empty %}<li style="color:#aab1bd">없음</li>{% endfor %}</ul></div>
+{% endfor %}
+</div>
+
+<h2>사람별 응답</h2>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th class="nm">이름</th><th>수준</th><th>제출</th>{% for h, k in cols %}<th title="{{ h }}">{{ h|truncatechars:22 }}</th>{% endfor %}</tr></thead>
+  <tbody>
+  {% for row in table %}
+    <tr><td class="nm">{{ row.r.name }}</td><td>{{ row.level }}</td><td style="white-space:nowrap">{{ row.r.created_at|date:"m-d H:i" }}</td>{% for v in row.cells %}<td>{{ v }}</td>{% endfor %}</tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+</div>
+</body>
+</html>

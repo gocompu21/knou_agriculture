@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>AI 모임 사전 설문</title>
+<style>
+:root { --ink:#1d2433; --sub:#5b6475; --line:#d9dee7; --bg:#f4f6fa; --card:#fff; --acc:#2f5bea; --acc-bg:#e8eeff; --err:#d93025; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif; font-size:18px; line-height:1.5; -webkit-text-size-adjust:100%; }
+.wrap { max-width:640px; margin:0 auto; padding:0 16px 48px; }
+.admin { position:absolute; top:8px; right:12px; font-size:12px; color:#b4bac6; text-decoration:none; }
+header { padding:28px 0 10px; }
+h1 { font-size:26px; margin:0 0 6px; letter-spacing:-0.5px; }
+header p { margin:0; color:var(--sub); font-size:16px; }
+.notice { background:#fdecea; color:var(--err); border-radius:10px; padding:12px 14px; margin:12px 0; font-weight:600; font-size:16px; }
+.part { margin-top:26px; }
+.part h2 { font-size:19px; margin:0 0 4px; color:var(--acc); }
+.part .pnote { margin:0 0 6px; font-size:15px; color:var(--sub); }
+.q { background:var(--card); border-radius:14px; padding:18px 16px; margin:12px 0; border:2px solid transparent; box-shadow:0 1px 3px rgba(20,30,60,.06); scroll-margin-top:16px; }
+.q.bad { border-color:var(--err); }
+.qt { font-weight:700; font-size:19px; margin:0 0 4px; }
+.qt .req { color:var(--err); font-size:15px; margin-left:4px; }
+.qh { color:var(--sub); font-size:15px; margin:0 0 10px; }
+.qerr { display:none; color:var(--err); font-size:15px; font-weight:600; margin-top:8px; }
+.q.bad .qerr { display:block; }
+.opts { display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+.opt { position:relative; display:block; }
+.opt input { position:absolute; opacity:0; width:1px; height:1px; }
+.opt span { display:flex; align-items:center; gap:10px; min-height:52px; padding:10px 14px; border:2px solid var(--line); border-radius:12px; background:#fff; cursor:pointer; font-size:18px; }
+.opt span b { flex:0 0 auto; color:var(--sub); font-weight:600; }
+.opt input:checked + span { border-color:var(--acc); background:var(--acc-bg); font-weight:700; }
+.opt input:checked + span b { color:var(--acc); }
+.opt input:focus-visible + span { outline:3px solid #9bb3ff; }
+.opt input:disabled + span { opacity:.45; }
+.other { display:none; margin:6px 0 0; }
+.other.on { display:block; }
+input[type=text], textarea { width:100%; font-size:18px; padding:12px 14px; border:2px solid var(--line); border-radius:12px; font-family:inherit; background:#fff; color:var(--ink); }
+input[type=text]:focus, textarea:focus { outline:none; border-color:var(--acc); }
+.scale-item { padding:12px 0; border-top:1px solid #eef0f4; }
+.scale-item:first-of-type { border-top:none; }
+.scale-item .st { font-size:17px; margin:0 0 8px; }
+.scale-item .st small { color:var(--sub); }
+.seg { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.seg .opt span { justify-content:center; text-align:center; min-height:48px; padding:6px 4px; font-size:16px; }
+.count { color:var(--sub); font-size:15px; margin-left:4px; font-weight:400; }
+button.submit { display:block; width:100%; margin:28px 0 8px; padding:18px; font-size:20px; font-weight:700; color:#fff; background:var(--acc); border:none; border-radius:14px; cursor:pointer; }
+button.submit:disabled { opacity:.6; }
+.foot { text-align:center; color:var(--sub); font-size:14px; }
+</style>
+</head>
+<body>
+<a class="admin" href="{% url 'poll:stats' %}">관리자</a>
+<div class="wrap">
+<header>
+  <h1>AI 모임 사전 설문</h1>
+  <p>수업을 여러분께 맞추려는 설문입니다. 3~5분이면 끝납니다. <span style="color:var(--err)">*</span> 표시는 꼭 답해 주세요.</p>
+</header>
+{% if notice %}<div class="notice" id="notice">{{ notice }}</div>{% endif %}
+<form method="post" id="pf" novalidate>
+{% csrf_token %}
+{% for p in parts %}
+<section class="part">
+  <h2>{{ p.title }}</h2>
+  {% if p.note %}<p class="pnote">{{ p.note }}</p>{% endif %}
+  {% for q in p.questions %}
+  <div class="q" id="box-{{ q.id }}" data-q="{{ q.id }}" data-type="{{ q.type }}" data-req="{{ q.required|yesno:'1,' }}"{% if q.max %} data-max="{{ q.max }}"{% endif %}>
+    <p class="qt">{{ q.num }}. {{ q.title }}{% if q.type == 'multi' %} <span class="count">{% if q.max %}(최대 {{ q.max }}개){% else %}(여러 개){% endif %}</span>{% endif %}{% if q.required %}<span class="req">*</span>{% endif %}</p>
+    {% if q.hint %}<p class="qh">{{ q.hint }}</p>{% endif %}
+    {% if q.type == 'text' %}
+      {% if q.rows %}<textarea name="{{ q.id }}" rows="{{ q.rows }}"></textarea>{% else %}<input type="text" name="{{ q.id }}" maxlength="50" autocomplete="name" placeholder="이름을 적어 주세요">{% endif %}
+    {% elif q.type == 'single' or q.type == 'multi' %}
+      <div class="opts">
+      {% for c in q.choices %}
+        <label class="opt"><input type="{% if q.type == 'single' %}radio{% else %}checkbox{% endif %}" name="{{ q.id }}" value="{{ c }}" data-i="{{ forloop.counter0 }}"><span><b>{{ circled|slice:forloop.counter|last }}</b>{{ c }}</span></label>
+      {% endfor %}
+      </div>
+      {% if q.other or q.other_on is not None %}
+      <div class="other" data-for="{{ q.id }}" data-oi="{% if q.other %}{{ q.choices|length|add:'-1' }}{% else %}{{ q.other_on }}{% endif %}">
+        <input type="text" name="{{ q.id }}_other" maxlength="200" placeholder="{% if q.other_label %}{{ q.other_label }}?{% else %}기타 — 적어 주세요{% endif %}">
+      </div>
+      {% endif %}
+    {% elif q.type == 'scale' %}
+      {% for it in q.items %}
+      <div class="scale-item">
+        <p class="st">{% if it.num %}<small>{{ it.num }}</small> {% endif %}{{ it.text }}</p>
+        <div class="seg">
+        {% for c in q.choices %}<label class="opt"><input type="radio" name="{{ q.id }}_{{ forloop.parentloop.counter }}" value="{{ c }}"><span>{{ c }}</span></label>{% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    {% endif %}
+    <div class="qerr" id="err-{{ q.id }}"></div>
+  </div>
+  {% endfor %}
+</section>
+{% endfor %}
+<button type="submit" class="submit" id="sb">제출하기</button>
+<p class="foot">이름 말고 다른 개인정보는 받지 않습니다.</p>
+</form>
+</div>
+{{ answers|json_script:"poll-answers" }}
+{{ errors|json_script:"poll-errors" }}
+<script>
+(function () {
+  var form = document.getElementById('pf');
+  var answers = JSON.parse(document.getElementById('poll-answers').textContent || '{}');
+  var errors = JSON.parse(document.getElementById('poll-errors').textContent || '{}');
+
+  // 서버에서 돌아온 답 되살리기
+  Object.keys(answers).forEach(function (k) {
+    var v = answers[k];
+    var els = form.querySelectorAll('[name="' + k + '"]');
+    if (!els.length) return;
+    if (els[0].type === 'radio' || els[0].type === 'checkbox') {
+      var vs = Array.isArray(v) ? v : [v];
+      els.forEach(function (e) { e.checked = vs.indexOf(e.value) >= 0; });
+    } else {
+      els[0].value = v;
+    }
+  });
+
+  function syncOther(qid) {
+    var box = form.querySelector('.other[data-for="' + qid + '"]');
+    if (!box) return;
+    var oi = box.getAttribute('data-oi');
+    var el = form.querySelector('[name="' + qid + '"][data-i="' + oi + '"]');
+    box.classList.toggle('on', !!(el && el.checked));
+  }
+  function syncMax(qbox) {
+    var max = parseInt(qbox.getAttribute('data-max') || '0', 10);
+    if (!max) return;
+    var cbs = qbox.querySelectorAll('input[type=checkbox]');
+    var n = 0;
+    cbs.forEach(function (c) { if (c.checked) n++; });
+    cbs.forEach(function (c) { c.disabled = !c.checked && n >= max; });
+  }
+  function filled(qbox) {
+    var qid = qbox.getAttribute('data-q'), t = qbox.getAttribute('data-type');
+    if (t === 'text') {
+      var el = form.querySelector('[name="' + qid + '"]');
+      return el && el.value.trim() !== '';
+    }
+    return !!form.querySelector('[name="' + qid + '"]:checked');
+  }
+  function setErr(qbox, msg) {
+    qbox.classList.toggle('bad', !!msg);
+    var e = qbox.querySelector('.qerr');
+    if (e) e.textContent = msg || '';
+  }
+
+  document.querySelectorAll('.q').forEach(function (qbox) {
+    var qid = qbox.getAttribute('data-q');
+    syncOther(qid); syncMax(qbox);
+    if (errors[qid]) setErr(qbox, errors[qid]);
+    qbox.addEventListener('change', function () {
+      syncOther(qid); syncMax(qbox);
+      if (qbox.classList.contains('bad') && filled(qbox)) setErr(qbox, '');
+    });
+    qbox.addEventListener('input', function () {
+      if (qbox.classList.contains('bad') && filled(qbox)) setErr(qbox, '');
+    });
+  });
+
+  var first = document.querySelector('.q.bad');
+  if (first) first.scrollIntoView({ block: 'start' });
+
+  form.addEventListener('submit', function (ev) {
+    var bad = null;
+    document.querySelectorAll('.q[data-req="1"]').forEach(function (qbox) {
+      if (!filled(qbox)) {
+        var t = qbox.getAttribute('data-type');
+        setErr(qbox, t === 'text' ? '적어 주세요' : (t === 'multi' ? '하나 이상 골라 주세요' : '하나를 골라 주세요'));
+        if (!bad) bad = qbox;
+      }
+    });
+    if (bad) {
+      ev.preventDefault();
+      bad.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      var inp = bad.querySelector('input[type=text], textarea');
+      if (inp) setTimeout(function () { inp.focus(); }, 400);
+      return;
+    }
+    document.getElementById('sb').disabled = true;
+    document.getElementById('sb').textContent = '보내는 중…';
+  });
+  // 감사 화면에서 '뒤로'로 돌아오면 단추를 되살린다(bfcache)
+  window.addEventListener('pageshow', function () {
+    var b = document.getElementById('sb');
+    b.disabled = false; b.textContent = '제출하기';
+  });
+})();
+</script>
+</body>
+</html>

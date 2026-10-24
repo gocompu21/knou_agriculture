@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "accounts",
     "gisa",
     "bbs",
+    "poll",
 ]
 
 SITE_ID = 1
