@@ -364,7 +364,14 @@ def certification_list(request):
 
     묶음 안은 **자격증 이름순**이다 — pk 순으로 두면 조경기사와 조경산업기사가
     떨어져 나오고, 필기 묶음과 실기 묶음의 차례도 서로 어긋난다.
+
+    2026-11-28 대표님 지시: 스태프가 아닌 회원은 "식물보호 및 나무의사반에
+    가입해 주시기 바랍니다." 안내만 본다(헤더 단추·홈 '기사반 입장'은 alert,
+    주소를 직접 친 경우는 여기서 안내 화면). 반 소속을 적는 칸이 아직 없어
+    스태프 여부로만 가른다.
     """
+    if not request.user.is_staff:
+        return render(request, "gisa/join_required.html", status=403)
     certifications = Certification.objects.annotate(
         exam_count=Count("gisaexam", distinct=True),
         question_count=Count("gisaexam__gisaquestion", distinct=True),
